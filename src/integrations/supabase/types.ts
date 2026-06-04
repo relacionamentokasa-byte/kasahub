@@ -14,6 +14,139 @@ export type Database = {
   }
   public: {
     Tables: {
+      lead_activities: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          lead_id: string
+          metadata: Json
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          lead_id: string
+          metadata?: Json
+          type?: string
+          user_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          lead_id?: string
+          metadata?: Json
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_stages: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          is_lost: boolean
+          is_won: boolean
+          name: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          is_lost?: boolean
+          is_won?: boolean
+          name?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leads: {
+        Row: {
+          company: string | null
+          created_at: string
+          email: string | null
+          id: string
+          lost_reason: string | null
+          name: string
+          notes: string | null
+          order_index: number
+          owner_id: string | null
+          phone: string | null
+          source: string | null
+          stage_id: string | null
+          updated_at: string
+          value: number
+          won_at: string | null
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          lost_reason?: string | null
+          name: string
+          notes?: string | null
+          order_index?: number
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          stage_id?: string | null
+          updated_at?: string
+          value?: number
+          won_at?: string | null
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          lost_reason?: string | null
+          name?: string
+          notes?: string | null
+          order_index?: number
+          owner_id?: string | null
+          phone?: string | null
+          source?: string | null
+          stage_id?: string | null
+          updated_at?: string
+          value?: number
+          won_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "lead_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -46,6 +179,124 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      proposal_items: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          order_index: number
+          proposal_id: string
+          quantity: number
+          recurrence: string
+          title: string
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          proposal_id: string
+          quantity?: number
+          recurrence?: string
+          title: string
+          unit_price?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          order_index?: number
+          proposal_id?: string
+          quantity?: number
+          recurrence?: string
+          title?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposal_items_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      proposals: {
+        Row: {
+          accepted_at: string | null
+          accepted_ip: string | null
+          accepted_name: string | null
+          client_email: string | null
+          client_name: string
+          created_at: string
+          currency: string
+          id: string
+          intro: string | null
+          lead_id: string | null
+          monthly_investment: number
+          one_time_investment: number
+          owner_id: string | null
+          public_token: string
+          status: string
+          title: string
+          total: number
+          updated_at: string
+          valid_until: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          client_email?: string | null
+          client_name: string
+          created_at?: string
+          currency?: string
+          id?: string
+          intro?: string | null
+          lead_id?: string | null
+          monthly_investment?: number
+          one_time_investment?: number
+          owner_id?: string | null
+          public_token?: string
+          status?: string
+          title: string
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_ip?: string | null
+          accepted_name?: string | null
+          client_email?: string | null
+          client_name?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          intro?: string | null
+          lead_id?: string | null
+          monthly_investment?: number
+          one_time_investment?: number
+          owner_id?: string | null
+          public_token?: string
+          status?: string
+          title?: string
+          total?: number
+          updated_at?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "proposals_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
