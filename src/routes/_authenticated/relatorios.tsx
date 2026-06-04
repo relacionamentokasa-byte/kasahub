@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { BarChart3 } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/relatorios")({
+export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({ meta: [{ title: "Relatórios — KASA OS" }] }),
   component: () => (
     <ModuleEmpty

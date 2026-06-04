@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { KanbanSquare } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/crm")({
+export const Route = createFileRoute("/_authenticated/crm")({
   head: () => ({ meta: [{ title: "CRM — KASA OS" }] }),
   component: () => (
     <ModuleEmpty

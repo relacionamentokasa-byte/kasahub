@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FileText } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/propostas")({
+export const Route = createFileRoute("/_authenticated/propostas")({
   head: () => ({ meta: [{ title: "Propostas — KASA OS" }] }),
   component: () => (
     <ModuleEmpty

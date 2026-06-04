@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/config")({
+export const Route = createFileRoute("/_authenticated/config")({
   head: () => ({ meta: [{ title: "Configurações — KASA OS" }] }),
   component: () => (
     <ModuleEmpty

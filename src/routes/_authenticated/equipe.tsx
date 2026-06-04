@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { UsersRound } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/equipe")({
+export const Route = createFileRoute("/_authenticated/equipe")({
   head: () => ({ meta: [{ title: "Equipe — KASA OS" }] }),
   component: () => (
     <ModuleEmpty

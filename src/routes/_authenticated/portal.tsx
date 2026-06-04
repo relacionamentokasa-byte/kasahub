@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Globe } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/portal")({
+export const Route = createFileRoute("/_authenticated/portal")({
   head: () => ({ meta: [{ title: "Portal do Cliente — KASA OS" }] }),
   component: () => (
     <ModuleEmpty

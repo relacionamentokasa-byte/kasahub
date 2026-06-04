@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Wallet } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/financeiro")({
+export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA OS" }] }),
   component: () => (
     <ModuleEmpty
