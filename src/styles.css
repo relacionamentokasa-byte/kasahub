@@ -131,10 +131,11 @@
 @utility font-display { font-family: var(--font-display); }
 @utility font-mono-kasa { font-family: var(--font-mono); }
 
-/* Pattern institucional Kasa — placeholder até receber arquivo oficial */
+/* Pattern institucional Kasa — arquivo oficial */
 @utility kasa-pattern {
-  background-image: radial-gradient(circle at 2px 2px, color-mix(in oklab, var(--color-primary) 18%, transparent) 1px, transparent 0);
-  background-size: 24px 24px;
+  background-image: url("/__l5e/assets-v1/c83ff70d-ca71-48fe-a9eb-37d3f8c87e5c/kasa-pattern.jpeg");
+  background-size: 420px auto;
+  background-repeat: repeat;
 }
 
 @utility kasa-grid {
