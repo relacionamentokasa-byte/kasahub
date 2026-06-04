@@ -20,7 +20,7 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/_shell/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Dashboard — KASA OS" },

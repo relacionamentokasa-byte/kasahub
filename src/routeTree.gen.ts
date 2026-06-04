@@ -10,127 +10,127 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ShellRouteImport } from './routes/_shell'
-import { Route as ShellIndexRouteImport } from './routes/_shell.index'
-import { Route as ShellRelatoriosRouteImport } from './routes/_shell.relatorios'
-import { Route as ShellPropostasRouteImport } from './routes/_shell.propostas'
-import { Route as ShellProjetosRouteImport } from './routes/_shell.projetos'
-import { Route as ShellPortalRouteImport } from './routes/_shell.portal'
-import { Route as ShellJobsRouteImport } from './routes/_shell.jobs'
-import { Route as ShellFinanceiroRouteImport } from './routes/_shell.financeiro'
-import { Route as ShellEquipeRouteImport } from './routes/_shell.equipe'
-import { Route as ShellCrmRouteImport } from './routes/_shell.crm'
-import { Route as ShellConfigRouteImport } from './routes/_shell.config'
-import { Route as ShellClientesRouteImport } from './routes/_shell.clientes'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
+import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
+import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
+import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
+import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
+import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
+import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShellRoute = ShellRouteImport.update({
-  id: '/_shell',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ShellIndexRoute = ShellIndexRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellRelatoriosRoute = ShellRelatoriosRouteImport.update({
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellPropostasRoute = ShellPropostasRouteImport.update({
+const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
   id: '/propostas',
   path: '/propostas',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellProjetosRoute = ShellProjetosRouteImport.update({
+const AuthenticatedProjetosRoute = AuthenticatedProjetosRouteImport.update({
   id: '/projetos',
   path: '/projetos',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellPortalRoute = ShellPortalRouteImport.update({
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellJobsRoute = ShellJobsRouteImport.update({
+const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellFinanceiroRoute = ShellFinanceiroRouteImport.update({
+const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellEquipeRoute = ShellEquipeRouteImport.update({
+const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
   id: '/equipe',
   path: '/equipe',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellCrmRoute = ShellCrmRouteImport.update({
+const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellConfigRoute = ShellConfigRouteImport.update({
+const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
   id: '/config',
   path: '/config',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ShellClientesRoute = ShellClientesRouteImport.update({
+const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   id: '/clientes',
   path: '/clientes',
-  getParentRoute: () => ShellRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof ShellIndexRoute
+  '/': typeof AuthenticatedIndexRoute
   '/login': typeof LoginRoute
-  '/clientes': typeof ShellClientesRoute
-  '/config': typeof ShellConfigRoute
-  '/crm': typeof ShellCrmRoute
-  '/equipe': typeof ShellEquipeRoute
-  '/financeiro': typeof ShellFinanceiroRoute
-  '/jobs': typeof ShellJobsRoute
-  '/portal': typeof ShellPortalRoute
-  '/projetos': typeof ShellProjetosRoute
-  '/propostas': typeof ShellPropostasRoute
-  '/relatorios': typeof ShellRelatoriosRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/config': typeof AuthenticatedConfigRoute
+  '/crm': typeof AuthenticatedCrmRoute
+  '/equipe': typeof AuthenticatedEquipeRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/jobs': typeof AuthenticatedJobsRoute
+  '/portal': typeof AuthenticatedPortalRoute
+  '/projetos': typeof AuthenticatedProjetosRoute
+  '/propostas': typeof AuthenticatedPropostasRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
-  '/clientes': typeof ShellClientesRoute
-  '/config': typeof ShellConfigRoute
-  '/crm': typeof ShellCrmRoute
-  '/equipe': typeof ShellEquipeRoute
-  '/financeiro': typeof ShellFinanceiroRoute
-  '/jobs': typeof ShellJobsRoute
-  '/portal': typeof ShellPortalRoute
-  '/projetos': typeof ShellProjetosRoute
-  '/propostas': typeof ShellPropostasRoute
-  '/relatorios': typeof ShellRelatoriosRoute
-  '/': typeof ShellIndexRoute
+  '/clientes': typeof AuthenticatedClientesRoute
+  '/config': typeof AuthenticatedConfigRoute
+  '/crm': typeof AuthenticatedCrmRoute
+  '/equipe': typeof AuthenticatedEquipeRoute
+  '/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/jobs': typeof AuthenticatedJobsRoute
+  '/portal': typeof AuthenticatedPortalRoute
+  '/projetos': typeof AuthenticatedProjetosRoute
+  '/propostas': typeof AuthenticatedPropostasRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_shell': typeof ShellRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/login': typeof LoginRoute
-  '/_shell/clientes': typeof ShellClientesRoute
-  '/_shell/config': typeof ShellConfigRoute
-  '/_shell/crm': typeof ShellCrmRoute
-  '/_shell/equipe': typeof ShellEquipeRoute
-  '/_shell/financeiro': typeof ShellFinanceiroRoute
-  '/_shell/jobs': typeof ShellJobsRoute
-  '/_shell/portal': typeof ShellPortalRoute
-  '/_shell/projetos': typeof ShellProjetosRoute
-  '/_shell/propostas': typeof ShellPropostasRoute
-  '/_shell/relatorios': typeof ShellRelatoriosRoute
-  '/_shell/': typeof ShellIndexRoute
+  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
+  '/_authenticated/config': typeof AuthenticatedConfigRoute
+  '/_authenticated/crm': typeof AuthenticatedCrmRoute
+  '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
+  '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
+  '/_authenticated/jobs': typeof AuthenticatedJobsRoute
+  '/_authenticated/portal': typeof AuthenticatedPortalRoute
+  '/_authenticated/projetos': typeof AuthenticatedProjetosRoute
+  '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -163,23 +163,23 @@ export interface FileRouteTypes {
     | '/'
   id:
     | '__root__'
-    | '/_shell'
+    | '/_authenticated'
     | '/login'
-    | '/_shell/clientes'
-    | '/_shell/config'
-    | '/_shell/crm'
-    | '/_shell/equipe'
-    | '/_shell/financeiro'
-    | '/_shell/jobs'
-    | '/_shell/portal'
-    | '/_shell/projetos'
-    | '/_shell/propostas'
-    | '/_shell/relatorios'
-    | '/_shell/'
+    | '/_authenticated/clientes'
+    | '/_authenticated/config'
+    | '/_authenticated/crm'
+    | '/_authenticated/equipe'
+    | '/_authenticated/financeiro'
+    | '/_authenticated/jobs'
+    | '/_authenticated/portal'
+    | '/_authenticated/projetos'
+    | '/_authenticated/propostas'
+    | '/_authenticated/relatorios'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  ShellRoute: typeof ShellRouteWithChildren
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   LoginRoute: typeof LoginRoute
 }
 
@@ -192,127 +192,138 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_shell': {
-      id: '/_shell'
+    '/_authenticated': {
+      id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof ShellRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_shell/': {
-      id: '/_shell/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof ShellIndexRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/relatorios': {
-      id: '/_shell/relatorios'
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
       path: '/relatorios'
       fullPath: '/relatorios'
-      preLoaderRoute: typeof ShellRelatoriosRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/propostas': {
-      id: '/_shell/propostas'
+    '/_authenticated/propostas': {
+      id: '/_authenticated/propostas'
       path: '/propostas'
       fullPath: '/propostas'
-      preLoaderRoute: typeof ShellPropostasRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedPropostasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/projetos': {
-      id: '/_shell/projetos'
+    '/_authenticated/projetos': {
+      id: '/_authenticated/projetos'
       path: '/projetos'
       fullPath: '/projetos'
-      preLoaderRoute: typeof ShellProjetosRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedProjetosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/portal': {
-      id: '/_shell/portal'
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
       path: '/portal'
       fullPath: '/portal'
-      preLoaderRoute: typeof ShellPortalRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/jobs': {
-      id: '/_shell/jobs'
+    '/_authenticated/jobs': {
+      id: '/_authenticated/jobs'
       path: '/jobs'
       fullPath: '/jobs'
-      preLoaderRoute: typeof ShellJobsRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedJobsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/financeiro': {
-      id: '/_shell/financeiro'
+    '/_authenticated/financeiro': {
+      id: '/_authenticated/financeiro'
       path: '/financeiro'
       fullPath: '/financeiro'
-      preLoaderRoute: typeof ShellFinanceiroRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/equipe': {
-      id: '/_shell/equipe'
+    '/_authenticated/equipe': {
+      id: '/_authenticated/equipe'
       path: '/equipe'
       fullPath: '/equipe'
-      preLoaderRoute: typeof ShellEquipeRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedEquipeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/crm': {
-      id: '/_shell/crm'
+    '/_authenticated/crm': {
+      id: '/_authenticated/crm'
       path: '/crm'
       fullPath: '/crm'
-      preLoaderRoute: typeof ShellCrmRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedCrmRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/config': {
-      id: '/_shell/config'
+    '/_authenticated/config': {
+      id: '/_authenticated/config'
       path: '/config'
       fullPath: '/config'
-      preLoaderRoute: typeof ShellConfigRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedConfigRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_shell/clientes': {
-      id: '/_shell/clientes'
+    '/_authenticated/clientes': {
+      id: '/_authenticated/clientes'
       path: '/clientes'
       fullPath: '/clientes'
-      preLoaderRoute: typeof ShellClientesRouteImport
-      parentRoute: typeof ShellRoute
+      preLoaderRoute: typeof AuthenticatedClientesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
-interface ShellRouteChildren {
-  ShellClientesRoute: typeof ShellClientesRoute
-  ShellConfigRoute: typeof ShellConfigRoute
-  ShellCrmRoute: typeof ShellCrmRoute
-  ShellEquipeRoute: typeof ShellEquipeRoute
-  ShellFinanceiroRoute: typeof ShellFinanceiroRoute
-  ShellJobsRoute: typeof ShellJobsRoute
-  ShellPortalRoute: typeof ShellPortalRoute
-  ShellProjetosRoute: typeof ShellProjetosRoute
-  ShellPropostasRoute: typeof ShellPropostasRoute
-  ShellRelatoriosRoute: typeof ShellRelatoriosRoute
-  ShellIndexRoute: typeof ShellIndexRoute
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
+  AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
+  AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
+  AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
+  AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
+  AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
+  AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
+  AuthenticatedProjetosRoute: typeof AuthenticatedProjetosRoute
+  AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
 
-const ShellRouteChildren: ShellRouteChildren = {
-  ShellClientesRoute: ShellClientesRoute,
-  ShellConfigRoute: ShellConfigRoute,
-  ShellCrmRoute: ShellCrmRoute,
-  ShellEquipeRoute: ShellEquipeRoute,
-  ShellFinanceiroRoute: ShellFinanceiroRoute,
-  ShellJobsRoute: ShellJobsRoute,
-  ShellPortalRoute: ShellPortalRoute,
-  ShellProjetosRoute: ShellProjetosRoute,
-  ShellPropostasRoute: ShellPropostasRoute,
-  ShellRelatoriosRoute: ShellRelatoriosRoute,
-  ShellIndexRoute: ShellIndexRoute,
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
+  AuthenticatedConfigRoute: AuthenticatedConfigRoute,
+  AuthenticatedCrmRoute: AuthenticatedCrmRoute,
+  AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
+  AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
+  AuthenticatedJobsRoute: AuthenticatedJobsRoute,
+  AuthenticatedPortalRoute: AuthenticatedPortalRoute,
+  AuthenticatedProjetosRoute: AuthenticatedProjetosRoute,
+  AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
 
-const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren)
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  ShellRoute: ShellRouteWithChildren,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

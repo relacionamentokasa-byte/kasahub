@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CheckSquare } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/jobs")({
+export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({ meta: [{ title: "Jobs — KASA OS" }] }),
   component: () => (
     <ModuleEmpty

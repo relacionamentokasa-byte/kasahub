@@ -3,7 +3,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AppTopbar } from "@/components/AppTopbar";
 
-export const Route = createFileRoute("/_shell")({
+export const Route = createFileRoute("/_authenticated")({
   component: ShellLayout,
 });
 

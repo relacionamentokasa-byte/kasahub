@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FolderKanban } from "lucide-react";
 import { ModuleEmpty } from "@/components/ModuleEmpty";
 
-export const Route = createFileRoute("/_shell/projetos")({
+export const Route = createFileRoute("/_authenticated/projetos")({
   head: () => ({ meta: [{ title: "Projetos — KASA OS" }] }),
   component: () => (
     <ModuleEmpty
