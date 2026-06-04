@@ -22,6 +22,7 @@ import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
+import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -87,6 +88,12 @@ const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
   path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPropostasProposalIdRoute =
+  AuthenticatedPropostasProposalIdRouteImport.update({
+    id: '/$proposalId',
+    path: '/$proposalId',
+    getParentRoute: () => AuthenticatedPropostasRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -99,8 +106,9 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof AuthenticatedJobsRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/projetos': typeof AuthenticatedProjetosRoute
-  '/propostas': typeof AuthenticatedPropostasRoute
+  '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -112,9 +120,10 @@ export interface FileRoutesByTo {
   '/jobs': typeof AuthenticatedJobsRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/projetos': typeof AuthenticatedProjetosRoute
-  '/propostas': typeof AuthenticatedPropostasRoute
+  '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/': typeof AuthenticatedIndexRoute
+  '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -128,9 +137,10 @@ export interface FileRoutesById {
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/projetos': typeof AuthenticatedProjetosRoute
-  '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
+  '/_authenticated/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -147,6 +157,7 @@ export interface FileRouteTypes {
     | '/projetos'
     | '/propostas'
     | '/relatorios'
+    | '/propostas/$proposalId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -161,6 +172,7 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/relatorios'
     | '/'
+    | '/propostas/$proposalId'
   id:
     | '__root__'
     | '/_authenticated'
@@ -176,6 +188,7 @@ export interface FileRouteTypes {
     | '/_authenticated/propostas'
     | '/_authenticated/relatorios'
     | '/_authenticated/'
+    | '/_authenticated/propostas/$proposalId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -276,8 +289,30 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/propostas/$proposalId': {
+      id: '/_authenticated/propostas/$proposalId'
+      path: '/$proposalId'
+      fullPath: '/propostas/$proposalId'
+      preLoaderRoute: typeof AuthenticatedPropostasProposalIdRouteImport
+      parentRoute: typeof AuthenticatedPropostasRoute
+    }
   }
 }
+
+interface AuthenticatedPropostasRouteChildren {
+  AuthenticatedPropostasProposalIdRoute: typeof AuthenticatedPropostasProposalIdRoute
+}
+
+const AuthenticatedPropostasRouteChildren: AuthenticatedPropostasRouteChildren =
+  {
+    AuthenticatedPropostasProposalIdRoute:
+      AuthenticatedPropostasProposalIdRoute,
+  }
+
+const AuthenticatedPropostasRouteWithChildren =
+  AuthenticatedPropostasRoute._addFileChildren(
+    AuthenticatedPropostasRouteChildren,
+  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
@@ -288,7 +323,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedProjetosRoute: typeof AuthenticatedProjetosRoute
-  AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
+  AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRouteWithChildren
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
 }
@@ -302,7 +337,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedProjetosRoute: AuthenticatedProjetosRoute,
-  AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
+  AuthenticatedPropostasRoute: AuthenticatedPropostasRouteWithChildren,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
 }
@@ -317,3 +352,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
