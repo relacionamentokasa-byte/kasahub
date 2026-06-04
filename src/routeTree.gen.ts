@@ -9,50 +9,309 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ShellRouteImport } from './routes/_shell'
+import { Route as ShellIndexRouteImport } from './routes/_shell.index'
+import { Route as ShellRelatoriosRouteImport } from './routes/_shell.relatorios'
+import { Route as ShellPropostasRouteImport } from './routes/_shell.propostas'
+import { Route as ShellProjetosRouteImport } from './routes/_shell.projetos'
+import { Route as ShellPortalRouteImport } from './routes/_shell.portal'
+import { Route as ShellJobsRouteImport } from './routes/_shell.jobs'
+import { Route as ShellFinanceiroRouteImport } from './routes/_shell.financeiro'
+import { Route as ShellEquipeRouteImport } from './routes/_shell.equipe'
+import { Route as ShellCrmRouteImport } from './routes/_shell.crm'
+import { Route as ShellConfigRouteImport } from './routes/_shell.config'
+import { Route as ShellClientesRouteImport } from './routes/_shell.clientes'
 
-const IndexRoute = IndexRouteImport.update({
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShellRoute = ShellRouteImport.update({
+  id: '/_shell',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ShellIndexRoute = ShellIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellRelatoriosRoute = ShellRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellPropostasRoute = ShellPropostasRouteImport.update({
+  id: '/propostas',
+  path: '/propostas',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellProjetosRoute = ShellProjetosRouteImport.update({
+  id: '/projetos',
+  path: '/projetos',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellPortalRoute = ShellPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellJobsRoute = ShellJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellFinanceiroRoute = ShellFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellEquipeRoute = ShellEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellCrmRoute = ShellCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellConfigRoute = ShellConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
+  getParentRoute: () => ShellRoute,
+} as any)
+const ShellClientesRoute = ShellClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => ShellRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof ShellIndexRoute
+  '/login': typeof LoginRoute
+  '/clientes': typeof ShellClientesRoute
+  '/config': typeof ShellConfigRoute
+  '/crm': typeof ShellCrmRoute
+  '/equipe': typeof ShellEquipeRoute
+  '/financeiro': typeof ShellFinanceiroRoute
+  '/jobs': typeof ShellJobsRoute
+  '/portal': typeof ShellPortalRoute
+  '/projetos': typeof ShellProjetosRoute
+  '/propostas': typeof ShellPropostasRoute
+  '/relatorios': typeof ShellRelatoriosRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/login': typeof LoginRoute
+  '/clientes': typeof ShellClientesRoute
+  '/config': typeof ShellConfigRoute
+  '/crm': typeof ShellCrmRoute
+  '/equipe': typeof ShellEquipeRoute
+  '/financeiro': typeof ShellFinanceiroRoute
+  '/jobs': typeof ShellJobsRoute
+  '/portal': typeof ShellPortalRoute
+  '/projetos': typeof ShellProjetosRoute
+  '/propostas': typeof ShellPropostasRoute
+  '/relatorios': typeof ShellRelatoriosRoute
+  '/': typeof ShellIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_shell': typeof ShellRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_shell/clientes': typeof ShellClientesRoute
+  '/_shell/config': typeof ShellConfigRoute
+  '/_shell/crm': typeof ShellCrmRoute
+  '/_shell/equipe': typeof ShellEquipeRoute
+  '/_shell/financeiro': typeof ShellFinanceiroRoute
+  '/_shell/jobs': typeof ShellJobsRoute
+  '/_shell/portal': typeof ShellPortalRoute
+  '/_shell/projetos': typeof ShellProjetosRoute
+  '/_shell/propostas': typeof ShellPropostasRoute
+  '/_shell/relatorios': typeof ShellRelatoriosRoute
+  '/_shell/': typeof ShellIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/login'
+    | '/clientes'
+    | '/config'
+    | '/crm'
+    | '/equipe'
+    | '/financeiro'
+    | '/jobs'
+    | '/portal'
+    | '/projetos'
+    | '/propostas'
+    | '/relatorios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/login'
+    | '/clientes'
+    | '/config'
+    | '/crm'
+    | '/equipe'
+    | '/financeiro'
+    | '/jobs'
+    | '/portal'
+    | '/projetos'
+    | '/propostas'
+    | '/relatorios'
+    | '/'
+  id:
+    | '__root__'
+    | '/_shell'
+    | '/login'
+    | '/_shell/clientes'
+    | '/_shell/config'
+    | '/_shell/crm'
+    | '/_shell/equipe'
+    | '/_shell/financeiro'
+    | '/_shell/jobs'
+    | '/_shell/portal'
+    | '/_shell/projetos'
+    | '/_shell/propostas'
+    | '/_shell/relatorios'
+    | '/_shell/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  ShellRoute: typeof ShellRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_shell': {
+      id: '/_shell'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ShellRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_shell/': {
+      id: '/_shell/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof ShellIndexRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/relatorios': {
+      id: '/_shell/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof ShellRelatoriosRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/propostas': {
+      id: '/_shell/propostas'
+      path: '/propostas'
+      fullPath: '/propostas'
+      preLoaderRoute: typeof ShellPropostasRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/projetos': {
+      id: '/_shell/projetos'
+      path: '/projetos'
+      fullPath: '/projetos'
+      preLoaderRoute: typeof ShellProjetosRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/portal': {
+      id: '/_shell/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof ShellPortalRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/jobs': {
+      id: '/_shell/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof ShellJobsRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/financeiro': {
+      id: '/_shell/financeiro'
+      path: '/financeiro'
+      fullPath: '/financeiro'
+      preLoaderRoute: typeof ShellFinanceiroRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/equipe': {
+      id: '/_shell/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof ShellEquipeRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/crm': {
+      id: '/_shell/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof ShellCrmRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/config': {
+      id: '/_shell/config'
+      path: '/config'
+      fullPath: '/config'
+      preLoaderRoute: typeof ShellConfigRouteImport
+      parentRoute: typeof ShellRoute
+    }
+    '/_shell/clientes': {
+      id: '/_shell/clientes'
+      path: '/clientes'
+      fullPath: '/clientes'
+      preLoaderRoute: typeof ShellClientesRouteImport
+      parentRoute: typeof ShellRoute
     }
   }
 }
 
+interface ShellRouteChildren {
+  ShellClientesRoute: typeof ShellClientesRoute
+  ShellConfigRoute: typeof ShellConfigRoute
+  ShellCrmRoute: typeof ShellCrmRoute
+  ShellEquipeRoute: typeof ShellEquipeRoute
+  ShellFinanceiroRoute: typeof ShellFinanceiroRoute
+  ShellJobsRoute: typeof ShellJobsRoute
+  ShellPortalRoute: typeof ShellPortalRoute
+  ShellProjetosRoute: typeof ShellProjetosRoute
+  ShellPropostasRoute: typeof ShellPropostasRoute
+  ShellRelatoriosRoute: typeof ShellRelatoriosRoute
+  ShellIndexRoute: typeof ShellIndexRoute
+}
+
+const ShellRouteChildren: ShellRouteChildren = {
+  ShellClientesRoute: ShellClientesRoute,
+  ShellConfigRoute: ShellConfigRoute,
+  ShellCrmRoute: ShellCrmRoute,
+  ShellEquipeRoute: ShellEquipeRoute,
+  ShellFinanceiroRoute: ShellFinanceiroRoute,
+  ShellJobsRoute: ShellJobsRoute,
+  ShellPortalRoute: ShellPortalRoute,
+  ShellProjetosRoute: ShellProjetosRoute,
+  ShellPropostasRoute: ShellPropostasRoute,
+  ShellRelatoriosRoute: ShellRelatoriosRoute,
+  ShellIndexRoute: ShellIndexRoute,
+}
+
+const ShellRouteWithChildren = ShellRoute._addFileChildren(ShellRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  ShellRoute: ShellRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
