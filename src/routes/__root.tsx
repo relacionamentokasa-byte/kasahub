@@ -77,14 +77,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { name: "theme-color", content: "#0C1618" },
+      { title: "KASA OS — Sistema Operacional para Agências" },
+      { name: "description", content: "ERP especializado para agências de marketing. Comercial, operação, financeiro e experiência do cliente em um só lugar." },
+      { name: "author", content: "Kasa Marketing Consultoria" },
+      { property: "og:title", content: "KASA OS — Sistema Operacional para Agências" },
+      { property: "og:description", content: "ERP especializado para agências de marketing." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
