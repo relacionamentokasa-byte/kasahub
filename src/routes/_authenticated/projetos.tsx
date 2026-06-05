@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2 } from "lucide-react";
+import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2, FileSignature } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchClients, deleteProject, duplicateProject, archiveProject } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { NewProjectDialog } from "@/components/projects/NewProjectDialog";
@@ -25,26 +26,10 @@ function ProjetosPage() {
   const qc = useQueryClient();
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const { data: contracts = [] } = useQuery({
-    queryKey: ["all-contracts"],
-    queryFn: async () => {
-      const { data, error } = await fetch("/api/query", {
-        method: "POST",
-        body: JSON.stringify({ query: "SELECT id, title FROM contracts" })
-      }).then(res => res.json()); // Wait, I should use supabase client or a lib function
-      
-      const { data: ct, error: err } = await (window as any).supabase.from("contracts").select("id, title");
-      if (err) return [];
-      return ct;
-    },
-    enabled: false // I'll use a better approach
-  });
-  
-  // Actually, I'll use the supabase client directly as I don't have a lib function for all contracts
   const { data: allContracts = [] } = useQuery({
     queryKey: ["all-contracts"],
     queryFn: async () => {
-      const { data } = await (window as any).supabase.from("contracts").select("id, title");
+      const { data } = await supabase.from("contracts").select("id, title");
       return data || [];
     }
   });
