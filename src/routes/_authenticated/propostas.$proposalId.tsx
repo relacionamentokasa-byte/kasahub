@@ -154,6 +154,8 @@ export function ProposalEditorContent({
         recurring_months: Number(p.recurring_months ?? 12),
         scope: (p.scope as string[]) ?? [],
         payment_method: (p.payment_method as string) ?? "boleto",
+        monthly_investment: Number(proposal.monthly_investment || 0),
+        one_time_investment: Number(proposal.one_time_investment || 0),
       });
     }
   }, [proposal]);
