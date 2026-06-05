@@ -213,6 +213,19 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
     (t) => t.status === "pending" && t.due_date < new Date().toISOString().slice(0, 10),
   );
 
+  // Ticket calculations (kept for backward compatibility with other pages)
+  const recurringClients = new Set(activeContracts.map((c) => c.client_id).filter(Boolean));
+  const ticketRecurrente = recurringClients.size > 0 ? mrr / recurringClients.size : 0;
+  const allClientsBilled = new Set(
+    txs.filter((t) => t.kind === "income" && t.client_id).map((t) => t.client_id as string),
+  );
+  const totalIncome = txs.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const ticketGeral = allClientsBilled.size > 0 ? totalIncome / allClientsBilled.size : 0;
+
+  // include month-window aliases for legacy callers
+  const monthIncome = periodTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const monthExpense = periodTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
+
   return {
     incomePaid,
     expensePaid,
@@ -223,6 +236,12 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
     arr,
     recurringIncome,
     extraIncome,
+    ticketRecurrente,
+    ticketGeral,
+    monthIncome,
+    monthExpense,
+    monthResult: monthIncome - monthExpense,
+    extraThisMonth: extraIncome,
     overdueCount: overdue.length,
     overdueAmount: overdue.reduce((s, t) => s + Number(t.amount), 0),
   };
