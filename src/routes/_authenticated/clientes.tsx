@@ -21,8 +21,6 @@ function ClientesPage() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  if (isClientDetail) return <Outlet />;
-
   const delMut = useMutation({
     mutationFn: (id: string) => deleteClient(id),
     onSuccess: () => {
@@ -41,6 +39,8 @@ function ClientesPage() {
       (c.email ?? "").toLowerCase().includes(q)
     );
   });
+
+  if (isClientDetail) return <Outlet />;
 
   return (
     <div className="flex flex-col h-full">
