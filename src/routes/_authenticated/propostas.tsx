@@ -433,6 +433,11 @@ function ProposalsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ProposalDetailSheet
+        proposalId={selectedId}
+        onClose={() => setSelectedId(null)}
+      />
     </div>
   );
 }
