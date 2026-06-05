@@ -672,52 +672,35 @@ export function ProposalEditorContent({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-primary text-[10px] capitalize">
-                Composição Financeira
-              </span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => addItem("monthly")} className="gap-1">
-                  <Plus className="size-3.5" /> Recorrente
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => addItem("one_time")} className="gap-1">
-                  <Plus className="size-3.5" /> Pontual
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {items.map((it) => (
-                <ItemRow
-                  key={it.id}
-                  item={it}
-                  onChange={(patch) =>
-                    itemMut.mutate({ ...it, ...patch, proposal_id: proposalId })
-                  }
-                  onDelete={() => delItemMut.mutate(it.id)}
-                />
-              ))}
-              {items.length === 0 && (
-                <p className="text-xs text-foreground/40 text-center py-6">
-                  Adicione itens recorrentes (mensais) ou pontuais para compor o investimento.
-                </p>
-              )}
-            </div>
-          </div>
+          {/* Removing old Composition block as it is now integrated above */}
         </div>
 
         <div className="space-y-4">
           <div className={`rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6 ${embedded ? "" : "sticky top-6"}`}>
             <span className="text-primary text-[10px] capitalize">
-              Investimento Mensal
+              INVESTIMENTO
             </span>
-            <div className="font-display text-4xl font-bold mt-2 text-primary">
-              {formatCurrency(totals.monthly_investment)}
-            </div>
-            <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
-              <Row label="Pontual" value={formatCurrency(totals.one_time_investment)} />
-              <Row label="Total" value={formatCurrency(totals.total)} bold />
-            </div>
+            {form.contract_type === "recurring" ? (
+              <>
+                <div className="font-display text-4xl font-bold mt-2 text-primary">
+                  {formatCurrency(totals.monthly_investment)}
+                  <span className="text-sm font-normal text-foreground/40 ml-2">/mês</span>
+                </div>
+                <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
+                  <Row label="Prazo" value={`${form.recurring_months} meses`} />
+                  <Row label="Investimento Total" value={formatCurrency(totals.monthly_investment * form.recurring_months)} bold />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="font-display text-4xl font-bold mt-2 text-primary">
+                  {formatCurrency(totals.one_time_investment)}
+                </div>
+                <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
+                  <Row label="Parcelamento" value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} />
+                  <Row label="Total" value={formatCurrency(totals.total)} bold />
+                </div>
+            )}
           </div>
 
           {proposal.status === "accepted" && (
