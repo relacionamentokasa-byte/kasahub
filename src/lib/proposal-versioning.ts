@@ -88,24 +88,38 @@ export async function cancelProposalWorkflow(
   proposalId: string, 
   reason: string
 ) {
+  console.log(`[Cancel Workflow] Iniciando cancelamento da proposta: ${proposalId}`);
+  
   const { data: userData } = await supabase.auth.getUser();
-  const { data: proposal } = await supabase
+  const { data: proposal, error: fetchErr } = await supabase
     .from("proposals")
     .select("client_id, lead_id, generated_contract_id, generated_project_id, total, title")
     .eq("id", proposalId)
     .single();
 
-  if (!proposal) throw new Error("Proposta não encontrada");
+  if (fetchErr || !proposal) {
+    console.error(`[Cancel Workflow] Erro ao buscar proposta:`, fetchErr);
+    throw new Error("Proposta não encontrada");
+  }
+
+  const contractId = proposal.generated_contract_id;
+  const projectId = proposal.generated_project_id;
+  
+  console.log(`[Cancel Workflow] Contrato vinculado: ${contractId || 'Nenhum'}`);
+  console.log(`[Cancel Workflow] Projeto vinculado: ${projectId || 'Nenhum'}`);
 
   // 1. Validações de segurança
-  // Verificar se há entregas concluídas
-  const { data: jobs } = await supabase
-    .from("jobs")
-    .select("id, done_at")
-    .eq("project_id", proposal.generated_project_id || "");
-  
-  if (jobs?.some(j => j.done_at)) {
-    throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados (tarefas concluídas). Utilize a opção Encerrar Projeto.");
+  if (projectId) {
+    // Verificar se há entregas concluídas
+    const { data: jobs } = await supabase
+      .from("jobs")
+      .select("id, done_at")
+      .eq("project_id", projectId);
+    
+    if (jobs?.some(j => j.done_at)) {
+      console.warn(`[Cancel Workflow] Cancelamento abortado: existem tarefas concluídas.`);
+      throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados. Utilize a opção Encerrar Projeto.");
+    }
   }
 
   // Verificar se há faturas pagas
@@ -115,54 +129,97 @@ export async function cancelProposalWorkflow(
     .eq("proposal_id", proposalId);
   
   if (transactions?.some(t => t.status === 'paid')) {
-    throw new Error("Não é possível remover esta estrutura porque já existem registros financeiros vinculados (faturas pagas). Utilize a opção Encerrar Projeto.");
+    console.warn(`[Cancel Workflow] Cancelamento abortado: existem faturas pagas.`);
+    throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados. Utilize a opção Encerrar Projeto.");
   }
 
-  // 2. Remoção de estruturas operacionais
-  // Remover Jobs
-  if (proposal.generated_project_id) {
-    await supabase.from("jobs").delete().eq("project_id", proposal.generated_project_id);
+  // 2. Remoção de estruturas operacionais seguindo a ordem obrigatória
+  try {
+    if (projectId) {
+      // 2.1 Solicitações, Tarefas e Entregas (Tudo na tabela 'jobs')
+      const { data: jobsToDelete } = await supabase
+        .from("jobs")
+        .select("id, labels")
+        .eq("project_id", projectId);
+      
+      const solicitacoesCount = jobsToDelete?.filter(j => Array.isArray(j.labels) && (j.labels as string[]).includes('solicitação')).length || 0;
+      const entregasCount = jobsToDelete?.filter(j => Array.isArray(j.labels) && (j.labels as string[]).includes('entrega')).length || 0;
+      const onboardingCount = jobsToDelete?.filter(j => Array.isArray(j.labels) && (j.labels as string[]).includes('onboarding')).length || 0;
+      const tarefasCount = (jobsToDelete?.length || 0) - solicitacoesCount - entregasCount - onboardingCount;
+
+      console.log(`[Cancel Workflow] Removendo ${jobsToDelete?.length || 0} registros de jobs (Solicitações: ${solicitacoesCount}, Entregas: ${entregasCount}, Onboarding: ${onboardingCount}, Tarefas: ${tarefasCount})`);
+
+      // Deletar checklist e comentários antes de deletar os jobs (evitar órfãos)
+      if (jobsToDelete?.length) {
+        const jobIds = jobsToDelete.map(j => j.id);
+        
+        const { error: checklistErr } = await supabase.from("job_checklist").delete().in("job_id", jobIds);
+        if (checklistErr) throw new Error(`Falha ao remover checklist das tarefas: ${checklistErr.message}`);
+        
+        const { error: commentsErr } = await supabase.from("job_comments").delete().in("job_id", jobIds);
+        if (commentsErr) throw new Error(`Falha ao remover comentários das tarefas: ${commentsErr.message}`);
+      }
+
+      const { error: jobsErr } = await supabase.from("jobs").delete().eq("project_id", projectId);
+      if (jobsErr) throw new Error(`Falha ao remover tarefas (jobs): ${jobsErr.message}`);
+
+      // 2.2 Responsáveis vinculados
+      const { error: membersErr } = await supabase.from("project_members").delete().eq("project_id", projectId);
+      if (membersErr) throw new Error(`Falha ao remover responsáveis vinculados: ${membersErr.message}`);
+
+      // 2.3 Projeto
+      console.log(`[Cancel Workflow] Removendo projeto: ${projectId}`);
+      const { error: projectErr } = await supabase.from("projects").delete().eq("id", projectId);
+      if (projectErr) throw new Error(`Falha ao remover projeto: ${projectErr.message}`);
+    }
+
+    // 2.4 Contrato
+    if (contractId) {
+      console.log(`[Cancel Workflow] Removendo contrato: ${contractId}`);
+      const { error: contractErr } = await supabase.from("contracts").delete().eq("id", contractId);
+      if (contractErr) throw new Error(`Falha ao remover contrato: ${contractErr.message}`);
+    }
+
+    // 2.5 Cancelar transações pendentes remanescentes
+    await supabase
+      .from("transactions")
+      .update({ status: 'cancelled' })
+      .eq("proposal_id", proposalId)
+      .eq("status", 'pending');
+
+    // 3. Atualizar status da proposta
+    const { error: updateErr } = await supabase
+      .from("proposals")
+      .update({
+        status: 'cancelled',
+        cancellation_reason: reason,
+        cancelled_by: userData.user?.id,
+        structure_status: 'removed',
+        generated_project_id: null,
+        generated_contract_id: null
+      } as any)
+      .eq("id", proposalId);
+
+    if (updateErr) throw new Error(`Falha ao atualizar status da proposta: ${updateErr.message}`);
+
+    await recordProposalEvent(proposalId, "cancelled", { reason });
+    await recordProposalEvent(proposalId, "structure_removed" as any, { reason });
+    
+    await recordTimelineEvent({
+      client_id: proposal.client_id,
+      lead_id: proposal.lead_id,
+      type: 'termination',
+      title: 'Proposta cancelada e estrutura removida',
+      description: `Motivo: ${reason}`,
+      metadata: { proposal_id: proposalId }
+    });
+
+    console.log(`[Cancel Workflow] Operação finalizada com sucesso para a proposta ${proposalId}`);
+    
+  } catch (err: any) {
+    console.error(`[Cancel Workflow] Erro crítico durante cancelamento:`, err);
+    throw err;
   }
-
-  // Remover Projeto
-  if (proposal.generated_project_id) {
-    await supabase.from("projects").delete().eq("id", proposal.generated_project_id);
-  }
-
-  // Remover Contrato
-  if (proposal.generated_contract_id) {
-    await supabase.from("contracts").delete().eq("id", proposal.generated_contract_id);
-  }
-
-  // Cancelar transações pendentes
-  await supabase
-    .from("transactions")
-    .update({ status: 'cancelled' })
-    .eq("proposal_id", proposalId)
-    .eq("status", 'pending');
-
-  // 3. Atualizar status da proposta
-  await supabase
-    .from("proposals")
-    .update({
-      status: 'cancelled',
-      cancellation_reason: reason,
-      cancelled_by: userData.user?.id,
-      structure_status: 'removed'
-    } as any)
-    .eq("id", proposalId);
-
-  await recordProposalEvent(proposalId, "cancelled", { reason });
-  await recordProposalEvent(proposalId, "structure_removed" as any, { reason });
-  
-  await recordTimelineEvent({
-    client_id: proposal.client_id,
-    lead_id: proposal.lead_id,
-    type: 'termination',
-    title: 'Proposta cancelada e estrutura removida',
-    description: `Motivo: ${reason}`,
-    metadata: { proposal_id: proposalId }
-  });
 }
 
 export async function reopenProposal(proposalId: string) {

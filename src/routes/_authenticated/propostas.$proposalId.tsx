@@ -277,11 +277,14 @@ export function ProposalEditorContent({
   const cancelWorkflowMut = useMutation({
     mutationFn: () => cancelProposalWorkflow(proposalId, cancelReason),
     onSuccess: () => {
-      toast.success("Operação cancelada e estrutura removida");
+      toast.success("Proposta cancelada e toda a estrutura operacional vinculada foi removida com sucesso.");
       setShowCancelDialog(false);
       qc.invalidateQueries();
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      console.error("[UI] Erro ao cancelar proposta:", e);
+      toast.error(`Falha ao remover estrutura: ${e.message}`);
+    }
   });
 
   async function persistTotalsFor(nextItems: ProposalItem[]) {
