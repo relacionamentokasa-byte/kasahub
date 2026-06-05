@@ -115,6 +115,7 @@ export function ProposalEditorContent({
     category_id: "",
     auto_create_jobs: true,
     recurring_months: 12,
+    scope: [] as string[],
   });
 
   useEffect(() => {
