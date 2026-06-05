@@ -91,6 +91,10 @@ function ProposalsPage() {
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
+  const { data: services = [] } = useQuery({
+    queryKey: ["services", "active"],
+    queryFn: () => fetchServices({ onlyActive: true }),
+  });
   const [open, setOpen] = useState(false);
   const emptyForm = {
     title: "",
