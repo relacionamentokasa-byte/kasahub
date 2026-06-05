@@ -188,6 +188,7 @@ export function ProposalEditorContent({
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
         scope: f.scope,
+        payment_method: f.payment_method,
       } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
