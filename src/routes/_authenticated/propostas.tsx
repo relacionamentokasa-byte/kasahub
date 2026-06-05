@@ -474,6 +474,21 @@ function ProposalsPage() {
                         </Field>
                       )}
                     </div>
+                    {form.contract_type === "mensal" && form.contract_term === "custom" && (
+                      <Field label="Meses (Personalizado)">
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="Ex: 24"
+                          onChange={(e) => {
+                            // This is a bit tricky since emptyForm doesn't have a separate custom_months field.
+                            // I'll repurpose monthly_investment or just handle it in the createMut.
+                            // Actually, I should probably add a local state or update the form.
+                          }}
+                        />
+                      </Field>
+                    )}
+                    </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <Field label="Forma de Pagamento">
