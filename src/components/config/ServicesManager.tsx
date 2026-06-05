@@ -293,6 +293,20 @@ function ServiceFormDialog({
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Escopo Padrão (Itens separados por linha)</Label>
+              <Textarea
+                rows={5}
+                value={form.default_scope.join("\n")}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    default_scope: e.target.value.split("\n").filter((x) => x.trim()),
+                  })
+                }
+                placeholder="Item 1&#10;Item 2&#10;Item 3"
+              />
+            </div>
             <DialogFooter>
               <Button variant="ghost" onClick={onClose}>
                 Cancelar
