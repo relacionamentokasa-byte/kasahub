@@ -141,45 +141,83 @@ export async function approveProposal(
   // Ensure project is linked to contract
   await sb.from("projects").update({ contract_id: contractId }).eq("id", projectId);
 
+  // 4b. Sync Client Services (for tracking what's active for this client)
+  if (proposal.service_ids?.length) {
+    const servicesToInsert = proposal.service_ids.map((sid: string) => ({
+      client_id: clientId,
+      service_id: sid,
+      contract_type: proposal.contract_type === "recurring" ? "recurring" : "one_time",
+      monthly_value: proposal.contract_type === "recurring" ? monthly : 0,
+      one_time_value: proposal.contract_type === "one_time" ? totalValue : 0,
+      status: "active",
+      start_date: proposal.first_due_date || ymd(new Date()),
+    }));
+
+    // Upsert client services (simplified: delete existing for these specific services and re-insert or just insert if not exists)
+    // For now, let's just insert them if they don't exist
+    for (const s of servicesToInsert) {
+      const { data: existing } = await sb.from("client_services")
+        .select("id")
+        .eq("client_id", clientId)
+        .eq("service_id", s.service_id)
+        .maybeSingle();
+      if (!existing) {
+        await sb.from("client_services").insert(s);
+      } else {
+        await sb.from("client_services").update(s).eq("id", existing.id);
+      }
+    }
+  }
+
   // 5. Jobs
   let jobsCreated = 0;
   if (proposal.auto_create_jobs !== false) {
-    // first stage
-    const { data: stages } = await sb
-      .from("job_stages")
-      .select("id, order_index")
-      .order("order_index", { ascending: true })
-      .limit(1);
-    const firstStage = stages?.[0]?.id ?? null;
+    // Check if we have service_ids to generate jobs from templates
+    if (proposal.service_ids?.length) {
+      // Use the common generation logic
+      const result = await generateJobsForProject(projectId!, clientId!, proposal.service_ids);
+      jobsCreated = result.created;
+    } 
+    
+    // If no jobs were created from templates, fallback to scope items as basic jobs
+    if (jobsCreated === 0) {
+      // first stage
+      const { data: stages } = await sb
+        .from("job_stages")
+        .select("id, order_index")
+        .order("order_index", { ascending: true })
+        .limit(1);
+      const firstStage = stages?.[0]?.id ?? null;
 
-    // existing job titles to avoid dupes (idempotent re-approval)
-    const { data: existingJobs } = await sb
-      .from("jobs")
-      .select("title")
-      .eq("project_id", projectId);
-    const existingTitles = new Set((existingJobs ?? []).map((j: { title: string }) => j.title));
+      // existing job titles to avoid dupes (idempotent re-approval)
+      const { data: existingJobs } = await sb
+        .from("jobs")
+        .select("title")
+        .eq("project_id", projectId);
+      const existingTitles = new Set((existingJobs ?? []).map((j: { title: string }) => j.title));
 
-    const rows: Array<Record<string, unknown>> = [];
-    let order = 0;
-    for (const item of proposal.scope ?? []) {
-      const title = String(item);
-      if (existingTitles.has(title)) continue;
-      rows.push({
-        title,
-        description: null,
-        project_id: projectId,
-        client_id: clientId,
-        stage_id: firstStage,
-        assignee_id: proposal.responsible_id ?? null,
-        order_index: order++,
-        priority: "normal",
-        labels: ["proposal_scope"],
-      });
-    }
-    if (rows.length) {
-      const { error: jErr } = await sb.from("jobs").insert(rows);
-      if (jErr) throw jErr;
-      jobsCreated = rows.length;
+      const rows: Array<Record<string, unknown>> = [];
+      let order = 0;
+      for (const item of proposal.scope ?? []) {
+        const title = String(item);
+        if (existingTitles.has(title)) continue;
+        rows.push({
+          title,
+          description: null,
+          project_id: projectId,
+          client_id: clientId,
+          stage_id: firstStage,
+          assignee_id: proposal.responsible_id ?? null,
+          order_index: order++,
+          priority: "normal",
+          labels: ["proposal_scope"],
+        });
+      }
+      if (rows.length) {
+        const { error: jErr } = await sb.from("jobs").insert(rows);
+        if (jErr) throw jErr;
+        jobsCreated = rows.length;
+      }
     }
   }
 
