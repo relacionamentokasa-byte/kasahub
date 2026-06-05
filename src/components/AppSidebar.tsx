@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   KanbanSquare,
+  FileText,
   Users,
   FolderKanban,
   CheckSquare,
