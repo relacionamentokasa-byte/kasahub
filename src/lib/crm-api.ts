@@ -128,12 +128,14 @@ export async function createProposal(input: {
   target_kind?: "lead" | "client";
   service_ids?: string[];
   contract_type?: string;
+  payment_kind?: string;
   valid_until?: string | null;
   monthly_investment?: number;
   one_time_investment?: number;
   total?: number;
   contract_term?: string;
   installments?: number;
+  recurring_months?: number;
   payment_method?: string;
   first_due_date?: string;
   notes?: string | null;
