@@ -40,6 +40,9 @@ export function NewTransactionDialog({
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
+  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+
 
   const [form, setForm] = useState({
     kind: defaultKind as "income" | "expense",
