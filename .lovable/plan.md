@@ -1,59 +1,75 @@
-# Serviços e Templates — Central configurável
+## Cliente como Hub Central da Operação
 
-## Objetivo
-Criar uma biblioteca central de serviços da Kasa, onde cada serviço tem seu próprio template operacional (jobs padrão + checklists). O admin gerencia tudo via Configurações, sem precisar mexer no código.
+Transformar o cadastro de clientes no ponto de origem de toda a operação, com serviços contratados orientando Projetos, Jobs e Financeiro.
 
-## Banco de dados (migração)
+### 1. Banco de Dados
 
-Novas tabelas em `public`:
+**Nova tabela `client_services`** (vínculo cliente ↔ serviço contratado):
+- `client_id`, `service_id`
+- `contract_type` (`recurring` | `one_time`)
+- `monthly_value`, `one_time_value`
+- `start_date`, `billing_day`
+- `status` (`active` | `paused` | `ended`)
+- `notes`
 
-- **`services`**: `id`, `name`, `category`, `description`, `is_active` (bool, default true), `archived_at`, `order_index`, timestamps.
-- **`service_job_templates`**: `id`, `service_id` (FK services), `name`, `order_index`, `default_duration_days` (int), `default_assignee_id` (uuid, nullable), `initial_stage_id` (uuid → job_stages, nullable), timestamps.
-- **`service_job_checklist`**: `id`, `template_job_id` (FK service_job_templates), `content`, `order_index`, timestamps.
+GRANTs + RLS (team manages).
 
-Em `proposals`: manter `service_type` (legado) e adicionar coluna `service_ids` (uuid[], default '{}') para multi-seleção.
+**Campos novos em `clients`** (manter compatibilidade):
+- `contract_type`, `contract_value`, `start_date`, `address`
 
-Todas com RLS: `is_team_member(auth.uid())` gerencia; leitura para `authenticated`. GRANTs apropriados.
+### 2. Cadastro de Cliente (Novo/Editar)
 
-Seed inicial: criar 7 serviços padrão (Gestão de Redes Sociais, Tráfego Pago, Site Institucional, Landing Page, Branding, Consultoria, Produção de Conteúdo) e popular templates a partir do `JOB_TEMPLATES` atual em `src/lib/job-templates.ts` para preservar compatibilidade.
+Reorganizar `NewClientDialog` e `EditClientDialog` com abas:
+- **Dados** — Nome, CNPJ, Status, Email, Telefone, Website, Endereço, Notas, Logo, Cor
+- **Contrato** — Tipo de Contrato, Valor, Data de Início
+- **Serviços Contratados** — multi-select carregando da biblioteca `services`; por serviço escolher tipo (mensal/único), valor, dia de cobrança
+- **Portal** (mantém atual)
 
-## Frontend
+### 3. Cliente 360 (`clientes.$clientId`)
 
-### 1. Nova página: `Configurações → Serviços e Templates`
-- Rota: `src/routes/_authenticated/config.servicos.tsx` (URL `/config/servicos`).
-- Adicionar link no AppSidebar OU no menu de Configurações (sub-aba). Vou adicionar como **nova aba dentro de `/config`** chamada "Serviços" para manter coesão.
-- Lista de serviços (cards/tabela): nome, categoria, badge ativo/inativo, ações (editar, arquivar, excluir).
-- Botão "Novo Serviço" abre dialog com campos: Nome, Categoria, Descrição, Ativo.
-- Clicar num serviço abre detalhe com 2 abas:
-  - **Geral**: editar campos básicos.
-  - **Template Operacional**: lista ordenável de jobs do template. Cada item: Nome, Ordem (drag/handle simples com setas ↑↓), Prazo padrão (dias), Responsável padrão (select de team), Status inicial (select de `job_stages`). Sub-item: checklist padrão (lista de strings adicionáveis/removíveis).
+Adicionar/garantir abas:
+- Visão Geral (dados + serviços contratados em destaque)
+- Propostas
+- Projetos
+- Jobs
+- Financeiro (lançamentos do cliente)
+- Calendário
+- Arquivos
+- Timeline (eventos consolidados)
 
-### 2. Proposta — multi-seleção de serviços
-- Em `src/routes/_authenticated/propostas.tsx` (dialog Nova Proposta) e no editor `propostas.$proposalId.tsx`:
-  - Substituir o select único "Tipo de Serviço" por um **multi-select** de serviços ativos (checkboxes em popover ou lista de chips).
-  - Persistir em `proposals.service_ids`. Manter `service_type` sincronizado com o primeiro selecionado por compatibilidade até a próxima limpeza.
+Card "Serviços Contratados" mostrando templates vinculados a cada serviço.
 
-### 3. Preparação para automação
-Adicionar helper `src/lib/services-api.ts` com `fetchServices`, `fetchServiceTemplate(serviceId)`, CRUD de serviços/jobs/checklist. Não disparar criação automática de jobs neste ciclo — apenas deixar tudo pronto. Comentário `// TODO: usado em proposal-approval.ts numa próxima fase` na função `fetchServiceTemplate`.
+### 4. Criação de Projeto
 
-## Arquivos
+Em `NewProjectDialog`, ao selecionar cliente:
+- Buscar `client_services` ativos
+- Pré-marcar serviços contratados
+- Ao criar projeto, gerar Jobs a partir dos `service_job_templates` correspondentes (com checklists)
+
+### 5. Integração Financeira
+
+Helper `generateClientServiceFinancials(clientServiceId)`:
+- Se `contract_type=recurring` → cria N transações pendentes (1 por mês até `recurring_months` ou contrato indefinido com flag `is_recurring`)
+- Se `one_time` → cria transação única
+- Botão "Gerar recorrência" no card do serviço contratado
+
+### 6. Arquivos editados/criados
 
 **Novos:**
-- `supabase/migrations/<timestamp>_services_templates.sql`
-- `src/lib/services-api.ts`
-- `src/components/config/ServicesManager.tsx` (lista + dialogs)
-- `src/components/config/ServiceTemplateEditor.tsx` (aba Template Operacional)
-- `src/components/proposals/ServicesMultiSelect.tsx`
+- `supabase/migrations/...` — `client_services` + colunas em `clients`
+- `src/lib/client-services-api.ts`
+- `src/components/clients/ClientServicesManager.tsx` (multi-select + valores)
+- `src/components/clients/Client360Tabs.tsx` (ou expandir `ClientDetailContent`)
 
 **Editados:**
-- `src/routes/_authenticated/config.tsx` — nova aba "Serviços".
-- `src/routes/_authenticated/propostas.tsx` — usar `ServicesMultiSelect`.
-- `src/routes/_authenticated/propostas.$proposalId.tsx` — idem.
-- `src/integrations/supabase/types.ts` — regenerado após migração.
-- `src/lib/crm-api.ts` (tipo Proposal) — adicionar `service_ids`.
+- `src/components/clients/NewClientDialog.tsx` — abas e campos novos
+- `src/components/clients/EditClientDialog.tsx` — idem
+- `src/routes/_authenticated/clientes.$clientId.tsx` — abas 360 completas
+- `src/components/projects/NewProjectDialog.tsx` — sugestão de jobs por template
+- `src/lib/ops-api.ts` — `createProjectWithTemplates`
+- `src/integrations/supabase/types.ts` — após migração
 
-## Fora de escopo (próxima fase)
-- Geração automática de Jobs ao aprovar proposta (estrutura já pronta).
-- Drag-and-drop visual avançado (usar setas ↑↓ por enquanto).
-
-Posso seguir?
+### Fora de escopo neste ciclo
+- Drag-and-drop avançado
+- Edição inline dos templates dentro do cliente (continua em Configurações)
+- Calendário/Arquivos completos (manter placeholders se já não existirem)

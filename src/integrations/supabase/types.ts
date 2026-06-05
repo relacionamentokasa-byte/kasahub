@@ -175,12 +175,75 @@ export type Database = {
           },
         ]
       }
+      client_services: {
+        Row: {
+          billing_day: number
+          client_id: string
+          contract_type: string
+          created_at: string
+          id: string
+          monthly_value: number
+          notes: string | null
+          one_time_value: number
+          service_id: string
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_day?: number
+          client_id: string
+          contract_type?: string
+          created_at?: string
+          id?: string
+          monthly_value?: number
+          notes?: string | null
+          one_time_value?: number
+          service_id: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_day?: number
+          client_id?: string
+          contract_type?: string
+          created_at?: string
+          id?: string
+          monthly_value?: number
+          notes?: string | null
+          one_time_value?: number
+          service_id?: string
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_services_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
+          address: string | null
           banner_url: string | null
           brand_primary: string | null
           brand_secondary: string | null
           company: string | null
+          contract_type: string | null
+          contract_value: number
           created_at: string
           document: string | null
           email: string | null
@@ -195,15 +258,19 @@ export type Database = {
           portal_enabled: boolean
           portal_slug: string | null
           portal_user_id: string | null
+          start_date: string | null
           status: string
           updated_at: string
           website: string | null
         }
         Insert: {
+          address?: string | null
           banner_url?: string | null
           brand_primary?: string | null
           brand_secondary?: string | null
           company?: string | null
+          contract_type?: string | null
+          contract_value?: number
           created_at?: string
           document?: string | null
           email?: string | null
@@ -218,15 +285,19 @@ export type Database = {
           portal_enabled?: boolean
           portal_slug?: string | null
           portal_user_id?: string | null
+          start_date?: string | null
           status?: string
           updated_at?: string
           website?: string | null
         }
         Update: {
+          address?: string | null
           banner_url?: string | null
           brand_primary?: string | null
           brand_secondary?: string | null
           company?: string | null
+          contract_type?: string | null
+          contract_value?: number
           created_at?: string
           document?: string | null
           email?: string | null
@@ -241,6 +312,7 @@ export type Database = {
           portal_enabled?: boolean
           portal_slug?: string | null
           portal_user_id?: string | null
+          start_date?: string | null
           status?: string
           updated_at?: string
           website?: string | null

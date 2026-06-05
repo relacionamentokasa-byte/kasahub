@@ -8,6 +8,7 @@ import {
   DollarSign, Clock, FileSignature, Activity,
 } from "lucide-react";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
+import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
@@ -161,6 +162,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
           <TabsList className="bg-transparent border-0 h-auto p-0 gap-1">
             {[
               ["overview", "Visão geral"],
+              ["servicos", "Serviços"],
               ["projects", "Projetos"],
               ["jobs", "Jobs"],
               ["finance", "Financeiro"],
@@ -181,6 +183,10 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
             ))}
           </TabsList>
         </div>
+
+        <TabsContent value="servicos" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <ClientServicesManager clientId={clientId} />
+        </TabsContent>
 
         <TabsContent value="overview" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

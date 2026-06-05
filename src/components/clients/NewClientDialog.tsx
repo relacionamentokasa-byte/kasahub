@@ -29,16 +29,22 @@ export function NewClientDialog({
     email: "",
     phone: "",
     document: "",
+    website: "",
+    address: "",
     notes: "",
     logo_url: "" as string | null,
     brand_primary: "#FFBC45",
     status: "active",
+    contract_type: "recurring",
+    contract_value: 0,
+    start_date: "",
   });
 
   const reset = () =>
     setForm({
-      name: "", company: "", email: "", phone: "", document: "", notes: "",
-      logo_url: "", brand_primary: "#FFBC45", status: "active",
+      name: "", company: "", email: "", phone: "", document: "", website: "", address: "",
+      notes: "", logo_url: "", brand_primary: "#FFBC45", status: "active",
+      contract_type: "recurring", contract_value: 0, start_date: "",
     });
 
   const mut = useMutation({
@@ -47,6 +53,7 @@ export function NewClientDialog({
         ...form,
         name: form.name || form.company || "Cliente sem nome",
         logo_url: form.logo_url || null,
+        start_date: form.start_date || null,
       }),
     onSuccess: (c) => {
       qc.invalidateQueries({ queryKey: ["clients"] });
@@ -66,9 +73,10 @@ export function NewClientDialog({
         </DialogHeader>
 
         <Tabs defaultValue="dados" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full">
+          <TabsList className="grid grid-cols-3 w-full">
             <TabsTrigger value="dados">Dados</TabsTrigger>
-            <TabsTrigger value="portal">Portal do Cliente</TabsTrigger>
+            <TabsTrigger value="contrato">Contrato</TabsTrigger>
+            <TabsTrigger value="portal">Portal</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dados" className="mt-4 space-y-4">
@@ -112,11 +120,8 @@ export function NewClientDialog({
                 <Input value={form.document} onChange={(e) => setForm({ ...form, document: e.target.value })} placeholder="00.000.000/0001-00" />
               </div>
               <div className="space-y-1.5">
-                <Label>Cor da marca</Label>
-                <div className="flex gap-2">
-                  <Input type="color" value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} className="w-12 p-1 h-10" />
-                  <Input value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} />
-                </div>
+                <Label>Website</Label>
+                <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://" />
               </div>
               <div className="space-y-1.5">
                 <Label>E-mail</Label>
@@ -125,6 +130,17 @@ export function NewClientDialog({
               <div className="space-y-1.5">
                 <Label>Telefone</Label>
                 <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <Label>Endereço</Label>
+                <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número, cidade, estado" />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <Label>Cor da marca</Label>
+                <div className="flex gap-2">
+                  <Input type="color" value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} className="w-12 p-1 h-10" />
+                  <Input value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} />
+                </div>
               </div>
             </div>
 
@@ -139,12 +155,47 @@ export function NewClientDialog({
             </div>
           </TabsContent>
 
+          <TabsContent value="contrato" className="mt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label>Tipo de Contrato</Label>
+                <select
+                  value={form.contract_type}
+                  onChange={(e) => setForm({ ...form, contract_type: e.target.value })}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="recurring">Mensal (recorrente)</option>
+                  <option value="one_time">Projeto único</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Valor do Contrato (R$)</Label>
+                <Input
+                  type="number"
+                  value={form.contract_value}
+                  onChange={(e) => setForm({ ...form, contract_value: Number(e.target.value) || 0 })}
+                />
+              </div>
+              <div className="space-y-1.5 col-span-2">
+                <Label>Data de Início</Label>
+                <Input
+                  type="date"
+                  value={form.start_date}
+                  onChange={(e) => setForm({ ...form, start_date: e.target.value })}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-foreground/50">
+              Após cadastrar, vincule serviços específicos da biblioteca em <b>Serviços contratados</b>.
+            </p>
+          </TabsContent>
+
           <TabsContent value="portal" className="mt-4">
             <div className="rounded-xl border border-dashed border-border bg-background/40 p-8 text-center">
               <Lock className="size-8 mx-auto text-foreground/30 mb-3" />
               <p className="text-sm font-medium">Disponível após cadastro</p>
               <p className="text-xs text-foreground/50 mt-1 max-w-sm mx-auto">
-                Cadastre o cliente primeiro para liberar o acesso ao portal exclusivo, criar usuários e definir permissões por serviço.
+                Cadastre o cliente primeiro para liberar serviços contratados, portal e templates operacionais.
               </p>
             </div>
           </TabsContent>
