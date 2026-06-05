@@ -750,6 +750,28 @@ function ItemRow({
           </SelectContent>
         </Select>
       </div>
+      <div>
+        <Label className="text-[10px] capitalize text-foreground/40 pl-1">
+          Entregáveis (um por linha)
+        </Label>
+        <Textarea
+          rows={3}
+          value={(Array.isArray(local.deliverables) ? (local.deliverables as string[]) : []).join("\n")}
+          onChange={(e) => setLocal({ ...local, deliverables: e.target.value.split("\n") as unknown as ProposalItem["deliverables"] })}
+          onBlur={() =>
+            commit({
+              deliverables: (Array.isArray(local.deliverables)
+                ? (local.deliverables as string[])
+                : []
+              )
+                .map((s) => s.trim())
+                .filter(Boolean) as unknown as ProposalItem["deliverables"],
+            })
+          }
+          className="mt-1 text-xs"
+          placeholder="Ex: 12 posts/mês&#10;Relatório mensal&#10;Reunião estratégica"
+        />
+      </div>
     </div>
   );
 }
