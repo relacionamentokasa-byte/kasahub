@@ -440,17 +440,46 @@ export function ProposalEditorContent({
               Define o que será criado automaticamente quando a proposta for aprovada: projeto, jobs e lançamentos financeiros.
             </p>
             <div className="grid gap-4 mt-4 md:grid-cols-2">
-              <F label="Responsável (projeto/jobs)">
+              <F label="Responsável comercial">
                 <Select
-                  value={form.responsible_id || "__none__"}
-                  onValueChange={(v) => setForm({ ...form, responsible_id: v === "__none__" ? "" : v })}
+                  value={form.commercial_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, commercial_id: v === "__none__" ? "" : v })}
                 >
-                  <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">Sem responsável</SelectItem>
+                    <SelectItem value="__none__">—</SelectItem>
                     {team.map((t) => (
                       <SelectItem key={t.id} value={t.id}>{t.display_name || t.full_name || "—"}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Responsável operacional">
+                <Select
+                  value={form.operational_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, operational_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">—</SelectItem>
+                    {team.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.display_name || t.full_name || "—"}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Tipo de contrato">
+                <Select
+                  value={form.contract_type}
+                  onValueChange={(v) => setForm({ ...form, contract_type: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recurring">Mensal / Recorrente</SelectItem>
+                    <SelectItem value="one_time">Job Avulso</SelectItem>
+                    <SelectItem value="project">Projeto Fechado</SelectItem>
+                    <SelectItem value="consulting">Consultoria</SelectItem>
+                    <SelectItem value="implementation">Implantação</SelectItem>
                   </SelectContent>
                 </Select>
               </F>
