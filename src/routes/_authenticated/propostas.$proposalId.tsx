@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
 import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
+import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
