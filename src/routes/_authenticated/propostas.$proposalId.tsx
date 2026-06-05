@@ -593,7 +593,7 @@ export function ProposalEditorContent({
           <ProposalTimeline proposalId={proposalId} />
         </div>
       </div>
-      </div>
+
 
       <Dialog open={showReopenDialog} onOpenChange={setShowReopenDialog}>
         <DialogContent className="sm:max-w-md">
