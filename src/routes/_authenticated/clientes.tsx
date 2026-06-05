@@ -143,7 +143,7 @@ function ClientesPage() {
             <Users className="size-8 mx-auto mb-3 text-foreground/30" />
             <p className="text-sm">Nenhum cliente cadastrado ainda.</p>
           </div>
-        ) : (
+        ) : view === "cards" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((c) => (
               <div key={c.id} className="relative group">
@@ -193,6 +193,117 @@ function ClientesPage() {
                 </button>
               </div>
             ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border bg-surface overflow-hidden">
+            {/* Desktop list */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
+                    <th className="px-4 py-3">Cliente</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Responsável</th>
+                    <th className="px-4 py-3">Contrato</th>
+                    <th className="px-4 py-3 text-right">Valor mensal</th>
+                    <th className="px-4 py-3">Próx. vencimento</th>
+                    <th className="px-4 py-3 w-12"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((c) => (
+                    <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-surface-elevated transition">
+                      <td className="px-4 py-3">
+                        <Link
+                          to="/clientes/$clientId"
+                          params={{ clientId: c.id }}
+                          className="flex items-center gap-3 min-w-0"
+                        >
+                          <div
+                            className="size-9 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
+                            style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                          >
+                            {c.logo_url ? (
+                              <img src={c.logo_url} alt="" className="size-full object-cover" />
+                            ) : (
+                              (c.company || c.name).charAt(0).toUpperCase()
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold truncate hover:text-primary">{c.company || c.name}</div>
+                            {c.email && <div className="text-[11px] text-foreground/50 truncate">{c.email}</div>}
+                          </div>
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-[10px] capitalize px-2 py-1 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                          {c.status === "active" ? "Ativo" : c.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-foreground/60">—</td>
+                      <td className="px-4 py-3 text-foreground/60">—</td>
+                      <td className="px-4 py-3 text-right text-foreground/60">—</td>
+                      <td className="px-4 py-3 text-foreground/60">—</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`Remover "${c.company || c.name}"?`)) delMut.mutate(c.id);
+                          }}
+                          className="p-1.5 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
+                          aria-label="Excluir cliente"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile list */}
+            <ul className="md:hidden divide-y divide-border">
+              {filtered.map((c) => (
+                <li key={c.id} className="relative">
+                  <Link
+                    to="/clientes/$clientId"
+                    params={{ clientId: c.id }}
+                    className="flex items-center gap-3 p-4 pr-12"
+                  >
+                    <div
+                      className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
+                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                    >
+                      {c.logo_url ? (
+                        <img src={c.logo_url} alt="" className="size-full object-cover" />
+                      ) : (
+                        (c.company || c.name).charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold truncate">{c.company || c.name}</div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className={`text-[10px] capitalize px-1.5 py-0.5 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                          {c.status === "active" ? "Ativo" : c.status}
+                        </span>
+                        {c.email && <span className="text-[11px] text-foreground/50 truncate">{c.email}</span>}
+                      </div>
+                    </div>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (confirm(`Remover "${c.company || c.name}"?`)) delMut.mutate(c.id);
+                    }}
+                    className="absolute top-1/2 -translate-y-1/2 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
+                    aria-label="Excluir cliente"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>
