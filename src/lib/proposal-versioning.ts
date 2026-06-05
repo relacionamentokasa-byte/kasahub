@@ -118,7 +118,7 @@ export async function cancelProposalWorkflow(
     
     if (jobs?.some(j => j.done_at)) {
       console.warn(`[Cancel Workflow] Cancelamento abortado: existem tarefas concluídas.`);
-      throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados (tarefas concluídas). Utilize a opção Encerrar Projeto.");
+      throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados. Utilize a opção Encerrar Projeto.");
     }
   }
 
