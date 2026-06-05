@@ -10,6 +10,7 @@ import {
   updateProposal,
   upsertProposalItem,
   type ProposalItem,
+  fetchLeads,
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
@@ -85,6 +86,7 @@ export function ProposalEditorContent({
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
+  const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
   const { data: services = [] } = useQuery({
     queryKey: ["services", "active"],
     queryFn: () => fetchServices({ onlyActive: true }),
@@ -98,6 +100,8 @@ export function ProposalEditorContent({
   const [form, setForm] = useState({
     title: "",
     client_id: "",
+    lead_id: "",
+    target_kind: "client" as "client" | "lead",
     client_name: "",
     client_email: "",
     intro: "",
@@ -134,6 +138,8 @@ export function ProposalEditorContent({
       setForm({
         title: proposal.title,
         client_id: p.client_id ?? "",
+        lead_id: p.lead_id ?? "",
+        target_kind: p.target_kind ?? (p.lead_id ? "lead" : "client"),
         client_name: proposal.client_name,
         client_email: proposal.client_email ?? "",
         intro: proposal.intro ?? "",
@@ -174,6 +180,8 @@ export function ProposalEditorContent({
       return updateProposal(proposalId, {
         title: f.title,
         client_id: f.client_id || null,
+        lead_id: f.lead_id || null,
+        target_kind: f.target_kind,
         client_name: f.client_name,
         client_email: f.client_email || null,
         intro: f.intro || null,
@@ -309,18 +317,51 @@ export function ProposalEditorContent({
             <span className="text-primary text-[10px] capitalize">Cabeçalho</span>
             <div className="grid gap-4 mt-3">
               <F label="Título"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></F>
-              <F label="Cliente vinculado">
-                <Select value={form.client_id || "__free__"} onValueChange={(v) => {
-                  if (v === "__free__") { setForm({ ...form, client_id: "" }); return; }
-                  const c = clients.find(x => x.id === v);
-                  setForm({ ...form, client_id: v, client_name: c?.company || c?.name || "", client_email: c?.email || "" });
-                }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__free__">Cliente avulso</SelectItem>
-                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+              <div className="grid md:grid-cols-2 gap-4">
+                <F label="Tipo de Destinatário">
+                  <Select value={form.target_kind} onValueChange={(v: any) => setForm({ ...form, target_kind: v, client_id: "", lead_id: "" })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="client">Cliente</SelectItem>
+                      <SelectItem value="lead">Lead</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </F>
+                <F label={form.target_kind === "client" ? "Cliente vinculado" : "Lead vinculado"}>
+                  {form.target_kind === "client" ? (
+                    <Select value={form.client_id || "__free__"} onValueChange={(v) => {
+                      if (v === "__free__") { setForm({ ...form, client_id: "" }); return; }
+                      const c = clients.find(x => x.id === v);
+                      setForm({ ...form, client_id: v, client_name: c?.company || c?.name || "", client_email: c?.email || "" });
+                    }}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__free__">Cliente avulso</SelectItem>
+                        {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Select value={form.lead_id || "__free__"} onValueChange={(v) => {
+                      if (v === "__free__") { setForm({ ...form, lead_id: "" }); return; }
+                      const l = leads.find(x => x.id === v);
+                      setForm({ ...form, lead_id: v, client_name: l?.company || l?.name || "", client_email: l?.email || "" });
+                    }}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__free__">Lead avulso</SelectItem>
+                        {leads.map(l => <SelectItem key={l.id} value={l.id}>{l.company || l.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                </F>
+              </div>
+              <F label="Introdução">
+                <Textarea 
+                  placeholder="Descreva uma breve introdução da proposta..." 
+                  value={form.intro} 
+                  onChange={(e) => setForm({ ...form, intro: e.target.value })} 
+                  rows={3}
+                />
               </F>
             </div>
           </div>
@@ -370,6 +411,38 @@ export function ProposalEditorContent({
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-6">
+            <span className="text-primary text-[10px] capitalize">Condições de Pagamento</span>
+            <div className="grid gap-4 mt-4 md:grid-cols-2">
+              <F label="Método de Pagamento">
+                <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boleto">Boleto</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="cartao">Cartão de Crédito</SelectItem>
+                    <SelectItem value="transferencia">Transferência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Dia do Faturamento">
+                <Input type="number" value={form.billing_day} onChange={(e) => setForm({ ...form, billing_day: Number(e.target.value) })} />
+              </F>
+              <F label="Data do Primeiro Vencimento">
+                <Input type="date" value={form.first_due_date} onChange={(e) => setForm({ ...form, first_due_date: e.target.value })} />
+              </F>
+              {form.contract_type === "recurring" ? (
+                <F label="Prazo do Contrato (meses)">
+                  <Input type="number" value={form.recurring_months} onChange={(e) => setForm({ ...form, recurring_months: Number(e.target.value) })} />
+                </F>
+              ) : (
+                <F label="Número de Parcelas">
+                  <Input type="number" value={form.installments} onChange={(e) => setForm({ ...form, installments: Number(e.target.value) })} />
+                </F>
+              )}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-surface p-6">
             <span className="text-primary text-[10px] capitalize">Contrato Jurídico</span>
             <div className="grid gap-4 mt-4">
               <F label="Template">
@@ -394,22 +467,43 @@ export function ProposalEditorContent({
         <div className="space-y-4">
           <div className="rounded-2xl border border-primary/40 bg-primary/5 p-6 sticky top-6">
             <span className="text-primary text-[10px] capitalize">Investimento</span>
-            {form.contract_type === "recurring" ? (
-              <div className="mt-4">
-                <div className="text-3xl font-bold text-primary">{formatCurrency(form.monthly_investment)}/mês</div>
-                <div className="mt-4 pt-4 border-t border-border text-sm">
-                  <div className="flex justify-between"><span>Prazo</span><span>{form.recurring_months} meses</span></div>
-                  <div className="flex justify-between font-bold mt-2"><span>Total</span><span>{formatCurrency(form.monthly_investment * form.recurring_months)}</span></div>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-4">
-                <div className="text-3xl font-bold text-primary">{formatCurrency(form.one_time_investment)}</div>
-                <div className="mt-4 pt-4 border-t border-border text-sm">
-                  <div className="flex justify-between"><span>Parcelas</span><span>{form.installments}x</span></div>
-                </div>
-              </div>
-            )}
+            <div className="grid gap-4 mt-4">
+              {form.contract_type === "recurring" ? (
+                <>
+                  <F label="Investimento Mensal (R$)">
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      value={form.monthly_investment} 
+                      onChange={(e) => setForm({ ...form, monthly_investment: Number(e.target.value) })} 
+                      className="text-2xl font-bold text-primary"
+                    />
+                  </F>
+                  <div className="pt-4 border-t border-border text-sm space-y-2">
+                    <div className="flex justify-between"><span>Prazo</span><span>{form.recurring_months} meses</span></div>
+                    <div className="flex justify-between font-bold text-lg pt-2 border-t border-border/50">
+                      <span>Total do Contrato</span>
+                      <span>{formatCurrency(form.monthly_investment * form.recurring_months)}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <F label="Investimento Total (R$)">
+                    <Input 
+                      type="number" 
+                      step="0.01"
+                      value={form.one_time_investment} 
+                      onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })} 
+                      className="text-2xl font-bold text-primary"
+                    />
+                  </F>
+                  <div className="pt-4 border-t border-border text-sm">
+                    <div className="flex justify-between"><span>Parcelas</span><span>{form.installments}x de {formatCurrency(form.one_time_investment / (form.installments || 1))}</span></div>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-5 text-xs text-foreground/60">
