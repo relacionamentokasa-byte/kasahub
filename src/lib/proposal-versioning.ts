@@ -142,9 +142,9 @@ export async function cancelProposalWorkflow(
         .select("id, labels")
         .eq("project_id", projectId);
       
-      const solicitacoesCount = jobsToDelete?.filter(j => j.labels?.includes('solicitação')).length || 0;
-      const entregasCount = jobsToDelete?.filter(j => j.labels?.includes('entrega')).length || 0;
-      const onboardingCount = jobsToDelete?.filter(j => j.labels?.includes('onboarding')).length || 0;
+      const solicitacoesCount = jobsToDelete?.filter(j => Array.isArray(j.labels) && (j.labels as string[]).includes('solicitação')).length || 0;
+      const entregasCount = jobsToDelete?.filter(j => Array.isArray(j.labels) && (j.labels as string[]).includes('entrega')).length || 0;
+      const onboardingCount = jobsToDelete?.filter(j => Array.isArray(j.labels) && (j.labels as string[]).includes('onboarding')).length || 0;
       const tarefasCount = (jobsToDelete?.length || 0) - solicitacoesCount - entregasCount - onboardingCount;
 
       console.log(`[Cancel Workflow] Removendo ${jobsToDelete?.length || 0} registros de jobs (Solicitações: ${solicitacoesCount}, Entregas: ${entregasCount}, Onboarding: ${onboardingCount}, Tarefas: ${tarefasCount})`);
