@@ -127,6 +127,7 @@ export async function createProposal(input: {
   intro?: string | null;
   target_kind?: "lead" | "client";
   service_type?: string | null;
+  service_ids?: string[];
   contract_type?: string;
   valid_until?: string | null;
   commercial_id?: string | null;
