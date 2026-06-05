@@ -1,5 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ProposalDetailSheet } from "@/components/proposals/ProposalDetailSheet";
 import { useState } from "react";
 import {
   fetchProposals,
