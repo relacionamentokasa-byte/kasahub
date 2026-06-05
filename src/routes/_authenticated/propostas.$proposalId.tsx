@@ -19,7 +19,7 @@ import { fetchContractTemplates, replaceContractVariables } from "@/lib/contract
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
-import { createProposalVersion, cancelProposalWorkflow } from "@/lib/proposal-versioning";
+import { createProposalVersion, cancelProposalWorkflow, reopenProposal } from "@/lib/proposal-versioning";
 import {
   Dialog,
   DialogContent,
@@ -255,10 +255,10 @@ export function ProposalEditorContent({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const cancelMut = useMutation({
-    mutationFn: (reopen: boolean) => revertProposalApproval(supabase, proposalId, { reopen }),
-    onSuccess: (_d, reopen) => {
-      toast.success(reopen ? "Proposta reaberta" : "Proposta cancelada");
+  const reopenCancelledMut = useMutation({
+    mutationFn: () => reopenProposal(proposalId),
+    onSuccess: () => {
+      toast.success("Proposta reaberta para edição");
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -353,7 +353,7 @@ export function ProposalEditorContent({
           ) : (
             <>
               <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir</Button>
-              <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><XCircle className="size-4" /> Cancelar contrato</Button>
+              <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><Ban className="size-4" /> Cancelar contrato e estrutura</Button>
             </>
           )}
         </div>
