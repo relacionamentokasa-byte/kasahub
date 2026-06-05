@@ -1,4 +1,4 @@
-import { Bell, LogOut, Search, Sparkles } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Sparkles, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTheme } from "@/lib/theme";
 
 type Profile = {
   display_name: string | null;
