@@ -455,7 +455,7 @@ function ProposalsPage() {
                           />
                         </Field>
                       ) : (
-                        <Field label="Valor Total *">
+                        <Field label="Valor do Projeto *">
                           <Input
                             type="number"
                             value={form.one_time_investment || ""}
@@ -469,48 +469,61 @@ function ProposalsPage() {
                 </div>
 
                 <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Condições Financeiras</h3>
+                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">INVESTIMENTO</h3>
                   <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4">
                       {form.contract_type === "mensal" ? (
-                        <Field label="Prazo do Contrato">
-                          <Select
-                            value={form.contract_term}
-                            onValueChange={(v) => setForm({ ...form, contract_term: v })}
-                          >
-                             <SelectTrigger><SelectValue placeholder="Selecione o prazo" /></SelectTrigger>
-                             <SelectContent>
-                               <SelectItem value="monthly">Sem prazo definido</SelectItem>
-                              <SelectItem value="3_months">3 meses</SelectItem>
-                              <SelectItem value="6_months">6 meses</SelectItem>
-                              <SelectItem value="12_months">12 meses</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </Field>
+                        <>
+                          <Field label="Prazo do Contrato">
+                            <Select
+                              value={form.contract_term}
+                              onValueChange={(v) => setForm({ ...form, contract_term: v })}
+                            >
+                               <SelectTrigger><SelectValue placeholder="Selecione o prazo" /></SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value="monthly">Sem prazo definido</SelectItem>
+                                <SelectItem value="3_months">3 meses</SelectItem>
+                                <SelectItem value="6_months">6 meses</SelectItem>
+                                <SelectItem value="12_months">12 meses</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </Field>
+                          <Field label="Investimento Total">
+                            <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
+                              {formatCurrency(
+                                form.monthly_investment * (
+                                  form.contract_term === "3_months" ? 3 :
+                                  form.contract_term === "6_months" ? 6 :
+                                  form.contract_term === "12_months" ? 12 : 1
+                                )
+                              )}
+                            </div>
+                          </Field>
+                        </>
                       ) : (
-                        <Field label="Quantidade de Parcelas">
-                          <Select
-                            value={String(form.installments)}
-                            onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
-                          >
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
-                                <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </Field>
+                        <>
+                          <Field label="Parcelamento">
+                            <Select
+                              value={String(form.installments)}
+                              onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
+                                  <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </Field>
+                          <Field label="Valor da Parcela">
+                            <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
+                              {formatCurrency(form.one_time_investment / (form.installments || 1))}
+                            </div>
+                          </Field>
+                        </>
                       )}
-                      <Field label="Primeiro Vencimento">
-                        <Input
-                          type="date"
-                          value={form.first_due_date}
-                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
-                        />
-                      </Field>
                     </div>
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <Field label="Forma de Pagamento">
                         <Select
                           value={form.payment_method}
@@ -524,6 +537,13 @@ function ProposalsPage() {
                             <SelectItem value="transfer">Transferência</SelectItem>
                           </SelectContent>
                         </Select>
+                      </Field>
+                      <Field label="1º Vencimento">
+                        <Input
+                          type="date"
+                          value={form.first_due_date}
+                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                        />
                       </Field>
                     </div>
                   </div>
