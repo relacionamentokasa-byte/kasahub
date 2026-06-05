@@ -158,7 +158,11 @@ export function ProposalEditorContent({
         monthly_investment: totals.monthly_investment,
         one_time_investment: totals.one_time_investment,
         total: totals.total,
-        responsible_id: f.responsible_id || null,
+        responsible_id: f.operational_id || f.responsible_id || null,
+        commercial_id: f.commercial_id || null,
+        operational_id: f.operational_id || null,
+        contract_type: f.contract_type,
+        service_type: f.service_type || null,
         briefing: f.briefing || null,
         payment_kind: f.payment_kind,
         installments: f.installments,
@@ -175,6 +179,8 @@ export function ProposalEditorContent({
 
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
+      qc.invalidateQueries({ queryKey: ["proposal", proposalId, "events"] });
+      recordProposalEvent(proposalId, vars?.status === "sent" ? "sent" : "edited").catch(() => {});
       toast.success("Proposta salva");
     },
     onError: (e: Error) => toast.error(e.message),
