@@ -1,0 +1,26 @@
+{
+  "name": "KASA OS — Sistema Operacional para Agências",
+  "short_name": "KASA OS",
+  "description": "ERP especializado para agências de marketing. Comercial, operação, financeiro e experiência do cliente.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0C1618",
+  "theme_color": "#0C1618",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
