@@ -122,7 +122,7 @@ function ProposalsPage() {
   const [emailForm, setEmailForm] = useState({ to: "", subject: "", message: "" });
 
   const createMut = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const recurring_months =
         form.contract_type === "mensal"
           ? form.contract_term === "monthly" || !form.contract_term
@@ -135,6 +135,22 @@ function ProposalsPage() {
                   ? 12
                   : 12
           : 1;
+
+      let contract_template_id: string | null = null;
+      let contract_content: string | null = null;
+
+      // If a single service is selected and it has a template, use it
+      if (form.service_ids.length > 0) {
+        const firstServiceId = form.service_ids[0];
+        const { data: s } = await supabase.from("services").select("contract_template_id").eq("id", firstServiceId).single();
+        if (s?.contract_template_id) {
+          const { data: t } = await supabase.from("contract_templates").select("id, content").eq("id", s.contract_template_id).single();
+          if (t) {
+            contract_template_id = t.id;
+            contract_content = t.content;
+          }
+        }
+      }
 
       return createProposal({
         title: form.title,
@@ -159,6 +175,8 @@ function ProposalsPage() {
         first_due_date: form.first_due_date,
         notes: form.notes || null,
         scope: form.scope,
+        contract_template_id,
+        contract_content,
       });
     },
     onSuccess: async (p) => {
