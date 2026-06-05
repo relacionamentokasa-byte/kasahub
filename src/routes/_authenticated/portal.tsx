@@ -53,6 +53,14 @@ function ClientPortalView({
     queryKey: ["client-projects", clientId],
     queryFn: () => fetchProjects({ clientId }),
   });
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["client-contracts", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("contracts").select("*").eq("client_id", clientId).eq("status", "active");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   return (
     <div className="min-h-full">
