@@ -15,6 +15,7 @@ import {
   Crown,
   Heart,
   CalendarDays,
+  Plug,
 } from "lucide-react";
 import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 import {
@@ -64,6 +65,7 @@ const groups = [
       { title: "Calendário", url: "/calendario", icon: CalendarDays },
       { title: "Portal do Cliente", url: "/portal", icon: Globe },
       { title: "Equipe", url: "/equipe", icon: UsersRound },
+      { title: "Integrações", url: "/integracoes", icon: Plug },
       { title: "Configurações", url: "/config", icon: Settings },
     ],
   },
