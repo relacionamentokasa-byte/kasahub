@@ -64,10 +64,19 @@ export async function generateJobsForProject(
   const stages = await fetchJobStages();
   const firstStageId = stages[0]?.id ?? null;
   let created = 0;
+  
+  // Fetch existing jobs to avoid duplicates
+  const { data: existingJobs } = await supabase
+    .from("jobs")
+    .select("title")
+    .eq("project_id", projectId);
+  const existingTitles = new Set(existingJobs?.map(j => j.title) || []);
 
   for (const serviceId of serviceIds) {
     const templates = await fetchServiceTemplate(serviceId);
     for (const t of templates) {
+      if (existingTitles.has(t.name)) continue;
+
       const { data: job, error } = await supabase
         .from("jobs")
         .insert({
