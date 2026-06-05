@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   KanbanSquare,
@@ -11,7 +12,9 @@ import {
   Globe,
   UsersRound,
   Settings,
+  Crown,
 } from "lucide-react";
+import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 import {
   Sidebar,
   SidebarContent,
