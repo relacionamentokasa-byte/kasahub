@@ -12,10 +12,15 @@ import {
   type ProposalItem,
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
+import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
+import { supabase } from "@/integrations/supabase/client";
+import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
+import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -31,6 +36,9 @@ import {
   Send,
   Trash2,
   CheckCircle2,
+  Rocket,
+  RotateCcw,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -71,6 +79,15 @@ export function ProposalEditorContent({
     queryFn: () => fetchProposalItems(proposalId),
   });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
+  const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
+  const { data: team = [] } = useQuery({
+    queryKey: ["team-profiles"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, display_name, full_name");
+      return (data ?? []) as Array<{ id: string; display_name: string | null; full_name: string | null }>;
+    },
+  });
 
   const [form, setForm] = useState({
     title: "",
@@ -80,18 +97,39 @@ export function ProposalEditorContent({
     intro: "",
     valid_until: "",
     status: "draft",
+    responsible_id: "",
+    briefing: "",
+    payment_kind: "recurring" as "recurring" | "one_time" | "mixed",
+    installments: 1,
+    first_due_date: "",
+    billing_day: 5,
+    account_id: "",
+    category_id: "",
+    auto_create_jobs: true,
+    recurring_months: 12,
   });
 
   useEffect(() => {
     if (proposal) {
+      const p = proposal as typeof proposal & Record<string, unknown>;
       setForm({
         title: proposal.title,
-        client_id: (proposal as { client_id?: string | null }).client_id ?? "",
+        client_id: (p.client_id as string) ?? "",
         client_name: proposal.client_name,
         client_email: proposal.client_email ?? "",
         intro: proposal.intro ?? "",
         valid_until: proposal.valid_until ?? "",
         status: proposal.status,
+        responsible_id: (p.responsible_id as string) ?? "",
+        briefing: (p.briefing as string) ?? "",
+        payment_kind: ((p.payment_kind as string) ?? "recurring") as "recurring" | "one_time" | "mixed",
+        installments: Number(p.installments ?? 1),
+        first_due_date: (p.first_due_date as string) ?? "",
+        billing_day: Number(p.billing_day ?? 5),
+        account_id: (p.account_id as string) ?? "",
+        category_id: (p.category_id as string) ?? "",
+        auto_create_jobs: (p.auto_create_jobs as boolean) ?? true,
+        recurring_months: Number(p.recurring_months ?? 12),
       });
     }
   }, [proposal]);
@@ -112,6 +150,16 @@ export function ProposalEditorContent({
         monthly_investment: totals.monthly_investment,
         one_time_investment: totals.one_time_investment,
         total: totals.total,
+        responsible_id: f.responsible_id || null,
+        briefing: f.briefing || null,
+        payment_kind: f.payment_kind,
+        installments: f.installments,
+        first_due_date: f.first_due_date || null,
+        billing_day: f.billing_day,
+        account_id: f.account_id || null,
+        category_id: f.category_id || null,
+        auto_create_jobs: f.auto_create_jobs,
+        recurring_months: f.recurring_months,
       } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
@@ -123,6 +171,31 @@ export function ProposalEditorContent({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const approveMut = useMutation({
+    mutationFn: async () => {
+      // ensure latest edits are persisted first
+      await saveMut.mutateAsync(undefined);
+      return approveProposal(supabase, proposalId);
+    },
+    onSuccess: (r) => {
+      toast.success(
+        `Proposta aprovada — ${r.jobs_created} jobs e ${r.transactions_created} lançamentos criados.`,
+      );
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const cancelMut = useMutation({
+    mutationFn: (reopen: boolean) => revertProposalApproval(supabase, proposalId, { reopen }),
+    onSuccess: (_d, reopen) => {
+      toast.success(reopen ? "Proposta reaberta" : "Proposta cancelada");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   async function persistTotalsFor(nextItems: ProposalItem[]) {
     const t = recalcProposalTotals(nextItems);
@@ -213,10 +286,43 @@ export function ProposalEditorContent({
               setTimeout(() => saveMut.mutate(undefined), 50);
             }}
             disabled={saveMut.isPending}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
+            variant="outline"
+            className="gap-2"
           >
             <Save className="size-4" /> Salvar
           </Button>
+          {proposal.status !== "accepted" ? (
+            <Button
+              onClick={() => approveMut.mutate()}
+              disabled={approveMut.isPending}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
+            >
+              <Rocket className="size-4" /> Aprovar e gerar operação
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => cancelMut.mutate(true)}
+                disabled={cancelMut.isPending}
+                className="gap-2"
+              >
+                <RotateCcw className="size-4" /> Reabrir
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (confirm("Cancelar a aprovação? Lançamentos pendentes, contrato e projeto vinculados serão revertidos.")) {
+                    cancelMut.mutate(false);
+                  }
+                }}
+                disabled={cancelMut.isPending}
+                className="gap-2 text-destructive"
+              >
+                <XCircle className="size-4" /> Cancelar aprovação
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -304,12 +410,134 @@ export function ProposalEditorContent({
                       <SelectItem value="viewed">Visualizada</SelectItem>
                       <SelectItem value="accepted">Aceita</SelectItem>
                       <SelectItem value="rejected">Recusada</SelectItem>
+                      <SelectItem value="cancelled">Cancelada</SelectItem>
                     </SelectContent>
                   </Select>
                 </F>
               </div>
             </div>
           </div>
+
+          <div className="rounded-2xl border border-border bg-surface p-6">
+            <span className="text-primary text-[10px] capitalize">Configuração operacional</span>
+            <p className="text-xs text-foreground/50 mt-1">
+              Define o que será criado automaticamente quando a proposta for aprovada: projeto, jobs e lançamentos financeiros.
+            </p>
+            <div className="grid gap-4 mt-4 md:grid-cols-2">
+              <F label="Responsável (projeto/jobs)">
+                <Select
+                  value={form.responsible_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, responsible_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem responsável</SelectItem>
+                    {team.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.display_name || t.full_name || "—"}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Modelo de cobrança">
+                <Select
+                  value={form.payment_kind}
+                  onValueChange={(v) => setForm({ ...form, payment_kind: v as typeof form.payment_kind })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recurring">Recorrente (mensal)</SelectItem>
+                    <SelectItem value="one_time">Avulso (parcelado)</SelectItem>
+                    <SelectItem value="mixed">Misto (mensal + avulso)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Conta bancária padrão">
+                <Select
+                  value={form.account_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, account_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem conta</SelectItem>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Categoria financeira">
+                <Select
+                  value={form.category_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, category_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem categoria</SelectItem>
+                    {categories.filter((c) => c.kind === "income").map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="1º vencimento">
+                <Input
+                  type="date"
+                  value={form.first_due_date}
+                  onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                />
+              </F>
+              <F label="Dia de cobrança (mensal)">
+                <Input
+                  type="number"
+                  min={1}
+                  max={28}
+                  value={String(form.billing_day)}
+                  onChange={(e) => setForm({ ...form, billing_day: Number(e.target.value) || 5 })}
+                />
+              </F>
+              {(form.payment_kind === "one_time" || form.payment_kind === "mixed") && (
+                <F label="Parcelas (valor avulso)">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={36}
+                    value={String(form.installments)}
+                    onChange={(e) => setForm({ ...form, installments: Math.max(1, Number(e.target.value) || 1) })}
+                  />
+                </F>
+              )}
+              {(form.payment_kind === "recurring" || form.payment_kind === "mixed") && (
+                <F label="Meses de recorrência a gerar">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={48}
+                    value={String(form.recurring_months)}
+                    onChange={(e) => setForm({ ...form, recurring_months: Math.max(1, Number(e.target.value) || 12) })}
+                  />
+                </F>
+              )}
+              <F label="Briefing do projeto">
+                <Textarea
+                  rows={3}
+                  value={form.briefing}
+                  onChange={(e) => setForm({ ...form, briefing: e.target.value })}
+                  placeholder="Será copiado para o projeto criado."
+                />
+              </F>
+              <div className="flex items-center gap-3 md:col-span-2">
+                <Switch
+                  id="auto_jobs"
+                  checked={form.auto_create_jobs}
+                  onCheckedChange={(v) => setForm({ ...form, auto_create_jobs: v })}
+                />
+                <Label htmlFor="auto_jobs" className="text-xs text-foreground/70">
+                  Gerar jobs automaticamente a partir dos templates de cada item
+                </Label>
+              </div>
+            </div>
+          </div>
+
 
           <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-4">
@@ -414,47 +642,67 @@ function ItemRow({
   }
 
   return (
-    <div className="grid grid-cols-12 gap-2 items-center bg-background/40 border border-border rounded-lg p-2">
-      <Input
-        value={local.title}
-        onChange={(e) => setLocal({ ...local, title: e.target.value })}
-        onBlur={() => commit({ title: local.title })}
-        className="col-span-5 h-9 bg-transparent border-transparent hover:border-border focus:border-primary"
-        placeholder="Item"
-      />
-      <Input
-        type="number"
-        value={String(local.quantity)}
-        onChange={(e) => setLocal({ ...local, quantity: Number(e.target.value) })}
-        onBlur={() => commit({ quantity: local.quantity })}
-        className="col-span-1 h-9 text-right"
-      />
-      <Input
-        type="number"
-        value={String(local.unit_price)}
-        onChange={(e) => setLocal({ ...local, unit_price: Number(e.target.value) })}
-        onBlur={() => commit({ unit_price: local.unit_price })}
-        className="col-span-3 h-9 text-right"
-        placeholder="0,00"
-      />
-      <Select
-        value={local.recurrence}
-        onValueChange={(v) => commit({ recurrence: v })}
-      >
-        <SelectTrigger className="col-span-2 h-9 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="monthly">Mensal</SelectItem>
-          <SelectItem value="one_time">Pontual</SelectItem>
-        </SelectContent>
-      </Select>
-      <button
-        onClick={onDelete}
-        className="col-span-1 grid place-items-center text-foreground/40 hover:text-destructive"
-      >
-        <Trash2 className="size-3.5" />
-      </button>
+    <div className="space-y-2 bg-background/40 border border-border rounded-lg p-2">
+      <div className="grid grid-cols-12 gap-2 items-center">
+        <Input
+          value={local.title}
+          onChange={(e) => setLocal({ ...local, title: e.target.value })}
+          onBlur={() => commit({ title: local.title })}
+          className="col-span-5 h-9 bg-transparent border-transparent hover:border-border focus:border-primary"
+          placeholder="Item"
+        />
+        <Input
+          type="number"
+          value={String(local.quantity)}
+          onChange={(e) => setLocal({ ...local, quantity: Number(e.target.value) })}
+          onBlur={() => commit({ quantity: local.quantity })}
+          className="col-span-1 h-9 text-right"
+        />
+        <Input
+          type="number"
+          value={String(local.unit_price)}
+          onChange={(e) => setLocal({ ...local, unit_price: Number(e.target.value) })}
+          onBlur={() => commit({ unit_price: local.unit_price })}
+          className="col-span-3 h-9 text-right"
+          placeholder="0,00"
+        />
+        <Select
+          value={local.recurrence}
+          onValueChange={(v) => commit({ recurrence: v })}
+        >
+          <SelectTrigger className="col-span-2 h-9 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="monthly">Mensal</SelectItem>
+            <SelectItem value="one_time">Pontual</SelectItem>
+          </SelectContent>
+        </Select>
+        <button
+          onClick={onDelete}
+          className="col-span-1 grid place-items-center text-foreground/40 hover:text-destructive"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+      </div>
+      <div className="grid grid-cols-12 gap-2 items-center">
+        <Label className="col-span-3 text-[10px] capitalize text-foreground/40 pl-1">
+          Template de jobs
+        </Label>
+        <Select
+          value={(local.job_template as string | null) ?? "none"}
+          onValueChange={(v) => commit({ job_template: v === "none" ? null : v } as Partial<ProposalItem>)}
+        >
+          <SelectTrigger className="col-span-9 h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {JOB_TEMPLATE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
