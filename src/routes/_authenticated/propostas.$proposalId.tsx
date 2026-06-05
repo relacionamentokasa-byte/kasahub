@@ -84,6 +84,7 @@ export function ProposalEditorContent({
   embedded?: boolean;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: proposal } = useQuery({
     queryKey: ["proposal", proposalId],
