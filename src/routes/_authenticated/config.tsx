@@ -68,7 +68,7 @@ function ConfigPage() {
           </span>
           <h1 className="font-display text-3xl font-bold mt-1">Configurações da agência</h1>
           <p className="text-foreground/60 text-sm mt-1">
-            Dados, branding, notificações e integrações do KASA OS.
+            Dados, identidade visual, notificações e integrações do KASA OS.
           </p>
         </div>
         <Button
@@ -90,7 +90,7 @@ function ConfigPage() {
       <Tabs defaultValue="agency" className="space-y-6">
         <TabsList>
           <TabsTrigger value="agency" className="gap-2"><Building2 className="size-3.5" /> Identidade</TabsTrigger>
-          <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Branding</TabsTrigger>
+          <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Identidade Visual</TabsTrigger>
           <TabsTrigger value="perms" className="gap-2"><Shield className="size-3.5" /> Perfis e Permissões</TabsTrigger>
           <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
           <TabsTrigger value="contracts" className="gap-2"><FileText className="size-3.5" /> Contratos</TabsTrigger>
