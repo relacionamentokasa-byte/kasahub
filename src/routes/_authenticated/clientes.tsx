@@ -268,10 +268,10 @@ function ClientesPage() {
             <ul className="md:hidden divide-y divide-border">
               {filtered.map((c) => (
                 <li key={c.id} className="relative">
-                  <Link
-                    to="/clientes/$clientId"
-                    params={{ clientId: c.id }}
-                    className="flex items-center gap-3 p-4 pr-12"
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(c.id)}
+                    className="flex items-center gap-3 p-4 pr-12 text-left w-full"
                   >
                     <div
                       className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
@@ -292,7 +292,7 @@ function ClientesPage() {
                         {c.email && <span className="text-[11px] text-foreground/50 truncate">{c.email}</span>}
                       </div>
                     </div>
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
