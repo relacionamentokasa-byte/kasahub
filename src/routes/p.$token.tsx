@@ -38,6 +38,11 @@ type Proposal = {
   recurring_months?: number | null;
   installments?: number | null;
   payment_method?: string | null;
+  contract_content?: string | null;
+  signature_agency?: string | null;
+  signature_client?: string | null;
+  signed_at_agency?: string | null;
+  signed_at_client?: string | null;
 };
 type Agency = {
   name: string;
@@ -144,6 +149,27 @@ function PublicProposalView() {
 
   const { proposal, agency } = data;
   const accepted = proposal.status === "accepted";
+
+  const contractContent = useMemo(() => {
+    if (!proposal.contract_content) return null;
+    return replaceContractVariables(proposal.contract_content, {
+      client_name: proposal.client_name,
+      client_legal_name: proposal.client_name, // fallback for now
+      client_document: agency?.document || "",
+      client_address: agency?.address || "",
+      client_email: proposal.client_email || "",
+      services_list: (proposal.scope || []).join(", "),
+      monthly_value: formatCurrency(proposal.monthly_investment),
+      total_value: formatCurrency(proposal.monthly_investment * (proposal.recurring_months || 12)),
+      payment_method: proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                      proposal.payment_method === 'pix' ? 'PIX' : 
+                      proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto',
+      contract_term: `${proposal.recurring_months || 12} meses`,
+      start_date: new Date().toLocaleDateString("pt-BR"),
+      due_day: "5", // fallback
+      installments: String(proposal.installments || 1),
+    });
+  }, [proposal, agency]);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 print:bg-white">
@@ -354,21 +380,52 @@ function PublicProposalView() {
           )}
         </div>
 
+        {/* Contract */}
+        {contractContent && (
+          <div className="px-8 py-10 border-b border-slate-100 bg-slate-50/50 print:bg-white page-break-before">
+            <h2 className="text-xs uppercase tracking-widest text-slate-500 mb-8 text-center print:mt-10">
+              Contrato de Prestação de Serviços
+            </h2>
+            <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap font-serif px-4 sm:px-8">
+              {contractContent}
+            </div>
+          </div>
+        )}
+
         {/* Signature */}
-        <div className="px-8 py-8">
+        <div className="px-8 py-10">
           <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
             Aceite digital
           </h2>
           {accepted ? (
-            <div className="rounded-xl border border-green-200 bg-green-50 p-5 text-sm text-green-900">
-              <div className="flex items-center gap-2 font-semibold">
-                <CheckCircle2 className="size-5" /> Proposta aprovada
+            <div className="grid sm:grid-cols-2 gap-8 mt-4">
+              <div className="rounded-xl border border-slate-200 p-6 bg-slate-50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10">
+                  <CheckCircle2 className="size-12 text-slate-900" />
+                </div>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-4">Contratada (Agência)</p>
+                <p className="text-sm font-bold text-slate-900">{agency?.name}</p>
+                <div className="mt-4 pt-4 border-t border-slate-200 italic font-serif text-slate-500 text-sm">
+                  {proposal.signature_agency || "Assinado eletronicamente"}
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2">
+                  Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
+                </p>
               </div>
-              <p className="mt-2 text-green-800">
-                Por <strong>{proposal.accepted_name}</strong> em{" "}
-                {proposal.accepted_at &&
-                  new Date(proposal.accepted_at).toLocaleString("pt-BR")}
-              </p>
+
+              <div className="rounded-xl border border-green-200 p-6 bg-green-50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-2 opacity-10">
+                  <CheckCircle2 className="size-12 text-green-600" />
+                </div>
+                <p className="text-[10px] uppercase tracking-widest text-green-600/60 mb-4">Contratante (Cliente)</p>
+                <p className="text-sm font-bold text-slate-900">{proposal.accepted_name}</p>
+                <div className="mt-4 pt-4 border-t border-green-200 italic font-serif text-slate-700 text-sm">
+                  {proposal.signature_client || proposal.accepted_name}
+                </div>
+                <p className="text-[10px] text-green-600/60 mt-2">
+                  Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
+                </p>
+              </div>
             </div>
           ) : (
             <div className="grid sm:grid-cols-2 gap-6 items-end">
