@@ -112,10 +112,9 @@ function ProposalsPage() {
     payment_method: "boleto",
     first_due_date: new Date().toISOString().split("T")[0],
     valid_until: "",
-    intro: "",
+    intro: "Olá! É um prazer apresentar nossa proposta comercial. Nossa equipe está focada em entregar resultados excepcionais para sua marca.",
     notes: "",
     scope: [] as string[],
-    intro: "Olá! É um prazer apresentar nossa proposta comercial. Nossa equipe está focada em entregar resultados excepcionais para sua marca.",
   };
   const [form, setForm] = useState(emptyForm);
 
