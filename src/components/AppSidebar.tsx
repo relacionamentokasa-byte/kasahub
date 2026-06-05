@@ -52,6 +52,7 @@ const groups = [
     items: [
       { title: "Financeiro", url: "/financeiro", icon: Wallet },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+      { title: "Dashboard CEO", url: "/ceo", icon: Crown, ceoOnly: true },
     ],
   },
   {
