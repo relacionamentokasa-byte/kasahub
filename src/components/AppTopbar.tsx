@@ -96,6 +96,15 @@ export function AppTopbar() {
           <span className="text-xs font-medium">Ações rápidas</span>
         </Button>
 
+        <button
+          onClick={toggle}
+          aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+          title={theme === "dark" ? "Tema claro" : "Tema escuro"}
+          className="p-2 text-foreground/60 hover:text-foreground transition-colors"
+        >
+          {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
+        </button>
+
         <button className="relative p-2 text-foreground/60 hover:text-foreground transition-colors">
           <Bell className="size-5" />
           <span className="absolute top-1.5 right-1.5 size-2 bg-primary rounded-full ring-2 ring-background animate-pulse" />
