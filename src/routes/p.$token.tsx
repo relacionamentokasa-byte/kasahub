@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { replaceContractVariables } from "@/lib/contracts-api";
+import { replaceContractVariables } from "@/lib/contracts-api";
 import { CheckCircle2, Printer, FileSignature, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
