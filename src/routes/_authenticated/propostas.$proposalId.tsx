@@ -122,6 +122,8 @@ export function ProposalEditorContent({
     recurring_months: 12,
     scope: [] as string[],
     payment_method: "boleto",
+    monthly_investment: 0,
+    one_time_investment: 0,
   });
 
   useEffect(() => {
