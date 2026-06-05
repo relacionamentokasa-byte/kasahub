@@ -102,7 +102,7 @@ function ProposalsPage() {
     contract_type: "mensal" as "mensal" | "avulso",
     monthly_investment: 0,
     one_time_investment: 0,
-    contract_term: "monthly" as string,
+    contract_term: "",
     installments: 1,
     payment_method: "boleto",
     first_due_date: new Date().toISOString().split("T")[0],
