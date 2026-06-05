@@ -226,7 +226,36 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
           <JobsBoard clientId={clientId} title="Jobs do cliente" eyebrow="Cliente · Jobs" />
         </TabsContent>
 
-        <TabsContent value="finance" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+        <TabsContent value="finance" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0 space-y-6">
+          {(() => {
+            const txList = transactions as Array<{ id: string; description: string; kind: string; status: string; due_date: string; amount: number }>;
+            const income = txList.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+            const expense = txList.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
+            const profit = income - expense;
+            const margin = income > 0 ? (profit / income) * 100 : 0;
+            const jobsCount = (projects as Array<{ id: string }>).reduce((s) => s, 0);
+            return (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="bg-surface border border-border rounded-xl p-4">
+                  <div className="text-[10px] uppercase text-foreground/50">Receita total</div>
+                  <div className="font-display text-xl font-bold text-emerald-400 mt-1">{BRL(income)}</div>
+                </div>
+                <div className="bg-surface border border-border rounded-xl p-4">
+                  <div className="text-[10px] uppercase text-foreground/50">Despesas vinculadas</div>
+                  <div className="font-display text-xl font-bold text-rose-400 mt-1">{BRL(expense)}</div>
+                </div>
+                <div className="bg-surface border border-border rounded-xl p-4">
+                  <div className="text-[10px] uppercase text-foreground/50">Lucro</div>
+                  <div className={`font-display text-xl font-bold mt-1 ${profit >= 0 ? "text-emerald-400" : "text-rose-400"}`}>{BRL(profit)}</div>
+                </div>
+                <div className="bg-surface border border-border rounded-xl p-4">
+                  <div className="text-[10px] uppercase text-foreground/50">Margem · Projetos</div>
+                  <div className="font-display text-xl font-bold text-primary mt-1">{margin.toFixed(1)}% · {projects.length}</div>
+                </div>
+              </div>
+            );
+          })()}
+
           {transactions.length === 0 ? (
             <p className="text-foreground/40 text-sm">Nenhum lançamento financeiro para este cliente.</p>
           ) : (
@@ -262,6 +291,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
             </div>
           )}
         </TabsContent>
+
 
         <TabsContent value="proposals" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           {proposals.length === 0 ? (
