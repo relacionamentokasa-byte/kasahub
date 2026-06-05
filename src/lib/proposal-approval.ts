@@ -155,9 +155,9 @@ export async function approveProposal(
     let order = 0;
     for (const it of items ?? []) {
       const tplKey = (it.job_template ?? "") as string;
-      const stages = JOB_TEMPLATES[tplKey];
-      if (!stages) continue;
-      for (const stage of stages) {
+      const tplStages = JOB_TEMPLATES[tplKey];
+      if (!tplStages) continue;
+      for (const stage of tplStages) {
         const title = `${it.title} · ${stage}`;
         if (existingTitles.has(title)) continue;
         rows.push({
