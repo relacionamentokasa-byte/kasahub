@@ -119,6 +119,7 @@ function ProposalsPage() {
         client_email: form.client_email || null,
         intro: form.intro || null,
         service_type: form.service_type || null,
+        service_ids: form.service_ids,
         valid_until: form.valid_until || null,
       }),
     onSuccess: async (p) => {
