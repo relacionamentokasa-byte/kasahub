@@ -54,10 +54,16 @@ export function NewTransactionDialog({
     account_id: "",
     category_id: "",
     client_id: "",
+    contract_id: "",
+    project_id: "",
     notes: "",
     paid: false,
     installments: 1,
   });
+
+  const clientContracts = contracts.filter((c) => !form.client_id || c.client_id === form.client_id);
+  const clientProjects = projects.filter((p) => !form.client_id || p.client_id === form.client_id);
+
 
   const filteredCats = categories.filter((c) => c.kind === form.kind);
 
