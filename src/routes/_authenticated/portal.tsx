@@ -106,6 +106,7 @@ function ClientPortalView({
             <TabsTrigger value="calendar"><CalendarIcon className="size-3 mr-1.5" />Calendário</TabsTrigger>
             <TabsTrigger value="projects"><FolderKanban className="size-3 mr-1.5" />Projetos</TabsTrigger>
             <TabsTrigger value="contracts"><FileSignature className="size-3 mr-1.5" />Contratos</TabsTrigger>
+            <TabsTrigger value="finance"><DollarSign className="size-3 mr-1.5" />Financeiro</TabsTrigger>
           </TabsList>
 
           <TabsContent value="feed" className="mt-6 space-y-4">
