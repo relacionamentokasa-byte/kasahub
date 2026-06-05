@@ -14,6 +14,7 @@ import {
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
 import { recordProposalEvent } from "@/lib/proposal-events";
+import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import {
   Select,
   SelectContent,
