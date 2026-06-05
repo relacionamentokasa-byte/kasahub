@@ -32,7 +32,7 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
 
-  // Already signed in? Bounce to dashboard.
+  // Já está logado? Redirecionar para o painel.
   useEffect(() => {
     let cancelled = false;
     (async () => {
