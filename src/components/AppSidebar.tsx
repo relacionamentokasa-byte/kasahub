@@ -3,19 +3,12 @@ import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   KanbanSquare,
-  FileText,
   Users,
   FolderKanban,
   CheckSquare,
   Wallet,
   BarChart3,
-  Globe,
-  UsersRound,
   Settings,
-  Crown,
-  Heart,
-  CalendarDays,
-  Plug,
 } from "lucide-react";
 import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 import {
@@ -39,7 +32,6 @@ const groups = [
     items: [
       { title: "Dashboard", url: "/", icon: LayoutDashboard },
       { title: "CRM", url: "/crm", icon: KanbanSquare },
-      { title: "Propostas", url: "/propostas", icon: FileText },
     ],
   },
   {
@@ -55,17 +47,11 @@ const groups = [
     items: [
       { title: "Financeiro", url: "/financeiro", icon: Wallet },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
-      { title: "Dashboard CEO", url: "/ceo", icon: Crown, ceoOnly: true },
     ],
   },
   {
-    label: "Experiência",
+    label: "Sistema",
     items: [
-      { title: "Aprovações", url: "/aprovacoes", icon: Heart },
-      { title: "Calendário", url: "/calendario", icon: CalendarDays },
-      { title: "Portal do Cliente", url: "/portal", icon: Globe },
-      { title: "Equipe", url: "/equipe", icon: UsersRound },
-      { title: "Integrações", url: "/integracoes", icon: Plug },
       { title: "Configurações", url: "/config", icon: Settings },
     ],
   },
