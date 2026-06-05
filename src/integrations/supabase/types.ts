@@ -1062,6 +1062,7 @@ export type Database = {
           contract_template_id: string | null
           contract_term: string | null
           contract_type: string
+          converted_at: string | null
           created_at: string
           currency: string
           first_due_date: string | null
@@ -1080,6 +1081,7 @@ export type Database = {
           public_token: string
           recurring_months: number
           responsible_id: string | null
+          scope: string[] | null
           service_ids: string[]
           service_type: string | null
           signature_agency: string | null
@@ -1110,6 +1112,7 @@ export type Database = {
           contract_template_id?: string | null
           contract_term?: string | null
           contract_type?: string
+          converted_at?: string | null
           created_at?: string
           currency?: string
           first_due_date?: string | null
@@ -1128,6 +1131,7 @@ export type Database = {
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          scope?: string[] | null
           service_ids?: string[]
           service_type?: string | null
           signature_agency?: string | null
@@ -1158,6 +1162,7 @@ export type Database = {
           contract_template_id?: string | null
           contract_term?: string | null
           contract_type?: string
+          converted_at?: string | null
           created_at?: string
           currency?: string
           first_due_date?: string | null
@@ -1176,6 +1181,7 @@ export type Database = {
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          scope?: string[] | null
           service_ids?: string[]
           service_type?: string | null
           signature_agency?: string | null

@@ -229,7 +229,7 @@ export function ProposalEditorContent({
       return approveProposal(supabase, proposalId);
     },
     onSuccess: (r) => {
-      toast.success(`Proposta aprovada — ${r.jobs_created} jobs e ${r.transactions_created} lançamentos criados.`);
+      toast.success(`Proposta aprovada e convertida em contrato!`);
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -299,13 +299,21 @@ export function ProposalEditorContent({
           <Button variant="outline" onClick={() => saveMut.mutate({ status: "sent" })} className="gap-2"><Send className="size-4" /> Marcar como enviada</Button>
           <Button onClick={() => saveMut.mutate(undefined)} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
           {proposal.status !== "accepted" ? (
-            <Button onClick={() => approveMut.mutate()} disabled={approveMut.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2">
-              <Rocket className="size-4" /> Aprovar e gerar operação
+            <Button 
+              onClick={() => {
+                if (confirm("Esta ação irá:\n\n✓ Converter a proposta em Contrato Ativo\n✓ Vincular ao Cliente\n✓ Vincular os Serviços Contratados\n✓ Criar Projetos\n✓ Criar Jobs dos Templates\n✓ Criar lançamentos financeiros\n✓ Atualizar Cliente 360\n\nDeseja continuar?")) {
+                  approveMut.mutate();
+                }
+              }} 
+              disabled={approveMut.isPending} 
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
+            >
+              <CheckCircle2 className="size-4" /> Aprovar e Converter em Contrato
             </Button>
           ) : (
             <>
               <Button variant="outline" onClick={() => cancelMut.mutate(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir</Button>
-              <Button variant="outline" onClick={() => confirm("Cancelar?") && cancelMut.mutate(false)} className="gap-2 text-destructive"><XCircle className="size-4" /> Cancelar aprovação</Button>
+              <Button variant="outline" onClick={() => confirm("Cancelar contrato e operação?") && cancelMut.mutate(false)} className="gap-2 text-destructive"><XCircle className="size-4" /> Cancelar contrato</Button>
             </>
           )}
         </div>
