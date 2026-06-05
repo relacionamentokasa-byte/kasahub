@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      bank_accounts: {
+        Row: {
+          account_type: string
+          bank: string | null
+          color: string | null
+          created_at: string
+          id: string
+          initial_balance: number
+          is_active: boolean
+          name: string
+          owner_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_type?: string
+          bank?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          initial_balance?: number
+          is_active?: boolean
+          name: string
+          owner_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_type?: string
+          bank?: string | null
+          color?: string | null
+          created_at?: string
+          id?: string
+          initial_balance?: number
+          is_active?: boolean
+          name?: string
+          owner_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           banner_url: string | null
@@ -74,6 +113,81 @@ export type Database = {
           status?: string
           updated_at?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      contracts: {
+        Row: {
+          billing_day: number
+          client_id: string | null
+          created_at: string
+          end_date: string | null
+          id: string
+          monthly_value: number
+          notes: string | null
+          owner_id: string | null
+          proposal_id: string | null
+          start_date: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          billing_day?: number
+          client_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_value?: number
+          notes?: string | null
+          owner_id?: string | null
+          proposal_id?: string | null
+          start_date?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          billing_day?: number
+          client_id?: string | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          monthly_value?: number
+          notes?: string | null
+          owner_id?: string | null
+          proposal_id?: string | null
+          start_date?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      financial_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -619,6 +733,75 @@ export type Database = {
           },
         ]
       }
+      transactions: {
+        Row: {
+          account_id: string | null
+          amount: number
+          category_id: string | null
+          client_id: string | null
+          contract_id: string | null
+          created_at: string
+          description: string
+          due_date: string
+          id: string
+          installment_number: number | null
+          installment_total: number | null
+          is_recurring: boolean
+          kind: string
+          notes: string | null
+          owner_id: string | null
+          paid_at: string | null
+          project_id: string | null
+          proposal_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          amount?: number
+          category_id?: string | null
+          client_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          description: string
+          due_date?: string
+          id?: string
+          installment_number?: number | null
+          installment_total?: number | null
+          is_recurring?: boolean
+          kind: string
+          notes?: string | null
+          owner_id?: string | null
+          paid_at?: string | null
+          project_id?: string | null
+          proposal_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          amount?: number
+          category_id?: string | null
+          client_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string
+          id?: string
+          installment_number?: number | null
+          installment_total?: number | null
+          is_recurring?: boolean
+          kind?: string
+          notes?: string | null
+          owner_id?: string | null
+          paid_at?: string | null
+          project_id?: string | null
+          proposal_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -645,6 +828,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      account_balance: { Args: { _account_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
