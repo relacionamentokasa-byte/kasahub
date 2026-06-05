@@ -147,16 +147,13 @@ function ProposalEditor() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => {
-              setForm((f) => ({ ...f, status: "sent" }));
-              setTimeout(() => saveMut.mutate(), 0);
-            }}
+            onClick={() => saveMut.mutate({ status: "sent" })}
             className="gap-2"
           >
             <Send className="size-4" /> Marcar como enviada
           </Button>
           <Button
-            onClick={() => saveMut.mutate()}
+            onClick={() => saveMut.mutate(undefined)}
             disabled={saveMut.isPending}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
           >
