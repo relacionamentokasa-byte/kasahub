@@ -121,6 +121,7 @@ export function ProposalEditorContent({
     auto_create_jobs: true,
     recurring_months: 12,
     scope: [] as string[],
+    payment_method: "boleto",
   });
 
   useEffect(() => {
