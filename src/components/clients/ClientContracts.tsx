@@ -7,12 +7,10 @@ import {
   Tag, 
   CheckCircle2, 
   Clock, 
-  AlertCircle,
-  Plus
+  AlertCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
 
 const BRL = (v: number) =>
   v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -39,7 +37,7 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-const getTypeLabel = (type: string) => {
+const getTypeLabel = (type: string | null) => {
   switch (type) {
     case "recurring": return "Recorrente";
     case "one_time": return "Job Avulso";
@@ -63,7 +61,7 @@ export function ClientContracts({ clientId }: { clientId: string }) {
     },
   });
 
-  if (isLoading) return <div className="text-sm text-foreground/40">Carregando contratos...</div>;
+  if (isLoading) return <div className="text-sm text-foreground/40 p-10">Carregando contratos...</div>;
 
   return (
     <div className="space-y-6">
@@ -71,9 +69,6 @@ export function ClientContracts({ clientId }: { clientId: string }) {
         <h3 className="text-lg font-semibold flex items-center gap-2">
           <FileSignature className="size-5 text-primary" /> Contratos do Cliente
         </h3>
-        {/* <Button size="sm" className="gap-2">
-          <Plus className="size-4" /> Novo Contrato
-        </Button> */}
       </div>
 
       {contracts.length === 0 ? (
@@ -106,7 +101,7 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                   <div className="text-[10px] uppercase text-foreground/40">Valor</div>
                   <div className="font-semibold text-sm flex items-center gap-1.5">
                     <DollarSign className="size-3.5 text-emerald-400" />
-                    {contract.monthly_value > 0 ? (
+                    {Number(contract.monthly_value || 0) > 0 ? (
                       <span>{BRL(Number(contract.monthly_value))} <span className="text-[10px] text-foreground/40 font-normal">/mês</span></span>
                     ) : (
                       <span>{BRL(Number(contract.total_value || 0))}</span>
@@ -128,7 +123,6 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                   <span className="flex items-center gap-1.5">
                     <Clock className="size-3.5" /> Dia de faturamento: <strong>{contract.billing_day}</strong>
                   </span>
-                  {/* <Button variant="ghost" size="sm" className="h-7 text-[10px] uppercase">Ver detalhes</Button> */}
                 </div>
               )}
             </div>
