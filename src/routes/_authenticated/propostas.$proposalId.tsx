@@ -180,6 +180,7 @@ export function ProposalEditorContent({
         category_id: f.category_id || null,
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
+        scope: f.scope,
       } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
