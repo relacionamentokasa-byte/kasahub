@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.project_progress(uuid) FROM PUBLIC, anon, authenticated;
