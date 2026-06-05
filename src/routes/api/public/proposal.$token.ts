@@ -81,17 +81,14 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             headers: { "Content-Type": "application/json" },
           });
         }
-        const { error } = await supabaseAdmin
-          .from("proposals")
-          .update({
-            status: "accepted",
-            accepted_at: new Date().toISOString(),
-            accepted_name: body.accepted_name,
-            accepted_ip: ip,
-          })
-          .eq("id", proposal.id);
-        if (error) {
-          return new Response(JSON.stringify({ error: error.message }), {
+        try {
+          await approveProposal(supabaseAdmin, proposal.id, {
+            acceptedName: body.accepted_name,
+            acceptedIp: ip,
+          });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "erro ao aprovar";
+          return new Response(JSON.stringify({ error: msg }), {
             status: 500,
             headers: { "Content-Type": "application/json" },
           });
