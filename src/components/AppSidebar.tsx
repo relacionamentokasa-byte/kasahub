@@ -122,7 +122,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="overflow-hidden">
               <p className="text-sm font-medium truncate text-sidebar-foreground">Lucas Andrade</p>
-              <p className="text-[10px] text-sidebar-foreground/40 truncate font-mono-kasa uppercase tracking-wider">
+              <p className="text-[10px] text-sidebar-foreground/40 truncate font-mono-kasa capitalize">
                 Diretor Criativo
               </p>
             </div>

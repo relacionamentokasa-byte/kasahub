@@ -112,7 +112,7 @@ export function JobSheet({
         <div className="mt-6 space-y-6">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-widest text-foreground/50">Etapa</Label>
+              <Label className="text-[10px] capitalize text-foreground/50">Etapa</Label>
               <Select
                 value={job.stage_id ?? undefined}
                 onValueChange={(v) => updateMut.mutate({ stage_id: v })}
@@ -126,7 +126,7 @@ export function JobSheet({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] uppercase tracking-widest text-foreground/50">Prioridade</Label>
+              <Label className="text-[10px] capitalize text-foreground/50">Prioridade</Label>
               <Select
                 value={job.priority}
                 onValueChange={(v) => updateMut.mutate({ priority: v })}
@@ -141,7 +141,7 @@ export function JobSheet({
               </Select>
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label className="text-[10px] uppercase tracking-widest text-foreground/50">Prazo</Label>
+              <Label className="text-[10px] capitalize text-foreground/50">Prazo</Label>
               <Input
                 type="date"
                 defaultValue={job.due_date ?? ""}
@@ -149,7 +149,7 @@ export function JobSheet({
               />
             </div>
             <div className="space-y-1.5 col-span-2">
-              <Label className="text-[10px] uppercase tracking-widest text-foreground/50">Descrição</Label>
+              <Label className="text-[10px] capitalize text-foreground/50">Descrição</Label>
               <Textarea
                 rows={3}
                 defaultValue={job.description ?? ""}
@@ -160,8 +160,8 @@ export function JobSheet({
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[10px] uppercase tracking-widest text-foreground/50 font-mono">Checklist</h3>
-              <span className="text-[10px] text-foreground/40 font-mono">
+              <h3 className="text-[10px] capitalize text-foreground/50">Checklist</h3>
+              <span className="text-[10px] text-foreground/40">
                 {checklist.filter((c) => c.done).length}/{checklist.length}
               </span>
             </div>
@@ -204,7 +204,7 @@ export function JobSheet({
           </div>
 
           <div>
-            <h3 className="text-[10px] uppercase tracking-widest text-foreground/50 font-mono mb-2">
+            <h3 className="text-[10px] capitalize text-foreground/50 mb-2">
               Comentários
             </h3>
             <div className="space-y-3 mb-3">

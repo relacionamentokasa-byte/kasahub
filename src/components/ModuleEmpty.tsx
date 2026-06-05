@@ -15,7 +15,7 @@ export function ModuleEmpty({ icon: Icon, eyebrow, title, description, bullets, 
     <div className="p-6 lg:p-12 max-w-6xl mx-auto w-full animate-reveal">
       <div className="mb-10 flex items-end justify-between gap-6 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-[0.25em] font-medium">
+          <span className="text-primary text-[10px] font-mono-kasa capitalize font-medium">
             {eyebrow}
           </span>
           <h1 className="font-display text-4xl lg:text-5xl font-bold tracking-tight mt-2 text-balance">
@@ -24,7 +24,7 @@ export function ModuleEmpty({ icon: Icon, eyebrow, title, description, bullets, 
           <p className="text-foreground/60 mt-3 max-w-xl text-balance">{description}</p>
         </div>
         {phase && (
-          <span className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40 border border-border rounded-full px-3 py-1">
+          <span className="text-[10px] font-mono-kasa capitalize text-foreground/40 border border-border rounded-full px-3 py-1">
             {phase}
           </span>
         )}

@@ -103,7 +103,7 @@ function RelatoriosPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4">
-        <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">Gestão · Relatórios</span>
+        <span className="text-primary text-[10px] capitalize">Gestão · Relatórios</span>
         <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">Relatórios</h1>
         <p className="text-sm text-foreground/50 mt-2">Recortes de operação e exportação CSV.</p>
       </div>
@@ -151,7 +151,7 @@ function RelatoriosPage() {
           <TabsContent value="clients" className="mt-6 space-y-4">
             <ReportHeader title="Por cliente" subtitle={`${clients.length} clientes`} onExport={exportPerClient} icon={<Users className="size-5" />} />
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-              <div className="grid grid-cols-12 px-5 py-3 text-[10px] font-mono uppercase tracking-wider text-foreground/40 border-b border-border">
+              <div className="grid grid-cols-12 px-5 py-3 text-[10px] capitalize text-foreground/40 border-b border-border">
                 <div className="col-span-4">Cliente</div>
                 <div className="col-span-2 text-right">MRR</div>
                 <div className="col-span-3 text-right">Receita total</div>
@@ -197,7 +197,7 @@ function StatCard({ label, value, hint, accent }: { label: string; value: string
   return (
     <div className="bg-surface border border-border rounded-2xl p-4 relative overflow-hidden">
       {accent && <div className="absolute inset-x-0 top-0 h-0.5" style={{ background: accent }} />}
-      <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/50">{label}</div>
+      <div className="text-[10px] capitalize text-foreground/50">{label}</div>
       <div className="mt-2 font-display text-2xl font-bold">{value}</div>
       {hint && <div className="text-xs text-foreground/40 mt-1">{hint}</div>}
     </div>

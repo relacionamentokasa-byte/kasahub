@@ -220,7 +220,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
         </div>
 
         <div className="border-t border-border pt-5 mt-2">
-          <h3 className="font-display font-semibold text-sm uppercase tracking-wider text-foreground/60 mb-3 flex items-center gap-2">
+          <h3 className="font-display font-semibold text-sm capitalize text-foreground/60 mb-3 flex items-center gap-2">
             <Activity className="size-4" /> Atividade
           </h3>
           <div className="flex gap-2 mb-3">
@@ -260,7 +260,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
                 <ActivityIcon type={a.type} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-foreground/90">{a.content}</p>
-                  <p className="text-[10px] text-foreground/40 font-mono mt-1">
+                  <p className="text-[10px] text-foreground/40 mt-1">
                     {new Date(a.created_at).toLocaleString("pt-BR")}
                   </p>
                 </div>
@@ -275,7 +275,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
         </div>
 
         {Number(lead.value) > 0 && (
-          <div className="text-xs text-foreground/50 font-mono pt-3 border-t border-border">
+          <div className="text-xs text-foreground/50 pt-3 border-t border-border">
             Valor: <span className="text-primary">{formatCurrency(Number(lead.value))}</span>
           </div>
         )}
@@ -287,7 +287,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[10px] uppercase tracking-wider font-mono text-foreground/50">
+      <Label className="text-[10px] capitalize text-foreground/50">
         {label}
       </Label>
       {children}

@@ -46,7 +46,7 @@ function ClientesPage() {
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+          <span className="text-primary text-[10px] capitalize">
             Operação · Clientes
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
@@ -108,7 +108,7 @@ function ClientesPage() {
                   {c.email && (
                     <div className="text-xs text-foreground/50 truncate">{c.email}</div>
                   )}
-                  <div className="mt-3 text-[10px] font-mono uppercase tracking-wider text-foreground/40">
+                  <div className="mt-3 text-[10px] capitalize text-foreground/40">
                     {c.status === "active" ? "● Ativo" : c.status}
                   </div>
                 </Link>

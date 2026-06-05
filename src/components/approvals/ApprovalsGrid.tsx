@@ -71,7 +71,7 @@ export function ApprovalsGrid({ clientId, status, onSelect, showClient }: Props)
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
 
             <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2">
-              <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider font-mono-kasa border", STATUS_COLOR[a.status])}>
+              <Badge variant="outline" className={cn("text-[10px] capitalize-kasa border", STATUS_COLOR[a.status])}>
                 {STATUS_LABEL[a.status]}
               </Badge>
               {(a.kind === "video" || a.kind === "reel") && (

@@ -98,7 +98,7 @@ function CeoPage() {
             <Crown className="size-6" />
           </div>
           <div>
-            <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">Restrito · CEO</span>
+            <span className="text-primary text-[10px] capitalize">Restrito · CEO</span>
             <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">Dashboard CEO</h1>
           </div>
         </div>
@@ -110,7 +110,7 @@ function CeoPage() {
           <div className="col-span-12 lg:col-span-6 bg-primary text-primary-foreground rounded-2xl p-8 relative overflow-hidden">
             <div className="kasa-pattern absolute inset-0 opacity-25" />
             <div className="relative">
-              <span className="text-primary-foreground/70 font-mono text-[10px] uppercase tracking-[0.25em] font-bold">MRR · Receita recorrente</span>
+              <span className="text-primary-foreground/70 text-[10px] capitalize font-bold">MRR · Receita recorrente</span>
               <div className="font-display text-6xl lg:text-7xl font-bold tracking-tighter leading-none mt-3">{brl(ind.mrr)}</div>
               <p className="text-primary-foreground/70 text-sm mt-3">ARR projetado · {brl(ind.arr)}</p>
             </div>
@@ -190,7 +190,7 @@ function CeoPage() {
                 const pct = (score / max) * 100;
                 return (
                   <div key={c.id} className="flex items-center gap-4">
-                    <div className="w-6 text-center text-xs font-mono text-foreground/40">{String(idx + 1).padStart(2, "0")}</div>
+                    <div className="w-6 text-center text-xs text-foreground/40">{String(idx + 1).padStart(2, "0")}</div>
                     <div className="min-w-[180px] truncate font-medium">{c.company || c.name}</div>
                     <div className="flex-1 h-2 bg-background rounded-full overflow-hidden">
                       <div className="h-full bg-primary rounded-full" style={{ width: `${pct}%` }} />
@@ -205,7 +205,7 @@ function CeoPage() {
           )}
         </div>
 
-        <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/30 text-center">
+        <div className="text-[10px] capitalize text-foreground/30 text-center">
           {jobs.length} jobs · {clients.length} clientes · dados em tempo real
         </div>
       </div>
@@ -217,7 +217,7 @@ function CeoKpi({ label, value, icon, tone, hint }: { label: string; value: stri
   const cls = tone === "success" ? "text-emerald-400" : tone === "danger" ? "text-rose-400" : "text-foreground";
   return (
     <div className="col-span-6 lg:col-span-3 bg-surface border border-border rounded-2xl p-5">
-      <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-foreground/50">
+      <div className="flex items-center justify-between text-[10px] capitalize text-foreground/50">
         <span>{label}</span>{icon}
       </div>
       <div className={`mt-3 font-display text-2xl font-bold ${cls}`}>{value}</div>

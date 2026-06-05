@@ -165,7 +165,7 @@ function ProposalEditor() {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl border border-border bg-surface p-6">
-            <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+            <span className="text-primary text-[10px] capitalize">
               Cabeçalho
             </span>
             <div className="grid gap-4 mt-3">
@@ -228,7 +228,7 @@ function ProposalEditor() {
 
           <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+              <span className="text-primary text-[10px] capitalize">
                 Itens · Escopo
               </span>
               <div className="flex gap-2">
@@ -262,7 +262,7 @@ function ProposalEditor() {
 
         <div className="space-y-4">
           <div className="rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6 sticky top-6">
-            <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+            <span className="text-primary text-[10px] capitalize">
               Investimento Mensal
             </span>
             <div className="font-display text-4xl font-bold mt-2 text-primary">
@@ -289,12 +289,12 @@ function ProposalEditor() {
           )}
 
           <div className="rounded-2xl border border-border bg-surface p-5 text-xs text-foreground/60">
-            <p className="font-mono uppercase tracking-wider text-[10px] text-foreground/40 mb-2">
+            <p className="capitalize text-[10px] text-foreground/40 mb-2">
               Link público
             </p>
             <Link
               to="/propostas"
-              className="font-mono text-[11px] break-all text-primary hover:underline"
+              className="text-[11px] break-all text-primary hover:underline"
               onClick={(e) => {
                 e.preventDefault();
                 copyShareLink();
@@ -349,7 +349,7 @@ function ItemRow({
         value={String(local.unit_price)}
         onChange={(e) => setLocal({ ...local, unit_price: Number(e.target.value) })}
         onBlur={() => commit({ unit_price: local.unit_price })}
-        className="col-span-3 h-9 text-right font-mono"
+        className="col-span-3 h-9 text-right"
         placeholder="0,00"
       />
       <Select
@@ -377,7 +377,7 @@ function ItemRow({
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[10px] uppercase tracking-wider font-mono text-foreground/50">
+      <Label className="text-[10px] capitalize text-foreground/50">
         {label}
       </Label>
       {children}

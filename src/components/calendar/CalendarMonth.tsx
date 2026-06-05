@@ -86,7 +86,7 @@ export function CalendarMonth({ clientId, onSelectEvent }: Props) {
 
       <div className="grid grid-cols-7 gap-px bg-border border border-border rounded-lg overflow-hidden">
         {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((d) => (
-          <div key={d} className="bg-surface p-2 text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40 text-center">
+          <div key={d} className="bg-surface p-2 text-[10px] font-mono-kasa capitalize text-foreground/40 text-center">
             {d}
           </div>
         ))}
