@@ -215,6 +215,7 @@ function ServiceFormDialog({
     category: service?.category ?? "",
     description: service?.description ?? "",
     is_active: service?.is_active ?? true,
+    default_scope: (service?.default_scope as string[]) ?? [],
   });
 
   const saveMut = useMutation({
@@ -224,6 +225,7 @@ function ServiceFormDialog({
         category: form.category.trim() || null,
         description: form.description.trim() || null,
         is_active: form.is_active,
+        default_scope: form.default_scope,
       };
       if (!payload.name) throw new Error("Nome obrigatório");
       if (service) return updateService(service.id, payload);
@@ -289,6 +291,20 @@ function ServiceFormDialog({
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Escopo Padrão (Itens separados por linha)</Label>
+              <Textarea
+                rows={5}
+                value={form.default_scope.join("\n")}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    default_scope: e.target.value.split("\n").filter((x) => x.trim()),
+                  })
+                }
+                placeholder="Item 1&#10;Item 2&#10;Item 3"
               />
             </div>
             <DialogFooter>

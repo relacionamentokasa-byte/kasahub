@@ -13,6 +13,7 @@ import {
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
+import { fetchServices, type Service } from "@/lib/services-api";
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
@@ -84,6 +85,10 @@ export function ProposalEditorContent({
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
+  const { data: services = [] } = useQuery({
+    queryKey: ["services", "active"],
+    queryFn: () => fetchServices({ onlyActive: true }),
+  });
   const { data: team = [] } = useQuery({
     queryKey: ["team-profiles"],
     queryFn: async () => {
@@ -115,6 +120,7 @@ export function ProposalEditorContent({
     category_id: "",
     auto_create_jobs: true,
     recurring_months: 12,
+    scope: [] as string[],
   });
 
   useEffect(() => {
@@ -143,6 +149,7 @@ export function ProposalEditorContent({
         category_id: (p.category_id as string) ?? "",
         auto_create_jobs: (p.auto_create_jobs as boolean) ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
+        scope: (p.scope as string[]) ?? [],
       });
     }
   }, [proposal]);
@@ -178,6 +185,7 @@ export function ProposalEditorContent({
         category_id: f.category_id || null,
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
+        scope: f.scope,
       } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
@@ -444,7 +452,27 @@ export function ProposalEditorContent({
               <F label="Serviços contratados">
                 <ServicesMultiSelect
                   value={form.service_ids}
-                  onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                  onChange={(ids) => {
+                    const oldIds = form.service_ids;
+                    const newIds = ids;
+                    
+                    if (newIds.length > oldIds.length) {
+                      const addedId = newIds.find(id => !oldIds.includes(id));
+                      const service = services.find((s: Service) => s.id === addedId);
+                      if (service && service.default_scope) {
+                        const scopeToAdd = (service.default_scope as string[]).filter(
+                          item => !form.scope.includes(item)
+                        );
+                        setForm({ 
+                          ...form, 
+                          service_ids: ids, 
+                          scope: [...form.scope, ...scopeToAdd] 
+                        });
+                        return;
+                      }
+                    }
+                    setForm({ ...form, service_ids: ids });
+                  }}
                 />
               </F>
               <F label="Tipo de contrato">
@@ -530,8 +558,60 @@ export function ProposalEditorContent({
 
           <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-4">
+              <span className="text-primary text-[10px] capitalize">Itens / Escopo automático</span>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 text-[10px] gap-1 px-2"
+                onClick={() => setForm({ ...form, scope: [...form.scope, ""] })}
+              >
+                <Plus className="size-3" /> Adicionar Item
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {form.scope.length === 0 && (
+                <p className="text-[11px] text-foreground/40 italic text-center py-4">
+                  Selecione serviços para carregar o escopo automático ou adicione itens manualmente.
+                </p>
+              )}
+              {form.scope.map((item, idx) => (
+                <div key={idx} className="flex gap-2 items-center group">
+                  <div className="size-4 rounded border border-primary/30 bg-primary/5 flex items-center justify-center shrink-0">
+                    <CheckCircle2 className="size-2.5 text-primary" />
+                  </div>
+                  <Input
+                    value={item}
+                    onChange={(e) => {
+                      const newScope = [...form.scope];
+                      newScope[idx] = e.target.value;
+                      setForm({ ...form, scope: newScope });
+                    }}
+                    className="h-8 text-sm"
+                    placeholder="Descreva o item do escopo..."
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-foreground/30 hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      const newScope = [...form.scope];
+                      newScope.splice(idx, 1);
+                      setForm({ ...form, scope: newScope });
+                    }}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-border bg-surface p-6">
+            <div className="flex items-center justify-between mb-4">
               <span className="text-primary text-[10px] capitalize">
-                Itens · Escopo
+                Composição Financeira
               </span>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => addItem("monthly")} className="gap-1">

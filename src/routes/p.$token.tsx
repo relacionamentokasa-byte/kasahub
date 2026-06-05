@@ -34,6 +34,7 @@ type Proposal = {
   accepted_at: string | null;
   accepted_name: string | null;
   public_token: string;
+  scope: string[] | null;
 };
 type Agency = {
   name: string;
@@ -225,6 +226,25 @@ function PublicProposalView() {
             Preparada para <span className="font-semibold text-slate-700">{proposal.client_name}</span>
           </p>
         </div>
+        
+        {/* Scope */}
+        {Array.isArray(proposal.scope) && proposal.scope.length > 0 && (
+          <div className="px-8 py-6 border-b border-slate-100">
+            <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+              O que será entregue (Escopo)
+            </h2>
+            <div className="grid gap-3">
+              {proposal.scope.map((item, idx) => (
+                <div key={idx} className="flex gap-3 items-start">
+                  <div className="size-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="size-1.5 rounded-full" style={{ background: brand }} />
+                  </div>
+                  <span className="text-sm text-slate-700 leading-snug">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Intro */}
         {proposal.intro && (
@@ -262,6 +282,27 @@ function PublicProposalView() {
           {data.items.length === 0 && (
             <p className="text-sm text-slate-400">Nenhum item cadastrado.</p>
           )}
+        </div>
+
+        {/* Investment Details */}
+        <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+            Composição do Investimento
+          </h2>
+          <div className="space-y-3">
+            {grouped.monthly.length > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-600">Investimento Mensal (Recorrente)</span>
+                <span className="font-semibold">{formatCurrency(proposal.monthly_investment)}</span>
+              </div>
+            )}
+            {grouped.one_time.length > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-600">Serviços Pontuais</span>
+                <span className="font-semibold">{formatCurrency(proposal.one_time_investment)}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Investment */}
@@ -379,13 +420,6 @@ function ItemsTable({
                   <div className="text-xs text-slate-500 mt-0.5">
                     {it.description}
                   </div>
-                )}
-                {Array.isArray(it.deliverables) && it.deliverables.length > 0 && (
-                  <ul className="mt-2 text-xs text-slate-600 list-disc pl-4 space-y-0.5">
-                    {it.deliverables.map((d, i) => (
-                      <li key={i}>{d}</li>
-                    ))}
-                  </ul>
                 )}
               </td>
               <td className="py-3 text-right text-slate-700">{Number(it.quantity)}</td>

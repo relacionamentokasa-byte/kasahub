@@ -139,6 +139,8 @@ export async function createProposal(input: {
   payment_method?: string;
   first_due_date?: string;
   notes?: string | null;
+  scope?: string[];
+  auto_create_jobs?: boolean;
 }) {
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase

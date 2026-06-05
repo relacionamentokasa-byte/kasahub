@@ -20,6 +20,7 @@ export async function createService(input: {
   category?: string | null;
   description?: string | null;
   is_active?: boolean;
+  default_scope?: string[];
 }) {
   const { data, error } = await supabase.from("services").insert(input).select().single();
   if (error) throw error;
