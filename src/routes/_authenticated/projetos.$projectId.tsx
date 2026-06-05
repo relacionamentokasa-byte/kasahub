@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, Pencil } from "lucide-react";
 import { fetchProject, fetchClient, fetchJobs, fetchJobStages } from "@/lib/ops-api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
+import { Button } from "@/components/ui/button";
+import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 
 export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
   head: () => ({ meta: [{ title: "Projeto — KASA OS" }] }),
@@ -12,6 +15,7 @@ export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
 
 function ProjectDetail() {
   const { projectId } = useParams({ from: "/_authenticated/projetos/$projectId" });
+  const [editOpen, setEditOpen] = useState(false);
   const { data: project } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => fetchProject(projectId),
@@ -48,7 +52,22 @@ function ProjectDetail() {
         <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
           Projeto · Operação
         </span>
-        <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">{project.name}</h1>
+        <div className="flex items-start gap-4">
+          {project.cover_url ? (
+            <img src={project.cover_url} alt="" className="size-16 rounded-2xl object-cover shrink-0 border border-border" />
+          ) : (
+            <div className="size-16 rounded-2xl shrink-0" style={{ background: `${project.color ?? "#FFBC45"}22` }} />
+          )}
+          <div className="flex-1 min-w-0">
+            <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+              Projeto · Operação
+            </span>
+            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">{project.name}</h1>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
+            <Pencil className="size-4 mr-1.5" /> Editar
+          </Button>
+        </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-foreground/50">
           {client && (
             <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="hover:text-primary">
@@ -96,6 +115,8 @@ function ProjectDetail() {
           Em breve.
         </TabsContent>
       </Tabs>
+
+      <EditProjectDialog project={project} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }
