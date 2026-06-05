@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield } from "lucide-react";
+import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase } from "lucide-react";
+import { ServicesManager } from "@/components/config/ServicesManager";
 import { PermissionsManager } from "@/components/PermissionsManager";
 import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
