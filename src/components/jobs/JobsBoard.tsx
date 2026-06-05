@@ -11,12 +11,13 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   fetchJobStages,
   fetchJobs,
   moveJob,
+  deleteJob,
   priorityColor,
   priorityLabel,
   type Job,
@@ -199,15 +200,38 @@ function Column({
 
 function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
+  const qc = useQueryClient();
+  const delMut = useMutation({
+    mutationFn: () => deleteJob(job.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
   return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      onClick={onClick}
-      className={`cursor-grab active:cursor-grabbing ${isDragging ? "opacity-30" : ""}`}
-    >
-      <JobCardInner job={job} />
+    <div className={`relative group ${isDragging ? "opacity-30" : ""}`}>
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        onClick={onClick}
+        className="cursor-grab active:cursor-grabbing"
+      >
+        <JobCardInner job={job} />
+      </div>
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
+        }}
+        className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition"
+        aria-label="Excluir job"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
     </div>
   );
 }
@@ -225,7 +249,7 @@ function JobCardInner({ job, dragging }: { job: Job; dragging?: boolean }) {
           style={{ background: priorityColor(job.priority) }}
           title={priorityLabel(job.priority)}
         />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 pr-6">
           <div className="font-semibold text-sm leading-snug">{job.title}</div>
           {job.due_date && (
             <div className="text-[10px] text-foreground/40 font-mono mt-1.5 uppercase tracking-wider">

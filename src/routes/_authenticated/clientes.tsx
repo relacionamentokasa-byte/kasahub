@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users } from "lucide-react";
-import { fetchClients } from "@/lib/ops-api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Users, Trash2 } from "lucide-react";
+import { fetchClients, deleteClient } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewClientDialog } from "@/components/clients/NewClientDialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes — KASA OS" }] }),
@@ -13,9 +14,19 @@ export const Route = createFileRoute("/_authenticated/clientes")({
 });
 
 function ClientesPage() {
+  const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  const delMut = useMutation({
+    mutationFn: (id: string) => deleteClient(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      toast.success("Cliente removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const filtered = clients.filter((c) => {
     const q = query.trim().toLowerCase();
@@ -66,33 +77,52 @@ function ClientesPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((c) => (
-              <Link
-                key={c.id}
-                to="/clientes/$clientId"
-                params={{ clientId: c.id }}
-                className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition group"
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className="size-12 rounded-xl grid place-items-center font-display font-bold text-lg"
-                    style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
-                  >
-                    {(c.company || c.name).charAt(0).toUpperCase()}
+              <div key={c.id} className="relative group">
+                <Link
+                  to="/clientes/$clientId"
+                  params={{ clientId: c.id }}
+                  className="block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div
+                      className="size-12 rounded-xl grid place-items-center font-display font-bold text-lg overflow-hidden"
+                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                    >
+                      {c.logo_url ? (
+                        <img src={c.logo_url} alt="" className="size-full object-cover" />
+                      ) : (
+                        (c.company || c.name).charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 pr-8">
+                      <div className="font-display font-semibold truncate">{c.company || c.name}</div>
+                      {c.company && c.name && (
+                        <div className="text-xs text-foreground/50 truncate">{c.name}</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="font-display font-semibold truncate">{c.company || c.name}</div>
-                    {c.company && c.name && (
-                      <div className="text-xs text-foreground/50 truncate">{c.name}</div>
-                    )}
+                  {c.email && (
+                    <div className="text-xs text-foreground/50 truncate">{c.email}</div>
+                  )}
+                  <div className="mt-3 text-[10px] font-mono uppercase tracking-wider text-foreground/40">
+                    {c.status === "active" ? "● Ativo" : c.status}
                   </div>
-                </div>
-                {c.email && (
-                  <div className="text-xs text-foreground/50 truncate">{c.email}</div>
-                )}
-                <div className="mt-3 text-[10px] font-mono uppercase tracking-wider text-foreground/40">
-                  {c.status === "active" ? "● Ativo" : c.status}
-                </div>
-              </Link>
+                </Link>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (confirm(`Remover "${c.company || c.name}"? Esta ação não pode ser desfeita.`)) {
+                      delMut.mutate(c.id);
+                    }
+                  }}
+                  className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
+                  aria-label="Excluir cliente"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
             ))}
           </div>
         )}
