@@ -301,7 +301,7 @@ function PortalSettings({ clientId }: { clientId: string }) {
           {mut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
           Salvar
         </Button>
-        {form.portal_enabled && (
+        {Boolean(form.portal_enabled) && (
           <a
             href="/portal"
             target="_blank"
@@ -313,7 +313,7 @@ function PortalSettings({ clientId }: { clientId: string }) {
         )}
       </div>
 
-      {(form.banner_url || form.logo_url) && (
+      {Boolean(form.banner_url || form.logo_url) && (
         <div className="mt-6 rounded-lg overflow-hidden border border-border">
           <div
             className="h-24 relative"
