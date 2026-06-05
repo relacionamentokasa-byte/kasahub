@@ -328,10 +328,10 @@ export function ProposalEditorContent({
               <div className="grid md:grid-cols-2 gap-4">
                 <F label="Tipo de Destinatário">
                   <Select value={form.target_kind} onValueChange={(v: any) => setForm({ ...form, target_kind: v, client_id: "", lead_id: "" })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="client">Cliente</SelectItem>
-                      <SelectItem value="lead">Lead</SelectItem>
+                      <SelectItem value="client" className="cursor-pointer">Cliente</SelectItem>
+                      <SelectItem value="lead" className="cursor-pointer">Lead</SelectItem>
                     </SelectContent>
                   </Select>
                 </F>
