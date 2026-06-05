@@ -209,11 +209,6 @@ export function ProposalEditorContent({
         payment_method: f.payment_method,
         contract_template_id: f.contract_template_id || null,
         contract_content: f.contract_content || null,
-        recurring_months: f.recurring_months,
-        installments: f.installments,
-        billing_day: f.billing_day,
-        first_due_date: f.first_due_date || null,
-        payment_method: f.payment_method,
         signature_client: f.signature_client || null,
         signature_agency: f.signature_agency || null,
       } as any);
