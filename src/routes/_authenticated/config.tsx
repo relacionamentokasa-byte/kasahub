@@ -11,12 +11,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { usePermissions } from "@/hooks/use-permissions";
 import {
   fetchAgencySettings,
   updateAgencySettings,
   type AgencySettings,
 } from "@/lib/settings-api";
-import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 
 export const Route = createFileRoute("/_authenticated/config")({
   head: () => ({ meta: [{ title: "Configurações — KASA OS" }] }),
@@ -25,15 +25,12 @@ export const Route = createFileRoute("/_authenticated/config")({
 
 function ConfigPage() {
   const qc = useQueryClient();
+  const { can, isLoading: permissionsLoading } = usePermissions();
   const { data, isLoading } = useQuery({
     queryKey: ["agency-settings"],
     queryFn: fetchAgencySettings,
   });
-  const { data: myRoles = [] } = useQuery({
-    queryKey: ["roles", "me"],
-    queryFn: fetchCurrentUserRoles,
-  });
-  const canEdit = hasAnyRole(myRoles, ["admin", "ceo"]);
+  const canEdit = can("config", "edit");
 
   const [form, setForm] = useState<Partial<AgencySettings>>({});
   useEffect(() => {
@@ -52,7 +49,7 @@ function ConfigPage() {
   const set = <K extends keyof AgencySettings>(k: K, v: AgencySettings[K]) =>
     setForm((prev) => ({ ...prev, [k]: v }));
 
-  if (isLoading || !data) {
+  if (isLoading || permissionsLoading || !data) {
     return (
       <div className="p-12 flex items-center justify-center">
         <Loader2 className="size-6 animate-spin text-primary" />
@@ -84,7 +81,7 @@ function ConfigPage() {
 
       {!canEdit && (
         <div className="text-xs text-foreground/50 border border-border bg-surface rounded-lg px-4 py-3">
-          Você está em modo somente leitura. Somente admin e CEO podem editar.
+          Você está em modo somente leitura. Seu perfil precisa da permissão de editar Configurações.
         </div>
       )}
 
