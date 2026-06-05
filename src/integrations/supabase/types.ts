@@ -1073,6 +1073,7 @@ export type Database = {
           intro: string | null
           lead_id: string | null
           monthly_investment: number
+          notes: string | null
           one_time_investment: number
           operational_id: string | null
           owner_id: string | null
@@ -1123,6 +1124,7 @@ export type Database = {
           intro?: string | null
           lead_id?: string | null
           monthly_investment?: number
+          notes?: string | null
           one_time_investment?: number
           operational_id?: string | null
           owner_id?: string | null
@@ -1173,6 +1175,7 @@ export type Database = {
           intro?: string | null
           lead_id?: string | null
           monthly_investment?: number
+          notes?: string | null
           one_time_investment?: number
           operational_id?: string | null
           owner_id?: string | null

@@ -130,6 +130,7 @@ export function ProposalEditorContent({
     contract_content: "",
     signature_client: "",
     signature_agency: "",
+    notes: "",
   });
 
   useEffect(() => {
@@ -168,6 +169,7 @@ export function ProposalEditorContent({
         contract_content: p.contract_content ?? "",
         signature_client: p.signature_client ?? "",
         signature_agency: p.signature_agency ?? "",
+        notes: p.notes ?? "",
       });
     }
   }, [proposal]);
@@ -211,6 +213,7 @@ export function ProposalEditorContent({
         contract_content: f.contract_content || null,
         signature_client: f.signature_client || null,
         signature_agency: f.signature_agency || null,
+        notes: f.notes || null,
       } as any);
     },
     onSuccess: (_d, vars) => {
@@ -474,6 +477,14 @@ export function ProposalEditorContent({
                 <F label="Assinatura Agência"><Input value={form.signature_agency} onChange={(e) => setForm({ ...form, signature_agency: e.target.value })} /></F>
                 <F label="Assinatura Cliente"><Input value={form.signature_client} disabled placeholder="Aguardando..." /></F>
               </div>
+              <F label="Observações Internas (Não aparecem para o cliente)">
+                <Textarea 
+                  placeholder="Anotações para a equipe..." 
+                  value={form.notes} 
+                  onChange={(e) => setForm({ ...form, notes: e.target.value })} 
+                  rows={4}
+                />
+              </F>
             </div>
           </div>
         </div>
