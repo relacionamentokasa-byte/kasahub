@@ -1563,6 +1563,17 @@ export type Database = {
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
+      fn_record_timeline_event: {
+        Args: {
+          p_client_id: string
+          p_description?: string
+          p_lead_id: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+        }
+        Returns: string
+      }
       has_module_permission: {
         Args: { _action: string; _module: string; _user_id: string }
         Returns: boolean
