@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Users, Trash2 } from "lucide-react";
 import { fetchClients, deleteClient } from "@/lib/ops-api";
@@ -14,6 +14,8 @@ export const Route = createFileRoute("/_authenticated/clientes")({
 });
 
 function ClientesPage() {
+  const matches = useMatches();
+  const isClientDetail = matches.some((match) => match.routeId === "/_authenticated/clientes/$clientId");
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
@@ -37,6 +39,8 @@ function ClientesPage() {
       (c.email ?? "").toLowerCase().includes(q)
     );
   });
+
+  if (isClientDetail) return <Outlet />;
 
   return (
     <div className="flex flex-col h-full">
