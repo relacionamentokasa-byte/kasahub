@@ -342,10 +342,10 @@ export function ProposalEditorContent({
                       const c = clients.find(x => x.id === v);
                       setForm({ ...form, client_id: v, client_name: c?.company || c?.name || "", client_email: c?.email || "" });
                     }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__free__">Cliente avulso</SelectItem>
-                        {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>)}
+                        <SelectItem value="__free__" className="cursor-pointer">Cliente avulso</SelectItem>
+                        {clients.map(c => <SelectItem key={c.id} value={c.id} className="cursor-pointer">{c.company || c.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   ) : (
@@ -354,10 +354,10 @@ export function ProposalEditorContent({
                       const l = leads.find(x => x.id === v);
                       setForm({ ...form, lead_id: v, client_name: l?.company || l?.name || "", client_email: l?.email || "" });
                     }}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="__free__">Lead avulso</SelectItem>
-                        {leads.map(l => <SelectItem key={l.id} value={l.id}>{l.company || l.name}</SelectItem>)}
+                        <SelectItem value="__free__" className="cursor-pointer">Lead avulso</SelectItem>
+                        {leads.map(l => <SelectItem key={l.id} value={l.id} className="cursor-pointer">{l.company || l.name}</SelectItem>)}
                       </SelectContent>
                     </Select>
                   )}
@@ -396,8 +396,11 @@ export function ProposalEditorContent({
               </F>
               <F label="Tipo de contrato">
                 <Select value={form.contract_type === "recurring" ? "m" : "a"} onValueChange={(v) => setForm({ ...form, contract_type: v === "m" ? "recurring" : "one_time", payment_kind: v === "m" ? "recurring" : "one_time" })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="m">Mensal</SelectItem><SelectItem value="a">Avulso</SelectItem></SelectContent>
+                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="m" className="cursor-pointer">Mensal</SelectItem>
+                    <SelectItem value="a" className="cursor-pointer">Avulso</SelectItem>
+                  </SelectContent>
                 </Select>
               </F>
             </div>
@@ -423,12 +426,12 @@ export function ProposalEditorContent({
             <div className="grid gap-4 mt-4 md:grid-cols-2">
               <F label="Método de Pagamento">
                 <Select value={form.payment_method} onValueChange={(v) => setForm({ ...form, payment_method: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="boleto">Boleto</SelectItem>
-                    <SelectItem value="pix">PIX</SelectItem>
-                    <SelectItem value="cartao">Cartão de Crédito</SelectItem>
-                    <SelectItem value="transferencia">Transferência</SelectItem>
+                    <SelectItem value="boleto" className="cursor-pointer">Boleto</SelectItem>
+                    <SelectItem value="pix" className="cursor-pointer">PIX</SelectItem>
+                    <SelectItem value="cartao" className="cursor-pointer">Cartão de Crédito</SelectItem>
+                    <SelectItem value="transferencia" className="cursor-pointer">Transferência</SelectItem>
                   </SelectContent>
                 </Select>
               </F>
@@ -459,8 +462,11 @@ export function ProposalEditorContent({
                   const t = contractTemplates.find(x => x.id === v);
                   if (t) setForm({ ...form, contract_template_id: v, contract_content: t.content });
                 }}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="n">Sem contrato</SelectItem>{contractTemplates.map(t => <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="n" className="cursor-pointer">Sem contrato</SelectItem>
+                    {contractTemplates.map(t => <SelectItem key={t.id} value={t.id} className="cursor-pointer">{t.title}</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </F>
               {form.contract_template_id && <Textarea rows={10} value={form.contract_content} onChange={(e) => setForm({ ...form, contract_content: e.target.value })} className="font-mono text-xs" />}
