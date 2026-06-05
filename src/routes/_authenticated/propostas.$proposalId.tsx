@@ -105,6 +105,7 @@ export function ProposalEditorContent({
     operational_id: "",
     contract_type: "recurring",
     service_type: "",
+    service_ids: [] as string[],
     briefing: "",
     payment_kind: "recurring" as "recurring" | "one_time" | "mixed",
     installments: 1,
