@@ -77,19 +77,22 @@ function ProposalEditor() {
   const totals = useMemo(() => recalcProposalTotals(items), [items]);
 
   const saveMut = useMutation({
-    mutationFn: () =>
-      updateProposal(proposalId, {
-        title: form.title,
-        client_name: form.client_name,
-        client_email: form.client_email || null,
-        intro: form.intro || null,
-        valid_until: form.valid_until || null,
-        status: form.status,
+    mutationFn: (overrides?: Partial<typeof form>) => {
+      const f = { ...form, ...(overrides ?? {}) };
+      return updateProposal(proposalId, {
+        title: f.title,
+        client_name: f.client_name,
+        client_email: f.client_email || null,
+        intro: f.intro || null,
+        valid_until: f.valid_until || null,
+        status: f.status,
         monthly_investment: totals.monthly_investment,
         one_time_investment: totals.one_time_investment,
         total: totals.total,
-      }),
-    onSuccess: () => {
+      });
+    },
+    onSuccess: (_d, vars) => {
+      if (vars?.status) setForm((p) => ({ ...p, status: vars.status! }));
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
       toast.success("Proposta salva");
