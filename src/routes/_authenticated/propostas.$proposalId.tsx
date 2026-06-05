@@ -84,6 +84,10 @@ export function ProposalEditorContent({
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
+  const { data: services = [] } = useQuery({
+    queryKey: ["services", "active"],
+    queryFn: () => fetchServices({ onlyActive: true }),
+  });
   const { data: team = [] } = useQuery({
     queryKey: ["team-profiles"],
     queryFn: async () => {
