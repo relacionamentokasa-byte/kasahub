@@ -21,7 +21,6 @@ export const Route = createFileRoute("/_authenticated/clientes")({
 function ClientesPage() {
   const matches = useMatches();
   const isClientDetail = matches.some((match) => match.routeId === "/_authenticated/clientes/$clientId");
-  const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -32,20 +31,13 @@ function ClientesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   function changeView(v: "cards" | "list") {
     setView(v);
     if (typeof window !== "undefined") localStorage.setItem("clientes:view", v);
   }
 
-  const delMut = useMutation({
-    mutationFn: (id: string) => deleteClient(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["clients"] });
-      toast.success("Cliente removido");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
