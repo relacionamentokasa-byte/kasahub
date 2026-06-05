@@ -42,7 +42,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     items: [
       { title: "Clientes", url: "/clientes", icon: Users, module: "clientes" },
       { title: "Projetos", url: "/projetos", icon: FolderKanban, module: "projetos" },
-      { title: "Jobs", url: "/jobs", icon: CheckSquare, module: "jobs" },
+      { title: "Tarefas", url: "/jobs", icon: CheckSquare, module: "jobs" },
     ],
   },
   {
