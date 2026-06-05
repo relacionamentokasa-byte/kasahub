@@ -733,6 +733,7 @@ export type Database = {
           briefing: string | null
           client_id: string | null
           color: string | null
+          contract_id: string | null
           cover_url: string | null
           created_at: string
           description: string | null
@@ -740,6 +741,7 @@ export type Database = {
           id: string
           name: string
           owner_id: string | null
+          proposal_id: string | null
           start_date: string | null
           status: string
           updated_at: string
@@ -748,6 +750,7 @@ export type Database = {
           briefing?: string | null
           client_id?: string | null
           color?: string | null
+          contract_id?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -755,6 +758,7 @@ export type Database = {
           id?: string
           name: string
           owner_id?: string | null
+          proposal_id?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -763,6 +767,7 @@ export type Database = {
           briefing?: string | null
           client_id?: string | null
           color?: string | null
+          contract_id?: string | null
           cover_url?: string | null
           created_at?: string
           description?: string | null
@@ -770,6 +775,7 @@ export type Database = {
           id?: string
           name?: string
           owner_id?: string | null
+          proposal_id?: string | null
           start_date?: string | null
           status?: string
           updated_at?: string
@@ -834,6 +840,7 @@ export type Database = {
           accepted_ip: string | null
           accepted_name: string | null
           client_email: string | null
+          client_id: string | null
           client_name: string
           created_at: string
           currency: string
@@ -855,6 +862,7 @@ export type Database = {
           accepted_ip?: string | null
           accepted_name?: string | null
           client_email?: string | null
+          client_id?: string | null
           client_name: string
           created_at?: string
           currency?: string
@@ -876,6 +884,7 @@ export type Database = {
           accepted_ip?: string | null
           accepted_name?: string | null
           client_email?: string | null
+          client_id?: string | null
           client_name?: string
           created_at?: string
           currency?: string

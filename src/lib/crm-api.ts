@@ -122,6 +122,7 @@ export async function createProposal(input: {
   title: string;
   client_name: string;
   client_email?: string | null;
+  client_id?: string | null;
   lead_id?: string | null;
   intro?: string | null;
 }) {
@@ -134,6 +135,7 @@ export async function createProposal(input: {
   if (error) throw error;
   return data;
 }
+
 
 export async function updateProposal(
   id: string,

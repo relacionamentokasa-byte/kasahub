@@ -11,6 +11,7 @@ import {
   upsertProposalItem,
   type ProposalItem,
 } from "@/lib/crm-api";
+import { fetchClients } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +33,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
   head: () => ({ meta: [{ title: "Editor de proposta — KASA OS" }] }),
@@ -68,9 +70,11 @@ export function ProposalEditorContent({
     queryKey: ["proposal", proposalId, "items"],
     queryFn: () => fetchProposalItems(proposalId),
   });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
   const [form, setForm] = useState({
     title: "",
+    client_id: "",
     client_name: "",
     client_email: "",
     intro: "",
@@ -82,6 +86,7 @@ export function ProposalEditorContent({
     if (proposal) {
       setForm({
         title: proposal.title,
+        client_id: (proposal as { client_id?: string | null }).client_id ?? "",
         client_name: proposal.client_name,
         client_email: proposal.client_email ?? "",
         intro: proposal.intro ?? "",
@@ -98,6 +103,7 @@ export function ProposalEditorContent({
       const f = { ...form, ...(overrides ?? {}) };
       return updateProposal(proposalId, {
         title: f.title,
+        client_id: f.client_id || null,
         client_name: f.client_name,
         client_email: f.client_email || null,
         intro: f.intro || null,
@@ -106,10 +112,11 @@ export function ProposalEditorContent({
         monthly_investment: totals.monthly_investment,
         one_time_investment: totals.one_time_investment,
         total: totals.total,
-      });
+      } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
       if (vars?.status) setForm((p) => ({ ...p, status: vars.status! }));
+
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
       toast.success("Proposta salva");
@@ -227,8 +234,34 @@ export function ProposalEditorContent({
                   className="text-lg font-display font-semibold h-12"
                 />
               </F>
+              <F label="Cliente vinculado">
+                <Select
+                  value={form.client_id || "__free__"}
+                  onValueChange={(v) => {
+                    if (v === "__free__") {
+                      setForm({ ...form, client_id: "" });
+                      return;
+                    }
+                    const c = clients.find((x) => x.id === v);
+                    setForm({
+                      ...form,
+                      client_id: v,
+                      client_name: c ? (c.company || c.name) : form.client_name,
+                      client_email: c?.email ?? form.client_email,
+                    });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__free__">Cliente avulso (digitar nome)</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
               <div className="grid grid-cols-2 gap-3">
-                <F label="Cliente">
+                <F label="Nome para exibir">
                   <Input
                     value={form.client_name}
                     onChange={(e) => setForm({ ...form, client_name: e.target.value })}
@@ -241,6 +274,7 @@ export function ProposalEditorContent({
                   />
                 </F>
               </div>
+
               <F label="Introdução">
                 <Textarea
                   rows={4}

@@ -4,8 +4,10 @@ import {
   createTransaction,
   fetchBankAccounts,
   fetchCategories,
+  fetchContracts,
+
 } from "@/lib/finance-api";
-import { fetchClients } from "@/lib/ops-api";
+import { fetchClients, fetchProjects } from "@/lib/ops-api";
 import {
   Dialog,
   DialogContent,
@@ -40,6 +42,9 @@ export function NewTransactionDialog({
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
+  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+
 
   const [form, setForm] = useState({
     kind: defaultKind as "income" | "expense",
@@ -49,10 +54,16 @@ export function NewTransactionDialog({
     account_id: "",
     category_id: "",
     client_id: "",
+    contract_id: "",
+    project_id: "",
     notes: "",
     paid: false,
     installments: 1,
   });
+
+  const clientContracts = contracts.filter((c) => !form.client_id || c.client_id === form.client_id);
+  const clientProjects = projects.filter((p) => !form.client_id || p.client_id === form.client_id);
+
 
   const filteredCats = categories.filter((c) => c.kind === form.kind);
 
@@ -67,6 +78,8 @@ export function NewTransactionDialog({
           account_id: form.account_id || null,
           category_id: form.category_id || null,
           client_id: form.client_id || null,
+          contract_id: form.contract_id || null,
+          project_id: form.project_id || null,
           notes: form.notes || null,
           status: form.paid ? "paid" : "pending",
           paid_at: form.paid ? form.due_date : null,
@@ -85,11 +98,14 @@ export function NewTransactionDialog({
         account_id: "",
         category_id: "",
         client_id: "",
+        contract_id: "",
+        project_id: "",
         notes: "",
         paid: false,
         installments: 1,
       });
     },
+
     onError: (e: Error) => toast.error(e.message),
   });
 
@@ -152,19 +168,61 @@ export function NewTransactionDialog({
               </SelectContent>
             </Select>
           </div>
-          {form.kind === "income" && (
-            <div className="space-y-1.5 col-span-2">
-              <Label>Cliente</Label>
-              <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Sem cliente" /></SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-1.5 col-span-2">
+            <Label>Cliente</Label>
+            <Select
+              value={form.client_id || "__none__"}
+              onValueChange={(v) =>
+                setForm({
+                  ...form,
+                  client_id: v === "__none__" ? "" : v,
+                  contract_id: "",
+                  project_id: "",
+                })
+              }
+            >
+              <SelectTrigger><SelectValue placeholder="Sem cliente" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem cliente</SelectItem>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Contrato (serviço)</Label>
+            <Select
+              value={form.contract_id || "__none__"}
+              onValueChange={(v) => setForm({ ...form, contract_id: v === "__none__" ? "" : v })}
+              disabled={!form.client_id}
+            >
+              <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Nenhum</SelectItem>
+                {clientContracts.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Projeto</Label>
+            <Select
+              value={form.project_id || "__none__"}
+              onValueChange={(v) => setForm({ ...form, project_id: v === "__none__" ? "" : v })}
+              disabled={!form.client_id}
+            >
+              <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Nenhum</SelectItem>
+                {clientProjects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-1.5">
             <Label>Parcelas</Label>
             <Input type="number" min={1} max={36} value={form.installments} onChange={(e) => setForm({ ...form, installments: Math.max(1, Number(e.target.value) || 1) })} />
