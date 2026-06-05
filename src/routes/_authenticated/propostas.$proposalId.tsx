@@ -97,6 +97,7 @@ export function ProposalEditorContent({
     },
   });
 
+  const [isEditing, setIsEditing] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     client_id: "",
@@ -127,7 +128,7 @@ export function ProposalEditorContent({
   });
 
   useEffect(() => {
-    if (proposal) {
+    if (proposal && !isEditing) {
       const p = proposal as typeof proposal & Record<string, unknown>;
       setForm({
         title: proposal.title,
@@ -505,16 +506,25 @@ export function ProposalEditorContent({
                     <Input
                       type="number"
                       value={form.monthly_investment || ""}
+                      onFocus={() => setIsEditing("monthly_investment")}
                       onChange={(e) => {
                         const val = Number(e.target.value);
                         setForm(f => ({ ...f, monthly_investment: val }));
                       }}
                       onBlur={() => {
-                        // Persist the value to the database items when user stops typing
+                        setIsEditing(null);
                         const val = form.monthly_investment;
-                        if (items.length > 0) {
-                          const first = items[0];
+                        
+                        // Consolidated monthly items logic to avoid "1000 + 3" issues
+                        const monthlyItems = items.filter(i => i.recurrence === "monthly");
+                        if (monthlyItems.length > 0) {
+                          const first = monthlyItems[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "monthly", proposal_id: proposalId });
+                          
+                          // If there are more items, they are likely old data causing sum errors (e.g. 1000 + 3)
+                          if (monthlyItems.length > 1) {
+                            monthlyItems.slice(1).forEach(item => delItemMut.mutate(item.id));
+                          }
                         } else {
                           itemMut.mutate({ 
                             proposal_id: proposalId, 
@@ -548,15 +558,21 @@ export function ProposalEditorContent({
                     <Input
                       type="number"
                       value={form.one_time_investment || ""}
+                      onFocus={() => setIsEditing("one_time_investment")}
                       onChange={(e) => {
                         const val = Number(e.target.value);
                         setForm(f => ({ ...f, one_time_investment: val }));
                       }}
                       onBlur={() => {
+                        setIsEditing(null);
                         const val = form.one_time_investment;
-                        if (items.length > 0) {
-                          const first = items[0];
+                        const oneTimeItems = items.filter(i => i.recurrence === "one_time");
+                        if (oneTimeItems.length > 0) {
+                          const first = oneTimeItems[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "one_time", proposal_id: proposalId });
+                          if (oneTimeItems.length > 1) {
+                            oneTimeItems.slice(1).forEach(item => delItemMut.mutate(item.id));
+                          }
                         } else {
                           itemMut.mutate({ 
                             proposal_id: proposalId, 
