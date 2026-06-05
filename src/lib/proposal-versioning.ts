@@ -102,7 +102,7 @@ export async function cancelProposalWorkflow(
   const { data: jobs } = await supabase
     .from("jobs")
     .select("id, done_at")
-    .eq("project_id", proposal.generated_project_id);
+    .eq("project_id", proposal.generated_project_id || "");
   
   if (jobs?.some(j => j.done_at)) {
     throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados (tarefas concluídas). Utilize a opção Encerrar Projeto.");
