@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Globe, ExternalLink, Sparkles, ImageIcon, Calendar as CalendarIcon, FolderKanban } from "lucide-react";
+import { Globe, ExternalLink, Sparkles, ImageIcon, Calendar as CalendarIcon, FolderKanban, FileSignature } from "lucide-react";
 import { fetchMyPortalClient, type Approval } from "@/lib/approvals-api";
 import { fetchProjects } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
