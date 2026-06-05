@@ -168,19 +168,61 @@ export function NewTransactionDialog({
               </SelectContent>
             </Select>
           </div>
-          {form.kind === "income" && (
-            <div className="space-y-1.5 col-span-2">
-              <Label>Cliente</Label>
-              <Select value={form.client_id} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Sem cliente" /></SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+          <div className="space-y-1.5 col-span-2">
+            <Label>Cliente</Label>
+            <Select
+              value={form.client_id || "__none__"}
+              onValueChange={(v) =>
+                setForm({
+                  ...form,
+                  client_id: v === "__none__" ? "" : v,
+                  contract_id: "",
+                  project_id: "",
+                })
+              }
+            >
+              <SelectTrigger><SelectValue placeholder="Sem cliente" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Sem cliente</SelectItem>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Contrato (serviço)</Label>
+            <Select
+              value={form.contract_id || "__none__"}
+              onValueChange={(v) => setForm({ ...form, contract_id: v === "__none__" ? "" : v })}
+              disabled={!form.client_id}
+            >
+              <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Nenhum</SelectItem>
+                {clientContracts.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Projeto</Label>
+            <Select
+              value={form.project_id || "__none__"}
+              onValueChange={(v) => setForm({ ...form, project_id: v === "__none__" ? "" : v })}
+              disabled={!form.client_id}
+            >
+              <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Nenhum</SelectItem>
+                {clientProjects.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div className="space-y-1.5">
             <Label>Parcelas</Label>
             <Input type="number" min={1} max={36} value={form.installments} onChange={(e) => setForm({ ...form, installments: Math.max(1, Number(e.target.value) || 1) })} />
