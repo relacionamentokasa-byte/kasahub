@@ -115,6 +115,8 @@ function ProjectDetail() {
           Em breve.
         </TabsContent>
       </Tabs>
+
+      <EditProjectDialog project={project} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }
