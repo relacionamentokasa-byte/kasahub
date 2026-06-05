@@ -731,73 +731,7 @@ export function ProposalEditorContent({
                   >
                     <Trash2 className="size-3.5" />
                   </Button>
-          </div>
-          
-          <div className="rounded-2xl border border-border bg-surface p-6">
-            <span className="text-primary text-[10px] capitalize">Contrato Jurídico</span>
-            <div className="grid gap-4 mt-4">
-              <F label="Template de contrato">
-                <Select
-                  value={form.contract_template_id || "__none__"}
-                  onValueChange={(v) => {
-                    if (v === "__none__") {
-                      setForm({ ...form, contract_template_id: "", contract_content: "" });
-                      return;
-                    }
-                    const t = contractTemplates.find((x) => x.id === v);
-                    if (t) {
-                      setForm({
-                        ...form,
-                        contract_template_id: v,
-                        contract_content: t.content,
-                      });
-                    }
-                  }}
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecione um template" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">Sem contrato</SelectItem>
-                    {contractTemplates.map((t) => (
-                      <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </F>
-
-              {form.contract_template_id && (
-                <>
-                  <F label="Conteúdo do Contrato (Variáveis automáticas serão preenchidas no PDF/Link Público)">
-                    <Textarea
-                      rows={10}
-                      value={form.contract_content}
-                      onChange={(e) => setForm({ ...form, contract_content: e.target.value })}
-                      className="font-mono text-[11px] leading-relaxed"
-                    />
-                  </F>
-                  <div className="grid grid-cols-2 gap-4">
-                    <F label="Assinatura Agência (Kasa)">
-                      <Input
-                        value={form.signature_agency}
-                        onChange={(e) => setForm({ ...form, signature_agency: e.target.value })}
-                        placeholder="Nome do representante"
-                      />
-                    </F>
-                    <F label="Assinatura Cliente">
-                      <Input
-                        value={form.signature_client}
-                        onChange={(e) => setForm({ ...form, signature_client: e.target.value })}
-                        placeholder="Aguardando assinatura..."
-                        disabled
-                      />
-                    </F>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-              ))}
-            </div>
-          </div>
+        </div>
 
           {/* Removing old Composition block as it is now integrated above */}
         </div>
