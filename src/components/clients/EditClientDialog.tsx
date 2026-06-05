@@ -221,10 +221,7 @@ export function EditClientDialog({
         <DialogFooter className="flex-row sm:justify-between gap-2 mt-4">
           <Button
             variant="ghost"
-            onClick={() => {
-              if (confirm("Remover este cliente? Esta ação não pode ser desfeita.")) del.mutate();
-            }}
-            disabled={del.isPending}
+            onClick={() => setDeleteOpen(true)}
             className="text-destructive hover:text-destructive"
           >
             <Trash2 className="size-4 mr-1" /> Excluir cliente
@@ -241,6 +238,15 @@ export function EditClientDialog({
           </div>
         </DialogFooter>
       </DialogContent>
+      <DeleteClientDialog
+        clientId={client.id}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onDeleted={() => {
+          onOpenChange(false);
+          navigate({ to: "/clientes" });
+        }}
+      />
     </Dialog>
   );
 }
