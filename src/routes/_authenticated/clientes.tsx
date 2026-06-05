@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown } from "lucide-react";
-import { fetchClients, deleteClient } from "@/lib/ops-api";
+import { fetchClients } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewClientDialog } from "@/components/clients/NewClientDialog";
 import { ClientDetailSheet } from "@/components/clients/ClientDetailSheet";
+import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from "sonner";
 
