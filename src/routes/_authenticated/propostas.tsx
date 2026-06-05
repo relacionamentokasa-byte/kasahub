@@ -346,22 +346,16 @@ function ProposalsPage() {
                   className="rounded-2xl border border-border bg-surface p-4"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <Link
-                      to="/propostas/$proposalId"
-                      params={{ proposalId: p.id }}
-                      className="font-semibold hover:text-primary flex-1"
+                    <button
+                      onClick={() => setSelectedId(p.id)}
+                      className="font-semibold hover:text-primary flex-1 text-left"
                     >
                       {p.title}
-                    </Link>
+                    </button>
                     <ActionsMenu
                       proposal={p}
                       onView={() => openView(p)}
-                      onEdit={() =>
-                        navigate({
-                          to: "/propostas/$proposalId",
-                          params: { proposalId: p.id },
-                        })
-                      }
+                      onEdit={() => setSelectedId(p.id)}
                       onDuplicate={() => dupMut.mutate(p.id)}
                       onPdf={() => openPdf(p)}
                       onShare={() => copyLink(p)}
