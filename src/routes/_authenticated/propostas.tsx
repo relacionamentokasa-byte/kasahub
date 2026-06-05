@@ -239,10 +239,38 @@ function ProposalsPage() {
                 />
               </Field>
               <Field label="Cliente *">
-                <Input
-                  value={form.client_name}
-                  onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-                />
+                <Select
+                  value={form.client_id || "__free__"}
+                  onValueChange={(v) => {
+                    if (v === "__free__") {
+                      setForm({ ...form, client_id: "", client_name: "", client_email: "" });
+                      return;
+                    }
+                    const c = clients.find((x) => x.id === v);
+                    setForm({
+                      ...form,
+                      client_id: v,
+                      client_name: c ? (c.company || c.name) : "",
+                      client_email: c?.email ?? "",
+                    });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__free__">Cliente avulso (digitar)</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!form.client_id && (
+                  <Input
+                    className="mt-2"
+                    placeholder="Nome do cliente"
+                    value={form.client_name}
+                    onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                  />
+                )}
               </Field>
               <Field label="E-mail do cliente">
                 <Input
@@ -251,6 +279,7 @@ function ProposalsPage() {
                   onChange={(e) => setForm({ ...form, client_email: e.target.value })}
                 />
               </Field>
+
               <Field label="Introdução">
                 <Textarea
                   rows={3}
