@@ -38,6 +38,10 @@ const fmtDate = (d: string | null | undefined) => {
 
 function ClientDetail() {
   const { clientId } = useParams({ from: "/_authenticated/clientes/$clientId" });
+  return <ClientDetailContent clientId={clientId} />;
+}
+
+export function ClientDetailContent({ clientId, embedded = false }: { clientId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
   const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
 
