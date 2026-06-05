@@ -281,6 +281,12 @@ export async function approveProposal(
   const { error: upErr } = await sb.from("proposals").update(patch).eq("id", proposalId);
   if (upErr) throw upErr;
 
+  await recordProposalEventAdmin(sb, proposalId, "approved", {
+    jobs_created: jobsCreated,
+    transactions_created: txCreated,
+    accepted_name: ctx.acceptedName ?? null,
+  }, { name: ctx.acceptedName ?? null });
+
   return {
     client_id: clientId!,
     project_id: projectId!,
@@ -320,4 +326,6 @@ export async function revertProposalApproval(
     .from("proposals")
     .update({ status: opts.reopen ? "draft" : "cancelled" })
     .eq("id", proposalId);
+
+  await recordProposalEventAdmin(sb, proposalId, opts.reopen ? "reopened" : "cancelled");
 }
