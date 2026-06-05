@@ -1016,6 +1016,7 @@ export type Database = {
           client_id: string | null
           client_name: string
           commercial_id: string | null
+          contract_term: string | null
           contract_type: string
           created_at: string
           currency: string
@@ -1056,6 +1057,7 @@ export type Database = {
           client_id?: string | null
           client_name: string
           commercial_id?: string | null
+          contract_term?: string | null
           contract_type?: string
           created_at?: string
           currency?: string
@@ -1096,6 +1098,7 @@ export type Database = {
           client_id?: string | null
           client_name?: string
           commercial_id?: string | null
+          contract_term?: string | null
           contract_type?: string
           created_at?: string
           currency?: string
