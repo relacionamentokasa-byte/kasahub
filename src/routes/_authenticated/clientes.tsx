@@ -9,7 +9,7 @@ import { NewClientDialog } from "@/components/clients/NewClientDialog";
 import { ClientDetailSheet } from "@/components/clients/ClientDetailSheet";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { toast } from "sonner";
+
 
 type SortKey = "name" | "status" | "created_at";
 
