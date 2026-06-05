@@ -79,6 +79,15 @@ export function ProposalEditorContent({
     queryFn: () => fetchProposalItems(proposalId),
   });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
+  const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
+  const { data: team = [] } = useQuery({
+    queryKey: ["team-profiles"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, display_name, full_name");
+      return (data ?? []) as Array<{ id: string; display_name: string | null; full_name: string | null }>;
+    },
+  });
 
   const [form, setForm] = useState({
     title: "",
@@ -88,18 +97,39 @@ export function ProposalEditorContent({
     intro: "",
     valid_until: "",
     status: "draft",
+    responsible_id: "",
+    briefing: "",
+    payment_kind: "recurring" as "recurring" | "one_time" | "mixed",
+    installments: 1,
+    first_due_date: "",
+    billing_day: 5,
+    account_id: "",
+    category_id: "",
+    auto_create_jobs: true,
+    recurring_months: 12,
   });
 
   useEffect(() => {
     if (proposal) {
+      const p = proposal as typeof proposal & Record<string, unknown>;
       setForm({
         title: proposal.title,
-        client_id: (proposal as { client_id?: string | null }).client_id ?? "",
+        client_id: (p.client_id as string) ?? "",
         client_name: proposal.client_name,
         client_email: proposal.client_email ?? "",
         intro: proposal.intro ?? "",
         valid_until: proposal.valid_until ?? "",
         status: proposal.status,
+        responsible_id: (p.responsible_id as string) ?? "",
+        briefing: (p.briefing as string) ?? "",
+        payment_kind: ((p.payment_kind as string) ?? "recurring") as "recurring" | "one_time" | "mixed",
+        installments: Number(p.installments ?? 1),
+        first_due_date: (p.first_due_date as string) ?? "",
+        billing_day: Number(p.billing_day ?? 5),
+        account_id: (p.account_id as string) ?? "",
+        category_id: (p.category_id as string) ?? "",
+        auto_create_jobs: (p.auto_create_jobs as boolean) ?? true,
+        recurring_months: Number(p.recurring_months ?? 12),
       });
     }
   }, [proposal]);
@@ -120,6 +150,16 @@ export function ProposalEditorContent({
         monthly_investment: totals.monthly_investment,
         one_time_investment: totals.one_time_investment,
         total: totals.total,
+        responsible_id: f.responsible_id || null,
+        briefing: f.briefing || null,
+        payment_kind: f.payment_kind,
+        installments: f.installments,
+        first_due_date: f.first_due_date || null,
+        billing_day: f.billing_day,
+        account_id: f.account_id || null,
+        category_id: f.category_id || null,
+        auto_create_jobs: f.auto_create_jobs,
+        recurring_months: f.recurring_months,
       } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
@@ -131,6 +171,31 @@ export function ProposalEditorContent({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
+  const approveMut = useMutation({
+    mutationFn: async () => {
+      // ensure latest edits are persisted first
+      await saveMut.mutateAsync(undefined);
+      return approveProposal(supabase, proposalId);
+    },
+    onSuccess: (r) => {
+      toast.success(
+        `Proposta aprovada — ${r.jobs_created} jobs e ${r.transactions_created} lançamentos criados.`,
+      );
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const cancelMut = useMutation({
+    mutationFn: (reopen: boolean) => revertProposalApproval(supabase, proposalId, { reopen }),
+    onSuccess: (_d, reopen) => {
+      toast.success(reopen ? "Proposta reaberta" : "Proposta cancelada");
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
 
   async function persistTotalsFor(nextItems: ProposalItem[]) {
     const t = recalcProposalTotals(nextItems);
