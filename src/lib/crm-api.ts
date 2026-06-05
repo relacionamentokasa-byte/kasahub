@@ -141,6 +141,8 @@ export async function createProposal(input: {
   notes?: string | null;
   scope?: string[];
   auto_create_jobs?: boolean;
+  contract_template_id?: string | null;
+  contract_content?: string | null;
 }) {
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase
