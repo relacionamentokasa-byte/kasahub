@@ -1,14 +1,15 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown } from "lucide-react";
-import { fetchClients, deleteClient } from "@/lib/ops-api";
+import { fetchClients } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewClientDialog } from "@/components/clients/NewClientDialog";
 import { ClientDetailSheet } from "@/components/clients/ClientDetailSheet";
+import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { toast } from "sonner";
+
 
 type SortKey = "name" | "status" | "created_at";
 
@@ -20,7 +21,6 @@ export const Route = createFileRoute("/_authenticated/clientes")({
 function ClientesPage() {
   const matches = useMatches();
   const isClientDetail = matches.some((match) => match.routeId === "/_authenticated/clientes/$clientId");
-  const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -31,20 +31,13 @@ function ClientesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortKey>("name");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   function changeView(v: "cards" | "list") {
     setView(v);
     if (typeof window !== "undefined") localStorage.setItem("clientes:view", v);
   }
 
-  const delMut = useMutation({
-    mutationFn: (id: string) => deleteClient(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["clients"] });
-      toast.success("Cliente removido");
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -184,9 +177,7 @@ function ClientesPage() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (confirm(`Remover "${c.company || c.name}"? Esta ação não pode ser desfeita.`)) {
-                      delMut.mutate(c.id);
-                    }
+                    setDeleteId(c.id);
                   }}
                   className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
                   aria-label="Excluir cliente"
@@ -249,9 +240,7 @@ function ClientesPage() {
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"
-                          onClick={() => {
-                            if (confirm(`Remover "${c.company || c.name}"?`)) delMut.mutate(c.id);
-                          }}
+                          onClick={() => setDeleteId(c.id)}
                           className="p-1.5 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
                           aria-label="Excluir cliente"
                         >
@@ -295,9 +284,7 @@ function ClientesPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (confirm(`Remover "${c.company || c.name}"?`)) delMut.mutate(c.id);
-                    }}
+                    onClick={() => setDeleteId(c.id)}
                     className="absolute top-1/2 -translate-y-1/2 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
                     aria-label="Excluir cliente"
                   >
@@ -315,6 +302,11 @@ function ClientesPage() {
         clientId={selectedId}
         open={selectedId !== null}
         onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+      />
+      <DeleteClientDialog
+        clientId={deleteId}
+        open={deleteId !== null}
+        onOpenChange={(v) => { if (!v) setDeleteId(null); }}
       />
     </div>
   );

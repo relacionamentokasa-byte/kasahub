@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateClient, deleteClient } from "@/lib/ops-api";
+import { updateClient } from "@/lib/ops-api";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { PortalTab } from "@/routes/_authenticated/clientes.$clientId";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
+import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
@@ -62,6 +63,7 @@ export function EditClientDialog({
     start_date: client.start_date ?? "",
   });
   const [form, setForm] = useState(init);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (open) setForm(init());
@@ -80,17 +82,6 @@ export function EditClientDialog({
       qc.invalidateQueries({ queryKey: ["clients"] });
       toast.success("Cliente atualizado");
       onOpenChange(false);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const del = useMutation({
-    mutationFn: () => deleteClient(client.id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["clients"] });
-      toast.success("Cliente removido");
-      onOpenChange(false);
-      navigate({ to: "/clientes" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -230,10 +221,7 @@ export function EditClientDialog({
         <DialogFooter className="flex-row sm:justify-between gap-2 mt-4">
           <Button
             variant="ghost"
-            onClick={() => {
-              if (confirm("Remover este cliente? Esta ação não pode ser desfeita.")) del.mutate();
-            }}
-            disabled={del.isPending}
+            onClick={() => setDeleteOpen(true)}
             className="text-destructive hover:text-destructive"
           >
             <Trash2 className="size-4 mr-1" /> Excluir cliente
@@ -250,6 +238,15 @@ export function EditClientDialog({
           </div>
         </DialogFooter>
       </DialogContent>
+      <DeleteClientDialog
+        clientId={client.id}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onDeleted={() => {
+          onOpenChange(false);
+          navigate({ to: "/clientes" });
+        }}
+      />
     </Dialog>
   );
 }
