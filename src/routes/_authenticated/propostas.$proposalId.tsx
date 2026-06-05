@@ -449,17 +449,48 @@ export function ProposalEditorContent({
               </F>
               <F label="Tipo de contrato">
                 <Select
-                  value={form.contract_type}
-                  onValueChange={(v) => setForm({ ...form, contract_type: v })}
+                  value={form.contract_type === "recurring" ? "mensal" : "avulso"}
+                  onValueChange={(v) => setForm({ ...form, contract_type: v === "mensal" ? "recurring" : "one_time", payment_kind: v === "mensal" ? "recurring" : "one_time" })}
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="recurring">Mensal / Recorrente</SelectItem>
-                    <SelectItem value="one_time">Job Avulso</SelectItem>
-                    <SelectItem value="project">Projeto Fechado</SelectItem>
+                    <SelectItem value="mensal">Mensal / Recorrente</SelectItem>
+                    <SelectItem value="avulso">Job Avulso</SelectItem>
                   </SelectContent>
                 </Select>
               </F>
+
+              {form.contract_type === "recurring" ? (
+                <F label="Prazo (Meses)">
+                  <Select
+                    value={String(form.recurring_months)}
+                    onValueChange={(v) => setForm({ ...form, recurring_months: Number(v) })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="12">Sem prazo definido</SelectItem>
+                      <SelectItem value="3">3 meses</SelectItem>
+                      <SelectItem value="6">6 meses</SelectItem>
+                      <SelectItem value="12">12 meses</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </F>
+              ) : (
+                <F label="Parcelamento">
+                  <Select
+                    value={String(form.installments)}
+                    onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
+                        <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </F>
+              )}
+              
               <F label="1º vencimento">
                 <Input
                   type="date"
@@ -467,11 +498,6 @@ export function ProposalEditorContent({
                   onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
                 />
               </F>
-              <F label="Prazo (Meses)">
-                <Select
-                  value={String(form.recurring_months)}
-                  onValueChange={(v) => setForm({ ...form, recurring_months: Number(v) })}
-                >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="0">Mensal (sem prazo)</SelectItem>

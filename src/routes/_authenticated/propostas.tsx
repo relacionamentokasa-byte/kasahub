@@ -99,6 +99,7 @@ function ProposalsPage() {
     client_name: "",
     client_email: "",
     service_ids: [] as string[],
+    contract_type: "mensal" as "mensal" | "avulso",
     monthly_investment: 0,
     one_time_investment: 0,
     contract_term: "monthly" as string,
@@ -115,8 +116,21 @@ function ProposalsPage() {
   const [emailForm, setEmailForm] = useState({ to: "", subject: "", message: "" });
 
   const createMut = useMutation({
-    mutationFn: () =>
-      createProposal({
+    mutationFn: () => {
+      const recurring_months =
+        form.contract_type === "mensal"
+          ? form.contract_term === "monthly"
+            ? 12 // Default to 12 if "sem prazo" but recurring
+            : form.contract_term === "3_months"
+              ? 3
+              : form.contract_term === "6_months"
+                ? 6
+                : form.contract_term === "12_months"
+                  ? 12
+                  : 12
+          : 1;
+
+      return createProposal({
         title: form.title,
         target_kind: form.target_kind,
         client_id: form.target_kind === "client" ? (form.client_id || null) : null,
@@ -126,15 +140,19 @@ function ProposalsPage() {
         intro: form.intro || null,
         service_ids: form.service_ids,
         valid_until: form.valid_until || null,
-        monthly_investment: form.monthly_investment,
-        one_time_investment: form.one_time_investment,
-        total: form.monthly_investment + form.one_time_investment,
+        monthly_investment: form.contract_type === "mensal" ? form.monthly_investment : 0,
+        one_time_investment: form.contract_type === "avulso" ? form.one_time_investment : 0,
+        total: form.contract_type === "mensal" ? form.monthly_investment : form.one_time_investment,
+        contract_type: form.contract_type === "mensal" ? "recurring" : "one_time",
+        payment_kind: form.contract_type === "mensal" ? "recurring" : "one_time",
         contract_term: form.contract_term,
-        installments: form.installments,
+        installments: form.contract_type === "avulso" ? form.installments : 1,
+        recurring_months: recurring_months,
         payment_method: form.payment_method,
         first_due_date: form.first_due_date,
         notes: form.notes || null,
-      }),
+      });
+    },
     onSuccess: async (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       setOpen(false);
@@ -382,22 +400,40 @@ function ProposalsPage() {
                     </Field>
 
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="Valor Mensal (Recorrente)">
-                        <Input
-                          type="number"
-                          value={form.monthly_investment || ""}
-                          onChange={(e) => setForm({ ...form, monthly_investment: Number(e.target.value) })}
-                          placeholder="0,00"
-                        />
+                      <Field label="Tipo de Contrato *">
+                        <Select
+                          value={form.contract_type}
+                          onValueChange={(v: "mensal" | "avulso") =>
+                            setForm({ ...form, contract_type: v })
+                          }
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="mensal">Mensal / Recorrente</SelectItem>
+                            <SelectItem value="avulso">Job Avulso</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </Field>
-                      <Field label="Valor Único (Setup/Avulso)">
-                        <Input
-                          type="number"
-                          value={form.one_time_investment || ""}
-                          onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })}
-                          placeholder="0,00"
-                        />
-                      </Field>
+                      
+                      {form.contract_type === "mensal" ? (
+                        <Field label="Valor Mensal *">
+                          <Input
+                            type="number"
+                            value={form.monthly_investment || ""}
+                            onChange={(e) => setForm({ ...form, monthly_investment: Number(e.target.value) })}
+                            placeholder="0,00"
+                          />
+                        </Field>
+                      ) : (
+                        <Field label="Valor Total *">
+                          <Input
+                            type="number"
+                            value={form.one_time_investment || ""}
+                            onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })}
+                            placeholder="0,00"
+                          />
+                        </Field>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -406,24 +442,24 @@ function ProposalsPage() {
                   <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Condições Financeiras</h3>
                   <div className="grid gap-4">
                     <div className="grid grid-cols-2 gap-4">
-                      <Field label="Prazo do Contrato">
-                        <Select
-                          value={form.contract_term}
-                          onValueChange={(v) => setForm({ ...form, contract_term: v })}
-                        >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="monthly">Mensal (sem prazo)</SelectItem>
-                            <SelectItem value="3_months">3 meses</SelectItem>
-                            <SelectItem value="6_months">6 meses</SelectItem>
-                            <SelectItem value="12_months">12 meses</SelectItem>
-                            <SelectItem value="custom">Personalizado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      
-                      {form.one_time_investment > 0 && (
-                        <Field label="Parcelamento (Valor Único)">
+                      {form.contract_type === "mensal" ? (
+                        <Field label="Prazo do Contrato">
+                          <Select
+                            value={form.contract_term}
+                            onValueChange={(v) => setForm({ ...form, contract_term: v })}
+                          >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="monthly">Sem prazo definido</SelectItem>
+                              <SelectItem value="3_months">3 meses</SelectItem>
+                              <SelectItem value="6_months">6 meses</SelectItem>
+                              <SelectItem value="12_months">12 meses</SelectItem>
+                              <SelectItem value="custom">Personalizado</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      ) : (
+                        <Field label="Quantidade de Parcelas">
                           <Select
                             value={String(form.installments)}
                             onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
