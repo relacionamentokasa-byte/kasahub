@@ -410,6 +410,7 @@ export function ProposalEditorContent({
                       <SelectItem value="viewed">Visualizada</SelectItem>
                       <SelectItem value="accepted">Aceita</SelectItem>
                       <SelectItem value="rejected">Recusada</SelectItem>
+                      <SelectItem value="cancelled">Cancelada</SelectItem>
                     </SelectContent>
                   </Select>
                 </F>
