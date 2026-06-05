@@ -234,8 +234,34 @@ export function ProposalEditorContent({
                   className="text-lg font-display font-semibold h-12"
                 />
               </F>
+              <F label="Cliente vinculado">
+                <Select
+                  value={form.client_id || "__free__"}
+                  onValueChange={(v) => {
+                    if (v === "__free__") {
+                      setForm({ ...form, client_id: "" });
+                      return;
+                    }
+                    const c = clients.find((x) => x.id === v);
+                    setForm({
+                      ...form,
+                      client_id: v,
+                      client_name: c ? (c.company || c.name) : form.client_name,
+                      client_email: c?.email ?? form.client_email,
+                    });
+                  }}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__free__">Cliente avulso (digitar nome)</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
               <div className="grid grid-cols-2 gap-3">
-                <F label="Cliente">
+                <F label="Nome para exibir">
                   <Input
                     value={form.client_name}
                     onChange={(e) => setForm({ ...form, client_name: e.target.value })}
@@ -248,6 +274,7 @@ export function ProposalEditorContent({
                   />
                 </F>
               </div>
+
               <F label="Introdução">
                 <Textarea
                   rows={4}
