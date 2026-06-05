@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog } from "lucide-react";
+import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield } from "lucide-react";
+import { PermissionsManager } from "@/components/PermissionsManager";
 import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -91,10 +92,15 @@ function ConfigPage() {
         <TabsList>
           <TabsTrigger value="agency" className="gap-2"><Building2 className="size-3.5" /> Identidade</TabsTrigger>
           <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Branding</TabsTrigger>
+          <TabsTrigger value="perms" className="gap-2"><Shield className="size-3.5" /> Perfis e Permissões</TabsTrigger>
           <TabsTrigger value="notif" className="gap-2"><Bell className="size-3.5" /> Notificações</TabsTrigger>
           <TabsTrigger value="integr" className="gap-2"><Plug className="size-3.5" /> Integrações</TabsTrigger>
           <TabsTrigger value="prefs" className="gap-2"><UserCog className="size-3.5" /> Preferências</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="perms" className="space-y-4">
+          <PermissionsManager canEdit={canEdit} />
+        </TabsContent>
 
         <TabsContent value="prefs" className="space-y-4">
           <Card>
