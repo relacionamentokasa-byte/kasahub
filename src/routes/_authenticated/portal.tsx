@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Globe, ExternalLink, Sparkles, ImageIcon, Calendar as CalendarIcon, FolderKanban } from "lucide-react";
+import { Globe, ExternalLink, Sparkles, ImageIcon, Calendar as CalendarIcon, FolderKanban, FileSignature, DollarSign } from "lucide-react";
 import { fetchMyPortalClient, type Approval } from "@/lib/approvals-api";
 import { fetchProjects } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,6 +53,25 @@ function ClientPortalView({
     queryKey: ["client-projects", clientId],
     queryFn: () => fetchProjects({ clientId }),
   });
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["client-contracts", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("contracts").select("*").eq("client_id", clientId).eq("status", "active");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["client-transactions", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("transactions")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("due_date", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   return (
     <div className="min-h-full">
@@ -97,6 +116,8 @@ function ClientPortalView({
             <TabsTrigger value="feed"><ImageIcon className="size-3 mr-1.5" />Feed</TabsTrigger>
             <TabsTrigger value="calendar"><CalendarIcon className="size-3 mr-1.5" />Calendário</TabsTrigger>
             <TabsTrigger value="projects"><FolderKanban className="size-3 mr-1.5" />Projetos</TabsTrigger>
+            <TabsTrigger value="contracts"><FileSignature className="size-3 mr-1.5" />Contratos</TabsTrigger>
+            <TabsTrigger value="finance"><DollarSign className="size-3 mr-1.5" />Financeiro</TabsTrigger>
           </TabsList>
 
           <TabsContent value="feed" className="mt-6 space-y-4">
@@ -132,6 +153,87 @@ function ClientPortalView({
                 ))}
               </div>
             )}
+          </TabsContent>
+          <TabsContent value="contracts" className="mt-6 space-y-3">
+            {contracts.length === 0 ? (
+              <p className="text-sm text-foreground/50 text-center py-8">Nenhum contrato ativo</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {contracts.map((c) => (
+                  <Card key={c.id} className="bg-surface border-border">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{c.title}</p>
+                          <p className="text-[10px] text-primary mt-1 uppercase font-bold tracking-wider">
+                            {c.type === "recurring" ? "Mensal" : "Projeto"}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase">
+                          Ativo
+                        </Badge>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between text-[11px] text-foreground/50 border-t border-border/50 pt-3">
+                        <span>Vigência: {c.start_date ? new Date(c.start_date).toLocaleDateString("pt-BR") : "—"}</span>
+                        <span className="font-bold text-foreground">
+                          {c.monthly_value > 0 ? (
+                            `${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(c.monthly_value)}/mês`
+                          ) : (
+                            new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(c.total_value || 0)
+                          )}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="finance" className="mt-6">
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+              <div className="p-4 border-b border-border bg-background/20">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <DollarSign className="size-4 text-primary" /> Histórico Financeiro
+                </h3>
+              </div>
+              {transactions.length === 0 ? (
+                <p className="text-sm text-foreground/50 text-center py-10">Nenhum lançamento financeiro disponível</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead className="text-left text-[10px] uppercase text-foreground/40 border-b border-border bg-background/10">
+                      <tr>
+                        <th className="py-3 px-4">Descrição</th>
+                        <th className="py-3 px-4">Vencimento</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transactions.filter(t => t.kind === "income").map((t) => (
+                        <tr key={t.id} className="border-b border-border/40 hover:bg-background/5 transition-colors">
+                          <td className="py-3 px-4 font-medium">{t.description}</td>
+                          <td className="py-3 px-4 text-foreground/60">
+                            {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "—"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge 
+                              variant="outline" 
+                              className={`text-[9px] uppercase ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" : "bg-amber-500/15 text-amber-400 border-amber-500/20"}`}
+                            >
+                              {t.status === "paid" ? "Pago" : "Pendente"}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4 text-right font-bold text-emerald-400">
+                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(t.amount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
       </div>
