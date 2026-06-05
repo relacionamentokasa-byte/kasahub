@@ -153,6 +153,7 @@ export async function cancelProposalWorkflow(
     .eq("id", proposalId);
 
   await recordProposalEvent(proposalId, "cancelled", { reason });
+  await recordProposalEvent(proposalId, "structure_removed" as any, { reason });
   
   await recordTimelineEvent({
     client_id: proposal.client_id,
