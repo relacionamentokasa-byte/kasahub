@@ -289,6 +289,36 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_roles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+          permissions: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+          permissions?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financial_categories: {
         Row: {
           color: string | null
@@ -626,6 +656,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          custom_role_id: string | null
           display_name: string | null
           full_name: string | null
           id: string
@@ -636,6 +667,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          custom_role_id?: string | null
           display_name?: string | null
           full_name?: string | null
           id: string
@@ -646,6 +678,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          custom_role_id?: string | null
           display_name?: string | null
           full_name?: string | null
           id?: string
@@ -653,7 +686,15 @@ export type Database = {
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       project_members: {
         Row: {
@@ -987,6 +1028,10 @@ export type Database = {
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
+      has_module_permission: {
+        Args: { _action: string; _module: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
