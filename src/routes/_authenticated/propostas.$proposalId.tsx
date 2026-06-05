@@ -450,7 +450,11 @@ export function ProposalEditorContent({
               <F label="Tipo de contrato">
                 <Select
                   value={form.contract_type === "recurring" ? "mensal" : "avulso"}
-                  onValueChange={(v) => setForm({ ...form, contract_type: v === "mensal" ? "recurring" : "one_time", payment_kind: v === "mensal" ? "recurring" : "one_time" })}
+                  onValueChange={(v) => setForm({ 
+                    ...form, 
+                    contract_type: v === "mensal" ? "recurring" : "one_time", 
+                    payment_kind: v === "mensal" ? "recurring" : "one_time" 
+                  })}
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
