@@ -125,6 +125,57 @@ export type Database = {
         }
         Relationships: []
       }
+      client_deletion_audit: {
+        Row: {
+          client_id: string
+          client_name: string
+          created_at: string
+          deleted_by: string | null
+          deleted_by_name: string | null
+          id: string
+          jobs_removed: number
+          portal_users_removed: number
+          projects_removed: number
+          proposals_kept: number
+          proposals_removed: number
+          services_removed: number
+          transactions_cancelled: number
+          transactions_kept: number
+        }
+        Insert: {
+          client_id: string
+          client_name: string
+          created_at?: string
+          deleted_by?: string | null
+          deleted_by_name?: string | null
+          id?: string
+          jobs_removed?: number
+          portal_users_removed?: number
+          projects_removed?: number
+          proposals_kept?: number
+          proposals_removed?: number
+          services_removed?: number
+          transactions_cancelled?: number
+          transactions_kept?: number
+        }
+        Update: {
+          client_id?: string
+          client_name?: string
+          created_at?: string
+          deleted_by?: string | null
+          deleted_by_name?: string | null
+          id?: string
+          jobs_removed?: number
+          portal_users_removed?: number
+          projects_removed?: number
+          proposals_kept?: number
+          proposals_removed?: number
+          services_removed?: number
+          transactions_cancelled?: number
+          transactions_kept?: number
+        }
+        Relationships: []
+      }
       client_portal_users: {
         Row: {
           auth_user_id: string | null
