@@ -93,7 +93,14 @@ function ConfigPage() {
           <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Branding</TabsTrigger>
           <TabsTrigger value="notif" className="gap-2"><Bell className="size-3.5" /> Notificações</TabsTrigger>
           <TabsTrigger value="integr" className="gap-2"><Plug className="size-3.5" /> Integrações</TabsTrigger>
+          <TabsTrigger value="prefs" className="gap-2"><UserCog className="size-3.5" /> Preferências</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="prefs" className="space-y-4">
+          <Card>
+            <ThemePreference />
+          </Card>
+        </TabsContent>
 
         <TabsContent value="agency" className="space-y-4">
           <Card>
