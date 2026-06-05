@@ -494,38 +494,21 @@ export function ProposalEditorContent({
 
                         // 2. Load Contract Template if not set
                         if (service.contract_template_id && !nextForm.contract_template_id) {
-                          const { data: templates } = await supabase
+                          const { data: template } = await supabase
                             .from("contract_templates")
                             .select("*")
                             .eq("id", service.contract_template_id)
                             .single();
                           
-                          if (templates) {
-                            nextForm.contract_template_id = templates.id;
-                            nextForm.contract_content = templates.content;
+                          if (template) {
+                            nextForm.contract_template_id = template.id;
+                            nextForm.contract_content = template.content;
                           }
                         }
-
-                        // 3. (Future) Load Job Template
-                        // This is handled at approval time, but we could list them here too.
                       }
                     }
                     
                     setForm(nextForm);
-                  }}
-                />
-              </F>
-                          item => !form.scope.includes(item)
-                        );
-                        setForm({ 
-                          ...form, 
-                          service_ids: ids, 
-                          scope: [...form.scope, ...scopeToAdd] 
-                        });
-                        return;
-                      }
-                    }
-                    setForm({ ...form, service_ids: ids });
                   }}
                 />
               </F>
