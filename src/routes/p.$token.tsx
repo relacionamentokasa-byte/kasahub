@@ -34,6 +34,7 @@ type Proposal = {
   accepted_at: string | null;
   accepted_name: string | null;
   public_token: string;
+  scope: string[] | null;
 };
 type Agency = {
   name: string;
