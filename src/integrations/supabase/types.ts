@@ -1106,6 +1106,7 @@ export type Database = {
           briefing: string | null
           cancellation_reason: string | null
           cancellation_type: string | null
+          cancelled_at: string | null
           cancelled_by: string | null
           category_id: string | null
           client_email: string | null
@@ -1146,6 +1147,7 @@ export type Database = {
           signed_at_agency: string | null
           signed_at_client: string | null
           status: string
+          structure_status: string | null
           target_kind: string
           title: string
           total: number
@@ -1163,6 +1165,7 @@ export type Database = {
           briefing?: string | null
           cancellation_reason?: string | null
           cancellation_type?: string | null
+          cancelled_at?: string | null
           cancelled_by?: string | null
           category_id?: string | null
           client_email?: string | null
@@ -1203,6 +1206,7 @@ export type Database = {
           signed_at_agency?: string | null
           signed_at_client?: string | null
           status?: string
+          structure_status?: string | null
           target_kind?: string
           title: string
           total?: number
@@ -1220,6 +1224,7 @@ export type Database = {
           briefing?: string | null
           cancellation_reason?: string | null
           cancellation_type?: string | null
+          cancelled_at?: string | null
           cancelled_by?: string | null
           category_id?: string | null
           client_email?: string | null
@@ -1260,6 +1265,7 @@ export type Database = {
           signed_at_agency?: string | null
           signed_at_client?: string | null
           status?: string
+          structure_status?: string | null
           target_kind?: string
           title?: string
           total?: number
