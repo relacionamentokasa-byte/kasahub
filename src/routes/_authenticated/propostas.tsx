@@ -85,8 +85,15 @@ function ProposalsPage() {
   const qc = useQueryClient();
   const sendEmailFn = useServerFn(sendEmail);
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ title: "", client_name: "", client_email: "", intro: "" });
+  const [form, setForm] = useState({
+    title: "",
+    client_id: "",
+    client_name: "",
+    client_email: "",
+    intro: "",
+  });
 
   const [emailDialog, setEmailDialog] = useState<{ proposal: Proposal } | null>(null);
   const [emailForm, setEmailForm] = useState({ to: "", subject: "", message: "" });
@@ -95,6 +102,7 @@ function ProposalsPage() {
     mutationFn: () =>
       createProposal({
         title: form.title,
+        client_id: form.client_id || null,
         client_name: form.client_name,
         client_email: form.client_email || null,
         intro: form.intro || null,
@@ -102,10 +110,12 @@ function ProposalsPage() {
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       setOpen(false);
+      setForm({ title: "", client_id: "", client_name: "", client_email: "", intro: "" });
       setSelectedId(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   const delMut = useMutation({
     mutationFn: (id: string) => deleteProposal(id),
