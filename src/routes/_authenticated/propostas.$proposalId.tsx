@@ -47,7 +47,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
   head: () => ({ meta: [{ title: "Editor de proposta — KASA OS" }] }),
   component: ProposalEditorPage,
@@ -90,12 +89,9 @@ export function ProposalEditorContent({
     queryKey: ["services", "active"],
     queryFn: () => fetchServices({ onlyActive: true }),
   });
-  const { data: team = [] } = useQuery({
-    queryKey: ["team-profiles"],
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, display_name, full_name");
-      return (data ?? []) as Array<{ id: string; display_name: string | null; full_name: string | null }>;
-    },
+  const { data: contractTemplates = [] } = useQuery({
+    queryKey: ["contract-templates"],
+    queryFn: fetchContractTemplates,
   });
 
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -134,38 +130,38 @@ export function ProposalEditorContent({
 
   useEffect(() => {
     if (proposal && !isEditing) {
-      const p = proposal as typeof proposal & Record<string, unknown>;
+      const p = proposal as any;
       setForm({
         title: proposal.title,
-        client_id: (p.client_id as string) ?? "",
+        client_id: p.client_id ?? "",
         client_name: proposal.client_name,
         client_email: proposal.client_email ?? "",
         intro: proposal.intro ?? "",
         valid_until: proposal.valid_until ?? "",
         status: proposal.status,
-        responsible_id: (p.responsible_id as string) ?? "",
-        commercial_id: (p.commercial_id as string) ?? "",
-        operational_id: (p.operational_id as string) ?? (p.responsible_id as string) ?? "",
-        contract_type: (p.contract_type as string) ?? "recurring",
-        service_type: (p.service_type as string) ?? "",
-        service_ids: (p.service_ids as string[]) ?? [],
-        briefing: (p.briefing as string) ?? "",
-        payment_kind: ((p.payment_kind as string) ?? "recurring") as "recurring" | "one_time" | "mixed",
+        responsible_id: p.responsible_id ?? "",
+        commercial_id: p.commercial_id ?? "",
+        operational_id: p.operational_id ?? p.responsible_id ?? "",
+        contract_type: p.contract_type ?? "recurring",
+        service_type: p.service_type ?? "",
+        service_ids: p.service_ids ?? [],
+        briefing: p.briefing ?? "",
+        payment_kind: (p.payment_kind ?? "recurring") as any,
         installments: Number(p.installments ?? 1),
-        first_due_date: (p.first_due_date as string) ?? "",
+        first_due_date: p.first_due_date ?? "",
         billing_day: Number(p.billing_day ?? 5),
-        account_id: (p.account_id as string) ?? "",
-        category_id: (p.category_id as string) ?? "",
-        auto_create_jobs: (p.auto_create_jobs as boolean) ?? true,
+        account_id: p.account_id ?? "",
+        category_id: p.category_id ?? "",
+        auto_create_jobs: p.auto_create_jobs ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
-        scope: (p.scope as string[]) ?? [],
-        payment_method: (p.payment_method as string) ?? "boleto",
+        scope: p.scope ?? [],
+        payment_method: p.payment_method ?? "boleto",
         monthly_investment: Number(proposal.monthly_investment || 0),
         one_time_investment: Number(proposal.one_time_investment || 0),
-        contract_template_id: (p.contract_template_id as string) ?? "",
-        contract_content: (p.contract_content as string) ?? "",
-        signature_client: (p.signature_client as string) ?? "",
-        signature_agency: (p.signature_agency as string) ?? "",
+        contract_template_id: p.contract_template_id ?? "",
+        contract_content: p.contract_content ?? "",
+        signature_client: p.signature_client ?? "",
+        signature_agency: p.signature_agency ?? "",
       });
     }
   }, [proposal]);
@@ -207,14 +203,12 @@ export function ProposalEditorContent({
         contract_content: f.contract_content || null,
         signature_client: f.signature_client || null,
         signature_agency: f.signature_agency || null,
-      } as Parameters<typeof updateProposal>[1]);
+      } as any);
     },
     onSuccess: (_d, vars) => {
       if (vars?.status) setForm((p) => ({ ...p, status: vars.status! }));
-
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
-      qc.invalidateQueries({ queryKey: ["proposal", proposalId, "events"] });
       recordProposalEvent(proposalId, vars?.status === "sent" ? "sent" : "edited").catch(() => {});
       toast.success("Proposta salva");
     },
@@ -223,14 +217,11 @@ export function ProposalEditorContent({
 
   const approveMut = useMutation({
     mutationFn: async () => {
-      // ensure latest edits are persisted first
       await saveMut.mutateAsync(undefined);
       return approveProposal(supabase, proposalId);
     },
     onSuccess: (r) => {
-      toast.success(
-        `Proposta aprovada — ${r.jobs_created} jobs e ${r.transactions_created} lançamentos criados.`,
-      );
+      toast.success(`Proposta aprovada — ${r.jobs_created} jobs e ${r.transactions_created} lançamentos criados.`);
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -245,7 +236,6 @@ export function ProposalEditorContent({
     onError: (e: Error) => toast.error(e.message),
   });
 
-
   async function persistTotalsFor(nextItems: ProposalItem[]) {
     const t = recalcProposalTotals(nextItems);
     await updateProposal(proposalId, {
@@ -254,7 +244,6 @@ export function ProposalEditorContent({
       total: t.total,
     });
     qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
-    qc.invalidateQueries({ queryKey: ["proposals"] });
   }
 
   const itemMut = useMutation({
@@ -267,8 +256,8 @@ export function ProposalEditorContent({
       qc.setQueryData(["proposal", proposalId, "items"], next);
       await persistTotalsFor(next);
     },
-    onError: (e: Error) => toast.error(e.message),
   });
+
   const delItemMut = useMutation({
     mutationFn: (id: string) => deleteProposalItem(id),
     onSuccess: async (_d, id) => {
@@ -276,19 +265,7 @@ export function ProposalEditorContent({
       qc.setQueryData(["proposal", proposalId, "items"], next);
       await persistTotalsFor(next);
     },
-    onError: (e: Error) => toast.error(e.message),
   });
-
-  function addItem(recurrence: "monthly" | "one_time") {
-    itemMut.mutate({
-      proposal_id: proposalId,
-      title: recurrence === "monthly" ? "Serviço recorrente" : "Serviço pontual",
-      quantity: 1,
-      unit_price: 0,
-      recurrence,
-      order_index: items.length,
-    });
-  }
 
   function copyShareLink() {
     if (!proposal) return;
@@ -297,178 +274,54 @@ export function ProposalEditorContent({
     toast.success("Link copiado");
   }
 
-  if (!proposal) {
-    return <div className="p-10 text-foreground/60">Carregando…</div>;
-  }
+  if (!proposal) return <div className="p-10 text-foreground/60">Carregando…</div>;
 
-  const containerCls = embedded
-    ? "w-full"
-    : "p-6 lg:p-10 max-w-6xl mx-auto w-full";
-
-  const { data: contractTemplates = [] } = useQuery({
-    queryKey: ["contract-templates"],
-    queryFn: fetchContractTemplates,
-  });
+  const containerCls = embedded ? "w-full" : "p-6 lg:p-10 max-w-6xl mx-auto w-full";
 
   return (
     <div className={containerCls}>
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
         {onBack ? (
-          <button
-            onClick={onBack}
-            className="text-sm text-foreground/60 hover:text-primary flex items-center gap-2"
-          >
+          <button onClick={onBack} className="text-sm text-foreground/60 hover:text-primary flex items-center gap-2">
             <ArrowLeft className="size-4" /> Voltar
           </button>
-        ) : (
-          <span />
-        )}
+        ) : <span />}
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onClick={copyShareLink} className="gap-2">
-            <Copy className="size-4" /> Copiar link
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => saveMut.mutate({ status: "sent" })}
-            className="gap-2"
-          >
-            <Send className="size-4" /> Marcar como enviada
-          </Button>
-          <Button
-            onClick={() => {
-              (document.activeElement as HTMLElement | null)?.blur();
-              setTimeout(() => saveMut.mutate(undefined), 50);
-            }}
-            disabled={saveMut.isPending}
-            variant="outline"
-            className="gap-2"
-          >
-            <Save className="size-4" /> Salvar
-          </Button>
+          <Button variant="outline" onClick={copyShareLink} className="gap-2"><Copy className="size-4" /> Copiar link</Button>
+          <Button variant="outline" onClick={() => saveMut.mutate({ status: "sent" })} className="gap-2"><Send className="size-4" /> Marcar como enviada</Button>
+          <Button onClick={() => saveMut.mutate(undefined)} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
           {proposal.status !== "accepted" ? (
-            <Button
-              onClick={() => approveMut.mutate()}
-              disabled={approveMut.isPending}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
-            >
+            <Button onClick={() => approveMut.mutate()} disabled={approveMut.isPending} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2">
               <Rocket className="size-4" /> Aprovar e gerar operação
             </Button>
           ) : (
             <>
-              <Button
-                variant="outline"
-                onClick={() => cancelMut.mutate(true)}
-                disabled={cancelMut.isPending}
-                className="gap-2"
-              >
-                <RotateCcw className="size-4" /> Reabrir
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (confirm("Cancelar a aprovação? Lançamentos pendentes, contrato e projeto vinculados serão revertidos.")) {
-                    cancelMut.mutate(false);
-                  }
-                }}
-                disabled={cancelMut.isPending}
-                className="gap-2 text-destructive"
-              >
-                <XCircle className="size-4" /> Cancelar aprovação
-              </Button>
+              <Button variant="outline" onClick={() => cancelMut.mutate(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir</Button>
+              <Button variant="outline" onClick={() => confirm("Cancelar?") && cancelMut.mutate(false)} className="gap-2 text-destructive"><XCircle className="size-4" /> Cancelar aprovação</Button>
             </>
           )}
         </div>
       </div>
 
-      <div className={embedded ? "space-y-4" : "grid lg:grid-cols-3 gap-6"}>
-        <div className={embedded ? "space-y-4" : "lg:col-span-2 space-y-4"}>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl border border-border bg-surface p-6">
-            <span className="text-primary text-[10px] capitalize">
-              Cabeçalho
-            </span>
+            <span className="text-primary text-[10px] capitalize">Cabeçalho</span>
             <div className="grid gap-4 mt-3">
-              <F label="Título">
-                <Input
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  className="text-lg font-display font-semibold h-12"
-                />
-              </F>
+              <F label="Título"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></F>
               <F label="Cliente vinculado">
-                <Select
-                  value={form.client_id || "__free__"}
-                  onValueChange={(v) => {
-                    if (v === "__free__") {
-                      setForm({ ...form, client_id: "" });
-                      return;
-                    }
-                    const c = clients.find((x) => x.id === v);
-                    setForm({
-                      ...form,
-                      client_id: v,
-                      client_name: c ? (c.company || c.name) : form.client_name,
-                      client_email: c?.email ?? form.client_email,
-                    });
-                  }}
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+                <Select value={form.client_id || "__free__"} onValueChange={(v) => {
+                  if (v === "__free__") { setForm({ ...form, client_id: "" }); return; }
+                  const c = clients.find(x => x.id === v);
+                  setForm({ ...form, client_id: v, client_name: c?.company || c?.name || "", client_email: c?.email || "" });
+                }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__free__">Cliente avulso (digitar nome)</SelectItem>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                    ))}
+                    <SelectItem value="__free__">Cliente avulso</SelectItem>
+                    {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </F>
-              <div className="grid grid-cols-2 gap-3">
-                <F label="Nome para exibir">
-                  <Input
-                    value={form.client_name}
-                    onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-                  />
-                </F>
-                <F label="E-mail">
-                  <Input
-                    value={form.client_email}
-                    onChange={(e) => setForm({ ...form, client_email: e.target.value })}
-                  />
-                </F>
-              </div>
-
-              <F label="Introdução">
-                <Textarea
-                  rows={4}
-                  value={form.intro}
-                  onChange={(e) => setForm({ ...form, intro: e.target.value })}
-                />
-              </F>
-              <div className="grid grid-cols-2 gap-3">
-                <F label="Válida até">
-                  <Input
-                    type="date"
-                    value={form.valid_until}
-                    onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-                  />
-                </F>
-                <F label="Status">
-                  <Select
-                    value={form.status}
-                    onValueChange={(v) => setForm({ ...form, status: v })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="draft">Rascunho</SelectItem>
-                      <SelectItem value="sent">Enviada</SelectItem>
-                      <SelectItem value="viewed">Visualizada</SelectItem>
-                      <SelectItem value="accepted">Aceita</SelectItem>
-                      <SelectItem value="rejected">Recusada</SelectItem>
-                      <SelectItem value="cancelled">Cancelada</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </F>
-              </div>
             </div>
           </div>
 
@@ -476,443 +329,90 @@ export function ProposalEditorContent({
             <span className="text-primary text-[10px] capitalize">Configuração Comercial</span>
             <div className="grid gap-4 mt-4 md:grid-cols-2">
               <F label="Serviços contratados">
-                <ServicesMultiSelect
-                  value={form.service_ids}
-                  onChange={async (ids) => {
-                    const oldIds = form.service_ids;
-                    const newIds = ids;
-                    
-                    let nextForm = { ...form, service_ids: newIds };
-
-                    if (newIds.length > oldIds.length) {
-                      const addedId = newIds.find(id => !oldIds.includes(id));
-                      const service = services.find((s: Service) => s.id === addedId);
-                      
-                      if (service) {
-                        // 1. Load scope
-                        if (service.default_scope) {
-                          const scopeToAdd = (service.default_scope as string[]).filter(
-                            (item) => !nextForm.scope.includes(item),
-                          );
-                          nextForm.scope = [...nextForm.scope, ...scopeToAdd];
-                        }
-
-                        // 2. Load Contract Template if not set
-                        if (service.contract_template_id && !nextForm.contract_template_id) {
-                          const { data: template } = await supabase
-                            .from("contract_templates")
-                            .select("*")
-                            .eq("id", service.contract_template_id)
-                            .single();
-                          
-                          if (template) {
-                            nextForm.contract_template_id = template.id;
-                            nextForm.contract_content = template.content;
-                          }
-                        }
+                <ServicesMultiSelect value={form.service_ids} onChange={async (ids) => {
+                  let next = { ...form, service_ids: ids };
+                  if (ids.length > form.service_ids.length) {
+                    const addedId = ids.find(id => !form.service_ids.includes(id));
+                    const s = services.find(x => x.id === addedId);
+                    if (s) {
+                      if (s.default_scope) next.scope = [...new Set([...next.scope, ...(s.default_scope as string[])])];
+                      if ((s as any).contract_template_id && !next.contract_template_id) {
+                        const { data: t } = await supabase.from("contract_templates").select("*").eq("id", (s as any).contract_template_id).single();
+                        if (t) { next.contract_template_id = t.id; next.contract_content = t.content; }
                       }
                     }
-                    
-                    setForm(nextForm);
-                  }}
-                />
+                  }
+                  setForm(next);
+                }} />
               </F>
               <F label="Tipo de contrato">
-                <Select
-                  value={form.contract_type === "recurring" ? "mensal" : "avulso"}
-                  onValueChange={(v) => setForm({ 
-                    ...form, 
-                    contract_type: v === "mensal" ? "recurring" : "one_time", 
-                    payment_kind: v === "mensal" ? "recurring" : "one_time" 
-                  })}
-                >
+                <Select value={form.contract_type === "recurring" ? "m" : "a"} onValueChange={(v) => setForm({ ...form, contract_type: v === "m" ? "recurring" : "one_time", payment_kind: v === "m" ? "recurring" : "one_time" })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="mensal">Mensal / Recorrente</SelectItem>
-                    <SelectItem value="avulso">Job Avulso</SelectItem>
-                  </SelectContent>
+                  <SelectContent><SelectItem value="m">Mensal</SelectItem><SelectItem value="a">Avulso</SelectItem></SelectContent>
                 </Select>
-              </F>
-
-              {form.contract_type === "recurring" ? (
-                <>
-                  <F label="Investimento Mensal">
-                    <Input
-                      type="number"
-                      value={form.monthly_investment || ""}
-                      onFocus={() => setIsEditing("monthly_investment")}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setForm(f => ({ ...f, monthly_investment: val }));
-                      }}
-                      onBlur={() => {
-                        setIsEditing(null);
-                        const val = form.monthly_investment;
-                        
-                        // Consolidated monthly items logic to avoid "1000 + 3" issues
-                        const monthlyItems = items.filter(i => i.recurrence === "monthly");
-                        if (monthlyItems.length > 0) {
-                          const first = monthlyItems[0];
-                          itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "monthly", proposal_id: proposalId });
-                          
-                          // If there are more items, they are likely old data causing sum errors (e.g. 1000 + 3)
-                          if (monthlyItems.length > 1) {
-                            monthlyItems.slice(1).forEach(item => delItemMut.mutate(item.id));
-                          }
-                        } else {
-                          itemMut.mutate({ 
-                            proposal_id: proposalId, 
-                            title: "Investimento Mensal", 
-                            quantity: 1, 
-                            unit_price: val, 
-                            recurrence: "monthly" 
-                          });
-                        }
-                      }}
-                      placeholder="0,00"
-                    />
-                  </F>
-                  <F label="Prazo (Contrato)">
-                    <Select
-                      value={String(form.recurring_months)}
-                      onValueChange={(v) => setForm({ ...form, recurring_months: Number(v) })}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="3">3 meses</SelectItem>
-                        <SelectItem value="6">6 meses</SelectItem>
-                        <SelectItem value="12">12 meses</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </F>
-                </>
-              ) : (
-                <>
-                  <F label="Valor do Projeto">
-                    <Input
-                      type="number"
-                      value={form.one_time_investment || ""}
-                      onFocus={() => setIsEditing("one_time_investment")}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setForm(f => ({ ...f, one_time_investment: val }));
-                      }}
-                      onBlur={() => {
-                        setIsEditing(null);
-                        const val = form.one_time_investment;
-                        const oneTimeItems = items.filter(i => i.recurrence === "one_time");
-                        if (oneTimeItems.length > 0) {
-                          const first = oneTimeItems[0];
-                          itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "one_time", proposal_id: proposalId });
-                          if (oneTimeItems.length > 1) {
-                            oneTimeItems.slice(1).forEach(item => delItemMut.mutate(item.id));
-                          }
-                        } else {
-                          itemMut.mutate({ 
-                            proposal_id: proposalId, 
-                            title: "Investimento do Projeto", 
-                            quantity: 1, 
-                            unit_price: val, 
-                            recurrence: "one_time" 
-                          });
-                        }
-                      }}
-                      placeholder="0,00"
-                    />
-                  </F>
-                  <F label="Parcelamento">
-                    <Select
-                      value={String(form.installments)}
-                      onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
-                    >
-                      <SelectTrigger><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
-                          <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </F>
-                </>
-              )}
-              
-              <F label="Forma de pagamento">
-                <Select
-                  value={form.payment_method}
-                  onValueChange={(v) => setForm({ ...form, payment_method: v })}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="boleto">Boleto Bancário</SelectItem>
-                    <SelectItem value="pix">PIX</SelectItem>
-                    <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
-                    <SelectItem value="transfer">Transferência</SelectItem>
-                  </SelectContent>
-                </Select>
-              </F>
-
-              <F label="1º vencimento">
-                <Input
-                  type="date"
-                  value={form.first_due_date}
-                  onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
-                />
               </F>
             </div>
           </div>
-
-          <div className="rounded-2xl border border-border bg-surface p-6 opacity-60">
-            <span className="text-primary text-[10px] capitalize">Operação (herdada dos serviços)</span>
-            <div className="grid gap-4 mt-4 md:grid-cols-2">
-              <F label="Responsável operacional">
-                <Input disabled value="Definido pelo serviço" />
-              </F>
-              <F label="Categoria financeira">
-                <Input disabled value="Definido pelo serviço" />
-              </F>
-              <div className="flex items-center gap-3 md:col-span-2">
-                <Switch
-                  id="auto_jobs"
-                  checked={form.auto_create_jobs}
-                  disabled
-                />
-                <Label htmlFor="auto_jobs" className="text-xs text-foreground/50">
-                  Gerar jobs automaticamente a partir dos templates (sempre ativo)
-                </Label>
-              </div>
-            </div>
-          </div>
-
 
           <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-primary text-[10px] capitalize">Itens / Escopo automático</span>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 text-[10px] gap-1 px-2"
-                onClick={() => setForm({ ...form, scope: [...form.scope, ""] })}
-              >
-                <Plus className="size-3" /> Adicionar Item
-              </Button>
+              <span className="text-primary text-[10px] capitalize">Escopo</span>
+              <Button size="sm" variant="outline" onClick={() => setForm({ ...form, scope: [...form.scope, ""] })}><Plus className="size-3" /> Item</Button>
             </div>
             <div className="space-y-2">
-              {form.scope.length === 0 && (
-                <p className="text-[11px] text-foreground/40 italic text-center py-4">
-                  Selecione serviços para carregar o escopo automático ou adicione itens manualmente.
-                </p>
-              )}
-              {form.scope.map((item, idx) => (
-                <div key={idx} className="flex gap-2 items-center group">
-                  <div className="size-4 rounded border border-primary/30 bg-primary/5 flex items-center justify-center shrink-0">
-                    <CheckCircle2 className="size-2.5 text-primary" />
-                  </div>
-                  <Input
-                    value={item}
-                    onChange={(e) => {
-                      const newScope = [...form.scope];
-                      newScope[idx] = e.target.value;
-                      setForm({ ...form, scope: newScope });
-                    }}
-                    className="h-8 text-sm"
-                    placeholder="Descreva o item do escopo..."
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-foreground/30 hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={() => {
-                      const newScope = [...form.scope];
-                      newScope.splice(idx, 1);
-                      setForm({ ...form, scope: newScope });
-                    }}
-                  >
-                    <Trash2 className="size-3.5" />
-                  </Button>
-        </div>
+              {form.scope.map((it, idx) => (
+                <div key={idx} className="flex gap-2">
+                  <Input value={it} onChange={(e) => { const n = [...form.scope]; n[idx] = e.target.value; setForm({ ...form, scope: n }); }} />
+                  <Button variant="ghost" size="icon" onClick={() => { const n = [...form.scope]; n.splice(idx, 1); setForm({ ...form, scope: n }); }}><Trash2 className="size-4" /></Button>
+                </div>
+              ))}
+            </div>
+          </div>
 
-          {/* Removing old Composition block as it is now integrated above */}
+          <div className="rounded-2xl border border-border bg-surface p-6">
+            <span className="text-primary text-[10px] capitalize">Contrato Jurídico</span>
+            <div className="grid gap-4 mt-4">
+              <F label="Template">
+                <Select value={form.contract_template_id || "n"} onValueChange={(v) => {
+                  if (v === "n") { setForm({ ...form, contract_template_id: "", contract_content: "" }); return; }
+                  const t = contractTemplates.find(x => x.id === v);
+                  if (t) setForm({ ...form, contract_template_id: v, contract_content: t.content });
+                }}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="n">Sem contrato</SelectItem>{contractTemplates.map(t => <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>)}</SelectContent>
+                </Select>
+              </F>
+              {form.contract_template_id && <Textarea rows={10} value={form.contract_content} onChange={(e) => setForm({ ...form, contract_content: e.target.value })} className="font-mono text-xs" />}
+              <div className="grid grid-cols-2 gap-4">
+                <F label="Assinatura Agência"><Input value={form.signature_agency} onChange={(e) => setForm({ ...form, signature_agency: e.target.value })} /></F>
+                <F label="Assinatura Cliente"><Input value={form.signature_client} disabled placeholder="Aguardando..." /></F>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-4">
-          <div className={`rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6 ${embedded ? "" : "sticky top-6"}`}>
-            <span className="text-primary text-[10px] capitalize">
-              INVESTIMENTO
-            </span>
+          <div className="rounded-2xl border border-primary/40 bg-primary/5 p-6 sticky top-6">
+            <span className="text-primary text-[10px] capitalize">Investimento</span>
             {form.contract_type === "recurring" ? (
-              <>
-                <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Investimento Mensal</div>
-                <div className="font-display text-4xl font-bold mt-1 text-primary">
-                  {formatCurrency(form.monthly_investment)}
-                  <span className="text-sm font-normal text-foreground/40 ml-2">/mês</span>
+              <div className="mt-4">
+                <div className="text-3xl font-bold text-primary">{formatCurrency(form.monthly_investment)}/mês</div>
+                <div className="mt-4 pt-4 border-t border-border text-sm">
+                  <div className="flex justify-between"><span>Prazo</span><span>{form.recurring_months} meses</span></div>
+                  <div className="flex justify-between font-bold mt-2"><span>Total</span><span>{formatCurrency(form.monthly_investment * form.recurring_months)}</span></div>
                 </div>
-                <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
-                  <Row label="Prazo" value={`${form.recurring_months} meses`} />
-                  <Row 
-                    label="Investimento Total" 
-                    value={formatCurrency(form.monthly_investment * form.recurring_months)} 
-                    bold 
-                  />
-                </div>
-              </>
+              </div>
             ) : (
-              <>
-                <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Valor do Projeto</div>
-                <div className="font-display text-4xl font-bold mt-1 text-primary">
-                  {formatCurrency(form.one_time_investment)}
+              <div className="mt-4">
+                <div className="text-3xl font-bold text-primary">{formatCurrency(form.one_time_investment)}</div>
+                <div className="mt-4 pt-4 border-t border-border text-sm">
+                  <div className="flex justify-between"><span>Parcelas</span><span>{form.installments}x</span></div>
                 </div>
-                <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
-                  <Row 
-                    label="Parcelamento" 
-                    value={`${form.installments}x de ${formatCurrency(form.one_time_investment / (form.installments || 1))}`} 
-                  />
-                  <Row label="Total" value={formatCurrency(form.one_time_investment)} bold />
-                </div>
-              </>
+              </div>
             )}
           </div>
-
-          {proposal.status === "accepted" && (
-            <div className="rounded-2xl border border-green-500/30 bg-green-500/5 p-5 text-sm">
-              <CheckCircle2 className="size-5 text-green-400 mb-2" />
-              <p className="font-semibold text-green-300">Proposta aceita</p>
-              {proposal.accepted_name && (
-                <p className="text-foreground/60 text-xs mt-1">
-                  Por {proposal.accepted_name} em{" "}
-                  {proposal.accepted_at &&
-                    new Date(proposal.accepted_at).toLocaleString("pt-BR")}
-                </p>
-              )}
-            </div>
-          )}
-
           <ProposalTimeline proposalId={proposalId} />
-
-          <div className="rounded-2xl border border-border bg-surface p-5 text-xs text-foreground/60">
-            <p className="capitalize text-[10px] text-foreground/40 mb-2">
-              Link público
-            </p>
-            <Link
-              to="/propostas"
-              className="text-[11px] break-all text-primary hover:underline"
-              onClick={(e) => {
-                e.preventDefault();
-                copyShareLink();
-              }}
-            >
-              /p/{proposal.public_token}
-            </Link>
-            <p className="mt-2">Aceite digital via link público entra na próxima fase.</p>
-          </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function ItemRow({
-  item,
-  onChange,
-  onDelete,
-}: {
-  item: ProposalItem;
-  onChange: (patch: Partial<ProposalItem>) => void;
-  onDelete: () => void;
-}) {
-  const [local, setLocal] = useState(item);
-  useEffect(() => setLocal(item), [item.id, item.title, item.quantity, item.unit_price, item.recurrence]);
-
-  function commit(patch: Partial<ProposalItem>) {
-    const merged = { ...local, ...patch };
-    setLocal(merged);
-    onChange(patch);
-  }
-
-  return (
-    <div className="space-y-2 bg-background/40 border border-border rounded-lg p-2">
-      <div className="grid grid-cols-12 gap-2 items-center">
-        <Input
-          value={local.title}
-          onChange={(e) => setLocal({ ...local, title: e.target.value })}
-          onBlur={() => commit({ title: local.title })}
-          className="col-span-5 h-9 bg-transparent border-transparent hover:border-border focus:border-primary"
-          placeholder="Item"
-        />
-        <Input
-          type="number"
-          value={String(local.quantity)}
-          onChange={(e) => setLocal({ ...local, quantity: Number(e.target.value) })}
-          onBlur={() => commit({ quantity: local.quantity })}
-          className="col-span-1 h-9 text-right"
-        />
-        <Input
-          type="number"
-          value={String(local.unit_price)}
-          onChange={(e) => setLocal({ ...local, unit_price: Number(e.target.value) })}
-          onBlur={() => commit({ unit_price: local.unit_price })}
-          className="col-span-3 h-9 text-right"
-          placeholder="0,00"
-        />
-        <Select
-          value={local.recurrence}
-          onValueChange={(v) => commit({ recurrence: v })}
-        >
-          <SelectTrigger className="col-span-2 h-9 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="monthly">Mensal</SelectItem>
-            <SelectItem value="one_time">Pontual</SelectItem>
-          </SelectContent>
-        </Select>
-        <button
-          onClick={onDelete}
-          className="col-span-1 grid place-items-center text-foreground/40 hover:text-destructive"
-        >
-          <Trash2 className="size-3.5" />
-        </button>
-      </div>
-      <div className="grid grid-cols-12 gap-2 items-center">
-        <Label className="col-span-3 text-[10px] capitalize text-foreground/40 pl-1">
-          Template de jobs
-        </Label>
-        <Select
-          value={(local.job_template as string | null) ?? "none"}
-          onValueChange={(v) => commit({ job_template: v === "none" ? null : v } as Partial<ProposalItem>)}
-        >
-          <SelectTrigger className="col-span-9 h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {JOB_TEMPLATE_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <Label className="text-[10px] capitalize text-foreground/40 pl-1">
-          Entregáveis (um por linha)
-        </Label>
-        <Textarea
-          rows={3}
-          value={(Array.isArray(local.deliverables) ? (local.deliverables as string[]) : []).join("\n")}
-          onChange={(e) => setLocal({ ...local, deliverables: e.target.value.split("\n") as unknown as ProposalItem["deliverables"] })}
-          onBlur={() =>
-            commit({
-              deliverables: (Array.isArray(local.deliverables)
-                ? (local.deliverables as string[])
-                : []
-              )
-                .map((s) => s.trim())
-                .filter(Boolean) as unknown as ProposalItem["deliverables"],
-            })
-          }
-          className="mt-1 text-xs"
-          placeholder="Ex: 12 posts/mês&#10;Relatório mensal&#10;Reunião estratégica"
-        />
       </div>
     </div>
   );
@@ -921,21 +421,8 @@ function ItemRow({
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[10px] capitalize text-foreground/50">
-        {label}
-      </Label>
+      <Label className="text-[10px] capitalize text-foreground/50">{label}</Label>
       {children}
-    </div>
-  );
-}
-
-function Row({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-foreground/60">{label}</span>
-      <span className={`font-mono ${bold ? "font-bold text-foreground" : "text-foreground/80"}`}>
-        {value}
-      </span>
     </div>
   );
 }
