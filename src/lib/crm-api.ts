@@ -141,7 +141,7 @@ export async function createProposal(input: {
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("proposals")
-    .insert({ ...input, owner_id: userData.user?.id ?? null })
+    .insert({ ...input, owner_id: userData.user?.id ?? null } as any)
     .select()
     .single();
   if (error) throw error;
