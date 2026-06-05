@@ -107,6 +107,10 @@ function ConfigPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="services" className="space-y-4">
+          <ServicesManager canEdit={canEdit} />
+        </TabsContent>
+
         <TabsContent value="agency" className="space-y-4">
           <Card>
             <Grid>
