@@ -229,7 +229,7 @@ export function ProposalEditorContent({
       return approveProposal(supabase, proposalId);
     },
     onSuccess: (r) => {
-      toast.success(`Proposta aprovada — ${r.jobs_created} jobs e ${r.transactions_created} lançamentos criados.`);
+      toast.success(`Proposta aprovada e convertida em contrato!`);
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
