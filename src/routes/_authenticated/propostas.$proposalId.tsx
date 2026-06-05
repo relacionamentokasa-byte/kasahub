@@ -286,10 +286,43 @@ export function ProposalEditorContent({
               setTimeout(() => saveMut.mutate(undefined), 50);
             }}
             disabled={saveMut.isPending}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
+            variant="outline"
+            className="gap-2"
           >
             <Save className="size-4" /> Salvar
           </Button>
+          {proposal.status !== "accepted" ? (
+            <Button
+              onClick={() => approveMut.mutate()}
+              disabled={approveMut.isPending}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
+            >
+              <Rocket className="size-4" /> Aprovar e gerar operação
+            </Button>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => cancelMut.mutate(true)}
+                disabled={cancelMut.isPending}
+                className="gap-2"
+              >
+                <RotateCcw className="size-4" /> Reabrir
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (confirm("Cancelar a aprovação? Lançamentos pendentes, contrato e projeto vinculados serão revertidos.")) {
+                    cancelMut.mutate(false);
+                  }
+                }}
+                disabled={cancelMut.isPending}
+                className="gap-2 text-destructive"
+              >
+                <XCircle className="size-4" /> Cancelar aprovação
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
