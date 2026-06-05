@@ -285,43 +285,70 @@ function PublicProposalView() {
         </div>
 
         {/* Investment Details */}
-        <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50">
-          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
-            Composição do Investimento
-          </h2>
-          <div className="space-y-3">
-            {grouped.monthly.length > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-600">Investimento Mensal (Recorrente)</span>
-                <span className="font-semibold">{formatCurrency(proposal.monthly_investment)}</span>
-              </div>
-            )}
-            {grouped.one_time.length > 0 && (
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-600">Serviços Pontuais</span>
-                <span className="font-semibold">{formatCurrency(proposal.one_time_investment)}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Investment */}
         <div
           className="px-8 py-8 border-b border-slate-100"
           style={{ background: `${brand}10` }}
         >
-          <h2 className="text-xs uppercase tracking-widest text-slate-500 mb-3">
+          <h2 className="text-xs uppercase tracking-widest text-slate-500 mb-6">
             Investimento
           </h2>
-          <div className="grid sm:grid-cols-3 gap-4">
-            <Stat label="Mensal" value={formatCurrency(proposal.monthly_investment)} highlight brand={brand} />
-            <Stat label="Pontual" value={formatCurrency(proposal.one_time_investment)} brand={brand} />
-            <Stat label="Total" value={formatCurrency(proposal.total)} brand={brand} />
-          </div>
-          <p className="text-xs text-slate-500 mt-4">
-            Forma de pagamento: a combinar (cartão, PIX, boleto ou transferência).
-            Pagamento mensal vence todo dia 5 após início do contrato.
-          </p>
+          
+          {grouped.monthly.length > 0 ? (
+            <div className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <Stat 
+                  label="Valor Mensal" 
+                  value={formatCurrency(proposal.monthly_investment)} 
+                  highlight 
+                  brand={brand} 
+                />
+                <Stat 
+                  label="Prazo" 
+                  value={`${proposal.recurring_months || 12} meses`} 
+                  brand={brand} 
+                />
+              </div>
+              <div className="pt-6 border-t border-slate-200/50">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400">Investimento Total</p>
+                    <p className="text-3xl font-bold mt-1" style={{ color: brand }}>
+                      {formatCurrency(proposal.monthly_investment * (proposal.recurring_months || 12))}
+                    </p>
+                  </div>
+                  <div className="text-right text-xs text-slate-500">
+                    Pagamento via {proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                                   proposal.payment_method === 'pix' ? 'PIX' : 
+                                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="grid sm:grid-cols-2 gap-6">
+                <Stat 
+                  label="Valor do Projeto" 
+                  value={formatCurrency(proposal.one_time_investment)} 
+                  highlight 
+                  brand={brand} 
+                />
+                <Stat 
+                  label="Parcelamento" 
+                  value={`${proposal.installments || 1}x de ${formatCurrency(proposal.one_time_investment / (proposal.installments || 1))}`} 
+                  brand={brand} 
+                />
+              </div>
+              <div className="pt-6 border-t border-slate-200/50 text-right">
+                <p className="text-[10px] uppercase tracking-widest text-slate-400">Forma de Pagamento</p>
+                <p className="text-sm font-semibold mt-1">
+                  {proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                   proposal.payment_method === 'pix' ? 'PIX' : 
+                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Signature */}
