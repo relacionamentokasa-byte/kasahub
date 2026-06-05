@@ -4,6 +4,7 @@ import { ProposalDetailSheet } from "@/components/proposals/ProposalDetailSheet"
 import { useState } from "react";
 import {
   fetchProposals,
+  fetchLeads,
   createProposal,
   deleteProposal,
   duplicateProposal,
@@ -12,6 +13,7 @@ import {
   type Proposal,
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
+import { recordProposalEvent } from "@/lib/proposal-events";
 import {
   Select,
   SelectContent,
