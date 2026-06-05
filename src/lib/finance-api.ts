@@ -168,6 +168,17 @@ export async function markPaid(id: string, paid: boolean) {
   });
 }
 
+export async function settleTransaction(
+  id: string,
+  payload: { paid_at: string; account_id?: string | null },
+) {
+  return updateTransaction(id, {
+    status: "paid",
+    paid_at: payload.paid_at,
+    ...(payload.account_id ? { account_id: payload.account_id } : {}),
+  });
+}
+
 // ---------- Computed indicators ----------
 export function brl(v: number) {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
