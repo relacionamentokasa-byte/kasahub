@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 export function NewClientDialog({
   open,
@@ -31,15 +32,21 @@ export function NewClientDialog({
     phone: "",
     document: "",
     notes: "",
+    logo_url: "" as string | null,
   });
 
   const mut = useMutation({
-    mutationFn: () => createClient({ ...form, name: form.name || form.company || "Cliente sem nome" }),
+    mutationFn: () =>
+      createClient({
+        ...form,
+        name: form.name || form.company || "Cliente sem nome",
+        logo_url: form.logo_url || null,
+      }),
     onSuccess: (c) => {
       qc.invalidateQueries({ queryKey: ["clients"] });
       toast.success("Cliente cadastrado");
       onOpenChange(false);
-      setForm({ name: "", company: "", email: "", phone: "", document: "", notes: "" });
+      setForm({ name: "", company: "", email: "", phone: "", document: "", notes: "", logo_url: "" });
       onCreated?.(c.id);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -47,11 +54,20 @@ export function NewClientDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-border">
+      <DialogContent className="bg-surface border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">Novo cliente</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Logo do cliente</Label>
+            <ImageUpload
+              value={form.logo_url}
+              onChange={(url) => setForm({ ...form, logo_url: url })}
+              folder="clients"
+              label="Logo"
+            />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Nome do contato</Label>
