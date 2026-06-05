@@ -215,6 +215,7 @@ function ServiceFormDialog({
     category: service?.category ?? "",
     description: service?.description ?? "",
     is_active: service?.is_active ?? true,
+    default_scope: (service?.default_scope as string[]) ?? [],
   });
 
   const saveMut = useMutation({
