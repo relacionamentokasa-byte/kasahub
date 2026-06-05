@@ -452,7 +452,27 @@ export function ProposalEditorContent({
               <F label="Serviços contratados">
                 <ServicesMultiSelect
                   value={form.service_ids}
-                  onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                  onChange={(ids) => {
+                    const oldIds = form.service_ids;
+                    const newIds = ids;
+                    
+                    if (newIds.length > oldIds.length) {
+                      const addedId = newIds.find(id => !oldIds.includes(id));
+                      const service = services.find((s: Service) => s.id === addedId);
+                      if (service && service.default_scope) {
+                        const scopeToAdd = (service.default_scope as string[]).filter(
+                          item => !form.scope.includes(item)
+                        );
+                        setForm({ 
+                          ...form, 
+                          service_ids: ids, 
+                          scope: [...form.scope, ...scopeToAdd] 
+                        });
+                        return;
+                      }
+                    }
+                    setForm({ ...form, service_ids: ids });
+                  }}
                 />
               </F>
               <F label="Tipo de contrato">
