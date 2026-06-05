@@ -498,25 +498,6 @@ export function ProposalEditorContent({
                   onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
                 />
               </F>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">Mensal (sem prazo)</SelectItem>
-                    <SelectItem value="3">3 meses</SelectItem>
-                    <SelectItem value="6">6 meses</SelectItem>
-                    <SelectItem value="12">12 meses</SelectItem>
-                  </SelectContent>
-                </Select>
-              </F>
-              {(form.payment_kind === "one_time" || form.payment_kind === "mixed") && (
-                <F label="Parcelas (valor avulso)">
-                  <Input
-                    type="number"
-                    min={1}
-                    value={String(form.installments)}
-                    onChange={(e) => setForm({ ...form, installments: Math.max(1, Number(e.target.value) || 1) })}
-                  />
-                </F>
-              )}
             </div>
           </div>
 
