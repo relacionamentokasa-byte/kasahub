@@ -454,7 +454,6 @@ function ProposalsPage() {
                               <SelectItem value="3_months">3 meses</SelectItem>
                               <SelectItem value="6_months">6 meses</SelectItem>
                               <SelectItem value="12_months">12 meses</SelectItem>
-                              <SelectItem value="custom">Personalizado</SelectItem>
                             </SelectContent>
                           </Select>
                         </Field>
@@ -473,21 +472,32 @@ function ProposalsPage() {
                           </Select>
                         </Field>
                       )}
-                    </div>
-                    {form.contract_type === "mensal" && form.contract_term === "custom" && (
-                      <Field label="Meses (Personalizado)">
+                      <Field label="Primeiro Vencimento">
                         <Input
-                          type="number"
-                          min={1}
-                          placeholder="Ex: 24"
-                          onChange={(e) => {
-                            // This is a bit tricky since emptyForm doesn't have a separate custom_months field.
-                            // I'll repurpose monthly_investment or just handle it in the createMut.
-                            // Actually, I should probably add a local state or update the form.
-                          }}
+                          type="date"
+                          value={form.first_due_date}
+                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
                         />
                       </Field>
-                    )}
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                      <Field label="Forma de Pagamento">
+                        <Select
+                          value={form.payment_method}
+                          onValueChange={(v) => setForm({ ...form, payment_method: v })}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="boleto">Boleto Bancário</SelectItem>
+                            <SelectItem value="pix">PIX</SelectItem>
+                            <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                            <SelectItem value="transfer">Transferência</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                    </div>
+                  </div>
+                </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
