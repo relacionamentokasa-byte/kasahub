@@ -98,10 +98,16 @@ function ProposalsPage() {
     lead_id: "",
     client_name: "",
     client_email: "",
-    service_type: "",
     service_ids: [] as string[],
+    monthly_investment: 0,
+    one_time_investment: 0,
+    contract_term: "monthly" as string,
+    installments: 1,
+    payment_method: "boleto",
+    first_due_date: new Date().toISOString().split("T")[0],
     valid_until: "",
     intro: "",
+    notes: "",
   };
   const [form, setForm] = useState(emptyForm);
 
@@ -118,9 +124,16 @@ function ProposalsPage() {
         client_name: form.client_name,
         client_email: form.client_email || null,
         intro: form.intro || null,
-        service_type: form.service_type || null,
         service_ids: form.service_ids,
         valid_until: form.valid_until || null,
+        monthly_investment: form.monthly_investment,
+        one_time_investment: form.one_time_investment,
+        total: form.monthly_investment + form.one_time_investment,
+        contract_term: form.contract_term,
+        installments: form.installments,
+        payment_method: form.payment_method,
+        first_due_date: form.first_due_date,
+        notes: form.notes || null,
       }),
     onSuccess: async (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
@@ -257,141 +270,229 @@ function ProposalsPage() {
               </div>
             </DialogHeader>
             <div className="overflow-y-auto px-6 py-5">
-              <div className="grid gap-4">
-                <Field label="Título *">
-                  <Input
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    placeholder="Proposta · Marketing Performance Q1"
-                    autoFocus
-                  />
-                </Field>
-
-                <Field label="Destino da proposta *">
-                  <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-background/40 border border-border">
-                    {(["client", "lead"] as const).map((k) => (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() =>
-                          setForm({
-                            ...form,
-                            target_kind: k,
-                            client_id: "",
-                            lead_id: "",
-                            client_name: "",
-                            client_email: "",
-                          })
-                        }
-                        className={`text-sm py-2 rounded-md font-medium transition ${
-                          form.target_kind === k
-                            ? "bg-primary text-primary-foreground"
-                            : "text-foreground/60 hover:text-foreground"
-                        }`}
-                      >
-                        {k === "client" ? "Cliente existente" : "Lead do CRM"}
-                      </button>
-                    ))}
-                  </div>
-                </Field>
-
-                {form.target_kind === "client" ? (
-                  <Field label="Cliente *">
-                    <Select
-                      value={form.client_id || "__free__"}
-                      onValueChange={(v) => {
-                        if (v === "__free__") {
-                          setForm({ ...form, client_id: "", client_name: "", client_email: "" });
-                          return;
-                        }
-                        const c = clients.find((x) => x.id === v);
-                        setForm({
-                          ...form,
-                          client_id: v,
-                          client_name: c ? (c.company || c.name) : "",
-                          client_email: c?.email ?? "",
-                        });
-                      }}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__free__">Cliente avulso (digitar)</SelectItem>
-                        {clients.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {!form.client_id && (
+              <div className="grid gap-6">
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Dados Comerciais</h3>
+                  <div className="grid gap-4">
+                    <Field label="Título *">
                       <Input
-                        className="mt-2"
-                        placeholder="Nome do cliente"
-                        value={form.client_name}
-                        onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                        value={form.title}
+                        onChange={(e) => setForm({ ...form, title: e.target.value })}
+                        placeholder="Ex: Proposta · Marketing Performance"
+                        autoFocus
                       />
+                    </Field>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Destino">
+                        <Select
+                          value={form.target_kind}
+                          onValueChange={(v: "client" | "lead") =>
+                            setForm({
+                              ...form,
+                              target_kind: v,
+                              client_id: "",
+                              lead_id: "",
+                              client_name: "",
+                              client_email: "",
+                            })
+                          }
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="client">Cliente</SelectItem>
+                            <SelectItem value="lead">Lead</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
+
+                      {form.target_kind === "client" ? (
+                        <Field label="Cliente *">
+                          <Select
+                            value={form.client_id || "__free__"}
+                            onValueChange={(v) => {
+                              if (v === "__free__") {
+                                setForm({ ...form, client_id: "", client_name: "", client_email: "" });
+                                return;
+                              }
+                              const c = clients.find((x) => x.id === v);
+                              setForm({
+                                ...form,
+                                client_id: v,
+                                client_name: c ? (c.company || c.name) : "",
+                                client_email: c?.email ?? "",
+                              });
+                            }}
+                          >
+                            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="__free__">Digitar nome...</SelectItem>
+                              {clients.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      ) : (
+                        <Field label="Lead *">
+                          <Select
+                            value={form.lead_id || "__none__"}
+                            onValueChange={(v) => {
+                              if (v === "__none__") {
+                                setForm({ ...form, lead_id: "", client_name: "", client_email: "" });
+                                return;
+                              }
+                              const l = leads.find((x) => x.id === v);
+                              setForm({
+                                ...form,
+                                lead_id: v,
+                                client_name: l ? (l.company || l.name) : "",
+                                client_email: l?.email ?? "",
+                              });
+                            }}
+                          >
+                            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                            <SelectContent>
+                              {leads.map((l) => (
+                                <SelectItem key={l.id} value={l.id}>
+                                  {l.name}{l.company ? ` · ${l.company}` : ""}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    </div>
+
+                    {!form.client_id && form.target_kind === "client" && (
+                      <Field label="Nome do Cliente *">
+                        <Input
+                          placeholder="Nome da empresa ou pessoa"
+                          value={form.client_name}
+                          onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                        />
+                      </Field>
                     )}
-                  </Field>
-                ) : (
-                  <Field label="Lead *">
-                    <Select
-                      value={form.lead_id || "__none__"}
-                      onValueChange={(v) => {
-                        if (v === "__none__") {
-                          setForm({ ...form, lead_id: "", client_name: "", client_email: "" });
-                          return;
-                        }
-                        const l = leads.find((x) => x.id === v);
-                        setForm({
-                          ...form,
-                          lead_id: v,
-                          client_name: l ? (l.company || l.name) : "",
-                          client_email: l?.email ?? "",
-                        });
-                      }}
-                    >
-                      <SelectTrigger><SelectValue placeholder="Selecione um lead" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__none__">Selecione…</SelectItem>
-                        {leads.map((l) => (
-                          <SelectItem key={l.id} value={l.id}>
-                            {l.name}{l.company ? ` · ${l.company}` : ""}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                )}
 
-                <Field label="E-mail do destinatário">
-                  <Input
-                    type="email"
-                    value={form.client_email}
-                    onChange={(e) => setForm({ ...form, client_email: e.target.value })}
-                  />
-                </Field>
+                    <Field label="Serviços Contratados *">
+                      <ServicesMultiSelect
+                        value={form.service_ids}
+                        onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                      />
+                    </Field>
 
-                <Field label="Serviços contratados">
-                  <ServicesMultiSelect
-                    value={form.service_ids}
-                    onChange={(ids) => setForm({ ...form, service_ids: ids })}
-                  />
-                </Field>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Valor Mensal (Recorrente)">
+                        <Input
+                          type="number"
+                          value={form.monthly_investment || ""}
+                          onChange={(e) => setForm({ ...form, monthly_investment: Number(e.target.value) })}
+                          placeholder="0,00"
+                        />
+                      </Field>
+                      <Field label="Valor Único (Setup/Avulso)">
+                        <Input
+                          type="number"
+                          value={form.one_time_investment || ""}
+                          onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })}
+                          placeholder="0,00"
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </div>
 
-                <Field label="Validade da proposta">
-                  <Input
-                    type="date"
-                    value={form.valid_until}
-                    onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-                  />
-                </Field>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Condições Financeiras</h3>
+                  <div className="grid gap-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Prazo do Contrato">
+                        <Select
+                          value={form.contract_term}
+                          onValueChange={(v) => setForm({ ...form, contract_term: v })}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="monthly">Mensal (sem prazo)</SelectItem>
+                            <SelectItem value="3_months">3 meses</SelectItem>
+                            <SelectItem value="6_months">6 meses</SelectItem>
+                            <SelectItem value="12_months">12 meses</SelectItem>
+                            <SelectItem value="custom">Personalizado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                      
+                      {form.one_time_investment > 0 && (
+                        <Field label="Parcelamento (Valor Único)">
+                          <Select
+                            value={String(form.installments)}
+                            onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
+                          >
+                            <SelectTrigger><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
+                                <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    </div>
 
-                <Field label="Introdução">
-                  <Textarea
-                    rows={3}
-                    value={form.intro}
-                    onChange={(e) => setForm({ ...form, intro: e.target.value })}
-                    placeholder="Apresentação do escopo e dos objetivos…"
-                  />
-                </Field>
+                    <div className="grid grid-cols-2 gap-4">
+                      <Field label="Forma de Pagamento">
+                        <Select
+                          value={form.payment_method}
+                          onValueChange={(v) => setForm({ ...form, payment_method: v })}
+                        >
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="boleto">Boleto Bancário</SelectItem>
+                            <SelectItem value="pix">PIX</SelectItem>
+                            <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                            <SelectItem value="transfer">Transferência</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                      <Field label="Primeiro Vencimento">
+                        <Input
+                          type="date"
+                          value={form.first_due_date}
+                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Outras Informações</h3>
+                  <div className="grid gap-4">
+                    <Field label="Introdução">
+                      <Textarea
+                        rows={3}
+                        value={form.intro}
+                        onChange={(e) => setForm({ ...form, intro: e.target.value })}
+                        placeholder="Breve introdução da proposta..."
+                      />
+                    </Field>
+                    <Field label="Observações Internas">
+                      <Textarea
+                        rows={2}
+                        value={form.notes}
+                        onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                        placeholder="Informações relevantes para a operação..."
+                      />
+                    </Field>
+                    <Field label="Validade da Proposta">
+                      <Input
+                        type="date"
+                        value={form.valid_until}
+                        onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+                      />
+                    </Field>
+                  </div>
+                </div>
               </div>
             </div>
             <DialogFooter className="px-6 py-4 border-t border-border bg-surface sticky bottom-0 gap-2 sm:gap-2">

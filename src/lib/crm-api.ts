@@ -126,12 +126,17 @@ export async function createProposal(input: {
   lead_id?: string | null;
   intro?: string | null;
   target_kind?: "lead" | "client";
-  service_type?: string | null;
   service_ids?: string[];
   contract_type?: string;
   valid_until?: string | null;
-  commercial_id?: string | null;
-  operational_id?: string | null;
+  monthly_investment?: number;
+  one_time_investment?: number;
+  total?: number;
+  contract_term?: string;
+  installments?: number;
+  payment_method?: string;
+  first_due_date?: string;
+  notes?: string | null;
 }) {
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase
