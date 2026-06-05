@@ -5,7 +5,7 @@ import {
   fetchBankAccounts,
   fetchCategories,
 } from "@/lib/finance-api";
-import { fetchClients } from "@/lib/ops-api";
+import { fetchClients, fetchProjects } from "@/lib/ops-api";
 import {
   Dialog,
   DialogContent,
