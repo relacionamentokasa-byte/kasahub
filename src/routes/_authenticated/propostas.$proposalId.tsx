@@ -19,6 +19,16 @@ import { fetchContractTemplates, replaceContractVariables } from "@/lib/contract
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
+import { createProposalVersion, cancelProposalWorkflow } from "@/lib/proposal-versioning";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
 import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
@@ -132,6 +142,11 @@ export function ProposalEditorContent({
     signature_agency: "",
     notes: "",
   });
+
+  const [showReopenDialog, setShowReopenDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [cancelType, setCancelType] = useState<"termination" | "archiving">("termination");
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     if (proposal && !isEditing) {
@@ -247,6 +262,26 @@ export function ProposalEditorContent({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const reopenMut = useMutation({
+    mutationFn: () => createProposalVersion(proposalId),
+    onSuccess: (newProposal) => {
+      toast.success("Nova versão criada!");
+      setShowReopenDialog(false);
+      navigate({ to: "/propostas/$proposalId", params: { proposalId: newProposal.id } });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const cancelWorkflowMut = useMutation({
+    mutationFn: () => cancelProposalWorkflow(proposalId, cancelType, cancelReason),
+    onSuccess: () => {
+      toast.success("Operação cancelada conforme solicitado");
+      setShowCancelDialog(false);
+      qc.invalidateQueries();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   async function persistTotalsFor(nextItems: ProposalItem[]) {
     const t = recalcProposalTotals(nextItems);
     await updateProposal(proposalId, {
@@ -315,8 +350,8 @@ export function ProposalEditorContent({
             </Button>
           ) : (
             <>
-              <Button variant="outline" onClick={() => cancelMut.mutate(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir</Button>
-              <Button variant="outline" onClick={() => confirm("Cancelar contrato e operação?") && cancelMut.mutate(false)} className="gap-2 text-destructive"><XCircle className="size-4" /> Cancelar contrato</Button>
+              <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir</Button>
+              <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><XCircle className="size-4" /> Cancelar contrato</Button>
             </>
           )}
         </div>
@@ -325,7 +360,14 @@ export function ProposalEditorContent({
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl border border-border bg-surface p-6">
-            <span className="text-primary text-[10px] capitalize">Cabeçalho</span>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-primary text-[10px] capitalize font-semibold tracking-wider">Cabeçalho</span>
+              {proposal.version && (
+                <div className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">
+                  VERSÃO V{proposal.version}
+                </div>
+              )}
+            </div>
             <div className="grid gap-4 mt-3">
               <F label="Título"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></F>
               <div className="grid md:grid-cols-2 gap-4">
@@ -551,6 +593,85 @@ export function ProposalEditorContent({
           <ProposalTimeline proposalId={proposalId} />
         </div>
       </div>
+      </div>
+
+      <Dialog open={showReopenDialog} onOpenChange={setShowReopenDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reabrir Proposta</DialogTitle>
+            <DialogDescription>
+              Esta proposta já possui contrato e estrutura operacional vinculada. 
+              Deseja criar uma nova versão (V{(proposal.version || 1) + 1})?
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-3 text-sm text-foreground/70">
+            <p>• A versão original (V{proposal.version || 1}) será mantida como aprovada.</p>
+            <p>• O contrato e projeto atuais continuarão ativos até que a nova versão seja aprovada.</p>
+            <p>• A nova aprovação gerará um aditivo contratual.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowReopenDialog(false)}>Não, cancelar</Button>
+            <Button onClick={() => reopenMut.mutate()} disabled={reopenMut.isPending}>Sim, criar nova versão</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Cancelar Contrato e Operação</DialogTitle>
+            <DialogDescription>
+              Selecione o tipo de cancelamento desejado para esta proposta aceita.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <RadioGroup value={cancelType} onValueChange={(v: any) => setCancelType(v)} className="grid gap-4 py-4">
+            <div className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
+              <RadioGroupItem value="termination" id="termination" className="mt-1" />
+              <div className="space-y-1">
+                <Label htmlFor="termination" className="font-semibold text-base">Opção 1 — Encerramento Comercial</Label>
+                <p className="text-sm text-foreground/60 leading-relaxed">
+                  Encerra o contrato, o projeto e o cronograma. Cancela entregas futuras e bloqueia novas solicitações. 
+                  O histórico completo é mantido.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
+              <RadioGroupItem value="archiving" id="archiving" className="mt-1" />
+              <div className="space-y-1">
+                <Label htmlFor="archiving" className="font-semibold text-base">Opção 2 — Arquivamento</Label>
+                <p className="text-sm text-foreground/60 leading-relaxed">
+                  Arquiva a proposta, o contrato e o projeto. Mantém o acesso administrativo para consulta, 
+                  mas remove das visualizações operacionais ativas.
+                </p>
+              </div>
+            </div>
+          </RadioGroup>
+
+          <div className="space-y-2 mb-4">
+            <Label className="text-sm">Motivo do cancelamento (Obrigatório)</Label>
+            <Textarea 
+              placeholder="Descreva o motivo para registro no histórico..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              rows={3}
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCancelDialog(false)}>Manter contrato</Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => cancelWorkflowMut.mutate()} 
+              disabled={cancelWorkflowMut.isPending || !cancelReason.trim()}
+              className="gap-2"
+            >
+              Confirmar Cancelamento
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
