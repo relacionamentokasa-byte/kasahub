@@ -121,6 +121,7 @@ export function ProposalEditorContent({
     auto_create_jobs: true,
     recurring_months: 12,
     scope: [] as string[],
+    payment_method: "boleto",
   });
 
   useEffect(() => {
@@ -150,6 +151,7 @@ export function ProposalEditorContent({
         auto_create_jobs: (p.auto_create_jobs as boolean) ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
         scope: (p.scope as string[]) ?? [],
+        payment_method: (p.payment_method as string) ?? "boleto",
       });
     }
   }, [proposal]);
@@ -186,6 +188,7 @@ export function ProposalEditorContent({
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
         scope: f.scope,
+        payment_method: f.payment_method,
       } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
@@ -499,18 +502,16 @@ export function ProposalEditorContent({
                       type="number"
                       value={totals.monthly_investment || ""}
                       onChange={(e) => {
-                        // For recurring, we update the first item (or create one if empty)
+                        const val = Number(e.target.value);
                         if (items.length > 0) {
-                          const first = items.find(i => i.recurrence === "monthly") || items[0];
-                          itemMut.mutate({ ...first, unit_price: Number(e.target.value), quantity: 1, proposal_id: proposalId });
+                          const first = items[0];
+                          itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "monthly", proposal_id: proposalId });
                         } else {
-                          addItem("monthly");
-                          // This is a bit tricky since addItem is async, but for simplicity:
                           itemMut.mutate({ 
                             proposal_id: proposalId, 
-                            title: "Serviço recorrente", 
+                            title: "Investimento Mensal", 
                             quantity: 1, 
-                            unit_price: Number(e.target.value), 
+                            unit_price: val, 
                             recurrence: "monthly" 
                           });
                         }
@@ -525,7 +526,6 @@ export function ProposalEditorContent({
                     >
                       <SelectTrigger><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="12">Sem prazo definido</SelectItem>
                         <SelectItem value="3">3 meses</SelectItem>
                         <SelectItem value="6">6 meses</SelectItem>
                         <SelectItem value="12">12 meses</SelectItem>
@@ -540,15 +540,16 @@ export function ProposalEditorContent({
                       type="number"
                       value={totals.one_time_investment || ""}
                       onChange={(e) => {
+                        const val = Number(e.target.value);
                         if (items.length > 0) {
-                          const first = items.find(i => i.recurrence === "one_time") || items[0];
-                          itemMut.mutate({ ...first, unit_price: Number(e.target.value), quantity: 1, proposal_id: proposalId });
+                          const first = items[0];
+                          itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "one_time", proposal_id: proposalId });
                         } else {
                           itemMut.mutate({ 
                             proposal_id: proposalId, 
-                            title: "Job Avulso", 
+                            title: "Investimento do Projeto", 
                             quantity: 1, 
-                            unit_price: Number(e.target.value), 
+                            unit_price: val, 
                             recurrence: "one_time" 
                           });
                         }
@@ -574,8 +575,8 @@ export function ProposalEditorContent({
               
               <F label="Forma de pagamento">
                 <Select
-                  value={(proposal as any).payment_method || "boleto"}
-                  onValueChange={(v) => saveMut.mutate({ ...form, payment_method: v } as any)}
+                  value={form.payment_method}
+                  onValueChange={(v) => setForm({ ...form, payment_method: v })}
                 >
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -689,7 +690,11 @@ export function ProposalEditorContent({
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
                   <Row label="Prazo" value={`${form.recurring_months} meses`} />
-                  <Row label="Investimento Total" value={formatCurrency(totals.monthly_investment * form.recurring_months)} bold />
+                  <Row 
+                    label="Investimento Total" 
+                    value={formatCurrency(totals.monthly_investment * form.recurring_months)} 
+                    bold 
+                  />
                 </div>
               </>
             ) : (
@@ -699,8 +704,11 @@ export function ProposalEditorContent({
                   {formatCurrency(totals.one_time_investment)}
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
-                  <Row label="Parcelamento" value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} />
-                  <Row label="Total" value={formatCurrency(totals.total)} bold />
+                  <Row 
+                    label="Parcelamento" 
+                    value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} 
+                  />
+                  <Row label="Total" value={formatCurrency(totals.one_time_investment)} bold />
                 </div>
               </>
             )}

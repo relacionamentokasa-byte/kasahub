@@ -494,7 +494,8 @@ function ProposalsPage() {
                                 form.monthly_investment * (
                                   form.contract_term === "3_months" ? 3 :
                                   form.contract_term === "6_months" ? 6 :
-                                  form.contract_term === "12_months" ? 12 : 1
+                                  form.contract_term === "12_months" ? 12 : 
+                                  form.contract_term === "monthly" ? 12 : 1
                                 )
                               )}
                             </div>
