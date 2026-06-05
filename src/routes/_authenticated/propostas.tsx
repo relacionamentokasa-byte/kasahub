@@ -185,6 +185,7 @@ function ProposalsPage() {
       setOpen(false);
       setForm(emptyForm);
       await recordProposalEvent(p.id, "created", { target_kind: form.target_kind });
+      toast.success("Proposta criada com sucesso!");
       setSelectedId(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -343,10 +344,12 @@ function ProposalsPage() {
                             })
                           }
                         >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="cursor-pointer">
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="client">Cliente</SelectItem>
-                            <SelectItem value="lead">Lead</SelectItem>
+                            <SelectItem value="client" className="cursor-pointer">Cliente</SelectItem>
+                            <SelectItem value="lead" className="cursor-pointer">Lead</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
@@ -369,11 +372,11 @@ function ProposalsPage() {
                               });
                             }}
                           >
-                            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                            <SelectTrigger className="cursor-pointer"><SelectValue placeholder="Selecione" /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__free__">Digitar nome...</SelectItem>
+                              <SelectItem value="__free__" className="cursor-pointer">Digitar nome...</SelectItem>
                               {clients.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                                <SelectItem key={c.id} value={c.id} className="cursor-pointer">{c.company || c.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -396,10 +399,10 @@ function ProposalsPage() {
                               });
                             }}
                           >
-                            <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                            <SelectTrigger className="cursor-pointer"><SelectValue placeholder="Selecione" /></SelectTrigger>
                             <SelectContent>
                               {leads.map((l) => (
-                                <SelectItem key={l.id} value={l.id}>
+                                <SelectItem key={l.id} value={l.id} className="cursor-pointer">
                                   {l.name}{l.company ? ` · ${l.company}` : ""}
                                 </SelectItem>
                               ))}
@@ -456,10 +459,10 @@ function ProposalsPage() {
                             setForm({ ...form, contract_type: v })
                           }
                         >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="mensal">Mensal / Recorrente</SelectItem>
-                            <SelectItem value="avulso">Job Avulso</SelectItem>
+                            <SelectItem value="mensal" className="cursor-pointer">Mensal / Recorrente</SelectItem>
+                            <SelectItem value="avulso" className="cursor-pointer">Job Avulso</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
@@ -498,12 +501,12 @@ function ProposalsPage() {
                               value={form.contract_term}
                               onValueChange={(v) => setForm({ ...form, contract_term: v })}
                             >
-                               <SelectTrigger><SelectValue placeholder="Selecione o prazo" /></SelectTrigger>
+                               <SelectTrigger className="cursor-pointer"><SelectValue placeholder="Selecione o prazo" /></SelectTrigger>
                                <SelectContent>
-                                 <SelectItem value="monthly">Sem prazo definido</SelectItem>
-                                <SelectItem value="3_months">3 meses</SelectItem>
-                                <SelectItem value="6_months">6 meses</SelectItem>
-                                <SelectItem value="12_months">12 meses</SelectItem>
+                                 <SelectItem value="monthly" className="cursor-pointer">Sem prazo definido</SelectItem>
+                                <SelectItem value="3_months" className="cursor-pointer">3 meses</SelectItem>
+                                <SelectItem value="6_months" className="cursor-pointer">6 meses</SelectItem>
+                                <SelectItem value="12_months" className="cursor-pointer">12 meses</SelectItem>
                               </SelectContent>
                             </Select>
                           </Field>
@@ -527,10 +530,10 @@ function ProposalsPage() {
                               value={String(form.installments)}
                               onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
                             >
-                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
                               <SelectContent>
                                 {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
-                                  <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                                  <SelectItem key={n} value={String(n)} className="cursor-pointer">{n}x</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
@@ -549,12 +552,12 @@ function ProposalsPage() {
                           value={form.payment_method}
                           onValueChange={(v) => setForm({ ...form, payment_method: v })}
                         >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="boleto">Boleto Bancário</SelectItem>
-                            <SelectItem value="pix">PIX</SelectItem>
-                            <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
-                            <SelectItem value="transfer">Transferência</SelectItem>
+                            <SelectItem value="boleto" className="cursor-pointer">Boleto Bancário</SelectItem>
+                            <SelectItem value="pix" className="cursor-pointer">PIX</SelectItem>
+                            <SelectItem value="credit_card" className="cursor-pointer">Cartão de Crédito</SelectItem>
+                            <SelectItem value="transfer" className="cursor-pointer">Transferência</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
