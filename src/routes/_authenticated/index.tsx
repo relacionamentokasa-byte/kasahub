@@ -35,7 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
-      { title: "Dashboard — KASA OS" },
+      { title: "Painel Principal — KASA OS" },
       { name: "description", content: "Painel executivo da Kasa Marketing Consultoria." },
     ],
   }),
