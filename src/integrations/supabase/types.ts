@@ -733,6 +733,7 @@ export type Database = {
           briefing: string | null
           client_id: string | null
           color: string | null
+          cover_url: string | null
           created_at: string
           description: string | null
           due_date: string | null
@@ -747,6 +748,7 @@ export type Database = {
           briefing?: string | null
           client_id?: string | null
           color?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
@@ -761,6 +763,7 @@ export type Database = {
           briefing?: string | null
           client_id?: string | null
           color?: string | null
+          cover_url?: string | null
           created_at?: string
           description?: string | null
           due_date?: string | null
