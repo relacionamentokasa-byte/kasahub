@@ -83,5 +83,6 @@ export const EVENT_LABELS: Record<string, { label: string; color: string }> = {
   approved: { label: "Proposta aprovada", color: "text-green-300" },
   reopened: { label: "Proposta reaberta", color: "text-purple-300" },
   cancelled: { label: "Proposta cancelada", color: "text-red-300" },
+  structure_removed: { label: "Estrutura removida", color: "text-gray-400" },
   rejected: { label: "Proposta recusada", color: "text-red-300" },
 };
