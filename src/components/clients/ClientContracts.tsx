@@ -28,8 +28,10 @@ const getStatusBadge = (status: string) => {
   switch (status) {
     case "active":
       return <span className="bg-emerald-500/15 text-emerald-400 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"><CheckCircle2 className="size-3" /> Ativo</span>;
-    case "draft":
-      return <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"><Clock className="size-3" /> Rascunho</span>;
+    case "paused":
+      return <span className="bg-amber-500/15 text-amber-400 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"><Clock className="size-3" /> Pausado</span>;
+    case "finished":
+      return <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"><CheckCircle2 className="size-3" /> Encerrado</span>;
     case "cancelled":
       return <span className="bg-rose-500/15 text-rose-400 px-2 py-0.5 rounded text-[10px] font-medium flex items-center gap-1"><AlertCircle className="size-3" /> Cancelado</span>;
     default:
