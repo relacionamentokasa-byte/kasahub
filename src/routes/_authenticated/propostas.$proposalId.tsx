@@ -472,6 +472,12 @@ export function ProposalEditorContent({
                   </SelectContent>
                 </Select>
               </F>
+              <F label="Serviços contratados">
+                <ServicesMultiSelect
+                  value={form.service_ids}
+                  onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                />
+              </F>
               <F label="Tipo de contrato">
                 <Select
                   value={form.contract_type}
