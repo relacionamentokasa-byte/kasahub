@@ -352,8 +352,14 @@ export function ProposalEditorContent({
             </Button>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir</Button>
-              <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><Ban className="size-4" /> Cancelar contrato e estrutura</Button>
+              {proposal.status === 'accepted' ? (
+                <>
+                  <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir e Versionar</Button>
+                  <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><Ban className="size-4" /> Cancelar contrato e estrutura</Button>
+                </>
+              ) : proposal.status === 'cancelled' ? (
+                <Button variant="outline" onClick={() => reopenCancelledMut.mutate()} disabled={reopenCancelledMut.isPending} className="gap-2"><RotateCcw className="size-4" /> Reabrir para Edição</Button>
+              ) : null}
             </>
           )}
         </div>
