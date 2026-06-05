@@ -183,6 +183,10 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
           </TabsList>
         </div>
 
+        <TabsContent value="servicos" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <ClientServicesManager clientId={clientId} />
+        </TabsContent>
+
         <TabsContent value="overview" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             <Card label="Projetos" value={projects.length} />
