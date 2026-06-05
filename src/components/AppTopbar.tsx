@@ -26,6 +26,7 @@ type Profile = {
 export function AppTopbar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { theme, toggle } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
