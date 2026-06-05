@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
@@ -29,6 +30,7 @@ import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
+import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -43,6 +45,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const PTokenRoute = PTokenRouteImport.update({
+  id: '/p/$token',
+  path: '/p/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   id: '/relatorios',
@@ -133,6 +140,11 @@ const AuthenticatedClientesClientIdRoute =
     path: '/$clientId',
     getParentRoute: () => AuthenticatedClientesRoute,
   } as any)
+const ApiPublicProposalTokenRoute = ApiPublicProposalTokenRouteImport.update({
+  id: '/api/public/proposal/$token',
+  path: '/api/public/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -151,9 +163,11 @@ export interface FileRoutesByFullPath {
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/p/$token': typeof PTokenRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -171,10 +185,12 @@ export interface FileRoutesByTo {
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/p/$token': typeof PTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -194,10 +210,12 @@ export interface FileRoutesById {
   '/_authenticated/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/_authenticated/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/p/$token': typeof PTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -218,9 +236,11 @@ export interface FileRouteTypes {
     | '/projetos'
     | '/propostas'
     | '/relatorios'
+    | '/p/$token'
     | '/clientes/$clientId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/api/public/proposal/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -238,10 +258,12 @@ export interface FileRouteTypes {
     | '/projetos'
     | '/propostas'
     | '/relatorios'
+    | '/p/$token'
     | '/'
     | '/clientes/$clientId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/api/public/proposal/$token'
   id:
     | '__root__'
     | '/_authenticated'
@@ -260,15 +282,19 @@ export interface FileRouteTypes {
     | '/_authenticated/projetos'
     | '/_authenticated/propostas'
     | '/_authenticated/relatorios'
+    | '/p/$token'
     | '/_authenticated/'
     | '/_authenticated/clientes/$clientId'
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
+    | '/api/public/proposal/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  PTokenRoute: typeof PTokenRoute
+  ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -293,6 +319,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/p/$token': {
+      id: '/p/$token'
+      path: '/p/$token'
+      fullPath: '/p/$token'
+      preLoaderRoute: typeof PTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/relatorios': {
       id: '/_authenticated/relatorios'
@@ -413,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesClientIdRouteImport
       parentRoute: typeof AuthenticatedClientesRoute
     }
+    '/api/public/proposal/$token': {
+      id: '/api/public/proposal/$token'
+      path: '/api/public/proposal/$token'
+      fullPath: '/api/public/proposal/$token'
+      preLoaderRoute: typeof ApiPublicProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -499,6 +539,8 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  PTokenRoute: PTokenRoute,
+  ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

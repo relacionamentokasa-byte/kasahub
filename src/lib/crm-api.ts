@@ -154,6 +154,46 @@ export async function deleteProposal(id: string) {
   if (error) throw error;
 }
 
+export async function duplicateProposal(id: string): Promise<Proposal> {
+  const original = await fetchProposal(id);
+  const items = await fetchProposalItems(id);
+  const { data: userData } = await supabase.auth.getUser();
+  const { data: created, error } = await supabase
+    .from("proposals")
+    .insert({
+      title: `${original.title} (cópia)`,
+      client_name: original.client_name,
+      client_email: original.client_email,
+      lead_id: original.lead_id,
+      intro: original.intro,
+      monthly_investment: original.monthly_investment,
+      one_time_investment: original.one_time_investment,
+      total: original.total,
+      currency: original.currency,
+      valid_until: original.valid_until,
+      status: "draft",
+      owner_id: userData.user?.id ?? null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  if (items.length) {
+    const { error: itemsErr } = await supabase.from("proposal_items").insert(
+      items.map((it) => ({
+        proposal_id: created.id,
+        title: it.title,
+        description: it.description,
+        quantity: it.quantity,
+        unit_price: it.unit_price,
+        recurrence: it.recurrence,
+        order_index: it.order_index,
+      })),
+    );
+    if (itemsErr) throw itemsErr;
+  }
+  return created;
+}
+
 export async function upsertProposalItem(
   item: Partial<ProposalItem> & { proposal_id: string; title: string },
 ) {
