@@ -122,6 +122,8 @@ export function ProposalEditorContent({
     recurring_months: 12,
     scope: [] as string[],
     payment_method: "boleto",
+    monthly_investment: 0,
+    one_time_investment: 0,
   });
 
   useEffect(() => {
@@ -152,6 +154,8 @@ export function ProposalEditorContent({
         recurring_months: Number(p.recurring_months ?? 12),
         scope: (p.scope as string[]) ?? [],
         payment_method: (p.payment_method as string) ?? "boleto",
+        monthly_investment: Number(proposal.monthly_investment || 0),
+        one_time_investment: Number(proposal.one_time_investment || 0),
       });
     }
   }, [proposal]);
@@ -169,9 +173,9 @@ export function ProposalEditorContent({
         intro: f.intro || null,
         valid_until: f.valid_until || null,
         status: f.status,
-        monthly_investment: totals.monthly_investment,
-        one_time_investment: totals.one_time_investment,
-        total: totals.total,
+        monthly_investment: f.monthly_investment,
+        one_time_investment: f.one_time_investment,
+        total: f.monthly_investment + f.one_time_investment,
         responsible_id: f.operational_id || f.responsible_id || null,
         commercial_id: f.commercial_id || null,
         operational_id: f.operational_id || null,
@@ -500,9 +504,14 @@ export function ProposalEditorContent({
                   <F label="Investimento Mensal">
                     <Input
                       type="number"
-                      value={totals.monthly_investment || ""}
+                      value={form.monthly_investment || ""}
                       onChange={(e) => {
                         const val = Number(e.target.value);
+                        setForm(f => ({ ...f, monthly_investment: val }));
+                      }}
+                      onBlur={() => {
+                        // Persist the value to the database items when user stops typing
+                        const val = form.monthly_investment;
                         if (items.length > 0) {
                           const first = items[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "monthly", proposal_id: proposalId });
@@ -538,9 +547,13 @@ export function ProposalEditorContent({
                   <F label="Valor do Projeto">
                     <Input
                       type="number"
-                      value={totals.one_time_investment || ""}
+                      value={form.one_time_investment || ""}
                       onChange={(e) => {
                         const val = Number(e.target.value);
+                        setForm(f => ({ ...f, one_time_investment: val }));
+                      }}
+                      onBlur={() => {
+                        const val = form.one_time_investment;
                         if (items.length > 0) {
                           const first = items[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "one_time", proposal_id: proposalId });
@@ -685,14 +698,14 @@ export function ProposalEditorContent({
               <>
                 <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Investimento Mensal</div>
                 <div className="font-display text-4xl font-bold mt-1 text-primary">
-                  {formatCurrency(totals.monthly_investment)}
+                  {formatCurrency(form.monthly_investment)}
                   <span className="text-sm font-normal text-foreground/40 ml-2">/mês</span>
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
                   <Row label="Prazo" value={`${form.recurring_months} meses`} />
                   <Row 
                     label="Investimento Total" 
-                    value={formatCurrency(totals.monthly_investment * form.recurring_months)} 
+                    value={formatCurrency(form.monthly_investment * form.recurring_months)} 
                     bold 
                   />
                 </div>
@@ -701,14 +714,14 @@ export function ProposalEditorContent({
               <>
                 <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Valor do Projeto</div>
                 <div className="font-display text-4xl font-bold mt-1 text-primary">
-                  {formatCurrency(totals.one_time_investment)}
+                  {formatCurrency(form.one_time_investment)}
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
                   <Row 
                     label="Parcelamento" 
-                    value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} 
+                    value={`${form.installments}x de ${formatCurrency(form.one_time_investment / (form.installments || 1))}`} 
                   />
-                  <Row label="Total" value={formatCurrency(totals.one_time_investment)} bold />
+                  <Row label="Total" value={formatCurrency(form.one_time_investment)} bold />
                 </div>
               </>
             )}
