@@ -689,7 +689,11 @@ export function ProposalEditorContent({
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
                   <Row label="Prazo" value={`${form.recurring_months} meses`} />
-                  <Row label="Investimento Total" value={formatCurrency(totals.monthly_investment * form.recurring_months)} bold />
+                  <Row 
+                    label="Investimento Total" 
+                    value={formatCurrency(totals.monthly_investment * form.recurring_months)} 
+                    bold 
+                  />
                 </div>
               </>
             ) : (
@@ -699,8 +703,11 @@ export function ProposalEditorContent({
                   {formatCurrency(totals.one_time_investment)}
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
-                  <Row label="Parcelamento" value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} />
-                  <Row label="Total" value={formatCurrency(totals.total)} bold />
+                  <Row 
+                    label="Parcelamento" 
+                    value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} 
+                  />
+                  <Row label="Total" value={formatCurrency(totals.one_time_investment)} bold />
                 </div>
               </>
             )}
