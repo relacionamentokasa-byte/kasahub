@@ -1,10 +1,11 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  ArrowLeft, Calendar, Mail, Phone, Building2, FileText,
+  ArrowLeft, Calendar, Mail, Phone, Building2, FileText, Palette,
   Globe, Save, Loader2, UserPlus, Trash2, KeyRound, ExternalLink, Copy, Check, Pencil,
+  DollarSign, Clock, FileSignature, Activity,
 } from "lucide-react";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { toast } from "sonner";
@@ -27,14 +28,71 @@ export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
   component: ClientDetail,
 });
 
+const BRL = (v: number) =>
+  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const fmtDate = (d: string | null | undefined) => {
+  if (!d) return "—";
+  try { return new Date(d).toLocaleDateString("pt-BR"); } catch { return d; }
+};
+
 function ClientDetail() {
   const { clientId } = useParams({ from: "/_authenticated/clientes/$clientId" });
   const [editOpen, setEditOpen] = useState(false);
+  const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
+
   const { data: client } = useQuery({ queryKey: ["client", clientId], queryFn: () => fetchClient(clientId) });
   const { data: projects = [] } = useQuery({
     queryKey: ["projects", { clientId }],
     queryFn: () => fetchProjects({ clientId }),
   });
+
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["contracts", clientId],
+    queryFn: async () => {
+      const { data, error } = await sb.from("contracts").select("*").eq("client_id", clientId).order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: proposals = [] } = useQuery({
+    queryKey: ["proposals", clientId],
+    queryFn: async () => {
+      const { data, error } = await sb.from("proposals").select("*").eq("lead_id", clientId).order("created_at", { ascending: false });
+      if (error) return [];
+      return data ?? [];
+    },
+  });
+
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["transactions", clientId],
+    queryFn: async () => {
+      const { data, error } = await sb.from("transactions").select("*").eq("client_id", clientId).order("due_date", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const summary = useMemo(() => {
+    type Contract = { status: string; monthly_value: number; billing_day: number; title: string; end_date: string | null };
+    type Txn = { kind: string; status: string; amount: number; due_date: string };
+    const activeContract = (contracts as Contract[]).find((c) => c.status === "active") ?? null;
+    const monthly = (contracts as Contract[])
+      .filter((c) => c.status === "active")
+      .reduce((s, c) => s + Number(c.monthly_value || 0), 0);
+    const today = new Date();
+    let nextDue: Date | null = null;
+    if (activeContract) {
+      const d = new Date(today.getFullYear(), today.getMonth(), activeContract.billing_day);
+      if (d < today) d.setMonth(d.getMonth() + 1);
+      nextDue = d;
+    }
+    const pendingTotal = (transactions as Txn[])
+      .filter((t) => t.status === "pending")
+      .reduce((s, t) => s + (t.kind === "income" ? Number(t.amount) : -Number(t.amount)), 0);
+    return { activeContract, monthly, nextDue, pendingTotal };
+  }, [contracts, transactions]);
 
   if (!client) return <div className="p-10 text-foreground/40">Carregando…</div>;
 
@@ -47,7 +105,7 @@ function ClientDetail() {
         >
           <ArrowLeft className="size-3.5" /> Clientes
         </Link>
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 flex-wrap">
           {client.logo_url ? (
             <img
               src={client.logo_url}
@@ -70,6 +128,9 @@ function ClientDetail() {
               {client.company || client.name}
             </h1>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-foreground/50">
+              <span className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-widest text-[10px] px-2 py-0.5 rounded ${client.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                ● {client.status === "active" ? "Ativo" : client.status}
+              </span>
               {client.email && <span className="inline-flex items-center gap-1.5"><Mail className="size-3" />{client.email}</span>}
               {client.phone && <span className="inline-flex items-center gap-1.5"><Phone className="size-3" />{client.phone}</span>}
               {client.document && <span className="inline-flex items-center gap-1.5"><Building2 className="size-3" />{client.document}</span>}
@@ -78,6 +139,14 @@ function ClientDetail() {
           <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
             <Pencil className="size-4 mr-1.5" /> Editar
           </Button>
+        </div>
+
+        {/* KPI bar */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
+          <KPI icon={<DollarSign className="size-3.5" />} label="Valor mensal" value={summary.monthly > 0 ? BRL(summary.monthly) : "—"} />
+          <KPI icon={<FileSignature className="size-3.5" />} label="Contrato" value={summary.activeContract?.title ?? "Sem contrato"} />
+          <KPI icon={<Clock className="size-3.5" />} label="Próx. vencimento" value={summary.nextDue ? fmtDate(summary.nextDue.toISOString()) : "—"} />
+          <KPI icon={<Activity className="size-3.5" />} label="Projetos ativos" value={String(projects.filter((p) => p.status === "active").length)} />
         </div>
       </div>
 
@@ -88,10 +157,13 @@ function ClientDetail() {
               ["overview", "Visão geral"],
               ["projects", "Projetos"],
               ["jobs", "Jobs"],
-              ["proposals", "Propostas"],
               ["finance", "Financeiro"],
+              ["proposals", "Propostas"],
               ["files", "Arquivos"],
+              ["calendar", "Calendário"],
+              ["timeline", "Timeline"],
               ["portal", "Portal do Cliente"],
+              ["branding", "Branding"],
             ].map(([v, label]) => (
               <TabsTrigger
                 key={v}
@@ -106,9 +178,9 @@ function ClientDetail() {
 
         <TabsContent value="overview" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <Card label="Projetos ativos" value={projects.filter((p) => p.status === "active").length} />
-            <Card label="Total de projetos" value={projects.length} />
-            <Card label="Status" value={client.status === "active" ? "Ativo" : client.status} />
+            <Card label="Projetos" value={projects.length} />
+            <Card label="Propostas" value={proposals.length} />
+            <Card label="Pendente (R$)" value={summary.pendingTotal !== 0 ? BRL(Math.abs(summary.pendingTotal)) : "—"} />
           </div>
           {client.notes && (
             <div className="mt-6 bg-surface border border-border rounded-2xl p-5">
@@ -135,7 +207,7 @@ function ClientDetail() {
                   <div className="font-display font-semibold mb-1">{p.name}</div>
                   {p.due_date && (
                     <div className="text-xs text-foreground/50 inline-flex items-center gap-1.5">
-                      <Calendar className="size-3" /> {p.due_date}
+                      <Calendar className="size-3" /> {fmtDate(p.due_date)}
                     </div>
                   )}
                 </Link>
@@ -148,22 +220,102 @@ function ClientDetail() {
           <JobsBoard clientId={clientId} title="Jobs do cliente" eyebrow="Cliente · Jobs" />
         </TabsContent>
 
-        <TabsContent value="proposals" className="px-6 lg:px-10 py-6 mt-0 text-foreground/40">
-          Em breve.
+        <TabsContent value="finance" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          {transactions.length === 0 ? (
+            <p className="text-foreground/40 text-sm">Nenhum lançamento financeiro para este cliente.</p>
+          ) : (
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="text-left text-[10px] font-mono uppercase tracking-wider text-foreground/40 border-b border-border">
+                  <tr>
+                    <th className="py-2.5 px-4">Descrição</th>
+                    <th className="py-2.5 px-4">Tipo</th>
+                    <th className="py-2.5 px-4">Vencimento</th>
+                    <th className="py-2.5 px-4">Status</th>
+                    <th className="py-2.5 px-4 text-right">Valor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(transactions as Array<{ id: string; description: string; kind: string; status: string; due_date: string; amount: number }>).map((t) => (
+                    <tr key={t.id} className="border-b border-border/40">
+                      <td className="py-3 px-4">{t.description}</td>
+                      <td className="py-3 px-4 text-foreground/60">{t.kind === "income" ? "Receita" : "Despesa"}</td>
+                      <td className="py-3 px-4 text-foreground/60">{fmtDate(t.due_date)}</td>
+                      <td className="py-3 px-4">
+                        <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>
+                          {t.status === "paid" ? "Pago" : "Pendente"}
+                        </span>
+                      </td>
+                      <td className={`py-3 px-4 text-right font-mono ${t.kind === "income" ? "text-emerald-400" : "text-foreground/80"}`}>
+                        {t.kind === "income" ? "+" : "−"} {BRL(Number(t.amount))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </TabsContent>
-        <TabsContent value="finance" className="px-6 lg:px-10 py-6 mt-0 text-foreground/40">
-          Em breve.
+
+        <TabsContent value="proposals" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          {proposals.length === 0 ? (
+            <p className="text-foreground/40 text-sm">Nenhuma proposta vinculada a este cliente.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {(proposals as Array<{ id: string; title: string; status: string; total: number; created_at: string }>).map((p) => (
+                <Link
+                  key={p.id}
+                  to="/propostas/$proposalId"
+                  params={{ proposalId: p.id }}
+                  className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="font-display font-semibold truncate">{p.title}</div>
+                      <div className="text-xs text-foreground/50 mt-0.5">{fmtDate(p.created_at)}</div>
+                    </div>
+                    <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded bg-muted text-muted-foreground shrink-0">{p.status}</span>
+                  </div>
+                  <div className="mt-3 font-mono text-primary">{BRL(Number(p.total))}</div>
+                </Link>
+              ))}
+            </div>
+          )}
         </TabsContent>
-        <TabsContent value="files" className="px-6 lg:px-10 py-6 mt-0 text-foreground/40">
-          Em breve.
+
+        <TabsContent value="files" className="px-6 lg:px-10 py-6 mt-0 text-foreground/40 text-sm">
+          Arquivos do cliente — em breve.
+        </TabsContent>
+
+        <TabsContent value="calendar" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <CalendarTab projects={projects} contracts={contracts} nextDue={summary.nextDue} clientId={clientId} />
+        </TabsContent>
+
+        <TabsContent value="timeline" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <TimelineTab client={client} projects={projects} proposals={proposals} transactions={transactions} />
         </TabsContent>
 
         <TabsContent value="portal" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           <PortalTab clientId={clientId} />
         </TabsContent>
+
+        <TabsContent value="branding" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <BrandingTab clientId={clientId} />
+        </TabsContent>
       </Tabs>
 
       <EditClientDialog client={client} open={editOpen} onOpenChange={setEditOpen} />
+    </div>
+  );
+}
+
+function KPI({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="bg-surface border border-border rounded-xl p-3">
+      <div className="text-[10px] uppercase tracking-widest text-foreground/40 font-mono flex items-center gap-1.5">
+        {icon} {label}
+      </div>
+      <div className="font-display text-lg font-bold mt-1 truncate">{value}</div>
     </div>
   );
 }
@@ -173,6 +325,133 @@ function Card({ label, value }: { label: string; value: string | number }) {
     <div className="bg-surface border border-border rounded-2xl p-5">
       <div className="text-[10px] uppercase tracking-widest text-foreground/50 font-mono mb-2">{label}</div>
       <div className="font-display text-3xl font-bold tracking-tight">{value}</div>
+    </div>
+  );
+}
+
+type ProjectLike = { id: string; name: string; due_date: string | null; status: string };
+type ContractLike = { id: string; title: string; billing_day: number; end_date: string | null; status: string };
+
+function CalendarTab({ projects, contracts, nextDue }: { projects: ProjectLike[]; contracts: ContractLike[]; nextDue: Date | null; clientId: string }) {
+  const events = [
+    ...(nextDue ? [{ date: nextDue.toISOString().slice(0, 10), label: "Vencimento do contrato", kind: "billing" }] : []),
+    ...projects.filter((p) => p.due_date).map((p) => ({ date: p.due_date!, label: `Entrega · ${p.name}`, kind: "project" })),
+    ...contracts.filter((c) => c.end_date).map((c) => ({ date: c.end_date!, label: `Fim do contrato · ${c.title}`, kind: "contract" })),
+  ].sort((a, b) => a.date.localeCompare(b.date));
+
+  if (events.length === 0) return <p className="text-foreground/40 text-sm">Nenhum evento agendado para este cliente.</p>;
+  return (
+    <ul className="space-y-2">
+      {events.map((e, i) => (
+        <li key={i} className="bg-surface border border-border rounded-xl p-4 flex items-center gap-4">
+          <div className="text-center min-w-[60px]">
+            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{new Date(e.date).toLocaleDateString("pt-BR", { month: "short" })}</div>
+            <div className="font-display text-2xl font-bold">{new Date(e.date).getDate()}</div>
+          </div>
+          <div className="flex-1">
+            <div className="font-medium text-sm">{e.label}</div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{e.kind}</div>
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function TimelineTab({ client, projects, proposals, transactions }: {
+  client: { created_at: string; name: string; company: string | null };
+  projects: ProjectLike[];
+  proposals: Array<{ id: string; title: string; created_at: string }>;
+  transactions: Array<{ id: string; description: string; status: string; paid_at: string | null; created_at: string }>;
+}) {
+  const events = [
+    { ts: client.created_at, label: `Cliente cadastrado: ${client.company || client.name}`, kind: "Cliente" },
+    ...projects.map((p) => ({ ts: (p as ProjectLike & { created_at?: string }).created_at ?? "", label: `Projeto criado: ${p.name}`, kind: "Projeto" })),
+    ...proposals.map((p) => ({ ts: p.created_at, label: `Proposta enviada: ${p.title}`, kind: "Proposta" })),
+    ...transactions.filter((t) => t.status === "paid" && t.paid_at).map((t) => ({ ts: t.paid_at!, label: `Pagamento: ${t.description}`, kind: "Financeiro" })),
+  ].filter((e) => e.ts).sort((a, b) => b.ts.localeCompare(a.ts));
+
+  if (events.length === 0) return <p className="text-foreground/40 text-sm">Sem histórico ainda.</p>;
+  return (
+    <ol className="relative border-l border-border/60 ml-3 space-y-4 pl-6">
+      {events.map((e, i) => (
+        <li key={i} className="relative">
+          <span className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-primary border-2 border-background" />
+          <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{fmtDate(e.ts)} · {e.kind}</div>
+          <div className="text-sm">{e.label}</div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function BrandingTab({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
+  const { data: client } = useQuery({ queryKey: ["client", clientId], queryFn: () => fetchClient(clientId) });
+  const [form, setForm] = useState({ brand_primary: "#FFBC45", brand_secondary: "#0C1618", logo_url: "", banner_url: "" });
+
+  useEffect(() => {
+    if (client) setForm({
+      brand_primary: client.brand_primary ?? "#FFBC45",
+      brand_secondary: client.brand_secondary ?? "#0C1618",
+      logo_url: client.logo_url ?? "",
+      banner_url: client.banner_url ?? "",
+    });
+  }, [client]);
+
+  const mut = useMutation({
+    mutationFn: () => updateClient(clientId, form),
+    onSuccess: () => { toast.success("Branding atualizado"); qc.invalidateQueries({ queryKey: ["client", clientId] }); qc.invalidateQueries({ queryKey: ["clients"] }); },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  if (!client) return null;
+  return (
+    <div className="space-y-6 max-w-3xl">
+      <header>
+        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-primary font-semibold">Cliente · Branding</span>
+        <h2 className="font-display text-2xl font-bold mt-1 flex items-center gap-2"><Palette className="size-5 text-primary" /> Identidade visual</h2>
+        <p className="text-sm text-foreground/60 mt-1">Cores, logo e banner usados em propostas, portal e materiais.</p>
+      </header>
+      <div className="bg-surface border border-border rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Field label="Cor primária">
+          <div className="flex gap-2">
+            <Input type="color" value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} className="w-16 p-1 h-10" />
+            <Input value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} />
+          </div>
+        </Field>
+        <Field label="Cor secundária">
+          <div className="flex gap-2">
+            <Input type="color" value={form.brand_secondary} onChange={(e) => setForm({ ...form, brand_secondary: e.target.value })} className="w-16 p-1 h-10" />
+            <Input value={form.brand_secondary} onChange={(e) => setForm({ ...form, brand_secondary: e.target.value })} />
+          </div>
+        </Field>
+        <Field label="Logo (URL)">
+          <Input value={form.logo_url} onChange={(e) => setForm({ ...form, logo_url: e.target.value })} placeholder="https://…" />
+        </Field>
+        <Field label="Banner (URL)">
+          <Input value={form.banner_url} onChange={(e) => setForm({ ...form, banner_url: e.target.value })} placeholder="https://…" />
+        </Field>
+      </div>
+      <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="gap-2">
+        {mut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />} Salvar branding
+      </Button>
+      <div className="rounded-2xl overflow-hidden border border-border">
+        <div className="h-28" style={{ background: form.banner_url ? `url(${form.banner_url}) center/cover` : `linear-gradient(135deg, ${form.brand_primary}, ${form.brand_secondary})` }} />
+        <div className="p-5 bg-background/40 flex items-center gap-3">
+          {form.logo_url ? (
+            <img src={form.logo_url} alt="" className="size-12 rounded-lg object-cover" />
+          ) : (
+            <div className="size-12 rounded-lg grid place-items-center font-display font-bold" style={{ background: `${form.brand_primary}30`, color: form.brand_primary }}>
+              {client.name[0]}
+            </div>
+          )}
+          <div>
+            <div className="font-display font-semibold">{client.company || client.name}</div>
+            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">Preview do branding</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
