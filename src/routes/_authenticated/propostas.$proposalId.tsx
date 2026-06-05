@@ -55,6 +55,7 @@ import {
   Rocket,
   RotateCcw,
   XCircle,
+  Ban,
 } from "lucide-react";
 import { toast } from "sonner";
 
