@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { recordTimelineEvent } from "./client-timeline";
 
 export type Stage = Database["public"]["Tables"]["lead_stages"]["Row"];
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -42,6 +43,14 @@ export async function createLead(input: {
     .select()
     .single();
   if (error) throw error;
+  
+  await recordTimelineEvent({
+    lead_id: data.id,
+    type: 'lead_created',
+    title: `Novo Lead criado: ${data.name}`,
+    description: `Origem: ${data.source || 'Não informada'}`
+  });
+
   return data;
 }
 
@@ -151,6 +160,16 @@ export async function createProposal(input: {
     .select()
     .single();
   if (error) throw error;
+
+  await recordTimelineEvent({
+    client_id: (data as any).client_id,
+    lead_id: (data as any).lead_id,
+    type: 'proposal_created',
+    title: `Proposta comercial criada: ${data.title}`,
+    description: `Valor total: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(data.total || 0)}`,
+    metadata: { proposal_id: data.id }
+  });
+
   return data;
 }
 

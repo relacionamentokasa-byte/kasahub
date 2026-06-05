@@ -286,6 +286,57 @@ export type Database = {
           },
         ]
       }
+      client_timeline_events: {
+        Row: {
+          actor_id: string | null
+          client_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          lead_id: string | null
+          metadata: Json | null
+          title: string
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          title: string
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id?: string | null
+          metadata?: Json | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_timeline_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_timeline_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           address: string | null
@@ -1053,6 +1104,9 @@ export type Database = {
           auto_create_jobs: boolean
           billing_day: number
           briefing: string | null
+          cancellation_reason: string | null
+          cancellation_type: string | null
+          cancelled_by: string | null
           category_id: string | null
           client_email: string | null
           client_id: string | null
@@ -1077,11 +1131,13 @@ export type Database = {
           one_time_investment: number
           operational_id: string | null
           owner_id: string | null
+          parent_id: string | null
           payment_kind: string
           payment_method: string | null
           public_token: string
           recurring_months: number
           responsible_id: string | null
+          root_proposal_id: string | null
           scope: string[] | null
           service_ids: string[]
           service_type: string | null
@@ -1095,6 +1151,7 @@ export type Database = {
           total: number
           updated_at: string
           valid_until: string | null
+          version: number | null
         }
         Insert: {
           accepted_at?: string | null
@@ -1104,6 +1161,9 @@ export type Database = {
           auto_create_jobs?: boolean
           billing_day?: number
           briefing?: string | null
+          cancellation_reason?: string | null
+          cancellation_type?: string | null
+          cancelled_by?: string | null
           category_id?: string | null
           client_email?: string | null
           client_id?: string | null
@@ -1128,11 +1188,13 @@ export type Database = {
           one_time_investment?: number
           operational_id?: string | null
           owner_id?: string | null
+          parent_id?: string | null
           payment_kind?: string
           payment_method?: string | null
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          root_proposal_id?: string | null
           scope?: string[] | null
           service_ids?: string[]
           service_type?: string | null
@@ -1146,6 +1208,7 @@ export type Database = {
           total?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number | null
         }
         Update: {
           accepted_at?: string | null
@@ -1155,6 +1218,9 @@ export type Database = {
           auto_create_jobs?: boolean
           billing_day?: number
           briefing?: string | null
+          cancellation_reason?: string | null
+          cancellation_type?: string | null
+          cancelled_by?: string | null
           category_id?: string | null
           client_email?: string | null
           client_id?: string | null
@@ -1179,11 +1245,13 @@ export type Database = {
           one_time_investment?: number
           operational_id?: string | null
           owner_id?: string | null
+          parent_id?: string | null
           payment_kind?: string
           payment_method?: string | null
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          root_proposal_id?: string | null
           scope?: string[] | null
           service_ids?: string[]
           service_type?: string | null
@@ -1197,6 +1265,7 @@ export type Database = {
           total?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number | null
         }
         Relationships: [
           {
@@ -1211,6 +1280,20 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "proposals_root_proposal_id_fkey"
+            columns: ["root_proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]
@@ -1480,6 +1563,17 @@ export type Database = {
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
+      fn_record_timeline_event: {
+        Args: {
+          p_client_id: string
+          p_description?: string
+          p_lead_id: string
+          p_metadata?: Json
+          p_title: string
+          p_type: string
+        }
+        Returns: string
+      }
       has_module_permission: {
         Args: { _action: string; _module: string; _user_id: string }
         Returns: boolean

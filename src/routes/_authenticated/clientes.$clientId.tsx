@@ -10,6 +10,7 @@ import {
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { ClientContracts } from "@/components/clients/ClientContracts";
+import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
@@ -358,7 +359,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
         </TabsContent>
 
         <TabsContent value="timeline" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
-          <TimelineTab client={client} projects={projects} proposals={proposals} transactions={transactions} />
+          <TimelineTab clientId={clientId} />
         </TabsContent>
 
         <TabsContent value="portal" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
@@ -424,30 +425,11 @@ function CalendarTab({ projects, contracts, nextDue }: { projects: ProjectLike[]
   );
 }
 
-function TimelineTab({ client, projects, proposals, transactions }: {
-  client: { created_at: string; name: string; company: string | null };
-  projects: ProjectLike[];
-  proposals: Array<{ id: string; title: string; created_at: string }>;
-  transactions: Array<{ id: string; description: string; status: string; paid_at: string | null; created_at: string }>;
-}) {
-  const events = [
-    { ts: client.created_at, label: `Cliente cadastrado: ${client.company || client.name}`, kind: "Cliente" },
-    ...projects.map((p) => ({ ts: (p as ProjectLike & { created_at?: string }).created_at ?? "", label: `Projeto criado: ${p.name}`, kind: "Projeto" })),
-    ...proposals.map((p) => ({ ts: p.created_at, label: `Proposta enviada: ${p.title}`, kind: "Proposta" })),
-    ...transactions.filter((t) => t.status === "paid" && t.paid_at).map((t) => ({ ts: t.paid_at!, label: `Pagamento: ${t.description}`, kind: "Financeiro" })),
-  ].filter((e) => e.ts).sort((a, b) => b.ts.localeCompare(a.ts));
-
-  if (events.length === 0) return <p className="text-foreground/40 text-sm">Sem histórico ainda.</p>;
+function TimelineTab({ clientId }: { clientId: string }) {
   return (
-    <ol className="relative border-l border-border/60 ml-3 space-y-4 pl-6">
-      {events.map((e, i) => (
-        <li key={i} className="relative">
-          <span className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-primary border-2 border-background" />
-          <div className="text-[10px] capitalize text-foreground/40">{fmtDate(e.ts)} · {e.kind}</div>
-          <div className="text-sm">{e.label}</div>
-        </li>
-      ))}
-    </ol>
+    <div className="max-w-2xl py-2">
+      <ClientTimeline clientId={clientId} />
+    </div>
   );
 }
 

@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { JOB_TEMPLATES } from "./job-templates";
 import { recordProposalEventAdmin } from "./proposal-events";
 import { generateJobsForProject } from "./client-services-api";
+import { recordTimelineEvent } from "./client-timeline";
 
 type SB = SupabaseClient;
 
@@ -328,6 +329,33 @@ export async function approveProposal(
     transactions_created: txCreated,
     accepted_name: ctx.acceptedName ?? null,
   }, { name: ctx.acceptedName ?? null });
+
+  // Record timeline event
+  const isAddendum = (proposal.version || 1) > 1;
+  await recordTimelineEvent({
+    client_id: clientId,
+    type: isAddendum ? 'addendum' : 'proposal_approved',
+    title: isAddendum ? `Aditivo contratual aprovado (V${proposal.version})` : 'Proposta aprovada',
+    description: isAddendum 
+      ? `Atualização de escopo e entregas para o contrato ativo.`
+      : `Proposta convertida em contrato e projeto iniciados.`,
+    metadata: { proposal_id: proposalId, version: proposal.version, is_addendum: isAddendum }
+  });
+
+  if (!isAddendum) {
+    await recordTimelineEvent({
+      client_id: clientId,
+      type: 'contract_generated',
+      title: 'Contrato gerado e ativo',
+      metadata: { contract_id: contractId }
+    });
+    await recordTimelineEvent({
+      client_id: clientId,
+      type: 'project_created',
+      title: 'Projeto operacional criado',
+      metadata: { project_id: projectId }
+    });
+  }
 
   return {
     client_id: clientId!,
