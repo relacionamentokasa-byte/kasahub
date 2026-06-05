@@ -63,7 +63,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
   const { data: proposals = [] } = useQuery({
     queryKey: ["proposals", clientId],
     queryFn: async () => {
-      const { data, error } = await sb.from("proposals").select("*").eq("lead_id", clientId).order("created_at", { ascending: false });
+      const { data, error } = await sb.from("proposals").select("*").eq("client_id", clientId).order("created_at", { ascending: false });
       if (error) return [];
       return data ?? [];
     },
