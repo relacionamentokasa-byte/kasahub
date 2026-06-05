@@ -130,7 +130,7 @@ export async function cancelProposalWorkflow(
   
   if (transactions?.some(t => t.status === 'paid')) {
     console.warn(`[Cancel Workflow] Cancelamento abortado: existem faturas pagas.`);
-    throw new Error("Não é possível remover esta estrutura porque já existem registros financeiros vinculados (faturas pagas). Utilize a opção Encerrar Projeto.");
+    throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados. Utilize a opção Encerrar Projeto.");
   }
 
   // 2. Remoção de estruturas operacionais seguindo a ordem obrigatória
