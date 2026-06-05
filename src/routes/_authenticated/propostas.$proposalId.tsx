@@ -305,6 +305,11 @@ export function ProposalEditorContent({
     ? "w-full"
     : "p-6 lg:p-10 max-w-6xl mx-auto w-full";
 
+  const { data: contractTemplates = [] } = useQuery({
+    queryKey: ["contract-templates"],
+    queryFn: fetchContractTemplates,
+  });
+
   return (
     <div className={containerCls}>
       <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
