@@ -311,6 +311,11 @@ function ClientesPage() {
       </div>
 
       <NewClientDialog open={open} onOpenChange={setOpen} />
+      <ClientDetailSheet
+        clientId={selectedId}
+        open={selectedId !== null}
+        onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+      />
     </div>
   );
 }
