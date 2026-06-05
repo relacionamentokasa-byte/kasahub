@@ -119,6 +119,56 @@ export type Database = {
         }
         Relationships: []
       }
+      client_portal_users: {
+        Row: {
+          auth_user_id: string | null
+          client_id: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          permissions: Json
+          phone: string | null
+          role: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          auth_user_id?: string | null
+          client_id: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          permissions?: Json
+          phone?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          auth_user_id?: string | null
+          client_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          permissions?: Json
+          phone?: string | null
+          role?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_users_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           banner_url: string | null
@@ -135,6 +185,9 @@ export type Database = {
           notes: string | null
           owner_id: string | null
           phone: string | null
+          portal_cover_url: string | null
+          portal_enabled: boolean
+          portal_slug: string | null
           portal_user_id: string | null
           status: string
           updated_at: string
@@ -155,6 +208,9 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
+          portal_cover_url?: string | null
+          portal_enabled?: boolean
+          portal_slug?: string | null
           portal_user_id?: string | null
           status?: string
           updated_at?: string
@@ -175,6 +231,9 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
+          portal_cover_url?: string | null
+          portal_enabled?: boolean
+          portal_slug?: string | null
           portal_user_id?: string | null
           status?: string
           updated_at?: string
