@@ -76,15 +76,55 @@ function ClientesPage() {
             Clientes 360°
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               placeholder="Buscar cliente…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-10 w-64 bg-surface border-border"
+              className="pl-9 h-10 w-56 bg-surface border-border"
             />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="h-10 w-[130px] bg-surface border-border text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos status</SelectItem>
+              <SelectItem value="active">Ativo</SelectItem>
+              <SelectItem value="inactive">Inativo</SelectItem>
+              <SelectItem value="prospect">Prospect</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
+            <SelectTrigger className="h-10 w-[150px] bg-surface border-border text-xs gap-1">
+              <ArrowUpDown className="size-3.5" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name">Nome (A-Z)</SelectItem>
+              <SelectItem value="status">Status</SelectItem>
+              <SelectItem value="created_at">Mais recentes</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="inline-flex rounded-md border border-border bg-surface overflow-hidden h-10">
+            <button
+              type="button"
+              onClick={() => changeView("cards")}
+              aria-label="Visualização em cards"
+              className={`px-3 grid place-items-center transition ${view === "cards" ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:text-foreground"}`}
+            >
+              <LayoutGrid className="size-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => changeView("list")}
+              aria-label="Visualização em lista"
+              className={`px-3 grid place-items-center transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:text-foreground"}`}
+            >
+              <ListIcon className="size-4" />
+            </button>
           </div>
           <Button
             onClick={() => setOpen(true)}
@@ -94,6 +134,8 @@ function ClientesPage() {
           </Button>
         </div>
       </div>
+
+
 
       <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
         {filtered.length === 0 ? (
