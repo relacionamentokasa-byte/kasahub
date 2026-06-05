@@ -93,7 +93,7 @@ function ProposalsPage() {
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       setOpen(false);
-      navigate({ to: "/propostas/$proposalId", params: { proposalId: p.id } });
+      setSelectedId(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
