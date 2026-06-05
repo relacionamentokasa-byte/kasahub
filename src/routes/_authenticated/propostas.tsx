@@ -241,149 +241,169 @@ function ProposalsPage() {
               <Plus className="size-4" /> Nova proposta
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-surface border-border">
-            <DialogHeader>
+          <DialogContent className="bg-surface border-border p-0 gap-0 w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] grid grid-rows-[auto_1fr_auto] overflow-hidden">
+            <DialogHeader className="px-6 py-4 border-b border-border flex-row items-center justify-between space-y-0 sticky top-0 bg-surface z-10">
               <DialogTitle className="font-display text-2xl">Nova proposta</DialogTitle>
+              <div className="flex items-center gap-2 mr-8">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => toast.info("Templates em breve")}
+                  className="gap-2"
+                >
+                  <FileText className="size-4" /> Templates
+                </Button>
+              </div>
             </DialogHeader>
-            <div className="grid gap-4">
-              <Field label="Título *">
-                <Input
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  placeholder="Proposta · Marketing Performance Q1"
-                  autoFocus
-                />
-              </Field>
+            <div className="overflow-y-auto px-6 py-5">
+              <div className="grid gap-4">
+                <Field label="Título *">
+                  <Input
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    placeholder="Proposta · Marketing Performance Q1"
+                    autoFocus
+                  />
+                </Field>
 
-              <Field label="Destino da proposta *">
-                <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-background/40 border border-border">
-                  {(["client", "lead"] as const).map((k) => (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() =>
+                <Field label="Destino da proposta *">
+                  <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-background/40 border border-border">
+                    {(["client", "lead"] as const).map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() =>
+                          setForm({
+                            ...form,
+                            target_kind: k,
+                            client_id: "",
+                            lead_id: "",
+                            client_name: "",
+                            client_email: "",
+                          })
+                        }
+                        className={`text-sm py-2 rounded-md font-medium transition ${
+                          form.target_kind === k
+                            ? "bg-primary text-primary-foreground"
+                            : "text-foreground/60 hover:text-foreground"
+                        }`}
+                      >
+                        {k === "client" ? "Cliente existente" : "Lead do CRM"}
+                      </button>
+                    ))}
+                  </div>
+                </Field>
+
+                {form.target_kind === "client" ? (
+                  <Field label="Cliente *">
+                    <Select
+                      value={form.client_id || "__free__"}
+                      onValueChange={(v) => {
+                        if (v === "__free__") {
+                          setForm({ ...form, client_id: "", client_name: "", client_email: "" });
+                          return;
+                        }
+                        const c = clients.find((x) => x.id === v);
                         setForm({
                           ...form,
-                          target_kind: k,
-                          client_id: "",
-                          lead_id: "",
-                          client_name: "",
-                          client_email: "",
-                        })
-                      }
-                      className={`text-sm py-2 rounded-md font-medium transition ${
-                        form.target_kind === k
-                          ? "bg-primary text-primary-foreground"
-                          : "text-foreground/60 hover:text-foreground"
-                      }`}
+                          client_id: v,
+                          client_name: c ? (c.company || c.name) : "",
+                          client_email: c?.email ?? "",
+                        });
+                      }}
                     >
-                      {k === "client" ? "Cliente existente" : "Lead do CRM"}
-                    </button>
-                  ))}
-                </div>
-              </Field>
+                      <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__free__">Cliente avulso (digitar)</SelectItem>
+                        {clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {!form.client_id && (
+                      <Input
+                        className="mt-2"
+                        placeholder="Nome do cliente"
+                        value={form.client_name}
+                        onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                      />
+                    )}
+                  </Field>
+                ) : (
+                  <Field label="Lead *">
+                    <Select
+                      value={form.lead_id || "__none__"}
+                      onValueChange={(v) => {
+                        if (v === "__none__") {
+                          setForm({ ...form, lead_id: "", client_name: "", client_email: "" });
+                          return;
+                        }
+                        const l = leads.find((x) => x.id === v);
+                        setForm({
+                          ...form,
+                          lead_id: v,
+                          client_name: l ? (l.company || l.name) : "",
+                          client_email: l?.email ?? "",
+                        });
+                      }}
+                    >
+                      <SelectTrigger><SelectValue placeholder="Selecione um lead" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="__none__">Selecione…</SelectItem>
+                        {leads.map((l) => (
+                          <SelectItem key={l.id} value={l.id}>
+                            {l.name}{l.company ? ` · ${l.company}` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
 
-              {form.target_kind === "client" ? (
-                <Field label="Cliente *">
-                  <Select
-                    value={form.client_id || "__free__"}
-                    onValueChange={(v) => {
-                      if (v === "__free__") {
-                        setForm({ ...form, client_id: "", client_name: "", client_email: "" });
-                        return;
-                      }
-                      const c = clients.find((x) => x.id === v);
-                      setForm({
-                        ...form,
-                        client_id: v,
-                        client_name: c ? (c.company || c.name) : "",
-                        client_email: c?.email ?? "",
-                      });
-                    }}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__free__">Cliente avulso (digitar)</SelectItem>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {!form.client_id && (
-                    <Input
-                      className="mt-2"
-                      placeholder="Nome do cliente"
-                      value={form.client_name}
-                      onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-                    />
-                  )}
+                <Field label="E-mail do destinatário">
+                  <Input
+                    type="email"
+                    value={form.client_email}
+                    onChange={(e) => setForm({ ...form, client_email: e.target.value })}
+                  />
                 </Field>
-              ) : (
-                <Field label="Lead *">
-                  <Select
-                    value={form.lead_id || "__none__"}
-                    onValueChange={(v) => {
-                      if (v === "__none__") {
-                        setForm({ ...form, lead_id: "", client_name: "", client_email: "" });
-                        return;
-                      }
-                      const l = leads.find((x) => x.id === v);
-                      setForm({
-                        ...form,
-                        lead_id: v,
-                        client_name: l ? (l.company || l.name) : "",
-                        client_email: l?.email ?? "",
-                      });
-                    }}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Selecione um lead" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">Selecione…</SelectItem>
-                      {leads.map((l) => (
-                        <SelectItem key={l.id} value={l.id}>
-                          {l.name}{l.company ? ` · ${l.company}` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+
+                <Field label="Serviços contratados">
+                  <ServicesMultiSelect
+                    value={form.service_ids}
+                    onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                  />
                 </Field>
-              )}
 
-              <Field label="E-mail do destinatário">
-                <Input
-                  type="email"
-                  value={form.client_email}
-                  onChange={(e) => setForm({ ...form, client_email: e.target.value })}
-                />
-              </Field>
+                <Field label="Validade da proposta">
+                  <Input
+                    type="date"
+                    value={form.valid_until}
+                    onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+                  />
+                </Field>
 
-              <Field label="Serviços contratados">
-                <ServicesMultiSelect
-                  value={form.service_ids}
-                  onChange={(ids) => setForm({ ...form, service_ids: ids })}
-                />
-              </Field>
-
-              <Field label="Validade da proposta">
-                <Input
-                  type="date"
-                  value={form.valid_until}
-                  onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-                />
-              </Field>
-
-              <Field label="Introdução">
-                <Textarea
-                  rows={3}
-                  value={form.intro}
-                  onChange={(e) => setForm({ ...form, intro: e.target.value })}
-                  placeholder="Apresentação do escopo e dos objetivos…"
-                />
-              </Field>
+                <Field label="Introdução">
+                  <Textarea
+                    rows={3}
+                    value={form.intro}
+                    onChange={(e) => setForm({ ...form, intro: e.target.value })}
+                    placeholder="Apresentação do escopo e dos objetivos…"
+                  />
+                </Field>
+              </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="px-6 py-4 border-t border-border bg-surface sticky bottom-0 gap-2 sm:gap-2">
               <Button variant="ghost" onClick={() => setOpen(false)}>
                 Cancelar
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!form.title || !form.client_name || createMut.isPending}
+                onClick={() => createMut.mutate()}
+              >
+                Salvar rascunho
               </Button>
               <Button
                 disabled={!form.title || !form.client_name || createMut.isPending}
