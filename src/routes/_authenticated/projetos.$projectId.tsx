@@ -47,12 +47,14 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4">
-        <Link
-          to="/projetos"
-          className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
-        >
-          <ArrowLeft className="size-3.5" /> Projetos
-        </Link>
+        {!embedded && (
+          <Link
+            to="/projetos"
+            className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
+          >
+            <ArrowLeft className="size-3.5" /> Projetos
+          </Link>
+        )}
         <span className="text-primary text-[10px] capitalize">
           Projeto · Operação
         </span>
