@@ -291,14 +291,13 @@ function ProposalsPage() {
                       className="border-b border-border last:border-0 hover:bg-surface-elevated transition"
                     >
                       <td className="px-5 py-3">
-                        <Link
-                          to="/propostas/$proposalId"
-                          params={{ proposalId: p.id }}
-                          className="font-semibold hover:text-primary flex items-center gap-1"
+                        <button
+                          onClick={() => setSelectedId(p.id)}
+                          className="font-semibold hover:text-primary flex items-center gap-1 text-left"
                         >
                           {p.title}
                           <ArrowUpRight className="size-3.5 opacity-60" />
-                        </Link>
+                        </button>
                       </td>
                       <td className="px-5 py-3 text-foreground/70">{p.client_name}</td>
                       <td className="px-5 py-3 text-right text-primary">
@@ -316,12 +315,7 @@ function ProposalsPage() {
                         <ActionsMenu
                           proposal={p}
                           onView={() => openView(p)}
-                          onEdit={() =>
-                            navigate({
-                              to: "/propostas/$proposalId",
-                              params: { proposalId: p.id },
-                            })
-                          }
+                          onEdit={() => setSelectedId(p.id)}
                           onDuplicate={() => dupMut.mutate(p.id)}
                           onPdf={() => openPdf(p)}
                           onShare={() => copyLink(p)}
