@@ -299,7 +299,7 @@ function ThemePreference() {
       <div>
         <p className="font-display text-lg font-semibold">Tema da interface</p>
         <p className="text-xs text-foreground/50">
-          Sua preferência é salva localmente e aplicada apenas para você. A sidebar mantém a identidade Kasa em ambos os temas.
+          Sua preferência é salva localmente e aplicada apenas para você. A barra lateral mantém a identidade Kasa em ambos os temas.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
