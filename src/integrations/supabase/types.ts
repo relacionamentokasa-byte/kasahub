@@ -795,6 +795,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          job_template: string | null
           order_index: number
           proposal_id: string
           quantity: number
@@ -806,6 +807,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          job_template?: string | null
           order_index?: number
           proposal_id: string
           quantity?: number
@@ -817,6 +819,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          job_template?: string | null
           order_index?: number
           proposal_id?: string
           quantity?: number
@@ -839,18 +842,30 @@ export type Database = {
           accepted_at: string | null
           accepted_ip: string | null
           accepted_name: string | null
+          account_id: string | null
+          auto_create_jobs: boolean
+          billing_day: number
+          briefing: string | null
+          category_id: string | null
           client_email: string | null
           client_id: string | null
           client_name: string
           created_at: string
           currency: string
+          first_due_date: string | null
+          generated_contract_id: string | null
+          generated_project_id: string | null
           id: string
+          installments: number
           intro: string | null
           lead_id: string | null
           monthly_investment: number
           one_time_investment: number
           owner_id: string | null
+          payment_kind: string
           public_token: string
+          recurring_months: number
+          responsible_id: string | null
           status: string
           title: string
           total: number
@@ -861,18 +876,30 @@ export type Database = {
           accepted_at?: string | null
           accepted_ip?: string | null
           accepted_name?: string | null
+          account_id?: string | null
+          auto_create_jobs?: boolean
+          billing_day?: number
+          briefing?: string | null
+          category_id?: string | null
           client_email?: string | null
           client_id?: string | null
           client_name: string
           created_at?: string
           currency?: string
+          first_due_date?: string | null
+          generated_contract_id?: string | null
+          generated_project_id?: string | null
           id?: string
+          installments?: number
           intro?: string | null
           lead_id?: string | null
           monthly_investment?: number
           one_time_investment?: number
           owner_id?: string | null
+          payment_kind?: string
           public_token?: string
+          recurring_months?: number
+          responsible_id?: string | null
           status?: string
           title: string
           total?: number
@@ -883,18 +910,30 @@ export type Database = {
           accepted_at?: string | null
           accepted_ip?: string | null
           accepted_name?: string | null
+          account_id?: string | null
+          auto_create_jobs?: boolean
+          billing_day?: number
+          briefing?: string | null
+          category_id?: string | null
           client_email?: string | null
           client_id?: string | null
           client_name?: string
           created_at?: string
           currency?: string
+          first_due_date?: string | null
+          generated_contract_id?: string | null
+          generated_project_id?: string | null
           id?: string
+          installments?: number
           intro?: string | null
           lead_id?: string | null
           monthly_investment?: number
           one_time_investment?: number
           owner_id?: string | null
+          payment_kind?: string
           public_token?: string
+          recurring_months?: number
+          responsible_id?: string | null
           status?: string
           title?: string
           total?: number
