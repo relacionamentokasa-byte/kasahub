@@ -189,6 +189,52 @@ function ClientPortalView({
               </div>
             )}
           </TabsContent>
+          <TabsContent value="finance" className="mt-6">
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+              <div className="p-4 border-b border-border bg-background/20">
+                <h3 className="font-semibold text-sm flex items-center gap-2">
+                  <DollarSign className="size-4 text-primary" /> Histórico Financeiro
+                </h3>
+              </div>
+              {transactions.length === 0 ? (
+                <p className="text-sm text-foreground/50 text-center py-10">Nenhum lançamento financeiro disponível</p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead className="text-left text-[10px] uppercase text-foreground/40 border-b border-border bg-background/10">
+                      <tr>
+                        <th className="py-3 px-4">Descrição</th>
+                        <th className="py-3 px-4">Vencimento</th>
+                        <th className="py-3 px-4">Status</th>
+                        <th className="py-3 px-4 text-right">Valor</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transactions.filter(t => t.kind === "income").map((t) => (
+                        <tr key={t.id} className="border-b border-border/40 hover:bg-background/5 transition-colors">
+                          <td className="py-3 px-4 font-medium">{t.description}</td>
+                          <td className="py-3 px-4 text-foreground/60">
+                            {t.due_date ? new Date(t.due_date).toLocaleDateString("pt-BR") : "—"}
+                          </td>
+                          <td className="py-3 px-4">
+                            <Badge 
+                              variant="outline" 
+                              className={`text-[9px] uppercase ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" : "bg-amber-500/15 text-amber-400 border-amber-500/20"}`}
+                            >
+                              {t.status === "paid" ? "Pago" : "Pendente"}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-4 text-right font-bold text-emerald-400">
+                            {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(t.amount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
 
