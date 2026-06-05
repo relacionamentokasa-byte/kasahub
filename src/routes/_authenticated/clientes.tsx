@@ -23,6 +23,17 @@ function ClientesPage() {
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [view, setView] = useState<"cards" | "list">(() => {
+    if (typeof window === "undefined") return "cards";
+    return (localStorage.getItem("clientes:view") as "cards" | "list") || "cards";
+  });
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<SortKey>("name");
+
+  function changeView(v: "cards" | "list") {
+    setView(v);
+    if (typeof window !== "undefined") localStorage.setItem("clientes:view", v);
+  }
 
   const delMut = useMutation({
     mutationFn: (id: string) => deleteClient(id),
@@ -33,15 +44,24 @@ function ClientesPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const filtered = clients.filter((c) => {
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return true;
-    return (
-      c.name.toLowerCase().includes(q) ||
-      (c.company ?? "").toLowerCase().includes(q) ||
-      (c.email ?? "").toLowerCase().includes(q)
-    );
-  });
+    let list = clients.filter((c) => {
+      if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (!q) return true;
+      return (
+        c.name.toLowerCase().includes(q) ||
+        (c.company ?? "").toLowerCase().includes(q) ||
+        (c.email ?? "").toLowerCase().includes(q)
+      );
+    });
+    list = [...list].sort((a, b) => {
+      if (sortBy === "name") return (a.company || a.name).localeCompare(b.company || b.name);
+      if (sortBy === "status") return (a.status ?? "").localeCompare(b.status ?? "");
+      return (b.created_at ?? "").localeCompare(a.created_at ?? "");
+    });
+    return list;
+  }, [clients, query, statusFilter, sortBy]);
 
   if (isClientDetail) return <Outlet />;
 
