@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { JOB_TEMPLATES } from "./job-templates";
 import { recordProposalEventAdmin } from "./proposal-events";
+import { generateJobsForProject } from "./client-services-api";
 
 type SB = SupabaseClient;
 
