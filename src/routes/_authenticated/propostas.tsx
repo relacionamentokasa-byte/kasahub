@@ -11,7 +11,16 @@ import {
   formatCurrency,
   type Proposal,
 } from "@/lib/crm-api";
+import { fetchClients } from "@/lib/ops-api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { sendEmail } from "@/lib/email.functions";
+
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
 import {
