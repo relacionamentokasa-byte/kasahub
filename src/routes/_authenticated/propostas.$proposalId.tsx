@@ -133,6 +133,7 @@ export function ProposalEditorContent({
         operational_id: (p.operational_id as string) ?? (p.responsible_id as string) ?? "",
         contract_type: (p.contract_type as string) ?? "recurring",
         service_type: (p.service_type as string) ?? "",
+        service_ids: (p.service_ids as string[]) ?? [],
         briefing: (p.briefing as string) ?? "",
         payment_kind: ((p.payment_kind as string) ?? "recurring") as "recurring" | "one_time" | "mixed",
         installments: Number(p.installments ?? 1),
