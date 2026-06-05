@@ -186,7 +186,7 @@ export async function approveProposal(
   let txCreated = 0;
 
   // 6a. Recurring (monthly contract)
-  if (wantsContract && contractId) {
+  if (monthly > 0 && contractId) {
     const months = Math.max(1, Number(proposal.recurring_months ?? 12));
     const billingDay = Number(proposal.billing_day ?? 5);
     const start = proposal.first_due_date
@@ -261,6 +261,7 @@ export async function approveProposal(
         client_id: clientId,
         project_id: projectId,
         proposal_id: proposal.id,
+        contract_id: contractId,
         owner_id: proposal.owner_id ?? null,
       }));
       const { error: txErr } = await sb.from("transactions").insert(rows);
