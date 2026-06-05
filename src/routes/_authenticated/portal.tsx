@@ -61,6 +61,17 @@ function ClientPortalView({
       return data ?? [];
     },
   });
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["client-transactions", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("transactions")
+        .select("*")
+        .eq("client_id", clientId)
+        .order("due_date", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   return (
     <div className="min-h-full">
