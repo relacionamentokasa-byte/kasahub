@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=Onest:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -8,8 +9,6 @@
  * Identidade: amarelo âmbar #FFBC45 sobre verde-petróleo #0C1618
  * Tipografia: Funnel Display (display), Onest (body), JetBrains Mono (mono/labels)
  */
-
-@import url('https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=Onest:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
