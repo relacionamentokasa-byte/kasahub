@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
+import { ClientContracts } from "@/components/clients/ClientContracts";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
@@ -187,6 +188,10 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
 
         <TabsContent value="servicos" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           <ClientServicesManager clientId={clientId} />
+        </TabsContent>
+
+        <TabsContent value="contracts" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <ClientContracts clientId={clientId} />
         </TabsContent>
 
         <TabsContent value="overview" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
