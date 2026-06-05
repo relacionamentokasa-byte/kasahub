@@ -111,7 +111,7 @@ function ProposalsPage() {
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       toast.success("Proposta duplicada");
-      navigate({ to: "/propostas/$proposalId", params: { proposalId: p.id } });
+      setSelectedId(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
