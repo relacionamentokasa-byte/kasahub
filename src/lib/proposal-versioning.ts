@@ -194,6 +194,7 @@ export async function cancelProposalWorkflow(
         status: 'cancelled',
         cancellation_reason: reason,
         cancelled_by: userData.user?.id,
+        cancelled_at: new Date().toISOString(),
         structure_status: 'removed',
         generated_project_id: null,
         generated_contract_id: null
