@@ -169,12 +169,6 @@ function RoleEditorDialog({
   const [description, setDescription] = useState(role?.description ?? "");
   const [perms, setPerms] = useState<PermissionMap>(role?.permissions ?? {});
 
-  // Reset state when dialog opens
-  useState(() => {
-    setName(role?.name ?? "");
-    setDescription(role?.description ?? "");
-    setPerms(role?.permissions ?? {});
-  });
 
   const mut = useMutation({
     mutationFn: () =>

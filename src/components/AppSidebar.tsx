@@ -1,5 +1,4 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   KanbanSquare,
@@ -10,7 +9,8 @@ import {
   BarChart3,
   Settings,
 } from "lucide-react";
-import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
+import { usePermissions } from "@/hooks/use-permissions";
+import type { ModuleId } from "@/lib/permissions-api";
 import {
   Sidebar,
   SidebarContent,
@@ -26,33 +26,34 @@ import {
 } from "@/components/ui/sidebar";
 import { KasaLogo } from "./KasaLogo";
 
-const groups = [
+type SidebarItem = { title: string; url: string; icon: typeof LayoutDashboard; module: ModuleId };
+const groups: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Comercial",
     items: [
-      { title: "Dashboard", url: "/", icon: LayoutDashboard },
-      { title: "CRM", url: "/crm", icon: KanbanSquare },
+      { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
+      { title: "CRM", url: "/crm", icon: KanbanSquare, module: "crm" },
     ],
   },
   {
     label: "Operação",
     items: [
-      { title: "Clientes", url: "/clientes", icon: Users },
-      { title: "Projetos", url: "/projetos", icon: FolderKanban },
-      { title: "Jobs", url: "/jobs", icon: CheckSquare },
+      { title: "Clientes", url: "/clientes", icon: Users, module: "clientes" },
+      { title: "Projetos", url: "/projetos", icon: FolderKanban, module: "projetos" },
+      { title: "Jobs", url: "/jobs", icon: CheckSquare, module: "jobs" },
     ],
   },
   {
     label: "Gestão",
     items: [
-      { title: "Financeiro", url: "/financeiro", icon: Wallet },
-      { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+      { title: "Financeiro", url: "/financeiro", icon: Wallet, module: "financeiro" },
+      { title: "Relatórios", url: "/relatorios", icon: BarChart3, module: "relatorios" },
     ],
   },
   {
     label: "Sistema",
     items: [
-      { title: "Configurações", url: "/config", icon: Settings },
+      { title: "Configurações", url: "/config", icon: Settings, module: "config" },
     ],
   },
 ];
@@ -61,11 +62,14 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
-  const { data: roles = [] } = useQuery({ queryKey: ["roles", "me"], queryFn: fetchCurrentUserRoles });
-  const isCeo = hasAnyRole(roles, ["admin", "ceo"]);
+  const { can, isAdmin } = usePermissions();
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
+
+  const visibleGroups = groups
+    .map((g) => ({ ...g, items: g.items.filter((it) => isAdmin || can(it.module, "view")) }))
+    .filter((g) => g.items.length > 0);
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -74,7 +78,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2 gap-2">
-        {groups.map((group) => (
+        {visibleGroups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
               <SidebarGroupLabel className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-sidebar-foreground/40 px-3">
@@ -83,7 +87,7 @@ export function AppSidebar() {
             )}
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.filter((item) => !(item as { ceoOnly?: boolean }).ceoOnly || isCeo).map((item) => {
+                {group.items.map((item) => {
                   const active = isActive(item.url);
                   return (
                     <SidebarMenuItem key={item.title}>
