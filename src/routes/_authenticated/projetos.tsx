@@ -96,6 +96,7 @@ function ProjetosPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {projects.map((p) => {
               const c = p.client_id ? clientById.get(p.client_id) : null;
+              const ct = allContracts.find(x => x.id === p.contract_id);
               return (
                 <div key={p.id} className="relative group">
                   <button
@@ -113,9 +114,18 @@ function ProjetosPage() {
                       </span>
                     </div>
                     <div className="font-display font-semibold text-lg leading-tight">{p.name}</div>
-                    {c && (
-                      <div className="text-xs text-foreground/50 mt-1">{c.company || c.name}</div>
-                    )}
+                    
+                    <div className="mt-2 space-y-1">
+                      {c && (
+                        <div className="text-xs text-foreground/50">{c.company || c.name}</div>
+                      )}
+                      {ct && (
+                        <div className="text-[10px] text-primary flex items-center gap-1 uppercase font-medium">
+                          <FileSignature className="size-3" /> {ct.title}
+                        </div>
+                      )}
+                    </div>
+
                     {p.due_date && (
                       <div className="text-[10px] text-foreground/40 mt-3 capitalize">
                         Prazo · {p.due_date}
