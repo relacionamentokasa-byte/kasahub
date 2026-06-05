@@ -104,9 +104,49 @@
 }
 
 .dark {
-  /* Kasa é dark-first; light mode pode ser adicionado depois. Mantemos os mesmos tokens. */
-  --background: oklch(0.196 0.011 197);
-  --foreground: oklch(0.965 0.005 180);
+  /* Dark é o padrão Kasa — mantém os tokens de :root. */
+}
+
+/* Light mode — fundo claro, sidebar permanece dark (identidade Kasa). */
+.light {
+  --background: oklch(0.985 0.002 247);
+  --foreground: oklch(0.196 0.011 197);
+  --surface: oklch(1 0 0);
+  --surface-elevated: oklch(1 0 0);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.196 0.011 197);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.196 0.011 197);
+
+  --primary: oklch(0.832 0.146 75.5);
+  --primary-foreground: oklch(0.196 0.011 197);
+
+  --secondary: oklch(0.96 0.003 247);
+  --secondary-foreground: oklch(0.196 0.011 197);
+
+  --muted: oklch(0.96 0.003 247);
+  --muted-foreground: oklch(0.5 0.012 207);
+
+  --accent: oklch(0.94 0.005 247);
+  --accent-foreground: oklch(0.196 0.011 197);
+
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0.91 0.004 247);
+  --input: oklch(0.91 0.004 247);
+  --ring: oklch(0.832 0.146 75.5 / 0.5);
+
+  /* Sidebar permanece dark — identidade visual Kasa */
+  --sidebar: oklch(0.196 0.011 197);
+  --sidebar-foreground: oklch(0.965 0.005 180);
+  --sidebar-primary: oklch(0.832 0.146 75.5);
+  --sidebar-primary-foreground: oklch(0.196 0.011 197);
+  --sidebar-accent: oklch(0.243 0.011 207);
+  --sidebar-accent-foreground: oklch(0.965 0.005 180);
+  --sidebar-border: oklch(1 0 0 / 0.06);
+  --sidebar-ring: oklch(0.832 0.146 75.5 / 0.5);
 }
 
 @layer base {

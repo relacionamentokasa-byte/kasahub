@@ -13,6 +13,7 @@ import { Toaster } from "sonner";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 
 function NotFoundComponent() {
   return (
@@ -107,9 +108,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body>
         {children}
@@ -124,12 +126,19 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthListener />
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster richColors position="top-right" theme="dark" />
+      <ThemeProvider>
+        <AuthListener />
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <ThemedToaster />
+      </ThemeProvider>
     </QueryClientProvider>
   );
+}
+
+function ThemedToaster() {
+  const { theme } = useTheme();
+  return <Toaster richColors position="top-right" theme={theme} />;
 }
 
 function AuthListener() {

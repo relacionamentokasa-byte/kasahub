@@ -1,4 +1,4 @@
-import { Bell, LogOut, Search, Sparkles } from "lucide-react";
+import { Bell, LogOut, Moon, Search, Sparkles, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useTheme } from "@/lib/theme";
 
 type Profile = {
   display_name: string | null;
@@ -25,6 +26,7 @@ type Profile = {
 export function AppTopbar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { theme, toggle } = useTheme();
   const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
@@ -93,6 +95,15 @@ export function AppTopbar() {
           <Sparkles className="size-4 text-primary" />
           <span className="text-xs font-medium">Ações rápidas</span>
         </Button>
+
+        <button
+          onClick={toggle}
+          aria-label={theme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+          title={theme === "dark" ? "Tema claro" : "Tema escuro"}
+          className="p-2 text-foreground/60 hover:text-foreground transition-colors"
+        >
+          {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
+        </button>
 
         <button className="relative p-2 text-foreground/60 hover:text-foreground transition-colors">
           <Bell className="size-5" />
