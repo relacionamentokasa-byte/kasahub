@@ -163,3 +163,42 @@ export async function cancelProposalWorkflow(
     metadata: { proposal_id: proposalId }
   });
 }
+
+export async function reopenProposal(proposalId: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  
+  const { data: proposal, error: fetchErr } = await supabase
+    .from("proposals")
+    .select("client_id, lead_id")
+    .eq("id", proposalId)
+    .single();
+  
+  if (fetchErr) throw fetchErr;
+
+  const { data: updated, error } = await supabase
+    .from("proposals")
+    .update({
+      status: 'draft',
+      accepted_at: null,
+      converted_at: null,
+      structure_status: null
+    } as any)
+    .eq("id", proposalId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await recordProposalEvent(proposalId, "reopened");
+  
+  await recordTimelineEvent({
+    client_id: proposal.client_id,
+    lead_id: proposal.lead_id,
+    type: 'operation',
+    title: 'Proposta cancelada foi reaberta',
+    description: 'Status alterado para Em Edição. Uma nova aprovação será necessária para gerar a estrutura.',
+    metadata: { proposal_id: proposalId }
+  });
+
+  return updated;
+}
