@@ -370,6 +370,39 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_templates: {
+        Row: {
+          archived_at: string | null
+          content: string
+          created_at: string
+          id: string
+          is_active: boolean
+          owner_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          owner_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           billing_day: number
@@ -1016,6 +1049,8 @@ export type Database = {
           client_id: string | null
           client_name: string
           commercial_id: string | null
+          contract_content: string | null
+          contract_template_id: string | null
           contract_term: string | null
           contract_type: string
           created_at: string
@@ -1038,6 +1073,10 @@ export type Database = {
           responsible_id: string | null
           service_ids: string[]
           service_type: string | null
+          signature_agency: string | null
+          signature_client: string | null
+          signed_at_agency: string | null
+          signed_at_client: string | null
           status: string
           target_kind: string
           title: string
@@ -1058,6 +1097,8 @@ export type Database = {
           client_id?: string | null
           client_name: string
           commercial_id?: string | null
+          contract_content?: string | null
+          contract_template_id?: string | null
           contract_term?: string | null
           contract_type?: string
           created_at?: string
@@ -1080,6 +1121,10 @@ export type Database = {
           responsible_id?: string | null
           service_ids?: string[]
           service_type?: string | null
+          signature_agency?: string | null
+          signature_client?: string | null
+          signed_at_agency?: string | null
+          signed_at_client?: string | null
           status?: string
           target_kind?: string
           title: string
@@ -1100,6 +1145,8 @@ export type Database = {
           client_id?: string | null
           client_name?: string
           commercial_id?: string | null
+          contract_content?: string | null
+          contract_template_id?: string | null
           contract_term?: string | null
           contract_type?: string
           created_at?: string
@@ -1122,6 +1169,10 @@ export type Database = {
           responsible_id?: string | null
           service_ids?: string[]
           service_type?: string | null
+          signature_agency?: string | null
+          signature_client?: string | null
+          signed_at_agency?: string | null
+          signed_at_client?: string | null
           status?: string
           target_kind?: string
           title?: string
@@ -1130,6 +1181,13 @@ export type Database = {
           valid_until?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "proposals_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "proposals_lead_id_fkey"
             columns: ["lead_id"]
@@ -1226,6 +1284,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           category: string | null
+          contract_template_id: string | null
           created_at: string
           default_scope: Json | null
           description: string | null
@@ -1238,6 +1297,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           category?: string | null
+          contract_template_id?: string | null
           created_at?: string
           default_scope?: Json | null
           description?: string | null
@@ -1250,6 +1310,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           category?: string | null
+          contract_template_id?: string | null
           created_at?: string
           default_scope?: Json | null
           description?: string | null
@@ -1259,7 +1320,15 @@ export type Database = {
           order_index?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "services_contract_template_id_fkey"
+            columns: ["contract_template_id"]
+            isOneToOne: false
+            referencedRelation: "contract_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_invites: {
         Row: {
