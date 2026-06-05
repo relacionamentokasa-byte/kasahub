@@ -15,6 +15,10 @@ export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
 
 function ProjectDetail() {
   const { projectId } = useParams({ from: "/_authenticated/projetos/$projectId" });
+  return <ProjectDetailContent projectId={projectId} />;
+}
+
+export function ProjectDetailContent({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
   const { data: project } = useQuery({
     queryKey: ["project", projectId],
@@ -43,12 +47,14 @@ function ProjectDetail() {
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4">
-        <Link
-          to="/projetos"
-          className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
-        >
-          <ArrowLeft className="size-3.5" /> Projetos
-        </Link>
+        {!embedded && (
+          <Link
+            to="/projetos"
+            className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
+          >
+            <ArrowLeft className="size-3.5" /> Projetos
+          </Link>
+        )}
         <span className="text-primary text-[10px] capitalize">
           Projeto · Operação
         </span>

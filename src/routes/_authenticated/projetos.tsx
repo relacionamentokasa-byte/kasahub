@@ -1,10 +1,19 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, Trash2 } from "lucide-react";
-import { fetchProjects, fetchClients, deleteProject } from "@/lib/ops-api";
+import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2 } from "lucide-react";
+import { fetchProjects, fetchClients, deleteProject, duplicateProject, archiveProject } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { NewProjectDialog } from "@/components/projects/NewProjectDialog";
+import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
+import { ProjectDetailSheet } from "@/components/projects/ProjectDetailSheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/projetos")({
@@ -17,14 +26,35 @@ function ProjetosPage() {
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const clientById = new Map(clients.map((c) => [c.id, c]));
+  const editingProject = editingId ? projects.find((p) => p.id === editingId) ?? null : null;
 
   const delMut = useMutation({
     mutationFn: (id: string) => deleteProject(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Projeto removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const dupMut = useMutation({
+    mutationFn: (id: string) => duplicateProject(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Projeto duplicado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const archiveMut = useMutation({
+    mutationFn: (id: string) => archiveProject(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["projects"] });
+      toast.success("Projeto arquivado");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -60,10 +90,10 @@ function ProjetosPage() {
               const c = p.client_id ? clientById.get(p.client_id) : null;
               return (
                 <div key={p.id} className="relative group">
-                  <Link
-                    to="/projetos/$projectId"
-                    params={{ projectId: p.id }}
-                    className="block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(p.id)}
+                    className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
                   >
                     {p.cover_url && (
                       <img src={p.cover_url} alt="" className="w-full h-24 rounded-lg object-cover mb-3" />
@@ -83,21 +113,45 @@ function ProjetosPage() {
                         Prazo · {p.due_date}
                       </div>
                     )}
-                  </Link>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (confirm(`Remover "${p.name}"? Esta ação não pode ser desfeita.`)) {
-                        delMut.mutate(p.id);
-                      }
-                    }}
-                    className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
-                    aria-label="Excluir projeto"
-                  >
-                    <Trash2 className="size-4" />
                   </button>
+                  <div className="absolute top-3 right-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="p-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-surface-elevated transition"
+                          aria-label="Ações"
+                        >
+                          <MoreVertical className="size-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => setSelectedId(p.id)} className="gap-2">
+                          <Eye className="size-4" /> Visualizar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setEditingId(p.id)} className="gap-2">
+                          <Pencil className="size-4" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => dupMut.mutate(p.id)} className="gap-2">
+                          <Copy className="size-4" /> Duplicar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => archiveMut.mutate(p.id)} className="gap-2">
+                          <Archive className="size-4" /> Arquivar
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => {
+                            if (confirm(`Remover "${p.name}"? Esta ação não pode ser desfeita.`)) {
+                              delMut.mutate(p.id);
+                            }
+                          }}
+                          className="gap-2 text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="size-4" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
               );
             })}
@@ -106,6 +160,18 @@ function ProjetosPage() {
       </div>
 
       <NewProjectDialog open={open} onOpenChange={setOpen} />
+      <ProjectDetailSheet
+        projectId={selectedId}
+        open={selectedId !== null}
+        onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+      />
+      {editingProject && (
+        <EditProjectDialog
+          project={editingProject}
+          open={editingId !== null}
+          onOpenChange={(v) => { if (!v) setEditingId(null); }}
+        />
+      )}
     </div>
   );
 }

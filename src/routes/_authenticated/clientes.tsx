@@ -1,11 +1,12 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
+import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown } from "lucide-react";
 import { fetchClients, deleteClient } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewClientDialog } from "@/components/clients/NewClientDialog";
+import { ClientDetailSheet } from "@/components/clients/ClientDetailSheet";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { toast } from "sonner";
 
@@ -29,6 +30,7 @@ function ClientesPage() {
   });
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortKey>("name");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   function changeView(v: "cards" | "list") {
     setView(v);
@@ -147,10 +149,10 @@ function ClientesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((c) => (
               <div key={c.id} className="relative group">
-                <Link
-                  to="/clientes/$clientId"
-                  params={{ clientId: c.id }}
-                  className="block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(c.id)}
+                  className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div
@@ -176,7 +178,7 @@ function ClientesPage() {
                   <div className="mt-3 text-[10px] capitalize text-foreground/40">
                     {c.status === "active" ? "● Ativo" : c.status}
                   </div>
-                </Link>
+                </button>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -214,10 +216,10 @@ function ClientesPage() {
                   {filtered.map((c) => (
                     <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-surface-elevated transition">
                       <td className="px-4 py-3">
-                        <Link
-                          to="/clientes/$clientId"
-                          params={{ clientId: c.id }}
-                          className="flex items-center gap-3 min-w-0"
+                        <button
+                          type="button"
+                          onClick={() => setSelectedId(c.id)}
+                          className="flex items-center gap-3 min-w-0 text-left w-full"
                         >
                           <div
                             className="size-9 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
@@ -233,7 +235,7 @@ function ClientesPage() {
                             <div className="font-semibold truncate hover:text-primary">{c.company || c.name}</div>
                             {c.email && <div className="text-[11px] text-foreground/50 truncate">{c.email}</div>}
                           </div>
-                        </Link>
+                        </button>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-[10px] capitalize px-2 py-1 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
@@ -266,10 +268,10 @@ function ClientesPage() {
             <ul className="md:hidden divide-y divide-border">
               {filtered.map((c) => (
                 <li key={c.id} className="relative">
-                  <Link
-                    to="/clientes/$clientId"
-                    params={{ clientId: c.id }}
-                    className="flex items-center gap-3 p-4 pr-12"
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(c.id)}
+                    className="flex items-center gap-3 p-4 pr-12 text-left w-full"
                   >
                     <div
                       className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
@@ -290,7 +292,7 @@ function ClientesPage() {
                         {c.email && <span className="text-[11px] text-foreground/50 truncate">{c.email}</span>}
                       </div>
                     </div>
-                  </Link>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -309,6 +311,11 @@ function ClientesPage() {
       </div>
 
       <NewClientDialog open={open} onOpenChange={setOpen} />
+      <ClientDetailSheet
+        clientId={selectedId}
+        open={selectedId !== null}
+        onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+      />
     </div>
   );
 }
