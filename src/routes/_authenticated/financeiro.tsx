@@ -77,13 +77,17 @@ export const Route = createFileRoute("/_authenticated/financeiro")({
   component: FinanceiroPage,
 });
 
-function defaultPeriod() {
-  const now = new Date();
+function monthPeriod(year: number, month0: number) {
   return {
-    from: new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10),
-    to: new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10),
+    from: new Date(year, month0, 1).toISOString().slice(0, 10),
+    to: new Date(year, month0 + 1, 0).toISOString().slice(0, 10),
   };
 }
+
+const MONTH_NAMES_PT = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
 
 function FinanceiroPage() {
   const qc = useQueryClient();
