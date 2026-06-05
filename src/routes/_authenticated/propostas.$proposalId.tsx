@@ -506,16 +506,25 @@ export function ProposalEditorContent({
                     <Input
                       type="number"
                       value={form.monthly_investment || ""}
+                      onFocus={() => setIsEditing("monthly_investment")}
                       onChange={(e) => {
                         const val = Number(e.target.value);
                         setForm(f => ({ ...f, monthly_investment: val }));
                       }}
                       onBlur={() => {
-                        // Persist the value to the database items when user stops typing
+                        setIsEditing(null);
                         const val = form.monthly_investment;
-                        if (items.length > 0) {
-                          const first = items[0];
+                        
+                        // Consolidated monthly items logic to avoid "1000 + 3" issues
+                        const monthlyItems = items.filter(i => i.recurrence === "monthly");
+                        if (monthlyItems.length > 0) {
+                          const first = monthlyItems[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "monthly", proposal_id: proposalId });
+                          
+                          // If there are more items, they are likely old data causing sum errors (e.g. 1000 + 3)
+                          if (monthlyItems.length > 1) {
+                            monthlyItems.slice(1).forEach(item => delItemMut.mutate(item.id));
+                          }
                         } else {
                           itemMut.mutate({ 
                             proposal_id: proposalId, 
