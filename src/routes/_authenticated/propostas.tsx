@@ -119,7 +119,7 @@ function ProposalsPage() {
     mutationFn: () => {
       const recurring_months =
         form.contract_type === "mensal"
-          ? form.contract_term === "monthly"
+          ? form.contract_term === "monthly" || !form.contract_term
             ? 12 // Default to 12 if "sem prazo" but recurring
             : form.contract_term === "3_months"
               ? 3
