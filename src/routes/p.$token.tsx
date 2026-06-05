@@ -284,6 +284,27 @@ function PublicProposalView() {
           )}
         </div>
 
+        {/* Investment Details */}
+        <div className="px-8 py-6 border-b border-slate-100 bg-slate-50/50">
+          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+            Composição do Investimento
+          </h2>
+          <div className="space-y-3">
+            {grouped.monthly.length > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-600">Investimento Mensal (Recorrente)</span>
+                <span className="font-semibold">{formatCurrency(proposal.monthly_investment)}</span>
+              </div>
+            )}
+            {grouped.one_time.length > 0 && (
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-slate-600">Serviços Pontuais</span>
+                <span className="font-semibold">{formatCurrency(proposal.one_time_investment)}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Investment */}
         <div
           className="px-8 py-8 border-b border-slate-100"
