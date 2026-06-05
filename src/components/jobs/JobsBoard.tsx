@@ -1,0 +1,239 @@
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { Plus, Search } from "lucide-react";
+import { format } from "date-fns";
+import {
+  fetchJobStages,
+  fetchJobs,
+  moveJob,
+  priorityColor,
+  priorityLabel,
+  type Job,
+  type JobStage,
+} from "@/lib/ops-api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NewJobDialog } from "./NewJobDialog";
+import { JobSheet } from "./JobSheet";
+import { toast } from "sonner";
+
+export function JobsBoard({
+  projectId,
+  clientId,
+  title = "Jobs",
+  eyebrow = "Operação · Jobs",
+}: {
+  projectId?: string;
+  clientId?: string;
+  title?: string;
+  eyebrow?: string;
+}) {
+  const qc = useQueryClient();
+  const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
+  const filters = { projectId, clientId };
+  const queryKey = ["jobs", filters];
+  const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
+
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [open, setOpen] = useState<Job | null>(null);
+  const [newStage, setNewStage] = useState<JobStage | null>(null);
+  const [query, setQuery] = useState("");
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return jobs;
+    return jobs.filter((j) => j.title.toLowerCase().includes(q));
+  }, [jobs, query]);
+
+  const byStage = useMemo(() => {
+    const m = new Map<string, Job[]>();
+    for (const s of stages) m.set(s.id, []);
+    for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
+    return m;
+  }, [stages, filtered]);
+
+  const moveMut = useMutation({
+    mutationFn: ({ id, stage }: { id: string; stage: JobStage }) =>
+      moveJob(id, stage.id, { done_at: stage.is_done ? new Date().toISOString() : null }),
+    onMutate: async ({ id, stage }) => {
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData<Job[]>(queryKey);
+      qc.setQueryData<Job[]>(queryKey, (old) =>
+        (old ?? []).map((j) => (j.id === id ? { ...j, stage_id: stage.id } : j)),
+      );
+      return { prev };
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
+      toast.error("Não foi possível mover o job");
+    },
+  });
+
+  function onDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+  }
+  function onDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    const overId = e.over?.id ? String(e.over.id) : null;
+    if (!overId) return;
+    const stage = stages.find((s) => s.id === overId);
+    const job = jobs.find((j) => j.id === e.active.id);
+    if (!stage || !job || job.stage_id === overId) return;
+    moveMut.mutate({ id: String(e.active.id), stage });
+  }
+
+  const activeJob = activeId ? jobs.find((j) => j.id === activeId) : null;
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
+        <div>
+          <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+            {eyebrow}
+          </span>
+          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+            {title}
+          </h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              placeholder="Buscar job…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="pl-9 h-10 w-64 bg-surface border-border"
+            />
+          </div>
+          <Button
+            onClick={() => setNewStage(stages[0] ?? null)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
+          >
+            <Plus className="size-4" /> Novo job
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-x-auto px-6 lg:px-10 pb-10">
+        <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+          <div className="flex gap-4 min-w-max h-full">
+            {stages.map((stage) => {
+              const cards = byStage.get(stage.id) ?? [];
+              return (
+                <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
+                  {cards.map((j) => (
+                    <JobCard key={j.id} job={j} onClick={() => setOpen(j)} />
+                  ))}
+                </Column>
+              );
+            })}
+          </div>
+          <DragOverlay>{activeJob ? <JobCardInner job={activeJob} dragging /> : null}</DragOverlay>
+        </DndContext>
+      </div>
+
+      <NewJobDialog
+        stage={newStage}
+        open={!!newStage}
+        onOpenChange={(o) => !o && setNewStage(null)}
+        defaultProjectId={projectId}
+        defaultClientId={clientId}
+      />
+      <JobSheet job={open} stages={stages} onClose={() => setOpen(null)} />
+    </div>
+  );
+}
+
+function Column({
+  stage,
+  count,
+  onAdd,
+  children,
+}: {
+  stage: JobStage;
+  count: number;
+  onAdd: () => void;
+  children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id: stage.id });
+  return (
+    <div className="w-[300px] shrink-0 flex flex-col">
+      <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center gap-2">
+          <span className="size-2 rounded-full" style={{ background: stage.color }} />
+          <span className="font-display font-semibold text-sm tracking-tight">{stage.name}</span>
+          <span className="text-[10px] text-foreground/40 font-mono">{count}</span>
+        </div>
+        <button
+          onClick={onAdd}
+          className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
+          aria-label={`Adicionar em ${stage.name}`}
+        >
+          <Plus className="size-3.5" />
+        </button>
+      </div>
+      <div
+        ref={setNodeRef}
+        className={`flex-1 rounded-xl border border-dashed p-2 space-y-2 transition-colors ${
+          isOver ? "border-primary/60 bg-primary/5" : "border-border/60 bg-surface/40"
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
+  return (
+    <div
+      ref={setNodeRef}
+      {...listeners}
+      {...attributes}
+      onClick={onClick}
+      className={`cursor-grab active:cursor-grabbing ${isDragging ? "opacity-30" : ""}`}
+    >
+      <JobCardInner job={job} />
+    </div>
+  );
+}
+
+function JobCardInner({ job, dragging }: { job: Job; dragging?: boolean }) {
+  return (
+    <div
+      className={`bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition ${
+        dragging ? "shadow-2xl rotate-1" : ""
+      }`}
+    >
+      <div className="flex items-start gap-2">
+        <span
+          className="size-1.5 rounded-full mt-1.5 shrink-0"
+          style={{ background: priorityColor(job.priority) }}
+          title={priorityLabel(job.priority)}
+        />
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-sm leading-snug">{job.title}</div>
+          {job.due_date && (
+            <div className="text-[10px] text-foreground/40 font-mono mt-1.5 uppercase tracking-wider">
+              {format(new Date(job.due_date), "dd MMM")}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
