@@ -32,8 +32,8 @@ import { toast } from "sonner";
 export function JobsBoard({
   projectId,
   clientId,
-  title = "Jobs",
-  eyebrow = "Operação · Jobs",
+  title = "Tarefas",
+  eyebrow = "Operação · Tarefas",
 }: {
   projectId?: string;
   clientId?: string;
@@ -79,7 +79,7 @@ export function JobsBoard({
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
-      toast.error("Não foi possível mover o job");
+      toast.error("Não foi possível mover a tarefa");
     },
   });
 
@@ -113,7 +113,7 @@ export function JobsBoard({
           <div className="relative">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar job…"
+              placeholder="Buscar tarefa…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9 h-10 w-64 bg-surface border-border"
@@ -123,7 +123,7 @@ export function JobsBoard({
             onClick={() => setNewStage(stages[0] ?? null)}
             className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
           >
-            <Plus className="size-4" /> Novo job
+            <Plus className="size-4" /> Nova tarefa
           </Button>
         </div>
       </div>
@@ -205,7 +205,7 @@ function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
     mutationFn: () => deleteJob(job.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
-      toast.success("Job removido");
+      toast.success("Tarefa removida");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -228,7 +228,7 @@ function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
           if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
         }}
         className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition"
-        aria-label="Excluir job"
+        aria-label="Excluir tarefa"
       >
         <Trash2 className="size-3.5" />
       </button>

@@ -32,7 +32,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Comercial",
     items: [
-      { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
+      { title: "Painel", url: "/", icon: LayoutDashboard, module: "dashboard" },
       { title: "CRM", url: "/crm", icon: KanbanSquare, module: "crm" },
       { title: "Propostas", url: "/propostas", icon: FileText, module: "propostas" },
     ],
@@ -42,7 +42,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     items: [
       { title: "Clientes", url: "/clientes", icon: Users, module: "clientes" },
       { title: "Projetos", url: "/projetos", icon: FolderKanban, module: "projetos" },
-      { title: "Jobs", url: "/jobs", icon: CheckSquare, module: "jobs" },
+      { title: "Tarefas", url: "/jobs", icon: CheckSquare, module: "jobs" },
     ],
   },
   {

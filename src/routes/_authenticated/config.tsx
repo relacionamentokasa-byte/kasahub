@@ -68,7 +68,7 @@ function ConfigPage() {
           </span>
           <h1 className="font-display text-3xl font-bold mt-1">Configurações da agência</h1>
           <p className="text-foreground/60 text-sm mt-1">
-            Dados, branding, notificações e integrações do KASA OS.
+            Dados, identidade visual, notificações e integrações do KASA OS.
           </p>
         </div>
         <Button
@@ -90,7 +90,7 @@ function ConfigPage() {
       <Tabs defaultValue="agency" className="space-y-6">
         <TabsList>
           <TabsTrigger value="agency" className="gap-2"><Building2 className="size-3.5" /> Identidade</TabsTrigger>
-          <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Branding</TabsTrigger>
+          <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Identidade Visual</TabsTrigger>
           <TabsTrigger value="perms" className="gap-2"><Shield className="size-3.5" /> Perfis e Permissões</TabsTrigger>
           <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
           <TabsTrigger value="contracts" className="gap-2"><FileText className="size-3.5" /> Contratos</TabsTrigger>
@@ -178,7 +178,7 @@ function ConfigPage() {
             {form.logo_url && (
               <div className="mt-6 p-6 rounded-lg bg-background/40 border border-border flex items-center gap-4">
                 <img src={form.logo_url} alt="Logo" className="h-12 w-auto" />
-                <span className="text-xs text-foreground/40 font-mono-kasa capitalize">Preview</span>
+                <span className="text-xs text-foreground/40 font-mono-kasa capitalize">Visualização</span>
               </div>
             )}
           </Card>
@@ -299,7 +299,7 @@ function ThemePreference() {
       <div>
         <p className="font-display text-lg font-semibold">Tema da interface</p>
         <p className="text-xs text-foreground/50">
-          Sua preferência é salva localmente e aplicada apenas para você. A sidebar mantém a identidade Kasa em ambos os temas.
+          Sua preferência é salva localmente e aplicada apenas para você. A barra lateral mantém a identidade Kasa em ambos os temas.
         </p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
