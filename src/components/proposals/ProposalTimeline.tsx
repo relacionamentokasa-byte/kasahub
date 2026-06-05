@@ -24,9 +24,9 @@ export function ProposalTimeline({ proposalId }: { proposalId: string }) {
               <li key={e.id} className="ml-4">
                 <span className="absolute -left-[5px] mt-1.5 size-2.5 rounded-full bg-primary ring-2 ring-surface" />
                 <p className={`text-sm font-medium ${meta.color}`}>{meta.label}</p>
-                {e.payload?.reason && (
+                {(e.payload as any)?.reason && (
                   <p className="text-[11px] text-foreground/60 mt-1 italic">
-                    Motivo: {String(e.payload.reason)}
+                    Motivo: {String((e.payload as any).reason)}
                   </p>
                 )}
                 <p className="text-[11px] text-foreground/50 mt-1">
