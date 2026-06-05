@@ -698,14 +698,14 @@ export function ProposalEditorContent({
               <>
                 <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Investimento Mensal</div>
                 <div className="font-display text-4xl font-bold mt-1 text-primary">
-                  {formatCurrency(totals.monthly_investment)}
+                  {formatCurrency(form.monthly_investment)}
                   <span className="text-sm font-normal text-foreground/40 ml-2">/mês</span>
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
                   <Row label="Prazo" value={`${form.recurring_months} meses`} />
                   <Row 
                     label="Investimento Total" 
-                    value={formatCurrency(totals.monthly_investment * form.recurring_months)} 
+                    value={formatCurrency(form.monthly_investment * form.recurring_months)} 
                     bold 
                   />
                 </div>
@@ -714,14 +714,14 @@ export function ProposalEditorContent({
               <>
                 <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Valor do Projeto</div>
                 <div className="font-display text-4xl font-bold mt-1 text-primary">
-                  {formatCurrency(totals.one_time_investment)}
+                  {formatCurrency(form.one_time_investment)}
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
                   <Row 
                     label="Parcelamento" 
-                    value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} 
+                    value={`${form.installments}x de ${formatCurrency(form.one_time_investment / (form.installments || 1))}`} 
                   />
-                  <Row label="Total" value={formatCurrency(totals.one_time_investment)} bold />
+                  <Row label="Total" value={formatCurrency(form.one_time_investment)} bold />
                 </div>
               </>
             )}
