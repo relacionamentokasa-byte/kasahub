@@ -161,6 +161,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
           <TabsList className="bg-transparent border-0 h-auto p-0 gap-1">
             {[
               ["overview", "Visão geral"],
+              ["servicos", "Serviços"],
               ["projects", "Projetos"],
               ["jobs", "Jobs"],
               ["finance", "Financeiro"],
