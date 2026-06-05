@@ -682,7 +682,8 @@ export function ProposalEditorContent({
             </span>
             {form.contract_type === "recurring" ? (
               <>
-                <div className="font-display text-4xl font-bold mt-2 text-primary">
+                <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Investimento Mensal</div>
+                <div className="font-display text-4xl font-bold mt-1 text-primary">
                   {formatCurrency(totals.monthly_investment)}
                   <span className="text-sm font-normal text-foreground/40 ml-2">/mês</span>
                 </div>
@@ -693,7 +694,8 @@ export function ProposalEditorContent({
               </>
             ) : (
               <>
-                <div className="font-display text-4xl font-bold mt-2 text-primary">
+                <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Valor do Projeto</div>
+                <div className="font-display text-4xl font-bold mt-1 text-primary">
                   {formatCurrency(totals.one_time_investment)}
                 </div>
                 <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
