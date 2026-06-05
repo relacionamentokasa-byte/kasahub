@@ -409,7 +409,7 @@ function ProposalsPage() {
                           // If adding a new service, pull its default scope
                           if (newIds.length > oldIds.length) {
                             const addedId = newIds.find(id => !oldIds.includes(id));
-                            const service = services.find(s => s.id === addedId);
+                            const service = services.find((s: Service) => s.id === addedId);
                             if (service && service.default_scope) {
                               const scopeToAdd = (service.default_scope as string[]).filter(
                                 item => !form.scope.includes(item)
