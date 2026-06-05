@@ -91,7 +91,7 @@ export function AppSidebar() {
             )}
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => {
+                {group.items.filter((item) => !(item as { ceoOnly?: boolean }).ceoOnly || isCeo).map((item) => {
                   const active = isActive(item.url);
                   return (
                     <SidebarMenuItem key={item.title}>
