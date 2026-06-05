@@ -4,8 +4,9 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft, Calendar, Mail, Phone, Building2, FileText,
-  Globe, Save, Loader2, UserPlus, Trash2, KeyRound, ExternalLink, Copy, Check,
+  Globe, Save, Loader2, UserPlus, Trash2, KeyRound, ExternalLink, Copy, Check, Pencil,
 } from "lucide-react";
+import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
 
 function ClientDetail() {
   const { clientId } = useParams({ from: "/_authenticated/clientes/$clientId" });
+  const [editOpen, setEditOpen] = useState(false);
   const { data: client } = useQuery({ queryKey: ["client", clientId], queryFn: () => fetchClient(clientId) });
   const { data: projects = [] } = useQuery({
     queryKey: ["projects", { clientId }],
@@ -46,13 +48,21 @@ function ClientDetail() {
           <ArrowLeft className="size-3.5" /> Clientes
         </Link>
         <div className="flex items-start gap-4">
-          <div
-            className="size-16 rounded-2xl grid place-items-center font-display font-bold text-2xl shrink-0"
-            style={{ background: `${client.brand_primary}22`, color: client.brand_primary ?? "#FFBC45" }}
-          >
-            {(client.company || client.name).charAt(0).toUpperCase()}
-          </div>
-          <div className="min-w-0">
+          {client.logo_url ? (
+            <img
+              src={client.logo_url}
+              alt=""
+              className="size-16 rounded-2xl object-cover shrink-0 border border-border"
+            />
+          ) : (
+            <div
+              className="size-16 rounded-2xl grid place-items-center font-display font-bold text-2xl shrink-0"
+              style={{ background: `${client.brand_primary}22`, color: client.brand_primary ?? "#FFBC45" }}
+            >
+              {(client.company || client.name).charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div className="min-w-0 flex-1">
             <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
               Cliente · 360°
             </span>
