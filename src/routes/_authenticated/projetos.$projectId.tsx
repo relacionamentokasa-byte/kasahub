@@ -15,6 +15,10 @@ export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
 
 function ProjectDetail() {
   const { projectId } = useParams({ from: "/_authenticated/projetos/$projectId" });
+  return <ProjectDetailContent projectId={projectId} />;
+}
+
+export function ProjectDetailContent({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
   const { data: project } = useQuery({
     queryKey: ["project", projectId],
