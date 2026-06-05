@@ -152,6 +152,7 @@ function ProposalsPage() {
         payment_method: form.payment_method,
         first_due_date: form.first_due_date,
         notes: form.notes || null,
+        scope: form.scope,
       });
     },
     onSuccess: async (p) => {
