@@ -284,6 +284,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                 <thead className="text-left text-[10px] capitalize text-foreground/40 border-b border-border">
                   <tr>
                     <th className="py-2.5 px-4">Descrição</th>
+                    <th className="py-2.5 px-4">Origem</th>
                     <th className="py-2.5 px-4">Tipo</th>
                     <th className="py-2.5 px-4">Vencimento</th>
                     <th className="py-2.5 px-4">Status</th>
@@ -291,21 +292,29 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                   </tr>
                 </thead>
                 <tbody>
-                  {(transactions as Array<{ id: string; description: string; kind: string; status: string; due_date: string; amount: number }>).map((t) => (
-                    <tr key={t.id} className="border-b border-border/40">
-                      <td className="py-3 px-4">{t.description}</td>
-                      <td className="py-3 px-4 text-foreground/60">{t.kind === "income" ? "Receita" : "Despesa"}</td>
-                      <td className="py-3 px-4 text-foreground/60">{fmtDate(t.due_date)}</td>
-                      <td className="py-3 px-4">
-                        <span className={`text-[10px] capitalize px-2 py-1 rounded ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>
-                          {t.status === "paid" ? "Pago" : "Pendente"}
-                        </span>
-                      </td>
-                      <td className={`py-3 px-4 text-right ${t.kind === "income" ? "text-emerald-400" : "text-foreground/80"}`}>
-                        {t.kind === "income" ? "+" : "−"} {BRL(Number(t.amount))}
-                      </td>
-                    </tr>
-                  ))}
+                  {(transactions as Array<{ id: string; description: string; kind: string; status: string; due_date: string; amount: number; contract_id: string }>).map((t) => {
+                    const contract = (contracts as any[]).find(c => c.id === t.contract_id);
+                    return (
+                      <tr key={t.id} className="border-b border-border/40">
+                        <td className="py-3 px-4">{t.description}</td>
+                        <td className="py-3 px-4 text-[10px] text-foreground/50 uppercase">
+                          {contract ? (
+                            <span className="flex items-center gap-1"><FileSignature className="size-3 text-primary" /> {contract.title}</span>
+                          ) : "—"}
+                        </td>
+                        <td className="py-3 px-4 text-foreground/60">{t.kind === "income" ? "Receita" : "Despesa"}</td>
+                        <td className="py-3 px-4 text-foreground/60">{fmtDate(t.due_date)}</td>
+                        <td className="py-3 px-4">
+                          <span className={`text-[10px] capitalize px-2 py-1 rounded ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>
+                            {t.status === "paid" ? "Pago" : "Pendente"}
+                          </span>
+                        </td>
+                        <td className={`py-3 px-4 text-right ${t.kind === "income" ? "text-emerald-400" : "text-foreground/80"}`}>
+                          {t.kind === "income" ? "+" : "−"} {BRL(Number(t.amount))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
