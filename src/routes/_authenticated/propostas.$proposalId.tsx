@@ -13,7 +13,8 @@ import {
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
-import { fetchServices, type Service } from "@/lib/services-api";
+import { fetchServices, fetchServiceTemplate, type Service } from "@/lib/services-api";
+import { fetchContractTemplates, replaceContractVariables } from "@/lib/contracts-api";
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
@@ -125,6 +126,10 @@ export function ProposalEditorContent({
     payment_method: "boleto",
     monthly_investment: 0,
     one_time_investment: 0,
+    contract_template_id: "",
+    contract_content: "",
+    signature_client: "",
+    signature_agency: "",
   });
 
   useEffect(() => {
@@ -157,6 +162,10 @@ export function ProposalEditorContent({
         payment_method: (p.payment_method as string) ?? "boleto",
         monthly_investment: Number(proposal.monthly_investment || 0),
         one_time_investment: Number(proposal.one_time_investment || 0),
+        contract_template_id: (p.contract_template_id as string) ?? "",
+        contract_content: (p.contract_content as string) ?? "",
+        signature_client: (p.signature_client as string) ?? "",
+        signature_agency: (p.signature_agency as string) ?? "",
       });
     }
   }, [proposal]);
@@ -194,6 +203,10 @@ export function ProposalEditorContent({
         recurring_months: f.recurring_months,
         scope: f.scope,
         payment_method: f.payment_method,
+        contract_template_id: f.contract_template_id || null,
+        contract_content: f.contract_content || null,
+        signature_client: f.signature_client || null,
+        signature_agency: f.signature_agency || null,
       } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
@@ -460,15 +473,48 @@ export function ProposalEditorContent({
               <F label="Serviços contratados">
                 <ServicesMultiSelect
                   value={form.service_ids}
-                  onChange={(ids) => {
+                  onChange={async (ids) => {
                     const oldIds = form.service_ids;
                     const newIds = ids;
                     
+                    let nextForm = { ...form, service_ids: newIds };
+
                     if (newIds.length > oldIds.length) {
                       const addedId = newIds.find(id => !oldIds.includes(id));
                       const service = services.find((s: Service) => s.id === addedId);
-                      if (service && service.default_scope) {
-                        const scopeToAdd = (service.default_scope as string[]).filter(
+                      
+                      if (service) {
+                        // 1. Load scope
+                        if (service.default_scope) {
+                          const scopeToAdd = (service.default_scope as string[]).filter(
+                            (item) => !nextForm.scope.includes(item),
+                          );
+                          nextForm.scope = [...nextForm.scope, ...scopeToAdd];
+                        }
+
+                        // 2. Load Contract Template if not set
+                        if (service.contract_template_id && !nextForm.contract_template_id) {
+                          const { data: templates } = await supabase
+                            .from("contract_templates")
+                            .select("*")
+                            .eq("id", service.contract_template_id)
+                            .single();
+                          
+                          if (templates) {
+                            nextForm.contract_template_id = templates.id;
+                            nextForm.contract_content = templates.content;
+                          }
+                        }
+
+                        // 3. (Future) Load Job Template
+                        // This is handled at approval time, but we could list them here too.
+                      }
+                    }
+                    
+                    setForm(nextForm);
+                  }}
+                />
+              </F>
                           item => !form.scope.includes(item)
                         );
                         setForm({ 

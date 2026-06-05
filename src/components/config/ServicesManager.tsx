@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { fetchContractTemplates } from "@/lib/contracts-api";
 import {
   Archive,
   ArchiveRestore,
@@ -216,6 +217,12 @@ function ServiceFormDialog({
     description: service?.description ?? "",
     is_active: service?.is_active ?? true,
     default_scope: (service?.default_scope as string[]) ?? [],
+    contract_template_id: (service as any)?.contract_template_id ?? "",
+  });
+
+  const { data: templates = [] } = useQuery({
+    queryKey: ["contract-templates"],
+    queryFn: fetchContractTemplates,
   });
 
   const saveMut = useMutation({
@@ -226,7 +233,8 @@ function ServiceFormDialog({
         description: form.description.trim() || null,
         is_active: form.is_active,
         default_scope: form.default_scope,
-      };
+        contract_template_id: form.contract_template_id || null,
+      } as any;
       if (!payload.name) throw new Error("Nome obrigatório");
       if (service) return updateService(service.id, payload);
       return createService(payload);
@@ -284,6 +292,21 @@ function ServiceFormDialog({
                   </span>
                 </div>
               </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs">Template Contratual Padrão</Label>
+              <select
+                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                value={form.contract_template_id}
+                onChange={(e) => setForm({ ...form, contract_template_id: e.target.value })}
+              >
+                <option value="">Sem contrato padrão</option>
+                {templates.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Descrição</Label>
