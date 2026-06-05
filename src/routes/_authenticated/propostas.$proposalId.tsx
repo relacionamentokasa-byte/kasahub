@@ -100,14 +100,37 @@ function ProposalEditor() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  async function persistTotalsFor(nextItems: ProposalItem[]) {
+    const t = recalcProposalTotals(nextItems);
+    await updateProposal(proposalId, {
+      monthly_investment: t.monthly_investment,
+      one_time_investment: t.one_time_investment,
+      total: t.total,
+    });
+    qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+    qc.invalidateQueries({ queryKey: ["proposals"] });
+  }
+
   const itemMut = useMutation({
     mutationFn: (item: Partial<ProposalItem> & { proposal_id: string; title: string }) =>
       upsertProposalItem(item),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["proposal", proposalId, "items"] }),
+    onSuccess: async (saved) => {
+      const next = items.some((i) => i.id === saved.id)
+        ? items.map((i) => (i.id === saved.id ? saved : i))
+        : [...items, saved];
+      qc.setQueryData(["proposal", proposalId, "items"], next);
+      await persistTotalsFor(next);
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
   const delItemMut = useMutation({
     mutationFn: (id: string) => deleteProposalItem(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["proposal", proposalId, "items"] }),
+    onSuccess: async (_d, id) => {
+      const next = items.filter((i) => i.id !== id);
+      qc.setQueryData(["proposal", proposalId, "items"], next);
+      await persistTotalsFor(next);
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   function addItem(recurrence: "monthly" | "one_time") {
