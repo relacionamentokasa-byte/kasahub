@@ -343,7 +343,7 @@ function ItemRow({
   onDelete: () => void;
 }) {
   const [local, setLocal] = useState(item);
-  useEffect(() => setLocal(item), [item.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => setLocal(item), [item.id, item.title, item.quantity, item.unit_price, item.recurrence]);
 
   function commit(patch: Partial<ProposalItem>) {
     const merged = { ...local, ...patch };
