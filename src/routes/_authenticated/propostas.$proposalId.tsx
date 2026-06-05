@@ -213,6 +213,7 @@ export function ProposalEditorContent({
         contract_content: f.contract_content || null,
         signature_client: f.signature_client || null,
         signature_agency: f.signature_agency || null,
+        notes: f.notes || null,
       } as any);
     },
     onSuccess: (_d, vars) => {
