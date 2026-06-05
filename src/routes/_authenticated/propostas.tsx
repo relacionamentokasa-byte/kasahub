@@ -151,6 +151,7 @@ function ProposalsPage() {
         total: form.contract_type === "mensal" ? form.monthly_investment : form.one_time_investment,
         contract_type: form.contract_type === "mensal" ? "recurring" : "one_time",
         payment_kind: form.contract_type === "mensal" ? "recurring" : "one_time",
+        auto_create_jobs: true,
         contract_term: form.contract_term,
         installments: form.contract_type === "avulso" ? form.installments : 1,
         recurring_months: recurring_months,
