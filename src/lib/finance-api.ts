@@ -208,6 +208,14 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
   const receivable = periodTx.filter((t) => t.kind === "income" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
   const payable = periodTx.filter((t) => t.kind === "expense" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
 
+  // Aliases requested by Financeiro redesign
+  const receitasPrevistas = receivable;            // pending income in period
+  const receitasRecebidas = incomePaid;            // paid income in period
+  const despesasPagas = expensePaid;               // paid expense in period
+  const parcelasFuturas = txs
+    .filter((t) => t.kind === "income" && t.status === "pending" && t.due_date > to)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
   const activeContracts = contracts.filter((c) => c.status === "active");
   const mrr = activeContracts.reduce((s, c) => s + Number(c.monthly_value), 0);
   const arr = mrr * 12;
