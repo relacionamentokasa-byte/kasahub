@@ -10,6 +10,7 @@ import {
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { ClientContracts } from "@/components/clients/ClientContracts";
+import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
