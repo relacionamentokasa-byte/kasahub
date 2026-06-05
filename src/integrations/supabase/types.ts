@@ -1032,6 +1032,7 @@ export type Database = {
           operational_id: string | null
           owner_id: string | null
           payment_kind: string
+          payment_method: string | null
           public_token: string
           recurring_months: number
           responsible_id: string | null
@@ -1073,6 +1074,7 @@ export type Database = {
           operational_id?: string | null
           owner_id?: string | null
           payment_kind?: string
+          payment_method?: string | null
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
@@ -1114,6 +1116,7 @@ export type Database = {
           operational_id?: string | null
           owner_id?: string | null
           payment_kind?: string
+          payment_method?: string | null
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
