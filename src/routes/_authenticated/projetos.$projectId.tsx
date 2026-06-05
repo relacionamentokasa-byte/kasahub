@@ -69,6 +69,7 @@ function ProjectDetail() {
           </Button>
         </div>
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-foreground/50">
+          {client && (
             <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="hover:text-primary">
               {client.company || client.name}
             </Link>
