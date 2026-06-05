@@ -251,47 +251,138 @@ function ProposalsPage() {
                   autoFocus
                 />
               </Field>
-              <Field label="Cliente *">
-                <Select
-                  value={form.client_id || "__free__"}
-                  onValueChange={(v) => {
-                    if (v === "__free__") {
-                      setForm({ ...form, client_id: "", client_name: "", client_email: "" });
-                      return;
-                    }
-                    const c = clients.find((x) => x.id === v);
-                    setForm({
-                      ...form,
-                      client_id: v,
-                      client_name: c ? (c.company || c.name) : "",
-                      client_email: c?.email ?? "",
-                    });
-                  }}
-                >
-                  <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__free__">Cliente avulso (digitar)</SelectItem>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!form.client_id && (
-                  <Input
-                    className="mt-2"
-                    placeholder="Nome do cliente"
-                    value={form.client_name}
-                    onChange={(e) => setForm({ ...form, client_name: e.target.value })}
-                  />
-                )}
+
+              <Field label="Destino da proposta *">
+                <div className="grid grid-cols-2 gap-2 p-1 rounded-lg bg-background/40 border border-border">
+                  {(["client", "lead"] as const).map((k) => (
+                    <button
+                      key={k}
+                      type="button"
+                      onClick={() =>
+                        setForm({
+                          ...form,
+                          target_kind: k,
+                          client_id: "",
+                          lead_id: "",
+                          client_name: "",
+                          client_email: "",
+                        })
+                      }
+                      className={`text-sm py-2 rounded-md font-medium transition ${
+                        form.target_kind === k
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground/60 hover:text-foreground"
+                      }`}
+                    >
+                      {k === "client" ? "Cliente existente" : "Lead do CRM"}
+                    </button>
+                  ))}
+                </div>
               </Field>
-              <Field label="E-mail do cliente">
+
+              {form.target_kind === "client" ? (
+                <Field label="Cliente *">
+                  <Select
+                    value={form.client_id || "__free__"}
+                    onValueChange={(v) => {
+                      if (v === "__free__") {
+                        setForm({ ...form, client_id: "", client_name: "", client_email: "" });
+                        return;
+                      }
+                      const c = clients.find((x) => x.id === v);
+                      setForm({
+                        ...form,
+                        client_id: v,
+                        client_name: c ? (c.company || c.name) : "",
+                        client_email: c?.email ?? "",
+                      });
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__free__">Cliente avulso (digitar)</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!form.client_id && (
+                    <Input
+                      className="mt-2"
+                      placeholder="Nome do cliente"
+                      value={form.client_name}
+                      onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                    />
+                  )}
+                </Field>
+              ) : (
+                <Field label="Lead *">
+                  <Select
+                    value={form.lead_id || "__none__"}
+                    onValueChange={(v) => {
+                      if (v === "__none__") {
+                        setForm({ ...form, lead_id: "", client_name: "", client_email: "" });
+                        return;
+                      }
+                      const l = leads.find((x) => x.id === v);
+                      setForm({
+                        ...form,
+                        lead_id: v,
+                        client_name: l ? (l.company || l.name) : "",
+                        client_email: l?.email ?? "",
+                      });
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione um lead" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">Selecione…</SelectItem>
+                      {leads.map((l) => (
+                        <SelectItem key={l.id} value={l.id}>
+                          {l.name}{l.company ? ` · ${l.company}` : ""}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+
+              <Field label="E-mail do destinatário">
                 <Input
                   type="email"
                   value={form.client_email}
                   onChange={(e) => setForm({ ...form, client_email: e.target.value })}
                 />
               </Field>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Tipo de serviço">
+                  <Select
+                    value={form.service_type || "__none__"}
+                    onValueChange={(v) => setForm({ ...form, service_type: v === "__none__" ? "" : v })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">—</SelectItem>
+                      <SelectItem value="social_media">Gestão de Redes Sociais</SelectItem>
+                      <SelectItem value="ads">Tráfego pago</SelectItem>
+                      <SelectItem value="branding">Branding</SelectItem>
+                      <SelectItem value="website">Website / Landing</SelectItem>
+                      <SelectItem value="content">Conteúdo</SelectItem>
+                      <SelectItem value="video">Vídeo</SelectItem>
+                      <SelectItem value="consulting">Consultoria</SelectItem>
+                      <SelectItem value="implementation">Implantação</SelectItem>
+                      <SelectItem value="other">Outro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field label="Validade">
+                  <Input
+                    type="date"
+                    value={form.valid_until}
+                    onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+                  />
+                </Field>
+              </div>
 
               <Field label="Introdução">
                 <Textarea
