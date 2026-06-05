@@ -700,6 +700,7 @@ export function ProposalEditorContent({
                   <Row label="Parcelamento" value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} />
                   <Row label="Total" value={formatCurrency(totals.total)} bold />
                 </div>
+              </>
             )}
           </div>
 
