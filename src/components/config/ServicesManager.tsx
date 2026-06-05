@@ -225,6 +225,7 @@ function ServiceFormDialog({
         category: form.category.trim() || null,
         description: form.description.trim() || null,
         is_active: form.is_active,
+        default_scope: form.default_scope,
       };
       if (!payload.name) throw new Error("Nome obrigatório");
       if (service) return updateService(service.id, payload);
