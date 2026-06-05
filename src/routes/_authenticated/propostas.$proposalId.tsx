@@ -70,9 +70,11 @@ export function ProposalEditorContent({
     queryKey: ["proposal", proposalId, "items"],
     queryFn: () => fetchProposalItems(proposalId),
   });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
   const [form, setForm] = useState({
     title: "",
+    client_id: "",
     client_name: "",
     client_email: "",
     intro: "",
@@ -84,6 +86,7 @@ export function ProposalEditorContent({
     if (proposal) {
       setForm({
         title: proposal.title,
+        client_id: (proposal as { client_id?: string | null }).client_id ?? "",
         client_name: proposal.client_name,
         client_email: proposal.client_email ?? "",
         intro: proposal.intro ?? "",
@@ -100,6 +103,7 @@ export function ProposalEditorContent({
       const f = { ...form, ...(overrides ?? {}) };
       return updateProposal(proposalId, {
         title: f.title,
+        client_id: f.client_id || null,
         client_name: f.client_name,
         client_email: f.client_email || null,
         intro: f.intro || null,
@@ -108,10 +112,11 @@ export function ProposalEditorContent({
         monthly_investment: totals.monthly_investment,
         one_time_investment: totals.one_time_investment,
         total: totals.total,
-      });
+      } as Parameters<typeof updateProposal>[1]);
     },
     onSuccess: (_d, vars) => {
       if (vars?.status) setForm((p) => ({ ...p, status: vars.status! }));
+
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
       toast.success("Proposta salva");
