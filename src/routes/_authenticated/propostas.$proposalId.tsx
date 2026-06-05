@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
 import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
+import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -104,6 +105,7 @@ export function ProposalEditorContent({
     operational_id: "",
     contract_type: "recurring",
     service_type: "",
+    service_ids: [] as string[],
     briefing: "",
     payment_kind: "recurring" as "recurring" | "one_time" | "mixed",
     installments: 1,
@@ -131,6 +133,7 @@ export function ProposalEditorContent({
         operational_id: (p.operational_id as string) ?? (p.responsible_id as string) ?? "",
         contract_type: (p.contract_type as string) ?? "recurring",
         service_type: (p.service_type as string) ?? "",
+        service_ids: (p.service_ids as string[]) ?? [],
         briefing: (p.briefing as string) ?? "",
         payment_kind: ((p.payment_kind as string) ?? "recurring") as "recurring" | "one_time" | "mixed",
         installments: Number(p.installments ?? 1),
@@ -165,6 +168,7 @@ export function ProposalEditorContent({
         operational_id: f.operational_id || null,
         contract_type: f.contract_type,
         service_type: f.service_type || null,
+        service_ids: f.service_ids,
         briefing: f.briefing || null,
         payment_kind: f.payment_kind,
         installments: f.installments,
@@ -467,6 +471,12 @@ export function ProposalEditorContent({
                     ))}
                   </SelectContent>
                 </Select>
+              </F>
+              <F label="Serviços contratados">
+                <ServicesMultiSelect
+                  value={form.service_ids}
+                  onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                />
               </F>
               <F label="Tipo de contrato">
                 <Select

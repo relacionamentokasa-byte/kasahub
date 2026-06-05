@@ -911,6 +911,7 @@ export type Database = {
           public_token: string
           recurring_months: number
           responsible_id: string | null
+          service_ids: string[]
           service_type: string | null
           status: string
           target_kind: string
@@ -950,6 +951,7 @@ export type Database = {
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          service_ids?: string[]
           service_type?: string | null
           status?: string
           target_kind?: string
@@ -989,6 +991,7 @@ export type Database = {
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          service_ids?: string[]
           service_type?: string | null
           status?: string
           target_kind?: string
@@ -1006,6 +1009,125 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      service_job_checklist: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          order_index: number
+          template_job_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          template_job_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          order_index?: number
+          template_job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_job_checklist_template_job_id_fkey"
+            columns: ["template_job_id"]
+            isOneToOne: false
+            referencedRelation: "service_job_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      service_job_templates: {
+        Row: {
+          created_at: string
+          default_assignee_id: string | null
+          default_duration_days: number
+          id: string
+          initial_stage_id: string | null
+          name: string
+          order_index: number
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_assignee_id?: string | null
+          default_duration_days?: number
+          id?: string
+          initial_stage_id?: string | null
+          name: string
+          order_index?: number
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_assignee_id?: string | null
+          default_duration_days?: number
+          id?: string
+          initial_stage_id?: string | null
+          name?: string
+          order_index?: number
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_job_templates_initial_stage_id_fkey"
+            columns: ["initial_stage_id"]
+            isOneToOne: false
+            referencedRelation: "job_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_job_templates_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      services: {
+        Row: {
+          archived_at: string | null
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          archived_at?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          archived_at?: string | null
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       team_invites: {
         Row: {

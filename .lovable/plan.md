@@ -1,51 +1,59 @@
-## Estado atual (já implementado em iterações anteriores)
-- Aprovar proposta já gera Cliente, Projeto, Jobs (por template) e lançamentos financeiros com status `pending`.
-- Visão 360 do Cliente já lista propostas/projetos/jobs/financeiro.
-- Editor já tem `responsible_id`, `payment_kind`, `auto_create_jobs`, conta/categoria default.
+# Serviços e Templates — Central configurável
 
-## Lacunas que serão atacadas neste ciclo
+## Objetivo
+Criar uma biblioteca central de serviços da Kasa, onde cada serviço tem seu próprio template operacional (jobs padrão + checklists). O admin gerencia tudo via Configurações, sem precisar mexer no código.
 
-### 1. Migração de banco
-- `proposals`: adicionar `contract_type` (text: `recurring | one_time | project | consulting | implementation`), `commercial_id` (uuid), `operational_id` (uuid), `service_type` (text), `target_kind` (text: `lead | client`). Campos `lead_id` e `client_id` já existem.
-- `proposal_items`: adicionar `deliverables` (jsonb array de strings).
-- Nova tabela `proposal_events` (id, proposal_id, type, actor_id, payload jsonb, created_at) + RLS team-only + GRANTs.
+## Banco de dados (migração)
 
-### 2. Dialog "Nova proposta" (`propostas.tsx`)
-- Campos: Título, **Destino da proposta** (toggle: Lead | Cliente), seletor correspondente (Lead OU Cliente), Tipo de Serviço, Validade.
-- Se Lead: pré-preenche nome/e-mail a partir do lead; mantém `lead_id`, deixa `client_id` nulo.
-- Se Cliente: pré-preenche pelo cliente; mantém `client_id`, `lead_id` nulo.
-- Auto-cria proposta e abre o editor.
+Novas tabelas em `public`:
 
-### 3. Editor (`propostas.$proposalId.tsx`)
-- Cabeçalho: mostra vínculo atual (Lead/Cliente) com possibilidade de trocar.
-- Bloco "Condições financeiras" reorganizado com **Investimento Mensal** em destaque (card grande primary).
-- Bloco "Serviços contratados" reformatado: cards com Nome, Descrição, Valor, **Entregáveis** (lista editável) + Job Template.
-- Bloco "Responsáveis" com avatar+nome para Comercial e Operacional.
-- Select "Tipo de contrato" com 5 opções.
-- Seção "Timeline" exibindo `proposal_events` em ordem cronológica.
-- Helper `recordProposalEvent()` chamado em criação/edição/envio/aprovação/cancelamento.
+- **`services`**: `id`, `name`, `category`, `description`, `is_active` (bool, default true), `archived_at`, `order_index`, timestamps.
+- **`service_job_templates`**: `id`, `service_id` (FK services), `name`, `order_index`, `default_duration_days` (int), `default_assignee_id` (uuid, nullable), `initial_stage_id` (uuid → job_stages, nullable), timestamps.
+- **`service_job_checklist`**: `id`, `template_job_id` (FK service_job_templates), `content`, `order_index`, timestamps.
 
-### 4. PDF / página pública (`/p/$token` e `?print=1`)
-- Logo Kasa (de `agency_settings.logo_url`) e faixa com pattern `src/assets/kasa-pattern.jpeg`.
-- Bloco destacado de Investimento Mensal.
-- Serviços com entregáveis em bullets.
-- Datas de vencimento das parcelas.
-- Áreas de assinatura: cliente (preenchida quando `accepted_name`) e Kasa.
+Em `proposals`: manter `service_type` (legado) e adicionar coluna `service_ids` (uuid[], default '{}') para multi-seleção.
 
-### 5. Aprovação
-- Mantém criação automática de Cliente/Projeto/Jobs/Financeiro pendente.
-- Se a proposta era de Lead, a aprovação converte o lead em cliente (já é o comportamento via `approveProposal`).
-- Registra evento `approved` na timeline.
+Todas com RLS: `is_team_member(auth.uid())` gerencia; leitura para `authenticated`. GRANTs apropriados.
 
-### 6. Visão 360
-- Aba de propostas com badges Enviada/Aprovada/Cancelada/Reaberta.
+Seed inicial: criar 7 serviços padrão (Gestão de Redes Sociais, Tráfego Pago, Site Institucional, Landing Page, Branding, Consultoria, Produção de Conteúdo) e popular templates a partir do `JOB_TEMPLATES` atual em `src/lib/job-templates.ts` para preservar compatibilidade.
 
-## Detalhes técnicos
-- Arquivos novos: `src/components/proposals/ProposalServiceCard.tsx`, `src/components/proposals/ProposalTimeline.tsx`, `src/lib/proposal-events.ts`, migração SQL.
-- Arquivos editados: `src/routes/_authenticated/propostas.tsx`, `src/routes/_authenticated/propostas.$proposalId.tsx`, `src/routes/p.$token.tsx`, `src/lib/proposal-approval.ts`, `src/lib/crm-api.ts`.
+## Frontend
 
-## Pergunta antes de executar
-Posso seguir com o pacote completo em uma entrega, ou prefere fatiar?
-1. Migração + Dialog Nova Proposta (Lead/Cliente) + campos novos do editor (entregáveis, responsáveis duplos, tipo de contrato, investimento mensal em destaque).
-2. Timeline (`proposal_events`) + integração na aprovação.
-3. PDF institucional com logo/pattern/assinaturas.
+### 1. Nova página: `Configurações → Serviços e Templates`
+- Rota: `src/routes/_authenticated/config.servicos.tsx` (URL `/config/servicos`).
+- Adicionar link no AppSidebar OU no menu de Configurações (sub-aba). Vou adicionar como **nova aba dentro de `/config`** chamada "Serviços" para manter coesão.
+- Lista de serviços (cards/tabela): nome, categoria, badge ativo/inativo, ações (editar, arquivar, excluir).
+- Botão "Novo Serviço" abre dialog com campos: Nome, Categoria, Descrição, Ativo.
+- Clicar num serviço abre detalhe com 2 abas:
+  - **Geral**: editar campos básicos.
+  - **Template Operacional**: lista ordenável de jobs do template. Cada item: Nome, Ordem (drag/handle simples com setas ↑↓), Prazo padrão (dias), Responsável padrão (select de team), Status inicial (select de `job_stages`). Sub-item: checklist padrão (lista de strings adicionáveis/removíveis).
+
+### 2. Proposta — multi-seleção de serviços
+- Em `src/routes/_authenticated/propostas.tsx` (dialog Nova Proposta) e no editor `propostas.$proposalId.tsx`:
+  - Substituir o select único "Tipo de Serviço" por um **multi-select** de serviços ativos (checkboxes em popover ou lista de chips).
+  - Persistir em `proposals.service_ids`. Manter `service_type` sincronizado com o primeiro selecionado por compatibilidade até a próxima limpeza.
+
+### 3. Preparação para automação
+Adicionar helper `src/lib/services-api.ts` com `fetchServices`, `fetchServiceTemplate(serviceId)`, CRUD de serviços/jobs/checklist. Não disparar criação automática de jobs neste ciclo — apenas deixar tudo pronto. Comentário `// TODO: usado em proposal-approval.ts numa próxima fase` na função `fetchServiceTemplate`.
+
+## Arquivos
+
+**Novos:**
+- `supabase/migrations/<timestamp>_services_templates.sql`
+- `src/lib/services-api.ts`
+- `src/components/config/ServicesManager.tsx` (lista + dialogs)
+- `src/components/config/ServiceTemplateEditor.tsx` (aba Template Operacional)
+- `src/components/proposals/ServicesMultiSelect.tsx`
+
+**Editados:**
+- `src/routes/_authenticated/config.tsx` — nova aba "Serviços".
+- `src/routes/_authenticated/propostas.tsx` — usar `ServicesMultiSelect`.
+- `src/routes/_authenticated/propostas.$proposalId.tsx` — idem.
+- `src/integrations/supabase/types.ts` — regenerado após migração.
+- `src/lib/crm-api.ts` (tipo Proposal) — adicionar `service_ids`.
+
+## Fora de escopo (próxima fase)
+- Geração automática de Jobs ao aprovar proposta (estrutura já pronta).
+- Drag-and-drop visual avançado (usar setas ↑↓ por enquanto).
+
+Posso seguir?

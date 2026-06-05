@@ -14,6 +14,7 @@ import {
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
 import { recordProposalEvent } from "@/lib/proposal-events";
+import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import {
   Select,
   SelectContent,
@@ -98,6 +99,7 @@ function ProposalsPage() {
     client_name: "",
     client_email: "",
     service_type: "",
+    service_ids: [] as string[],
     valid_until: "",
     intro: "",
   };
@@ -117,6 +119,7 @@ function ProposalsPage() {
         client_email: form.client_email || null,
         intro: form.intro || null,
         service_type: form.service_type || null,
+        service_ids: form.service_ids,
         valid_until: form.valid_until || null,
       }),
     onSuccess: async (p) => {
@@ -354,35 +357,20 @@ function ProposalsPage() {
                 />
               </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Tipo de serviço">
-                  <Select
-                    value={form.service_type || "__none__"}
-                    onValueChange={(v) => setForm({ ...form, service_type: v === "__none__" ? "" : v })}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">—</SelectItem>
-                      <SelectItem value="social_media">Gestão de Redes Sociais</SelectItem>
-                      <SelectItem value="ads">Tráfego pago</SelectItem>
-                      <SelectItem value="branding">Branding</SelectItem>
-                      <SelectItem value="website">Website / Landing</SelectItem>
-                      <SelectItem value="content">Conteúdo</SelectItem>
-                      <SelectItem value="video">Vídeo</SelectItem>
-                      <SelectItem value="consulting">Consultoria</SelectItem>
-                      <SelectItem value="implementation">Implantação</SelectItem>
-                      <SelectItem value="other">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Validade">
-                  <Input
-                    type="date"
-                    value={form.valid_until}
-                    onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-                  />
-                </Field>
-              </div>
+              <Field label="Serviços contratados">
+                <ServicesMultiSelect
+                  value={form.service_ids}
+                  onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                />
+              </Field>
+
+              <Field label="Validade da proposta">
+                <Input
+                  type="date"
+                  value={form.valid_until}
+                  onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+                />
+              </Field>
 
               <Field label="Introdução">
                 <Textarea
