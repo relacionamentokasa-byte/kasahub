@@ -162,6 +162,8 @@ function ClientDetail() {
           <PortalTab clientId={clientId} />
         </TabsContent>
       </Tabs>
+
+      <EditClientDialog client={client} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }
