@@ -1,62 +1,51 @@
-## Reestruturação do Financeiro
+## Estado atual (já implementado em iterações anteriores)
+- Aprovar proposta já gera Cliente, Projeto, Jobs (por template) e lançamentos financeiros com status `pending`.
+- Visão 360 do Cliente já lista propostas/projetos/jobs/financeiro.
+- Editor já tem `responsible_id`, `payment_kind`, `auto_create_jobs`, conta/categoria default.
 
-Vou refazer a página `/financeiro` para refletir o layout da referência (Lista, Visão Mensal, Previsão Anual, Contas Banc.) e transformá-la no centro financeiro integrado ao CRM, Propostas, Contratos, Projetos e Jobs.
+## Lacunas que serão atacadas neste ciclo
 
-### 1. Banco de dados (migração)
+### 1. Migração de banco
+- `proposals`: adicionar `contract_type` (text: `recurring | one_time | project | consulting | implementation`), `commercial_id` (uuid), `operational_id` (uuid), `service_type` (text), `target_kind` (text: `lead | client`). Campos `lead_id` e `client_id` já existem.
+- `proposal_items`: adicionar `deliverables` (jsonb array de strings).
+- Nova tabela `proposal_events` (id, proposal_id, type, actor_id, payload jsonb, created_at) + RLS team-only + GRANTs.
 
-- `financial_categories`: adicionar `cost_center` (text) — Operação, Marketing, Comercial, Administrativo, Ferramentas, Equipe, Freelancers.
-- `bank_accounts`: adicionar `agency` (text) e `account_number` (text).
-- `transactions`: adicionar `job_id` (uuid, nullable) para vincular receitas de jobs avulsos.
-- Seed inicial de categorias por centro de custo + sementes "Recorrente", "Avulso", "Projeto Especial" (kind=income).
+### 2. Dialog "Nova proposta" (`propostas.tsx`)
+- Campos: Título, **Destino da proposta** (toggle: Lead | Cliente), seletor correspondente (Lead OU Cliente), Tipo de Serviço, Validade.
+- Se Lead: pré-preenche nome/e-mail a partir do lead; mantém `lead_id`, deixa `client_id` nulo.
+- Se Cliente: pré-preenche pelo cliente; mantém `client_id`, `lead_id` nulo.
+- Auto-cria proposta e abre o editor.
 
-### 2. Nova UI `financeiro.tsx`
+### 3. Editor (`propostas.$proposalId.tsx`)
+- Cabeçalho: mostra vínculo atual (Lead/Cliente) com possibilidade de trocar.
+- Bloco "Condições financeiras" reorganizado com **Investimento Mensal** em destaque (card grande primary).
+- Bloco "Serviços contratados" reformatado: cards com Nome, Descrição, Valor, **Entregáveis** (lista editável) + Job Template.
+- Bloco "Responsáveis" com avatar+nome para Comercial e Operacional.
+- Select "Tipo de contrato" com 5 opções.
+- Seção "Timeline" exibindo `proposal_events` em ordem cronológica.
+- Helper `recordProposalEvent()` chamado em criação/edição/envio/aprovação/cancelamento.
 
-Topo: título "Financeiro / Controle de receitas e despesas" + ações `Importar` e `+ Nova Transação`.
+### 4. PDF / página pública (`/p/$token` e `?print=1`)
+- Logo Kasa (de `agency_settings.logo_url`) e faixa com pattern `src/assets/kasa-pattern.jpeg`.
+- Bloco destacado de Investimento Mensal.
+- Serviços com entregáveis em bullets.
+- Datas de vencimento das parcelas.
+- Áreas de assinatura: cliente (preenchida quando `accepted_name`) e Kasa.
 
-Tabs (4 abas conforme a referência):
+### 5. Aprovação
+- Mantém criação automática de Cliente/Projeto/Jobs/Financeiro pendente.
+- Se a proposta era de Lead, a aprovação converte o lead em cliente (já é o comportamento via `approveProposal`).
+- Registra evento `approved` na timeline.
 
-- **Lista** — KPIs no topo + filtros + tabela.
-  - KPIs: `Entradas Pagas`, `Saídas Pagas`, `A Receber / A Pagar`, `Lucro do Período`, `Receita Recorrente` (MRR), `Receita Extra` (avulsos do período), `Saldo Consolidado`.
-  - Filtros: busca, Tipo, Status, Cliente, Categoria, Conta, Período.
-  - Tabela: Descrição · Categoria · Cliente · Valor · Vencimento · Status · ações (marcar pago/excluir/editar). Cada linha mostra origem (proposta/contrato/job) com link.
+### 6. Visão 360
+- Aba de propostas com badges Enviada/Aprovada/Cancelada/Reaberta.
 
-- **Visão Mensal** — gráfico mês a mês (receitas vs despesas), tabela comparativa, lucro/saldo do mês selecionado.
+## Detalhes técnicos
+- Arquivos novos: `src/components/proposals/ProposalServiceCard.tsx`, `src/components/proposals/ProposalTimeline.tsx`, `src/lib/proposal-events.ts`, migração SQL.
+- Arquivos editados: `src/routes/_authenticated/propostas.tsx`, `src/routes/_authenticated/propostas.$proposalId.tsx`, `src/routes/p.$token.tsx`, `src/lib/proposal-approval.ts`, `src/lib/crm-api.ts`.
 
-- **Previsão Anual** — projeção 12 meses combinando contratos ativos (MRR), parcelas futuras de propostas aprovadas e despesas recorrentes. Cards Receita Prevista, Despesa Prevista, Lucro Previsto.
-
-- **Contas Banc.** — cards com saldo atual, entradas/saídas do período por conta + botão Nova conta. Card "Saldo Consolidado" somando todas as contas.
-
-### 3. Importação CSV/Excel
-
-`ImportTransactionsDialog`: aceita `.csv`/`.xlsx` (uso de `xlsx`), mapeamento de colunas (descrição, valor, vencimento, tipo, cliente por nome, categoria por nome, conta, status), pré-visualização e inserção em lote em `transactions`.
-
-### 4. Integrações já existentes (consolidação)
-
-O `approveProposal` já cria contratos, parcelas e recorrências. Vou:
-- Garantir que jobs avulsos (proposta com `payment_kind=one_time`) gerem N parcelas vinculadas a `proposal_id`/`project_id`.
-- Garantir que cancelar/reabrir proposta cancele apenas as `transactions` pendentes futuras (já está) e exibir aviso na UI.
-- Mostrar origem na tabela: badge "Recorrência", "Parcela X/Y", "Avulso", "Manual".
-
-### 5. Relatório Rentabilidade por Cliente
-
-Nova aba dentro de `clientes.$clientId.tsx`: Receita Total, Despesas Vinculadas, Lucro, Margem, # Jobs, # Projetos.
-
-### 6. Visão 360 do Cliente
-
-Já existe filtro por `client_id`; adicionar a seção "Financeiro" com sub-abas: Recorrências, Parcelas, Pagas, Pendentes.
-
-### Arquivos
-
-- Migração SQL nova
-- `src/routes/_authenticated/financeiro.tsx` — reescrita
-- `src/components/finance/ImportTransactionsDialog.tsx` — novo
-- `src/components/finance/NewBankAccountDialog.tsx` — agência/conta
-- `src/components/finance/NewTransactionDialog.tsx` — campo centro de custo
-- `src/lib/finance-api.ts` — funções de previsão anual, agregação por cliente, importação em lote
-- `src/routes/_authenticated/clientes.$clientId.tsx` — aba Rentabilidade + bloco financeiro
-- `src/lib/proposal-approval.ts` — ajuste menor (linkar `job_id` quando aplicável)
-- `package.json` — adicionar `xlsx`
-
-### Confirmação
-
-Posso começar? Como o escopo é grande vou entregar em ondas: (1) migração + UI base com 4 abas + KPIs + filtros, (2) Importação CSV/XLSX, (3) Rentabilidade por cliente e Visão 360. Se preferir uma ordem diferente, me diga.
+## Pergunta antes de executar
+Posso seguir com o pacote completo em uma entrega, ou prefere fatiar?
+1. Migração + Dialog Nova Proposta (Lead/Cliente) + campos novos do editor (entregáveis, responsáveis duplos, tipo de contrato, investimento mensal em destaque).
+2. Timeline (`proposal_events`) + integração na aprovação.
+3. PDF institucional com logo/pattern/assinaturas.

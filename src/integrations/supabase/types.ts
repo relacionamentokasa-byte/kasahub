@@ -799,9 +799,40 @@ export type Database = {
           },
         ]
       }
+      proposal_events: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          id: string
+          payload: Json
+          proposal_id: string
+          type: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          proposal_id: string
+          type: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          payload?: Json
+          proposal_id?: string
+          type?: string
+        }
+        Relationships: []
+      }
       proposal_items: {
         Row: {
           created_at: string
+          deliverables: Json
           description: string | null
           id: string
           job_template: string | null
@@ -814,6 +845,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deliverables?: Json
           description?: string | null
           id?: string
           job_template?: string | null
@@ -826,6 +858,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deliverables?: Json
           description?: string | null
           id?: string
           job_template?: string | null
@@ -859,6 +892,8 @@ export type Database = {
           client_email: string | null
           client_id: string | null
           client_name: string
+          commercial_id: string | null
+          contract_type: string
           created_at: string
           currency: string
           first_due_date: string | null
@@ -870,12 +905,15 @@ export type Database = {
           lead_id: string | null
           monthly_investment: number
           one_time_investment: number
+          operational_id: string | null
           owner_id: string | null
           payment_kind: string
           public_token: string
           recurring_months: number
           responsible_id: string | null
+          service_type: string | null
           status: string
+          target_kind: string
           title: string
           total: number
           updated_at: string
@@ -893,6 +931,8 @@ export type Database = {
           client_email?: string | null
           client_id?: string | null
           client_name: string
+          commercial_id?: string | null
+          contract_type?: string
           created_at?: string
           currency?: string
           first_due_date?: string | null
@@ -904,12 +944,15 @@ export type Database = {
           lead_id?: string | null
           monthly_investment?: number
           one_time_investment?: number
+          operational_id?: string | null
           owner_id?: string | null
           payment_kind?: string
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          service_type?: string | null
           status?: string
+          target_kind?: string
           title: string
           total?: number
           updated_at?: string
@@ -927,6 +970,8 @@ export type Database = {
           client_email?: string | null
           client_id?: string | null
           client_name?: string
+          commercial_id?: string | null
+          contract_type?: string
           created_at?: string
           currency?: string
           first_due_date?: string | null
@@ -938,12 +983,15 @@ export type Database = {
           lead_id?: string | null
           monthly_investment?: number
           one_time_investment?: number
+          operational_id?: string | null
           owner_id?: string | null
           payment_kind?: string
           public_token?: string
           recurring_months?: number
           responsible_id?: string | null
+          service_type?: string | null
           status?: string
+          target_kind?: string
           title?: string
           total?: number
           updated_at?: string

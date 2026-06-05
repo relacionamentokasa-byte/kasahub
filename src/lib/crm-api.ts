@@ -125,6 +125,12 @@ export async function createProposal(input: {
   client_id?: string | null;
   lead_id?: string | null;
   intro?: string | null;
+  target_kind?: "lead" | "client";
+  service_type?: string | null;
+  contract_type?: string;
+  valid_until?: string | null;
+  commercial_id?: string | null;
+  operational_id?: string | null;
 }) {
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase

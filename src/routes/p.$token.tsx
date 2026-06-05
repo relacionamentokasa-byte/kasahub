@@ -17,6 +17,7 @@ type Item = {
   quantity: number;
   unit_price: number;
   recurrence: string;
+  deliverables?: string[] | null;
 };
 type Proposal = {
   id: string;
@@ -378,6 +379,13 @@ function ItemsTable({
                   <div className="text-xs text-slate-500 mt-0.5">
                     {it.description}
                   </div>
+                )}
+                {Array.isArray(it.deliverables) && it.deliverables.length > 0 && (
+                  <ul className="mt-2 text-xs text-slate-600 list-disc pl-4 space-y-0.5">
+                    {it.deliverables.map((d, i) => (
+                      <li key={i}>{d}</li>
+                    ))}
+                  </ul>
                 )}
               </td>
               <td className="py-3 text-right text-slate-700">{Number(it.quantity)}</td>

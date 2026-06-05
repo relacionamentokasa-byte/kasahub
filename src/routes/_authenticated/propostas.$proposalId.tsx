@@ -15,6 +15,8 @@ import { fetchClients } from "@/lib/ops-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
+import { recordProposalEvent } from "@/lib/proposal-events";
+import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -98,6 +100,10 @@ export function ProposalEditorContent({
     valid_until: "",
     status: "draft",
     responsible_id: "",
+    commercial_id: "",
+    operational_id: "",
+    contract_type: "recurring",
+    service_type: "",
     briefing: "",
     payment_kind: "recurring" as "recurring" | "one_time" | "mixed",
     installments: 1,
@@ -121,6 +127,10 @@ export function ProposalEditorContent({
         valid_until: proposal.valid_until ?? "",
         status: proposal.status,
         responsible_id: (p.responsible_id as string) ?? "",
+        commercial_id: (p.commercial_id as string) ?? "",
+        operational_id: (p.operational_id as string) ?? (p.responsible_id as string) ?? "",
+        contract_type: (p.contract_type as string) ?? "recurring",
+        service_type: (p.service_type as string) ?? "",
         briefing: (p.briefing as string) ?? "",
         payment_kind: ((p.payment_kind as string) ?? "recurring") as "recurring" | "one_time" | "mixed",
         installments: Number(p.installments ?? 1),
@@ -150,7 +160,11 @@ export function ProposalEditorContent({
         monthly_investment: totals.monthly_investment,
         one_time_investment: totals.one_time_investment,
         total: totals.total,
-        responsible_id: f.responsible_id || null,
+        responsible_id: f.operational_id || f.responsible_id || null,
+        commercial_id: f.commercial_id || null,
+        operational_id: f.operational_id || null,
+        contract_type: f.contract_type,
+        service_type: f.service_type || null,
         briefing: f.briefing || null,
         payment_kind: f.payment_kind,
         installments: f.installments,
@@ -167,6 +181,8 @@ export function ProposalEditorContent({
 
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
+      qc.invalidateQueries({ queryKey: ["proposal", proposalId, "events"] });
+      recordProposalEvent(proposalId, vars?.status === "sent" ? "sent" : "edited").catch(() => {});
       toast.success("Proposta salva");
     },
     onError: (e: Error) => toast.error(e.message),
@@ -424,17 +440,46 @@ export function ProposalEditorContent({
               Define o que será criado automaticamente quando a proposta for aprovada: projeto, jobs e lançamentos financeiros.
             </p>
             <div className="grid gap-4 mt-4 md:grid-cols-2">
-              <F label="Responsável (projeto/jobs)">
+              <F label="Responsável comercial">
                 <Select
-                  value={form.responsible_id || "__none__"}
-                  onValueChange={(v) => setForm({ ...form, responsible_id: v === "__none__" ? "" : v })}
+                  value={form.commercial_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, commercial_id: v === "__none__" ? "" : v })}
                 >
-                  <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">Sem responsável</SelectItem>
+                    <SelectItem value="__none__">—</SelectItem>
                     {team.map((t) => (
                       <SelectItem key={t.id} value={t.id}>{t.display_name || t.full_name || "—"}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Responsável operacional">
+                <Select
+                  value={form.operational_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, operational_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">—</SelectItem>
+                    {team.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.display_name || t.full_name || "—"}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Tipo de contrato">
+                <Select
+                  value={form.contract_type}
+                  onValueChange={(v) => setForm({ ...form, contract_type: v })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recurring">Mensal / Recorrente</SelectItem>
+                    <SelectItem value="one_time">Job Avulso</SelectItem>
+                    <SelectItem value="project">Projeto Fechado</SelectItem>
+                    <SelectItem value="consulting">Consultoria</SelectItem>
+                    <SelectItem value="implementation">Implantação</SelectItem>
                   </SelectContent>
                 </Select>
               </F>
@@ -601,6 +646,8 @@ export function ProposalEditorContent({
             </div>
           )}
 
+          <ProposalTimeline proposalId={proposalId} />
+
           <div className="rounded-2xl border border-border bg-surface p-5 text-xs text-foreground/60">
             <p className="capitalize text-[10px] text-foreground/40 mb-2">
               Link público
@@ -702,6 +749,28 @@ function ItemRow({
             ))}
           </SelectContent>
         </Select>
+      </div>
+      <div>
+        <Label className="text-[10px] capitalize text-foreground/40 pl-1">
+          Entregáveis (um por linha)
+        </Label>
+        <Textarea
+          rows={3}
+          value={(Array.isArray(local.deliverables) ? (local.deliverables as string[]) : []).join("\n")}
+          onChange={(e) => setLocal({ ...local, deliverables: e.target.value.split("\n") as unknown as ProposalItem["deliverables"] })}
+          onBlur={() =>
+            commit({
+              deliverables: (Array.isArray(local.deliverables)
+                ? (local.deliverables as string[])
+                : []
+              )
+                .map((s) => s.trim())
+                .filter(Boolean) as unknown as ProposalItem["deliverables"],
+            })
+          }
+          className="mt-1 text-xs"
+          placeholder="Ex: 12 posts/mês&#10;Relatório mensal&#10;Reunião estratégica"
+        />
       </div>
     </div>
   );

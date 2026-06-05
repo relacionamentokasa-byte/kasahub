@@ -43,6 +43,10 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             .from("proposals")
             .update({ status: "viewed" })
             .eq("id", proposal.id);
+          await supabaseAdmin.from("proposal_events").insert({
+            proposal_id: proposal.id,
+            type: "viewed",
+          });
         }
 
         return new Response(
