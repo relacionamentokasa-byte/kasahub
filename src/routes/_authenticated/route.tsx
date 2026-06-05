@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { AppTopbar } from "@/components/AppTopbar";
+import { OnboardingWizard } from "@/components/OnboardingWizard";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -27,6 +28,7 @@ function ShellLayout() {
             <Outlet />
           </main>
         </div>
+        <OnboardingWizard />
       </div>
     </SidebarProvider>
   );
