@@ -498,33 +498,6 @@ function ProposalsPage() {
                     </div>
                   </div>
                 </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label="Forma de Pagamento">
-                        <Select
-                          value={form.payment_method}
-                          onValueChange={(v) => setForm({ ...form, payment_method: v })}
-                        >
-                          <SelectTrigger><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="boleto">Boleto Bancário</SelectItem>
-                            <SelectItem value="pix">PIX</SelectItem>
-                            <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
-                            <SelectItem value="transfer">Transferência</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      <Field label="Primeiro Vencimento">
-                        <Input
-                          type="date"
-                          value={form.first_due_date}
-                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
-                        />
-                      </Field>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="space-y-4">
                   <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Outras Informações</h3>
