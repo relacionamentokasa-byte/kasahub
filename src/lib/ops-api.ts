@@ -89,6 +89,24 @@ export async function deleteProject(id: string) {
   if (error) throw error;
 }
 
+export async function duplicateProject(id: string) {
+  const original = await fetchProject(id);
+  const { data: u } = await supabase.auth.getUser();
+  const { id: _omit, created_at, updated_at, ...rest } = original as Project & { created_at: string; updated_at: string };
+  void _omit; void created_at; void updated_at;
+  const { data, error } = await supabase
+    .from("projects")
+    .insert({ ...rest, name: `${original.name} (cópia)`, owner_id: u.user?.id ?? null })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function archiveProject(id: string) {
+  return updateProject(id, { status: "archived" });
+}
+
 // ---------- Jobs ----------
 export async function fetchJobStages(): Promise<JobStage[]> {
   const { data, error } = await supabase
