@@ -226,6 +226,25 @@ function PublicProposalView() {
             Preparada para <span className="font-semibold text-slate-700">{proposal.client_name}</span>
           </p>
         </div>
+        
+        {/* Scope */}
+        {Array.isArray(proposal.scope) && proposal.scope.length > 0 && (
+          <div className="px-8 py-6 border-b border-slate-100">
+            <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+              O que será entregue (Escopo)
+            </h2>
+            <div className="grid gap-3">
+              {proposal.scope.map((item, idx) => (
+                <div key={idx} className="flex gap-3 items-start">
+                  <div className="size-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className="size-1.5 rounded-full" style={{ background: brand }} />
+                  </div>
+                  <span className="text-sm text-slate-700 leading-snug">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Intro */}
         {proposal.intro && (
