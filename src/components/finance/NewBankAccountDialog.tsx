@@ -31,6 +31,8 @@ export function NewBankAccountDialog({
   const [form, setForm] = useState({
     name: "",
     bank: "",
+    agency: "",
+    account_number: "",
     account_type: "checking",
     initial_balance: "0",
     color: "#FFBC45",
@@ -41,6 +43,8 @@ export function NewBankAccountDialog({
       createBankAccount({
         name: form.name,
         bank: form.bank || null,
+        agency: form.agency || null,
+        account_number: form.account_number || null,
         account_type: form.account_type,
         initial_balance: Number(form.initial_balance) || 0,
         color: form.color,
@@ -49,7 +53,7 @@ export function NewBankAccountDialog({
       qc.invalidateQueries({ queryKey: ["bank_accounts"] });
       toast.success("Conta criada");
       onOpenChange(false);
-      setForm({ name: "", bank: "", account_type: "checking", initial_balance: "0", color: "#FFBC45" });
+      setForm({ name: "", bank: "", agency: "", account_number: "", account_type: "checking", initial_balance: "0", color: "#FFBC45" });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -63,11 +67,11 @@ export function NewBankAccountDialog({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5 col-span-2">
             <Label>Nome da conta</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex.: Conta principal" />
+            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex.: Sicredi PJ" />
           </div>
           <div className="space-y-1.5">
             <Label>Banco</Label>
-            <Input value={form.bank} onChange={(e) => setForm({ ...form, bank: e.target.value })} placeholder="Ex.: Nubank" />
+            <Input value={form.bank} onChange={(e) => setForm({ ...form, bank: e.target.value })} placeholder="Ex.: Nubank, Sicredi, Cora" />
           </div>
           <div className="space-y-1.5">
             <Label>Tipo</Label>
@@ -81,6 +85,14 @@ export function NewBankAccountDialog({
                 <SelectItem value="investment">Investimento</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Agência</Label>
+            <Input value={form.agency} onChange={(e) => setForm({ ...form, agency: e.target.value })} placeholder="0001" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>Conta</Label>
+            <Input value={form.account_number} onChange={(e) => setForm({ ...form, account_number: e.target.value })} placeholder="12345-6" />
           </div>
           <div className="space-y-1.5">
             <Label>Saldo inicial (R$)</Label>

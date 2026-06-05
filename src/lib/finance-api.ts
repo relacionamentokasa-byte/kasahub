@@ -121,7 +121,6 @@ export async function createTransaction(
     if (error) throw error;
     return [data];
   }
-  // Split into installments
   const base = new Date(input.due_date ?? new Date().toISOString().slice(0, 10));
   const amount = Math.round(((input.amount ?? 0) / total) * 100) / 100;
   const rows = Array.from({ length: total }).map((_, i) => {
@@ -138,6 +137,15 @@ export async function createTransaction(
     };
   });
   const { data, error } = await supabase.from("transactions").insert(rows).select();
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function bulkInsertTransactions(rows: Database["public"]["Tables"]["transactions"]["Insert"][]) {
+  const { data: u } = await supabase.auth.getUser();
+  const owner_id = u.user?.id ?? null;
+  const withOwner = rows.map((r) => ({ ...r, owner_id }));
+  const { data, error } = await supabase.from("transactions").insert(withOwner).select();
   if (error) throw error;
   return data ?? [];
 }
@@ -171,45 +179,50 @@ export function accountBalance(account: BankAccount, txs: Transaction[]) {
   return Number(account.initial_balance) + delta;
 }
 
-export function computeIndicators(txs: Transaction[], contracts: Contract[]) {
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+export function accountStats(account: BankAccount, txs: Transaction[]) {
+  const own = txs.filter((t) => t.account_id === account.id && t.status === "paid");
+  const income = own.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const expense = own.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
+  return { income, expense, balance: Number(account.initial_balance) + income - expense };
+}
 
-  const monthTx = txs.filter((t) => t.due_date >= monthStart && t.due_date <= monthEnd);
-  const monthIncome = monthTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
-  const monthExpense = monthTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
+export function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}) {
+  const now = new Date();
+  const from = opts.from ?? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const to = opts.to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+  const periodTx = txs.filter((t) => t.due_date >= from && t.due_date <= to);
+  const incomePaid = periodTx.filter((t) => t.kind === "income" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
+  const expensePaid = periodTx.filter((t) => t.kind === "expense" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
+  const receivable = periodTx.filter((t) => t.kind === "income" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
+  const payable = periodTx.filter((t) => t.kind === "expense" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
 
   const activeContracts = contracts.filter((c) => c.status === "active");
   const mrr = activeContracts.reduce((s, c) => s + Number(c.monthly_value), 0);
   const arr = mrr * 12;
 
-  const recurringClients = new Set(activeContracts.map((c) => c.client_id).filter(Boolean));
-  const ticketRecurrente = recurringClients.size > 0 ? mrr / recurringClients.size : 0;
-
-  const extraThisMonth = monthTx
+  const extraIncome = periodTx
     .filter((t) => t.kind === "income" && !t.contract_id && !t.is_recurring)
     .reduce((s, t) => s + Number(t.amount), 0);
 
-  const allClientsBilled = new Set(
-    txs.filter((t) => t.kind === "income" && t.client_id).map((t) => t.client_id as string),
-  );
-  const totalIncome = txs.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
-  const ticketGeral = allClientsBilled.size > 0 ? totalIncome / allClientsBilled.size : 0;
+  const recurringIncome = periodTx
+    .filter((t) => t.kind === "income" && (t.contract_id || t.is_recurring))
+    .reduce((s, t) => s + Number(t.amount), 0);
 
   const overdue = txs.filter(
     (t) => t.status === "pending" && t.due_date < new Date().toISOString().slice(0, 10),
   );
 
   return {
-    monthIncome,
-    monthExpense,
-    monthResult: monthIncome - monthExpense,
+    incomePaid,
+    expensePaid,
+    receivable,
+    payable,
+    profit: incomePaid - expensePaid,
     mrr,
     arr,
-    ticketRecurrente,
-    ticketGeral,
-    extraThisMonth,
+    recurringIncome,
+    extraIncome,
     overdueCount: overdue.length,
     overdueAmount: overdue.reduce((s, t) => s + Number(t.amount), 0),
   };
@@ -235,4 +248,38 @@ export function cashflowByMonth(txs: Transaction[], months = 6) {
     }
   }
   return Object.values(buckets);
+}
+
+// 12 months forecast combining all transactions + recurring contracts
+export function annualForecast(txs: Transaction[], contracts: Contract[]) {
+  const now = new Date();
+  const buckets: { key: string; label: string; income: number; expense: number }[] = [];
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    buckets.push({
+      key,
+      label: d.toLocaleDateString("pt-BR", { month: "short", year: "2-digit" }).replace(".", ""),
+      income: 0,
+      expense: 0,
+    });
+  }
+  const idx = new Map(buckets.map((b, i) => [b.key, i]));
+  for (const t of txs) {
+    const k = (t.due_date ?? "").slice(0, 7);
+    const i = idx.get(k);
+    if (i === undefined) continue;
+    if (t.kind === "income") buckets[i].income += Number(t.amount);
+    else buckets[i].expense += Number(t.amount);
+  }
+  return buckets;
+}
+
+export function clientProfitability(clientId: string, txs: Transaction[]) {
+  const own = txs.filter((t) => t.client_id === clientId);
+  const income = own.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const expense = own.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
+  const profit = income - expense;
+  const margin = income > 0 ? (profit / income) * 100 : 0;
+  return { income, expense, profit, margin };
 }
