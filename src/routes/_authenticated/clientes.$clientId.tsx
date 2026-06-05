@@ -8,6 +8,7 @@ import {
   DollarSign, Clock, FileSignature, Activity,
 } from "lucide-react";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
+import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
