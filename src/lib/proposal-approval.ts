@@ -154,25 +154,20 @@ export async function approveProposal(
 
     const rows: Array<Record<string, unknown>> = [];
     let order = 0;
-    for (const it of items ?? []) {
-      const tplKey = (it.job_template ?? "") as string;
-      const tplStages = JOB_TEMPLATES[tplKey];
-      if (!tplStages) continue;
-      for (const stage of tplStages) {
-        const title = `${it.title} · ${stage}`;
-        if (existingTitles.has(title)) continue;
-        rows.push({
-          title,
-          description: it.description ?? null,
-          project_id: projectId,
-          client_id: clientId,
-          stage_id: firstStage,
-          assignee_id: proposal.responsible_id ?? null,
-          order_index: order++,
-          priority: "normal",
-          labels: [tplKey],
-        });
-      }
+    for (const item of proposal.scope ?? []) {
+      const title = String(item);
+      if (existingTitles.has(title)) continue;
+      rows.push({
+        title,
+        description: null,
+        project_id: projectId,
+        client_id: clientId,
+        stage_id: firstStage,
+        assignee_id: proposal.responsible_id ?? null,
+        order_index: order++,
+        priority: "normal",
+        labels: ["proposal_scope"],
+      });
     }
     if (rows.length) {
       const { error: jErr } = await sb.from("jobs").insert(rows);
