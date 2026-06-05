@@ -8,8 +8,8 @@ import {
   Wallet,
   Clock,
   CircleDollarSign,
-  Repeat,
-  Sparkles,
+  ChevronLeft,
+  ChevronRight,
   Search,
   Trash2,
   CheckCircle2,
@@ -21,6 +21,27 @@ import {
   Landmark,
   Link as LinkIcon,
 } from "lucide-react";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  Legend,
+  LineChart,
+  Line,
+} from "recharts";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import {
   ResponsiveContainer,
   BarChart,
