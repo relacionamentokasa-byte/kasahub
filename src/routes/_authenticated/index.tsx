@@ -140,7 +140,7 @@ function Dashboard() {
         {/* Goal */}
         <section className="col-span-12 lg:col-span-6 bg-surface border border-border rounded-2xl p-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-foreground/40">
+            <span className="text-[10px] font-mono-kasa capitalize text-foreground/40">
               Meta x Realizado · mês
             </span>
             <span className="text-[10px] font-mono-kasa text-primary font-semibold">{goalPct}%</span>

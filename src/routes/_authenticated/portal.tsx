@@ -83,7 +83,7 @@ function ClientPortalView({
             </div>
           )}
           <div>
-            <p className="text-[10px] font-mono-kasa uppercase tracking-[0.2em]" style={{ color: brandColor }}>
+            <p className="text-[10px] font-mono-kasa capitalize" style={{ color: brandColor }}>
               Portal Kasa × Cliente
             </p>
             <h1 className="font-display text-3xl lg:text-4xl mt-1">{client.name}</h1>
@@ -159,7 +159,7 @@ function TeamPortalOverview() {
   return (
     <div className="p-6 lg:p-8 space-y-6">
       <header>
-        <p className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-primary/70">
+        <p className="text-[10px] font-mono-kasa capitalize text-primary/70">
           Experiência · Portal do Cliente
         </p>
         <h1 className="font-display text-3xl lg:text-4xl mt-1">Portais ativos</h1>

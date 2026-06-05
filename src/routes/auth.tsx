@@ -105,7 +105,7 @@ function AuthPage() {
         </div>
 
         <div className="relative space-y-8">
-          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-[0.3em] font-semibold">
+          <span className="text-primary text-[10px] font-mono-kasa capitalize font-semibold">
             Sistema Operacional · Agências de Marketing
           </span>
           <h1 className="font-display text-5xl xl:text-6xl font-bold tracking-tight text-balance leading-[1.05]">

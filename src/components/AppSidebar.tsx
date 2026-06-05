@@ -81,7 +81,7 @@ export function AppSidebar() {
         {visibleGroups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-sidebar-foreground/40 px-3">
+              <SidebarGroupLabel className="text-[10px] font-mono-kasa capitalize text-sidebar-foreground/40 px-3">
                 {group.label}
               </SidebarGroupLabel>
             )}

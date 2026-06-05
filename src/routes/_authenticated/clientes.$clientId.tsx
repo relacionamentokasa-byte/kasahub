@@ -168,7 +168,7 @@ function ClientDetail() {
               <TabsTrigger
                 key={v}
                 value={v}
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs uppercase tracking-wider whitespace-nowrap"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs capitalize whitespace-nowrap"
               >
                 {label}
               </TabsTrigger>

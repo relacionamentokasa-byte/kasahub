@@ -70,7 +70,7 @@ function ProjetosPage() {
                     )}
                     <div className="flex items-center gap-2 mb-2 pr-8">
                       <span className="size-2 rounded-full" style={{ background: p.color ?? "#FFBC45" }} />
-                      <span className="text-[10px] uppercase tracking-wider text-foreground/40">
+                      <span className="text-[10px] capitalize text-foreground/40">
                         {p.status}
                       </span>
                     </div>

@@ -187,7 +187,7 @@ function ProposalsPage() {
                       {formatCurrency(Number(p.total))}
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded ${s.cls}`}>
+                      <span className={`text-[10px] capitalize px-2 py-1 rounded ${s.cls}`}>
                         {s.label}
                       </span>
                     </td>
