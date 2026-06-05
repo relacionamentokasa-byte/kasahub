@@ -357,35 +357,20 @@ function ProposalsPage() {
                 />
               </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Tipo de serviço">
-                  <Select
-                    value={form.service_type || "__none__"}
-                    onValueChange={(v) => setForm({ ...form, service_type: v === "__none__" ? "" : v })}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">—</SelectItem>
-                      <SelectItem value="social_media">Gestão de Redes Sociais</SelectItem>
-                      <SelectItem value="ads">Tráfego pago</SelectItem>
-                      <SelectItem value="branding">Branding</SelectItem>
-                      <SelectItem value="website">Website / Landing</SelectItem>
-                      <SelectItem value="content">Conteúdo</SelectItem>
-                      <SelectItem value="video">Vídeo</SelectItem>
-                      <SelectItem value="consulting">Consultoria</SelectItem>
-                      <SelectItem value="implementation">Implantação</SelectItem>
-                      <SelectItem value="other">Outro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field label="Validade">
-                  <Input
-                    type="date"
-                    value={form.valid_until}
-                    onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-                  />
-                </Field>
-              </div>
+              <Field label="Serviços contratados">
+                <ServicesMultiSelect
+                  value={form.service_ids}
+                  onChange={(ids) => setForm({ ...form, service_ids: ids })}
+                />
+              </Field>
+
+              <Field label="Validade da proposta">
+                <Input
+                  type="date"
+                  value={form.valid_until}
+                  onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
+                />
+              </Field>
 
               <Field label="Introdução">
                 <Textarea
