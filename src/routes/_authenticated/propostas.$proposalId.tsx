@@ -558,15 +558,21 @@ export function ProposalEditorContent({
                     <Input
                       type="number"
                       value={form.one_time_investment || ""}
+                      onFocus={() => setIsEditing("one_time_investment")}
                       onChange={(e) => {
                         const val = Number(e.target.value);
                         setForm(f => ({ ...f, one_time_investment: val }));
                       }}
                       onBlur={() => {
+                        setIsEditing(null);
                         const val = form.one_time_investment;
-                        if (items.length > 0) {
-                          const first = items[0];
+                        const oneTimeItems = items.filter(i => i.recurrence === "one_time");
+                        if (oneTimeItems.length > 0) {
+                          const first = oneTimeItems[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "one_time", proposal_id: proposalId });
+                          if (oneTimeItems.length > 1) {
+                            oneTimeItems.slice(1).forEach(item => delItemMut.mutate(item.id));
+                          }
                         } else {
                           itemMut.mutate({ 
                             proposal_id: proposalId, 
