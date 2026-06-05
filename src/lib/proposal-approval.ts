@@ -313,6 +313,7 @@ export async function approveProposal(
   const patch: Record<string, unknown> = {
     status: "accepted",
     accepted_at: new Date().toISOString(),
+    converted_at: new Date().toISOString(),
     client_id: clientId,
     generated_project_id: projectId,
     generated_contract_id: contractId,
