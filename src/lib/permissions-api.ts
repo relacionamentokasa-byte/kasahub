@@ -4,6 +4,7 @@ export const MODULES = [
   { id: "dashboard", label: "Dashboard" },
   { id: "crm", label: "CRM" },
   { id: "clientes", label: "Clientes" },
+  { id: "propostas", label: "Propostas" },
   { id: "projetos", label: "Projetos" },
   { id: "jobs", label: "Jobs" },
   { id: "financeiro", label: "Financeiro" },

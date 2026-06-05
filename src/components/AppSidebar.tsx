@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   KanbanSquare,
+  FileText,
   Users,
   FolderKanban,
   CheckSquare,
@@ -33,6 +34,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     items: [
       { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
       { title: "CRM", url: "/crm", icon: KanbanSquare, module: "crm" },
+      { title: "Propostas", url: "/propostas", icon: FileText, module: "propostas" },
     ],
   },
   {
