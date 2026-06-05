@@ -35,12 +35,29 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
   head: () => ({ meta: [{ title: "Editor de proposta — KASA OS" }] }),
-  component: ProposalEditor,
+  component: ProposalEditorPage,
 });
 
-function ProposalEditor() {
+function ProposalEditorPage() {
   const { proposalId } = Route.useParams();
   const navigate = useNavigate();
+  return (
+    <ProposalEditorContent
+      proposalId={proposalId}
+      onBack={() => navigate({ to: "/propostas" })}
+    />
+  );
+}
+
+export function ProposalEditorContent({
+  proposalId,
+  onBack,
+  embedded = false,
+}: {
+  proposalId: string;
+  onBack?: () => void;
+  embedded?: boolean;
+}) {
   const qc = useQueryClient();
 
   const { data: proposal } = useQuery({
@@ -155,16 +172,24 @@ function ProposalEditor() {
     return <div className="p-10 text-foreground/60">Carregando…</div>;
   }
 
+  const containerCls = embedded
+    ? "w-full"
+    : "p-6 lg:p-10 max-w-6xl mx-auto w-full";
+
   return (
-    <div className="p-6 lg:p-10 max-w-6xl mx-auto w-full">
-      <div className="flex items-center justify-between gap-4 mb-6">
-        <button
-          onClick={() => navigate({ to: "/propostas" })}
-          className="text-sm text-foreground/60 hover:text-primary flex items-center gap-2"
-        >
-          <ArrowLeft className="size-4" /> Voltar
-        </button>
-        <div className="flex items-center gap-2">
+    <div className={containerCls}>
+      <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        {onBack ? (
+          <button
+            onClick={onBack}
+            className="text-sm text-foreground/60 hover:text-primary flex items-center gap-2"
+          >
+            <ArrowLeft className="size-4" /> Voltar
+          </button>
+        ) : (
+          <span />
+        )}
+        <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" onClick={copyShareLink} className="gap-2">
             <Copy className="size-4" /> Copiar link
           </Button>
@@ -188,8 +213,8 @@ function ProposalEditor() {
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
+      <div className={embedded ? "space-y-4" : "grid lg:grid-cols-3 gap-6"}>
+        <div className={embedded ? "space-y-4" : "lg:col-span-2 space-y-4"}>
           <div className="rounded-2xl border border-border bg-surface p-6">
             <span className="text-primary text-[10px] capitalize">
               Cabeçalho
@@ -287,7 +312,7 @@ function ProposalEditor() {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6 sticky top-6">
+          <div className={`rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6 ${embedded ? "" : "sticky top-6"}`}>
             <span className="text-primary text-[10px] capitalize">
               Investimento Mensal
             </span>
