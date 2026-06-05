@@ -161,16 +161,17 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
         <div className="px-6 lg:px-10 border-b border-border overflow-x-auto">
           <TabsList className="bg-transparent border-0 h-auto p-0 gap-1">
             {[
-              ["overview", "Visão geral"],
-              ["servicos", "Serviços"],
+              ["overview", "Resumo"],
+              ["contracts", "Contratos"],
               ["projects", "Projetos"],
               ["jobs", "Jobs"],
               ["finance", "Financeiro"],
               ["proposals", "Propostas"],
+              ["portal", "Portal"],
               ["files", "Arquivos"],
-              ["calendar", "Calendário"],
               ["timeline", "Timeline"],
-              ["portal", "Portal do Cliente"],
+              ["servicos", "Serviços"],
+              ["calendar", "Calendário"],
               ["branding", "Branding"],
             ].map(([v, label]) => (
               <TabsTrigger
