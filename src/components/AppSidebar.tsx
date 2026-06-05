@@ -1,4 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import {
   LayoutDashboard,
   KanbanSquare,
@@ -11,7 +12,9 @@ import {
   Globe,
   UsersRound,
   Settings,
+  Crown,
 } from "lucide-react";
+import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 import {
   Sidebar,
   SidebarContent,
@@ -49,6 +52,7 @@ const groups = [
     items: [
       { title: "Financeiro", url: "/financeiro", icon: Wallet },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3 },
+      { title: "Dashboard CEO", url: "/ceo", icon: Crown, ceoOnly: true },
     ],
   },
   {
@@ -65,6 +69,8 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
+  const { data: roles = [] } = useQuery({ queryKey: ["roles", "me"], queryFn: fetchCurrentUserRoles });
+  const isCeo = hasAnyRole(roles, ["admin", "ceo"]);
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
@@ -85,7 +91,7 @@ export function AppSidebar() {
             )}
             <SidebarGroupContent>
               <SidebarMenu>
-                {group.items.map((item) => {
+                {group.items.filter((item) => !(item as { ceoOnly?: boolean }).ceoOnly || isCeo).map((item) => {
                   const active = isActive(item.url);
                   return (
                     <SidebarMenuItem key={item.title}>
