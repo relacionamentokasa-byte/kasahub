@@ -12,10 +12,15 @@ import {
   type ProposalItem,
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
+import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
+import { supabase } from "@/integrations/supabase/client";
+import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
+import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -31,6 +36,9 @@ import {
   Send,
   Trash2,
   CheckCircle2,
+  Rocket,
+  RotateCcw,
+  XCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
