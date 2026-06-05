@@ -45,11 +45,11 @@ function ProjectDetail() {
       <div className="px-6 lg:px-10 pt-6 pb-4">
         <Link
           to="/projetos"
-          className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 font-mono uppercase tracking-wider"
+          className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
         >
           <ArrowLeft className="size-3.5" /> Projetos
         </Link>
-        <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+        <span className="text-primary text-[10px] capitalize">
           Projeto · Operação
         </span>
         <div className="flex items-start gap-4">
@@ -59,7 +59,7 @@ function ProjectDetail() {
             <div className="size-16 rounded-2xl shrink-0" style={{ background: `${project.color ?? "#FFBC45"}22` }} />
           )}
           <div className="flex-1 min-w-0">
-            <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+            <span className="text-primary text-[10px] capitalize">
               Projeto · Operação
             </span>
             <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">{project.name}</h1>
@@ -79,7 +79,7 @@ function ProjectDetail() {
               <Calendar className="size-3" /> Prazo {project.due_date}
             </span>
           )}
-          <span className="font-mono uppercase tracking-wider">{progress}% concluído</span>
+          <span className="capitalize">{progress}% concluído</span>
         </div>
         <div className="mt-3 h-1.5 bg-surface-elevated rounded-full overflow-hidden">
           <div className="h-full bg-primary transition-all" style={{ width: `${progress}%` }} />
@@ -93,7 +93,7 @@ function ProjectDetail() {
               <TabsTrigger
                 key={v}
                 value={v}
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs uppercase font-mono tracking-wider"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs capitalize"
               >
                 {{ board: "Kanban", briefing: "Briefing", team: "Equipe" }[v]}
               </TabsTrigger>

@@ -99,7 +99,7 @@ export function CrmBoard() {
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+          <span className="text-primary text-[10px] capitalize">
             Comercial · CRM
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
@@ -187,7 +187,7 @@ function Column({
           />
           <span className="font-display font-semibold text-sm tracking-tight">{stage.name}</span>
           {stage.is_won && <Trophy className="size-3.5 text-primary" />}
-          <span className="text-[10px] text-foreground/40 font-mono">{count}</span>
+          <span className="text-[10px] text-foreground/40">{count}</span>
         </div>
         <button
           onClick={onAdd}
@@ -197,7 +197,7 @@ function Column({
           <Plus className="size-3.5" />
         </button>
       </div>
-      <div className="text-[10px] text-foreground/40 font-mono mb-2 px-1 uppercase tracking-wider">
+      <div className="text-[10px] text-foreground/40 mb-2 px-1 capitalize">
         {formatCurrency(total)}
       </div>
       <div
@@ -242,13 +242,13 @@ function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
           )}
         </div>
         {Number(lead.value) > 0 && (
-          <span className="text-[11px] font-mono text-primary shrink-0">
+          <span className="text-[11px] text-primary shrink-0">
             {formatCurrency(Number(lead.value))}
           </span>
         )}
       </div>
       {lead.source && (
-        <span className="inline-block mt-2 text-[10px] uppercase tracking-wider font-mono text-foreground/40 border border-border rounded px-1.5 py-0.5">
+        <span className="inline-block mt-2 text-[10px] capitalize text-foreground/40 border border-border rounded px-1.5 py-0.5">
           {lead.source}
         </span>
       )}

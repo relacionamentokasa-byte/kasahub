@@ -52,7 +52,7 @@
 
   --font-display: 'Funnel Display', system-ui, sans-serif;
   --font-sans: 'Onest', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-mono: 'Onest', system-ui, sans-serif;
 
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }

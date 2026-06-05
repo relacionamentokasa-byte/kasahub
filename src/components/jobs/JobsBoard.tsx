@@ -102,7 +102,7 @@ export function JobsBoard({
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+          <span className="text-primary text-[10px] capitalize">
             {eyebrow}
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
@@ -176,7 +176,7 @@ function Column({
         <div className="flex items-center gap-2">
           <span className="size-2 rounded-full" style={{ background: stage.color }} />
           <span className="font-display font-semibold text-sm tracking-tight">{stage.name}</span>
-          <span className="text-[10px] text-foreground/40 font-mono">{count}</span>
+          <span className="text-[10px] text-foreground/40">{count}</span>
         </div>
         <button
           onClick={onAdd}
@@ -252,7 +252,7 @@ function JobCardInner({ job, dragging }: { job: Job; dragging?: boolean }) {
         <div className="min-w-0 flex-1 pr-6">
           <div className="font-semibold text-sm leading-snug">{job.title}</div>
           {job.due_date && (
-            <div className="text-[10px] text-foreground/40 font-mono mt-1.5 uppercase tracking-wider">
+            <div className="text-[10px] text-foreground/40 mt-1.5 capitalize">
               {format(new Date(job.due_date), "dd MMM")}
             </div>
           )}

@@ -134,7 +134,7 @@ export function NewLeadDialog({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[11px] uppercase tracking-wider font-mono text-foreground/60">
+      <Label className="text-[11px] capitalize text-foreground/60">
         {label}
       </Label>
       {children}

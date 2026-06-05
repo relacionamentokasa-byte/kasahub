@@ -81,7 +81,7 @@ export function AppSidebar() {
         {visibleGroups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-sidebar-foreground/40 px-3">
+              <SidebarGroupLabel className="text-[10px] font-mono-kasa capitalize text-sidebar-foreground/40 px-3">
                 {group.label}
               </SidebarGroupLabel>
             )}
@@ -122,7 +122,7 @@ export function AppSidebar() {
           {!collapsed && (
             <div className="overflow-hidden">
               <p className="text-sm font-medium truncate text-sidebar-foreground">Lucas Andrade</p>
-              <p className="text-[10px] text-sidebar-foreground/40 truncate font-mono-kasa uppercase tracking-wider">
+              <p className="text-[10px] text-sidebar-foreground/40 truncate font-mono-kasa capitalize">
                 Diretor Criativo
               </p>
             </div>

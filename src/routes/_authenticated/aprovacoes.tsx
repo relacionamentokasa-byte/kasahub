@@ -28,7 +28,7 @@ function ApprovalsPage() {
     <div className="p-6 lg:p-8 space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-primary/70">
+          <p className="text-[10px] font-mono-kasa capitalize text-primary/70">
             Experiência · Aprovações
           </p>
           <h1 className="font-display text-3xl lg:text-4xl mt-1">Feed de aprovações</h1>

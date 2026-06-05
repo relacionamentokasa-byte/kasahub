@@ -105,7 +105,7 @@ function AuthPage() {
         </div>
 
         <div className="relative space-y-8">
-          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-[0.3em] font-semibold">
+          <span className="text-primary text-[10px] font-mono-kasa capitalize font-semibold">
             Sistema Operacional · Agências de Marketing
           </span>
           <h1 className="font-display text-5xl xl:text-6xl font-bold tracking-tight text-balance leading-[1.05]">
@@ -119,7 +119,7 @@ function AuthPage() {
           </p>
         </div>
 
-        <div className="relative grid grid-cols-3 gap-4 text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">
+        <div className="relative grid grid-cols-3 gap-4 text-[10px] font-mono-kasa capitalize text-foreground/40">
           <div>
             <p className="text-primary font-semibold text-2xl font-display normal-case tracking-tight">
               CRM
@@ -148,7 +148,7 @@ function AuthPage() {
         </div>
 
         <div className="space-y-2 mb-8">
-          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-[0.25em] font-semibold">
+          <span className="text-primary text-[10px] font-mono-kasa capitalize font-semibold">
             {mode === "signin" ? "Acesso restrito" : "Nova conta"}
           </span>
           <h2 className="font-display text-3xl font-bold tracking-tight">
@@ -176,7 +176,7 @@ function AuthPage() {
           Continuar com Google
         </Button>
 
-        <div className="my-6 flex items-center gap-3 text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/30">
+        <div className="my-6 flex items-center gap-3 text-[10px] font-mono-kasa capitalize text-foreground/30">
           <span className="h-px flex-1 bg-border" />
           ou
           <span className="h-px flex-1 bg-border" />
@@ -185,7 +185,7 @@ function AuthPage() {
         <form className="space-y-5" onSubmit={handleEmailSubmit}>
           {mode === "signup" && (
             <div className="space-y-2">
-              <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60 font-semibold">
+              <label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">
                 Nome completo
               </label>
               <input
@@ -199,7 +199,7 @@ function AuthPage() {
             </div>
           )}
           <div className="space-y-2">
-            <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60 font-semibold">
+            <label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">
               E-mail
             </label>
             <input
@@ -212,7 +212,7 @@ function AuthPage() {
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60 font-semibold">
+            <label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">
               Senha
             </label>
             <input

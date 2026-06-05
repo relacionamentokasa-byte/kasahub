@@ -70,7 +70,7 @@ function EquipePage() {
     <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <span className="text-[10px] font-mono-kasa uppercase tracking-[0.25em] text-primary font-semibold">
+          <span className="text-[10px] font-mono-kasa capitalize text-primary font-semibold">
             Gestão · Equipe
           </span>
           <h1 className="font-display text-3xl font-bold mt-1">Equipe & permissões</h1>
@@ -82,7 +82,7 @@ function EquipePage() {
       </header>
 
       <section className="space-y-3">
-        <h2 className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">
+        <h2 className="text-[10px] font-mono-kasa capitalize text-foreground/40">
           Membros ({members.length})
         </h2>
         <div className="rounded-xl border border-border bg-surface overflow-hidden">
@@ -93,7 +93,7 @@ function EquipePage() {
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-background/40 text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">
+              <thead className="bg-background/40 text-[10px] font-mono-kasa capitalize text-foreground/40">
                 <tr>
                   <th className="text-left px-4 py-3">Membro</th>
                   <th className="text-left px-4 py-3">Cargo</th>
@@ -161,7 +161,7 @@ function EquipePage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">
+        <h2 className="text-[10px] font-mono-kasa capitalize text-foreground/40">
           Convites pendentes ({invites.filter((i) => i.status === "pending").length})
         </h2>
         <div className="rounded-xl border border-border bg-surface overflow-hidden">
@@ -172,7 +172,7 @@ function EquipePage() {
             </div>
           ) : (
             <table className="w-full text-sm">
-              <thead className="bg-background/40 text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">
+              <thead className="bg-background/40 text-[10px] font-mono-kasa capitalize text-foreground/40">
                 <tr>
                   <th className="text-left px-4 py-3">E-mail</th>
                   <th className="text-left px-4 py-3">Papel</th>

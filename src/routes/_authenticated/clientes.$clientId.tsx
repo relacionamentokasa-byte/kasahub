@@ -101,7 +101,7 @@ function ClientDetail() {
       <div className="px-6 lg:px-10 pt-6 pb-4">
         <Link
           to="/clientes"
-          className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 font-mono uppercase tracking-wider"
+          className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
         >
           <ArrowLeft className="size-3.5" /> Clientes
         </Link>
@@ -121,14 +121,14 @@ function ClientDetail() {
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+            <span className="text-primary text-[10px] capitalize">
               Cliente · 360°
             </span>
             <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">
               {client.company || client.name}
             </h1>
             <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-foreground/50">
-              <span className={`inline-flex items-center gap-1.5 font-mono uppercase tracking-widest text-[10px] px-2 py-0.5 rounded ${client.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+              <span className={`inline-flex items-center gap-1.5 capitalize text-[10px] px-2 py-0.5 rounded ${client.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
                 ● {client.status === "active" ? "Ativo" : client.status}
               </span>
               {client.email && <span className="inline-flex items-center gap-1.5"><Mail className="size-3" />{client.email}</span>}
@@ -168,7 +168,7 @@ function ClientDetail() {
               <TabsTrigger
                 key={v}
                 value={v}
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs uppercase font-mono tracking-wider whitespace-nowrap"
+                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs capitalize whitespace-nowrap"
               >
                 {label}
               </TabsTrigger>
@@ -184,7 +184,7 @@ function ClientDetail() {
           </div>
           {client.notes && (
             <div className="mt-6 bg-surface border border-border rounded-2xl p-5">
-              <div className="text-[10px] uppercase tracking-widest text-foreground/50 font-mono mb-2 flex items-center gap-1.5">
+              <div className="text-[10px] capitalize text-foreground/50 mb-2 flex items-center gap-1.5">
                 <FileText className="size-3" /> Observações
               </div>
               <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
@@ -226,7 +226,7 @@ function ClientDetail() {
           ) : (
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="text-left text-[10px] font-mono uppercase tracking-wider text-foreground/40 border-b border-border">
+                <thead className="text-left text-[10px] capitalize text-foreground/40 border-b border-border">
                   <tr>
                     <th className="py-2.5 px-4">Descrição</th>
                     <th className="py-2.5 px-4">Tipo</th>
@@ -242,11 +242,11 @@ function ClientDetail() {
                       <td className="py-3 px-4 text-foreground/60">{t.kind === "income" ? "Receita" : "Despesa"}</td>
                       <td className="py-3 px-4 text-foreground/60">{fmtDate(t.due_date)}</td>
                       <td className="py-3 px-4">
-                        <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>
+                        <span className={`text-[10px] capitalize px-2 py-1 rounded ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>
                           {t.status === "paid" ? "Pago" : "Pendente"}
                         </span>
                       </td>
-                      <td className={`py-3 px-4 text-right font-mono ${t.kind === "income" ? "text-emerald-400" : "text-foreground/80"}`}>
+                      <td className={`py-3 px-4 text-right ${t.kind === "income" ? "text-emerald-400" : "text-foreground/80"}`}>
                         {t.kind === "income" ? "+" : "−"} {BRL(Number(t.amount))}
                       </td>
                     </tr>
@@ -274,9 +274,9 @@ function ClientDetail() {
                       <div className="font-display font-semibold truncate">{p.title}</div>
                       <div className="text-xs text-foreground/50 mt-0.5">{fmtDate(p.created_at)}</div>
                     </div>
-                    <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded bg-muted text-muted-foreground shrink-0">{p.status}</span>
+                    <span className="text-[10px] capitalize px-2 py-1 rounded bg-muted text-muted-foreground shrink-0">{p.status}</span>
                   </div>
-                  <div className="mt-3 font-mono text-primary">{BRL(Number(p.total))}</div>
+                  <div className="mt-3 text-primary">{BRL(Number(p.total))}</div>
                 </Link>
               ))}
             </div>
@@ -312,7 +312,7 @@ function ClientDetail() {
 function KPI({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="bg-surface border border-border rounded-xl p-3">
-      <div className="text-[10px] uppercase tracking-widest text-foreground/40 font-mono flex items-center gap-1.5">
+      <div className="text-[10px] capitalize text-foreground/40 flex items-center gap-1.5">
         {icon} {label}
       </div>
       <div className="font-display text-lg font-bold mt-1 truncate">{value}</div>
@@ -323,7 +323,7 @@ function KPI({ icon, label, value }: { icon: React.ReactNode; label: string; val
 function Card({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="bg-surface border border-border rounded-2xl p-5">
-      <div className="text-[10px] uppercase tracking-widest text-foreground/50 font-mono mb-2">{label}</div>
+      <div className="text-[10px] capitalize text-foreground/50 mb-2">{label}</div>
       <div className="font-display text-3xl font-bold tracking-tight">{value}</div>
     </div>
   );
@@ -345,12 +345,12 @@ function CalendarTab({ projects, contracts, nextDue }: { projects: ProjectLike[]
       {events.map((e, i) => (
         <li key={i} className="bg-surface border border-border rounded-xl p-4 flex items-center gap-4">
           <div className="text-center min-w-[60px]">
-            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{new Date(e.date).toLocaleDateString("pt-BR", { month: "short" })}</div>
+            <div className="text-[10px] capitalize text-foreground/40">{new Date(e.date).toLocaleDateString("pt-BR", { month: "short" })}</div>
             <div className="font-display text-2xl font-bold">{new Date(e.date).getDate()}</div>
           </div>
           <div className="flex-1">
             <div className="font-medium text-sm">{e.label}</div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{e.kind}</div>
+            <div className="text-[10px] capitalize text-foreground/40">{e.kind}</div>
           </div>
         </li>
       ))}
@@ -377,7 +377,7 @@ function TimelineTab({ client, projects, proposals, transactions }: {
       {events.map((e, i) => (
         <li key={i} className="relative">
           <span className="absolute -left-[31px] top-1.5 size-3 rounded-full bg-primary border-2 border-background" />
-          <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{fmtDate(e.ts)} · {e.kind}</div>
+          <div className="text-[10px] capitalize text-foreground/40">{fmtDate(e.ts)} · {e.kind}</div>
           <div className="text-sm">{e.label}</div>
         </li>
       ))}
@@ -409,7 +409,7 @@ function BrandingTab({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-6 max-w-3xl">
       <header>
-        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-primary font-semibold">Cliente · Branding</span>
+        <span className="text-[10px] capitalize text-primary font-semibold">Cliente · Branding</span>
         <h2 className="font-display text-2xl font-bold mt-1 flex items-center gap-2"><Palette className="size-5 text-primary" /> Identidade visual</h2>
         <p className="text-sm text-foreground/60 mt-1">Cores, logo e banner usados em propostas, portal e materiais.</p>
       </header>
@@ -448,7 +448,7 @@ function BrandingTab({ clientId }: { clientId: string }) {
           )}
           <div>
             <div className="font-display font-semibold">{client.company || client.name}</div>
-            <div className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">Preview do branding</div>
+            <div className="text-[10px] capitalize text-foreground/40">Preview do branding</div>
           </div>
         </div>
       </div>
@@ -464,7 +464,7 @@ export function PortalTab({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-8 max-w-5xl">
       <header>
-        <span className="text-[10px] font-mono uppercase tracking-[0.25em] text-primary font-semibold">
+        <span className="text-[10px] capitalize text-primary font-semibold">
           Cliente · Portal exclusivo
         </span>
         <h2 className="font-display text-2xl font-bold mt-1">Portal do Cliente</h2>
@@ -559,7 +559,7 @@ function PortalSettings({ clientId }: { clientId: string }) {
             )}
           </div>
           {portalUrl && (
-            <p className="text-[10px] text-foreground/40 mt-1 font-mono">{portalUrl}</p>
+            <p className="text-[10px] text-foreground/40 mt-1">{portalUrl}</p>
           )}
         </Field>
 
@@ -627,7 +627,7 @@ function PortalSettings({ clientId }: { clientId: string }) {
             )}
             <div>
               <p className="text-sm font-medium">{client.name}</p>
-              <p className="text-[10px] font-mono text-foreground/40 uppercase tracking-widest">Preview</p>
+              <p className="text-[10px] text-foreground/40 capitalize">Preview</p>
             </div>
           </div>
         </div>
@@ -697,7 +697,7 @@ function PortalUsers({ clientId }: { clientId: string }) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
-            <thead className="text-left text-[10px] font-mono uppercase tracking-wider text-foreground/40 border-b border-border">
+            <thead className="text-left text-[10px] capitalize text-foreground/40 border-b border-border">
               <tr>
                 <th className="py-2 pr-3">Nome</th>
                 <th className="py-2 pr-3">E-mail</th>
@@ -715,7 +715,7 @@ function PortalUsers({ clientId }: { clientId: string }) {
                   <td className="py-3 pr-3 text-foreground/60">{u.role ?? "—"}</td>
                   <td className="py-3 pr-3 text-foreground/60">{u.phone ?? "—"}</td>
                   <td className="py-3 pr-3">
-                    <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded ${u.auth_user_id ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-[10px] capitalize px-2 py-1 rounded ${u.auth_user_id ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
                       {u.auth_user_id ? "Ativo" : "Pendente"}
                     </span>
                   </td>
@@ -794,7 +794,7 @@ function NewPortalUserDialog({
           </Field>
         </div>
         <div className="space-y-2">
-          <Label className="text-[10px] font-mono uppercase tracking-wider text-foreground/60">Permissões</Label>
+          <Label className="text-[10px] capitalize text-foreground/60">Permissões</Label>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
             {(["approvals","projects","jobs","calendar","files","reports"] as const).map((k) => (
               <label key={k} className="flex items-center gap-2 border border-border rounded-md px-3 py-2 cursor-pointer">
@@ -888,7 +888,7 @@ function PortalContent({ clientId }: { clientId: string }) {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {items.map((it) => (
           <div key={it.key} className="rounded-lg border border-border bg-background/40 p-4">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-foreground/40">{it.label}</p>
+            <p className="text-[10px] capitalize text-foreground/40">{it.label}</p>
             <p className="font-display text-2xl font-bold mt-1">
               {it.count ?? <span className="text-foreground/30 text-sm font-normal">em breve</span>}
             </p>
@@ -902,7 +902,7 @@ function PortalContent({ clientId }: { clientId: string }) {
 function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <Label className="text-[10px] font-mono uppercase tracking-wider text-foreground/60">{label}</Label>
+      <Label className="text-[10px] capitalize text-foreground/60">{label}</Label>
       {children}
     </div>
   );

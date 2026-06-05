@@ -82,12 +82,12 @@ export function PermissionsManager({ canEdit }: { canEdit: boolean }) {
                     {r.description && <p className="text-xs text-foreground/50 mt-0.5 line-clamp-2">{r.description}</p>}
                   </div>
                   {r.is_system && (
-                    <span className="text-[9px] font-mono-kasa uppercase tracking-widest bg-primary/15 text-primary px-1.5 py-0.5 rounded">
+                    <span className="text-[9px] font-mono-kasa capitalize bg-primary/15 text-primary px-1.5 py-0.5 rounded">
                       Sistema
                     </span>
                   )}
                 </div>
-                <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">
+                <p className="text-[10px] font-mono-kasa capitalize text-foreground/40">
                   {moduleCount} módulos liberados
                 </p>
                 {canEdit && (
@@ -218,9 +218,9 @@ function RoleEditorDialog({
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-background/60 border-b border-border">
-                  <th className="text-left px-3 py-2 text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/60">Módulo</th>
+                  <th className="text-left px-3 py-2 text-[10px] font-mono-kasa capitalize text-foreground/60">Módulo</th>
                   {ACTIONS.map((a) => (
-                    <th key={a.id} className="px-2 py-2 text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/60 text-center">
+                    <th key={a.id} className="px-2 py-2 text-[10px] font-mono-kasa capitalize text-foreground/60 text-center">
                       {a.label}
                     </th>
                   ))}

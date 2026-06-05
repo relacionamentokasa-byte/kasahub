@@ -91,7 +91,7 @@ function Dashboard() {
     <div className="p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto animate-reveal">
       <header className="flex items-end justify-between gap-6 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-[0.25em] font-medium">
+          <span className="text-primary text-[10px] font-mono-kasa capitalize font-medium">
             Visão Executiva · {new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-2">
@@ -117,7 +117,7 @@ function Dashboard() {
         <section className="col-span-12 lg:col-span-6 row-span-2 bg-primary rounded-2xl p-8 relative overflow-hidden min-h-[280px] flex flex-col justify-between">
           <div className="kasa-pattern absolute inset-0 opacity-25" />
           <div className="relative flex justify-between items-start">
-            <span className="text-primary-foreground/70 font-mono-kasa text-[10px] uppercase tracking-[0.25em] font-bold">
+            <span className="text-primary-foreground/70 font-mono-kasa text-[10px] capitalize font-bold">
               Faturamento do mês
             </span>
             <span className="bg-primary-foreground/15 text-primary-foreground px-2.5 py-1 rounded-full text-[10px] font-bold font-mono-kasa">
@@ -140,7 +140,7 @@ function Dashboard() {
         {/* Goal */}
         <section className="col-span-12 lg:col-span-6 bg-surface border border-border rounded-2xl p-6">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-foreground/40">
+            <span className="text-[10px] font-mono-kasa capitalize text-foreground/40">
               Meta x Realizado · mês
             </span>
             <span className="text-[10px] font-mono-kasa text-primary font-semibold">{goalPct}%</span>
@@ -160,7 +160,7 @@ function Dashboard() {
           <div className="p-5 border-b border-border flex justify-between items-center">
             <div>
               <h3 className="font-display text-lg font-bold">Pauta operacional</h3>
-              <p className="text-[10px] font-mono-kasa text-foreground/40 uppercase tracking-wider mt-0.5">
+              <p className="text-[10px] font-mono-kasa text-foreground/40 capitalize mt-0.5">
                 {pendingJobs.length} jobs pendentes · {urgentCount} urgentes
               </p>
             </div>
@@ -203,7 +203,7 @@ function Dashboard() {
           <div className="flex justify-between items-center mb-6">
             <div>
               <h3 className="font-display text-lg font-bold">Evolução de receita</h3>
-              <p className="text-[10px] font-mono-kasa text-foreground/40 uppercase tracking-wider mt-0.5">
+              <p className="text-[10px] font-mono-kasa text-foreground/40 capitalize mt-0.5">
                 Últimos 6 meses
               </p>
             </div>
@@ -241,7 +241,7 @@ function Dashboard() {
                 s.accent ? "bg-primary text-primary-foreground border-primary" : "bg-surface border-border hover:border-primary/40"
               }`}
             >
-              <span className={`text-[10px] font-mono-kasa uppercase tracking-wider mb-1 font-semibold ${s.accent ? "opacity-70" : "text-foreground/40"}`}>
+              <span className={`text-[10px] font-mono-kasa capitalize mb-1 font-semibold ${s.accent ? "opacity-70" : "text-foreground/40"}`}>
                 {s.label}
               </span>
               <span className="text-2xl font-display font-bold tabular-nums">{String(s.value).padStart(2, "0")}</span>
@@ -253,7 +253,7 @@ function Dashboard() {
         <section className="col-span-12 lg:col-span-5 bg-surface border border-border rounded-2xl p-6">
           <div className="flex justify-between items-center mb-5">
             <h3 className="font-display text-lg font-bold">Alertas</h3>
-            <span className="text-[10px] font-mono-kasa text-foreground/40 uppercase tracking-wider">tempo real</span>
+            <span className="text-[10px] font-mono-kasa text-foreground/40 capitalize">tempo real</span>
           </div>
           <div className="space-y-3">
             {ind.overdueCount > 0 && (
@@ -310,7 +310,7 @@ function Alert({ color, icon, title, hint }: { color: "rose" | "orange" | "prima
     <div className={`flex items-center gap-3 p-3 rounded-xl border ${cls}`}>
       {icon}
       <div className="flex-1 text-sm">{title}</div>
-      {hint && <div className="text-xs font-mono opacity-80">{hint}</div>}
+      {hint && <div className="text-xs opacity-80">{hint}</div>}
     </div>
   );
 }
@@ -331,7 +331,7 @@ function KpiCard({ icon: Icon, label, value, sub }: KpiCardProps) {
         </div>
       </div>
       <div>
-        <p className="text-[10px] font-mono-kasa text-foreground/40 uppercase tracking-wider mb-1">{label}</p>
+        <p className="text-[10px] font-mono-kasa text-foreground/40 capitalize mb-1">{label}</p>
         <p className="font-display text-2xl font-bold tracking-tight">{value}</p>
         {sub && <p className="text-[10px] text-foreground/40 mt-0.5">{sub}</p>}
       </div>

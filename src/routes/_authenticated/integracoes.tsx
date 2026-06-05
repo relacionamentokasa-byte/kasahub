@@ -29,7 +29,7 @@ function IntegrationsPage() {
   return (
     <div className="px-6 lg:px-10 py-8 space-y-6 max-w-5xl mx-auto">
       <header>
-        <span className="text-[10px] font-mono-kasa uppercase tracking-[0.25em] text-primary font-semibold">
+        <span className="text-[10px] font-mono-kasa capitalize text-primary font-semibold">
           Sistema · Integrações
         </span>
         <h1 className="font-display text-3xl font-bold mt-1">Integrações ativas</h1>
@@ -248,7 +248,7 @@ function Header({
       <div>
         <h2 className="font-display text-lg font-semibold">{title}</h2>
         <span
-          className={`inline-block mt-1 text-[10px] font-mono-kasa uppercase tracking-widest px-2 py-0.5 rounded ${color}`}
+          className={`inline-block mt-1 text-[10px] font-mono-kasa capitalize px-2 py-0.5 rounded ${color}`}
         >
           {status}
         </span>
@@ -269,7 +269,7 @@ function Field({
 }) {
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60">
+      <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">
         {label}
       </Label>
       {children}

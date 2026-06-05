@@ -70,7 +70,7 @@ function ProposalsPage() {
     <div className="p-6 lg:p-10 max-w-7xl mx-auto w-full">
       <div className="flex items-end justify-between gap-4 flex-wrap mb-8">
         <div>
-          <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+          <span className="text-primary text-[10px] capitalize">
             Comercial · Propostas
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
@@ -152,7 +152,7 @@ function ProposalsPage() {
         <div className="rounded-2xl border border-border bg-surface overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-[10px] uppercase tracking-wider font-mono text-foreground/50 border-b border-border">
+              <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
                 <th className="px-5 py-3">Proposta</th>
                 <th className="px-5 py-3">Cliente</th>
                 <th className="px-5 py-3 text-right">Mensal</th>
@@ -180,14 +180,14 @@ function ProposalsPage() {
                       </Link>
                     </td>
                     <td className="px-5 py-3 text-foreground/70">{p.client_name}</td>
-                    <td className="px-5 py-3 text-right font-mono text-primary">
+                    <td className="px-5 py-3 text-right text-primary">
                       {formatCurrency(Number(p.monthly_investment))}
                     </td>
-                    <td className="px-5 py-3 text-right font-mono">
+                    <td className="px-5 py-3 text-right">
                       {formatCurrency(Number(p.total))}
                     </td>
                     <td className="px-5 py-3">
-                      <span className={`text-[10px] uppercase font-mono tracking-wider px-2 py-1 rounded ${s.cls}`}>
+                      <span className={`text-[10px] capitalize px-2 py-1 rounded ${s.cls}`}>
                         {s.label}
                       </span>
                     </td>
@@ -215,7 +215,7 @@ function ProposalsPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-[11px] uppercase tracking-wider font-mono text-foreground/60">
+      <Label className="text-[11px] capitalize text-foreground/60">
         {label}
       </Label>
       {children}

@@ -61,7 +61,7 @@ function ConfigPage() {
     <div className="px-6 lg:px-10 py-8 space-y-6 max-w-5xl mx-auto">
       <header className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <span className="text-[10px] font-mono-kasa uppercase tracking-[0.25em] text-primary font-semibold">
+          <span className="text-[10px] font-mono-kasa capitalize text-primary font-semibold">
             Sistema · Configurações
           </span>
           <h1 className="font-display text-3xl font-bold mt-1">Configurações da agência</h1>
@@ -166,7 +166,7 @@ function ConfigPage() {
             {form.logo_url && (
               <div className="mt-6 p-6 rounded-lg bg-background/40 border border-border flex items-center gap-4">
                 <img src={form.logo_url} alt="Logo" className="h-12 w-auto" />
-                <span className="text-xs text-foreground/40 font-mono-kasa uppercase tracking-widest">Preview</span>
+                <span className="text-xs text-foreground/40 font-mono-kasa capitalize">Preview</span>
               </div>
             )}
           </Card>
@@ -208,7 +208,7 @@ function ConfigPage() {
                       <p className="font-medium text-sm">{it.name}</p>
                       <p className="text-xs text-foreground/50">{it.desc}</p>
                     </div>
-                    <span className={`text-[10px] font-mono-kasa uppercase tracking-widest px-2 py-1 rounded ${connected ? "bg-emerald-500/15 text-emerald-300" : "bg-muted text-muted-foreground"}`}>
+                    <span className={`text-[10px] font-mono-kasa capitalize px-2 py-1 rounded ${connected ? "bg-emerald-500/15 text-emerald-300" : "bg-muted text-muted-foreground"}`}>
                       {connected ? "Conectado" : "Desconectado"}
                     </span>
                   </div>
@@ -244,7 +244,7 @@ function Field({
 }) {
   return (
     <div className={`space-y-1.5 ${className}`}>
-      <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60">
+      <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">
         {label}
       </Label>
       {children}

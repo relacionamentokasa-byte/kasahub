@@ -99,7 +99,7 @@ function FinanceiroPage() {
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+          <span className="text-primary text-[10px] capitalize">
             Gestão · Financeiro
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
@@ -242,7 +242,7 @@ function FinanceiroPage() {
                   <div key={c.id} className="bg-surface border border-border rounded-2xl p-5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/40">
+                        <div className="text-[10px] capitalize text-foreground/40">
                           {clientName(c.client_id)}
                         </div>
                         <div className="font-display font-semibold truncate">{c.title}</div>
@@ -297,7 +297,7 @@ function FinanceiroPage() {
                         </div>
                       </div>
                       <div className="mt-4 font-display text-2xl font-bold">{brl(balance)}</div>
-                      <div className="text-[10px] font-mono uppercase tracking-wider text-foreground/40 mt-1">
+                      <div className="text-[10px] capitalize text-foreground/40 mt-1">
                         Saldo atual
                       </div>
                       <button
@@ -343,7 +343,7 @@ function Kpi({
           : "text-foreground";
   return (
     <div className="bg-surface border border-border rounded-2xl p-5">
-      <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-wider text-foreground/50">
+      <div className="flex items-center justify-between text-[10px] capitalize text-foreground/50">
         <span>{label}</span>
         {icon}
       </div>
@@ -377,7 +377,7 @@ function TxTable({
   const today = new Date().toISOString().slice(0, 10);
   return (
     <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-      <div className="grid grid-cols-12 px-5 py-3 text-[10px] font-mono uppercase tracking-wider text-foreground/40 border-b border-border">
+      <div className="grid grid-cols-12 px-5 py-3 text-[10px] capitalize text-foreground/40 border-b border-border">
         <div className="col-span-1">Status</div>
         <div className="col-span-4">Descrição</div>
         <div className="col-span-3">Cliente</div>
@@ -404,7 +404,7 @@ function TxTable({
             </button>
             <div className="col-span-4 min-w-0">
               <div className="text-sm font-medium truncate">{t.description}</div>
-              {overdue && <div className="text-[10px] text-rose-400 font-mono uppercase">Em atraso</div>}
+              {overdue && <div className="text-[10px] text-rose-400 capitalize">Em atraso</div>}
             </div>
             <div className="col-span-3 text-xs text-foreground/60 truncate">{clientName(t.client_id)}</div>
             <div className="col-span-2 text-xs text-foreground/60">

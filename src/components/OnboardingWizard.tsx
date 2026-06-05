@@ -104,7 +104,7 @@ export function OnboardingWizard() {
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary mb-1">
             <Sparkles className="size-4" />
-            <span className="text-[10px] font-mono-kasa uppercase tracking-[0.25em] font-semibold">
+            <span className="text-[10px] font-mono-kasa capitalize font-semibold">
               Bem-vindo · Passo {step} de 2
             </span>
           </div>
@@ -121,7 +121,7 @@ export function OnboardingWizard() {
         {step === 1 ? (
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60">
+              <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">
                 Nome completo
               </Label>
               <Input
@@ -135,7 +135,7 @@ export function OnboardingWizard() {
         ) : (
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60">
+              <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">
                 Nome da agência
               </Label>
               <Input
@@ -146,7 +146,7 @@ export function OnboardingWizard() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60">
+              <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">
                 Logo (URL) — opcional
               </Label>
               <Input

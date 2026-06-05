@@ -103,7 +103,7 @@ export function ApprovalSheet({ approvalId, open, onOpenChange, asClient }: Prop
               <SheetTitle className="font-display text-2xl text-left">{approval?.title}</SheetTitle>
               <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {approval && (
-                  <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider font-mono-kasa border", STATUS_COLOR[approval.status])}>
+                  <Badge variant="outline" className={cn("text-[10px] capitalize-kasa border", STATUS_COLOR[approval.status])}>
                     {STATUS_LABEL[approval.status]}
                   </Badge>
                 )}
@@ -152,7 +152,7 @@ export function ApprovalSheet({ approvalId, open, onOpenChange, asClient }: Prop
 
             {approval?.caption && (
               <div className="rounded-lg border border-border bg-background p-4">
-                <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40 mb-2">Legenda</p>
+                <p className="text-[10px] font-mono-kasa capitalize text-foreground/40 mb-2">Legenda</p>
                 <p className="text-sm whitespace-pre-wrap">{approval.caption}</p>
               </div>
             )}

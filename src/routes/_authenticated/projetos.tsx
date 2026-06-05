@@ -33,7 +33,7 @@ function ProjetosPage() {
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono uppercase tracking-[0.25em]">
+          <span className="text-primary text-[10px] capitalize">
             Operação · Projetos
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
@@ -70,7 +70,7 @@ function ProjetosPage() {
                     )}
                     <div className="flex items-center gap-2 mb-2 pr-8">
                       <span className="size-2 rounded-full" style={{ background: p.color ?? "#FFBC45" }} />
-                      <span className="text-[10px] uppercase font-mono tracking-wider text-foreground/40">
+                      <span className="text-[10px] capitalize text-foreground/40">
                         {p.status}
                       </span>
                     </div>
@@ -79,7 +79,7 @@ function ProjetosPage() {
                       <div className="text-xs text-foreground/50 mt-1">{c.company || c.name}</div>
                     )}
                     {p.due_date && (
-                      <div className="text-[10px] font-mono text-foreground/40 mt-3 uppercase tracking-wider">
+                      <div className="text-[10px] text-foreground/40 mt-3 capitalize">
                         Prazo · {p.due_date}
                       </div>
                     )}
