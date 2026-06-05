@@ -216,10 +216,10 @@ function ClientesPage() {
                   {filtered.map((c) => (
                     <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-surface-elevated transition">
                       <td className="px-4 py-3">
-                        <Link
-                          to="/clientes/$clientId"
-                          params={{ clientId: c.id }}
-                          className="flex items-center gap-3 min-w-0"
+                        <button
+                          type="button"
+                          onClick={() => setSelectedId(c.id)}
+                          className="flex items-center gap-3 min-w-0 text-left w-full"
                         >
                           <div
                             className="size-9 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
@@ -235,7 +235,7 @@ function ClientesPage() {
                             <div className="font-semibold truncate hover:text-primary">{c.company || c.name}</div>
                             {c.email && <div className="text-[11px] text-foreground/50 truncate">{c.email}</div>}
                           </div>
-                        </Link>
+                        </button>
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-[10px] capitalize px-2 py-1 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
