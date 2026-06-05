@@ -78,6 +78,8 @@ export function NewTransactionDialog({
           account_id: form.account_id || null,
           category_id: form.category_id || null,
           client_id: form.client_id || null,
+          contract_id: form.contract_id || null,
+          project_id: form.project_id || null,
           notes: form.notes || null,
           status: form.paid ? "paid" : "pending",
           paid_at: form.paid ? form.due_date : null,
@@ -96,11 +98,14 @@ export function NewTransactionDialog({
         account_id: "",
         category_id: "",
         client_id: "",
+        contract_id: "",
+        project_id: "",
         notes: "",
         paid: false,
         installments: 1,
       });
     },
+
     onError: (e: Error) => toast.error(e.message),
   });
 
