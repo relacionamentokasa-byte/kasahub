@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Loader2, Bell, Building2, Palette, Plug } from "lucide-react";
+import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog } from "lucide-react";
+import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
