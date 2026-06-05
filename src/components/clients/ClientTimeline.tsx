@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
-  LeadLink, FileText, CheckCircle2, FileSignature, 
+  FileText, CheckCircle2, FileSignature, 
   Rocket, UserCheck, Play, PlusCircle, XCircle, Archive, 
   ArrowRight
 } from "lucide-react";
