@@ -115,6 +115,7 @@ function ProposalsPage() {
     intro: "",
     notes: "",
     scope: [] as string[],
+    intro: "Olá! É um prazer apresentar nossa proposta comercial. Nossa equipe está focada em entregar resultados excepcionais para sua marca.",
   };
   const [form, setForm] = useState(emptyForm);
 
