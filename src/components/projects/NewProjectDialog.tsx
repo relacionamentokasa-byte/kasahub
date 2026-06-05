@@ -102,7 +102,7 @@ export function NewProjectDialog({
             <Label>Cliente</Label>
             <Select
               value={form.client_id || undefined}
-              onValueChange={(v) => setForm({ ...form, client_id: v })}
+              onValueChange={(v) => setForm({ ...form, client_id: v, contract_id: "", proposal_id: "" })}
             >
               <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
               <SelectContent>
@@ -112,6 +112,41 @@ export function NewProjectDialog({
               </SelectContent>
             </Select>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Contrato (serviço)</Label>
+              <Select
+                value={form.contract_id || "__none__"}
+                onValueChange={(v) => setForm({ ...form, contract_id: v === "__none__" ? "" : v })}
+                disabled={!form.client_id}
+              >
+                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Nenhum</SelectItem>
+                  {clientContracts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Proposta</Label>
+              <Select
+                value={form.proposal_id || "__none__"}
+                onValueChange={(v) => setForm({ ...form, proposal_id: v === "__none__" ? "" : v })}
+                disabled={!form.client_id}
+              >
+                <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Nenhuma</SelectItem>
+                  {clientProposals.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <div className="space-y-1.5">
             <Label>Prazo final</Label>
             <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
