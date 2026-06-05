@@ -149,10 +149,10 @@ function ClientesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((c) => (
               <div key={c.id} className="relative group">
-                <Link
-                  to="/clientes/$clientId"
-                  params={{ clientId: c.id }}
-                  className="block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(c.id)}
+                  className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
                 >
                   <div className="flex items-center gap-3 mb-3">
                     <div
@@ -178,7 +178,7 @@ function ClientesPage() {
                   <div className="mt-3 text-[10px] capitalize text-foreground/40">
                     {c.status === "active" ? "● Ativo" : c.status}
                   </div>
-                </Link>
+                </button>
                 <button
                   type="button"
                   onClick={(e) => {
