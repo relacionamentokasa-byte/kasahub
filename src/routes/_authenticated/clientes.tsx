@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users } from "lucide-react";
-import { fetchClients } from "@/lib/ops-api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Users, Trash2 } from "lucide-react";
+import { fetchClients, deleteClient } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewClientDialog } from "@/components/clients/NewClientDialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes — KASA OS" }] }),
