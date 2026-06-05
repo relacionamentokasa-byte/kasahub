@@ -34,6 +34,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     items: [
       { title: "Dashboard", url: "/", icon: LayoutDashboard, module: "dashboard" },
       { title: "CRM", url: "/crm", icon: KanbanSquare, module: "crm" },
+      { title: "Propostas", url: "/propostas", icon: FileText, module: "propostas" },
     ],
   },
   {
