@@ -14,9 +14,19 @@ export const Route = createFileRoute("/_authenticated/clientes")({
 });
 
 function ClientesPage() {
+  const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+
+  const delMut = useMutation({
+    mutationFn: (id: string) => deleteClient(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      toast.success("Cliente removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const filtered = clients.filter((c) => {
     const q = query.trim().toLowerCase();
