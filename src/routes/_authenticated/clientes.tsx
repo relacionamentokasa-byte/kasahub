@@ -177,9 +177,7 @@ function ClientesPage() {
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    if (confirm(`Remover "${c.company || c.name}"? Esta ação não pode ser desfeita.`)) {
-                      delMut.mutate(c.id);
-                    }
+                    setDeleteId(c.id);
                   }}
                   className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
                   aria-label="Excluir cliente"
@@ -242,9 +240,7 @@ function ClientesPage() {
                       <td className="px-4 py-3 text-right">
                         <button
                           type="button"
-                          onClick={() => {
-                            if (confirm(`Remover "${c.company || c.name}"?`)) delMut.mutate(c.id);
-                          }}
+                          onClick={() => setDeleteId(c.id)}
                           className="p-1.5 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
                           aria-label="Excluir cliente"
                         >
@@ -288,9 +284,7 @@ function ClientesPage() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (confirm(`Remover "${c.company || c.name}"?`)) delMut.mutate(c.id);
-                    }}
+                    onClick={() => setDeleteId(c.id)}
                     className="absolute top-1/2 -translate-y-1/2 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
                     aria-label="Excluir cliente"
                   >
@@ -308,6 +302,11 @@ function ClientesPage() {
         clientId={selectedId}
         open={selectedId !== null}
         onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+      />
+      <DeleteClientDialog
+        clientId={deleteId}
+        open={deleteId !== null}
+        onOpenChange={(v) => { if (!v) setDeleteId(null); }}
       />
     </div>
   );
