@@ -178,7 +178,7 @@ function ConfigPage() {
             {form.logo_url && (
               <div className="mt-6 p-6 rounded-lg bg-background/40 border border-border flex items-center gap-4">
                 <img src={form.logo_url} alt="Logo" className="h-12 w-auto" />
-                <span className="text-xs text-foreground/40 font-mono-kasa capitalize">Preview</span>
+                <span className="text-xs text-foreground/40 font-mono-kasa capitalize">Visualização</span>
               </div>
             )}
           </Card>
