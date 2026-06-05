@@ -215,21 +215,29 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
             <p className="text-foreground/40 text-sm">Nenhum projeto para este cliente.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projects.map((p) => (
-                <Link
-                  key={p.id}
-                  to="/projetos/$projectId"
-                  params={{ projectId: p.id }}
-                  className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
-                >
-                  <div className="font-display font-semibold mb-1">{p.name}</div>
-                  {p.due_date && (
-                    <div className="text-xs text-foreground/50 inline-flex items-center gap-1.5">
-                      <Calendar className="size-3" /> {fmtDate(p.due_date)}
-                    </div>
-                  )}
-                </Link>
-              ))}
+              {projects.map((p) => {
+                const contract = (contracts as any[]).find(c => c.id === p.contract_id);
+                return (
+                  <Link
+                    key={p.id}
+                    to="/projetos/$projectId"
+                    params={{ projectId: p.id }}
+                    className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                  >
+                    <div className="font-display font-semibold mb-1">{p.name}</div>
+                    {contract && (
+                      <div className="text-[10px] text-primary flex items-center gap-1 mb-2">
+                        <FileSignature className="size-3" /> {contract.title}
+                      </div>
+                    )}
+                    {p.due_date && (
+                      <div className="text-xs text-foreground/50 inline-flex items-center gap-1.5">
+                        <Calendar className="size-3" /> {fmtDate(p.due_date)}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </TabsContent>
