@@ -75,6 +75,9 @@ function ClientDetail() {
               {client.document && <span className="inline-flex items-center gap-1.5"><Building2 className="size-3" />{client.document}</span>}
             </div>
           </div>
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
+            <Pencil className="size-4 mr-1.5" /> Editar
+          </Button>
         </div>
       </div>
 
