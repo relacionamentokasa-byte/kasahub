@@ -79,6 +79,7 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   accepted: { label: "Aprovada", cls: "bg-green-500/15 text-green-300" },
   rejected: { label: "Recusada", cls: "bg-red-500/15 text-red-300" },
   cancelled: { label: "Cancelada", cls: "bg-red-500/15 text-red-300" },
+  removed: { label: "Removida", cls: "bg-gray-500/15 text-gray-300" },
 };
 
 function publicUrl(token: string) {

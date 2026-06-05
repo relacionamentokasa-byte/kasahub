@@ -19,7 +19,7 @@ import { fetchContractTemplates, replaceContractVariables } from "@/lib/contract
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
-import { createProposalVersion, cancelProposalWorkflow } from "@/lib/proposal-versioning";
+import { createProposalVersion, cancelProposalWorkflow, reopenProposal } from "@/lib/proposal-versioning";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +55,7 @@ import {
   Rocket,
   RotateCcw,
   XCircle,
+  Ban,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -254,10 +255,10 @@ export function ProposalEditorContent({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const cancelMut = useMutation({
-    mutationFn: (reopen: boolean) => revertProposalApproval(supabase, proposalId, { reopen }),
-    onSuccess: (_d, reopen) => {
-      toast.success(reopen ? "Proposta reaberta" : "Proposta cancelada");
+  const reopenCancelledMut = useMutation({
+    mutationFn: () => reopenProposal(proposalId),
+    onSuccess: () => {
+      toast.success("Proposta reaberta para edição");
       qc.invalidateQueries();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -274,9 +275,9 @@ export function ProposalEditorContent({
   });
 
   const cancelWorkflowMut = useMutation({
-    mutationFn: () => cancelProposalWorkflow(proposalId, cancelType, cancelReason),
+    mutationFn: () => cancelProposalWorkflow(proposalId, cancelReason),
     onSuccess: () => {
-      toast.success("Operação cancelada conforme solicitado");
+      toast.success("Operação cancelada e estrutura removida");
       setShowCancelDialog(false);
       qc.invalidateQueries();
     },
@@ -351,8 +352,14 @@ export function ProposalEditorContent({
             </Button>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir</Button>
-              <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><XCircle className="size-4" /> Cancelar contrato</Button>
+              {proposal.status === 'accepted' ? (
+                <>
+                  <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir e Versionar</Button>
+                  <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><Ban className="size-4" /> Cancelar contrato e estrutura</Button>
+                </>
+              ) : proposal.status === 'cancelled' ? (
+                <Button variant="outline" onClick={() => reopenCancelledMut.mutate()} disabled={reopenCancelledMut.isPending} className="gap-2"><RotateCcw className="size-4" /> Reabrir para Edição</Button>
+              ) : null}
             </>
           )}
         </div>
@@ -620,35 +627,24 @@ export function ProposalEditorContent({
       <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Cancelar Contrato e Operação</DialogTitle>
-            <DialogDescription>
-              Selecione o tipo de cancelamento desejado para esta proposta aceita.
+            <DialogTitle className="text-destructive flex items-center gap-2">
+              <Ban className="size-5" /> Cancelar Contrato e Estrutura
+            </DialogTitle>
+            <DialogDescription className="font-bold text-foreground">
+              ATENÇÃO: Esta ação removerá toda a estrutura criada automaticamente a partir desta proposta. Esta ação não poderá ser desfeita.
             </DialogDescription>
           </DialogHeader>
           
-          <RadioGroup value={cancelType} onValueChange={(v: any) => setCancelType(v)} className="grid gap-4 py-4">
-            <div className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
-              <RadioGroupItem value="termination" id="termination" className="mt-1" />
-              <div className="space-y-1">
-                <Label htmlFor="termination" className="font-semibold text-base">Opção 1 — Encerramento Comercial</Label>
-                <p className="text-sm text-foreground/60 leading-relaxed">
-                  Encerra o contrato, o projeto e o cronograma. Cancela entregas futuras e bloqueia novas solicitações. 
-                  O histórico completo é mantido.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent/50 transition-colors">
-              <RadioGroupItem value="archiving" id="archiving" className="mt-1" />
-              <div className="space-y-1">
-                <Label htmlFor="archiving" className="font-semibold text-base">Opção 2 — Arquivamento</Label>
-                <p className="text-sm text-foreground/60 leading-relaxed">
-                  Arquiva a proposta, o contrato e o projeto. Mantém o acesso administrativo para consulta, 
-                  mas remove das visualizações operacionais ativas.
-                </p>
-              </div>
-            </div>
-          </RadioGroup>
+          <div className="py-4 space-y-3 text-sm text-foreground/70">
+            <p className="font-semibold text-foreground">Estruturas que serão removidas:</p>
+            <ul className="list-disc pl-5 space-y-1">
+              <li>Contrato vinculado e assinaturas</li>
+              <li>Projeto operacional e cronograma</li>
+              <li>Tarefas (Jobs) geradas</li>
+              <li>Acessos ao Portal do Cliente</li>
+            </ul>
+            <p className="mt-4 italic">O cadastro do cliente e o histórico da proposta serão mantidos.</p>
+          </div>
 
           <div className="space-y-2 mb-4">
             <Label className="text-sm">Motivo do cancelamento (Obrigatório)</Label>

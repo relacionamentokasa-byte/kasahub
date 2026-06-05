@@ -86,62 +86,120 @@ export async function createProposalVersion(proposalId: string) {
 
 export async function cancelProposalWorkflow(
   proposalId: string, 
-  type: 'termination' | 'archiving', 
   reason: string
 ) {
   const { data: userData } = await supabase.auth.getUser();
   const { data: proposal } = await supabase
     .from("proposals")
-    .select("client_id, lead_id, generated_contract_id, generated_project_id")
+    .select("client_id, lead_id, generated_contract_id, generated_project_id, total, title")
     .eq("id", proposalId)
     .single();
 
   if (!proposal) throw new Error("Proposta não encontrada");
 
-  // Update proposal
+  // 1. Validações de segurança
+  // Verificar se há entregas concluídas
+  const { data: jobs } = await supabase
+    .from("jobs")
+    .select("id, done_at")
+    .eq("project_id", proposal.generated_project_id || "");
+  
+  if (jobs?.some(j => j.done_at)) {
+    throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados (tarefas concluídas). Utilize a opção Encerrar Projeto.");
+  }
+
+  // Verificar se há faturas pagas
+  const { data: transactions } = await supabase
+    .from("transactions")
+    .select("id, status")
+    .eq("proposal_id", proposalId);
+  
+  if (transactions?.some(t => t.status === 'paid')) {
+    throw new Error("Não é possível remover esta estrutura porque já existem registros financeiros vinculados (faturas pagas). Utilize a opção Encerrar Projeto.");
+  }
+
+  // 2. Remoção de estruturas operacionais
+  // Remover Jobs
+  if (proposal.generated_project_id) {
+    await supabase.from("jobs").delete().eq("project_id", proposal.generated_project_id);
+  }
+
+  // Remover Projeto
+  if (proposal.generated_project_id) {
+    await supabase.from("projects").delete().eq("id", proposal.generated_project_id);
+  }
+
+  // Remover Contrato
+  if (proposal.generated_contract_id) {
+    await supabase.from("contracts").delete().eq("id", proposal.generated_contract_id);
+  }
+
+  // Cancelar transações pendentes
+  await supabase
+    .from("transactions")
+    .update({ status: 'cancelled' })
+    .eq("proposal_id", proposalId)
+    .eq("status", 'pending');
+
+  // 3. Atualizar status da proposta
   await supabase
     .from("proposals")
     .update({
       status: 'cancelled',
-      cancellation_type: type,
       cancellation_reason: reason,
-      cancelled_by: userData.user?.id
+      cancelled_by: userData.user?.id,
+      structure_status: 'removed'
     } as any)
     .eq("id", proposalId);
 
-  if (type === 'termination') {
-    // Encerrar contrato
-    if (proposal.generated_contract_id) {
-      await supabase.from("contracts").update({ status: 'cancelled' }).eq("id", proposal.generated_contract_id);
-    }
-    // Encerrar projeto
-    if (proposal.generated_project_id) {
-      await supabase.from("projects").update({ status: 'archived' }).eq("id", proposal.generated_project_id);
-    }
-    // Cancelar transações pendentes
-    await supabase
-      .from("transactions")
-      .update({ status: 'cancelled' })
-      .eq("proposal_id", proposalId)
-      .eq("status", 'pending');
-  } else {
-    // Arquivamento
-    if (proposal.generated_contract_id) {
-      await supabase.from("contracts").update({ status: 'archived' as any }).eq("id", proposal.generated_contract_id);
-    }
-    if (proposal.generated_project_id) {
-      await supabase.from("projects").update({ status: 'archived' }).eq("id", proposal.generated_project_id);
-    }
-  }
-
-  await recordProposalEvent(proposalId, "cancelled", { type, reason });
+  await recordProposalEvent(proposalId, "cancelled", { reason });
+  await recordProposalEvent(proposalId, "structure_removed" as any, { reason });
   
   await recordTimelineEvent({
     client_id: proposal.client_id,
     lead_id: proposal.lead_id,
-    type: type === 'termination' ? 'termination' : 'archived',
-    title: type === 'termination' ? 'Contrato e operação encerrados' : 'Proposta e contrato arquivados',
-    description: reason,
-    metadata: { proposal_id: proposalId, cancellation_type: type }
+    type: 'termination',
+    title: 'Proposta cancelada e estrutura removida',
+    description: `Motivo: ${reason}`,
+    metadata: { proposal_id: proposalId }
   });
+}
+
+export async function reopenProposal(proposalId: string) {
+  const { data: userData } = await supabase.auth.getUser();
+  
+  const { data: proposal, error: fetchErr } = await supabase
+    .from("proposals")
+    .select("client_id, lead_id")
+    .eq("id", proposalId)
+    .single();
+  
+  if (fetchErr) throw fetchErr;
+
+  const { data: updated, error } = await supabase
+    .from("proposals")
+    .update({
+      status: 'draft',
+      accepted_at: null,
+      converted_at: null,
+      structure_status: null
+    } as any)
+    .eq("id", proposalId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  await recordProposalEvent(proposalId, "reopened");
+  
+  await recordTimelineEvent({
+    client_id: proposal.client_id,
+    lead_id: proposal.lead_id,
+    type: 'operation',
+    title: 'Proposta cancelada foi reaberta',
+    description: 'Status alterado para Em Edição. Uma nova aprovação será necessária para gerar a estrutura.',
+    metadata: { proposal_id: proposalId }
+  });
+
+  return updated;
 }
