@@ -13,6 +13,8 @@ import {
   UsersRound,
   Settings,
   Crown,
+  Heart,
+  CalendarDays,
 } from "lucide-react";
 import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 import {
@@ -58,6 +60,8 @@ const groups = [
   {
     label: "Experiência",
     items: [
+      { title: "Aprovações", url: "/aprovacoes", icon: Heart },
+      { title: "Calendário", url: "/calendario", icon: CalendarDays },
       { title: "Portal do Cliente", url: "/portal", icon: Globe },
       { title: "Equipe", url: "/equipe", icon: UsersRound },
       { title: "Configurações", url: "/config", icon: Settings },
