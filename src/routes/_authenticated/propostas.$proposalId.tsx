@@ -11,6 +11,7 @@ import {
   upsertProposalItem,
   type ProposalItem,
 } from "@/lib/crm-api";
+import { fetchClients } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +33,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
+
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
   head: () => ({ meta: [{ title: "Editor de proposta — KASA OS" }] }),
