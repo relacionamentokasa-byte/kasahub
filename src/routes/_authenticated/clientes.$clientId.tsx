@@ -181,7 +181,7 @@ function Card({ label, value }: { label: string; value: string | number }) {
 // Portal do Cliente — aba do cadastro
 // ============================================================================
 
-function PortalTab({ clientId }: { clientId: string }) {
+export function PortalTab({ clientId }: { clientId: string }) {
   return (
     <div className="space-y-8 max-w-5xl">
       <header>
