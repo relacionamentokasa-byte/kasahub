@@ -1,0 +1,4 @@
+CREATE POLICY "Team upload assets" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'public-assets' AND public.is_team_member(auth.uid()));
+CREATE POLICY "Team update assets" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'public-assets' AND public.is_team_member(auth.uid()));
+CREATE POLICY "Team delete assets" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'public-assets' AND public.is_team_member(auth.uid()));
+CREATE POLICY "Authenticated read assets" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'public-assets');
