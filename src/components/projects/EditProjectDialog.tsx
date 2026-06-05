@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { updateProject, deleteProject, fetchClients } from "@/lib/ops-api";
+import { fetchContracts } from "@/lib/finance-api";
+import { fetchProposals } from "@/lib/crm-api";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -20,6 +22,8 @@ type Project = {
   id: string;
   name: string;
   client_id: string | null;
+  contract_id?: string | null;
+  proposal_id?: string | null;
   briefing: string | null;
   due_date: string | null;
   status: string;
@@ -39,10 +43,14 @@ export function EditProjectDialog({
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
+  const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
 
   const [form, setForm] = useState({
     name: project.name ?? "",
     client_id: project.client_id ?? "",
+    contract_id: project.contract_id ?? "",
+    proposal_id: project.proposal_id ?? "",
     briefing: project.briefing ?? "",
     due_date: project.due_date ?? "",
     status: project.status ?? "active",
@@ -55,6 +63,8 @@ export function EditProjectDialog({
       setForm({
         name: project.name ?? "",
         client_id: project.client_id ?? "",
+        contract_id: project.contract_id ?? "",
+        proposal_id: project.proposal_id ?? "",
         briefing: project.briefing ?? "",
         due_date: project.due_date ?? "",
         status: project.status ?? "active",
@@ -64,17 +74,24 @@ export function EditProjectDialog({
     }
   }, [open, project]);
 
+  const clientContracts = contracts.filter((c) => !form.client_id || c.client_id === form.client_id);
+  const clientProposals = proposals.filter(
+    (p) => !form.client_id || (p as { client_id?: string | null }).client_id === form.client_id,
+  );
+
   const mut = useMutation({
     mutationFn: () =>
       updateProject(project.id, {
         name: form.name,
         client_id: form.client_id || null,
+        contract_id: form.contract_id || null,
+        proposal_id: form.proposal_id || null,
         briefing: form.briefing || null,
         due_date: form.due_date || null,
         status: form.status,
         cover_url: form.cover_url || null,
         color: form.color,
-      }),
+      } as Parameters<typeof updateProject>[1]),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["project", project.id] });
       qc.invalidateQueries({ queryKey: ["projects"] });
@@ -94,6 +111,7 @@ export function EditProjectDialog({
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
