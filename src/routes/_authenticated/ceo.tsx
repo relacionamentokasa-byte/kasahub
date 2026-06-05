@@ -27,7 +27,7 @@ import {
 import { fetchClients, fetchJobs } from "@/lib/ops-api";
 
 export const Route = createFileRoute("/_authenticated/ceo")({
-  head: () => ({ meta: [{ title: "Dashboard CEO — KASA OS" }] }),
+  head: () => ({ meta: [{ title: "Painel CEO — KASA OS" }] }),
   component: CeoPage,
 });
 
@@ -56,10 +56,10 @@ function CeoPage() {
           </div>
           <h2 className="font-display text-xl font-bold">Acesso restrito</h2>
           <p className="text-sm text-foreground/60 mt-2">
-            A Dashboard CEO está disponível apenas para perfis <strong>admin</strong> e <strong>ceo</strong>.
+            O Painel CEO está disponível apenas para perfis <strong>admin</strong> e <strong>ceo</strong>.
           </p>
           <Link to="/" className="inline-block mt-6 text-primary text-sm font-medium hover:underline">
-            Voltar ao dashboard
+            Voltar ao painel principal
           </Link>
         </div>
       </div>
@@ -99,7 +99,7 @@ function CeoPage() {
           </div>
           <div>
             <span className="text-primary text-[10px] capitalize">Restrito · CEO</span>
-            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">Dashboard CEO</h1>
+            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">Painel CEO</h1>
           </div>
         </div>
       </div>
