@@ -493,36 +493,100 @@ export function ProposalEditorContent({
               </F>
 
               {form.contract_type === "recurring" ? (
-                <F label="Prazo (Meses)">
-                  <Select
-                    value={String(form.recurring_months)}
-                    onValueChange={(v) => setForm({ ...form, recurring_months: Number(v) })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12">Sem prazo definido</SelectItem>
-                      <SelectItem value="3">3 meses</SelectItem>
-                      <SelectItem value="6">6 meses</SelectItem>
-                      <SelectItem value="12">12 meses</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </F>
+                <>
+                  <F label="Investimento Mensal">
+                    <Input
+                      type="number"
+                      value={totals.monthly_investment || ""}
+                      onChange={(e) => {
+                        // For recurring, we update the first item (or create one if empty)
+                        if (items.length > 0) {
+                          const first = items.find(i => i.recurrence === "monthly") || items[0];
+                          itemMut.mutate({ ...first, unit_price: Number(e.target.value), quantity: 1, proposal_id: proposalId });
+                        } else {
+                          addItem("monthly");
+                          // This is a bit tricky since addItem is async, but for simplicity:
+                          itemMut.mutate({ 
+                            proposal_id: proposalId, 
+                            title: "Serviço recorrente", 
+                            quantity: 1, 
+                            unit_price: Number(e.target.value), 
+                            recurrence: "monthly" 
+                          });
+                        }
+                      }}
+                      placeholder="0,00"
+                    />
+                  </F>
+                  <F label="Prazo (Contrato)">
+                    <Select
+                      value={String(form.recurring_months)}
+                      onValueChange={(v) => setForm({ ...form, recurring_months: Number(v) })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">Sem prazo definido</SelectItem>
+                        <SelectItem value="3">3 meses</SelectItem>
+                        <SelectItem value="6">6 meses</SelectItem>
+                        <SelectItem value="12">12 meses</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </F>
+                </>
               ) : (
-                <F label="Parcelamento">
-                  <Select
-                    value={String(form.installments)}
-                    onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
-                        <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </F>
+                <>
+                  <F label="Valor do Projeto">
+                    <Input
+                      type="number"
+                      value={totals.one_time_investment || ""}
+                      onChange={(e) => {
+                        if (items.length > 0) {
+                          const first = items.find(i => i.recurrence === "one_time") || items[0];
+                          itemMut.mutate({ ...first, unit_price: Number(e.target.value), quantity: 1, proposal_id: proposalId });
+                        } else {
+                          itemMut.mutate({ 
+                            proposal_id: proposalId, 
+                            title: "Job Avulso", 
+                            quantity: 1, 
+                            unit_price: Number(e.target.value), 
+                            recurrence: "one_time" 
+                          });
+                        }
+                      }}
+                      placeholder="0,00"
+                    />
+                  </F>
+                  <F label="Parcelamento">
+                    <Select
+                      value={String(form.installments)}
+                      onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
+                          <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </F>
+                </>
               )}
               
+              <F label="Forma de pagamento">
+                <Select
+                  value={(proposal as any).payment_method || "boleto"}
+                  onValueChange={(v) => saveMut.mutate({ ...form, payment_method: v } as any)}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boleto">Boleto Bancário</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                    <SelectItem value="transfer">Transferência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+
               <F label="1º vencimento">
                 <Input
                   type="date"
