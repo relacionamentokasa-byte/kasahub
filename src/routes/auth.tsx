@@ -93,7 +93,7 @@ function AuthPage() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background text-foreground">
-      {/* Visual side */}
+      {/* Lado visual */}
       <div className="hidden lg:flex relative bg-surface overflow-hidden flex-col justify-between p-12">
         <div className="kasa-pattern absolute inset-0 opacity-25" />
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background/70 to-transparent" />
@@ -141,7 +141,7 @@ function AuthPage() {
         </div>
       </div>
 
-      {/* Form side */}
+      {/* Lado do formulário */}
       <div className="flex flex-col justify-center p-8 lg:p-16 max-w-xl mx-auto w-full">
         <div className="lg:hidden mb-12">
           <KasaLogo />
