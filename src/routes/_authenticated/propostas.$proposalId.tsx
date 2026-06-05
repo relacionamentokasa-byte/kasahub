@@ -418,6 +418,127 @@ export function ProposalEditorContent({
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-6">
+            <span className="text-primary text-[10px] capitalize">Configuração operacional</span>
+            <p className="text-xs text-foreground/50 mt-1">
+              Define o que será criado automaticamente quando a proposta for aprovada: projeto, jobs e lançamentos financeiros.
+            </p>
+            <div className="grid gap-4 mt-4 md:grid-cols-2">
+              <F label="Responsável (projeto/jobs)">
+                <Select
+                  value={form.responsible_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, responsible_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Sem responsável" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem responsável</SelectItem>
+                    {team.map((t) => (
+                      <SelectItem key={t.id} value={t.id}>{t.display_name || t.full_name || "—"}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Modelo de cobrança">
+                <Select
+                  value={form.payment_kind}
+                  onValueChange={(v) => setForm({ ...form, payment_kind: v as typeof form.payment_kind })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="recurring">Recorrente (mensal)</SelectItem>
+                    <SelectItem value="one_time">Avulso (parcelado)</SelectItem>
+                    <SelectItem value="mixed">Misto (mensal + avulso)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Conta bancária padrão">
+                <Select
+                  value={form.account_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, account_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem conta</SelectItem>
+                    {accounts.map((a) => (
+                      <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Categoria financeira">
+                <Select
+                  value={form.category_id || "__none__"}
+                  onValueChange={(v) => setForm({ ...form, category_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">Sem categoria</SelectItem>
+                    {categories.filter((c) => c.kind === "income").map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="1º vencimento">
+                <Input
+                  type="date"
+                  value={form.first_due_date}
+                  onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
+                />
+              </F>
+              <F label="Dia de cobrança (mensal)">
+                <Input
+                  type="number"
+                  min={1}
+                  max={28}
+                  value={String(form.billing_day)}
+                  onChange={(e) => setForm({ ...form, billing_day: Number(e.target.value) || 5 })}
+                />
+              </F>
+              {(form.payment_kind === "one_time" || form.payment_kind === "mixed") && (
+                <F label="Parcelas (valor avulso)">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={36}
+                    value={String(form.installments)}
+                    onChange={(e) => setForm({ ...form, installments: Math.max(1, Number(e.target.value) || 1) })}
+                  />
+                </F>
+              )}
+              {(form.payment_kind === "recurring" || form.payment_kind === "mixed") && (
+                <F label="Meses de recorrência a gerar">
+                  <Input
+                    type="number"
+                    min={1}
+                    max={48}
+                    value={String(form.recurring_months)}
+                    onChange={(e) => setForm({ ...form, recurring_months: Math.max(1, Number(e.target.value) || 12) })}
+                  />
+                </F>
+              )}
+              <F label="Briefing do projeto">
+                <Textarea
+                  rows={3}
+                  value={form.briefing}
+                  onChange={(e) => setForm({ ...form, briefing: e.target.value })}
+                  placeholder="Será copiado para o projeto criado."
+                />
+              </F>
+              <div className="flex items-center gap-3 md:col-span-2">
+                <Switch
+                  id="auto_jobs"
+                  checked={form.auto_create_jobs}
+                  onCheckedChange={(v) => setForm({ ...form, auto_create_jobs: v })}
+                />
+                <Label htmlFor="auto_jobs" className="text-xs text-foreground/70">
+                  Gerar jobs automaticamente a partir dos templates de cada item
+                </Label>
+              </div>
+            </div>
+          </div>
+
+
+          <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-4">
               <span className="text-primary text-[10px] capitalize">
                 Itens · Escopo
