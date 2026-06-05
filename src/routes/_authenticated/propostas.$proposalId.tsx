@@ -168,6 +168,7 @@ export function ProposalEditorContent({
         operational_id: f.operational_id || null,
         contract_type: f.contract_type,
         service_type: f.service_type || null,
+        service_ids: f.service_ids,
         briefing: f.briefing || null,
         payment_kind: f.payment_kind,
         installments: f.installments,
