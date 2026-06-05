@@ -493,36 +493,100 @@ export function ProposalEditorContent({
               </F>
 
               {form.contract_type === "recurring" ? (
-                <F label="Prazo (Meses)">
-                  <Select
-                    value={String(form.recurring_months)}
-                    onValueChange={(v) => setForm({ ...form, recurring_months: Number(v) })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="12">Sem prazo definido</SelectItem>
-                      <SelectItem value="3">3 meses</SelectItem>
-                      <SelectItem value="6">6 meses</SelectItem>
-                      <SelectItem value="12">12 meses</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </F>
+                <>
+                  <F label="Investimento Mensal">
+                    <Input
+                      type="number"
+                      value={totals.monthly_investment || ""}
+                      onChange={(e) => {
+                        // For recurring, we update the first item (or create one if empty)
+                        if (items.length > 0) {
+                          const first = items.find(i => i.recurrence === "monthly") || items[0];
+                          itemMut.mutate({ ...first, unit_price: Number(e.target.value), quantity: 1, proposal_id: proposalId });
+                        } else {
+                          addItem("monthly");
+                          // This is a bit tricky since addItem is async, but for simplicity:
+                          itemMut.mutate({ 
+                            proposal_id: proposalId, 
+                            title: "Serviço recorrente", 
+                            quantity: 1, 
+                            unit_price: Number(e.target.value), 
+                            recurrence: "monthly" 
+                          });
+                        }
+                      }}
+                      placeholder="0,00"
+                    />
+                  </F>
+                  <F label="Prazo (Contrato)">
+                    <Select
+                      value={String(form.recurring_months)}
+                      onValueChange={(v) => setForm({ ...form, recurring_months: Number(v) })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">Sem prazo definido</SelectItem>
+                        <SelectItem value="3">3 meses</SelectItem>
+                        <SelectItem value="6">6 meses</SelectItem>
+                        <SelectItem value="12">12 meses</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </F>
+                </>
               ) : (
-                <F label="Parcelamento">
-                  <Select
-                    value={String(form.installments)}
-                    onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
-                  >
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
-                        <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </F>
+                <>
+                  <F label="Valor do Projeto">
+                    <Input
+                      type="number"
+                      value={totals.one_time_investment || ""}
+                      onChange={(e) => {
+                        if (items.length > 0) {
+                          const first = items.find(i => i.recurrence === "one_time") || items[0];
+                          itemMut.mutate({ ...first, unit_price: Number(e.target.value), quantity: 1, proposal_id: proposalId });
+                        } else {
+                          itemMut.mutate({ 
+                            proposal_id: proposalId, 
+                            title: "Job Avulso", 
+                            quantity: 1, 
+                            unit_price: Number(e.target.value), 
+                            recurrence: "one_time" 
+                          });
+                        }
+                      }}
+                      placeholder="0,00"
+                    />
+                  </F>
+                  <F label="Parcelamento">
+                    <Select
+                      value={String(form.installments)}
+                      onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
+                    >
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
+                          <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </F>
+                </>
               )}
               
+              <F label="Forma de pagamento">
+                <Select
+                  value={(proposal as any).payment_method || "boleto"}
+                  onValueChange={(v) => saveMut.mutate({ ...form, payment_method: v } as any)}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="boleto">Boleto Bancário</SelectItem>
+                    <SelectItem value="pix">PIX</SelectItem>
+                    <SelectItem value="credit_card">Cartão de Crédito</SelectItem>
+                    <SelectItem value="transfer">Transferência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+
               <F label="1º vencimento">
                 <Input
                   type="date"
@@ -608,52 +672,38 @@ export function ProposalEditorContent({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-6">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-primary text-[10px] capitalize">
-                Composição Financeira
-              </span>
-              <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => addItem("monthly")} className="gap-1">
-                  <Plus className="size-3.5" /> Recorrente
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => addItem("one_time")} className="gap-1">
-                  <Plus className="size-3.5" /> Pontual
-                </Button>
-              </div>
-            </div>
-            <div className="space-y-2">
-              {items.map((it) => (
-                <ItemRow
-                  key={it.id}
-                  item={it}
-                  onChange={(patch) =>
-                    itemMut.mutate({ ...it, ...patch, proposal_id: proposalId })
-                  }
-                  onDelete={() => delItemMut.mutate(it.id)}
-                />
-              ))}
-              {items.length === 0 && (
-                <p className="text-xs text-foreground/40 text-center py-6">
-                  Adicione itens recorrentes (mensais) ou pontuais para compor o investimento.
-                </p>
-              )}
-            </div>
-          </div>
+          {/* Removing old Composition block as it is now integrated above */}
         </div>
 
         <div className="space-y-4">
           <div className={`rounded-2xl border border-primary/40 bg-gradient-to-br from-primary/10 to-transparent p-6 ${embedded ? "" : "sticky top-6"}`}>
             <span className="text-primary text-[10px] capitalize">
-              Investimento Mensal
+              INVESTIMENTO
             </span>
-            <div className="font-display text-4xl font-bold mt-2 text-primary">
-              {formatCurrency(totals.monthly_investment)}
-            </div>
-            <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
-              <Row label="Pontual" value={formatCurrency(totals.one_time_investment)} />
-              <Row label="Total" value={formatCurrency(totals.total)} bold />
-            </div>
+            {form.contract_type === "recurring" ? (
+              <>
+                <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Investimento Mensal</div>
+                <div className="font-display text-4xl font-bold mt-1 text-primary">
+                  {formatCurrency(totals.monthly_investment)}
+                  <span className="text-sm font-normal text-foreground/40 ml-2">/mês</span>
+                </div>
+                <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
+                  <Row label="Prazo" value={`${form.recurring_months} meses`} />
+                  <Row label="Investimento Total" value={formatCurrency(totals.monthly_investment * form.recurring_months)} bold />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-[10px] uppercase tracking-widest text-primary/60 mt-4">Valor do Projeto</div>
+                <div className="font-display text-4xl font-bold mt-1 text-primary">
+                  {formatCurrency(totals.one_time_investment)}
+                </div>
+                <div className="border-t border-border mt-4 pt-4 space-y-1.5 text-sm">
+                  <Row label="Parcelamento" value={`${form.installments}x de ${formatCurrency(totals.one_time_investment / (form.installments || 1))}`} />
+                  <Row label="Total" value={formatCurrency(totals.total)} bold />
+                </div>
+              </>
+            )}
           </div>
 
           {proposal.status === "accepted" && (
