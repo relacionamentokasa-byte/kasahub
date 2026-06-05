@@ -97,7 +97,13 @@ function FinanceiroPage() {
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
 
-  const [period, setPeriod] = useState(defaultPeriod());
+  const today = new Date();
+  const [year, setYear] = useState(today.getFullYear());
+  const [month, setMonth] = useState(today.getMonth());
+  const period = useMemo(() => monthPeriod(year, month), [year, month]);
+  const monthLabel = `${MONTH_NAMES_PT[month]} ${year}`;
+  const monthLabelShort = `${MONTH_NAMES_PT[month]}/${year}`;
+
   const [search, setSearch] = useState("");
   const [fKind, setFKind] = useState<string>("all");
   const [fStatus, setFStatus] = useState<string>("all");
@@ -108,6 +114,13 @@ function FinanceiroPage() {
   const [openTx, setOpenTx] = useState<false | "income" | "expense">(false);
   const [openAcc, setOpenAcc] = useState(false);
   const [openImport, setOpenImport] = useState(false);
+  const [settleTx, setSettleTx] = useState<Transaction | null>(null);
+
+  function shiftMonth(delta: number) {
+    const d = new Date(year, month + delta, 1);
+    setYear(d.getFullYear());
+    setMonth(d.getMonth());
+  }
 
   const clientName = (id: string | null | undefined) =>
     id ? clients.find((c) => c.id === id)?.company || clients.find((c) => c.id === id)?.name || "—" : "—";
