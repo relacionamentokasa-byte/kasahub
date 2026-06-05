@@ -504,9 +504,14 @@ export function ProposalEditorContent({
                   <F label="Investimento Mensal">
                     <Input
                       type="number"
-                      value={totals.monthly_investment || ""}
+                      value={form.monthly_investment || ""}
                       onChange={(e) => {
                         const val = Number(e.target.value);
+                        setForm(f => ({ ...f, monthly_investment: val }));
+                      }}
+                      onBlur={() => {
+                        // Persist the value to the database items when user stops typing
+                        const val = form.monthly_investment;
                         if (items.length > 0) {
                           const first = items[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "monthly", proposal_id: proposalId });
