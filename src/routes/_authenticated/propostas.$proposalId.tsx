@@ -144,6 +144,7 @@ export function ProposalEditorContent({
         category_id: (p.category_id as string) ?? "",
         auto_create_jobs: (p.auto_create_jobs as boolean) ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
+        scope: (p.scope as string[]) ?? [],
       });
     }
   }, [proposal]);
