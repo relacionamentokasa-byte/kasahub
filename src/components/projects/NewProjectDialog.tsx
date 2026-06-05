@@ -20,6 +20,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 export function NewProjectDialog({
   open,
@@ -39,6 +40,7 @@ export function NewProjectDialog({
     client_id: defaultClientId ?? "",
     briefing: "",
     due_date: "",
+    cover_url: "" as string | null,
   });
 
   const mut = useMutation({
@@ -48,12 +50,13 @@ export function NewProjectDialog({
         client_id: form.client_id || null,
         briefing: form.briefing || null,
         due_date: form.due_date || null,
+        cover_url: form.cover_url || null,
       }),
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Projeto criado");
       onOpenChange(false);
-      setForm({ name: "", client_id: defaultClientId ?? "", briefing: "", due_date: "" });
+      setForm({ name: "", client_id: defaultClientId ?? "", briefing: "", due_date: "", cover_url: "" });
       onCreated?.(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -61,11 +64,20 @@ export function NewProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-border">
+      <DialogContent className="bg-surface border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">Novo projeto</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
+          <div className="space-y-1.5">
+            <Label>Capa do projeto</Label>
+            <ImageUpload
+              value={form.cover_url}
+              onChange={(url) => setForm({ ...form, cover_url: url })}
+              folder="projects"
+              label="Capa"
+            />
+          </div>
           <div className="space-y-1.5">
             <Label>Nome do projeto</Label>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
