@@ -82,7 +82,9 @@ export type Database = {
       }
       bank_accounts: {
         Row: {
+          account_number: string | null
           account_type: string
+          agency: string | null
           bank: string | null
           color: string | null
           created_at: string
@@ -94,7 +96,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_number?: string | null
           account_type?: string
+          agency?: string | null
           bank?: string | null
           color?: string | null
           created_at?: string
@@ -106,7 +110,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_number?: string | null
           account_type?: string
+          agency?: string | null
           bank?: string | null
           color?: string | null
           created_at?: string
@@ -322,6 +328,7 @@ export type Database = {
       financial_categories: {
         Row: {
           color: string | null
+          cost_center: string | null
           created_at: string
           id: string
           kind: string
@@ -330,6 +337,7 @@ export type Database = {
         }
         Insert: {
           color?: string | null
+          cost_center?: string | null
           created_at?: string
           id?: string
           kind?: string
@@ -338,6 +346,7 @@ export type Database = {
         }
         Update: {
           color?: string | null
+          cost_center?: string | null
           created_at?: string
           id?: string
           kind?: string
@@ -997,6 +1006,7 @@ export type Database = {
           installment_number: number | null
           installment_total: number | null
           is_recurring: boolean
+          job_id: string | null
           kind: string
           notes: string | null
           owner_id: string | null
@@ -1019,6 +1029,7 @@ export type Database = {
           installment_number?: number | null
           installment_total?: number | null
           is_recurring?: boolean
+          job_id?: string | null
           kind: string
           notes?: string | null
           owner_id?: string | null
@@ -1041,6 +1052,7 @@ export type Database = {
           installment_number?: number | null
           installment_total?: number | null
           is_recurring?: boolean
+          job_id?: string | null
           kind?: string
           notes?: string | null
           owner_id?: string | null
