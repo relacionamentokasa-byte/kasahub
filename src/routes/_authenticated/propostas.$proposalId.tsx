@@ -151,6 +151,7 @@ export function ProposalEditorContent({
         auto_create_jobs: (p.auto_create_jobs as boolean) ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
         scope: (p.scope as string[]) ?? [],
+        payment_method: (p.payment_method as string) ?? "boleto",
       });
     }
   }, [proposal]);
