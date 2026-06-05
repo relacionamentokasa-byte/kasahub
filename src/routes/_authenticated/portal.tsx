@@ -142,6 +142,41 @@ function ClientPortalView({
               </div>
             )}
           </TabsContent>
+          <TabsContent value="contracts" className="mt-6 space-y-3">
+            {contracts.length === 0 ? (
+              <p className="text-sm text-foreground/50 text-center py-8">Nenhum contrato ativo</p>
+            ) : (
+              <div className="grid sm:grid-cols-2 gap-3">
+                {contracts.map((c) => (
+                  <Card key={c.id} className="bg-surface border-border">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{c.title}</p>
+                          <p className="text-[10px] text-primary mt-1 uppercase font-bold tracking-wider">
+                            {c.type === "recurring" ? "Mensal" : "Projeto"}
+                          </p>
+                        </div>
+                        <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-400 border-emerald-500/20 uppercase">
+                          Ativo
+                        </Badge>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between text-[11px] text-foreground/50 border-t border-border/50 pt-3">
+                        <span>Vigência: {c.start_date ? new Date(c.start_date).toLocaleDateString("pt-BR") : "—"}</span>
+                        <span className="font-bold text-foreground">
+                          {c.monthly_value > 0 ? (
+                            `${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(c.monthly_value)}/mês`
+                          ) : (
+                            new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(c.total_value || 0)
+                          )}
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
 
