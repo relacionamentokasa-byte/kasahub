@@ -130,6 +130,7 @@ export function ProposalEditorContent({
     contract_content: "",
     signature_client: "",
     signature_agency: "",
+    notes: "",
   });
 
   useEffect(() => {
@@ -168,6 +169,7 @@ export function ProposalEditorContent({
         contract_content: p.contract_content ?? "",
         signature_client: p.signature_client ?? "",
         signature_agency: p.signature_agency ?? "",
+        notes: p.notes ?? "",
       });
     }
   }, [proposal]);
