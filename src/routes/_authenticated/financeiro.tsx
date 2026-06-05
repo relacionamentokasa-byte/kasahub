@@ -211,29 +211,46 @@ function FinanceiroPage() {
 
           {/* ============ LISTA ============ */}
           <TabsContent value="list" className="mt-6 space-y-6">
-            {/* KPI grid */}
+            {/* Month nav */}
+            <div className="flex items-center justify-between bg-surface border border-border rounded-2xl px-4 py-3">
+              <Button variant="outline" size="icon" onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
+                <ChevronLeft className="size-4" />
+              </Button>
+              <div className="font-display text-lg font-semibold capitalize">{monthLabel}</div>
+              <Button variant="outline" size="icon" onClick={() => shiftMonth(1)} aria-label="Próximo mês">
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+
+            {/* KPI grid — apenas 4 indicadores */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Kpi label="Entradas Pagas" value={brl(indicators.incomePaid)} tone="success" icon={<TrendingUp className="size-4" />} />
-              <Kpi label="Saídas Pagas" value={brl(indicators.expensePaid)} tone="danger" icon={<TrendingDown className="size-4" />} />
               <Kpi
-                label="A Receber / A Pagar"
-                value={`${brl(indicators.receivable)} / ${brl(indicators.payable)}`}
-                tone="warning"
+                label="Receitas Previstas"
+                value={brl(indicators.receitasPrevistas)}
+                tone="primary"
                 icon={<Clock className="size-4" />}
               />
               <Kpi
-                label="Lucro do Período"
-                value={brl(indicators.profit)}
-                tone={indicators.profit >= 0 ? "success" : "danger"}
+                label="Receitas Recebidas"
+                value={brl(indicators.receitasRecebidas)}
+                tone="success"
+                icon={<TrendingUp className="size-4" />}
+              />
+              <Kpi
+                label="Parcelas Futuras"
+                value={brl(indicators.parcelasFuturas)}
+                tone="warning"
                 icon={<CircleDollarSign className="size-4" />}
               />
-              <Kpi label="Receita Recorrente" value={brl(indicators.mrr)} icon={<Repeat className="size-4" />} tone="primary" />
-              <Kpi label="Receita Extra" value={brl(indicators.extraIncome)} icon={<Sparkles className="size-4" />} />
-              <Kpi label="Saldo Consolidado" value={brl(consolidated)} icon={<Wallet className="size-4" />} tone="primary" />
-              <Kpi label="Em atraso" value={`${indicators.overdueCount} · ${brl(indicators.overdueAmount)}`} tone={indicators.overdueCount > 0 ? "danger" : undefined} />
+              <Kpi
+                label="Despesas Pagas"
+                value={brl(indicators.despesasPagas)}
+                tone="danger"
+                icon={<TrendingDown className="size-4" />}
+              />
             </div>
 
-            {/* Filters */}
+            {/* Filters (optional) */}
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-12 md:col-span-4 relative">
                 <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
@@ -262,31 +279,28 @@ function FinanceiroPage() {
                 { value: "all", label: "Todas contas" },
                 ...accounts.map((a) => ({ value: a.id, label: a.name })),
               ]} />
-              <div className="col-span-6 md:col-span-2">
-                <Input type="date" value={period.from} onChange={(e) => setPeriod({ ...period, from: e.target.value })} />
-              </div>
-              <div className="col-span-6 md:col-span-2">
-                <Input type="date" value={period.to} onChange={(e) => setPeriod({ ...period, to: e.target.value })} />
-              </div>
             </div>
 
-            {/* Table */}
+            {/* Lançamentos do mês */}
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+              <div className="px-5 py-3 border-b border-border font-display font-semibold">
+                Lançamentos de {monthLabelShort}
+              </div>
               <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border">
                 <div className="col-span-1">Status</div>
                 <div className="col-span-3">Descrição</div>
                 <div className="col-span-2">Categoria</div>
                 <div className="col-span-2">Cliente</div>
                 <div className="col-span-1 text-right">Valor</div>
-                <div className="col-span-2">Vencimento</div>
-                <div className="col-span-1 text-right">Ações</div>
+                <div className="col-span-1">Vencimento</div>
+                <div className="col-span-2 text-right">Ações</div>
               </div>
               {rows.length === 0 ? (
-                <div className="p-12 text-center text-foreground/50 text-sm">Nenhuma transação encontrada</div>
+                <div className="p-12 text-center text-foreground/50 text-sm">Nenhum lançamento neste mês</div>
               ) : (
                 rows.map((t) => {
-                  const today = new Date().toISOString().slice(0, 10);
-                  const overdue = t.status === "pending" && t.due_date < today;
+                  const todayStr = new Date().toISOString().slice(0, 10);
+                  const overdue = t.status === "pending" && t.due_date < todayStr;
                   const origin = t.contract_id
                     ? { label: "Recorrência", tone: "text-primary border-primary/40" }
                     : t.installment_total && t.installment_total > 1
@@ -296,17 +310,13 @@ function FinanceiroPage() {
                     : { label: "Manual", tone: "text-foreground/40 border-border" };
                   return (
                     <div key={t.id} className="grid grid-cols-12 px-5 py-3 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
-                      <button
-                        onClick={() => togglePaid.mutate({ id: t.id, paid: t.status !== "paid" })}
-                        className="col-span-1"
-                        title={t.status === "paid" ? "Marcar como pendente" : "Marcar como pago"}
-                      >
+                      <div className="col-span-1">
                         {t.status === "paid" ? (
                           <CheckCircle2 className="size-5 text-emerald-400" />
                         ) : (
                           <Circle className={`size-5 ${overdue ? "text-rose-400" : "text-foreground/30"}`} />
                         )}
-                      </button>
+                      </div>
                       <div className="col-span-3 min-w-0">
                         <div className="text-sm font-medium truncate flex items-center gap-2">
                           {t.description}
@@ -325,11 +335,28 @@ function FinanceiroPage() {
                       <div className={`col-span-1 text-right font-display font-semibold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
                         {t.kind === "income" ? "+" : "−"} {brl(Number(t.amount))}
                       </div>
-                      <div className="col-span-2 text-xs text-foreground/60">
+                      <div className="col-span-1 text-xs text-foreground/60">
                         {new Date(t.due_date).toLocaleDateString("pt-BR")}
-                        {overdue && <div className="text-[10px] text-rose-400 capitalize">Em atraso</div>}
+                        {overdue && <div className="text-[10px] text-rose-400">Em atraso</div>}
                       </div>
-                      <div className="col-span-1 text-right">
+                      <div className="col-span-2 flex items-center justify-end gap-2">
+                        {t.status !== "paid" ? (
+                          <Button
+                            size="sm"
+                            onClick={() => setSettleTx(t)}
+                            className="h-8 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs px-3"
+                          >
+                            Dar baixa
+                          </Button>
+                        ) : (
+                          <button
+                            onClick={() => togglePaid.mutate({ id: t.id, paid: false })}
+                            className="text-[10px] text-foreground/40 hover:text-foreground/70"
+                            title="Reverter baixa"
+                          >
+                            Reverter
+                          </button>
+                        )}
                         <button
                           onClick={() => delTx.mutate(t.id)}
                           className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-rose-400"
@@ -343,6 +370,7 @@ function FinanceiroPage() {
               )}
             </div>
           </TabsContent>
+
 
           {/* ============ VISÃO MENSAL ============ */}
           <TabsContent value="monthly" className="mt-6 space-y-6">
