@@ -109,6 +109,7 @@ function ProposalsPage() {
     valid_until: "",
     intro: "",
     notes: "",
+    scope: [] as string[],
   };
   const [form, setForm] = useState(emptyForm);
 
