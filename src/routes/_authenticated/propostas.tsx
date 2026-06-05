@@ -72,7 +72,7 @@ function publicUrl(token: string) {
 }
 
 function ProposalsPage() {
-  const navigate = useNavigate();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const qc = useQueryClient();
   const sendEmailFn = useServerFn(sendEmail);
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
