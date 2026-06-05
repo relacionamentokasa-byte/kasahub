@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Calendar, Pencil } from "lucide-react";
+import { ArrowLeft, Calendar, Pencil, FileSignature } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchProject, fetchClient, fetchJobs, fetchJobStages } from "@/lib/ops-api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
@@ -28,6 +29,14 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
     queryKey: ["client", project?.client_id],
     queryFn: () => fetchClient(project!.client_id!),
     enabled: !!project?.client_id,
+  });
+  const { data: contract } = useQuery({
+    queryKey: ["contract", project?.contract_id],
+    queryFn: async () => {
+      const { data } = await supabase.from("contracts").select("*").eq("id", project!.contract_id!).single();
+      return data;
+    },
+    enabled: !!project?.contract_id,
   });
   const { data: jobs = [] } = useQuery({
     queryKey: ["jobs", { projectId }],
@@ -77,8 +86,13 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
         <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-foreground/50">
           {client && (
             <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="hover:text-primary">
-              {client.company || client.name}
+            {client.company || client.name}
             </Link>
+          )}
+          {contract && (
+            <span className="inline-flex items-center gap-1.5 text-primary uppercase font-medium tracking-wider">
+              <FileSignature className="size-3" /> Contrato: {contract.title}
+            </span>
           )}
           {project.due_date && (
             <span className="inline-flex items-center gap-1.5">

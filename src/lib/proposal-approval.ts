@@ -105,34 +105,40 @@ export async function approveProposal(
     projectId = createdProject.id;
   }
 
-  // 4. Contract (recurring)
-  const monthly = Number(proposal.monthly_investment ?? 0);
-  const wantsContract =
-    monthly > 0 && (proposal.payment_kind === "recurring" || proposal.payment_kind === "mixed");
+  // 4. Contract (Mandatory in new architecture)
   let contractId: string | null = proposal.generated_contract_id ?? null;
-  if (wantsContract) {
-    if (contractId) {
-      await sb.from("contracts").update({ status: "active", monthly_value: monthly }).eq("id", contractId);
-    } else {
-      const { data: createdContract, error: ctErr } = await sb
-        .from("contracts")
-        .insert({
-          title: proposal.title,
-          client_id: clientId,
-          proposal_id: proposal.id,
-          monthly_value: monthly,
-          billing_day: proposal.billing_day ?? 5,
-          start_date: proposal.first_due_date ?? ymd(new Date()),
-          status: "active",
-          owner_id: proposal.owner_id ?? null,
-        })
-        .select("id")
-        .single();
-      if (ctErr) throw ctErr;
-      contractId = createdContract.id;
-      await sb.from("projects").update({ contract_id: contractId }).eq("id", projectId);
-    }
+  const monthly = Number(proposal.monthly_investment ?? 0);
+  const totalValue = Number(proposal.total ?? proposal.one_time_investment ?? 0);
+  
+  // Map proposal values to contract
+  const contractData = {
+    title: proposal.title,
+    client_id: clientId,
+    proposal_id: proposal.id,
+    monthly_value: monthly,
+    total_value: totalValue,
+    billing_day: proposal.billing_day ?? 5,
+    start_date: proposal.first_due_date ?? ymd(new Date()),
+    status: "active",
+    owner_id: proposal.owner_id ?? null,
+    type: proposal.contract_type || (monthly > 0 ? "recurring" : "one_time"),
+    service_ids: proposal.service_ids ?? [],
+  };
+
+  if (contractId) {
+    await sb.from("contracts").update(contractData).eq("id", contractId);
+  } else {
+    const { data: createdContract, error: ctErr } = await sb
+      .from("contracts")
+      .insert(contractData)
+      .select("id")
+      .single();
+    if (ctErr) throw ctErr;
+    contractId = createdContract.id;
   }
+
+  // Ensure project is linked to contract
+  await sb.from("projects").update({ contract_id: contractId }).eq("id", projectId);
 
   // 5. Jobs
   let jobsCreated = 0;
@@ -180,7 +186,7 @@ export async function approveProposal(
   let txCreated = 0;
 
   // 6a. Recurring (monthly contract)
-  if (wantsContract && contractId) {
+  if (monthly > 0 && contractId) {
     const months = Math.max(1, Number(proposal.recurring_months ?? 12));
     const billingDay = Number(proposal.billing_day ?? 5);
     const start = proposal.first_due_date
@@ -255,6 +261,7 @@ export async function approveProposal(
         client_id: clientId,
         project_id: projectId,
         proposal_id: proposal.id,
+        contract_id: contractId,
         owner_id: proposal.owner_id ?? null,
       }));
       const { error: txErr } = await sb.from("transactions").insert(rows);

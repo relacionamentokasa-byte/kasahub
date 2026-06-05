@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
+import { ClientContracts } from "@/components/clients/ClientContracts";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
@@ -161,16 +162,17 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
         <div className="px-6 lg:px-10 border-b border-border overflow-x-auto">
           <TabsList className="bg-transparent border-0 h-auto p-0 gap-1">
             {[
-              ["overview", "Visão geral"],
-              ["servicos", "Serviços"],
+              ["overview", "Resumo"],
+              ["contracts", "Contratos"],
               ["projects", "Projetos"],
               ["jobs", "Jobs"],
               ["finance", "Financeiro"],
               ["proposals", "Propostas"],
+              ["portal", "Portal"],
               ["files", "Arquivos"],
-              ["calendar", "Calendário"],
               ["timeline", "Timeline"],
-              ["portal", "Portal do Cliente"],
+              ["servicos", "Serviços"],
+              ["calendar", "Calendário"],
               ["branding", "Branding"],
             ].map(([v, label]) => (
               <TabsTrigger
@@ -186,6 +188,10 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
 
         <TabsContent value="servicos" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           <ClientServicesManager clientId={clientId} />
+        </TabsContent>
+
+        <TabsContent value="contracts" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <ClientContracts clientId={clientId} />
         </TabsContent>
 
         <TabsContent value="overview" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
@@ -209,21 +215,29 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
             <p className="text-foreground/40 text-sm">Nenhum projeto para este cliente.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {projects.map((p) => (
-                <Link
-                  key={p.id}
-                  to="/projetos/$projectId"
-                  params={{ projectId: p.id }}
-                  className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
-                >
-                  <div className="font-display font-semibold mb-1">{p.name}</div>
-                  {p.due_date && (
-                    <div className="text-xs text-foreground/50 inline-flex items-center gap-1.5">
-                      <Calendar className="size-3" /> {fmtDate(p.due_date)}
-                    </div>
-                  )}
-                </Link>
-              ))}
+              {projects.map((p) => {
+                const contract = (contracts as any[]).find(c => c.id === p.contract_id);
+                return (
+                  <Link
+                    key={p.id}
+                    to="/projetos/$projectId"
+                    params={{ projectId: p.id }}
+                    className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                  >
+                    <div className="font-display font-semibold mb-1">{p.name}</div>
+                    {contract && (
+                      <div className="text-[10px] text-primary flex items-center gap-1 mb-2">
+                        <FileSignature className="size-3" /> {contract.title}
+                      </div>
+                    )}
+                    {p.due_date && (
+                      <div className="text-xs text-foreground/50 inline-flex items-center gap-1.5">
+                        <Calendar className="size-3" /> {fmtDate(p.due_date)}
+                      </div>
+                    )}
+                  </Link>
+                );
+              })}
             </div>
           )}
         </TabsContent>
@@ -270,6 +284,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                 <thead className="text-left text-[10px] capitalize text-foreground/40 border-b border-border">
                   <tr>
                     <th className="py-2.5 px-4">Descrição</th>
+                    <th className="py-2.5 px-4">Origem</th>
                     <th className="py-2.5 px-4">Tipo</th>
                     <th className="py-2.5 px-4">Vencimento</th>
                     <th className="py-2.5 px-4">Status</th>
@@ -277,21 +292,29 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                   </tr>
                 </thead>
                 <tbody>
-                  {(transactions as Array<{ id: string; description: string; kind: string; status: string; due_date: string; amount: number }>).map((t) => (
-                    <tr key={t.id} className="border-b border-border/40">
-                      <td className="py-3 px-4">{t.description}</td>
-                      <td className="py-3 px-4 text-foreground/60">{t.kind === "income" ? "Receita" : "Despesa"}</td>
-                      <td className="py-3 px-4 text-foreground/60">{fmtDate(t.due_date)}</td>
-                      <td className="py-3 px-4">
-                        <span className={`text-[10px] capitalize px-2 py-1 rounded ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>
-                          {t.status === "paid" ? "Pago" : "Pendente"}
-                        </span>
-                      </td>
-                      <td className={`py-3 px-4 text-right ${t.kind === "income" ? "text-emerald-400" : "text-foreground/80"}`}>
-                        {t.kind === "income" ? "+" : "−"} {BRL(Number(t.amount))}
-                      </td>
-                    </tr>
-                  ))}
+                  {(transactions as Array<{ id: string; description: string; kind: string; status: string; due_date: string; amount: number; contract_id: string }>).map((t) => {
+                    const contract = (contracts as any[]).find(c => c.id === t.contract_id);
+                    return (
+                      <tr key={t.id} className="border-b border-border/40">
+                        <td className="py-3 px-4">{t.description}</td>
+                        <td className="py-3 px-4 text-[10px] text-foreground/50 uppercase">
+                          {contract ? (
+                            <span className="flex items-center gap-1"><FileSignature className="size-3 text-primary" /> {contract.title}</span>
+                          ) : "—"}
+                        </td>
+                        <td className="py-3 px-4 text-foreground/60">{t.kind === "income" ? "Receita" : "Despesa"}</td>
+                        <td className="py-3 px-4 text-foreground/60">{fmtDate(t.due_date)}</td>
+                        <td className="py-3 px-4">
+                          <span className={`text-[10px] capitalize px-2 py-1 rounded ${t.status === "paid" ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400"}`}>
+                            {t.status === "paid" ? "Pago" : "Pendente"}
+                          </span>
+                        </td>
+                        <td className={`py-3 px-4 text-right ${t.kind === "income" ? "text-emerald-400" : "text-foreground/80"}`}>
+                          {t.kind === "income" ? "+" : "−"} {BRL(Number(t.amount))}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

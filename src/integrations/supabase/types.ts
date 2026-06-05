@@ -414,9 +414,12 @@ export type Database = {
           notes: string | null
           owner_id: string | null
           proposal_id: string | null
+          service_ids: string[] | null
           start_date: string
           status: string
           title: string
+          total_value: number | null
+          type: string | null
           updated_at: string
         }
         Insert: {
@@ -429,9 +432,12 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           proposal_id?: string | null
+          service_ids?: string[] | null
           start_date?: string
           status?: string
           title: string
+          total_value?: number | null
+          type?: string | null
           updated_at?: string
         }
         Update: {
@@ -444,9 +450,12 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           proposal_id?: string | null
+          service_ids?: string[] | null
           start_date?: string
           status?: string
           title?: string
+          total_value?: number | null
+          type?: string | null
           updated_at?: string
         }
         Relationships: []
