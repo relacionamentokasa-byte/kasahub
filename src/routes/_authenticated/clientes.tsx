@@ -30,6 +30,7 @@ function ClientesPage() {
   });
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<SortKey>("name");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   function changeView(v: "cards" | "list") {
     setView(v);
