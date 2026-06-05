@@ -102,7 +102,7 @@ function ProposalsPage() {
     contract_type: "mensal" as "mensal" | "avulso",
     monthly_investment: 0,
     one_time_investment: 0,
-    contract_term: "monthly" as string,
+    contract_term: "",
     installments: 1,
     payment_method: "boleto",
     first_due_date: new Date().toISOString().split("T")[0],
@@ -119,7 +119,7 @@ function ProposalsPage() {
     mutationFn: () => {
       const recurring_months =
         form.contract_type === "mensal"
-          ? form.contract_term === "monthly"
+          ? form.contract_term === "monthly" || !form.contract_term
             ? 12 // Default to 12 if "sem prazo" but recurring
             : form.contract_term === "3_months"
               ? 3
@@ -448,9 +448,9 @@ function ProposalsPage() {
                             value={form.contract_term}
                             onValueChange={(v) => setForm({ ...form, contract_term: v })}
                           >
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="monthly">Sem prazo definido</SelectItem>
+                             <SelectTrigger><SelectValue placeholder="Selecione o prazo" /></SelectTrigger>
+                             <SelectContent>
+                               <SelectItem value="monthly">Sem prazo definido</SelectItem>
                               <SelectItem value="3_months">3 meses</SelectItem>
                               <SelectItem value="6_months">6 meses</SelectItem>
                               <SelectItem value="12_months">12 meses</SelectItem>
