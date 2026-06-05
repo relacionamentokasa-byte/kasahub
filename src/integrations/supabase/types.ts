@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_settings: {
+        Row: {
+          address: string | null
+          banner_url: string | null
+          brand_primary: string | null
+          brand_secondary: string | null
+          created_at: string
+          default_currency: string
+          document: string | null
+          email: string | null
+          id: string
+          integrations: Json
+          legal_name: string | null
+          logo_url: string | null
+          name: string
+          notify_email: boolean
+          notify_whatsapp: boolean
+          phone: string | null
+          timezone: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          banner_url?: string | null
+          brand_primary?: string | null
+          brand_secondary?: string | null
+          created_at?: string
+          default_currency?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          integrations?: Json
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          notify_email?: boolean
+          notify_whatsapp?: boolean
+          phone?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          banner_url?: string | null
+          brand_primary?: string | null
+          brand_secondary?: string | null
+          created_at?: string
+          default_currency?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          integrations?: Json
+          legal_name?: string | null
+          logo_url?: string | null
+          name?: string
+          notify_email?: boolean
+          notify_whatsapp?: boolean
+          phone?: string | null
+          timezone?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       bank_accounts: {
         Row: {
           account_type: string
@@ -732,6 +798,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      team_invites: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       transactions: {
         Row: {
