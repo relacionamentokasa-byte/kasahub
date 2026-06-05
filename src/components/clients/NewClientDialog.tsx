@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/ops-api";
+import { fetchServices } from "@/lib/services-api";
+import { addClientService } from "@/lib/client-services-api";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
@@ -9,9 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
-import { Lock } from "lucide-react";
+import { Lock, Package } from "lucide-react";
 
 export function NewClientDialog({
   open,
@@ -39,25 +42,56 @@ export function NewClientDialog({
     contract_value: 0,
     start_date: "",
   });
+  const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
-  const reset = () =>
+  const { data: services = [] } = useQuery({
+    queryKey: ["services", "active"],
+    queryFn: () => fetchServices({ onlyActive: true }),
+    enabled: open,
+  });
+
+  const reset = () => {
     setForm({
       name: "", company: "", email: "", phone: "", document: "", website: "", address: "",
       notes: "", logo_url: "", brand_primary: "#FFBC45", status: "active",
       contract_type: "recurring", contract_value: 0, start_date: "",
     });
+    setSelectedServices([]);
+  };
+
+  const toggleService = (id: string) =>
+    setSelectedServices((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   const mut = useMutation({
-    mutationFn: () =>
-      createClient({
+    mutationFn: async () => {
+      const c = await createClient({
         ...form,
         name: form.name || form.company || "Cliente sem nome",
         logo_url: form.logo_url || null,
         start_date: form.start_date || null,
-      }),
+      });
+      for (const sid of selectedServices) {
+        try {
+          await addClientService({
+            client_id: c.id,
+            service_id: sid,
+            contract_type: form.contract_type as "recurring" | "one_time",
+            start_date: form.start_date || undefined,
+          });
+        } catch (e) {
+          console.error("Failed to link service", sid, e);
+        }
+      }
+      return c;
+    },
     onSuccess: (c) => {
       qc.invalidateQueries({ queryKey: ["clients"] });
-      toast.success("Cliente cadastrado");
+      qc.invalidateQueries({ queryKey: ["client-services", c.id] });
+      toast.success(
+        selectedServices.length
+          ? `Cliente cadastrado com ${selectedServices.length} serviço(s)`
+          : "Cliente cadastrado",
+      );
       onOpenChange(false);
       reset();
       onCreated?.(c.id);
@@ -73,9 +107,10 @@ export function NewClientDialog({
         </DialogHeader>
 
         <Tabs defaultValue="dados" className="w-full">
-          <TabsList className="grid grid-cols-3 w-full">
+          <TabsList className="grid grid-cols-4 w-full">
             <TabsTrigger value="dados">Dados</TabsTrigger>
             <TabsTrigger value="contrato">Contrato</TabsTrigger>
+            <TabsTrigger value="servicos">Serviços</TabsTrigger>
             <TabsTrigger value="portal">Portal</TabsTrigger>
           </TabsList>
 
@@ -185,9 +220,56 @@ export function NewClientDialog({
                 />
               </div>
             </div>
-            <p className="text-xs text-foreground/50">
-              Após cadastrar, vincule serviços específicos da biblioteca em <b>Serviços contratados</b>.
+          </TabsContent>
+
+          <TabsContent value="servicos" className="mt-4 space-y-3">
+            <p className="text-xs text-foreground/60">
+              Selecione os serviços contratados. Após cadastrar, você poderá ajustar valores,
+              recorrência e dia de vencimento de cada serviço individualmente.
             </p>
+            {services.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-background/40 p-6 text-center">
+                <Package className="size-7 mx-auto text-foreground/30 mb-2" />
+                <p className="text-sm font-medium">Nenhum serviço cadastrado</p>
+                <p className="text-xs text-foreground/50 mt-1">
+                  Cadastre serviços em <b>Configurações → Serviços e Templates</b>.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-border divide-y divide-border max-h-72 overflow-y-auto">
+                {services.map((s) => {
+                  const checked = selectedServices.includes(s.id);
+                  return (
+                    <label
+                      key={s.id}
+                      className="flex items-start gap-3 p-3 hover:bg-background/40 cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => toggleService(s.id)}
+                        className="mt-0.5"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium">{s.name}</div>
+                        {s.category && (
+                          <div className="text-xs text-foreground/50">{s.category}</div>
+                        )}
+                        {s.description && (
+                          <div className="text-xs text-foreground/60 mt-0.5 line-clamp-2">
+                            {s.description}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+            {selectedServices.length > 0 && (
+              <p className="text-xs text-foreground/60">
+                {selectedServices.length} serviço(s) selecionado(s).
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="portal" className="mt-4">
@@ -195,7 +277,7 @@ export function NewClientDialog({
               <Lock className="size-8 mx-auto text-foreground/30 mb-3" />
               <p className="text-sm font-medium">Disponível após cadastro</p>
               <p className="text-xs text-foreground/50 mt-1 max-w-sm mx-auto">
-                Cadastre o cliente primeiro para liberar serviços contratados, portal e templates operacionais.
+                Cadastre o cliente primeiro para configurar o portal, banner, cores e usuários.
               </p>
             </div>
           </TabsContent>
