@@ -13,6 +13,7 @@ import {
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
+import { fetchServices, type Service } from "@/lib/services-api";
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
 import { recordProposalEvent } from "@/lib/proposal-events";
