@@ -1224,6 +1224,7 @@ export type Database = {
           archived_at: string | null
           category: string | null
           created_at: string
+          default_scope: Json | null
           description: string | null
           id: string
           is_active: boolean
@@ -1235,6 +1236,7 @@ export type Database = {
           archived_at?: string | null
           category?: string | null
           created_at?: string
+          default_scope?: Json | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -1246,6 +1248,7 @@ export type Database = {
           archived_at?: string | null
           category?: string | null
           created_at?: string
+          default_scope?: Json | null
           description?: string | null
           id?: string
           is_active?: boolean
