@@ -514,6 +514,7 @@ function FinanceiroPage() {
       <NewTransactionDialog open={openTx !== false} onOpenChange={(o) => setOpenTx(o ? (openTx || "income") : false)} defaultKind={openTx || "income"} />
       <NewBankAccountDialog open={openAcc} onOpenChange={setOpenAcc} />
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
+      <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
     </div>
   );
 }
