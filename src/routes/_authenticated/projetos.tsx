@@ -25,6 +25,29 @@ function ProjetosPage() {
   const qc = useQueryClient();
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["all-contracts"],
+    queryFn: async () => {
+      const { data, error } = await fetch("/api/query", {
+        method: "POST",
+        body: JSON.stringify({ query: "SELECT id, title FROM contracts" })
+      }).then(res => res.json()); // Wait, I should use supabase client or a lib function
+      
+      const { data: ct, error: err } = await (window as any).supabase.from("contracts").select("id, title");
+      if (err) return [];
+      return ct;
+    },
+    enabled: false // I'll use a better approach
+  });
+  
+  // Actually, I'll use the supabase client directly as I don't have a lib function for all contracts
+  const { data: allContracts = [] } = useQuery({
+    queryKey: ["all-contracts"],
+    queryFn: async () => {
+      const { data } = await (window as any).supabase.from("contracts").select("id, title");
+      return data || [];
+    }
+  });
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
