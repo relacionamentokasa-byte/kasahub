@@ -15,6 +15,8 @@ import { fetchClients } from "@/lib/ops-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";
+import { recordProposalEvent } from "@/lib/proposal-events";
+import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
