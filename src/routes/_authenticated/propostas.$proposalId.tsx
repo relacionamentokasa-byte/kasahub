@@ -97,6 +97,7 @@ export function ProposalEditorContent({
     },
   });
 
+  const [isEditing, setIsEditing] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     client_id: "",
@@ -127,7 +128,7 @@ export function ProposalEditorContent({
   });
 
   useEffect(() => {
-    if (proposal) {
+    if (proposal && !isEditing) {
       const p = proposal as typeof proposal & Record<string, unknown>;
       setForm({
         title: proposal.title,
