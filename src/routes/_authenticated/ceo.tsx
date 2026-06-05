@@ -206,7 +206,7 @@ function CeoPage() {
         </div>
 
         <div className="text-[10px] capitalize text-foreground/30 text-center">
-          {jobs.length} jobs · {clients.length} clientes · dados em tempo real
+          {jobs.length} tarefas · {clients.length} clientes · dados em tempo real
         </div>
       </div>
     </div>

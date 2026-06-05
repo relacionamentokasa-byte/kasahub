@@ -161,7 +161,7 @@ function Dashboard() {
             <div>
               <h3 className="font-display text-lg font-bold">Pauta operacional</h3>
               <p className="text-[10px] font-mono-kasa text-foreground/40 capitalize mt-0.5">
-                {pendingJobs.length} jobs pendentes · {urgentCount} urgentes
+                {pendingJobs.length} tarefas pendentes · {urgentCount} urgentes
               </p>
             </div>
             <Link to="/jobs">
@@ -172,7 +172,7 @@ function Dashboard() {
           </div>
           <div className="flex-1 overflow-y-auto p-2">
             {pendingJobs.length === 0 && (
-              <div className="text-center text-sm text-foreground/40 py-10">Sem jobs pendentes.</div>
+              <div className="text-center text-sm text-foreground/40 py-10">Sem tarefas pendentes.</div>
             )}
             {pendingJobs.map((job) => {
               const overdue = job.due_date && job.due_date < todayIso;
@@ -260,7 +260,7 @@ function Dashboard() {
               <Alert color="rose" icon={<AlertTriangle className="size-4" />} title={`${ind.overdueCount} lançamentos em atraso`} hint={brl(ind.overdueAmount)} />
             )}
             {urgentCount > 0 && (
-              <Alert color="orange" icon={<Target className="size-4" />} title={`${urgentCount} jobs urgentes na pauta`} />
+              <Alert color="orange" icon={<Target className="size-4" />} title={`${urgentCount} tarefas urgentes na pauta`} />
             )}
             {leads.length > 0 && (
               <Alert color="primary" icon={<TrendingUp className="size-4" />} title={`${leads.length} leads no funil`} hint={brl(leads.reduce((s, l) => s + Number(l.value), 0))} />
