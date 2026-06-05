@@ -646,6 +646,8 @@ export function ProposalEditorContent({
             </div>
           )}
 
+          <ProposalTimeline proposalId={proposalId} />
+
           <div className="rounded-2xl border border-border bg-surface p-5 text-xs text-foreground/60">
             <p className="capitalize text-[10px] text-foreground/40 mb-2">
               Link público
