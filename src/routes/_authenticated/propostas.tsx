@@ -74,8 +74,8 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   draft: { label: "Rascunho", cls: "bg-foreground/10 text-foreground/70" },
   sent: { label: "Enviada", cls: "bg-blue-500/15 text-blue-300" },
   viewed: { label: "Visualizada", cls: "bg-amber-500/15 text-amber-300" },
-  accepted: { label: "Aprovada", cls: "bg-green-500/15 text-green-300" },
-  reopened: { label: "Reaberta", cls: "bg-purple-500/15 text-purple-300" },
+  waiting_signature: { label: "Aguardando Assinatura", cls: "bg-purple-500/15 text-purple-300" },
+  accepted: { label: "Assinada", cls: "bg-green-500/15 text-green-300" },
   rejected: { label: "Recusada", cls: "bg-red-500/15 text-red-300" },
   cancelled: { label: "Cancelada", cls: "bg-red-500/15 text-red-300" },
 };
