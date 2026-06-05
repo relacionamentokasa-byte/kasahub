@@ -176,7 +176,10 @@ function ProposalEditor() {
             <Send className="size-4" /> Marcar como enviada
           </Button>
           <Button
-            onClick={() => saveMut.mutate(undefined)}
+            onClick={() => {
+              (document.activeElement as HTMLElement | null)?.blur();
+              setTimeout(() => saveMut.mutate(undefined), 50);
+            }}
             disabled={saveMut.isPending}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
           >
