@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createProject, fetchClients } from "@/lib/ops-api";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProposals } from "@/lib/crm-api";
+import { fetchClientServices, generateJobsForProject } from "@/lib/client-services-api";
+import { fetchServices } from "@/lib/services-api";
 import {
   Dialog,
   DialogContent,
@@ -14,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectTrigger,
@@ -39,6 +42,11 @@ export function NewProjectDialog({
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
+  const { data: services = [] } = useQuery({
+    queryKey: ["services", "active"],
+    queryFn: () => fetchServices({ onlyActive: true }),
+  });
+
   const [form, setForm] = useState({
     name: "",
     client_id: defaultClientId ?? "",
@@ -48,6 +56,20 @@ export function NewProjectDialog({
     due_date: "",
     cover_url: "" as string | null,
   });
+  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+
+  const { data: contracted = [] } = useQuery({
+    queryKey: ["client-services", form.client_id],
+    queryFn: () => fetchClientServices(form.client_id),
+    enabled: !!form.client_id,
+  });
+
+  useEffect(() => {
+    // Pre-select all active contracted services when client changes
+    setSelectedServiceIds(
+      contracted.filter((c) => c.status === "active").map((c) => c.service_id),
+    );
+  }, [contracted]);
 
   const clientContracts = contracts.filter((c) => !form.client_id || c.client_id === form.client_id);
   const clientProposals = proposals.filter(
@@ -57,8 +79,8 @@ export function NewProjectDialog({
   );
 
   const mut = useMutation({
-    mutationFn: () =>
-      createProject({
+    mutationFn: async () => {
+      const project = await createProject({
         name: form.name,
         client_id: form.client_id || null,
         contract_id: form.contract_id || null,
@@ -66,17 +88,32 @@ export function NewProjectDialog({
         briefing: form.briefing || null,
         due_date: form.due_date || null,
         cover_url: form.cover_url || null,
-      } as Parameters<typeof createProject>[0]),
+      } as Parameters<typeof createProject>[0]);
+      if (form.client_id && selectedServiceIds.length) {
+        const r = await generateJobsForProject(project.id, form.client_id, selectedServiceIds);
+        if (r.created > 0) toast.success(`${r.created} jobs gerados a partir dos templates`);
+      }
+      return project;
+    },
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["projects"] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Projeto criado");
       onOpenChange(false);
       setForm({ name: "", client_id: defaultClientId ?? "", contract_id: "", proposal_id: "", briefing: "", due_date: "", cover_url: "" });
+      setSelectedServiceIds([]);
       onCreated?.(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const serviceName = (id: string) => services.find((s) => s.id === id)?.name ?? "Serviço";
+
+  function toggleService(id: string) {
+    setSelectedServiceIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,9 +149,40 @@ export function NewProjectDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {form.client_id && contracted.length > 0 && (
+            <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3">
+              <div>
+                <div className="text-[10px] uppercase text-foreground/50">
+                  Serviços contratados
+                </div>
+                <div className="text-xs text-foreground/60">
+                  Selecione quais serviços gerarão jobs neste projeto (templates serão aplicados automaticamente).
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                {contracted.map((cs) => (
+                  <label
+                    key={cs.id}
+                    className="flex items-center gap-2 text-sm cursor-pointer hover:bg-accent/40 rounded px-2 py-1.5"
+                  >
+                    <Checkbox
+                      checked={selectedServiceIds.includes(cs.service_id)}
+                      onCheckedChange={() => toggleService(cs.service_id)}
+                    />
+                    <span className="flex-1">{serviceName(cs.service_id)}</span>
+                    <span className="text-[10px] text-foreground/40 capitalize">
+                      {cs.contract_type === "recurring" ? "Mensal" : "Único"}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Contrato (serviço)</Label>
+              <Label>Contrato</Label>
               <Select
                 value={form.contract_id || "__none__"}
                 onValueChange={(v) => setForm({ ...form, contract_id: v === "__none__" ? "" : v })}
