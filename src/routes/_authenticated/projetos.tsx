@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, FolderKanban } from "lucide-react";
-import { fetchProjects, fetchClients } from "@/lib/ops-api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, FolderKanban, Trash2 } from "lucide-react";
+import { fetchProjects, fetchClients, deleteProject } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
 import { NewProjectDialog } from "@/components/projects/NewProjectDialog";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/projetos")({
   head: () => ({ meta: [{ title: "Projetos — KASA OS" }] }),
