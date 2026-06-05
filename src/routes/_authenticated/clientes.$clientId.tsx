@@ -103,12 +103,14 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
   return (
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4">
-        <Link
-          to="/clientes"
-          className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
-        >
-          <ArrowLeft className="size-3.5" /> Clientes
-        </Link>
+        {!embedded && (
+          <Link
+            to="/clientes"
+            className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-primary mb-4 capitalize"
+          >
+            <ArrowLeft className="size-3.5" /> Clientes
+          </Link>
+        )}
         <div className="flex items-start gap-4 flex-wrap">
           {client.logo_url ? (
             <img
