@@ -99,6 +99,7 @@ function ProposalsPage() {
     client_name: "",
     client_email: "",
     service_type: "",
+    service_ids: [] as string[],
     valid_until: "",
     intro: "",
   };
