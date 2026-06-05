@@ -547,9 +547,13 @@ export function ProposalEditorContent({
                   <F label="Valor do Projeto">
                     <Input
                       type="number"
-                      value={totals.one_time_investment || ""}
+                      value={form.one_time_investment || ""}
                       onChange={(e) => {
                         const val = Number(e.target.value);
+                        setForm(f => ({ ...f, one_time_investment: val }));
+                      }}
+                      onBlur={() => {
+                        const val = form.one_time_investment;
                         if (items.length > 0) {
                           const first = items[0];
                           itemMut.mutate({ ...first, unit_price: val, quantity: 1, recurrence: "one_time", proposal_id: proposalId });
