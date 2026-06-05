@@ -91,7 +91,7 @@ export function AppSidebar() {
         {groups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
-              <SidebarGroupLabel className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-foreground/40 px-3">
+              <SidebarGroupLabel className="text-[10px] font-mono-kasa uppercase tracking-[0.2em] text-sidebar-foreground/40 px-3">
                 {group.label}
               </SidebarGroupLabel>
             )}
@@ -107,7 +107,7 @@ export function AppSidebar() {
                         className={
                           active
                             ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
-                            : "text-foreground/70 hover:text-foreground hover:bg-white/5"
+                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/5"
                         }
                       >
                         <Link to={item.url} className="flex items-center gap-3">
@@ -131,8 +131,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
-              <p className="text-sm font-medium truncate">Lucas Andrade</p>
-              <p className="text-[10px] text-foreground/40 truncate font-mono-kasa uppercase tracking-wider">
+              <p className="text-sm font-medium truncate text-sidebar-foreground">Lucas Andrade</p>
+              <p className="text-[10px] text-sidebar-foreground/40 truncate font-mono-kasa uppercase tracking-wider">
                 Diretor Criativo
               </p>
             </div>
