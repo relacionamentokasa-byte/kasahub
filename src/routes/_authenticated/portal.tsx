@@ -51,7 +51,7 @@ function ClientPortalView({
   const brandColor = client.brand_primary || "#FFBC45";
   const { data: projects = [] } = useQuery({
     queryKey: ["client-projects", clientId],
-    queryFn: () => fetchProjects(clientId),
+    queryFn: () => fetchProjects({ clientId }),
   });
 
   return (
