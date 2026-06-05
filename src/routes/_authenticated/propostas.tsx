@@ -1,5 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { ProposalDetailSheet } from "@/components/proposals/ProposalDetailSheet";
 import { useState } from "react";
 import {
   fetchProposals,
@@ -71,7 +72,7 @@ function publicUrl(token: string) {
 }
 
 function ProposalsPage() {
-  const navigate = useNavigate();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const qc = useQueryClient();
   const sendEmailFn = useServerFn(sendEmail);
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
@@ -92,7 +93,7 @@ function ProposalsPage() {
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       setOpen(false);
-      navigate({ to: "/propostas/$proposalId", params: { proposalId: p.id } });
+      setSelectedId(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -110,7 +111,7 @@ function ProposalsPage() {
     onSuccess: (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       toast.success("Proposta duplicada");
-      navigate({ to: "/propostas/$proposalId", params: { proposalId: p.id } });
+      setSelectedId(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -290,14 +291,13 @@ function ProposalsPage() {
                       className="border-b border-border last:border-0 hover:bg-surface-elevated transition"
                     >
                       <td className="px-5 py-3">
-                        <Link
-                          to="/propostas/$proposalId"
-                          params={{ proposalId: p.id }}
-                          className="font-semibold hover:text-primary flex items-center gap-1"
+                        <button
+                          onClick={() => setSelectedId(p.id)}
+                          className="font-semibold hover:text-primary flex items-center gap-1 text-left"
                         >
                           {p.title}
                           <ArrowUpRight className="size-3.5 opacity-60" />
-                        </Link>
+                        </button>
                       </td>
                       <td className="px-5 py-3 text-foreground/70">{p.client_name}</td>
                       <td className="px-5 py-3 text-right text-primary">
@@ -315,12 +315,7 @@ function ProposalsPage() {
                         <ActionsMenu
                           proposal={p}
                           onView={() => openView(p)}
-                          onEdit={() =>
-                            navigate({
-                              to: "/propostas/$proposalId",
-                              params: { proposalId: p.id },
-                            })
-                          }
+                          onEdit={() => setSelectedId(p.id)}
                           onDuplicate={() => dupMut.mutate(p.id)}
                           onPdf={() => openPdf(p)}
                           onShare={() => copyLink(p)}
@@ -351,22 +346,16 @@ function ProposalsPage() {
                   className="rounded-2xl border border-border bg-surface p-4"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <Link
-                      to="/propostas/$proposalId"
-                      params={{ proposalId: p.id }}
-                      className="font-semibold hover:text-primary flex-1"
+                    <button
+                      onClick={() => setSelectedId(p.id)}
+                      className="font-semibold hover:text-primary flex-1 text-left"
                     >
                       {p.title}
-                    </Link>
+                    </button>
                     <ActionsMenu
                       proposal={p}
                       onView={() => openView(p)}
-                      onEdit={() =>
-                        navigate({
-                          to: "/propostas/$proposalId",
-                          params: { proposalId: p.id },
-                        })
-                      }
+                      onEdit={() => setSelectedId(p.id)}
                       onDuplicate={() => dupMut.mutate(p.id)}
                       onPdf={() => openPdf(p)}
                       onShare={() => copyLink(p)}
@@ -444,6 +433,11 @@ function ProposalsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ProposalDetailSheet
+        proposalId={selectedId}
+        onClose={() => setSelectedId(null)}
+      />
     </div>
   );
 }
