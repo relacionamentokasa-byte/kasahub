@@ -68,6 +68,8 @@ import { fetchClients } from "@/lib/ops-api";
 import { NewTransactionDialog } from "@/components/finance/NewTransactionDialog";
 import { NewBankAccountDialog } from "@/components/finance/NewBankAccountDialog";
 import { ImportTransactionsDialog } from "@/components/finance/ImportTransactionsDialog";
+import { SettleTransactionDialog } from "@/components/finance/SettleTransactionDialog";
+import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
