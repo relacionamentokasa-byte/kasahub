@@ -88,14 +88,20 @@ function ProposalsPage() {
   const sendEmailFn = useServerFn(sendEmail);
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({
+  const emptyForm = {
     title: "",
+    target_kind: "client" as "client" | "lead",
     client_id: "",
+    lead_id: "",
     client_name: "",
     client_email: "",
+    service_type: "",
+    valid_until: "",
     intro: "",
-  });
+  };
+  const [form, setForm] = useState(emptyForm);
 
   const [emailDialog, setEmailDialog] = useState<{ proposal: Proposal } | null>(null);
   const [emailForm, setEmailForm] = useState({ to: "", subject: "", message: "" });
@@ -104,15 +110,20 @@ function ProposalsPage() {
     mutationFn: () =>
       createProposal({
         title: form.title,
-        client_id: form.client_id || null,
+        target_kind: form.target_kind,
+        client_id: form.target_kind === "client" ? (form.client_id || null) : null,
+        lead_id: form.target_kind === "lead" ? (form.lead_id || null) : null,
         client_name: form.client_name,
         client_email: form.client_email || null,
         intro: form.intro || null,
+        service_type: form.service_type || null,
+        valid_until: form.valid_until || null,
       }),
-    onSuccess: (p) => {
+    onSuccess: async (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       setOpen(false);
-      setForm({ title: "", client_id: "", client_name: "", client_email: "", intro: "" });
+      setForm(emptyForm);
+      await recordProposalEvent(p.id, "created", { target_kind: form.target_kind });
       setSelectedId(p.id);
     },
     onError: (e: Error) => toast.error(e.message),
