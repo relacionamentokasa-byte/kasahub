@@ -91,6 +91,7 @@ function ConfigPage() {
           <TabsTrigger value="agency" className="gap-2"><Building2 className="size-3.5" /> Identidade</TabsTrigger>
           <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Branding</TabsTrigger>
           <TabsTrigger value="perms" className="gap-2"><Shield className="size-3.5" /> Perfis e Permissões</TabsTrigger>
+          <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
           <TabsTrigger value="notif" className="gap-2"><Bell className="size-3.5" /> Notificações</TabsTrigger>
           <TabsTrigger value="integr" className="gap-2"><Plug className="size-3.5" /> Integrações</TabsTrigger>
           <TabsTrigger value="prefs" className="gap-2"><UserCog className="size-3.5" /> Preferências</TabsTrigger>
