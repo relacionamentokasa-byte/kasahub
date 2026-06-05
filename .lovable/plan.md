@@ -1,123 +1,62 @@
+## Reestruturação do Financeiro
 
-# Integração Proposta → Cliente → Projeto → Jobs → Financeiro
+Vou refazer a página `/financeiro` para refletir o layout da referência (Lista, Visão Mensal, Previsão Anual, Contas Banc.) e transformá-la no centro financeiro integrado ao CRM, Propostas, Contratos, Projetos e Jobs.
 
-## Objetivo
-Quando uma proposta for **aprovada**, o sistema deve criar automaticamente todo o ecossistema operacional e financeiro do cliente. Quando for **cancelada/reaberta**, reverter tudo sem duplicar.
+### 1. Banco de dados (migração)
 
----
+- `financial_categories`: adicionar `cost_center` (text) — Operação, Marketing, Comercial, Administrativo, Ferramentas, Equipe, Freelancers.
+- `bank_accounts`: adicionar `agency` (text) e `account_number` (text).
+- `transactions`: adicionar `job_id` (uuid, nullable) para vincular receitas de jobs avulsos.
+- Seed inicial de categorias por centro de custo + sementes "Recorrente", "Avulso", "Projeto Especial" (kind=income).
 
-## 1. Banco de dados (migração)
+### 2. Nova UI `financeiro.tsx`
 
-**Tabela `proposals`** – adicionar campos para template operacional e rastreio:
-- `responsible_id uuid` – responsável padrão do projeto/jobs
-- `briefing text` – briefing copiado para o projeto
-- `payment_kind text` ('recurring' | 'one_time' | 'mixed') – define como gerar financeiro
-- `installments int default 1` – nº de parcelas para valor único
-- `first_due_date date` – primeiro vencimento
-- `billing_day int default 5` – dia do mês para recorrência
-- `account_id uuid` – conta bancária padrão dos lançamentos
-- `category_id uuid` – categoria financeira padrão
-- `generated_project_id uuid` – projeto criado pela aprovação
-- `generated_contract_id uuid` – contrato criado pela aprovação
-- `auto_create_jobs boolean default true`
+Topo: título "Financeiro / Controle de receitas e despesas" + ações `Importar` e `+ Nova Transação`.
 
-**Tabela `proposal_items`** – adicionar:
-- `job_template text` – chave do template (ex.: `social_media`, `branding`, `website`, `ads`, `none`). Usado para gerar jobs iniciais.
+Tabs (4 abas conforme a referência):
 
-**Tabela `transactions`** – garantir índices em `proposal_id` e `contract_id` (já existem colunas).
+- **Lista** — KPIs no topo + filtros + tabela.
+  - KPIs: `Entradas Pagas`, `Saídas Pagas`, `A Receber / A Pagar`, `Lucro do Período`, `Receita Recorrente` (MRR), `Receita Extra` (avulsos do período), `Saldo Consolidado`.
+  - Filtros: busca, Tipo, Status, Cliente, Categoria, Conta, Período.
+  - Tabela: Descrição · Categoria · Cliente · Valor · Vencimento · Status · ações (marcar pago/excluir/editar). Cada linha mostra origem (proposta/contrato/job) com link.
 
-**Tabela `projects`** – já possui `proposal_id`/`contract_id` (ok).
+- **Visão Mensal** — gráfico mês a mês (receitas vs despesas), tabela comparativa, lucro/saldo do mês selecionado.
 
-**Migração de dados:** nenhuma; campos novos são opcionais.
+- **Previsão Anual** — projeção 12 meses combinando contratos ativos (MRR), parcelas futuras de propostas aprovadas e despesas recorrentes. Cards Receita Prevista, Despesa Prevista, Lucro Previsto.
 
----
+- **Contas Banc.** — cards com saldo atual, entradas/saídas do período por conta + botão Nova conta. Card "Saldo Consolidado" somando todas as contas.
 
-## 2. Aprovação da proposta (gatilho central)
+### 3. Importação CSV/Excel
 
-Criar `src/lib/proposal-approval.ts` com função pura `approveProposal(proposalId)` chamada tanto pela UI interna quanto pelo aceite público (`/api/public/proposal.$token`).
+`ImportTransactionsDialog`: aceita `.csv`/`.xlsx` (uso de `xlsx`), mapeamento de colunas (descrição, valor, vencimento, tipo, cliente por nome, categoria por nome, conta, status), pré-visualização e inserção em lote em `transactions`.
 
-Fluxo dentro de uma "transação lógica" (sequência com rollback manual em caso de erro):
+### 4. Integrações já existentes (consolidação)
 
-1. **Validar**: proposta existe, status ≠ 'accepted', tem `client_id` (se não tiver, criar cliente automaticamente a partir de `client_name`/`client_email`).
-2. **Cliente**: se faltar, `INSERT` em `clients` e vincular à proposta.
-3. **Projeto**: criar em `projects` com `name = proposal.title`, `client_id`, `proposal_id`, `briefing`, `owner_id = responsible_id`. Salvar id em `proposal.generated_project_id`.
-4. **Contrato** (se `payment_kind in ('recurring','mixed')` e houver `monthly_investment > 0`): criar em `contracts` com `monthly_value`, `billing_day`, `start_date`, `proposal_id`, `client_id`. Salvar em `generated_contract_id`. Vincular `projects.contract_id`.
-5. **Jobs iniciais** (se `auto_create_jobs`): para cada `proposal_item` com `job_template` definido, expandir um template (mapa em código) e inserir múltiplos `jobs` ligados a `project_id`/`client_id`, estágio inicial, `assignee_id = responsible_id`.
-6. **Lançamentos financeiros**:
-   - **Recorrente**: gerar N transações `kind='income'`, `is_recurring=true`, `contract_id`, `client_id`, `proposal_id`, `project_id`, vencendo no `billing_day` dos próximos 12 meses (configurável; padrão 12).
-   - **Avulso**: usar `createTransaction(..., installments)` já existente para `one_time_investment`, vinculando `proposal_id`/`project_id`/`client_id`.
-7. **Status**: `proposals.status = 'accepted'`, `accepted_at = now()`.
+O `approveProposal` já cria contratos, parcelas e recorrências. Vou:
+- Garantir que jobs avulsos (proposta com `payment_kind=one_time`) gerem N parcelas vinculadas a `proposal_id`/`project_id`.
+- Garantir que cancelar/reabrir proposta cancele apenas as `transactions` pendentes futuras (já está) e exibir aviso na UI.
+- Mostrar origem na tabela: badge "Recorrência", "Parcela X/Y", "Avulso", "Manual".
 
-Tudo idempotente: se `generated_project_id` já existir, pular criação (apenas reativar lançamentos cancelados, se houver).
+### 5. Relatório Rentabilidade por Cliente
 
-### Templates de jobs (em código)
-```ts
-const JOB_TEMPLATES = {
-  social_media: ["Planejamento", "Design", "Copy", "Aprovação", "Publicação"],
-  branding:     ["Briefing", "Pesquisa", "Conceito", "Aplicações", "Manual"],
-  website:      ["Briefing", "Wireframe", "Design", "Desenvolvimento", "Homologação", "Publicação"],
-  ads:          ["Planejamento", "Criativos", "Configuração", "Lançamento", "Otimização"],
-};
-```
-UI da proposta permitirá escolher o template por item (Select simples no editor de itens).
+Nova aba dentro de `clientes.$clientId.tsx`: Receita Total, Despesas Vinculadas, Lucro, Margem, # Jobs, # Projetos.
 
----
+### 6. Visão 360 do Cliente
 
-## 3. Cancelamento / Reabertura
+Já existe filtro por `client_id`; adicionar a seção "Financeiro" com sub-abas: Recorrências, Parcelas, Pagas, Pendentes.
 
-Função `revertProposalApproval(proposalId)`:
-- `transactions` vinculadas (`proposal_id = X` AND `status = 'pending'`) → `status = 'cancelled'`. Pagas permanecem (auditoria).
-- `contracts` vinculados → `status = 'cancelled'`.
-- `projects` vinculados → `status = 'archived'`.
-- `jobs` do projeto sem `done_at` → `status`/estágio "cancelado" (ou marcar `done_at = null` e mover para estágio descartado; usaremos label `cancelled` em `labels`).
-- `proposals.status = 'cancelled'` (ou `draft` se "reabertura").
+### Arquivos
 
-Reaprovação: chama `approveProposal` novamente; como ids ficam salvos, reativa contratos (`active`), projeto (`active`) e gera somente lançamentos faltantes (verificar pelos meses já existentes).
+- Migração SQL nova
+- `src/routes/_authenticated/financeiro.tsx` — reescrita
+- `src/components/finance/ImportTransactionsDialog.tsx` — novo
+- `src/components/finance/NewBankAccountDialog.tsx` — agência/conta
+- `src/components/finance/NewTransactionDialog.tsx` — campo centro de custo
+- `src/lib/finance-api.ts` — funções de previsão anual, agregação por cliente, importação em lote
+- `src/routes/_authenticated/clientes.$clientId.tsx` — aba Rentabilidade + bloco financeiro
+- `src/lib/proposal-approval.ts` — ajuste menor (linkar `job_id` quando aplicável)
+- `package.json` — adicionar `xlsx`
 
----
+### Confirmação
 
-## 4. UI
-
-### Proposta (editor)
-- Adicionar painel "Configuração operacional":
-  - Select **Responsável** (profiles da equipe)
-  - Textarea **Briefing**
-  - Select **Modelo de cobrança**: recorrente / avulso / misto
-  - **Parcelas** (se avulso/misto), **1º vencimento**, **Dia de cobrança**
-  - Selects **Conta** e **Categoria** financeira
-  - Switch **Gerar jobs automaticamente**
-- Em cada item da proposta: Select **Template de jobs**.
-- Botão "Aprovar proposta" agora chama `approveProposal` e mostra resumo do que foi criado.
-- Botão "Cancelar/Reabrir" → `revertProposalApproval`.
-
-### Aceite público (`/p/$token`)
-- Após o cliente aceitar, chamar mesma função no server route.
-
-### Cliente 360 (`ClientDetailContent`)
-- Confirmar/adicionar abas: **Propostas**, **Projetos**, **Jobs**, **Contratos**, **Financeiro**.
-- Aba Propostas: lista com filtro por status (aprovada, em andamento, cancelada, reaberta) e link para projeto/contratos gerados.
-
----
-
-## 5. Arquivos
-
-**Novos**
-- `supabase/migrations/<ts>_proposal_pipeline.sql`
-- `src/lib/proposal-approval.ts`
-- `src/lib/job-templates.ts`
-
-**Editados**
-- `src/lib/crm-api.ts` – expor campos novos em create/update
-- `src/routes/_authenticated/propostas.$proposalId.tsx` – painel operacional + botões aprovar/cancelar
-- `src/components/proposals/ProposalDetailSheet.tsx` – mesma UI no drawer
-- `src/routes/api/public/proposal.$token.ts` – chamar `approveProposal` no aceite
-- `src/routes/_authenticated/clientes.$clientId.tsx` – garantir abas e dados vinculados
-
----
-
-## Notas técnicas
-- Toda a orquestração roda client-side via `supabase` autenticado (políticas atuais permitem `is_team_member`). Para o aceite público, o server route usa `supabaseAdmin`.
-- Recorrência: gerar 12 meses adiante por padrão; um job cron futuro pode estender (fora deste escopo).
-- Idempotência: usar `proposal_id` + (`due_date` mês) como chave lógica para não duplicar lançamentos recorrentes.
-
-Confirme para eu seguir com a implementação.
+Posso começar? Como o escopo é grande vou entregar em ondas: (1) migração + UI base com 4 abas + KPIs + filtros, (2) Importação CSV/XLSX, (3) Rentabilidade por cliente e Visão 360. Se preferir uma ordem diferente, me diga.
