@@ -68,7 +68,7 @@ function ClientesPage() {
             Operação · Clientes
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
-            Clientes 360°
+            Painel do Cliente 360°
           </h1>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
