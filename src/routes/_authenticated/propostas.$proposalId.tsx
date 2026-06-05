@@ -641,47 +641,67 @@ function ItemRow({
   }
 
   return (
-    <div className="grid grid-cols-12 gap-2 items-center bg-background/40 border border-border rounded-lg p-2">
-      <Input
-        value={local.title}
-        onChange={(e) => setLocal({ ...local, title: e.target.value })}
-        onBlur={() => commit({ title: local.title })}
-        className="col-span-5 h-9 bg-transparent border-transparent hover:border-border focus:border-primary"
-        placeholder="Item"
-      />
-      <Input
-        type="number"
-        value={String(local.quantity)}
-        onChange={(e) => setLocal({ ...local, quantity: Number(e.target.value) })}
-        onBlur={() => commit({ quantity: local.quantity })}
-        className="col-span-1 h-9 text-right"
-      />
-      <Input
-        type="number"
-        value={String(local.unit_price)}
-        onChange={(e) => setLocal({ ...local, unit_price: Number(e.target.value) })}
-        onBlur={() => commit({ unit_price: local.unit_price })}
-        className="col-span-3 h-9 text-right"
-        placeholder="0,00"
-      />
-      <Select
-        value={local.recurrence}
-        onValueChange={(v) => commit({ recurrence: v })}
-      >
-        <SelectTrigger className="col-span-2 h-9 text-xs">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="monthly">Mensal</SelectItem>
-          <SelectItem value="one_time">Pontual</SelectItem>
-        </SelectContent>
-      </Select>
-      <button
-        onClick={onDelete}
-        className="col-span-1 grid place-items-center text-foreground/40 hover:text-destructive"
-      >
-        <Trash2 className="size-3.5" />
-      </button>
+    <div className="space-y-2 bg-background/40 border border-border rounded-lg p-2">
+      <div className="grid grid-cols-12 gap-2 items-center">
+        <Input
+          value={local.title}
+          onChange={(e) => setLocal({ ...local, title: e.target.value })}
+          onBlur={() => commit({ title: local.title })}
+          className="col-span-5 h-9 bg-transparent border-transparent hover:border-border focus:border-primary"
+          placeholder="Item"
+        />
+        <Input
+          type="number"
+          value={String(local.quantity)}
+          onChange={(e) => setLocal({ ...local, quantity: Number(e.target.value) })}
+          onBlur={() => commit({ quantity: local.quantity })}
+          className="col-span-1 h-9 text-right"
+        />
+        <Input
+          type="number"
+          value={String(local.unit_price)}
+          onChange={(e) => setLocal({ ...local, unit_price: Number(e.target.value) })}
+          onBlur={() => commit({ unit_price: local.unit_price })}
+          className="col-span-3 h-9 text-right"
+          placeholder="0,00"
+        />
+        <Select
+          value={local.recurrence}
+          onValueChange={(v) => commit({ recurrence: v })}
+        >
+          <SelectTrigger className="col-span-2 h-9 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="monthly">Mensal</SelectItem>
+            <SelectItem value="one_time">Pontual</SelectItem>
+          </SelectContent>
+        </Select>
+        <button
+          onClick={onDelete}
+          className="col-span-1 grid place-items-center text-foreground/40 hover:text-destructive"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+      </div>
+      <div className="grid grid-cols-12 gap-2 items-center">
+        <Label className="col-span-3 text-[10px] capitalize text-foreground/40 pl-1">
+          Template de jobs
+        </Label>
+        <Select
+          value={(local.job_template as string | null) ?? "none"}
+          onValueChange={(v) => commit({ job_template: v === "none" ? null : v } as Partial<ProposalItem>)}
+        >
+          <SelectTrigger className="col-span-9 h-8 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {JOB_TEMPLATE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   );
 }
