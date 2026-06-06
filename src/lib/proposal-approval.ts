@@ -3,6 +3,7 @@ import { JOB_TEMPLATES } from "./job-templates";
 import { recordProposalEventAdmin } from "./proposal-events";
 import { recordTimelineEvent } from "./client-timeline";
 import { fetchOperationalFlowDetails } from "./operational-flows-api";
+import { fetchJobStages } from "./ops-api";
 
 type SB = SupabaseClient;
 
