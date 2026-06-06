@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown } from "lucide-react";
-import { fetchClients } from "@/lib/ops-api";
+import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown, FileSignature, DollarSign, Clock, User } from "lucide-react";
+import { fetchClients, fetchJobs, fetchExtraDemands, fetchProjects } from "@/lib/ops-api";
+import { fetchContracts, fetchTransactions, brl } from "@/lib/finance-api";
+import { fetchProfiles } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewClientDialog } from "@/components/clients/NewClientDialog";
@@ -22,6 +24,12 @@ function ClientesPage() {
   const matches = useMatches();
   const isClientDetail = matches.some((match) => match.routeId === "/_authenticated/clientes/$clientId");
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
+  const { data: transactions = [] } = useQuery({ queryKey: ["transactions"], queryFn: () => fetchTransactions() });
+  const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: allJobs = [] } = useQuery({ queryKey: ["jobs"], queryFn: () => fetchJobs() });
+  const { data: allDmes = [] } = useQuery({ queryKey: ["extra-demands"], queryFn: () => fetchExtraDemands() });
+  const { data: allProjects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"cards" | "list">(() => {
@@ -140,52 +148,99 @@ function ClientesPage() {
           </div>
         ) : view === "cards" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20 md:pb-0">
-            {filtered.map((c) => (
-              <div key={c.id} className="relative group">
-                <button
-                  type="button"
-                  onClick={() => setSelectedId(c.id)}
-                  className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div
-                      className="size-12 rounded-xl grid place-items-center font-display font-bold text-lg overflow-hidden"
-                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
-                    >
-                      {c.logo_url ? (
-                        <img src={c.logo_url} alt="" className="size-full object-cover" />
-                      ) : (
-                        (c.company || c.name).charAt(0).toUpperCase()
-                      )}
+            {filtered.map((c) => {
+              const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
+              const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
+              const mainContract = clientContracts[0];
+              const contractLabel = mainContract?.title || "Nenhum contrato";
+
+              const nextTransaction = transactions
+                .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
+                .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+              
+              const nextDueDate = nextTransaction?.due_date 
+                ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
+                : "Não definido";
+              
+              const clientJobs = allJobs.filter(j => j.client_id === c.id && !j.done_at);
+              const clientProjects = allProjects.filter(p => p.client_id === c.id);
+              const clientDmes = allDmes.filter(d => d.client_id === c.id && d.status !== 'completed' && d.status !== 'cancelled');
+
+              return (
+                <div key={c.id} className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(c.id)}
+                    className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition h-full"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className="size-12 rounded-xl grid place-items-center font-display font-bold text-lg overflow-hidden shrink-0"
+                        style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                      >
+                        {c.logo_url ? (
+                          <img src={c.logo_url} alt="" className="size-full object-cover" />
+                        ) : (
+                          (c.company || c.name).charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 pr-8">
+                        <div className="font-display font-semibold truncate group-hover:text-primary transition-colors">{c.company || c.name}</div>
+                        <div className="mt-1 text-[10px] capitalize text-foreground/40 font-bold">
+                          <span className={c.status === "active" ? "text-emerald-400" : ""}>
+                            ● {c.status === "active" ? "Ativo" : c.status}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1 pr-8">
-                      <div className="font-display font-semibold truncate">{c.company || c.name}</div>
-                      {c.company && c.name && (
-                        <div className="text-xs text-foreground/50 truncate">{c.name}</div>
-                      )}
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-xs text-foreground/60">
+                        <FileSignature className="size-3.5 text-primary/60" />
+                        <span className="truncate">{contractLabel} {clientContracts.length > 1 && `+${clientContracts.length - 1}`}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-foreground/60">
+                          <DollarSign className="size-3.5 text-emerald-500/60" />
+                          <span className="font-mono-kasa font-bold">{monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-foreground/40">
+                          <Clock className="size-3 text-primary/40" />
+                          <span>{nextDueDate}</span>
+                        </div>
+                      </div>
+                      <div className="pt-3 mt-1 border-t border-border/40 grid grid-cols-3 gap-2 text-[10px] text-foreground/40 font-mono-kasa">
+                        <div className="flex flex-col">
+                          <span className="uppercase text-[8px] opacity-60">Jobs</span>
+                          <span className="font-bold text-foreground/70">{clientJobs.length}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="uppercase text-[8px] opacity-60">Projetos</span>
+                          <span className="font-bold text-foreground/70">{clientProjects.length}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="uppercase text-[8px] opacity-60">DMEs</span>
+                          <span className="font-bold text-foreground/70">{clientDmes.length}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  {c.email && (
-                    <div className="text-xs text-foreground/50 truncate">{c.email}</div>
-                  )}
-                  <div className="mt-3 text-[10px] capitalize text-foreground/40">
-                    {c.status === "active" ? "● Ativo" : c.status}
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDeleteId(c.id);
-                  }}
-                  className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
-                  aria-label="Excluir cliente"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-            ))}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeleteId(c.id);
+                    }}
+                    className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-destructive/10 transition"
+                    aria-label="Excluir cliente"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="rounded-2xl border border-border bg-surface overflow-hidden">
@@ -204,94 +259,161 @@ function ClientesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((c) => (
-                    <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-surface-elevated transition">
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedId(c.id)}
-                          className="flex items-center gap-3 min-w-0 text-left w-full"
-                        >
-                          <div
-                            className="size-9 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
-                            style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                  {filtered.map((c) => {
+                    const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
+                    const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
+                    
+                    const mainContract = clientContracts[0];
+                    const contractLabel = clientContracts.length > 1 
+                      ? `${mainContract.title} +${clientContracts.length - 1}`
+                      : mainContract?.title || "Nenhum contrato";
+
+                    const responsibleId = (c as any).responsible_id || mainContract?.owner_id;
+                    const responsible = profiles.find(p => p.id === responsibleId);
+                    const responsibleName = responsible?.display_name || responsible?.full_name || "—";
+
+                    const nextTransaction = transactions
+                      .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
+                      .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+                    
+                    const nextDueDate = nextTransaction?.due_date 
+                      ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
+                      : "Não definido";
+
+                    return (
+                      <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-surface-elevated transition group">
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedId(c.id)}
+                            className="flex items-center gap-3 min-w-0 text-left w-full"
                           >
-                            {c.logo_url ? (
-                              <img src={c.logo_url} alt="" className="size-full object-cover" />
-                            ) : (
-                              (c.company || c.name).charAt(0).toUpperCase()
-                            )}
+                            <div
+                              className="size-9 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
+                              style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                            >
+                              {c.logo_url ? (
+                                <img src={c.logo_url} alt="" className="size-full object-cover" />
+                              ) : (
+                                (c.company || c.name).charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-semibold truncate group-hover:text-primary transition-colors">{c.company || c.name}</div>
+                              {c.email && <div className="text-[11px] text-foreground/50 truncate">{c.email}</div>}
+                            </div>
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[10px] capitalize px-2 py-1 rounded font-bold ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                            {c.status === "active" ? "Ativo" : c.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden shrink-0">
+                              {responsible?.avatar_url ? (
+                                <img src={responsible.avatar_url} className="size-full object-cover" />
+                              ) : (
+                                <User className="size-3 text-primary/60" />
+                              )}
+                            </div>
+                            <span className="text-foreground/60 text-xs truncate max-w-[120px]">{responsibleName}</span>
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-semibold truncate hover:text-primary">{c.company || c.name}</div>
-                            {c.email && <div className="text-[11px] text-foreground/50 truncate">{c.email}</div>}
-                          </div>
-                        </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`text-[10px] capitalize px-2 py-1 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
-                          {c.status === "active" ? "Ativo" : c.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-right text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setDeleteId(c.id)}
-                          className="p-1.5 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
-                          aria-label="Excluir cliente"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        
+                        <td className="px-4 py-3 text-foreground/60 text-xs">{contractLabel}</td>
+                        <td className="px-4 py-3 text-right text-xs font-mono-kasa font-bold">
+                          {monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}
+                        </td>
+                        <td className="px-4 py-3 text-foreground/60 text-xs">{nextDueDate}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setDeleteId(c.id)}
+                            className="p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-destructive/10 transition"
+                            aria-label="Excluir cliente"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
 
             {/* Mobile list */}
             <ul className="md:hidden divide-y divide-border">
-              {filtered.map((c) => (
-                <li key={c.id} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(c.id)}
-                    className="flex items-center gap-3 p-4 pr-12 text-left w-full"
-                  >
-                    <div
-                      className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
-                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+              {filtered.map((c) => {
+                const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
+                const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
+                const mainContract = clientContracts[0];
+                const contractLabel = mainContract?.title || "Nenhum contrato";
+
+                const nextTransaction = transactions
+                  .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
+                  .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+                
+                const nextDueDate = nextTransaction?.due_date 
+                  ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
+                  : "Não definido";
+
+                return (
+                  <li key={c.id} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(c.id)}
+                      className="flex flex-col gap-3 p-4 pr-12 text-left w-full"
                     >
-                      {c.logo_url ? (
-                        <img src={c.logo_url} alt="" className="size-full object-cover" />
-                      ) : (
-                        (c.company || c.name).charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold truncate">{c.company || c.name}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className={`text-[10px] capitalize px-1.5 py-0.5 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
-                          {c.status === "active" ? "Ativo" : c.status}
-                        </span>
-                        {c.email && <span className="text-[11px] text-foreground/50 truncate">{c.email}</span>}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
+                          style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                        >
+                          {c.logo_url ? (
+                            <img src={c.logo_url} alt="" className="size-full object-cover" />
+                          ) : (
+                            (c.company || c.name).charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold truncate">{c.company || c.name}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] capitalize px-1.5 py-0.5 rounded font-bold ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                              {c.status === "active" ? "Ativo" : c.status}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteId(c.id)}
-                    className="absolute top-1/2 -translate-y-1/2 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
-                    aria-label="Excluir cliente"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </li>
-              ))}
+
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/50">
+                          <FileSignature className="size-3" />
+                          <span className="truncate">{contractLabel} {clientContracts.length > 1 && `+${clientContracts.length - 1}`}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/50 justify-end">
+                          <DollarSign className="size-3 text-emerald-500/60" />
+                          <span className="font-mono-kasa font-bold">{monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/40">
+                          <Clock className="size-3" />
+                          <span>{nextDueDate}</span>
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteId(c.id)}
+                      className="absolute top-4 right-3 p-2 rounded-md text-destructive opacity-60 transition"
+                      aria-label="Excluir cliente"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
