@@ -13,8 +13,8 @@ export function KasaLogo({ collapsed = false }: KasaLogoProps) {
         />
       </div>
       {!collapsed && (
-        <span className="font-display text-xl font-bold tracking-tight whitespace-nowrap text-foreground">
-          KASA <span className="text-primary">HUB</span>
+        <span className="font-display text-2xl font-bold tracking-tight whitespace-nowrap text-white">
+          KASA <span className="text-[#FFBC45]">HUB</span>
         </span>
       )}
     </div>
