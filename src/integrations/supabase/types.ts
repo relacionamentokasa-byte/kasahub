@@ -541,6 +541,78 @@ export type Database = {
         }
         Relationships: []
       }
+      extra_demands: {
+        Row: {
+          approved_at: string | null
+          client_id: string
+          contract_id: string
+          created_at: string
+          deadline_days: number | null
+          description: string | null
+          id: string
+          is_billable: boolean
+          number_display: string
+          owner_id: string | null
+          public_token: string | null
+          responsible_id: string | null
+          status: string
+          title: string
+          updated_at: string
+          value: number
+        }
+        Insert: {
+          approved_at?: string | null
+          client_id: string
+          contract_id: string
+          created_at?: string
+          deadline_days?: number | null
+          description?: string | null
+          id?: string
+          is_billable?: boolean
+          number_display?: string
+          owner_id?: string | null
+          public_token?: string | null
+          responsible_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          value?: number
+        }
+        Update: {
+          approved_at?: string | null
+          client_id?: string
+          contract_id?: string
+          created_at?: string
+          deadline_days?: number | null
+          description?: string | null
+          id?: string
+          is_billable?: boolean
+          number_display?: string
+          owner_id?: string | null
+          public_token?: string | null
+          responsible_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "extra_demands_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extra_demands_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_categories: {
         Row: {
           color: string | null
@@ -677,6 +749,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           description: string | null
+          dme_id: string | null
           done_at: string | null
           due_date: string | null
           id: string
@@ -693,6 +766,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           description?: string | null
+          dme_id?: string | null
           done_at?: string | null
           due_date?: string | null
           id?: string
@@ -709,6 +783,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           description?: string | null
+          dme_id?: string | null
           done_at?: string | null
           due_date?: string | null
           id?: string
@@ -726,6 +801,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_dme_id_fkey"
+            columns: ["dme_id"]
+            isOneToOne: false
+            referencedRelation: "extra_demands"
             referencedColumns: ["id"]
           },
           {
@@ -1479,6 +1561,7 @@ export type Database = {
           contract_id: string | null
           created_at: string
           description: string
+          dme_id: string | null
           due_date: string
           id: string
           installment_number: number | null
@@ -1502,6 +1585,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           description: string
+          dme_id?: string | null
           due_date?: string
           id?: string
           installment_number?: number | null
@@ -1525,6 +1609,7 @@ export type Database = {
           contract_id?: string | null
           created_at?: string
           description?: string
+          dme_id?: string | null
           due_date?: string
           id?: string
           installment_number?: number | null
@@ -1540,7 +1625,15 @@ export type Database = {
           status?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "transactions_dme_id_fkey"
+            columns: ["dme_id"]
+            isOneToOne: false
+            referencedRelation: "extra_demands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

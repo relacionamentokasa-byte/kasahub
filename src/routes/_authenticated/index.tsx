@@ -129,8 +129,9 @@ function Dashboard() {
               {brl(ind.monthIncome)}
             </h2>
             <p className="text-primary-foreground/70 text-sm mt-3 font-medium">
-              {activeClients} cliente(s) com contrato ativo · MRR {brl(ind.mrr)}
+              {activeClients} cliente(s) ativos · MRR {brl(ind.mrr)} · Extra {brl(ind.extraThisMonth)}
             </p>
+
           </div>
         </section>
 

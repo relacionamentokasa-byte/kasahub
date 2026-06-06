@@ -5,14 +5,16 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft, Calendar, Mail, Phone, Building2, FileText, Palette,
   Globe, Save, Loader2, UserPlus, Trash2, KeyRound, ExternalLink, Copy, Check, Pencil,
-  DollarSign, Clock, FileSignature, Activity,
+  DollarSign, Clock, FileSignature, Activity, Plus,
 } from "lucide-react";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
+import { ExtraDemandsManager } from "@/components/contracts/ExtraDemandsManager";
+
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { ClientContracts } from "@/components/clients/ClientContracts";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { toast } from "sonner";
-import { fetchClient, fetchProjects, updateClient } from "@/lib/ops-api";
+import { fetchClient, fetchProjects, updateClient, fetchExtraDemands } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalUser, deletePortalUser, resetPortalUserPassword } from "@/lib/portal-users.functions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -80,6 +82,11 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
       return data ?? [];
     },
   });
+  const { data: demands = [] } = useQuery({
+    queryKey: ["extra-demands", { clientId }],
+    queryFn: () => fetchExtraDemands({ clientId }),
+  });
+
 
   const summary = useMemo(() => {
     type Contract = { status: string; monthly_value: number; billing_day: number; title: string; end_date: string | null };
@@ -98,8 +105,12 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
     const pendingTotal = (transactions as Txn[])
       .filter((t) => t.status === "pending")
       .reduce((s, t) => s + (t.kind === "income" ? Number(t.amount) : -Number(t.amount)), 0);
-    return { activeContract, monthly, nextDue, pendingTotal };
-  }, [contracts, transactions]);
+    const extraTotal = demands
+      .filter((d) => d.status === "approved" || d.status === "completed" || d.status === "in_production")
+      .reduce((s, d) => s + Number(d.value), 0);
+    return { activeContract, monthly, nextDue, pendingTotal, extraTotal };
+  }, [contracts, transactions, demands]);
+
 
   if (!client) return <div className="p-10 text-foreground/40">Carregando…</div>;
 
@@ -155,7 +166,8 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
           <KPI icon={<DollarSign className="size-3.5" />} label="Valor mensal" value={summary.monthly > 0 ? BRL(summary.monthly) : "—"} />
           <KPI icon={<FileSignature className="size-3.5" />} label="Contrato" value={summary.activeContract?.title ?? "Sem contrato"} />
           <KPI icon={<Clock className="size-3.5" />} label="Próx. vencimento" value={summary.nextDue ? fmtDate(summary.nextDue.toISOString()) : "—"} />
-          <KPI icon={<Activity className="size-3.5" />} label="Projetos ativos" value={String(projects.filter((p) => p.status === "active").length)} />
+          <KPI icon={<Activity className="size-3.5" />} label="DMEs Ativas" value={String(demands?.filter(d => d.status !== 'completed' && d.status !== 'cancelled').length ?? 0)} />
+
         </div>
       </div>
 
@@ -169,9 +181,11 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
               ["jobs", "Jobs"],
               ["finance", "Financeiro"],
               ["proposals", "Propostas"],
+              ["dme", "Demandas Extras"],
               ["portal", "Portal"],
               ["files", "Arquivos"],
               ["timeline", "Timeline"],
+
               ["servicos", "Serviços"],
               ["calendar", "Calendário"],
               ["branding", "Branding"],
@@ -200,7 +214,9 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
             <Card label="Projetos" value={projects.length} />
             <Card label="Contratos Ativos" value={contracts.filter((c: any) => c.status === "active").length} />
             <Card label="Propostas" value={proposals.length} />
+            <Card label="Receita Extra (R$)" value={summary.extraTotal > 0 ? BRL(summary.extraTotal) : "—"} />
             <Card label="Pendente (R$)" value={summary.pendingTotal !== 0 ? BRL(Math.abs(summary.pendingTotal)) : "—"} />
+
           </div>
           {client.notes && (
             <div className="mt-6 bg-surface border border-border rounded-2xl p-5">
@@ -302,7 +318,10 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                         <td className="py-3 px-4 text-[10px] text-foreground/50 uppercase">
                           {contract ? (
                             <span className="flex items-center gap-1"><FileSignature className="size-3 text-primary" /> {contract.title}</span>
+                          ) : (t as any).dme_id ? (
+                            <span className="flex items-center gap-1 text-primary">DME</span>
                           ) : "—"}
+
                         </td>
                         <td className="py-3 px-4 text-foreground/60">{t.kind === "income" ? "Receita" : "Despesa"}</td>
                         <td className="py-3 px-4 text-foreground/60">{fmtDate(t.due_date)}</td>
@@ -324,7 +343,12 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
         </TabsContent>
 
 
+        <TabsContent value="dme" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <ExtraDemandsManager clientId={clientId} />
+        </TabsContent>
+
         <TabsContent value="proposals" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+
           {proposals.length === 0 ? (
             <p className="text-foreground/40 text-sm">Nenhuma proposta vinculada a este cliente.</p>
           ) : (

@@ -222,3 +222,81 @@ export function priorityColor(p: string) {
 export function priorityLabel(p: string) {
   return { urgent: "Urgente", high: "Alta", normal: "Normal", low: "Baixa" }[p] ?? p;
 }
+
+// ---------- Extra Demands (DME) ----------
+export async function fetchExtraDemands(filters: { clientId?: string; contractId?: string } = {}) {
+  let q = supabase.from("extra_demands").select("*").order("created_at", { ascending: false });
+  if (filters.clientId) q = q.eq("client_id", filters.clientId);
+  if (filters.contractId) q = q.eq("contract_id", filters.contractId);
+  const { data, error } = await q;
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createExtraDemand(input: Database["public"]["Tables"]["extra_demands"]["Insert"]) {
+  const { data: u } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from("extra_demands")
+    .insert({ ...input, owner_id: u.user?.id ?? null })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateExtraDemand(id: string, patch: Database["public"]["Tables"]["extra_demands"]["Update"]) {
+  const { data, error } = await supabase.from("extra_demands").update(patch).eq("id", id).select().single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteExtraDemand(id: string) {
+  const { error } = await supabase.from("extra_demands").delete().eq("id", id);
+  if (error) throw error;
+}
+
+export async function approveExtraDemand(id: string) {
+  const { data: dme, error: fetchErr } = await supabase.from("extra_demands").select("*").eq("id", id).single();
+  if (fetchErr || !dme) throw new Error("DME não encontrada");
+
+  // 1. Update DME status
+  const { data: updated, error: updErr } = await supabase
+    .from("extra_demands")
+    .update({ status: "approved", approved_at: new Date().toISOString() })
+    .eq("id", id)
+    .select()
+    .single();
+  if (updErr) throw updErr;
+
+  // 2. Create Job
+  const { data: stages } = await supabase.from("job_stages").select("id").order("order_index").limit(1);
+  await supabase.from("jobs").insert({
+    title: `${dme.number_display}: ${dme.title}`,
+    description: dme.description,
+    client_id: dme.client_id,
+    dme_id: dme.id,
+    stage_id: stages?.[0]?.id,
+    priority: "normal",
+  });
+
+  // 3. Create Financeiro if billable
+  if (dme.is_billable) {
+    const { data: contract } = await supabase.from("contracts").select("*").eq("id", dme.contract_id).single();
+    await supabase.from("transactions").insert({
+      kind: "income",
+      description: `Demanda Extra ${dme.number_display}: ${dme.title}`,
+      amount: dme.value,
+      due_date: new Date().toISOString().slice(0, 10), // Today
+      status: "pending",
+      client_id: dme.client_id,
+      contract_id: dme.contract_id,
+      dme_id: dme.id,
+      account_id: (contract as any)?.account_id || null,
+      category_id: (contract as any)?.category_id || null,
+
+    });
+  }
+
+  return updated;
+}
+

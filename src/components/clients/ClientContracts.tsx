@@ -26,6 +26,8 @@ import {
 import { terminateContract } from "@/lib/finance-api";
 import { toast } from "sonner";
 import { TerminateContractDialog } from "@/components/finance/TerminateContractDialog";
+import { ExtraDemandsManager } from "@/components/contracts/ExtraDemandsManager";
+
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -171,7 +173,12 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                   </span>
                 </div>
               )}
+
+              <div className="mt-4 pt-4 border-t border-border/50">
+                <ExtraDemandsManager clientId={clientId} contractId={contract.id} />
+              </div>
             </div>
+
           ))}
         </div>
       )}

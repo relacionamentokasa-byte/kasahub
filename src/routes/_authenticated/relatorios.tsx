@@ -80,11 +80,13 @@ function RelatoriosPage() {
       const overdue = cTxs.filter((t) => t.kind === "income" && t.status === "pending" && t.due_date < new Date().toISOString().slice(0, 10))
         .reduce((s, t) => s + Number(t.amount), 0);
       const contractValue = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active").reduce((s, ct) => s + Number(ct.monthly_value), 0);
+      const extraValue = cTxs.filter((t: any) => t.dme_id || (!t.contract_id && !t.is_recurring)).reduce((s, t) => s + Number(t.amount), 0);
       const projCount = projects.filter((p) => p.client_id === c.id).length;
+
       const jobCount = jobs.filter((j) => j.client_id === c.id).length;
       return {
         Cliente: c.company || c.name, Email: c.email ?? "", Status: c.status,
-        MRR: contractValue.toFixed(2), Faturado: income.toFixed(2),
+        MRR: contractValue.toFixed(2), Extra: extraValue.toFixed(2), Faturado: income.toFixed(2),
         Recebido: paid.toFixed(2), Inadimplente: overdue.toFixed(2),
         Projetos: projCount, Jobs: jobCount,
       };
@@ -97,7 +99,9 @@ function RelatoriosPage() {
     const cTxs = txs.filter((t) => t.client_id === c.id && t.kind === "income");
     const total = cTxs.reduce((s, t) => s + Number(t.amount), 0);
     const mrr = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active").reduce((s, ct) => s + Number(ct.monthly_value), 0);
-    return { c, total, mrr, jobs: jobs.filter((j) => j.client_id === c.id).length };
+    const extra = cTxs.filter((t: any) => t.dme_id || (!t.contract_id && !t.is_recurring)).reduce((s, t) => s + Number(t.amount), 0);
+    return { c, total, mrr, extra, jobs: jobs.filter((j) => j.client_id === c.id).length };
+
   }).sort((a, b) => (b.total + b.mrr * 12) - (a.total + a.mrr * 12));
 
   return (
@@ -154,15 +158,19 @@ function RelatoriosPage() {
               <div className="grid grid-cols-12 px-5 py-3 text-[10px] capitalize text-foreground/40 border-b border-border">
                 <div className="col-span-4">Cliente</div>
                 <div className="col-span-2 text-right">MRR</div>
-                <div className="col-span-3 text-right">Receita total</div>
+                <div className="col-span-2 text-right">Extra</div>
+                <div className="col-span-1 text-right">Receita total</div>
+
                 <div className="col-span-1 text-right">Jobs</div>
                 <div className="col-span-2 text-right">LTV estim.</div>
               </div>
-              {perClient.map(({ c, total, mrr, jobs: jobCount }) => (
+              {perClient.map(({ c, total, mrr, extra, jobs: jobCount }) => (
                 <div key={c.id} className="grid grid-cols-12 px-5 py-3 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02]">
                   <div className="col-span-4 text-sm font-medium truncate">{c.company || c.name}</div>
                   <div className="col-span-2 text-right text-sm text-primary">{brl(mrr)}</div>
-                  <div className="col-span-3 text-right text-sm">{brl(total)}</div>
+                  <div className="col-span-2 text-right text-sm text-amber-400">{brl(extra)}</div>
+                  <div className="col-span-1 text-right text-sm">{brl(total)}</div>
+
                   <div className="col-span-1 text-right text-sm text-foreground/60">{jobCount}</div>
                   <div className="col-span-2 text-right text-sm font-display font-semibold">{brl(total + mrr * 12)}</div>
                 </div>
