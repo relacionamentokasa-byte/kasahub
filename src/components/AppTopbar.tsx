@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
 import { NotificationCenter } from "./notifications/NotificationCenter";
+import { InstallPWAButton } from "./pwa/InstallPWAButton";
+import { ConnectionIndicator } from "./pwa/ConnectionIndicator";
 
 type Profile = {
   display_name: string | null;
@@ -85,6 +87,8 @@ export function AppTopbar() {
       </div>
 
       <div className="flex items-center gap-2 lg:gap-4">
+        <ConnectionIndicator />
+        <InstallPWAButton />
         <Button
           variant="ghost"
           size="sm"

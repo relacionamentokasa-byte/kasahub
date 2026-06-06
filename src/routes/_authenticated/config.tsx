@@ -21,7 +21,8 @@ import {
   MessageSquare, 
   Mail,
   ChevronRight,
-  Menu
+  Menu,
+  Smartphone
 } from "lucide-react";
 import { ServicesManager } from "@/components/config/ServicesManager";
 import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
@@ -37,6 +38,7 @@ import { BrandTab } from "@/components/config/BrandTab";
 import { SignatureTab } from "@/components/config/SignatureTab";
 import { IntegrationsTab } from "@/components/config/IntegrationsTab";
 import { PreferencesTab } from "@/components/config/PreferencesTab";
+import { PwaSettingsTab } from "@/components/config/PwaSettingsTab";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -122,7 +124,8 @@ function ConfigPage() {
     { id: "email", label: "E-mail", icon: Mail, group: "Integrações", component: <IntegrationsTab form={form} /> },
     
     { id: "licensing", label: "Licenciamento", icon: CreditCard, component: <div className="p-12 text-center text-foreground/40 border-2 border-dashed rounded-xl">Módulo de licenciamento em breve.</div> },
-    { id: "prefs", label: "Preferências do Sistema", icon: UserCog, component: <PreferencesTab /> },
+    { id: "pwa", label: "Aplicativo (PWA)", icon: Smartphone, group: "Sistema", component: <PwaSettingsTab form={form} set={set} canEdit={canEdit} /> },
+    { id: "prefs", label: "Preferências do Sistema", icon: UserCog, group: "Sistema", component: <PreferencesTab /> },
   ];
 
   const currentSection = sections.find(s => s.id === activeTab) || sections[0];
