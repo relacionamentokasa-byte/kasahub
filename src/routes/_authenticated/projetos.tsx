@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/projetos")({
 
 function ProjetosPage() {
   const qc = useQueryClient();
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const { data: projects = [], isLoading } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: allContracts = [] } = useQuery({
     queryKey: ["all-contracts"],
@@ -33,11 +33,30 @@ function ProjetosPage() {
       return data || [];
     }
   });
+
+  const { data: allJobs = [] } = useQuery({
+    queryKey: ["all-jobs-stats"],
+    queryFn: async () => {
+      const { data } = await supabase.from("jobs").select("id, project_id, done_at, stage_id");
+      return data || [];
+    }
+  });
+
+  const { data: stages = [] } = useQuery({ 
+    queryKey: ["job-stages"], 
+    queryFn: async () => {
+      const { data } = await supabase.from("job_stages").select("id, is_done");
+      return data || [];
+    } 
+  });
+
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const clientById = new Map(clients.map((c) => [c.id, c]));
+  const doneStageIds = new Set(stages.filter(s => s.is_done).map(s => s.id));
+
   const editingProject = editingId ? projects.find((p) => p.id === editingId) ?? null : null;
 
   const delMut = useMutation({
