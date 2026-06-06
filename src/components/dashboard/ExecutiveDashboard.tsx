@@ -26,7 +26,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { fetchApprovals } from "@/lib/approvals-api";
+import { fetchApprovals, fetchCalendarEvents } from "@/lib/approvals-api";
+import { fetchGoogleCalendarConnection } from "@/lib/google-calendar-api";
+
 
 type FilterRange = 'today' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -87,6 +89,22 @@ export function ExecutiveDashboard() {
     queryKey: ["approvals", "all"],
     queryFn: () => fetchApprovals()
   });
+
+  const { data: gConn } = useQuery({
+    queryKey: ["google-calendar-connection"],
+    queryFn: fetchGoogleCalendarConnection
+  });
+
+  const { data: calendarEvents = [] } = useQuery({
+    queryKey: ["calendar-events", "today"],
+    queryFn: () => {
+      const today = new Date();
+      const start = new Date(today.setHours(0, 0, 0, 0)).toISOString();
+      const end = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+      return fetchCalendarEvents({ from: start, to: end });
+    }
+  });
+
 
   const isLoading = txLoading || contractsLoading || clientsLoading || jobsLoading;
 
@@ -189,10 +207,14 @@ export function ExecutiveDashboard() {
       ...jobs.filter(j => j.status === 'review').map(j => ({
         id: j.id, title: j.title, subtitle: clients.find(c => c.id === j.client_id)?.company || "—", type: 'approval' as const
       })),
-      ...txs.filter(t => t.kind === 'income' && t.status === 'pending' && t.due_date && t.due_date >= todayIso && t.due_date <= subDays(new Date(), -7).toISOString().slice(0, 10)).map(t => ({
+      ...txs.filter(t => t.kind === 'income' && t.status === 'pending' && t.due_date && t.due_date && t.due_date >= todayIso && t.due_date <= subDays(new Date(), -7).toISOString().slice(0, 10)).map(t => ({
         id: t.id, title: t.description || "Cobrança", subtitle: clients.find(c => c.id === t.client_id)?.company || "—", type: 'collection' as const, value: Number(t.amount)
+      })),
+      ...calendarEvents.filter(e => (e as any).source === 'google').map(e => ({
+        id: e.id, title: e.title, subtitle: new Date(e.starts_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), type: 'google_event' as const, source: 'google' as const
       }))
     ];
+
 
     // Client Ranking
     const clientRanking = clients.map(client => {
