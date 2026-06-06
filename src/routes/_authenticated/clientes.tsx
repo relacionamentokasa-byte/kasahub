@@ -1,8 +1,10 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown } from "lucide-react";
-import { fetchClients } from "@/lib/ops-api";
+import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown, FileSignature, DollarSign, Clock, User } from "lucide-react";
+import { fetchClients, fetchJobs, fetchExtraDemands } from "@/lib/ops-api";
+import { fetchContracts, fetchTransactions, brl } from "@/lib/finance-api";
+import { fetchProfiles } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewClientDialog } from "@/components/clients/NewClientDialog";
