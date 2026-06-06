@@ -32,9 +32,6 @@ export async function fetchUsers(): Promise<UserProfile[]> {
     .order("display_name", { ascending: true });
 
   if (error) throw error;
-  
-  // Como e-mails estão em auth.users, se precisarmos de e-mail teríamos que usar uma view ou RPC.
-  // Por enquanto vamos retornar o que temos no profile.
   return data as unknown as UserProfile[];
 }
 
