@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createJob, fetchClients, fetchProjects, type JobStage } from "@/lib/ops-api";
+import { fetchPartners } from "@/lib/partners-api";
 import {
   Dialog,
   DialogContent,
@@ -65,8 +66,8 @@ export function NewJobDialog({
         client_id: form.client_id || null,
         stage_id: stage?.id ?? null,
         period: form.period || null,
-
-      }),
+        freelancer_id: form.freelancer_id || null,
+      } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job criado");
@@ -159,6 +160,18 @@ export function NewJobDialog({
                 </Select>
               </div>
             )}
+            <div className="space-y-1.5 col-span-2">
+              <Label>Atribuir a Freelancer (Opcional)</Label>
+              <Select value={form.freelancer_id} onValueChange={(v) => setForm({ ...form, freelancer_id: v })}>
+                <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione um freelancer" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="internal">Usuário Interno</SelectItem>
+                  {freelancers.map(f => (
+                    <SelectItem key={f.id} value={f.id}>{f.name} ({f.specialty})</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           {form.project_id && (
             <div className="space-y-1.5">
