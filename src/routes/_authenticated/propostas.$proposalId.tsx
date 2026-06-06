@@ -60,6 +60,8 @@ import {
   Ban,
 } from "lucide-react";
 import { toast } from "sonner";
+import { ProposalApprovalDialog } from "@/components/proposals/ProposalApprovalDialog";
+
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
   head: () => ({ meta: [{ title: "Editor de proposta — KASA HUB" }] }),
