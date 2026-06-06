@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createCalendarEvent, type CalendarEvent } from "@/lib/approvals-api";
 import { fetchClients, fetchProjects } from "@/lib/ops-api";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -47,9 +48,19 @@ export function NewEventDialog({
         client_id: form.client_id || null,
         project_id: form.project_id || null,
       }),
-    onSuccess: () => {
+    onSuccess: async (newEvent) => {
       qc.invalidateQueries({ queryKey: ["calendar"] });
       toast.success("Evento criado");
+      
+      // Sincronizar com Google se necessário
+      try {
+        await supabase.functions.invoke("google-calendar-sync", {
+          body: { action: "push-event", eventData: newEvent }
+        });
+      } catch (e) {
+        console.error("Erro ao sincronizar com Google:", e);
+      }
+
       onOpenChange(false);
       setForm({ title: "", description: "", kind: "post", starts_at: "", client_id: defaultClientId ?? "", project_id: "" });
     },
