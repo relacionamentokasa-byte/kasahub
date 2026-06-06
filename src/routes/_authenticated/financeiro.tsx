@@ -81,12 +81,12 @@ import {
   fetchCategories,
   fetchContracts,
   fetchTransactions,
-  fetchRecurrences,
   markPaid,
+
 
   bulkDeleteTransactions,
   bulkUpdateTransactions,
-  updateRecurrence,
+  updateContract,
 } from "@/lib/finance-api";
 
 import { fetchClients } from "@/lib/ops-api";
@@ -96,8 +96,9 @@ import { ImportTransactionsDialog } from "@/components/finance/ImportTransaction
 import { SettleTransactionDialog } from "@/components/finance/SettleTransactionDialog";
 import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
-import { DeleteFutureInstallmentsDialog } from "@/components/finance/DeleteFutureInstallmentsDialog";
+import { DeleteTransactionCascadeDialog } from "@/components/finance/DeleteTransactionCascadeDialog";
 import { TerminateRecurrenceDialog } from "@/components/finance/TerminateRecurrenceDialog";
+
 
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
@@ -124,7 +125,7 @@ function FinanceiroPage() {
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
-  const { data: recurrences = [] } = useQuery({ queryKey: ["recurrences"], queryFn: fetchRecurrences });
+  
 
 
 
@@ -233,16 +234,17 @@ function FinanceiroPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const toggleRecurrenceStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "active" | "paused" | "terminated" }) => 
-      updateRecurrence(id, { status }),
+  const terminateContractMutation = useMutation({
+    mutationFn: ({ id, cleanup }: { id: string; cleanup: "keep" | "cancel" | "delete" }) => 
+      terminateContract(id, cleanup),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      qc.invalidateQueries({ queryKey: ["recurrences"] });
-      toast.success("Status da recorrência atualizado");
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      toast.success("Contrato encerrado");
     },
     onError: (e: Error) => toast.error(e.message),
   });
+
 
 
   // Visão Mensal aggregations
@@ -278,10 +280,10 @@ function FinanceiroPage() {
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="bg-surface border border-border">
             <TabsTrigger value="list" className="gap-2"><List className="size-4" /> Lista</TabsTrigger>
-            <TabsTrigger value="recurrences" className="gap-2"><Clock className="size-4" /> Recorrências</TabsTrigger>
             <TabsTrigger value="monthly" className="gap-2"><BarChart3 className="size-4" /> Visão Mensal</TabsTrigger>
             <TabsTrigger value="annual" className="gap-2"><LineIcon className="size-4" /> Previsão Anual</TabsTrigger>
             <TabsTrigger value="accounts" className="gap-2"><Landmark className="size-4" /> Contas Banc.</TabsTrigger>
+
 
           </TabsList>
 
@@ -327,40 +329,25 @@ function FinanceiroPage() {
                         <Clock className="size-4 mr-2" /> Remover baixa
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => {
-                        const selectedRecurrenceIds = Array.from(new Set(
-                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
-                              .map(r => r.recurrence_id)
+                        const selectedContractIds = Array.from(new Set(
+                          rows.filter(r => selectedIds.includes(r.id) && r.contract_id)
+                              .map(r => r.contract_id)
                         )) as string[];
 
-                        if (selectedRecurrenceIds.length > 0) {
-                          setDeleteFutureRecurrenceId(selectedRecurrenceIds[0]);
-                          if (selectedRecurrenceIds.length > 1) {
-                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
+                        if (selectedContractIds.length > 0) {
+                          setTerminateContractId(selectedContractIds[0]);
+                          if (selectedContractIds.length > 1) {
+                            toast.info("Múltiplas contratos selecionados. Agindo sobre o primeiro encontrado.");
                           }
                         } else {
-                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                          toast.error("Nenhum contrato identificado nos itens selecionados");
                         }
                       }}>
-                        <Calendar className="size-4 mr-2" /> Excluir parcelas futuras
+                        <XCircle className="size-4 mr-2" /> Encerrar Contrato
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        const selectedRecurrenceIds = Array.from(new Set(
-                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
-                              .map(r => r.recurrence_id)
-                        )) as string[];
 
-                        if (selectedRecurrenceIds.length > 0) {
-                          setTerminateRecurrenceId(selectedRecurrenceIds[0]);
-                          if (selectedRecurrenceIds.length > 1) {
-                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
-                          }
-                        } else {
-                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
-                        }
-                      }}>
-                        <XCircle className="size-4 mr-2" /> Encerrar recorrência
-                      </DropdownMenuItem>
 
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-rose-400" onClick={() => bulkDelete.mutate(selectedIds)}>
@@ -533,24 +520,19 @@ function FinanceiroPage() {
                               </DropdownMenuItem>
                             )}
                             
-                            {t.recurrence_id && (
+                            {t.contract_id && (
                               <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Recorrência</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => setDeleteFutureRecurrenceId(t.recurrence_id)}>
-                                  <Trash2 className="size-4 mr-2 text-rose-400" /> Excluir Parcelas Futuras
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setTerminateRecurrenceId(t.recurrence_id)}>
-                                  <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Recorrência
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: t.recurrence_id!, status: 'paused' })}>
-                                  <Pause className="size-4 mr-2" /> Pausar Recorrência
+                                <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Contrato</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => setTerminateContractId(t.contract_id)}>
+                                  <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Contrato
                                 </DropdownMenuItem>
                               </>
                             )}
+
                             
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-rose-400" onClick={() => delTx.mutate(t.id)}>
+                            <DropdownMenuItem className="text-rose-400" onClick={() => setDeleteTxId(t.id)}>
                               <Trash2 className="size-4 mr-2" /> Excluir Lançamento
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -805,15 +787,21 @@ function FinanceiroPage() {
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
       
-      <DeleteFutureInstallmentsDialog 
-        recurrenceId={deleteFutureRecurrenceId} 
-        onClose={() => setDeleteFutureRecurrenceId(null)} 
+      <DeleteTransactionCascadeDialog
+        transactionId={deleteTxId}
+        onClose={() => setDeleteTxId(null)}
+        onConfirm={(cascade) => delTx.mutate({ id: deleteTxId!, cascade })}
+        isPending={delTx.isPending}
       />
       
       <TerminateRecurrenceDialog 
-        recurrenceId={terminateRecurrenceId} 
-        onClose={() => setTerminateRecurrenceId(null)} 
+        recurrenceId={terminateContractId} 
+        onClose={() => setTerminateContractId(null)} 
+        title="Encerrar Contrato"
+        description="Deseja cancelar automaticamente todos os lançamentos financeiros futuros vinculados a este contrato?"
+        onConfirm={async (mode) => terminateContractMutation.mutateAsync({ id: terminateContractId!, cleanup: mode })}
       />
+
 
     </div>
   );
