@@ -703,10 +703,6 @@ export function ProposalEditorContent({
 
   );
 }
-    </div>
-
-  );
-}
 
 function F({ label, children }: { label: string; children: React.ReactNode }) {
   return (
