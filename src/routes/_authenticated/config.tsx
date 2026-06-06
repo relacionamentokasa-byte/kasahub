@@ -150,7 +150,7 @@ function ConfigPage() {
         <div className="p-6 sticky top-0 h-full overflow-y-auto">
           <div className="mb-6 hidden lg:block">
             <h1 className="font-display text-2xl font-bold">Configurações</h1>
-            <p className="text-foreground/40 text-xs mt-1">Gerencie sua agência e sistema.</p>
+            <p className="text-foreground/40 text-xs mt-1">Gerencie seu HUB e sistema.</p>
           </div>
 
           <nav className="space-y-6">
