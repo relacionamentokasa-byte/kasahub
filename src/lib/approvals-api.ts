@@ -208,7 +208,9 @@ export async function fetchCalendarEvents(filters?: {
   to?: string;
 }) {
   const q = sb.from("calendar_events").select("*").order("starts_at", { ascending: true });
-  if (filters?.clientId) q.eq("client_id", filters.clientId);
+  if (filters?.clientId && filters.clientId !== 'all') {
+    q.eq("client_id", filters.clientId);
+  }
   if (filters?.from) q.gte("starts_at", filters.from);
   if (filters?.to) q.lte("starts_at", filters.to);
   const { data, error } = await q;
