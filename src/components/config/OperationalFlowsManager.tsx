@@ -303,11 +303,43 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
           </div>
         )}
       </div>
+
+      <Dialog open={schemaEditor.open} onOpenChange={(o) => !o && setSchemaEditor({ open: false, job: null })}>
+        <DialogContent className="max-w-md">
+          <DialogHeader><DialogTitle>Campos Personalizados: {schemaEditor.job?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-xs text-foreground/50">Defina os campos extras que este Job deve solicitar (JSON).</p>
+            <Textarea 
+              rows={10} 
+              defaultValue={JSON.stringify(schemaEditor.job?.custom_fields_schema || [], null, 2)}
+              id="schema-json"
+              className="font-mono text-[10px]"
+            />
+            <p className="text-[10px] text-foreground/40 italic">Ex: [{"name": "URL", "type": "text"}, {"name": "Legenda", "type": "textarea"}]</p>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSchemaEditor({ open: false, job: null })}>Cancelar</Button>
+            <Button onClick={async () => {
+              const val = (document.getElementById('schema-json') as HTMLTextAreaElement).value;
+              try {
+                const schema = JSON.parse(val);
+                const { error } = await supabase.from('operational_flow_jobs').update({ custom_fields_schema: schema }).eq('id', schemaEditor.job.id);
+                if (error) throw error;
+                toast.success("Esquema atualizado");
+                setSchemaEditor({ open: false, job: null });
+                invalidate();
+              } catch (e: any) {
+                toast.error("JSON inválido: " + e.message);
+              }
+            }}>Salvar Esquema</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function JobRow({ job, roles, canEdit, onChanged }: { job: any, roles: any[], canEdit: boolean, onChanged: () => void }) {
+function JobRow({ job, roles, canEdit, onChanged, onEditSchema }: { job: any, roles: any[], canEdit: boolean, onChanged: () => void, onEditSchema: (job: any) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const updateJobMut = useMutation({
