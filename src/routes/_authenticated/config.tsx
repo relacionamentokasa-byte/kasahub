@@ -371,10 +371,9 @@ function UserProfileTab() {
       <div className="flex flex-col md:flex-row gap-8">
         <div className="w-full md:w-1/3 space-y-4">
           <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">Foto de perfil</Label>
-          <ImageUpload
+          <ProfileImageUpload
             value={form.avatar_url}
             onChange={(url) => setForm({ ...form, avatar_url: url })}
-            folder="avatars"
             label="Sua Foto"
           />
           <p className="text-[10px] text-foreground/40 text-center">
