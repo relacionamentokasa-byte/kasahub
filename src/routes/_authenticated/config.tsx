@@ -196,7 +196,7 @@ function ConfigPage() {
           <header className="flex items-start justify-between gap-4 flex-wrap pb-6 border-b border-border/50">
             <div>
               <span className="text-[10px] font-mono-kasa capitalize text-primary font-semibold tracking-widest">
-                Configurações · {currentSection.group || "Sistema"}
+                Configurações · {currentSection.group || "Sistema"} HUB
               </span>
               <h2 className="font-display text-3xl font-bold mt-1">{currentSection.label}</h2>
             </div>
