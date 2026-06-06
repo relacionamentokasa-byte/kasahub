@@ -187,28 +187,19 @@ export function ClientContracts({ clientId }: { clientId: string }) {
 }
 
 function TerminateContractWorkflow({ contractId, onClose }: { contractId: string; onClose: () => void }) {
-  const qc = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: (mode: "keep" | "cancel" | "delete") => terminateContract(contractId, mode),
-    onSuccess: (result) => {
-      toast.success("Contrato encerrado com sucesso.");
-      if (result.count > 0) {
-        toast.info(`${result.count} cobranças futuras foram tratadas.`);
-      }
-      qc.invalidateQueries({ queryKey: ["contracts"] });
-      qc.invalidateQueries({ queryKey: ["transactions"] });
-      onClose();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
+  const handleConfirm = async (mode: "keep" | "cancel" | "delete") => {
+    return terminateContract(contractId, mode);
+  };
 
   return (
     <TerminateRecurrenceDialog 
-      recurrenceId={contractId} // We pass contractId as recurrenceId because we want to reuse the UI
+      recurrenceId={contractId} 
       onClose={onClose}
+      onConfirm={handleConfirm}
       title="Encerrar Contrato"
       description="Ao encerrar o contrato, o que deseja fazer com as cobranças recorrentes vinculadas a ele?"
     />
   );
 }
+
 
