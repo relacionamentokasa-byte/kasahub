@@ -206,6 +206,38 @@ function ConfigPage() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="signature" className="space-y-4">
+          <Card>
+            <div className="mb-6">
+              <h3 className="font-display text-lg font-semibold">Assinatura da Empresa</h3>
+              <p className="text-xs text-foreground/50">
+                Esta assinatura será exibida automaticamente no Contrato Jurídico das propostas aprovadas.
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">Assinatura Digitalizada</Label>
+                <ProfileImageUpload
+                  value={form.agency_signature_url}
+                  onChange={(url) => set("agency_signature_url", url)}
+                  label="Assinatura"
+                />
+                <p className="text-[10px] text-foreground/40 text-center">
+                  Recomendado: PNG transparente ou JPG
+                </p>
+              </div>
+              {form.agency_signature_url && (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">Visualização</Label>
+                  <div className="p-6 rounded-lg bg-white border border-border flex items-center justify-center min-h-[160px]">
+                    <img src={form.agency_signature_url} alt="Assinatura" className="max-h-32 object-contain" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="notif" className="space-y-4">
           <NotificationPreferencesTab />
         </TabsContent>
