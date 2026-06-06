@@ -307,33 +307,112 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
       </div>
 
       <Dialog open={schemaEditor.open} onOpenChange={(o) => !o && setSchemaEditor({ open: false, job: null })}>
-        <DialogContent className="max-w-md">
-          <DialogHeader><DialogTitle>Campos Personalizados: {schemaEditor.job?.name}</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">
-            <p className="text-xs text-foreground/50">Defina os campos extras que este Job deve solicitar (JSON).</p>
-            <Textarea 
-              rows={10} 
-              defaultValue={JSON.stringify(schemaEditor.job?.custom_fields_schema || [], null, 2)}
-              id="schema-json"
-              className="font-mono text-[10px]"
-            />
-            <p className="text-[10px] text-foreground/40 italic">{"Ex: [{\"name\": \"URL\", \"type\": \"text\"}]"}</p>
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader><DialogTitle>Configurar Formulário: {schemaEditor.job?.name}</DialogTitle></DialogHeader>
+          <div className="space-y-6 py-4">
+            <p className="text-xs text-foreground/50">Defina os campos que a equipe deve preencher ao executar este tipo de Job.</p>
+            
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b pb-2">
+                <h4 className="text-sm font-semibold">Campos do Formulário</h4>
+                <Button size="sm" variant="outline" onClick={() => {
+                  const currentSchema = schemaEditor.job?.custom_fields_schema || [];
+                  const newField = { label: "Novo Campo", type: "text", required: false };
+                  const next = [...currentSchema, newField];
+                  const newJob = { ...schemaEditor.job, custom_fields_schema: next };
+                  setSchemaEditor({ ...schemaEditor, job: newJob });
+                }}>
+                  <Plus className="size-3 mr-2" /> Novo Campo
+                </Button>
+              </div>
+
+              <div className="space-y-3">
+                {(schemaEditor.job?.custom_fields_schema || []).map((field: any, idx: number) => (
+                  <div key={idx} className="p-3 bg-muted/20 border border-border rounded-lg space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Rótulo (Label)</Label>
+                          <Input 
+                            value={field.label} 
+                            onChange={(e) => {
+                              const next = [...schemaEditor.job.custom_fields_schema];
+                              next[idx].label = e.target.value;
+                              setSchemaEditor({ ...schemaEditor, job: { ...schemaEditor.job, custom_fields_schema: next } });
+                            }}
+                            className="h-8 text-xs"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px]">Tipo de Campo</Label>
+                          <select 
+                            className="w-full h-8 bg-background border border-input rounded px-2 text-xs focus:ring-0"
+                            value={field.type}
+                            onChange={(e) => {
+                              const next = [...schemaEditor.job.custom_fields_schema];
+                              next[idx].type = e.target.value;
+                              setSchemaEditor({ ...schemaEditor, job: { ...schemaEditor.job, custom_fields_schema: next } });
+                            }}
+                          >
+                            <option value="text">Texto Curto</option>
+                            <option value="textarea">Texto Longo</option>
+                            <option value="number">Número</option>
+                            <option value="date">Data</option>
+                            <option value="time">Hora</option>
+                            <option value="select">Seleção</option>
+                            <option value="multiselect">Múltipla Escolha</option>
+                            <option value="url">URL</option>
+                            <option value="file">Upload de Arquivo</option>
+                            <option value="currency">Moeda (R$)</option>
+                          </select>
+                        </div>
+                      </div>
+                      <Button size="icon" variant="ghost" className="size-8 text-destructive self-end" onClick={() => {
+                        const next = schemaEditor.job.custom_fields_schema.filter((_: any, i: number) => i !== idx);
+                        setSchemaEditor({ ...schemaEditor, job: { ...schemaEditor.job, custom_fields_schema: next } });
+                      }}>
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {(schemaEditor.job?.custom_fields_schema || []).length === 0 && (
+                  <p className="text-center py-6 text-xs text-foreground/40 italic">Nenhum campo configurado. Clique em "Novo Campo" para começar.</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-4 border-t">
+              <Label className="text-[10px] text-foreground/40">JSON Avançado (Opcional)</Label>
+              <Textarea 
+                rows={4} 
+                value={JSON.stringify(schemaEditor.job?.custom_fields_schema || [], null, 2)}
+                onChange={(e) => {
+                  try {
+                    const schema = JSON.parse(e.target.value);
+                    setSchemaEditor({ ...schemaEditor, job: { ...schemaEditor.job, custom_fields_schema: schema } });
+                  } catch (err) {}
+                }}
+                className="font-mono text-[10px]"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setSchemaEditor({ open: false, job: null })}>Cancelar</Button>
             <Button onClick={async () => {
-              const val = (document.getElementById('schema-json') as HTMLTextAreaElement).value;
               try {
-                const schema = JSON.parse(val);
-                const { error } = await supabase.from('operational_flow_jobs').update({ custom_fields_schema: schema }).eq('id', schemaEditor.job.id);
+                const { error } = await supabase
+                  .from('operational_flow_jobs')
+                  .update({ custom_fields_schema: schemaEditor.job.custom_fields_schema })
+                  .eq('id', schemaEditor.job.id);
                 if (error) throw error;
-                toast.success("Esquema atualizado");
+                toast.success("Formulário salvo com sucesso!");
                 setSchemaEditor({ open: false, job: null });
                 invalidate();
               } catch (e: any) {
-                toast.error("JSON inválido: " + e.message);
+                toast.error("Erro ao salvar: " + e.message);
               }
-            }}>Salvar Esquema</Button>
+            }}>Salvar Formulário</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
