@@ -125,6 +125,30 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function AudioNotificationManager() {
+  useAudioNotifications();
+  return null;
+}
+
+function ThemedToaster() {
+  const { theme } = useTheme();
+  return <Toaster richColors position="top-right" theme={theme} />;
+}
+
+function AuthListener() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      router.invalidate();
+      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+    });
+    return () => subscription.unsubscribe();
+  }, [router, queryClient]);
+  return null;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
@@ -152,29 +176,5 @@ function RootComponent() {
       </ThemeProvider>
     </QueryClientProvider>
   );
-}
-
-function ThemedToaster() {
-  const { theme } = useTheme();
-  return <Toaster richColors position="top-right" theme={theme} />;
-}
-
-function AuthListener() {
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => subscription.unsubscribe();
-  }, [router, queryClient]);
-  return null;
-}
-
-function AudioNotificationManager() {
-  useAudioNotifications();
-  return null;
 }
 
