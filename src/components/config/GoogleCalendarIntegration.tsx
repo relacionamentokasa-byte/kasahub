@@ -113,10 +113,11 @@ export function GoogleCalendarIntegration() {
         </div>
         
         {connection ? (
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1.5 text-xs font-mono-kasa text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded">
-              <CheckCircle2 className="size-3" /> Conectado
-            </span>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1.5 text-xs font-mono-kasa text-amber-400 bg-amber-500/10 px-2 py-1 rounded">
+                <AlertCircle className="size-3" /> Conectado (Sincronização pendente)
+              </span>
             <Button 
               variant="outline" 
               size="sm" 
