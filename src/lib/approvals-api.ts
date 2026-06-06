@@ -126,6 +126,21 @@ export async function createApproval(input: {
     .select()
     .single();
   if (error) throw error;
+
+  const approval = data as unknown as Approval;
+  // Criar evento na agenda
+  await sb.from("calendar_events").insert({
+    title: `Aprovação: ${approval.title}`,
+    client_id: approval.client_id,
+    project_id: approval.project_id,
+    approval_id: approval.id,
+    starts_at: approval.scheduled_for || new Date().toISOString(),
+    kind: "approval",
+    origin_type: "approval",
+    origin_id: approval.id,
+    source: "system",
+    created_by: u.user?.id
+  } as never);
   return data as unknown as Approval;
 }
 
