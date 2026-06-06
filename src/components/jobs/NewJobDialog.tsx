@@ -109,8 +109,10 @@ export function NewJobDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
 
           <div className="space-y-1.5">
+
             <Label>Descrição</Label>
             <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
           </div>
