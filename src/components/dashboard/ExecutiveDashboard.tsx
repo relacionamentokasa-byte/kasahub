@@ -199,9 +199,9 @@ export function ExecutiveDashboard() {
     feedEvents
   } = filteredData;
 
-  const isManager = userRole === 'admin' || userRole === 'ceo' || userRole === 'gestor';
-  const isFinance = userRole === 'financeiro' || isManager;
-  const isOps = userRole === 'operador' || isManager;
+  const isManager = isAdmin || roles.some((r: any) => r === 'ceo' || r === 'gestor');
+  const isFinance = roles.some((r: any) => r === 'financeiro') || isManager;
+  const isOps = roles.some((r: any) => r === 'operador') || isManager;
 
   return (
     <div className="space-y-10">
