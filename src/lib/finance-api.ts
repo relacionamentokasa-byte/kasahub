@@ -87,6 +87,29 @@ export async function deleteContract(id: string) {
   if (error) throw error;
 }
 
+export async function terminateContract(id: string, cleanupMode: "keep" | "cancel" | "delete") {
+  const { data: u } = await supabase.auth.getUser();
+  
+  // 1. Update contract status
+  const { error: ctErr } = await supabase.from("contracts").update({ status: "finished" }).eq("id", id);
+  if (ctErr) throw ctErr;
+
+  // 2. Find associated recurrences
+  const { data: recs } = await supabase.from("recurrences").select("id").eq("contract_id", id).eq("status", "active");
+  
+  let totalRemoved = { count: 0, total: 0 };
+  if (recs && recs.length > 0) {
+    for (const rec of recs) {
+      const res = await terminateRecurrence(rec.id, cleanupMode);
+      totalRemoved.count += res.count;
+      totalRemoved.total += res.total;
+    }
+  }
+
+  return totalRemoved;
+}
+
+
 // ---------- Transactions ----------
 
 
