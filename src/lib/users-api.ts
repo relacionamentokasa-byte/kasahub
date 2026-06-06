@@ -39,7 +39,7 @@ export async function fetchInvites(): Promise<UserInvite[]> {
   const { data, error } = await supabase
     .from("user_invites")
     .select("*")
-    .order("created_at", { descending: true });
+    .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data as UserInvite[];
@@ -76,10 +76,13 @@ export async function updateUserStatus(userId: string, status: UserStatus) {
 }
 
 export async function fetchAccessLogs(userId?: string) {
-  let query = supabase.from("access_logs").select("*").order("created_at", { descending: true }).limit(50);
-  if (userId) query = query.eq("user_id", userId);
+  let query = supabase.from("access_logs").select("*").order("created_at", { ascending: false }).limit(50);
+  if (userId) {
+    query = query.eq("user_id", userId);
+  }
   
-  const { data, error } = query;
+  const { data, error } = await query;
   if (error) throw error;
   return data;
 }
+
