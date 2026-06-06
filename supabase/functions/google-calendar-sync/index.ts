@@ -101,6 +101,24 @@ serve(async (req) => {
         }
       }
 
+      // 1.1 Handle Deletions from Google -> KASA
+      // Find events in KASA HUB that have a google_event_id but are not in the pulled list
+      const pulledGoogleIds = googleEvents.map((e: any) => e.id);
+      if (pulledGoogleIds.length > 0) {
+        const { data: eventsToDelete } = await supabase
+          .from('calendar_events')
+          .select('id, google_event_id')
+          .eq('created_by', user.id)
+          .not('google_event_id', 'is', null)
+          .not('google_event_id', 'in', `(${pulledGoogleIds.join(',')})`);
+        
+        if (eventsToDelete && eventsToDelete.length > 0) {
+          console.log(`Deleting ${eventsToDelete.length} events that were removed from Google`);
+          await supabase.from('calendar_events').delete().in('id', eventsToDelete.map(e => e.id));
+        }
+      }
+
+
       // Update last_pulled_at
       await supabase.from('google_calendar_connections')
         .update({ last_pulled_at: new Date().toISOString() })
