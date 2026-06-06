@@ -16,6 +16,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
 import { NotificationCenter } from "./notifications/NotificationCenter";
+import { InstallPWAButton } from "./pwa/InstallPWAButton";
+import { ConnectionIndicator } from "./pwa/ConnectionIndicator";
 
 type Profile = {
   display_name: string | null;
