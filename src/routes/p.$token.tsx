@@ -5,6 +5,7 @@ import { CheckCircle2, Printer, FileSignature, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 
 export const Route = createFileRoute("/p/$token")({
   head: () => ({ meta: [{ title: "Proposta Comercial" }] }),
@@ -36,6 +37,7 @@ type Proposal = {
   accepted_name: string | null;
   public_token: string;
   scope: string[] | null;
+  scope_text?: string | null;
   recurring_months?: number | null;
   installments?: number | null;
   payment_method?: string | null;
@@ -259,14 +261,13 @@ function PublicProposalView() {
         </div>
         
         {/* Scope */}
-        {Array.isArray(proposal.scope) && proposal.scope.length > 0 && (
+        {((proposal.scope_text && proposal.scope_text.trim().length > 0) ||
+          (Array.isArray(proposal.scope) && proposal.scope.length > 0)) && (
           <div className="px-8 py-6 border-b border-slate-100">
             <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
               O que será entregue (Escopo)
             </h2>
-            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-              {proposal.scope.join(" · ")}
-            </div>
+            <ScopeRenderer text={proposal.scope_text} fallback={proposal.scope} className="text-slate-700" />
           </div>
         )}
 

@@ -27,6 +27,7 @@ import { ServicesManager } from "@/components/config/ServicesManager";
 import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
 import { PermissionsManager } from "@/components/PermissionsManager";
 import { ContractTemplatesManager } from "@/components/config/ContractTemplatesManager";
+import { ScopeTemplatesManager } from "@/components/config/ScopeTemplatesManager";
 import { IndicatorsManager } from "@/components/performance/IndicatorsManager";
 import { UserProfileTab } from "@/components/config/UserProfileTab";
 import { UsersManagementTab } from "@/components/config/UsersManagementTab";
@@ -110,6 +111,7 @@ function ConfigPage() {
     { id: "services", label: "Serviços", icon: Briefcase, group: "Operação", component: <ServicesManager canEdit={canEdit} /> },
     { id: "flows", label: "Fluxos Operacionais", icon: GitBranch, group: "Operação", component: <OperationalFlowsManager canEdit={canEdit} /> },
     { id: "contracts", label: "Templates de Jobs", icon: FileText, group: "Operação", component: <ContractTemplatesManager canEdit={canEdit} /> },
+    { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Operação", component: <ScopeTemplatesManager canEdit={canEdit} /> },
     
     { id: "indicators", label: "Indicadores e Metas", icon: Target, group: "Performance", component: <IndicatorsManager /> },
     
@@ -200,7 +202,7 @@ function ConfigPage() {
               </span>
               <h2 className="font-display text-3xl font-bold mt-1">{currentSection.label}</h2>
             </div>
-            {activeTab !== "licensing" && activeTab !== "perms" && activeTab !== "users" && activeTab !== "services" && activeTab !== "flows" && activeTab !== "contracts" && activeTab !== "indicators" && (
+            {activeTab !== "licensing" && activeTab !== "perms" && activeTab !== "users" && activeTab !== "services" && activeTab !== "flows" && activeTab !== "contracts" && activeTab !== "scope-templates" && activeTab !== "indicators" && (
               <Button
                 onClick={() => mut.mutate()}
                 disabled={!canEdit || mut.isPending}

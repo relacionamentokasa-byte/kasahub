@@ -32,6 +32,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
 import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
+import { ScopeEditor } from "@/components/proposals/ScopeEditor";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,6 +141,7 @@ export function ProposalEditorContent({
     auto_create_jobs: true,
     recurring_months: 12,
     scope: [] as string[],
+    scope_text: "",
     payment_method: "boleto",
     monthly_investment: 0,
     one_time_investment: 0,
@@ -184,6 +186,7 @@ export function ProposalEditorContent({
         auto_create_jobs: p.auto_create_jobs ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
         scope: p.scope ?? [],
+        scope_text: p.scope_text ?? (Array.isArray(p.scope) && p.scope.length > 0 ? (p.scope as string[]).map((i: string) => `- ${i}`).join("\n") : ""),
         payment_method: p.payment_method ?? "boleto",
         monthly_investment: Number(proposal.monthly_investment || 0),
         one_time_investment: Number(proposal.one_time_investment || 0),
@@ -230,6 +233,7 @@ export function ProposalEditorContent({
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
         scope: f.scope,
+        scope_text: f.scope_text || null,
         payment_method: f.payment_method,
         contract_template_id: f.contract_template_id || null,
         contract_content: f.contract_content || null,
@@ -492,17 +496,17 @@ export function ProposalEditorContent({
 
           <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-primary text-[10px] capitalize">Escopo</span>
-              <Button size="sm" variant="outline" onClick={() => setForm({ ...form, scope: [...form.scope, ""] })}><Plus className="size-3" /> Item</Button>
+              <div>
+                <span className="text-primary text-[10px] capitalize">Escopo dos Serviços</span>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Texto livre com Markdown. Use modelos prontos ou salve seus próprios.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              {form.scope.map((it, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <Input value={it} onChange={(e) => { const n = [...form.scope]; n[idx] = e.target.value; setForm({ ...form, scope: n }); }} />
-                  <Button variant="ghost" size="icon" onClick={() => { const n = [...form.scope]; n.splice(idx, 1); setForm({ ...form, scope: n }); }}><Trash2 className="size-4" /></Button>
-                </div>
-              ))}
-            </div>
+            <ScopeEditor
+              value={form.scope_text}
+              onChange={(v) => setForm({ ...form, scope_text: v })}
+            />
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-6">
