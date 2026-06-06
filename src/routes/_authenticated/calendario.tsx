@@ -14,7 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { CalendarMonth } from "@/components/calendar/CalendarMonth";
 import { NewEventDialog } from "@/components/calendar/NewEventDialog";
+import { EventDetailDialog } from "@/components/calendar/EventDetailDialog";
+import { type CalendarEvent } from "@/lib/approvals-api";
 import { fetchClients } from "@/lib/ops-api";
+
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   DropdownMenu, 
@@ -45,6 +48,9 @@ function CalendarPage() {
   const [view, setView] = useState<string>("month");
   const [filter, setFilter] = useState<string>("all");
   const [newOpen, setNewOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
   
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
@@ -127,10 +133,21 @@ function CalendarPage() {
         <CalendarMonth 
           clientId={clientId === "all" ? undefined : clientId} 
           filter={filter}
+          onSelectEvent={(e) => {
+            setSelectedEvent(e);
+            setDetailOpen(true);
+          }}
         />
+
       </div>
 
       <NewEventDialog open={newOpen} onOpenChange={setNewOpen} />
+      <EventDetailDialog 
+        event={selectedEvent} 
+        open={detailOpen} 
+        onOpenChange={setDetailOpen} 
+      />
+
     </div>
   );
 }
