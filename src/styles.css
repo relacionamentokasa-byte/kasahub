@@ -5,9 +5,9 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* KASA OS — Design System
- * Identidade: Amarelo Kasa #FFBC45 sobre Preto Principal #0C1618
- * Paleta Secundária: Verde Petróleo #015A56, Off White #FFEEC8, Coral #EE9C87, Roxo #BF7AAB
+/* Kasa OS — Design System
+ * Identidade: amarelo âmbar #FFBC45 sobre verde-petróleo #0C1618
+ * Tipografia: Funnel Display (display), Onest (body), JetBrains Mono (mono/labels)
  */
 
 @theme inline {
@@ -60,8 +60,8 @@
   --radius: 0.75rem;
 
   /* Kasa palette */
-  --background: oklch(0.19 0.01 200);             /* #0C1618 Preto Principal */
-  --foreground: oklch(0.94 0.05 85);               /* #FFEEC8 Off White */
+  --background: oklch(0.196 0.011 197);          /* #0C1618 verde-petróleo */
+  --foreground: oklch(0.965 0.005 180);          /* #F4F7F5 off-white frio */
   --surface: oklch(0.243 0.011 207);             /* #142124 surface */
   --surface-elevated: oklch(0.285 0.012 207);    /* card elevado */
 
@@ -70,8 +70,8 @@
   --popover: oklch(0.243 0.011 207);
   --popover-foreground: oklch(0.965 0.005 180);
 
-  --primary: #FFBC45;                            /* Amarelo Kasa */
-  --primary-foreground: #0C1618;                 /* Preto Principal */
+  --primary: oklch(0.832 0.146 75.5);            /* #FFBC45 amarelo Kasa */
+  --primary-foreground: oklch(0.196 0.011 197);
 
   --secondary: oklch(0.285 0.012 207);
   --secondary-foreground: oklch(0.965 0.005 180);
@@ -99,15 +99,7 @@
   --sidebar-accent: oklch(0.243 0.011 207);
   --sidebar-accent-foreground: oklch(0.965 0.005 180);
   --sidebar-border: oklch(1 0 0 / 0.06);
-  --sidebar-ring: #FFBC45;
-  
-  /* Brand Palette Utilities */
-  --kasa-black: #0C1618;
-  --kasa-teal: #015A56;
-  --kasa-yellow: #FFBC45;
-  --kasa-offwhite: #FFEEC8;
-  --kasa-coral: #EE9C87;
-  --kasa-purple: #BF7AAB;
+  --sidebar-ring: oklch(0.832 0.146 75.5 / 0.5);
 }
 
 .dark {
@@ -116,8 +108,8 @@
 
 /* Light mode — fundo claro, sidebar permanece dark (identidade Kasa). */
 .light {
-  --background: #FFEEC8;                         /* #FFEEC8 Off White */
-  --foreground: #0C1618;                         /* #0C1618 Preto Principal */
+  --background: oklch(0.985 0.002 247);
+  --foreground: oklch(0.196 0.011 197);
   --surface: oklch(1 0 0);
   --surface-elevated: oklch(1 0 0);
 
@@ -146,10 +138,10 @@
   --ring: oklch(0.832 0.146 75.5 / 0.5);
 
   /* Sidebar permanece dark — identidade visual Kasa */
-  --sidebar: #0C1618;                            /* Preto Principal */
-  --sidebar-foreground: #FFEEC8;                 /* Off White */
-  --sidebar-primary: #FFBC45;                    /* Amarelo Kasa */
-  --sidebar-primary-foreground: #0C1618;
+  --sidebar: oklch(0.196 0.011 197);
+  --sidebar-foreground: oklch(0.965 0.005 180);
+  --sidebar-primary: oklch(0.832 0.146 75.5);
+  --sidebar-primary-foreground: oklch(0.196 0.011 197);
   --sidebar-accent: oklch(0.243 0.011 207);
   --sidebar-accent-foreground: oklch(0.965 0.005 180);
   --sidebar-border: oklch(1 0 0 / 0.06);
