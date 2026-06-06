@@ -260,14 +260,13 @@ function PublicProposalView() {
         </div>
         
         {/* Scope */}
-        {Array.isArray(proposal.scope) && proposal.scope.length > 0 && (
+        {((proposal.scope_text && proposal.scope_text.trim().length > 0) ||
+          (Array.isArray(proposal.scope) && proposal.scope.length > 0)) && (
           <div className="px-8 py-6 border-b border-slate-100">
             <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
               O que será entregue (Escopo)
             </h2>
-            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-              {proposal.scope.join(" · ")}
-            </div>
+            <ScopeRenderer text={proposal.scope_text} fallback={proposal.scope} className="text-slate-700" />
           </div>
         )}
 
