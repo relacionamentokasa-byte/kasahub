@@ -37,6 +37,7 @@ import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_aut
 import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
+import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -182,6 +183,11 @@ const ApiPublicDmeTokenRoute = ApiPublicDmeTokenRouteImport.update({
   path: '/api/public/dme/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
+  id: '/api/public/approve/$token',
+  path: '/api/public/approve/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
@@ -299,6 +308,7 @@ export interface FileRouteTypes {
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
     | '/api/public/manifest'
+    | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/proposal/$token'
@@ -328,6 +338,7 @@ export interface FileRouteTypes {
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
     | '/api/public/manifest'
+    | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/proposal/$token'
@@ -358,6 +369,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
     | '/api/public/manifest'
+    | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/proposal/$token'
@@ -370,6 +382,7 @@ export interface RootRouteChildren {
   DmeTokenRoute: typeof DmeTokenRoute
   PTokenRoute: typeof PTokenRoute
   ApiPublicManifestRoute: typeof ApiPublicManifestRoute
+  ApiPublicApproveTokenRoute: typeof ApiPublicApproveTokenRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
   ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
@@ -573,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDmeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/approve/$token': {
+      id: '/api/public/approve/$token'
+      path: '/api/public/approve/$token'
+      fullPath: '/api/public/approve/$token'
+      preLoaderRoute: typeof ApiPublicApproveTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -665,6 +685,7 @@ const rootRouteChildren: RootRouteChildren = {
   DmeTokenRoute: DmeTokenRoute,
   PTokenRoute: PTokenRoute,
   ApiPublicManifestRoute: ApiPublicManifestRoute,
+  ApiPublicApproveTokenRoute: ApiPublicApproveTokenRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
   ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
