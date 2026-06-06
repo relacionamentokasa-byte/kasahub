@@ -103,6 +103,7 @@ function ConfigPage() {
           <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
           <TabsTrigger value="flows" className="gap-2"><GitBranch className="size-3.5" /> Fluxos Operacionais</TabsTrigger>
           <TabsTrigger value="contracts" className="gap-2"><FileText className="size-3.5" /> Contratos</TabsTrigger>
+          <TabsTrigger value="indicators" className="gap-2"><Target className="size-3.5" /> Indicadores e Metas</TabsTrigger>
           <TabsTrigger value="notif" className="gap-2"><Bell className="size-3.5" /> Notificações</TabsTrigger>
           <TabsTrigger value="integr" className="gap-2"><Plug className="size-3.5" /> Integrações</TabsTrigger>
           <TabsTrigger value="prefs" className="gap-2"><UserCog className="size-3.5" /> Preferências</TabsTrigger>
