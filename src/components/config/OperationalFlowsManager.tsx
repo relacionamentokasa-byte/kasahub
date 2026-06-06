@@ -438,8 +438,38 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
   );
 }
 
-function JobRow({ job, roles, canEdit, onChanged, onEditSchema }: { job: any, roles: any[], canEdit: boolean, onChanged: () => void, onEditSchema: (job: any) => void }) {
+function JobRow({ job, roles, canEdit, onChanged, onEditSchema, flowJobs }: { job: any, roles: any[], canEdit: boolean, onChanged: () => void, onEditSchema: (job: any) => void, flowJobs: any[] }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showDeps, setShowDeps] = useState(false);
+
+  const { data: deps = [], refetch: refetchDeps } = useQuery({
+    queryKey: ["job-deps", job.id],
+    queryFn: () => {
+      const { fetchJobDependencies } = require("@/lib/operational-flows-api");
+      return fetchJobDependencies(job.id);
+    },
+    enabled: showDeps
+  });
+
+  const { addJobDependency, removeJobDependency } = require("@/lib/operational-flows-api");
+
+  const addDepMut = useMutation({
+    mutationFn: (dependsOnId: string) => addJobDependency(job.id, dependsOnId),
+    onSuccess: () => {
+      toast.success("Dependência adicionada");
+      refetchDeps();
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  const removeDepMut = useMutation({
+    mutationFn: (id: string) => removeJobDependency(id),
+    onSuccess: () => {
+      toast.success("Dependência removida");
+      refetchDeps();
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
 
   const updateJobMut = useMutation({
     mutationFn: async (patch: any) => {
