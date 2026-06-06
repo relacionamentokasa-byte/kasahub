@@ -1154,6 +1154,7 @@ export type Database = {
       operational_flow_jobs: {
         Row: {
           created_at: string
+          custom_fields_schema: Json | null
           default_assignee_role_id: string | null
           id: string
           job_type: string | null
@@ -1165,6 +1166,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_role_id?: string | null
           id?: string
           job_type?: string | null
@@ -1176,6 +1178,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_role_id?: string | null
           id?: string
           job_type?: string | null

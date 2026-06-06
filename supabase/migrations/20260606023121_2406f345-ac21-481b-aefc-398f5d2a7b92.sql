@@ -1,0 +1,1 @@
+ALTER TABLE public.operational_flow_jobs ADD COLUMN IF NOT EXISTS custom_fields_schema JSONB DEFAULT '[]'::jsonb;
