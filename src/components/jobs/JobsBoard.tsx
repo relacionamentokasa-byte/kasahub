@@ -32,6 +32,7 @@ import {
   type Job,
   type JobStage,
 } from "@/lib/ops-api";
+import { fetchProfiles } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewJobDialog } from "./NewJobDialog";
@@ -57,6 +58,7 @@ export function JobsBoard({
   const filters = { projectId, clientId, period };
   const queryKey = ["jobs", filters];
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
+  const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
   const { data: availablePeriods = [] } = useQuery({
     queryKey: ["available-periods", projectId],
@@ -175,13 +177,13 @@ export function JobsBoard({
               return (
                 <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
                   {cards.map((j) => (
-                    <JobCard key={j.id} job={j} onClick={() => setOpen(j)} />
+                    <JobCard key={j.id} job={j} profiles={profiles} onClick={() => setOpen(j)} />
                   ))}
                 </Column>
               );
             })}
           </div>
-          <DragOverlay>{activeJob ? <JobCardInner job={activeJob} dragging /> : null}</DragOverlay>
+          <DragOverlay>{activeJob ? <JobCardInner job={activeJob} profiles={profiles} dragging /> : null}</DragOverlay>
         </DndContext>
       </div>
 
@@ -238,7 +240,7 @@ function Column({
   );
 }
 
-function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
+function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   const delMut = useMutation({
@@ -258,7 +260,7 @@ function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
         onClick={onClick}
         className="cursor-grab active:cursor-grabbing"
       >
-        <JobCardInner job={job} />
+        <JobCardInner job={job} profiles={profiles} />
       </div>
       <button
         type="button"
@@ -276,7 +278,7 @@ function JobCard({ job, onClick }: { job: Job; onClick: () => void }) {
   );
 }
 
-function JobCardInner({ job, dragging }: { job: Job; dragging?: boolean }) {
+function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: any[]; dragging?: boolean }) {
   return (
     <div
       className={`bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition ${
@@ -291,11 +293,34 @@ function JobCardInner({ job, dragging }: { job: Job; dragging?: boolean }) {
         />
         <div className="min-w-0 flex-1 pr-6">
           <div className="font-semibold text-sm leading-snug">{job.title}</div>
-          {job.due_date && (
-            <div className="text-[10px] text-foreground/40 mt-1.5 capitalize">
-              {format(new Date(job.due_date), "dd MMM")}
-            </div>
-          )}
+          <div className="flex items-center justify-between mt-2">
+            {job.due_date && (
+              <div className="text-[10px] text-foreground/40 capitalize">
+                {format(new Date(job.due_date), "dd MMM")}
+              </div>
+            )}
+            {(() => {
+              const respId = (job as any).responsible_id;
+              if (!respId) return null;
+              const profile = profiles.find(p => p.id === respId);
+              if (!profile) return null;
+              const name = profile.display_name || profile.full_name || "Membro";
+              return (
+                <div 
+                  className="size-5 rounded-full bg-primary/10 border border-border/40 overflow-hidden flex items-center justify-center shrink-0"
+                  title={`Responsável: ${name}`}
+                >
+                  {profile.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="size-full object-cover" />
+                  ) : (
+                    <span className="text-[8px] font-bold text-primary">
+                      {name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                    </span>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
         </div>
       </div>
     </div>

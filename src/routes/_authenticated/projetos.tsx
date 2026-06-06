@@ -302,7 +302,7 @@ function ProjetosPage() {
                               {(owner as any).avatar_url ? (
                                 <img src={(owner as any).avatar_url} alt="" className="size-full object-cover" />
                               ) : (
-                                <span className="text-[8px]">{ownerName.charAt(0)}</span>
+                                <span className="text-[8px]">{ownerName.split(' ').map((n: any) => n[0]).join('').slice(0, 2)}</span>
                               )}
                             </div>
                             <span className="truncate">Resp: {ownerName.split(' ')[0]}</span>
