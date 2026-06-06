@@ -8,6 +8,7 @@ export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type Recurrence = Database["public"]["Tables"]["recurrences"]["Row"];
 
 
+
 // ---------- Bank accounts ----------
 export async function fetchBankAccounts(): Promise<BankAccount[]> {
   const { data, error } = await supabase
@@ -250,16 +251,8 @@ export async function createTransaction(
     return [data];
   }
 
-  // Create recurrence for multi-installment transactions
-  const recurrence = await createRecurrence({
-    start_date: input.due_date ?? new Date().toISOString().slice(0, 10),
-    status: "active",
-    amount: input.amount,
-    description: input.description,
-    contract_id: input.contract_id,
-    owner_id: owner_id ?? "",
-  });
-
+  // For backward compatibility or internal grouping, we still use recurrence_id if needed,
+  // but architecturally everything is contract-driven now.
   const base = new Date(input.due_date ?? new Date().toISOString().slice(0, 10));
   const amount = Math.round(((Number(input.amount) ?? 0) / total) * 100) / 100;
   const rows = Array.from({ length: total }).map((_, i) => {
@@ -272,15 +265,15 @@ export async function createTransaction(
       due_date: d.toISOString().slice(0, 10),
       installment_total: total,
       installment_number: i + 1,
-      description: `${input.description} (${i + 1}/${total})`,
-      recurrence_id: recurrence.id,
-      is_recurring: true,
+      description: total > 1 ? `${input.description} (${i + 1}/${total})` : input.description,
+      is_recurring: total > 1,
     };
   });
   const { data, error } = await supabase.from("transactions").insert(rows).select();
   if (error) throw error;
   return data ?? [];
 }
+
 
 
 export async function bulkInsertTransactions(rows: Database["public"]["Tables"]["transactions"]["Insert"][]) {
@@ -298,10 +291,28 @@ export async function updateTransaction(id: string, patch: Database["public"]["T
   return data;
 }
 
-export async function deleteTransaction(id: string) {
-  const { error } = await supabase.from("transactions").delete().eq("id", id);
-  if (error) throw error;
+export async function deleteTransaction(id: string, cascadeContractFuture: boolean = false) {
+  const { data: tx } = await supabase.from("transactions").select("*").eq("id", id).single();
+  if (!tx) return;
+
+  if (tx.status === 'paid') {
+    throw new Error("Lançamentos pagos não podem ser excluídos. Realize um estorno ou cancelamento.");
+  }
+
+  if (cascadeContractFuture && tx.contract_id) {
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("contract_id", tx.contract_id)
+      .eq("status", "pending")
+      .gte("due_date", tx.due_date);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    if (error) throw error;
+  }
 }
+
 
 export async function bulkDeleteTransactions(ids: string[]) {
   const { error } = await supabase.from("transactions").delete().in("id", ids);
