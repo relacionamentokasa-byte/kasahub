@@ -315,43 +315,74 @@ function ClientesPage() {
 
             {/* Mobile list */}
             <ul className="md:hidden divide-y divide-border">
-              {filtered.map((c) => (
-                <li key={c.id} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(c.id)}
-                    className="flex items-center gap-3 p-4 pr-12 text-left w-full"
-                  >
-                    <div
-                      className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
-                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+              {filtered.map((c) => {
+                const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
+                const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
+                const mainContract = clientContracts[0];
+                const contractLabel = mainContract?.title || "Nenhum contrato";
+
+                const nextTransaction = transactions
+                  .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
+                  .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+                
+                const nextDueDate = nextTransaction?.due_date 
+                  ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
+                  : "Não definido";
+
+                return (
+                  <li key={c.id} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(c.id)}
+                      className="flex flex-col gap-3 p-4 pr-12 text-left w-full"
                     >
-                      {c.logo_url ? (
-                        <img src={c.logo_url} alt="" className="size-full object-cover" />
-                      ) : (
-                        (c.company || c.name).charAt(0).toUpperCase()
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold truncate">{c.company || c.name}</div>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className={`text-[10px] capitalize px-1.5 py-0.5 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
-                          {c.status === "active" ? "Ativo" : c.status}
-                        </span>
-                        {c.email && <span className="text-[11px] text-foreground/50 truncate">{c.email}</span>}
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
+                          style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                        >
+                          {c.logo_url ? (
+                            <img src={c.logo_url} alt="" className="size-full object-cover" />
+                          ) : (
+                            (c.company || c.name).charAt(0).toUpperCase()
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-semibold truncate">{c.company || c.name}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className={`text-[10px] capitalize px-1.5 py-0.5 rounded font-bold ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                              {c.status === "active" ? "Ativo" : c.status}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDeleteId(c.id)}
-                    className="absolute top-1/2 -translate-y-1/2 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
-                    aria-label="Excluir cliente"
-                  >
-                    <Trash2 className="size-4" />
-                  </button>
-                </li>
-              ))}
+
+                      <div className="grid grid-cols-2 gap-2 mt-1">
+                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/50">
+                          <FileSignature className="size-3" />
+                          <span className="truncate">{contractLabel} {clientContracts.length > 1 && `+${clientContracts.length - 1}`}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/50 justify-end">
+                          <DollarSign className="size-3 text-emerald-500/60" />
+                          <span className="font-mono-kasa font-bold">{monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/40">
+                          <Clock className="size-3" />
+                          <span>{nextDueDate}</span>
+                        </div>
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteId(c.id)}
+                      className="absolute top-4 right-3 p-2 rounded-md text-destructive opacity-60 transition"
+                      aria-label="Excluir cliente"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}
