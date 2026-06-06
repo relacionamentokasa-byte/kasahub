@@ -232,7 +232,39 @@ export function ExecutiveDashboard() {
           <p className="text-sm text-foreground/50">Visualize os indicadores vitais da sua agência.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="size-4 text-foreground/40" />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9">
+                <Settings2 className="size-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56">
+              <div className="space-y-4">
+                <h4 className="font-medium leading-none">Personalizar Visão</h4>
+                <div className="grid gap-4">
+                  {[
+                    { id: 'gestao', label: 'Gestão' },
+                    { id: 'operacao', label: 'Operação' },
+                    { id: 'performance', label: 'Performance' },
+                    { id: 'agenda', label: 'Agenda' },
+                    { id: 'clientes', label: 'Ranking Clientes' },
+                    { id: 'feed', label: 'Feed Operacional' },
+                  ].map((s) => (
+                    <div key={s.id} className="flex items-center justify-between">
+                      <Label htmlFor={`show-${s.id}`} className="text-xs">{s.label}</Label>
+                      <Switch 
+                        id={`show-${s.id}`} 
+                        checked={visibleSections[s.id]} 
+                        onCheckedChange={() => toggleSection(s.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+
+          <Filter className="size-4 text-foreground/40 ml-2" />
           <Select value={range} onValueChange={(v: any) => setRange(v)}>
             <SelectTrigger className="w-[160px] h-9">
               <SelectValue />
