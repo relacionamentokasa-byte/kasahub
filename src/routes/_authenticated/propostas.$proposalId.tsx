@@ -699,11 +699,10 @@ export function ProposalEditorContent({
         </DialogContent>
       </Dialog>
 
-      <ProposalApprovalDialog
-        proposalId={proposalId}
-        open={showApprovalDialog}
-        onOpenChange={setShowApprovalDialog}
-      />
+    </div>
+
+  );
+}
     </div>
 
   );
