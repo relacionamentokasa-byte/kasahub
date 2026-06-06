@@ -12,8 +12,9 @@ const SubscriptionSchema = z.object({
 });
 
 export const getVapidPublicKey = createServerFn({ method: "GET" }).handler(async () => {
-  const publicKey = process.env.VAPID_PUBLIC_KEY;
-  if (!publicKey) throw new Error("VAPID_PUBLIC_KEY não configurado");
+  const raw = process.env.VAPID_PUBLIC_KEY;
+  if (!raw) throw new Error("VAPID_PUBLIC_KEY não configurado");
+  const publicKey = raw.replace(/\s+/g, "");
   return { publicKey };
 });
 
