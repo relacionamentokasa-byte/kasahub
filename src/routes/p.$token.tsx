@@ -500,31 +500,74 @@ function PublicProposalView() {
               </div>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-6 items-end">
-              <div className="no-print">
-                <label className="text-xs text-slate-500">
-                  Digite seu nome completo para aceitar a proposta
+            <div className="space-y-5">
+              <div className="rounded-xl border border-slate-200 p-5 bg-slate-50/50">
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-3">Contratada (Agência)</p>
+                <p className="text-sm font-bold text-slate-900">{agency?.name}</p>
+                <div className="mt-3 pt-3 border-t border-slate-200 min-h-[60px] flex items-center justify-center">
+                  {agency?.agency_signature_url ? (
+                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-16 object-contain" />
+                  ) : (
+                    <span className="italic text-slate-400 text-xs">Assinatura digital da agência</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="no-print rounded-xl border border-slate-200 p-5 bg-white">
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-3">Contratante (Cliente)</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-600">Nome completo *</label>
+                    <Input
+                      value={signerName}
+                      onChange={(e) => setSignerName(e.target.value)}
+                      placeholder="Seu nome completo"
+                      maxLength={200}
+                      className="mt-1.5 bg-white border-slate-300 text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-600">CPF *</label>
+                    <Input
+                      value={signerCpf}
+                      onChange={(e) => setSignerCpf(e.target.value)}
+                      placeholder="000.000.000-00"
+                      maxLength={20}
+                      className="mt-1.5 bg-white border-slate-300 text-slate-900"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-600 mt-4 block">Assinatura digital</label>
+                  <div
+                    className="mt-1.5 rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 min-h-[56px] flex items-center font-serif italic text-slate-700 text-base"
+                  >
+                    {signerName || <span className="text-slate-400 not-italic text-xs">Sua assinatura aparecerá aqui ao digitar seu nome</span>}
+                  </div>
+                </div>
+                <label className="mt-4 flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                  <Checkbox
+                    checked={acceptTerms}
+                    onCheckedChange={(v) => setAcceptTerms(v === true)}
+                    className="mt-0.5"
+                  />
+                  <span>Li e concordo com os termos desta proposta e contrato.</span>
                 </label>
-                <Input
-                  value={signerName}
-                  onChange={(e) => setSignerName(e.target.value)}
-                  placeholder="Nome completo"
-                  className="mt-2 bg-white border-slate-300 text-slate-900"
-                />
                 <Button
                   onClick={sign}
                   disabled={signing}
-                  className="mt-3 w-full gap-2 text-white"
-                  style={{ background: brand }}
+                  className="mt-4 w-full gap-2 text-white bg-green-600 hover:bg-green-700"
                 >
                   {signing ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <FileSignature className="size-4" />
                   )}
-                  Aceitar e assinar
+                  Aprovar e Assinar
                 </Button>
               </div>
+            </div>
+
               <div className="hidden print:block">
                 <div className="border-t border-slate-400 pt-2 text-xs text-slate-600 text-center">
                   Assinatura do cliente — {proposal.client_name}
