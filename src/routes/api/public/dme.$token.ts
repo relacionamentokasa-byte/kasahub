@@ -19,7 +19,8 @@ export const Route = createFileRoute("/api/public/dme/$token")({
           .select(`
             *,
             clients (name, company, logo_url, brand_primary),
-            contracts (title)
+            contracts (title),
+            projects:jobs(project_id)
           `)
           .eq("public_token", token)
           .maybeSingle();

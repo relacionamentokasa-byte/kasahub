@@ -37,6 +37,7 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
     deadline_days: 3,
     is_billable: true,
     contract_id: initialContractId || "",
+    origin: initialContractId ? "contract" : "contract", // Default to contract, but will show toggle
     status: "draft"
   });
 

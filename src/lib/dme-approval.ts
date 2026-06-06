@@ -26,12 +26,16 @@ export async function approveExtraDemand(sb: SB, id: string) {
   if (updErr) throw updErr;
 
   // 2. Find a project related to the contract
-  const { data: project } = await sb
-    .from("projects")
-    .select("id")
-    .eq("contract_id", dme.contract_id)
-    .limit(1)
-    .maybeSingle();
+  let project = null;
+  if (dme.contract_id) {
+    const { data: p } = await sb
+      .from("projects")
+      .select("id")
+      .eq("contract_id", dme.contract_id)
+      .limit(1)
+      .maybeSingle();
+    project = p;
+  }
 
   // 3. Create Job
   const { data: stages } = await sb
@@ -52,11 +56,19 @@ export async function approveExtraDemand(sb: SB, id: string) {
 
   // 4. Create Financeiro if billable
   if (dme.is_billable) {
-    const { data: contract } = await sb
-      .from("contracts")
-      .select("*")
-      .eq("id", dme.contract_id)
-      .single();
+    let account_id = null;
+    let category_id = null;
+
+    if (dme.contract_id) {
+      const { data: contract } = await sb
+        .from("contracts")
+        .select("*")
+        .eq("id", dme.contract_id)
+        .single();
+      
+      account_id = (contract as any)?.account_id || null;
+      category_id = (contract as any)?.category_id || null;
+    }
       
     await sb.from("transactions").insert({
       kind: "income",
@@ -67,8 +79,8 @@ export async function approveExtraDemand(sb: SB, id: string) {
       client_id: dme.client_id,
       contract_id: dme.contract_id,
       dme_id: dme.id,
-      account_id: (contract as any)?.account_id || null,
-      category_id: (contract as any)?.category_id || null,
+      account_id,
+      category_id,
     });
   }
 
