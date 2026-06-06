@@ -317,6 +317,20 @@ function PublicProposalView() {
             Preparada para <span className="font-semibold text-slate-700">{proposal.client_name}</span>
           </p>
         </div>
+
+        {/* Dados do Cliente */}
+        <div className="px-8 py-6 border-b border-slate-100">
+          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+            Dados do Contratante
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm text-slate-700">
+            <InfoLine icon={<UserIcon className="size-4" />} label="Nome" value={client?.name || proposal.client_name} />
+            <InfoLine icon={<Building2 className="size-4" />} label="Empresa" value={client?.company} />
+            <InfoLine icon={<Phone className="size-4" />} label="Telefone" value={client?.phone} />
+            <InfoLine icon={<Mail className="size-4" />} label="E-mail" value={client?.email || proposal.client_email} />
+          </div>
+        </div>
+        
         
         {/* Scope */}
         {((proposal.scope_text && proposal.scope_text.trim().length > 0) ||
