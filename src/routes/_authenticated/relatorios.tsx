@@ -164,7 +164,7 @@ function RelatoriosPage() {
                 <div className="col-span-1 text-right">Jobs</div>
                 <div className="col-span-2 text-right">LTV estim.</div>
               </div>
-              {perClient.map(({ c, total, mrr, jobs: jobCount }) => (
+              {perClient.map(({ c, total, mrr, extra, jobs: jobCount }) => (
                 <div key={c.id} className="grid grid-cols-12 px-5 py-3 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02]">
                   <div className="col-span-4 text-sm font-medium truncate">{c.company || c.name}</div>
                   <div className="col-span-2 text-right text-sm text-primary">{brl(mrr)}</div>
