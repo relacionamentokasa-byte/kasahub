@@ -290,50 +290,6 @@ export async function deleteExtraDemand(id: string) {
 }
 
 export async function approveExtraDemand(id: string) {
-  const { data: dme, error: fetchErr } = await supabase.from("extra_demands").select("*").eq("id", id).single();
-  if (fetchErr || !dme) throw new Error("DME não encontrada");
-
-  // 1. Update DME status
-  const { data: updated, error: updErr } = await supabase
-    .from("extra_demands")
-    .update({ status: "approved", approved_at: new Date().toISOString() })
-    .eq("id", id)
-    .select()
-    .single();
-  if (updErr) throw updErr;
-
-  // 2. Create Job and Link to Project
-  const { data: project } = await supabase.from("projects").select("id").eq("contract_id", dme.contract_id).limit(1).single();
-  const { data: stages } = await supabase.from("job_stages").select("id").order("order_index").limit(1);
-  
-  await supabase.from("jobs").insert({
-    title: `${dme.number_display}: ${dme.title}`,
-    description: dme.description,
-    client_id: dme.client_id,
-    project_id: project?.id || null,
-    dme_id: dme.id,
-    stage_id: stages?.[0]?.id,
-    priority: "normal",
-  });
-
-  // 3. Create Financeiro if billable
-  if (dme.is_billable) {
-    const { data: contract } = await supabase.from("contracts").select("*").eq("id", dme.contract_id).single();
-    await supabase.from("transactions").insert({
-      kind: "income",
-      description: `Demanda Extra ${dme.number_display}: ${dme.title}`,
-      amount: dme.value,
-      due_date: new Date().toISOString().slice(0, 10), // Today
-      status: "pending",
-      client_id: dme.client_id,
-      contract_id: dme.contract_id,
-      dme_id: dme.id,
-      account_id: (contract as any)?.account_id || null,
-      category_id: (contract as any)?.category_id || null,
-
-    });
-  }
-
-  return updated;
+  return await approveExtraDemandShared(supabase, id);
 }
 
