@@ -209,13 +209,34 @@ export function PwaSettingsTab({
             <Bell className="size-4 text-primary" /> Notificações
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Teste as notificações em desktop, Android e iPhone. Para preferências detalhadas,
-            acesse <strong>Configurações → Notificações</strong>.
+            Ative as notificações push (VAPID) neste dispositivo para receber avisos mesmo
+            com o app fechado. O push real só funciona na versão publicada.
           </p>
         </header>
-        <Button variant="outline" onClick={sendTestNotification}>
-          <Bell className="size-4" /> Enviar Notificação de Teste
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {pushEnabled ? (
+            <Button variant="outline" onClick={disablePush} disabled={pushBusy || !supported}>
+              {pushBusy ? <Loader2 className="size-4 animate-spin" /> : <BellOff className="size-4" />}
+              Desativar Push
+            </Button>
+          ) : (
+            <Button onClick={enablePush} disabled={pushBusy || !supported}>
+              {pushBusy ? <Loader2 className="size-4 animate-spin" /> : <Bell className="size-4" />}
+              Ativar Notificações Push
+            </Button>
+          )}
+          <Button variant="outline" onClick={sendTestNotification}>
+            <Bell className="size-4" /> Enviar Notificação de Teste
+          </Button>
+        </div>
+        {!supported && (
+          <p className="text-[11px] text-muted-foreground">
+            Este navegador não suporta Web Push. Use Chrome, Edge, Firefox ou Safari recente.
+          </p>
+        )}
+        <p className="text-[11px] text-muted-foreground">
+          Status: {pushEnabled ? "🟢 Inscrito neste dispositivo" : "⚪ Não inscrito"}
+        </p>
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-6 space-y-3">
