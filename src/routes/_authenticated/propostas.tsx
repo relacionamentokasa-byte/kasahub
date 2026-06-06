@@ -63,7 +63,9 @@ import {
   CheckCircle2,
   RotateCcw,
   Ban,
+  Search,
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/propostas")({
@@ -119,8 +121,12 @@ function ProposalsPage() {
     scope: [] as string[],
   };
   const [form, setForm] = useState(emptyForm);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterClient, setFilterClient] = useState<string>("all");
 
   const [emailDialog, setEmailDialog] = useState<{ proposal: Proposal } | null>(null);
+
   const [emailForm, setEmailForm] = useState({ to: "", subject: "", message: "" });
 
   const createMut = useMutation({
@@ -282,7 +288,28 @@ function ProposalsPage() {
     setEmailDialog({ proposal: p });
   }
 
+  const filteredProposals = useMemo(() => {
+    return proposals.filter((p) => {
+      // Status filter
+      if (filterStatus !== "all" && p.status !== filterStatus) return false;
+      
+      // Client filter
+      if (filterClient !== "all" && p.client_id !== filterClient) return false;
+
+      // Search (title or client name)
+      if (search) {
+        const s = search.toLowerCase();
+        const titleMatch = p.title.toLowerCase().includes(s);
+        const clientMatch = p.client_name.toLowerCase().includes(s);
+        if (!titleMatch && !clientMatch) return false;
+      }
+
+      return true;
+    });
+  }, [proposals, filterStatus, filterClient, search]);
+
   return (
+
     <div className="p-6 lg:p-10 max-w-7xl mx-auto w-full">
       <div className="flex items-end justify-between gap-4 flex-wrap mb-8">
         <div>
@@ -704,7 +731,8 @@ function ProposalsPage() {
                 </tr>
               </thead>
               <tbody>
-                {proposals.map((p) => {
+                {filteredProposals.map((p) => {
+
                   const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.draft;
                   return (
                     <tr
@@ -759,7 +787,7 @@ function ProposalsPage() {
 
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
-            {proposals.map((p) => {
+            {filteredProposals.map((p) => {
               const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.draft;
               return (
                 <div
