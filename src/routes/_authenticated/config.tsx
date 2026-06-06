@@ -463,6 +463,12 @@ function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
                 onChange={(e) => setForm({ ...form, phone: e.target.value })} 
               />
             </Field>
+            <Field label="Departamento">
+              <Input 
+                value={form.department ?? ""} 
+                onChange={(e) => setForm({ ...form, department: e.target.value })} 
+              />
+            </Field>
           </Grid>
           
           <div className="pt-4 border-t border-border mt-4">
