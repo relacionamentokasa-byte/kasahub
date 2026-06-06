@@ -20,7 +20,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2 } from "lucide-react";
+import { Plus, Search, Trash2, AlertTriangle } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import {
   fetchJobStages,
@@ -35,6 +35,7 @@ import {
 } from "@/lib/ops-api";
 import { getJobTypeLabel } from "@/lib/job-types";
 import { fetchProfiles } from "@/lib/profile-api";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
