@@ -654,3 +654,24 @@ function Stat({
     </div>
   );
 }
+
+function InfoLine({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | null | undefined;
+}) {
+  return (
+    <div className="flex items-start gap-2">
+      <span className="text-slate-400 mt-0.5">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wider text-slate-400">{label}</p>
+        <p className="text-sm text-slate-800 truncate">{value || "—"}</p>
+      </div>
+    </div>
+  );
+}
+
