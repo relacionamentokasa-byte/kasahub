@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User, GitBranch } from "lucide-react";
+import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User, GitBranch, Target } from "lucide-react";
 import { ServicesManager } from "@/components/config/ServicesManager";
 import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
 import { PermissionsManager } from "@/components/PermissionsManager";
 import { ContractTemplatesManager } from "@/components/config/ContractTemplatesManager";
+import { IndicatorsManager } from "@/components/performance/IndicatorsManager";
 import { useTheme } from "@/lib/theme";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -102,6 +103,7 @@ function ConfigPage() {
           <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
           <TabsTrigger value="flows" className="gap-2"><GitBranch className="size-3.5" /> Fluxos Operacionais</TabsTrigger>
           <TabsTrigger value="contracts" className="gap-2"><FileText className="size-3.5" /> Contratos</TabsTrigger>
+          <TabsTrigger value="indicators" className="gap-2"><Target className="size-3.5" /> Indicadores e Metas</TabsTrigger>
           <TabsTrigger value="notif" className="gap-2"><Bell className="size-3.5" /> Notificações</TabsTrigger>
           <TabsTrigger value="integr" className="gap-2"><Plug className="size-3.5" /> Integrações</TabsTrigger>
           <TabsTrigger value="prefs" className="gap-2"><UserCog className="size-3.5" /> Preferências</TabsTrigger>
@@ -131,6 +133,10 @@ function ConfigPage() {
 
         <TabsContent value="contracts" className="space-y-4">
           <ContractTemplatesManager canEdit={canEdit} />
+        </TabsContent>
+
+        <TabsContent value="indicators" className="space-y-4">
+          <IndicatorsManager />
         </TabsContent>
 
         <TabsContent value="agency" className="space-y-4">

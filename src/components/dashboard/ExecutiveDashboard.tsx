@@ -8,7 +8,7 @@ import {
   brl
 } from "@/lib/finance-api";
 import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
-import { fetchAgencyGoals } from "@/lib/performance-api";
+import { fetchAgencyGoals, fetchIndicators } from "@/lib/performance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { GestaoSection } from "./GestaoSection";
 import { OperacaoSection } from "./OperacaoSection";
@@ -69,6 +69,10 @@ export function ExecutiveDashboard() {
   const { data: goals = [] } = useQuery({ 
     queryKey: ["agency-goals", new Date().getFullYear()], 
     queryFn: () => fetchAgencyGoals(new Date().getFullYear()) 
+  });
+  const { data: indicators = [] } = useQuery({
+    queryKey: ["agency-indicators"],
+    queryFn: fetchIndicators
   });
   const { data: dmes = [] } = useQuery({
     queryKey: ["extra-demands"],
@@ -131,22 +135,46 @@ export function ExecutiveDashboard() {
     const currentGoals = goals.filter(g => g.month === month || g.period === 'yearly');
 
     const performanceMetrics = [
-      { 
-        label: "Receita", 
-        target: currentGoals.find(g => g.type === 'revenue')?.target_value || 0, 
-        actual: ind.monthIncome, 
-        isCurrency: true 
-      },
-      { 
-        label: "Contratos", 
-        target: currentGoals.find(g => g.type === 'contracts')?.target_value || 0, 
-        actual: periodContracts.length 
-      },
-      { 
-        label: "Jobs", 
-        target: currentGoals.find(g => g.type === 'jobs')?.target_value || 0, 
-        actual: jobsCompleted 
-      },
+      ...indicators.filter(i => i.status === 'active').map(i => {
+        let actual = 0;
+        const monthStr = new Date().toISOString().slice(0, 7);
+        
+        switch (i.data_source) {
+          case 'contracts_mrr': actual = ind.mrr; break;
+          case 'contracts_count': actual = contracts.filter(c => c.status === 'active' && c.created_at.startsWith(monthStr)).length; break;
+          case 'proposals_accepted': actual = periodContracts.length; break; // simplistic fallback
+          case 'jobs_done': actual = jobsCompleted; break;
+          case 'clients_active': actual = clients.filter(c => c.status === 'active').length; break;
+          case 'clients_new': actual = clients.filter(c => c.created_at.startsWith(monthStr)).length; break;
+          case 'extra_income': actual = ind.extraIncome; break;
+        }
+
+        return {
+          label: i.name,
+          target: i.target_value,
+          actual,
+          isCurrency: i.type === 'monetary'
+        };
+      }),
+      // Fallback fallback if no indicators defined yet
+      ...(indicators.length === 0 ? [
+        { 
+          label: "Receita", 
+          target: currentGoals.find(g => g.type === 'revenue')?.target_value || 0, 
+          actual: ind.monthIncome, 
+          isCurrency: true 
+        },
+        { 
+          label: "Contratos", 
+          target: currentGoals.find(g => g.type === 'contracts')?.target_value || 0, 
+          actual: periodContracts.length 
+        },
+        { 
+          label: "Jobs", 
+          target: currentGoals.find(g => g.type === 'jobs')?.target_value || 0, 
+          actual: jobsCompleted 
+        },
+      ] : [])
     ];
 
     // Agenda
@@ -277,7 +305,7 @@ export function ExecutiveDashboard() {
     jobsCompleted,
     pendingApprovals,
     dmesInProduction,
-    performanceMetrics,
+    performanceMetrics: initialPerformanceMetrics,
     agendaItems,
     clientRanking,
     feedEvents,
@@ -365,7 +393,7 @@ export function ExecutiveDashboard() {
       )}
 
       {isManager && visibleSections.performance && (
-        <PerformanceSection metrics={performanceMetrics} />
+        <PerformanceSection metrics={initialPerformanceMetrics} />
       )}
 
       {visibleSections.agenda && (
