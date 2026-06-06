@@ -76,38 +76,41 @@ export async function createContract(input: Database["public"]["Tables"]["contra
   return data;
 }
 
-export async function updateContract(id: string, patch: Database["public"]["Tables"]["contracts"]["Update"]) {
-  const { data, error } = await supabase.from("contracts").update(patch).eq("id", id).select().single();
-  if (error) throw error;
-  return data;
-}
-
 export async function deleteContract(id: string) {
   const { error } = await supabase.from("contracts").delete().eq("id", id);
   if (error) throw error;
 }
 
 export async function terminateContract(id: string, cleanupMode: "keep" | "cancel" | "delete") {
-  const { data: u } = await supabase.auth.getUser();
-  
   // 1. Update contract status
   const { error: ctErr } = await supabase.from("contracts").update({ status: "finished" }).eq("id", id);
   if (ctErr) throw ctErr;
 
-  // 2. Find associated recurrences
-  const { data: recs } = await supabase.from("recurrences").select("id").eq("contract_id", id).eq("status", "active");
-  
-  let totalRemoved = { count: 0, total: 0 };
-  if (recs && recs.length > 0) {
-    for (const rec of recs) {
-      const res = await terminateRecurrence(rec.id, cleanupMode);
-      totalRemoved.count += res.count;
-      totalRemoved.total += res.total;
+  // 2. Find associated transactions that are pending and future
+  const now = new Date().toISOString().slice(0, 10);
+  const { data: txs } = await supabase
+    .from("transactions")
+    .select("id")
+    .eq("contract_id", id)
+    .eq("status", "pending")
+    .gt("due_date", now);
+
+  let result = { count: 0, total: 0 };
+  if (txs && txs.length > 0) {
+    if (cleanupMode === "delete") {
+      const { error: delErr } = await supabase.from("transactions").delete().in("id", txs.map(t => t.id));
+      if (delErr) throw delErr;
+      result.count = txs.length;
+    } else if (cleanupMode === "cancel") {
+      const { error: upErr } = await supabase.from("transactions").update({ status: "cancelled" }).in("id", txs.map(t => t.id));
+      if (upErr) throw upErr;
+      result.count = txs.length;
     }
   }
 
-  return totalRemoved;
+  return result;
 }
+
 
 
 // ---------- Transactions ----------
