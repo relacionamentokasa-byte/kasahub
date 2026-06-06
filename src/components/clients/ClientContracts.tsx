@@ -7,8 +7,26 @@ import {
   Tag, 
   CheckCircle2, 
   Clock, 
-  AlertCircle
+  AlertCircle,
+  MoreHorizontal,
+  XCircle,
+  Trash2
 } from "lucide-react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { terminateContract } from "@/lib/finance-api";
+import { toast } from "sonner";
+import { TerminateRecurrenceDialog } from "@/components/finance/TerminateRecurrenceDialog";
+
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -50,7 +68,11 @@ const getTypeLabel = (type: string | null) => {
 };
 
 export function ClientContracts({ clientId }: { clientId: string }) {
+  const qc = useQueryClient();
+  const [terminatingContractId, setTerminatingContractId] = useState<string | null>(null);
+
   const { data: contracts = [], isLoading } = useQuery({
+
     queryKey: ["contracts", clientId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -95,7 +117,29 @@ export function ClientContracts({ clientId }: { clientId: string }) {
                     {contract.title}
                   </h4>
                 </div>
-                {getStatusBadge(contract.status)}
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(contract.status)}
+                  {contract.status === "active" && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-8 rounded-full">
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>Gestão de Contrato</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          className="text-rose-400"
+                          onClick={() => setTerminatingContractId(contract.id)}
+                        >
+                          <XCircle className="size-4 mr-2" /> Encerrar Contrato
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+
               </div>
 
               <div className="grid grid-cols-2 gap-4 mt-6">
@@ -131,6 +175,31 @@ export function ClientContracts({ clientId }: { clientId: string }) {
           ))}
         </div>
       )}
+
+      {terminatingContractId && (
+        <TerminateContractWorkflow 
+          contractId={terminatingContractId} 
+          onClose={() => setTerminatingContractId(null)} 
+        />
+      )}
     </div>
   );
 }
+
+function TerminateContractWorkflow({ contractId, onClose }: { contractId: string; onClose: () => void }) {
+  const handleConfirm = async (mode: "keep" | "cancel" | "delete") => {
+    return terminateContract(contractId, mode);
+  };
+
+  return (
+    <TerminateRecurrenceDialog 
+      recurrenceId={contractId} 
+      onClose={onClose}
+      onConfirm={handleConfirm}
+      title="Encerrar Contrato"
+      description="Ao encerrar o contrato, o que deseja fazer com as cobranças recorrentes vinculadas a ele?"
+    />
+  );
+}
+
+

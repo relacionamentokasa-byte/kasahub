@@ -20,7 +20,16 @@ import {
   LineChart as LineIcon,
   Landmark,
   Link as LinkIcon,
+  MoreHorizontal,
+  Pause,
+  Play,
+  XCircle,
+  Calendar,
+  Tag,
+  Briefcase,
+  CheckSquare,
 } from "lucide-react";
+
 import {
   ResponsiveContainer,
   BarChart,
@@ -39,6 +48,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -63,7 +82,11 @@ import {
   fetchContracts,
   fetchTransactions,
   markPaid,
+  bulkDeleteTransactions,
+  bulkUpdateTransactions,
+  updateRecurrence,
 } from "@/lib/finance-api";
+
 import { fetchClients } from "@/lib/ops-api";
 import { NewTransactionDialog } from "@/components/finance/NewTransactionDialog";
 import { NewBankAccountDialog } from "@/components/finance/NewBankAccountDialog";
@@ -71,6 +94,9 @@ import { ImportTransactionsDialog } from "@/components/finance/ImportTransaction
 import { SettleTransactionDialog } from "@/components/finance/SettleTransactionDialog";
 import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
+import { DeleteFutureInstallmentsDialog } from "@/components/finance/DeleteFutureInstallmentsDialog";
+import { TerminateRecurrenceDialog } from "@/components/finance/TerminateRecurrenceDialog";
+
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA OS" }] }),
@@ -115,6 +141,10 @@ function FinanceiroPage() {
   const [openAcc, setOpenAcc] = useState(false);
   const [openImport, setOpenImport] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteFutureRecurrenceId, setDeleteFutureRecurrenceId] = useState<string | null>(null);
+  const [terminateRecurrenceId, setTerminateRecurrenceId] = useState<string | null>(null);
+
 
   function shiftMonth(delta: number) {
     const d = new Date(year, month + delta, 1);
@@ -171,6 +201,38 @@ function FinanceiroPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bank_accounts"] }),
   });
 
+  const bulkDelete = useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteTransactions(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setSelectedIds([]);
+      toast.success("Transações excluídas com sucesso");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkUpdate = useMutation({
+    mutationFn: ({ ids, patch }: { ids: string[]; patch: any }) => bulkUpdateTransactions(ids, patch),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setSelectedIds([]);
+      toast.success("Transações atualizadas com sucesso");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleRecurrenceStatus = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: "active" | "paused" | "terminated" }) => 
+      updateRecurrence(id, { status }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["recurrences"] });
+      toast.success("Status da recorrência atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   // Visão Mensal aggregations
   const monthly = chartData.map((m) => ({ ...m, profit: m.income - m.expense }));
 
@@ -221,6 +283,60 @@ function FinanceiroPage() {
                 <ChevronRight className="size-4" />
               </Button>
             </div>
+
+            {/* Bulk Actions Toolbar */}
+            {selectedIds.length > 0 && (
+              <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-2xl px-5 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-primary">{selectedIds.length} selecionados</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedIds([])}
+                    className="h-8 text-[11px] uppercase tracking-wider"
+                  >
+                    Desmarcar tudo
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" className="h-8 rounded-full gap-2">
+                        Ações em Massa <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => bulkUpdate.mutate({ ids: selectedIds, patch: { status: 'paid', paid_at: new Date().toISOString().slice(0,10) } })}>
+                        <CheckCircle2 className="size-4 mr-2 text-emerald-400" /> Dar baixa
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => bulkUpdate.mutate({ ids: selectedIds, patch: { status: 'pending', paid_at: null } })}>
+                        <Clock className="size-4 mr-2" /> Remover baixa
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => {
+                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
+                        if (firstRecurrenceId) setDeleteFutureRecurrenceId(firstRecurrenceId);
+                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                      }}>
+                        <Calendar className="size-4 mr-2" /> Excluir parcelas futuras
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
+                        if (firstRecurrenceId) setTerminateRecurrenceId(firstRecurrenceId);
+                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                      }}>
+                        <XCircle className="size-4 mr-2" /> Encerrar recorrência
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-rose-400" onClick={() => bulkDelete.mutate(selectedIds)}>
+                        <Trash2 className="size-4 mr-2" /> Excluir selecionadas
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            )}
+
 
             {/* KPI grid — apenas 4 indicadores */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -286,9 +402,19 @@ function FinanceiroPage() {
               <div className="px-5 py-3 border-b border-border font-display font-semibold">
                 Lançamentos de {monthLabelShort}
               </div>
-              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border">
-                <div className="col-span-1">Status</div>
+              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center">
+                <div className="col-span-1 flex items-center gap-3">
+                  <Checkbox 
+                    checked={rows.length > 0 && selectedIds.length === rows.length}
+                    onCheckedChange={(checked) => {
+                      if (checked) setSelectedIds(rows.map(r => r.id));
+                      else setSelectedIds([]);
+                    }}
+                  />
+                  <span>Status</span>
+                </div>
                 <div className="col-span-3">Descrição</div>
+
                 <div className="col-span-2">Categoria</div>
                 <div className="col-span-2">Cliente</div>
                 <div className="col-span-1 text-right">Valor</div>
@@ -310,13 +436,21 @@ function FinanceiroPage() {
                     : { label: "Manual", tone: "text-foreground/40 border-border" };
                   return (
                     <div key={t.id} className="grid grid-cols-12 px-5 py-3 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
-                      <div className="col-span-1">
+                      <div className="col-span-1 flex items-center gap-3">
+                        <Checkbox 
+                          checked={selectedIds.includes(t.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) setSelectedIds(prev => [...prev, t.id]);
+                            else setSelectedIds(prev => prev.filter(id => id !== t.id));
+                          }}
+                        />
                         {t.status === "paid" ? (
                           <CheckCircle2 className="size-5 text-emerald-400" />
                         ) : (
                           <Circle className={`size-5 ${overdue ? "text-rose-400" : "text-foreground/30"}`} />
                         )}
                       </div>
+
                       <div className="col-span-3 min-w-0">
                         <div className="text-sm font-medium truncate flex items-center gap-2">
                           {t.description}
@@ -348,22 +482,46 @@ function FinanceiroPage() {
                           >
                             Dar baixa
                           </Button>
-                        ) : (
-                          <button
-                            onClick={() => togglePaid.mutate({ id: t.id, paid: false })}
-                            className="text-[10px] text-foreground/40 hover:text-foreground/70"
-                            title="Reverter baixa"
-                          >
-                            Reverter
-                          </button>
-                        )}
-                        <button
-                          onClick={() => delTx.mutate(t.id)}
-                          className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-rose-400"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
+                        ) : null}
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-full">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            {t.status === "paid" && (
+                              <DropdownMenuItem onClick={() => togglePaid.mutate({ id: t.id, paid: false })}>
+                                <Clock className="size-4 mr-2" /> Reverter baixa
+                              </DropdownMenuItem>
+                            )}
+                            
+                            {t.recurrence_id && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Recorrência</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => setDeleteFutureRecurrenceId(t.recurrence_id)}>
+                                  <Trash2 className="size-4 mr-2 text-rose-400" /> Excluir Parcelas Futuras
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTerminateRecurrenceId(t.recurrence_id)}>
+                                  <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Recorrência
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: t.recurrence_id!, status: 'paused' })}>
+                                  <Pause className="size-4 mr-2" /> Pausar Recorrência
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-rose-400" onClick={() => delTx.mutate(t.id)}>
+                              <Trash2 className="size-4 mr-2" /> Excluir Lançamento
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
+
                     </div>
                   );
                 })
@@ -515,6 +673,17 @@ function FinanceiroPage() {
       <NewBankAccountDialog open={openAcc} onOpenChange={setOpenAcc} />
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
+      
+      <DeleteFutureInstallmentsDialog 
+        recurrenceId={deleteFutureRecurrenceId} 
+        onClose={() => setDeleteFutureRecurrenceId(null)} 
+      />
+      
+      <TerminateRecurrenceDialog 
+        recurrenceId={terminateRecurrenceId} 
+        onClose={() => setTerminateRecurrenceId(null)} 
+      />
+
     </div>
   );
 }

@@ -233,6 +233,22 @@ export async function approveProposal(
       ? new Date(proposal.first_due_date)
       : safeBillingDay(new Date().getFullYear(), new Date().getMonth(), billingDay);
 
+    // Create recurrence
+    const { data: recurrence, error: recErr } = await sb
+      .from("recurrences")
+      .insert({
+        start_date: ymd(start),
+        status: "active",
+        amount: monthly,
+        description: proposal.title,
+        contract_id: contractId,
+        owner_id: proposal.owner_id ?? null,
+      })
+      .select("id")
+      .single();
+    
+    if (recErr) throw recErr;
+
     // existing months for this contract to avoid dupes
     const { data: existingTx } = await sb
       .from("transactions")
@@ -260,6 +276,7 @@ export async function approveProposal(
         project_id: projectId,
         proposal_id: proposal.id,
         contract_id: contractId,
+        recurrence_id: recurrence.id,
         owner_id: proposal.owner_id ?? null,
       });
     }
@@ -269,6 +286,7 @@ export async function approveProposal(
       txCreated += rows.length;
     }
   }
+
 
   // 6b. One-time (installments)
   const oneTime = Number(proposal.one_time_investment ?? 0);
@@ -287,13 +305,28 @@ export async function approveProposal(
       const base = proposal.first_due_date
         ? new Date(proposal.first_due_date)
         : new Date();
+
+      // Create recurrence for installments too
+      const { data: recurrence } = await sb
+        .from("recurrences")
+        .insert({
+          start_date: ymd(base),
+          status: "active",
+          amount: oneTime,
+          description: `${proposal.title} (Parcelado)`,
+          contract_id: contractId,
+          owner_id: proposal.owner_id ?? null,
+        })
+        .select("id")
+        .single();
+
       const rows = Array.from({ length: installments }).map((_, i) => ({
         kind: "income",
         description: `${proposal.title} — Parcela ${i + 1}/${installments}`,
         amount,
         due_date: ymd(addMonths(base, i)),
         status: "pending",
-        is_recurring: false,
+        is_recurring: installments > 1,
         installment_number: i + 1,
         installment_total: installments,
         account_id: proposal.account_id ?? null,
@@ -302,12 +335,14 @@ export async function approveProposal(
         project_id: projectId,
         proposal_id: proposal.id,
         contract_id: contractId,
+        recurrence_id: recurrence?.id ?? null,
         owner_id: proposal.owner_id ?? null,
       }));
       const { error: txErr } = await sb.from("transactions").insert(rows);
       if (txErr) throw txErr;
       txCreated += rows.length;
     }
+
   }
 
   // 7. Update proposal status + linkage
