@@ -52,7 +52,7 @@ function ProjetosPage() {
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name, avatar_url");
+      const { data } = await supabase.from("profiles").select("id, full_name, display_name, avatar_url");
       return data || [];
     }
   });
@@ -295,16 +295,17 @@ function ProjetosPage() {
                       {(() => {
                         const owner = users.find(u => u.id === (p as any).responsible_id || u.id === p.owner_id);
                         if (!owner) return null;
+                        const ownerName = owner.display_name || owner.full_name || "Membro";
                         return (
                           <div className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase font-bold tracking-wider">
                             <div className="size-5 rounded-full bg-foreground/5 overflow-hidden flex items-center justify-center shrink-0 border border-border/40">
                               {(owner as any).avatar_url ? (
                                 <img src={(owner as any).avatar_url} alt="" className="size-full object-cover" />
                               ) : (
-                                <span className="text-[8px]">{(owner as any).full_name?.charAt(0)}</span>
+                                <span className="text-[8px]">{ownerName.charAt(0)}</span>
                               )}
                             </div>
-                            <span className="truncate">Resp: {(owner as any).full_name?.split(' ')[0]}</span>
+                            <span className="truncate">Resp: {ownerName.split(' ')[0]}</span>
                           </div>
                         );
                       })()}
