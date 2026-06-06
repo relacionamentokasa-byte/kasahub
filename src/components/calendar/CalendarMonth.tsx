@@ -113,7 +113,7 @@ export function CalendarMonth({ clientId, onSelectEvent }: Props) {
                     onClick={() => onSelectEvent?.(e)}
                     className={cn(
                       "text-[10px] px-1.5 py-0.5 rounded border text-left truncate",
-                      KIND_COLOR[e.kind] || KIND_COLOR.other,
+                      KIND_COLOR[e.kind as keyof typeof KIND_COLOR] || KIND_COLOR.other,
                     )}
                   >
                     {e.title}
@@ -130,7 +130,7 @@ export function CalendarMonth({ clientId, onSelectEvent }: Props) {
 
       <div className="flex flex-wrap gap-2">
         {Object.entries(KIND_LABEL).map(([k, l]) => (
-          <Badge key={k} variant="outline" className={cn("text-[10px] font-mono-kasa uppercase", KIND_COLOR[k])}>
+          <Badge key={k} variant="outline" className={cn("text-[10px] font-mono-kasa uppercase", KIND_COLOR[k as keyof typeof KIND_COLOR])}>
             {l}
           </Badge>
         ))}
