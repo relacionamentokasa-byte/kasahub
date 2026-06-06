@@ -271,9 +271,11 @@ function FinanceiroPage() {
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="bg-surface border border-border">
             <TabsTrigger value="list" className="gap-2"><List className="size-4" /> Lista</TabsTrigger>
+            <TabsTrigger value="recurrences" className="gap-2"><Clock className="size-4" /> Recorrências</TabsTrigger>
             <TabsTrigger value="monthly" className="gap-2"><BarChart3 className="size-4" /> Visão Mensal</TabsTrigger>
             <TabsTrigger value="annual" className="gap-2"><LineIcon className="size-4" /> Previsão Anual</TabsTrigger>
             <TabsTrigger value="accounts" className="gap-2"><Landmark className="size-4" /> Contas Banc.</TabsTrigger>
+
           </TabsList>
 
           {/* ============ LISTA ============ */}
