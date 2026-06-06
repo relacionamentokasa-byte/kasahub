@@ -567,20 +567,9 @@ function PublicProposalView() {
                 </Button>
               </div>
             </div>
-
-              <div className="hidden print:block">
-                <div className="border-t border-slate-400 pt-2 text-xs text-slate-600 text-center">
-                  Assinatura do cliente — {proposal.client_name}
-                </div>
-              </div>
-              <div className="hidden print:block">
-                <div className="border-t border-slate-400 pt-2 text-xs text-slate-600 text-center">
-                  Assinatura {agency?.name ?? "Kasa Marketing"}
-                </div>
-              </div>
-            </div>
           )}
         </div>
+
 
         <div className="px-8 py-4 text-center text-[10px] text-slate-400 border-t border-slate-100">
           {agency?.name ?? "Kasa Marketing"} · Documento gerado por KASA HUB
