@@ -59,6 +59,7 @@ export async function generateJobsForProject(
   projectId: string,
   clientId: string,
   serviceIds: string[],
+  period?: string,
 ) {
   if (!serviceIds.length) return { created: 0 };
   const stages = await fetchJobStages();
@@ -86,6 +87,7 @@ export async function generateJobsForProject(
           stage_id: t.initial_stage_id ?? firstStageId,
           assignee_id: t.default_assignee_id ?? null,
           order_index: t.order_index,
+          period: period || null,
           due_date:
             t.default_duration_days && t.default_duration_days > 0
               ? new Date(Date.now() + t.default_duration_days * 86400000)
