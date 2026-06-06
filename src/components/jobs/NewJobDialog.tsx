@@ -42,6 +42,10 @@ export function NewJobDialog({
   const qc = useQueryClient();
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: freelancers = [] } = useQuery({ 
+    queryKey: ["partners", "freelancer"], 
+    queryFn: () => fetchPartners("freelancer") 
+  });
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -51,6 +55,7 @@ export function NewJobDialog({
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
     period: defaultPeriod ?? "",
+    freelancer_id: "",
   });
 
 
