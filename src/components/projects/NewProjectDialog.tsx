@@ -180,40 +180,24 @@ export function NewProjectDialog({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1.5">
-              <Label>Contrato</Label>
+              <Label>Contrato <span className="text-destructive">*</span></Label>
               <Select
-                value={form.contract_id || "__none__"}
-                onValueChange={(v) => setForm({ ...form, contract_id: v === "__none__" ? "" : v })}
+                value={form.contract_id || undefined}
+                onValueChange={(v) => setForm({ ...form, contract_id: v })}
                 disabled={!form.client_id}
               >
-                <SelectTrigger><SelectValue placeholder="Nenhum" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecione o contrato de origem" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">Nenhum</SelectItem>
                   {clientContracts.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Proposta</Label>
-              <Select
-                value={form.proposal_id || "__none__"}
-                onValueChange={(v) => setForm({ ...form, proposal_id: v === "__none__" ? "" : v })}
-                disabled={!form.client_id}
-              >
-                <SelectTrigger><SelectValue placeholder="Nenhuma" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Nenhuma</SelectItem>
-                  {clientProposals.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
           </div>
+
 
           <div className="space-y-1.5">
             <Label>Prazo final</Label>
@@ -228,9 +212,10 @@ export function NewProjectDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.name}
+            disabled={mut.isPending || !form.name || !form.client_id || !form.contract_id}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
+
             Criar
           </Button>
         </DialogFooter>

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2, FileSignature } from "lucide-react";
+import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2, FileSignature, Users } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchClients, deleteProject, duplicateProject, archiveProject } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/projetos")({
 
 function ProjetosPage() {
   const qc = useQueryClient();
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const { data: projects = [], isLoading } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: allContracts = [] } = useQuery({
     queryKey: ["all-contracts"],
@@ -33,11 +34,38 @@ function ProjetosPage() {
       return data || [];
     }
   });
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name, avatar_url");
+      return data || [];
+    }
+  });
+
+
+  const { data: allJobs = [] } = useQuery({
+    queryKey: ["all-jobs-stats"],
+    queryFn: async () => {
+      const { data } = await supabase.from("jobs").select("id, project_id, done_at, stage_id");
+      return data || [];
+    }
+  });
+
+  const { data: stages = [] } = useQuery({ 
+    queryKey: ["job-stages"], 
+    queryFn: async () => {
+      const { data } = await supabase.from("job_stages").select("id, is_done");
+      return data || [];
+    } 
+  });
+
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const clientById = new Map(clients.map((c) => [c.id, c]));
+  const doneStageIds = new Set(stages.filter(s => s.is_done).map(s => s.id));
+
   const editingProject = editingId ? projects.find((p) => p.id === editingId) ?? null : null;
 
   const delMut = useMutation({
@@ -99,78 +127,113 @@ function ProjetosPage() {
               const ct = allContracts.find(x => x.id === p.contract_id);
               return (
                 <div key={p.id} className="relative group">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedId(p.id)}
+                  <Link
+                    to="/projetos/$projectId"
+                    params={{ projectId: p.id }}
                     className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
                   >
-                    {p.cover_url && (
-                      <img src={p.cover_url} alt="" className="w-full h-24 rounded-lg object-cover mb-3" />
-                    )}
-                    <div className="flex items-center gap-2 mb-2 pr-8">
-                      <span className="size-2 rounded-full" style={{ background: p.color ?? "#FFBC45" }} />
-                      <span className="text-[10px] capitalize text-foreground/40">
-                        {p.status}
-                      </span>
-                    </div>
-                    <div className="font-display font-semibold text-lg leading-tight">{p.name}</div>
-                    
-                    <div className="mt-2 space-y-1">
-                      {c && (
-                        <div className="text-xs text-foreground/50">{c.company || c.name}</div>
-                      )}
-                      {ct && (
-                        <div className="text-[10px] text-primary flex items-center gap-1 uppercase font-medium">
-                          <FileSignature className="size-3" /> {ct.title}
-                        </div>
-                      )}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2 pr-8">
+                        <span className="size-2 rounded-full" style={{ background: p.color ?? "#FFBC45" }} />
+                        <span className="text-[10px] capitalize text-foreground/40 font-mono-kasa">
+                          {p.status === 'completed' ? 'Concluído' : p.status === 'cancelled' ? 'Cancelado' : p.status}
+                        </span>
+
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            type="button"
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            className="p-1.5 rounded-md text-foreground/40 hover:text-foreground hover:bg-surface-elevated transition opacity-0 group-hover:opacity-100"
+                          >
+                            <MoreVertical className="size-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={(e) => { e.preventDefault(); setEditingId(p.id); }} className="gap-2">
+                            <Pencil className="size-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => { e.preventDefault(); dupMut.mutate(p.id); }} className="gap-2">
+                            <Copy className="size-4" /> Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={(e) => { e.preventDefault(); archiveMut.mutate(p.id); }} className="gap-2">
+                            <Archive className="size-4" /> Arquivar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.preventDefault();
+                              if (confirm(`Remover "${p.name}"? Esta ação não pode ser desfeita.`)) {
+                                delMut.mutate(p.id);
+                              }
+                            }}
+                            className="gap-2 text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="size-4" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
 
-                    {p.due_date && (
-                      <div className="text-[10px] text-foreground/40 mt-3 capitalize">
-                        Prazo · {p.due_date}
-                      </div>
-                    )}
-                  </button>
-                  <div className="absolute top-3 right-3">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          type="button"
-                          className="p-2 rounded-md text-foreground/60 hover:text-foreground hover:bg-surface-elevated transition"
-                          aria-label="Ações"
-                        >
-                          <MoreVertical className="size-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuItem onClick={() => setSelectedId(p.id)} className="gap-2">
-                          <Eye className="size-4" /> Visualizar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setEditingId(p.id)} className="gap-2">
-                          <Pencil className="size-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => dupMut.mutate(p.id)} className="gap-2">
-                          <Copy className="size-4" /> Duplicar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => archiveMut.mutate(p.id)} className="gap-2">
-                          <Archive className="size-4" /> Arquivar
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={() => {
-                            if (confirm(`Remover "${p.name}"? Esta ação não pode ser desfeita.`)) {
-                              delMut.mutate(p.id);
-                            }
-                          }}
-                          className="gap-2 text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="size-4" /> Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                    <div className="font-display font-bold text-xl leading-tight group-hover:text-primary transition-colors">{p.name}</div>
+                    
+                    <div className="mt-4 space-y-2.5">
+                      {c && (
+                        <div className="flex items-center gap-2 text-xs text-foreground/60">
+                          <div className="size-5 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                            <Users className="size-3 text-primary" />
+                          </div>
+                          <span className="truncate font-medium">{c.company || c.name}</span>
+                        </div>
+                      )}
+                      {ct && (
+                        <div className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase font-bold tracking-wider">
+                          <div className="size-5 rounded bg-foreground/5 flex items-center justify-center shrink-0">
+                            <FileSignature className="size-3" />
+                          </div>
+                          <span className="truncate">{ct.title}</span>
+                        </div>
+                      )}
+                      {(() => {
+                        const owner = users.find(u => u.id === p.owner_id);
+                        if (!owner) return null;
+                        return (
+                          <div className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase font-bold tracking-wider">
+                            <div className="size-5 rounded-full bg-foreground/5 overflow-hidden flex items-center justify-center shrink-0">
+                              {owner.avatar_url ? (
+                                <img src={owner.avatar_url} alt="" className="size-full object-cover" />
+                              ) : (
+                                <span className="text-[8px]">{owner.full_name?.charAt(0)}</span>
+                              )}
+                            </div>
+                            <span className="truncate">Resp: {owner.full_name?.split(' ')[0]}</span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+
+                    {(() => {
+                      const pJobs = allJobs.filter(j => j.project_id === p.id);
+                      const total = pJobs.length;
+                      const done = pJobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
+                      const progress = total === 0 ? 0 : Math.round((done / total) * 100);
+                      return (
+                        <div className="mt-5 space-y-2">
+                          <div className="flex justify-between items-end">
+                            <span className="text-[10px] text-foreground/40 font-mono-kasa">{total} Jobs · {done} Concluídos</span>
+                            <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
+                          </div>
+                          <div className="h-1.5 bg-background rounded-full overflow-hidden">
+                            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </Link>
                 </div>
+
               );
             })}
           </div>

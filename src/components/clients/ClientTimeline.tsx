@@ -32,9 +32,9 @@ const EVENT_ICONS: Record<string, any> = {
 
 import { Activity } from "lucide-react";
 
-export function ClientTimeline({ clientId, leadId }: { clientId?: string; leadId?: string }) {
+export function ClientTimeline({ clientId, leadId, projectId }: { clientId?: string; leadId?: string; projectId?: string }) {
   const { data: events = [], isLoading } = useQuery({
-    queryKey: ["client-timeline", clientId || leadId],
+    queryKey: ["client-timeline", clientId || leadId || projectId],
     queryFn: async () => {
       let q = supabase
         .from("client_timeline_events")
@@ -46,10 +46,17 @@ export function ClientTimeline({ clientId, leadId }: { clientId?: string; leadId
       
       const { data, error } = await q;
       if (error) throw error;
-      return data as TimelineEvent[];
+      
+      let filtered = data as TimelineEvent[];
+      if (projectId) {
+        filtered = filtered.filter(ev => ev.metadata?.project_id === projectId);
+      }
+      
+      return filtered;
     },
-    enabled: !!(clientId || leadId),
+    enabled: !!(clientId || leadId || projectId),
   });
+
 
   if (isLoading) return <div className="p-10 text-center text-foreground/40 text-xs">Carregando linha do tempo…</div>;
 

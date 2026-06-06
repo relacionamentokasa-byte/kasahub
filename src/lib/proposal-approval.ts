@@ -85,34 +85,14 @@ export async function approveProposal(
     }
   }
 
-  // 3. Project (idempotent)
+  // 3. Project - One project per contract
   let projectId: string | null = proposal.generated_project_id ?? null;
-  if (projectId) {
-    // reactivate if archived
-    await sb.from("projects").update({ status: "active" }).eq("id", projectId);
-  } else {
-    const { data: createdProject, error: prjErr } = await sb
-      .from("projects")
-      .insert({
-        name: proposal.title,
-        client_id: clientId,
-        proposal_id: proposal.id,
-        briefing: proposal.briefing ?? proposal.intro ?? null,
-        owner_id: proposal.responsible_id ?? proposal.owner_id ?? null,
-        status: "active",
-      })
-      .select("id")
-      .single();
-    if (prjErr) throw prjErr;
-    projectId = createdProject.id;
-  }
-
+  
   // 4. Contract (Mandatory in new architecture)
   let contractId: string | null = proposal.generated_contract_id ?? null;
   const monthly = Number(proposal.monthly_investment ?? 0);
   const totalValue = Number(proposal.total ?? proposal.one_time_investment ?? 0);
   
-  // Map proposal values to contract
   const contractData = {
     title: proposal.title,
     client_id: clientId,
@@ -139,8 +119,49 @@ export async function approveProposal(
     contractId = createdContract.id;
   }
 
-  // Ensure project is linked to contract
-  await sb.from("projects").update({ contract_id: contractId }).eq("id", projectId);
+  // Now handle project creation/linkage
+  if (projectId) {
+    // reactivate if archived and ensure linkage
+    await sb.from("projects").update({ 
+      status: "active", 
+      contract_id: contractId,
+      client_id: clientId
+    }).eq("id", projectId);
+  } else {
+    // Check if contract already has a project
+    const { data: existingPrj } = await sb.from("projects")
+      .select("id")
+      .eq("contract_id", contractId)
+      .maybeSingle();
+      
+    if (existingPrj) {
+      projectId = existingPrj.id;
+      await sb.from("projects").update({ status: "active" }).eq("id", projectId);
+    } else {
+      const { data: createdProject, error: prjErr } = await sb
+        .from("projects")
+        .insert({
+          name: proposal.title,
+          client_id: clientId,
+          proposal_id: proposal.id,
+          contract_id: contractId,
+          briefing: proposal.briefing ?? proposal.intro ?? null,
+          owner_id: proposal.responsible_id ?? proposal.owner_id ?? null,
+          status: "active",
+        })
+        .select("id")
+        .single();
+      if (prjErr) throw prjErr;
+      projectId = createdProject.id;
+    }
+  }
+
+  // Update proposal with the generated IDs if they changed
+  await sb.from("proposals").update({
+    generated_project_id: projectId,
+    generated_contract_id: contractId
+  }).eq("id", proposalId);
+
 
   // 4b. Sync Client Services (for tracking what's active for this client)
   if (proposal.service_ids?.length) {
