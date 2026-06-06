@@ -289,8 +289,11 @@ export type Database = {
           description: string | null
           ends_at: string | null
           external_id: string | null
+          google_calendar_id: string | null
+          google_event_id: string | null
           id: string
           kind: string | null
+          last_synced_at: string | null
           origin_id: string | null
           origin_type: string | null
           project_id: string | null
@@ -309,8 +312,11 @@ export type Database = {
           description?: string | null
           ends_at?: string | null
           external_id?: string | null
+          google_calendar_id?: string | null
+          google_event_id?: string | null
           id?: string
           kind?: string | null
+          last_synced_at?: string | null
           origin_id?: string | null
           origin_type?: string | null
           project_id?: string | null
@@ -329,8 +335,11 @@ export type Database = {
           description?: string | null
           ends_at?: string | null
           external_id?: string | null
+          google_calendar_id?: string | null
+          google_event_id?: string | null
           id?: string
           kind?: string | null
+          last_synced_at?: string | null
           origin_id?: string | null
           origin_type?: string | null
           project_id?: string | null
@@ -888,6 +897,42 @@ export type Database = {
           kind?: string
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      google_calendar_connections: {
+        Row: {
+          created_at: string | null
+          google_account_email: string | null
+          id: string
+          is_bidirectional: boolean | null
+          is_sync_enabled: boolean | null
+          last_pulled_at: string | null
+          selected_calendar_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          google_account_email?: string | null
+          id?: string
+          is_bidirectional?: boolean | null
+          is_sync_enabled?: boolean | null
+          last_pulled_at?: string | null
+          selected_calendar_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          google_account_email?: string | null
+          id?: string
+          is_bidirectional?: boolean | null
+          is_sync_enabled?: boolean | null
+          last_pulled_at?: string | null
+          selected_calendar_id?: string | null
+          updated_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
