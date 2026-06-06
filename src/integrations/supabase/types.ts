@@ -145,6 +145,14 @@ export type Database = {
           notify_whatsapp: boolean
           phone: string | null
           plan_name: string | null
+          pwa_background_color: string | null
+          pwa_description: string | null
+          pwa_favicon_url: string | null
+          pwa_icon_192_url: string | null
+          pwa_icon_512_url: string | null
+          pwa_name: string | null
+          pwa_short_name: string | null
+          pwa_theme_color: string | null
           timezone: string
           updated_at: string
           user_limit: number | null
@@ -169,6 +177,14 @@ export type Database = {
           notify_whatsapp?: boolean
           phone?: string | null
           plan_name?: string | null
+          pwa_background_color?: string | null
+          pwa_description?: string | null
+          pwa_favicon_url?: string | null
+          pwa_icon_192_url?: string | null
+          pwa_icon_512_url?: string | null
+          pwa_name?: string | null
+          pwa_short_name?: string | null
+          pwa_theme_color?: string | null
           timezone?: string
           updated_at?: string
           user_limit?: number | null
@@ -193,6 +209,14 @@ export type Database = {
           notify_whatsapp?: boolean
           phone?: string | null
           plan_name?: string | null
+          pwa_background_color?: string | null
+          pwa_description?: string | null
+          pwa_favicon_url?: string | null
+          pwa_icon_192_url?: string | null
+          pwa_icon_512_url?: string | null
+          pwa_name?: string | null
+          pwa_short_name?: string | null
+          pwa_theme_color?: string | null
           timezone?: string
           updated_at?: string
           user_limit?: number | null
