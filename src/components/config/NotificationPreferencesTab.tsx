@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchMyProfile } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 function ToggleRow({
   title,
@@ -256,7 +258,7 @@ export function NotificationPreferencesTab() {
 
           {testResults && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-              {testResults.map((res, i) => (
+              {testResults.map((res: any, i: number) => (
                 <div key={i} className="p-3 rounded-lg border border-border bg-background/50 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-mono-kasa uppercase text-foreground/40">{res.channel}</span>
