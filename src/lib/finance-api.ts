@@ -88,7 +88,7 @@ export async function deleteContract(id: string) {
   if (error) throw error;
 }
 
-export async function terminateContract(id: string, cleanupMode: "keep" | "cancel" | "delete") {
+export async function terminateContract(id: string, cleanupMode: "keep" | "cancel" | "delete", extras: { cancelProjects?: boolean, cancelJobs?: boolean } = {}) {
   // 1. Update contract status
   const { error: ctErr } = await supabase.from("contracts").update({ status: "finished" }).eq("id", id);
   if (ctErr) throw ctErr;
@@ -115,7 +115,40 @@ export async function terminateContract(id: string, cleanupMode: "keep" | "cance
     }
   }
 
+  // 3. Optional cascade to projects and jobs
+  if (extras.cancelProjects || extras.cancelJobs) {
+    const { data: projects } = await supabase.from("projects").select("id").eq("contract_id", id);
+    if (projects && projects.length > 0) {
+      const projIds = projects.map(p => p.id);
+      if (extras.cancelProjects) {
+        await supabase.from("projects").update({ status: "finished" }).in("id", projIds);
+      }
+      if (extras.cancelJobs) {
+        await supabase.from("jobs").update({ status: "cancelled" }).in("project_id", projIds).neq("status", "done");
+      }
+    }
+  }
+
+  await logAudit("terminate", "contract", id, null, { cleanupMode, ...extras });
   return result;
+}
+
+async function logAudit(action: string, entity_type: string, entity_id: string, old_data: any, new_data: any) {
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    
+    await supabase.from("audit_logs").insert({
+      user_id: u.user.id,
+      action,
+      entity_type,
+      entity_id,
+      old_data,
+      new_data
+    });
+  } catch (e) {
+    console.error("Audit log failed", e);
+  }
 }
 
 
