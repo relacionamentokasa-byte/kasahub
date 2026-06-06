@@ -77,23 +77,36 @@ function formatCurrency(value: number, currency = "BRL") {
 
 function PublicProposalView() {
   const { token } = Route.useParams();
-  const [data, setData] = useState<{ proposal: Proposal; items: Item[]; agency: Agency } | null>(
-    null,
-  );
+  const [data, setData] = useState<{
+    proposal: Proposal;
+    items: Item[];
+    agency: Agency;
+    client: Client;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
   const [signerName, setSignerName] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [signerCpf, setSignerCpf] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     try {
       const res = await fetch(`/api/public/proposal/${token}`);
-      if (!res.ok) throw new Error("Proposta não encontrada");
+      if (res.status === 404) {
+        setErrorCode("not_found");
+        return;
+      }
+      if (!res.ok) {
+        setErrorCode("generic");
+        return;
+      }
       const json = await res.json();
       setData(json);
-    } catch (e) {
-      setError((e as Error).message);
+      setErrorCode(null);
+    } catch {
+      setErrorCode("generic");
     } finally {
       setLoading(false);
     }
@@ -114,8 +127,16 @@ function PublicProposalView() {
   const brand = data?.agency?.brand_primary ?? "#FFBC45";
 
   async function sign() {
-    if (!signerName.trim()) {
+    if (!signerName.trim() || signerName.trim().length < 2) {
       toast.error("Informe seu nome completo");
+      return;
+    }
+    if (!signerCpf.trim() || signerCpf.replace(/\D/g, "").length < 11) {
+      toast.error("Informe um CPF válido");
+      return;
+    }
+    if (!acceptTerms) {
+      toast.error("Confirme que leu e concorda com os termos");
       return;
     }
     setSigning(true);
@@ -123,10 +144,19 @@ function PublicProposalView() {
       const res = await fetch(`/api/public/proposal/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accepted_name: signerName }),
+        body: JSON.stringify({
+          accepted_name: signerName.trim(),
+          accepted_cpf: signerCpf.trim(),
+          accepted_terms: true,
+        }),
       });
-      if (!res.ok) throw new Error("Falha ao assinar");
-      toast.success("Proposta assinada com sucesso!");
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        if (j.error === "cancelled") throw new Error("Esta proposta não está mais disponível.");
+        if (j.error === "already_accepted") throw new Error("Esta proposta já foi aprovada.");
+        throw new Error(j.error || "Falha ao assinar");
+      }
+      toast.success("Proposta aprovada e assinada com sucesso!");
       await load();
     } catch (e) {
       toast.error((e as Error).message);
@@ -134,6 +164,7 @@ function PublicProposalView() {
       setSigning(false);
     }
   }
+
 
   const grouped = useMemo(() => {
     if (!data) return { monthly: [], one_time: [] };
