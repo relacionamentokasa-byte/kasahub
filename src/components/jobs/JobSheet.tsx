@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectTrigger,
@@ -28,11 +29,16 @@ import {
   fetchJobComments,
   toggleChecklistItem,
   updateJob,
+  fetchJobHistory,
+  fetchJobAttachments,
+  addJobAttachment,
+  JOB_STATUS_LABELS,
   type Job,
   type JobStage,
 } from "@/lib/ops-api";
-import { Trash2, Plus, Send } from "lucide-react";
+import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export function JobSheet({
   job,
