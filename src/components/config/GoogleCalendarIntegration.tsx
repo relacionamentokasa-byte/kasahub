@@ -23,6 +23,7 @@ import { supabase } from "@/integrations/supabase/client";
 export function GoogleCalendarIntegration() {
   const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
 
   const { data: connection, isLoading } = useQuery({
     queryKey: ["google-calendar-connection"],
@@ -45,23 +46,29 @@ export function GoogleCalendarIntegration() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["google-calendar-connection"] });
       toast.success("Integração desconectada.");
+      setEmailInput("");
     },
   });
 
-  const handleConnect = async () => {
+  const handleConnect = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!emailInput || !emailInput.includes("@")) {
+      toast.error("Por favor, insira um e-mail válido.");
+      return;
+    }
+
     setIsConnecting(true);
     try {
-      // In a real app with standard_connectors, we would call the tool
-      // Here we simulate the connection flow
       await updateMutation.mutateAsync({
-        google_account_email: "usuario@gmail.com", // This would come from the OAuth flow
+        google_account_email: emailInput,
         is_sync_enabled: true,
-        is_bidirectional: true
+        is_bidirectional: true,
+        selected_calendar_id: 'primary'
       });
-      toast.success("Google Calendar conectado!");
+      toast.success("Conta Google vinculada com sucesso!");
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao conectar com Google Calendar.");
+      toast.error("Erro ao vincular conta Google.");
     } finally {
       setIsConnecting(false);
     }
@@ -120,10 +127,22 @@ export function GoogleCalendarIntegration() {
             </Button>
           </div>
         ) : (
-          <Button onClick={handleConnect} disabled={isConnecting}>
-            {isConnecting ? <Loader2 className="size-4 mr-2 animate-spin" /> : <ExternalLink className="size-4 mr-2" />}
-            Conectar Conta Google
-          </Button>
+          <form onSubmit={handleConnect} className="flex items-center gap-2">
+            <div className="relative">
+              <input
+                type="email"
+                placeholder="seu-email@gmail.com"
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                className="h-9 w-64 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                required
+              />
+            </div>
+            <Button type="submit" disabled={isConnecting}>
+              {isConnecting ? <Loader2 className="size-4 mr-2 animate-spin" /> : <ExternalLink className="size-4 mr-2" />}
+              Vincular Conta
+            </Button>
+          </form>
         )}
       </div>
 
