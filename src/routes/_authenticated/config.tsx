@@ -100,6 +100,7 @@ function ConfigPage() {
           <TabsTrigger value="agency" className="gap-2"><Building2 className="size-3.5" /> Identidade</TabsTrigger>
           <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Identidade Visual</TabsTrigger>
           <TabsTrigger value="signature" className="gap-2"><Pencil className="size-3.5" /> Assinatura</TabsTrigger>
+          <TabsTrigger value="users" className="gap-2"><Users className="size-3.5" /> Usuários</TabsTrigger>
           <TabsTrigger value="perms" className="gap-2"><Shield className="size-3.5" /> Perfis e Permissões</TabsTrigger>
           <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
           <TabsTrigger value="flows" className="gap-2"><GitBranch className="size-3.5" /> Fluxos Operacionais</TabsTrigger>
