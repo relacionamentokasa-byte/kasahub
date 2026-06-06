@@ -259,7 +259,7 @@ function FinanceiroPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
+      <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-20 md:pb-10">
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="bg-surface border border-border">
             <TabsTrigger value="list" className="gap-2"><List className="size-4" /> Lista</TabsTrigger>
