@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { updateProject, deleteProject, fetchClients } from "@/lib/ops-api";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProposals } from "@/lib/crm-api";
@@ -29,7 +30,7 @@ type Project = {
   status: string;
   cover_url: string | null;
   color: string | null;
-  type: string;
+  type: string | null;
   responsible_id: string | null;
 };
 

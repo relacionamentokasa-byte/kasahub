@@ -81,7 +81,7 @@ function ProjetosPage() {
   const clientById = new Map(clients.map((c) => [c.id, c]));
   const doneStageIds = new Set(stages.filter(s => s.is_done).map(s => s.id));
 
-  const editingProject = editingId ? projects.find((p) => p.id === editingId) ?? null : null;
+  const editingProject = editingId ? (projects.find((p) => p.id === editingId) ?? null) as any : null;
 
   const delMut = useMutation({
     mutationFn: (id: string) => deleteProject(id),
