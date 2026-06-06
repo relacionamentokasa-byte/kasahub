@@ -95,7 +95,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
 
             <Section icon={<ScrollText className="size-4" />} title="Escopo">
               {(proposal as any).scope_text || (Array.isArray((proposal as any).scope) && (proposal as any).scope.length) ? (
-                <ScopeRenderer scope={(proposal as any).scope ?? []} scopeText={(proposal as any).scope_text ?? null} />
+                <ScopeRenderer text={(proposal as any).scope_text ?? null} fallback={(proposal as any).scope ?? null} />
               ) : items.length ? (
                 <ul className="text-sm space-y-1.5">
                   {items.map((it) => (
