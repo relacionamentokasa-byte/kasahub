@@ -761,6 +761,7 @@ export type Database = {
           id: string
           labels: Json
           order_index: number
+          period: string | null
           priority: string
           project_id: string | null
           stage_id: string | null
@@ -778,6 +779,7 @@ export type Database = {
           id?: string
           labels?: Json
           order_index?: number
+          period?: string | null
           priority?: string
           project_id?: string | null
           stage_id?: string | null
@@ -795,6 +797,7 @@ export type Database = {
           id?: string
           labels?: Json
           order_index?: number
+          period?: string | null
           priority?: string
           project_id?: string | null
           stage_id?: string | null
@@ -1055,8 +1058,10 @@ export type Database = {
           name: string
           owner_id: string | null
           proposal_id: string | null
+          responsible_id: string | null
           start_date: string | null
           status: string
+          type: string | null
           updated_at: string
         }
         Insert: {
@@ -1072,8 +1077,10 @@ export type Database = {
           name: string
           owner_id?: string | null
           proposal_id?: string | null
+          responsible_id?: string | null
           start_date?: string | null
           status?: string
+          type?: string | null
           updated_at?: string
         }
         Update: {
@@ -1089,8 +1096,10 @@ export type Database = {
           name?: string
           owner_id?: string | null
           proposal_id?: string | null
+          responsible_id?: string | null
           start_date?: string | null
           status?: string
+          type?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1099,6 +1108,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1695,6 +1711,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "ceo" | "gestor" | "operador" | "cliente"
+      project_type: "automatic" | "special"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1823,6 +1840,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "ceo", "gestor", "operador", "cliente"],
+      project_type: ["automatic", "special"],
     },
   },
 } as const
