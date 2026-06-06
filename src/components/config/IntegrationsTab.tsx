@@ -5,11 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export function IntegrationsTab({ form }: { form: Partial<AgencySettings> }) {
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="general" className="w-full">
+      <Tabs defaultValue="google" className="w-full">
         <TabsList className="bg-surface border border-border p-1">
-          <TabsTrigger value="general">Geral</TabsTrigger>
           <TabsTrigger value="google">Google Calendar</TabsTrigger>
           <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+          <TabsTrigger value="general">Geral</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="mt-6">
