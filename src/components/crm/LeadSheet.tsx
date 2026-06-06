@@ -39,6 +39,7 @@ import {
   MessageCircle,
   MoreVertical,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -107,7 +108,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
   });
 
   const noteMut = useMutation({
-    mutationFn: (data?: { type: string; content: string }) => 
+    mutationFn: (data?: { type?: string; content?: string }) => 
       addActivity(lead.id, data?.type || noteType, data?.content || note),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "activities", lead.id] });
@@ -211,7 +212,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
                 const phone = form.phone?.replace(/\D/g, "");
                 if (phone) {
                   window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}`, "_blank");
-                  noteMut.mutateAsync({ type: "whatsapp", content: "WhatsApp iniciado" });
+                  noteMut.mutate({ type: "whatsapp", content: "WhatsApp iniciado" });
                 } else {
                   toast.error("Telefone não cadastrado");
                 }
@@ -233,7 +234,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
                   const phone = form.phone?.replace(/\D/g, "");
                   if (phone) {
                     window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(text)}`, "_blank");
-                    noteMut.mutateAsync({ type: "whatsapp", content: "Apresentação via WhatsApp" });
+                    noteMut.mutate({ type: "whatsapp", content: "Apresentação via WhatsApp" });
                   }
                 }}>Apresentação</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => {
@@ -241,7 +242,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
                   const phone = form.phone?.replace(/\D/g, "");
                   if (phone) {
                     window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(text)}`, "_blank");
-                    noteMut.mutateAsync({ type: "whatsapp", content: "Follow-up via WhatsApp" });
+                    noteMut.mutate({ type: "whatsapp", content: "Follow-up via WhatsApp" });
                   }
                 }}>Follow-up</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => {
@@ -249,7 +250,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
                   const phone = form.phone?.replace(/\D/g, "");
                   if (phone) {
                     window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(text)}`, "_blank");
-                    noteMut.mutateAsync({ type: "whatsapp", content: "Reunião via WhatsApp" });
+                    noteMut.mutate({ type: "whatsapp", content: "Reunião via WhatsApp" });
                   }
                 }}>Confirmar Reunião</DropdownMenuItem>
               </DropdownMenuContent>
