@@ -161,6 +161,10 @@ function ClientesPage() {
               const nextDueDate = nextTransaction?.due_date 
                 ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
                 : "Não definido";
+              
+              const clientJobs = allJobs.filter(j => j.client_id === c.id && !j.done_at);
+              const clientProjects = allProjects.filter(p => p.client_id === c.id);
+              const clientDmes = allDmes.filter(d => d.client_id === c.id && d.status !== 'completed' && d.status !== 'cancelled');
 
               return (
                 <div key={c.id} className="relative group">
