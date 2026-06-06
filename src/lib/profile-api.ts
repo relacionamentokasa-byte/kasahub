@@ -18,9 +18,12 @@ export async function updateMyProfile(patch: any) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Não autenticado");
 
+  // Remove campos que não pertencem à tabela profiles
+  const { email, ...validPatch } = patch;
+
   const { data, error } = await supabase
     .from("profiles")
-    .update(patch)
+    .update(validPatch)
     .eq("id", user.id)
     .select()
     .single();
