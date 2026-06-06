@@ -25,7 +25,13 @@ export function KasaLogo({ collapsed = false }: KasaLogoProps) {
       </div>
       {!collapsed && (
         <span className="font-display text-lg font-bold tracking-tight whitespace-nowrap">
-          KASA <span className="text-primary">HUB</span>
+          {settings?.name ? (
+            <>
+              {settings.name.split(" ").slice(0, -1).join(" ")} <span className="text-primary">{settings.name.split(" ").slice(-1)}</span>
+            </>
+          ) : (
+            <>KASA <span className="text-primary">HUB</span></>
+          )}
         </span>
       )}
     </div>

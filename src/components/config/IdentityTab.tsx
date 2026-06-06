@@ -30,8 +30,8 @@ export function IdentityTab({ form, set, canEdit }: { form: Partial<AgencySettin
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
       <Grid>
-        <Field label="Nome fantasia">
-          <Input value={form.name ?? ""} onChange={(e) => set("name", e.target.value)} disabled={!canEdit} />
+        <Field label="Nome do Sistema (HUB)">
+          <Input value={form.name ?? ""} onChange={(e) => set("name", e.target.value)} disabled={!canEdit} placeholder="Ex: KASA HUB" />
         </Field>
         <Field label="Razão social">
           <Input value={form.legal_name ?? ""} onChange={(e) => set("legal_name", e.target.value)} disabled={!canEdit} />
