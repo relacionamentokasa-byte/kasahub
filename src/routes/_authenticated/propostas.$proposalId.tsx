@@ -364,6 +364,19 @@ export function ProposalEditorContent({
               <Send className="size-4" /> Enviar para o Cliente
             </Button>
           )}
+          {proposal.status !== "accepted" && proposal.status !== "cancelled" && (
+            <Button
+              onClick={() => {
+                if (confirm("Aprovar esta proposta e converter em contrato, projeto, jobs e financeiro?")) {
+                  approveMut.mutate();
+                }
+              }}
+              disabled={approveMut.isPending}
+              className="gap-2 bg-green-600 text-white hover:bg-green-700"
+            >
+              <CheckCircle2 className="size-4" /> Aprovar e Converter em Contrato
+            </Button>
+          )}
           {proposal.status !== "cancelled" && (
             <Button
               variant="outline"
