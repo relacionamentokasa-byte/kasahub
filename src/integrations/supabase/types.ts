@@ -1280,6 +1280,93 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          agenda: boolean | null
+          approvals: boolean | null
+          comments: boolean | null
+          email_enabled: boolean | null
+          finance: boolean | null
+          jobs: boolean | null
+          mentions: boolean | null
+          push_enabled: boolean | null
+          updated_at: string
+          user_id: string
+          whatsapp_enabled: boolean | null
+        }
+        Insert: {
+          agenda?: boolean | null
+          approvals?: boolean | null
+          comments?: boolean | null
+          email_enabled?: boolean | null
+          finance?: boolean | null
+          jobs?: boolean | null
+          mentions?: boolean | null
+          push_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+          whatsapp_enabled?: boolean | null
+        }
+        Update: {
+          agenda?: boolean | null
+          approvals?: boolean | null
+          comments?: boolean | null
+          email_enabled?: boolean | null
+          finance?: boolean | null
+          jobs?: boolean | null
+          mentions?: boolean | null
+          push_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
+          whatsapp_enabled?: boolean | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_archived: boolean | null
+          is_read: boolean | null
+          link: string | null
+          origin_id: string | null
+          origin_type: string | null
+          title: string
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          link?: string | null
+          origin_id?: string | null
+          origin_type?: string | null
+          title: string
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_archived?: boolean | null
+          is_read?: boolean | null
+          link?: string | null
+          origin_id?: string | null
+          origin_type?: string | null
+          title?: string
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       operational_flow_checklists: {
         Row: {
           created_at: string
@@ -2325,6 +2412,19 @@ export type Database = {
         Returns: boolean
       }
       is_team_member: { Args: { _user_id: string }; Returns: boolean }
+      notify_user: {
+        Args: {
+          p_category?: string
+          p_description: string
+          p_link?: string
+          p_origin_id?: string
+          p_origin_type?: string
+          p_title: string
+          p_type?: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       project_progress: { Args: { _project_id: string }; Returns: number }
     }
     Enums: {

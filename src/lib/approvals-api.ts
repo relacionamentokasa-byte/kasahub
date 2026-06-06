@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { handleMentions } from "./notifications-api";
 
 export type ApprovalStatus = "draft" | "pending" | "changes_requested" | "approved" | "published";
 export type ApprovalKind = "post" | "reel" | "story" | "carousel" | "video" | "art";
@@ -141,6 +142,16 @@ export async function createApproval(input: {
     source: "system",
     created_by: u.user?.id
   } as never);
+
+  if (approval.caption?.includes('@')) {
+    await handleMentions(approval.caption, {
+      title: `Aprovação: ${approval.title}`,
+      link: `/aprovacoes`,
+      originType: 'approvals',
+      originId: approval.id
+    });
+  }
+
   return data as unknown as Approval;
 }
 
@@ -197,6 +208,8 @@ export async function addApprovalComment(input: {
   author_role?: "team" | "client";
 }) {
   const { data: u } = await supabase.auth.getUser();
+  const { data: approval } = await sb.from('approvals').select('title').eq('id', input.approval_id).single();
+
   const { data, error } = await sb
     .from("approval_comments")
     .insert({
@@ -209,6 +222,16 @@ export async function addApprovalComment(input: {
     .select()
     .single();
   if (error) throw error;
+
+  if (input.body.includes('@')) {
+    await handleMentions(input.body, {
+      title: `Comentário em: ${approval?.title}`,
+      link: `/aprovacoes`,
+      originType: 'approvals',
+      originId: input.approval_id
+    });
+  }
+
   if (input.is_change_request) {
     await updateApprovalStatus(input.approval_id, "changes_requested");
   }

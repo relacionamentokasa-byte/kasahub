@@ -1,4 +1,4 @@
-import { Bell, LogOut, Moon, Search, Sparkles, Sun } from "lucide-react";
+import { LogOut, Moon, Search, Sparkles, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,6 +15,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
+import { NotificationCenter } from "./notifications/NotificationCenter";
 
 type Profile = {
   display_name: string | null;
@@ -102,10 +103,7 @@ export function AppTopbar() {
           {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
         </button>
 
-        <button className="relative p-2 text-foreground/60 hover:text-foreground transition-colors">
-          <Bell className="size-5" />
-          <span className="absolute top-1.5 right-1.5 size-2 bg-primary rounded-full ring-2 ring-background animate-pulse" />
-        </button>
+        <NotificationCenter />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

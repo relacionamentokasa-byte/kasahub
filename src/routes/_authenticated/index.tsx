@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
+import { checkDailyNotifications } from "@/lib/notifications-cron";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -14,6 +16,12 @@ export const Route = createFileRoute("/_authenticated/")({
 });
 
 function DashboardPage() {
+  useEffect(() => {
+    // Executar verificação de notificações diárias ao carregar o dashboard
+    // No mundo real, isso seria um Cron no Supabase, mas aqui simulamos para o usuário ver funcionando
+    checkDailyNotifications();
+  }, []);
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-[1600px] mx-auto animate-reveal">
       <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border pb-6 lg:pb-8">

@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { handleMentions } from "./notifications-api";
 
 export type PartnerType = "representative" | "freelancer" | "supplier" | "strategic";
 
@@ -55,7 +56,18 @@ export async function createPartner(input: Partial<Partner>) {
     .select()
     .single();
   if (error) throw error;
-  return data as Partner;
+
+  const partner = data as Partner;
+  if (partner.observations?.includes('@')) {
+    await handleMentions(partner.observations, {
+      title: `Parceiro: ${partner.name}`,
+      link: `/parceiros`,
+      originType: 'partners',
+      originId: partner.id
+    });
+  }
+
+  return partner;
 }
 
 export async function updatePartner(id: string, patch: Partial<Partner>) {

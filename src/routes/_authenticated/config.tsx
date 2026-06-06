@@ -201,22 +201,7 @@ function ConfigPage() {
         </TabsContent>
 
         <TabsContent value="notif" className="space-y-4">
-          <Card>
-            <ToggleRow
-              title="Notificações por e-mail"
-              description="Enviar alertas e resumos por e-mail."
-              checked={form.notify_email ?? true}
-              onChange={(v) => set("notify_email", v)}
-              disabled={!canEdit}
-            />
-            <ToggleRow
-              title="Notificações por WhatsApp"
-              description="Disparos automáticos via WhatsApp (exige integração)."
-              checked={form.notify_whatsapp ?? false}
-              onChange={(v) => set("notify_whatsapp", v)}
-              disabled={!canEdit}
-            />
-          </Card>
+          <NotificationPreferencesTab />
         </TabsContent>
 
         <TabsContent value="integr" className="space-y-4">
@@ -449,5 +434,113 @@ function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
         </div>
       </div>
     </Card>
+  );
+}
+
+function NotificationPreferencesTab() {
+  const qc = useQueryClient();
+  const { data: { user } = {} } = useQuery({
+    queryKey: ["auth-user"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data;
+    }
+  });
+
+  const { data: prefs, isLoading } = useQuery({
+    queryKey: ["notification-preferences", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notification_preferences")
+        .select("*")
+        .eq("user_id", user?.id || '')
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
+  const mut = useMutation({
+    mutationFn: async (patch: any) => {
+      const { error } = await supabase
+        .from("notification_preferences")
+        .update(patch)
+        .eq("user_id", user?.id || '');
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["notification-preferences"] });
+      toast.success("Preferências atualizadas");
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  if (isLoading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <h3 className="font-display font-bold mb-4">Categorias de Alerta</h3>
+        <ToggleRow 
+          title="Menções" 
+          description="Quando alguém citar seu @usuario em comentários." 
+          checked={prefs?.mentions ?? true}
+          onChange={(v) => mut.mutate({ mentions: v })}
+        />
+        <ToggleRow 
+          title="Comentários" 
+          description="Novas interações em registros que você participa." 
+          checked={prefs?.comments ?? true}
+          onChange={(v) => mut.mutate({ comments: v })}
+        />
+        <ToggleRow 
+          title="Jobs e Tarefas" 
+          description="Atribuições, prazos e mudanças em jobs." 
+          checked={prefs?.jobs ?? true}
+          onChange={(v) => mut.mutate({ jobs: v })}
+        />
+        <ToggleRow 
+          title="Aprovações" 
+          description="Status de aprovação de clientes e novas peças." 
+          checked={prefs?.approvals ?? true}
+          onChange={(v) => mut.mutate({ approvals: v })}
+        />
+        <ToggleRow 
+          title="Agenda e Reuniões" 
+          description="Lembretes de eventos e compromissos." 
+          checked={prefs?.agenda ?? true}
+          onChange={(v) => mut.mutate({ agenda: v })}
+        />
+        <ToggleRow 
+          title="Financeiro" 
+          description="Vencimentos, recebimentos e inadimplência." 
+          checked={prefs?.finance ?? true}
+          onChange={(v) => mut.mutate({ finance: v })}
+        />
+      </Card>
+
+      <Card>
+        <h3 className="font-display font-bold mb-4">Canais Externos</h3>
+        <ToggleRow 
+          title="E-mail" 
+          description="Receber resumos e alertas críticos na sua caixa de entrada." 
+          checked={prefs?.email_enabled ?? false}
+          onChange={(v) => mut.mutate({ email_enabled: v })}
+        />
+        <ToggleRow 
+          title="WhatsApp" 
+          description="Receber alertas instantâneos via WhatsApp." 
+          checked={prefs?.whatsapp_enabled ?? false}
+          onChange={(v) => mut.mutate({ whatsapp_enabled: v })}
+        />
+        <ToggleRow 
+          title="Push Mobile" 
+          description="Notificações no seu smartphone Android ou iPhone." 
+          checked={prefs?.push_enabled ?? false}
+          onChange={(v) => mut.mutate({ push_enabled: v })}
+        />
+      </Card>
+    </div>
   );
 }
