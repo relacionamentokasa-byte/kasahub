@@ -393,7 +393,7 @@ export function ExecutiveDashboard() {
       )}
 
       {isManager && visibleSections.performance && (
-        <PerformanceSection metrics={performanceMetrics} />
+        <PerformanceSection metrics={initialPerformanceMetrics} />
       )}
 
       {visibleSections.agenda && (
