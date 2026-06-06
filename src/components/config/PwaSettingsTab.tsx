@@ -147,7 +147,6 @@ export function PwaSettingsTab({
             label="Ícone 192×192"
             value={form.pwa_icon_192_url ?? ""}
             onChange={(url) => set("pwa_icon_192_url", url)}
-            bucket="public-assets"
             folder="pwa"
             disabled={!canEdit}
           />
@@ -155,7 +154,6 @@ export function PwaSettingsTab({
             label="Ícone 512×512"
             value={form.pwa_icon_512_url ?? ""}
             onChange={(url) => set("pwa_icon_512_url", url)}
-            bucket="public-assets"
             folder="pwa"
             disabled={!canEdit}
           />
@@ -163,7 +161,6 @@ export function PwaSettingsTab({
             label="Favicon"
             value={form.pwa_favicon_url ?? ""}
             onChange={(url) => set("pwa_favicon_url", url)}
-            bucket="public-assets"
             folder="pwa"
             disabled={!canEdit}
           />
