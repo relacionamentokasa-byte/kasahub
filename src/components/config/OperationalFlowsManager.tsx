@@ -579,6 +579,51 @@ function JobRow({ job, roles, canEdit, onChanged, onEditSchema, flowJobs }: { jo
         </div>
       </div>
 
+      {showDeps && (
+        <div className="px-12 pb-4 pt-2 space-y-3 bg-primary/5 border-b border-primary/10">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] uppercase tracking-wider text-primary font-semibold flex items-center gap-1">
+                <ArrowDown className="size-3" /> Dependências (Bloqueia execução)
+              </Label>
+              <select 
+                className="h-7 bg-background border border-border rounded px-2 text-[10px] focus:ring-0"
+                onChange={(e) => e.target.value && addDepMut.mutate(e.target.value)}
+                value=""
+              >
+                <option value="">Adicionar dependência...</option>
+                {flowJobs.map((fj: any) => (
+                  <option key={fj.id} value={fj.id} disabled={deps.some((d: any) => d.depends_on_job_id === fj.id)}>
+                    {fj.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {deps.map((dep: any) => {
+                const depJob = flowJobs.find((fj: any) => fj.id === dep.depends_on_job_id);
+                return (
+                  <Badge key={dep.id} variant="secondary" className="text-[10px] gap-1 pr-1">
+                    {depJob?.name || "Job removido"}
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="size-3.5 hover:bg-transparent" 
+                      onClick={() => removeDepMut.mutate(dep.id)}
+                    >
+                      <X className="size-2" />
+                    </Button>
+                  </Badge>
+                );
+              })}
+              {deps.length === 0 && (
+                <p className="text-[10px] text-foreground/30 italic">Nenhuma dependência definida.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {isExpanded && (
         <div className="px-12 pb-4 pt-2 space-y-3 bg-muted/5">
           <div className="space-y-2">
