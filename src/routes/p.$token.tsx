@@ -1,11 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { replaceContractVariables } from "@/lib/contracts-api";
-import { CheckCircle2, Printer, FileSignature, Loader2 } from "lucide-react";
+import { CheckCircle2, Printer, FileSignature, Loader2, Mail, Phone, Building2, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
+
 
 export const Route = createFileRoute("/p/$token")({
   head: () => ({ meta: [{ title: "Proposta Comercial" }] }),
@@ -58,6 +60,14 @@ type Agency = {
   address: string | null;
   agency_signature_url: string | null;
 } | null;
+type Client = {
+  name: string | null;
+  company: string | null;
+  email: string | null;
+  phone: string | null;
+  document: string | null;
+} | null;
+
 
 function formatCurrency(value: number, currency = "BRL") {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(
@@ -67,23 +77,36 @@ function formatCurrency(value: number, currency = "BRL") {
 
 function PublicProposalView() {
   const { token } = Route.useParams();
-  const [data, setData] = useState<{ proposal: Proposal; items: Item[]; agency: Agency } | null>(
-    null,
-  );
+  const [data, setData] = useState<{
+    proposal: Proposal;
+    items: Item[];
+    agency: Agency;
+    client: Client;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
   const [signerName, setSignerName] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [signerCpf, setSignerCpf] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
     try {
       const res = await fetch(`/api/public/proposal/${token}`);
-      if (!res.ok) throw new Error("Proposta não encontrada");
+      if (res.status === 404) {
+        setErrorCode("not_found");
+        return;
+      }
+      if (!res.ok) {
+        setErrorCode("generic");
+        return;
+      }
       const json = await res.json();
       setData(json);
-    } catch (e) {
-      setError((e as Error).message);
+      setErrorCode(null);
+    } catch {
+      setErrorCode("generic");
     } finally {
       setLoading(false);
     }
@@ -104,8 +127,16 @@ function PublicProposalView() {
   const brand = data?.agency?.brand_primary ?? "#FFBC45";
 
   async function sign() {
-    if (!signerName.trim()) {
+    if (!signerName.trim() || signerName.trim().length < 2) {
       toast.error("Informe seu nome completo");
+      return;
+    }
+    if (!signerCpf.trim() || signerCpf.replace(/\D/g, "").length < 11) {
+      toast.error("Informe um CPF válido");
+      return;
+    }
+    if (!acceptTerms) {
+      toast.error("Confirme que leu e concorda com os termos");
       return;
     }
     setSigning(true);
@@ -113,10 +144,19 @@ function PublicProposalView() {
       const res = await fetch(`/api/public/proposal/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ accepted_name: signerName }),
+        body: JSON.stringify({
+          accepted_name: signerName.trim(),
+          accepted_cpf: signerCpf.trim(),
+          accepted_terms: true,
+        }),
       });
-      if (!res.ok) throw new Error("Falha ao assinar");
-      toast.success("Proposta assinada com sucesso!");
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}));
+        if (j.error === "cancelled") throw new Error("Esta proposta não está mais disponível.");
+        if (j.error === "already_accepted") throw new Error("Esta proposta já foi aprovada.");
+        throw new Error(j.error || "Falha ao assinar");
+      }
+      toast.success("Proposta aprovada e assinada com sucesso!");
       await load();
     } catch (e) {
       toast.error((e as Error).message);
@@ -124,6 +164,7 @@ function PublicProposalView() {
       setSigning(false);
     }
   }
+
 
   const grouped = useMemo(() => {
     if (!data) return { monthly: [], one_time: [] };
@@ -140,19 +181,36 @@ function PublicProposalView() {
       </div>
     );
   }
-  if (error || !data) {
+  if (errorCode || !data) {
+    const msg =
+      errorCode === "not_found"
+        ? "Esta proposta não foi encontrada."
+        : "Não foi possível carregar esta proposta. Tente novamente em instantes.";
     return (
       <div className="min-h-screen grid place-items-center bg-white text-slate-600 px-6 text-center">
         <div>
           <p className="text-lg font-semibold text-slate-900">Proposta indisponível</p>
-          <p className="text-sm mt-2">{error ?? "Link inválido ou expirado."}</p>
+          <p className="text-sm mt-2">{msg}</p>
         </div>
       </div>
     );
   }
 
-  const { proposal, agency } = data;
+  const { proposal, agency, client } = data;
   const accepted = proposal.status === "accepted";
+  const cancelled = proposal.status === "cancelled";
+
+  if (cancelled) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-white text-slate-600 px-6 text-center">
+        <div>
+          <p className="text-lg font-semibold text-slate-900">Proposta cancelada</p>
+          <p className="text-sm mt-2">Esta proposta não está mais disponível.</p>
+        </div>
+      </div>
+    );
+  }
+
 
   const contractContent = useMemo(() => {
     if (!proposal.contract_content) return null;
@@ -259,6 +317,20 @@ function PublicProposalView() {
             Preparada para <span className="font-semibold text-slate-700">{proposal.client_name}</span>
           </p>
         </div>
+
+        {/* Dados do Cliente */}
+        <div className="px-8 py-6 border-b border-slate-100">
+          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+            Dados do Contratante
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-3 text-sm text-slate-700">
+            <InfoLine icon={<UserIcon className="size-4" />} label="Nome" value={client?.name || proposal.client_name} />
+            <InfoLine icon={<Building2 className="size-4" />} label="Empresa" value={client?.company} />
+            <InfoLine icon={<Phone className="size-4" />} label="Telefone" value={client?.phone} />
+            <InfoLine icon={<Mail className="size-4" />} label="E-mail" value={client?.email || proposal.client_email} />
+          </div>
+        </div>
+        
         
         {/* Scope */}
         {((proposal.scope_text && proposal.scope_text.trim().length > 0) ||
@@ -428,44 +500,76 @@ function PublicProposalView() {
               </div>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-6 items-end">
-              <div className="no-print">
-                <label className="text-xs text-slate-500">
-                  Digite seu nome completo para aceitar a proposta
+            <div className="space-y-5">
+              <div className="rounded-xl border border-slate-200 p-5 bg-slate-50/50">
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-3">Contratada (Agência)</p>
+                <p className="text-sm font-bold text-slate-900">{agency?.name}</p>
+                <div className="mt-3 pt-3 border-t border-slate-200 min-h-[60px] flex items-center justify-center">
+                  {agency?.agency_signature_url ? (
+                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-16 object-contain" />
+                  ) : (
+                    <span className="italic text-slate-400 text-xs">Assinatura digital da agência</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="no-print rounded-xl border border-slate-200 p-5 bg-white">
+                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-3">Contratante (Cliente)</p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-slate-600">Nome completo *</label>
+                    <Input
+                      value={signerName}
+                      onChange={(e) => setSignerName(e.target.value)}
+                      placeholder="Seu nome completo"
+                      maxLength={200}
+                      className="mt-1.5 bg-white border-slate-300 text-slate-900"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-slate-600">CPF *</label>
+                    <Input
+                      value={signerCpf}
+                      onChange={(e) => setSignerCpf(e.target.value)}
+                      placeholder="000.000.000-00"
+                      maxLength={20}
+                      className="mt-1.5 bg-white border-slate-300 text-slate-900"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-600 mt-4 block">Assinatura digital</label>
+                  <div
+                    className="mt-1.5 rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 min-h-[56px] flex items-center font-serif italic text-slate-700 text-base"
+                  >
+                    {signerName || <span className="text-slate-400 not-italic text-xs">Sua assinatura aparecerá aqui ao digitar seu nome</span>}
+                  </div>
+                </div>
+                <label className="mt-4 flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                  <Checkbox
+                    checked={acceptTerms}
+                    onCheckedChange={(v) => setAcceptTerms(v === true)}
+                    className="mt-0.5"
+                  />
+                  <span>Li e concordo com os termos desta proposta e contrato.</span>
                 </label>
-                <Input
-                  value={signerName}
-                  onChange={(e) => setSignerName(e.target.value)}
-                  placeholder="Nome completo"
-                  className="mt-2 bg-white border-slate-300 text-slate-900"
-                />
                 <Button
                   onClick={sign}
                   disabled={signing}
-                  className="mt-3 w-full gap-2 text-white"
-                  style={{ background: brand }}
+                  className="mt-4 w-full gap-2 text-white bg-green-600 hover:bg-green-700"
                 >
                   {signing ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <FileSignature className="size-4" />
                   )}
-                  Aceitar e assinar
+                  Aprovar e Assinar
                 </Button>
-              </div>
-              <div className="hidden print:block">
-                <div className="border-t border-slate-400 pt-2 text-xs text-slate-600 text-center">
-                  Assinatura do cliente — {proposal.client_name}
-                </div>
-              </div>
-              <div className="hidden print:block">
-                <div className="border-t border-slate-400 pt-2 text-xs text-slate-600 text-center">
-                  Assinatura {agency?.name ?? "Kasa Marketing"}
-                </div>
               </div>
             </div>
           )}
         </div>
+
 
         <div className="px-8 py-4 text-center text-[10px] text-slate-400 border-t border-slate-100">
           {agency?.name ?? "Kasa Marketing"} · Documento gerado por KASA HUB
@@ -550,3 +654,24 @@ function Stat({
     </div>
   );
 }
+
+function InfoLine({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | null | undefined;
+}) {
+  return (
+    <div className="flex items-start gap-2">
+      <span className="text-slate-400 mt-0.5">{icon}</span>
+      <div className="min-w-0">
+        <p className="text-[10px] uppercase tracking-wider text-slate-400">{label}</p>
+        <p className="text-sm text-slate-800 truncate">{value || "—"}</p>
+      </div>
+    </div>
+  );
+}
+
