@@ -63,6 +63,8 @@ export function OperationalFlowsManager({ canEdit }: Props) {
     queryFn: fetchOperationalFlows,
   });
 
+  const [viewMode, setViewMode] = useState<'cards' | 'builder'>('cards');
+
   const [selectedFlow, setSelectedFlow] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
 
