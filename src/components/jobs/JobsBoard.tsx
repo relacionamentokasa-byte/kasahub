@@ -320,6 +320,13 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                 </div>
               );
             })()}
+            {/* Status Indicator */}
+            <div 
+              className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-muted/30 text-foreground/40"
+              style={ (job as any).status ? { backgroundColor: `${JOB_STATUS_LABELS[(job as any).status]?.color}15`, color: JOB_STATUS_LABELS[(job as any).status]?.color } : {} }
+            >
+              { (job as any).status ? JOB_STATUS_LABELS[(job as any).status]?.label : 'Pendentes' }
+            </div>
           </div>
         </div>
       </div>
