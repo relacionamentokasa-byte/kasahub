@@ -11,7 +11,7 @@ import {
   Send,
   ExternalLink,
   Smartphone,
-  Switch as SwitchIcon,
+  RefreshCw as RefreshIcon,
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
