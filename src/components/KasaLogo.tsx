@@ -1,18 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchMyProfile } from "@/lib/profile-api";
+import { fetchAgencySettings } from "@/lib/settings-api";
 
 interface KasaLogoProps {
   collapsed?: boolean;
 }
 
 export function KasaLogo({ collapsed = false }: KasaLogoProps) {
-  const { data: profile } = useQuery({
-    queryKey: ["my-profile"],
-    queryFn: fetchMyProfile,
+  const { data: settings } = useQuery({
+    queryKey: ["agency-settings"],
+    queryFn: fetchAgencySettings,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
-  const logoUrl = profile?.agency_logo_url;
+  const logoUrl = settings?.logo_url;
 
   return (
     <div className="flex items-center gap-3 px-1">

@@ -69,7 +69,7 @@ function ConfigPage() {
   });
   const canEdit = can("config", "edit");
 
-  const [activeTab, setActiveTab] = useState(tab || "profile");
+  const [activeTab, setActiveTab] = useState(tab || "brand");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const [form, setForm] = useState<Partial<AgencySettings>>({});
