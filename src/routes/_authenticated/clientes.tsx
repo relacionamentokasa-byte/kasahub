@@ -147,52 +147,81 @@ function ClientesPage() {
           </div>
         ) : view === "cards" ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20 md:pb-0">
-            {filtered.map((c) => (
-              <div key={c.id} className="relative group">
-                <button
-                  type="button"
-                  onClick={() => setSelectedId(c.id)}
-                  className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div
-                      className="size-12 rounded-xl grid place-items-center font-display font-bold text-lg overflow-hidden"
-                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
-                    >
-                      {c.logo_url ? (
-                        <img src={c.logo_url} alt="" className="size-full object-cover" />
-                      ) : (
-                        (c.company || c.name).charAt(0).toUpperCase()
-                      )}
+            {filtered.map((c) => {
+              const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
+              const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
+              const mainContract = clientContracts[0];
+              const contractLabel = mainContract?.title || "Nenhum contrato";
+
+              const nextTransaction = transactions
+                .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
+                .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+              
+              const nextDueDate = nextTransaction?.due_date 
+                ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
+                : "Não definido";
+
+              return (
+                <div key={c.id} className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(c.id)}
+                    className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition h-full"
+                  >
+                    <div className="flex items-center gap-3 mb-4">
+                      <div
+                        className="size-12 rounded-xl grid place-items-center font-display font-bold text-lg overflow-hidden shrink-0"
+                        style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                      >
+                        {c.logo_url ? (
+                          <img src={c.logo_url} alt="" className="size-full object-cover" />
+                        ) : (
+                          (c.company || c.name).charAt(0).toUpperCase()
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1 pr-8">
+                        <div className="font-display font-semibold truncate group-hover:text-primary transition-colors">{c.company || c.name}</div>
+                        <div className="mt-1 text-[10px] capitalize text-foreground/40 font-bold">
+                          <span className={c.status === "active" ? "text-emerald-400" : ""}>
+                            ● {c.status === "active" ? "Ativo" : c.status}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="min-w-0 flex-1 pr-8">
-                      <div className="font-display font-semibold truncate">{c.company || c.name}</div>
-                      {c.company && c.name && (
-                        <div className="text-xs text-foreground/50 truncate">{c.name}</div>
-                      )}
+                    
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-xs text-foreground/60">
+                        <FileSignature className="size-3.5 text-primary/60" />
+                        <span className="truncate">{contractLabel} {clientContracts.length > 1 && `+${clientContracts.length - 1}`}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-xs text-foreground/60">
+                          <DollarSign className="size-3.5 text-emerald-500/60" />
+                          <span className="font-mono-kasa font-bold">{monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-foreground/40">
+                          <Clock className="size-3 text-primary/40" />
+                          <span>{nextDueDate}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  {c.email && (
-                    <div className="text-xs text-foreground/50 truncate">{c.email}</div>
-                  )}
-                  <div className="mt-3 text-[10px] capitalize text-foreground/40">
-                    {c.status === "active" ? "● Ativo" : c.status}
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    setDeleteId(c.id);
-                  }}
-                  className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
-                  aria-label="Excluir cliente"
-                >
-                  <Trash2 className="size-4" />
-                </button>
-              </div>
-            ))}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDeleteId(c.id);
+                    }}
+                    className="absolute top-3 right-3 p-2 rounded-md text-destructive opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-destructive/10 transition"
+                    aria-label="Excluir cliente"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="rounded-2xl border border-border bg-surface overflow-hidden">
