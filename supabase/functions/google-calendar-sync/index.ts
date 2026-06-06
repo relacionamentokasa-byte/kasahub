@@ -116,7 +116,7 @@ serve(async (req) => {
     if (action === "delete-event" && googleEventId) {
       await fetch(`https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events/${googleEventId}`, {
         method: "DELETE",
-        headers: { "Authorization": `Bearer ${googleApiKey}` }
+        headers: gatewayHeaders,
       });
     }
 
