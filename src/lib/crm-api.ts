@@ -153,6 +153,11 @@ export async function createProposal(input: {
   contract_template_id?: string | null;
   contract_content?: string | null;
 }) {
+  if (input.client_id) {
+    const { data: client } = await supabase.from('clients').select('status').eq('id', input.client_id).single();
+    if (client?.status === 'inactive') throw new Error("Não é possível criar propostas para clientes inativos.");
+  }
+
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("proposals")

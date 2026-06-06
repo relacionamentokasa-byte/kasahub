@@ -116,6 +116,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       bank_accounts: {
         Row: {
           account_number: string | null
@@ -892,6 +925,7 @@ export type Database = {
           id: string
           job_type: string | null
           labels: Json
+          last_activity_at: string | null
           last_feedback: string | null
           order_index: number
           period: string | null
@@ -923,6 +957,7 @@ export type Database = {
           id?: string
           job_type?: string | null
           labels?: Json
+          last_activity_at?: string | null
           last_feedback?: string | null
           order_index?: number
           period?: string | null
@@ -954,6 +989,7 @@ export type Database = {
           id?: string
           job_type?: string | null
           labels?: Json
+          last_activity_at?: string | null
           last_feedback?: string | null
           order_index?: number
           period?: string | null

@@ -67,6 +67,12 @@ export async function fetchContracts(filters: { clientId?: string } = {}): Promi
 }
 
 export async function createContract(input: Database["public"]["Tables"]["contracts"]["Insert"]) {
+  if (!input.client_id) throw new Error("O contrato deve estar vinculado a um cliente.");
+  if (!input.monthly_value || Number(input.monthly_value) <= 0) throw new Error("O contrato deve possuir um valor mensal.");
+  
+  const { data: client } = await supabase.from('clients').select('status').eq('id', input.client_id).single();
+  if (client?.status === 'inactive') throw new Error("Não é possível criar contratos para clientes inativos.");
+
   const { data: u } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("contracts")
@@ -82,7 +88,7 @@ export async function deleteContract(id: string) {
   if (error) throw error;
 }
 
-export async function terminateContract(id: string, cleanupMode: "keep" | "cancel" | "delete") {
+export async function terminateContract(id: string, cleanupMode: "keep" | "cancel" | "delete", extras: { cancelProjects?: boolean, cancelJobs?: boolean } = {}) {
   // 1. Update contract status
   const { error: ctErr } = await supabase.from("contracts").update({ status: "finished" }).eq("id", id);
   if (ctErr) throw ctErr;
@@ -109,7 +115,40 @@ export async function terminateContract(id: string, cleanupMode: "keep" | "cance
     }
   }
 
+  // 3. Optional cascade to projects and jobs
+  if (extras.cancelProjects || extras.cancelJobs) {
+    const { data: projects } = await supabase.from("projects").select("id").eq("contract_id", id);
+    if (projects && projects.length > 0) {
+      const projIds = projects.map(p => p.id);
+      if (extras.cancelProjects) {
+        await supabase.from("projects").update({ status: "finished" }).in("id", projIds);
+      }
+      if (extras.cancelJobs) {
+        await supabase.from("jobs").update({ status: "cancelled" }).in("project_id", projIds).neq("status", "done");
+      }
+    }
+  }
+
+  await logAudit("terminate", "contract", id, null, { cleanupMode, ...extras });
   return result;
+}
+
+async function logAudit(action: string, entity_type: string, entity_id: string, old_data: any, new_data: any) {
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    
+    await supabase.from("audit_logs").insert({
+      user_id: u.user.id,
+      action,
+      entity_type,
+      entity_id,
+      old_data,
+      new_data
+    });
+  } catch (e) {
+    console.error("Audit log failed", e);
+  }
 }
 
 
@@ -139,6 +178,10 @@ export async function createTransaction(
   input: Database["public"]["Tables"]["transactions"]["Insert"],
   installments?: number,
 ) {
+  if (!input.contract_id && !input.dme_id && !input.description) {
+    throw new Error("Lançamentos manuais devem possuir uma descrição/origem.");
+  }
+
   const { data: u } = await supabase.auth.getUser();
   const owner_id = u.user?.id ?? null;
   const total = Math.max(1, installments ?? 1);
@@ -188,6 +231,12 @@ export async function bulkInsertTransactions(rows: Database["public"]["Tables"][
 }
 
 export async function updateTransaction(id: string, patch: Database["public"]["Tables"]["transactions"]["Update"]) {
+  const { data: existing } = await supabase.from('transactions').select('status, amount').eq('id', id).single();
+  
+  if (existing?.status === 'paid' && patch.amount !== undefined && patch.amount !== existing.amount) {
+    throw new Error("Não é possível alterar o valor de um lançamento já pago.");
+  }
+
   const { data, error } = await supabase.from("transactions").update(patch).eq("id", id).select().single();
   if (error) throw error;
   return data;

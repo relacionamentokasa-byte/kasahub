@@ -20,8 +20,8 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2 } from "lucide-react";
-import { format } from "date-fns";
+import { Plus, Search, Trash2, AlertTriangle } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 import {
   fetchJobStages,
   fetchJobs,
@@ -35,6 +35,7 @@ import {
 } from "@/lib/ops-api";
 import { getJobTypeLabel } from "@/lib/job-types";
 import { fetchProfiles } from "@/lib/profile-api";
+import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -304,7 +305,10 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
 
           <div className="flex items-center justify-between mt-2">
             {job.due_date && (
-              <div className="text-[10px] text-foreground/40 capitalize">
+              <div className={cn(
+                "text-[10px] capitalize font-bold",
+                new Date(job.due_date) < new Date() && !job.done_at ? "text-rose-500 animate-pulse" : "text-foreground/40"
+              )}>
                 {format(new Date(job.due_date), "dd MMM")}
               </div>
             )}
@@ -331,9 +335,12 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
             })()}
             {/* Status Indicator */}
             <div 
-              className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-muted/30 text-foreground/40"
+              className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1"
               style={ (job as any).status ? { backgroundColor: `${JOB_STATUS_LABELS[(job as any).status]?.color}15`, color: JOB_STATUS_LABELS[(job as any).status]?.color } : {} }
             >
+              {(job as any).last_activity_at && differenceInDays(new Date(), new Date((job as any).last_activity_at)) >= 5 && !job.done_at && (
+                <AlertTriangle className="size-2 text-amber-500 animate-bounce" />
+              )}
               { (job as any).status ? JOB_STATUS_LABELS[(job as any).status]?.label : 'Pendentes' }
             </div>
           </div>

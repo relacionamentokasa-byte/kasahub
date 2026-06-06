@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { terminateContract } from "@/lib/finance-api";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
@@ -32,6 +33,8 @@ export function TerminateContractDialog({
 }: TerminateContractDialogProps) {
   const qc = useQueryClient();
   const [cleanupMode, setCleanupMode] = useState<"keep" | "cancel" | "delete">("cancel");
+  const [cancelProjects, setCancelProjects] = useState(true);
+  const [cancelJobs, setCancelJobs] = useState(true);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -39,7 +42,7 @@ export function TerminateContractDialog({
       if (onConfirm) {
         return onConfirm(cleanupMode);
       }
-      return terminateContract(contractId, cleanupMode);
+      return terminateContract(contractId, cleanupMode, { cancelProjects, cancelJobs });
     },
     onSuccess: (result) => {
       const isContract = !!onConfirm;
@@ -98,6 +101,17 @@ export function TerminateContractDialog({
               </div>
             </div>
           </RadioGroup>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <Label className="text-sm font-semibold">Ações Operacionais em cascata</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="cancelProjects" checked={cancelProjects} onCheckedChange={(v) => setCancelProjects(!!v)} />
+              <Label htmlFor="cancelProjects" className="text-sm font-medium text-foreground/70">Encerrar Projetos vinculados</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="cancelJobs" checked={cancelJobs} onCheckedChange={(v) => setCancelJobs(!!v)} />
+              <Label htmlFor="cancelJobs" className="text-sm font-medium text-foreground/70">Cancelar Jobs abertos</Label>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>

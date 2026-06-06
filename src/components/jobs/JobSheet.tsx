@@ -388,7 +388,13 @@ export function JobSheet({
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (comment.trim()) commentMut.mutate(comment.trim());
+                  if (comment.trim()) {
+                    commentMut.mutate(comment.trim());
+                    // Update job status if adjustments were requested and someone commented
+                    if ((job as any).status === 'adjustments') {
+                      updateMut.mutate({ status: 'in_progress' } as any);
+                    }
+                  }
                 }}
                 className="flex gap-2 sticky bottom-0 bg-surface pt-2"
               >

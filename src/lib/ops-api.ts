@@ -40,14 +40,25 @@ export async function updateClient(
   id: string,
   patch: Database["public"]["Tables"]["clients"]["Update"],
 ) {
+  if (patch.status === 'inactive') {
+    // Check for active contracts when inactivating
+    const { count } = await supabase.from('contracts').select('id', { count: 'exact', head: true }).eq('client_id', id).eq('status', 'active');
+    if (count && count > 0) {
+      throw new Error("Não é possível inativar um cliente com contratos ativos. Encerre os contratos primeiro.");
+    }
+  }
+
   const { data, error } = await supabase.from("clients").update(patch).eq("id", id).select().single();
   if (error) throw error;
+  
+  await logAudit("update", "client", id, null, patch);
   return data;
 }
 
 export async function deleteClient(id: string) {
   const { error } = await supabase.from("clients").delete().eq("id", id);
   if (error) throw error;
+  await logAudit("delete", "client", id, null, null);
 }
 
 // ---------- Projects ----------
@@ -75,6 +86,16 @@ export async function fetchProject(id: string): Promise<Project> {
 }
 
 export async function createProject(input: Database["public"]["Tables"]["projects"]["Insert"]) {
+  if (!input.client_id) throw new Error("Um projeto deve estar vinculado a um cliente.");
+  
+  // Bloquear se cliente estiver inativo
+  const client = await fetchClient(input.client_id);
+  if (client.status === 'inactive') throw new Error("Não é possível criar projetos para clientes inativos.");
+
+  if (input.type !== 'special' && !input.contract_id) {
+    throw new Error("Projetos automáticos devem estar vinculados a um contrato.");
+  }
+
   const { data: u } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("projects")
@@ -82,6 +103,8 @@ export async function createProject(input: Database["public"]["Tables"]["project
     .select()
     .single();
   if (error) throw error;
+  
+  await logAudit("create", "project", data.id, null, data);
   return data;
 }
 
@@ -222,8 +245,20 @@ export async function fetchJobs(filters: { projectId?: string; clientId?: string
 }
 
 export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"] & { period?: string | null, job_type?: string | null }) {
+  if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
+  
+  const project = await fetchProject(input.project_id);
+  if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
+  
+  if (project.client_id) {
+    const client = await fetchClient(project.client_id);
+    if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
+  }
+
   const { data, error } = await supabase.from("jobs").insert(input).select().single();
   if (error) throw error;
+  
+  await logAudit("create", "job", data.id, null, data);
   return data;
 }
 
@@ -231,8 +266,19 @@ export async function updateJob(
   id: string,
   patch: Database["public"]["Tables"]["jobs"]["Update"],
 ) {
+  // Checklist validation on completion
+  if (patch.status === 'done' || patch.done_at) {
+    const checklist = await fetchChecklist(id);
+    const pending = checklist.filter(it => !it.done);
+    if (pending.length > 0) {
+      throw new Error(`Existem ${pending.length} tarefas pendentes no checklist.`);
+    }
+  }
+
   const { data, error } = await supabase.from("jobs").update(patch).eq("id", id).select().single();
   if (error) throw error;
+  
+  await logAudit("update", "job", id, null, patch);
   return data;
 }
 
@@ -325,6 +371,15 @@ export async function fetchExtraDemands(filters: { clientId?: string; contractId
 }
 
 export async function createExtraDemand(input: Database["public"]["Tables"]["extra_demands"]["Insert"]) {
+  if (!input.client_id) throw new Error("Uma DME deve estar vinculada a um cliente.");
+  
+  const client = await fetchClient(input.client_id);
+  if (client.status === 'inactive') throw new Error("Não é possível criar DMEs para clientes inativos.");
+
+  if (input.is_billable && (!input.value || Number(input.value) <= 0)) {
+    throw new Error("DMEs cobráveis devem ter um valor definido.");
+  }
+
   const { data: u } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("extra_demands")
@@ -332,6 +387,8 @@ export async function createExtraDemand(input: Database["public"]["Tables"]["ext
     .select()
     .single();
   if (error) throw error;
+  
+  await logAudit("create", "dme", data.id, null, data);
   return data;
 }
 
@@ -347,6 +404,27 @@ export async function deleteExtraDemand(id: string) {
 }
 
 export async function approveExtraDemand(id: string) {
-  return await approveExtraDemandShared(supabase, id);
+  const res = await approveExtraDemandShared(supabase, id);
+  await logAudit("approve", "dme", id, null, { status: "approved" });
+  return res;
 }
+
+async function logAudit(action: string, entity_type: string, entity_id: string, old_data: any, new_data: any) {
+  try {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    
+    await supabase.from("audit_logs").insert({
+      user_id: u.user.id,
+      action,
+      entity_type,
+      entity_id,
+      old_data,
+      new_data
+    });
+  } catch (e) {
+    console.error("Audit log failed", e);
+  }
+}
+
 
