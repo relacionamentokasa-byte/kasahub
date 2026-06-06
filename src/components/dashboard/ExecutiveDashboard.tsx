@@ -4,7 +4,8 @@ import {
   fetchTransactions, 
   fetchContracts, 
   computeIndicators, 
-  fetchBankAccounts 
+  fetchBankAccounts,
+  brl
 } from "@/lib/finance-api";
 import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
 import { fetchAgencyGoals } from "@/lib/performance-api";
@@ -16,13 +17,16 @@ import { AgendaSection } from "./AgendaSection";
 import { ClientesSection } from "./ClientesSection";
 import { FeedSection, FeedEvent } from "./FeedSection";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { startOfToday, startOfWeek, startOfMonth, startOfQuarter, startOfYear, endOfDay, isWithinInterval, subDays } from "date-fns";
+import { startOfToday, startOfWeek, startOfMonth, startOfQuarter, startOfYear, endOfDay, isWithinInterval, subDays, differenceInDays } from "date-fns";
 import { usePermissions } from "@/hooks/use-permissions";
-import { Loader2, Filter, Settings2, Check } from "lucide-react";
+import { Loader2, Filter, Settings2, Check, AlertTriangle, Info, AlertCircle, Clock } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { fetchApprovals } from "@/lib/approvals-api";
 
 type FilterRange = 'today' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -73,6 +77,11 @@ export function ExecutiveDashboard() {
       if (error) throw error;
       return data;
     }
+  });
+
+  const { data: approvals = [] } = useQuery({
+    queryKey: ["approvals", "all"],
+    queryFn: () => fetchApprovals()
   });
 
   const isLoading = txLoading || contractsLoading || clientsLoading || jobsLoading;
@@ -187,6 +196,56 @@ export function ExecutiveDashboard() {
       }))
     ];
 
+    // Alerts
+    const today = new Date();
+    const alerts: { type: 'critical' | 'warning' | 'info', message: string, detail?: string, icon: any }[] = [];
+    
+    // Critical: Overdue Jobs
+    if (jobsOverdue > 0) {
+      alerts.push({ 
+        type: 'critical', 
+        message: `${jobsOverdue} Jobs em atraso`, 
+        detail: "Ação imediata necessária para cumprir prazos.",
+        icon: AlertCircle
+      });
+    }
+
+    // Warning: Pending Approvals
+    const pendingApprs = approvals.filter(a => a.status === 'pending');
+    if (pendingApprs.length > 0) {
+      alerts.push({ 
+        type: 'warning', 
+        message: `${pendingApprs.length} Aprovações pendentes`, 
+        detail: "Clientes aguardando revisão de peças.",
+        icon: Clock
+      });
+    }
+
+    // Info: Goals below 70%
+    performanceMetrics.forEach(m => {
+      const pct = m.target > 0 ? (m.actual / m.target) * 100 : 0;
+      if (pct < 70 && m.target > 0) {
+        alerts.push({ 
+          type: 'info', 
+          message: `Meta de ${m.label} abaixo do esperado`, 
+          detail: `${Math.round(pct)}% atingido até o momento.`,
+          icon: Info
+        });
+      }
+    });
+
+    // Warning: Overdue Payments
+    const overdueIncome = txs.filter(t => t.kind === 'income' && t.status === 'pending' && t.due_date && t.due_date < todayIso);
+    if (overdueIncome.length > 0) {
+      const total = overdueIncome.reduce((s, t) => s + Number(t.amount), 0);
+      alerts.push({ 
+        type: 'critical', 
+        message: `${overdueIncome.length} Cobranças vencidas`, 
+        detail: `Total de ${brl(total)} em inadimplência.`,
+        icon: AlertTriangle
+      });
+    }
+
     return {
       ind,
       jobsInProgress,
@@ -197,9 +256,10 @@ export function ExecutiveDashboard() {
       performanceMetrics,
       agendaItems,
       clientRanking,
-      feedEvents
+      feedEvents,
+      alerts
     };
-  }, [txs, contracts, jobs, clients, dmes, goals, range, dateInterval]);
+  }, [txs, contracts, jobs, clients, dmes, goals, approvals, range, dateInterval]);
 
   if (isLoading) {
     return (
@@ -220,7 +280,8 @@ export function ExecutiveDashboard() {
     performanceMetrics,
     agendaItems,
     clientRanking,
-    feedEvents
+    feedEvents,
+    alerts
   } = filteredData;
 
   const isManager = isAdmin || roles.some((r: any) => r === 'ceo' || r === 'gestor');
@@ -282,6 +343,39 @@ export function ExecutiveDashboard() {
           </Select>
         </div>
       </header>
+
+      {alerts.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
+            <AlertCircle className="size-4" /> Central de Alertas
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {alerts.map((a, i) => (
+              <Card key={i} className={cn(
+                "p-4 border-l-4 transition-all hover:scale-[1.02]",
+                a.type === 'critical' ? "border-l-rose-500 bg-rose-500/5" : 
+                a.type === 'warning' ? "border-l-amber-500 bg-amber-500/5" : 
+                "border-l-blue-500 bg-blue-500/5"
+              )}>
+                <div className="flex gap-3">
+                  <div className={cn(
+                    "size-8 rounded-full flex items-center justify-center shrink-0",
+                    a.type === 'critical' ? "bg-rose-500/20 text-rose-500" : 
+                    a.type === 'warning' ? "bg-amber-500/20 text-amber-500" : 
+                    "bg-blue-500/20 text-blue-500"
+                  )}>
+                    <a.icon className="size-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold truncate">{a.message}</p>
+                    <p className="text-xs text-foreground/60 line-clamp-2">{a.detail}</p>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
 
       {isFinance && visibleSections.gestao && (
         <GestaoSection stats={{
