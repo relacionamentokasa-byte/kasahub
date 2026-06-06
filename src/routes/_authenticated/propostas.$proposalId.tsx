@@ -464,6 +464,17 @@ export function ProposalEditorContent({
                   </SelectContent>
                 </Select>
               </F>
+              <F label="Representante Comercial (Comissão)">
+                <Select value={form.commercial_id || "n"} onValueChange={(v) => setForm({ ...form, commercial_id: v === "n" ? "" : v })}>
+                  <SelectTrigger className="cursor-pointer">
+                    <SelectValue placeholder="Sem representante" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="n" className="cursor-pointer">Sem representante</SelectItem>
+                    {representatives.map(r => <SelectItem key={r.id} value={r.id} className="cursor-pointer">{r.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </F>
             </div>
           </div>
 
