@@ -216,6 +216,8 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
     queryFn: () => fetchOperationalFlowDetails(flowId),
   });
 
+  const [schemaEditor, setSchemaEditor] = useState<{ open: boolean, job: any }>({ open: false, job: null });
+
   const { data: roles = [] } = useQuery({
     queryKey: ["custom-roles"],
     queryFn: fetchCustomRoles
