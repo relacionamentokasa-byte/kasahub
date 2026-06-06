@@ -268,9 +268,9 @@ function ClientesPage() {
                       ? `${mainContract.title} +${clientContracts.length - 1}`
                       : mainContract?.title || "Nenhum contrato";
 
-                    const responsibleId = (c as any).responsible_id || mainContract?.owner_id;
+                    const responsibleId = (c as any).responsible_id || mainContract?.owner_id || c.owner_id;
                     const responsible = profiles.find(p => p.id === responsibleId);
-                    const responsibleName = responsible?.display_name || responsible?.full_name || "—";
+                    const responsibleName = responsible?.display_name || responsible?.full_name || "Ariel Matos";
 
                     const nextTransaction = transactions
                       .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
