@@ -24,62 +24,109 @@ serve(async (req) => {
     if (userError || !user) throw new Error('Invalid token')
 
     const body = await req.json()
-    const { action } = body
+    const { action, eventData } = body
 
-    if (action === "sync-all") {
-      // Simulação para o usuário ver os eventos aparecerem na agenda
-      // Em uma integração real, aqui faríamos a chamada à API do Google via LOVABLE_API_KEY
-      
-      const demoEvents = [
-        {
-          title: "Reunião de Alinhamento (Google)",
-          description: "Sincronizado via Google Calendar",
-          kind: "meeting",
-          starts_at: new Date(new Date().setHours(10, 0, 0)).toISOString(),
-          ends_at: new Date(new Date().setHours(11, 0, 0)).toISOString(),
-          source: "google",
-          created_by: user.id
-        },
-        {
-          title: "Apresentação de Projeto (Google)",
-          description: "Sincronizado via Google Calendar",
-          kind: "meeting",
-          starts_at: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
-          ends_at: new Date(new Date().setDate(new Date().getDate() + 1)).toISOString(),
-          source: "google",
-          created_by: user.id
+    const googleApiKey = Deno.env.get('GOOGLE_CALENDAR_API_KEY');
+    const isConfigured = !!googleApiKey;
+
+    // 1. Sincronizar do Google para o KASA (Pull)
+    if (action === "sync-all" || action === "pull") {
+      if (!isConfigured) {
+        throw new Error("GOOGLE_CALENDAR_API_KEY não configurada no Lovable Gateway.");
+      }
+
+      // Buscar eventos do Google via Gateway
+      const response = await fetch("https://gateway.lovable.app/google-calendar/v3/calendars/primary/events", {
+        headers: {
+          "Authorization": `Bearer ${googleApiKey}`
         }
-      ]
+      });
 
-      for (const event of demoEvents) {
-        // Verificar se já existe para não duplicar
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Erro ao buscar eventos do Google: ${errText}`);
+      }
+
+      const googleData = await response.json();
+      const googleEvents = googleData.items || [];
+
+      for (const gEvent of googleEvents) {
+        if (gEvent.status === 'cancelled') continue;
+
+        const startsAt = gEvent.start.dateTime || gEvent.start.date;
+        const endsAt = gEvent.end.dateTime || gEvent.end.date;
+
+        // Upsert no calendar_events
         const { data: existing } = await supabase
           .from('calendar_events')
           .select('id')
-          .eq('title', event.title)
-          .eq('user_id', user.id)
-          .maybeSingle()
+          .eq('google_event_id', gEvent.id)
+          .maybeSingle();
 
-        if (!existing) {
-          await supabase.from('calendar_events').insert({
-            ...event,
-            user_id: user.id
-          })
+        const eventPayload = {
+          title: gEvent.summary || "(Sem título)",
+          description: gEvent.description || null,
+          starts_at: startsAt,
+          ends_at: endsAt,
+          google_event_id: gEvent.id,
+          source: "google",
+          user_id: user.id,
+          kind: "meeting",
+          all_day: !gEvent.start.dateTime
+        };
+
+        if (existing) {
+          await supabase.from('calendar_events').update(eventPayload).eq('id', existing.id);
+        } else {
+          await supabase.from('calendar_events').insert(eventPayload);
         }
       }
 
-      // Atualizar timestamp da última sincronização
       await supabase
         .from('google_calendar_connections')
         .update({ last_pulled_at: new Date().toISOString() })
-        .eq('user_id', user.id)
+        .eq('user_id', user.id);
+    }
+
+    // 2. Sincronizar do KASA para o Google (Push)
+    if (action === "push-event" && eventData) {
+      if (!isConfigured) return new Response(JSON.stringify({ success: true, warning: "Offline mode" }), { headers: corsHeaders });
+
+      const gPayload = {
+        summary: eventData.title,
+        description: eventData.description,
+        start: { dateTime: eventData.starts_at },
+        end: { dateTime: eventData.ends_at || new Date(new Date(eventData.starts_at).getTime() + 3600000).toISOString() }
+      };
+
+      const method = eventData.google_event_id ? "PUT" : "POST";
+      const url = eventData.google_event_id 
+        ? `https://gateway.lovable.app/google-calendar/v3/calendars/primary/events/${eventData.google_event_id}`
+        : `https://gateway.lovable.app/google-calendar/v3/calendars/primary/events`;
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          "Authorization": `Bearer ${googleApiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(gPayload)
+      });
+
+      if (response.ok) {
+        const created = await response.json();
+        await supabase.from('calendar_events')
+          .update({ google_event_id: created.id, source: 'system', last_synced_at: new Date().toISOString() })
+          .eq('id', eventData.id);
+      }
     }
 
     return new Response(
-      JSON.stringify({ message: "Sincronização concluída com sucesso", success: true }),
+      JSON.stringify({ message: "Operação concluída", success: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
+    console.error(error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
