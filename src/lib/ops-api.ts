@@ -125,10 +125,16 @@ export async function fetchProjectStats(projectId: string) {
   const overdue = jobs.filter(j => !j.done_at && !(j.stage_id && doneStageIds.has(j.stage_id)) && j.due_date && j.due_date < today).length;
   const progress = total === 0 ? 0 : Math.round((done / total) * 100);
   
-  const { count: dmeCount } = await supabase
-    .from("extra_demands")
-    .select("id", { count: "exact", head: true })
-    .eq("contract_id", (await supabase.from("projects").select("contract_id").eq("id", projectId).single()).data?.contract_id);
+  const { data: proj } = await supabase.from("projects").select("contract_id").eq("id", projectId).single();
+  let dmeCount = 0;
+  if (proj?.contract_id) {
+    const { count } = await supabase
+      .from("extra_demands")
+      .select("id", { count: "exact", head: true })
+      .eq("contract_id", proj.contract_id);
+    dmeCount = count || 0;
+  }
+
 
   return { total, done, pending, overdue, progress, dmeCount: dmeCount || 0 };
 }
