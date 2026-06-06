@@ -311,6 +311,33 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
   const monthIncome = periodTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
   const monthExpense = periodTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
 
+  // DME / Extra Income logic
+  // DMEs are recognized by having dme_id
+  const dmeIncome = periodTx
+    .filter((t) => t.kind === "income" && t.dme_id)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const extraIncome = periodTx
+    .filter((t) => t.kind === "income" && !t.contract_id && !t.is_recurring)
+    .reduce((s, t) => s + Number(t.amount), 0) + dmeIncome;
+
+  const recurringIncome = periodTx
+    .filter((t) => t.kind === "income" && (t.contract_id || t.is_recurring) && !t.dme_id)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const overdue = txs.filter(
+    (t) => t.status === "pending" && t.due_date < new Date().toISOString().slice(0, 10),
+  );
+
+  // Ticket calculations (kept for backward compatibility with other pages)
+  const recurringClients = new Set(activeContracts.map((c) => c.client_id).filter(Boolean));
+  const ticketRecurrente = recurringClients.size > 0 ? mrr / recurringClients.size : 0;
+  const allClientsBilled = new Set(
+    txs.filter((t) => t.kind === "income" && t.client_id).map((t) => t.client_id as string),
+  );
+  const totalIncome = txs.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const ticketGeral = allClientsBilled.size > 0 ? totalIncome / allClientsBilled.size : 0;
+
   return {
     incomePaid,
     expensePaid,
@@ -335,6 +362,7 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
     overdueAmount: overdue.reduce((s, t) => s + Number(t.amount), 0),
   };
 }
+
 
 export function cashflowByMonth(txs: Transaction[], months = 6) {
   const buckets: Record<string, { label: string; income: number; expense: number }> = {};

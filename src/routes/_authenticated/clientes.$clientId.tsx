@@ -5,9 +5,11 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   ArrowLeft, Calendar, Mail, Phone, Building2, FileText, Palette,
   Globe, Save, Loader2, UserPlus, Trash2, KeyRound, ExternalLink, Copy, Check, Pencil,
-  DollarSign, Clock, FileSignature, Activity,
+  DollarSign, Clock, FileSignature, Activity, Plus,
 } from "lucide-react";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
+import { ExtraDemandsManager } from "@/components/contracts/ExtraDemandsManager";
+
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { ClientContracts } from "@/components/clients/ClientContracts";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
@@ -169,9 +171,11 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
               ["jobs", "Jobs"],
               ["finance", "Financeiro"],
               ["proposals", "Propostas"],
+              ["dme", "Demandas Extras"],
               ["portal", "Portal"],
               ["files", "Arquivos"],
               ["timeline", "Timeline"],
+
               ["servicos", "Serviços"],
               ["calendar", "Calendário"],
               ["branding", "Branding"],
@@ -324,7 +328,12 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
         </TabsContent>
 
 
+        <TabsContent value="dme" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+          <ExtraDemandsManager clientId={clientId} />
+        </TabsContent>
+
         <TabsContent value="proposals" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
+
           {proposals.length === 0 ? (
             <p className="text-foreground/40 text-sm">Nenhuma proposta vinculada a este cliente.</p>
           ) : (
