@@ -255,6 +255,7 @@ export async function approveProposal(
         due_date: ymd(due),
         status: "pending",
         is_recurring: true,
+
         account_id: proposal.account_id ?? null,
         category_id: proposal.category_id ?? null,
         client_id: clientId,
@@ -262,6 +263,7 @@ export async function approveProposal(
         proposal_id: proposal.id,
         contract_id: contractId,
         owner_id: proposal.owner_id ?? null,
+
 
       });
     }
@@ -308,6 +310,7 @@ export async function approveProposal(
         proposal_id: proposal.id,
         contract_id: contractId,
         owner_id: proposal.owner_id ?? null,
+
 
       }));
       const { error: txErr } = await sb.from("transactions").insert(rows);
