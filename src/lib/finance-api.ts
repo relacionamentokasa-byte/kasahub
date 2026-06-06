@@ -290,19 +290,21 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
   const monthIncome = periodTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
   const monthExpense = periodTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
 
-  // DME / Extra Income logic
-  // DMEs are recognized by having dme_id
-  const dmeIncome = periodTx
+  const extraIncomeTotal = periodTx
+    .filter((t: any) => t.kind === "income" && !t.contract_id && !t.is_recurring)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  // DME specific income
+  const dmeIncomeTotal = periodTx
     .filter((t: any) => t.kind === "income" && t.dme_id)
     .reduce((s, t) => s + Number(t.amount), 0);
 
-  const extraIncome = periodTx
-    .filter((t: any) => t.kind === "income" && !t.contract_id && !t.is_recurring)
-    .reduce((s, t) => s + Number(t.amount), 0) + dmeIncome;
+  const extraIncome = extraIncomeTotal + dmeIncomeTotal;
 
   const recurringIncome = periodTx
     .filter((t: any) => t.kind === "income" && (t.contract_id || t.is_recurring) && !t.dme_id)
     .reduce((s, t) => s + Number(t.amount), 0);
+
 
   const overdue = txs.filter(
     (t) => t.status === "pending" && t.due_date < new Date().toISOString().slice(0, 10),
