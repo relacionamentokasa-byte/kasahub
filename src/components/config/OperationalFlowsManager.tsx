@@ -316,15 +316,17 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
             <div className="space-y-4">
               <div className="flex items-center justify-between border-b pb-2">
                 <h4 className="text-sm font-semibold">Campos do Formulário</h4>
-                <Button size="sm" variant="outline" onClick={() => {
-                  const currentSchema = schemaEditor.job?.custom_fields_schema || [];
-                  const newField = { label: "Novo Campo", type: "text", required: false };
-                  const next = [...currentSchema, newField];
-                  const newJob = { ...schemaEditor.job, custom_fields_schema: next };
-                  setSchemaEditor({ ...schemaEditor, job: newJob });
-                }}>
-                  <Plus className="size-3 mr-2" /> Novo Campo
-                </Button>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => {
+                    const currentSchema = schemaEditor.job?.custom_fields_schema || [];
+                    const newField = { label: "Novo Campo", type: "text", required: false, options: "" };
+                    const next = [...currentSchema, newField];
+                    const newJob = { ...schemaEditor.job, custom_fields_schema: next };
+                    setSchemaEditor({ ...schemaEditor, job: newJob });
+                  }}>
+                    <Plus className="size-3 mr-2" /> Novo Campo
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-3">
