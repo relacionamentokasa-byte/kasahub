@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchMyProfile } from "@/lib/profile-api";
 import {
   LayoutDashboard,
   KanbanSquare,
@@ -128,10 +129,7 @@ export function AppSidebar() {
 function UserFooter({ collapsed }: { collapsed: boolean }) {
   const { data: profile } = useQuery({
     queryKey: ["my-profile"],
-    queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("*").single();
-      return data;
-    },
+    queryFn: fetchMyProfile,
   });
 
   const name = profile?.display_name || profile?.full_name || "Membro";
