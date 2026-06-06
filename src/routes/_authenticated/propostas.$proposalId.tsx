@@ -32,6 +32,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
 import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
+import { ScopeEditor } from "@/components/proposals/ScopeEditor";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
