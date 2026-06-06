@@ -10,7 +10,7 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Plus, Trophy, Search } from "lucide-react";
+import { Plus, Trophy, Search, MessageCircle, Filter } from "lucide-react";
 import {
   fetchStages,
   fetchLeads,
@@ -34,19 +34,28 @@ export function CrmBoard() {
   const [openLead, setOpenLead] = useState<Lead | null>(null);
   const [newLeadStage, setNewLeadStage] = useState<Stage | null>(null);
   const [query, setQuery] = useState("");
+  const [whatsappFilter, setWhatsappFilter] = useState<"all" | "yes" | "no">("all");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return leads;
-    return leads.filter(
+    let list = leads;
+
+    if (whatsappFilter === "yes") {
+      list = list.filter((l) => !!l.phone);
+    } else if (whatsappFilter === "no") {
+      list = list.filter((l) => !l.phone);
+    }
+
+    if (!q) return list;
+    return list.filter(
       (l) =>
         l.name.toLowerCase().includes(q) ||
         (l.company ?? "").toLowerCase().includes(q) ||
         (l.email ?? "").toLowerCase().includes(q),
     );
-  }, [leads, query]);
+  }, [leads, query, whatsappFilter]);
 
   const byStage = useMemo(() => {
     const m = new Map<string, Lead[]>();
@@ -115,6 +124,18 @@ export function CrmBoard() {
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9 h-10 w-72 bg-surface border-border"
             />
+          </div>
+          <div className="flex items-center gap-2 bg-surface border border-border px-3 h-10 rounded-lg">
+            <Filter className="size-3.5 text-foreground/40" />
+            <select
+              value={whatsappFilter}
+              onChange={(e) => setWhatsappFilter(e.target.value as any)}
+              className="bg-transparent border-none outline-none text-xs text-foreground/70"
+            >
+              <option value="all">Todos os Leads</option>
+              <option value="yes">Com WhatsApp</option>
+              <option value="no">Sem WhatsApp</option>
+            </select>
           </div>
           <Button
             onClick={() => setNewLeadStage(stages[0] ?? null)}
@@ -247,11 +268,25 @@ function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
           </span>
         )}
       </div>
-      {lead.source && (
-        <span className="inline-block mt-2 text-[10px] capitalize text-foreground/40 border border-border rounded px-1.5 py-0.5">
-          {lead.source}
-        </span>
-      )}
+      <div className="flex items-center justify-between mt-3">
+        {lead.source && (
+          <span className="text-[10px] capitalize text-foreground/40 border border-border rounded px-1.5 py-0.5">
+            {lead.source}
+          </span>
+        )}
+        {lead.phone && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const phone = lead.phone?.replace(/\D/g, "");
+              if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}`, "_blank");
+            }}
+            className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-bold hover:underline"
+          >
+            <MessageCircle className="size-3" /> WhatsApp
+          </button>
+        )}
+      </div>
     </div>
   );
 }
