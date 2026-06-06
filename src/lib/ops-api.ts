@@ -301,12 +301,15 @@ export async function approveExtraDemand(id: string) {
     .single();
   if (updErr) throw updErr;
 
-  // 2. Create Job
+  // 2. Create Job and Link to Project
+  const { data: project } = await supabase.from("projects").select("id").eq("contract_id", dme.contract_id).limit(1).single();
   const { data: stages } = await supabase.from("job_stages").select("id").order("order_index").limit(1);
+  
   await supabase.from("jobs").insert({
     title: `${dme.number_display}: ${dme.title}`,
     description: dme.description,
     client_id: dme.client_id,
+    project_id: project?.id || null,
     dme_id: dme.id,
     stage_id: stages?.[0]?.id,
     priority: "normal",
