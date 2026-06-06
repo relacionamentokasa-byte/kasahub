@@ -220,7 +220,7 @@ function ConfigPage() {
                 { id: "stripe", name: "Stripe", desc: "Cobrança recorrente (futuro)." },
               ].map((it) => {
                 const integ = (form.integrations as Record<string, { connected?: boolean }> | undefined) ?? {};
-                const connected = integ[it.id]?.connected ?? false;
+                const connected = it.id === 'whatsapp' ? true : (integ[it.id]?.connected ?? false);
                 return (
                   <div key={it.id} className="flex items-center justify-between border border-border rounded-lg p-4 bg-background/40">
                     <div>
@@ -235,7 +235,7 @@ function ConfigPage() {
               })}
             </div>
             <p className="text-xs text-foreground/40 mt-4">
-              As conexões OAuth com cada serviço serão configuradas na Fase 9.
+              Comunicação direta via WhatsApp Web ativada para o CRM.
             </p>
           </Card>
         </TabsContent>
