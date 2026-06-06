@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { handleMentions } from "./notifications-api";
 
 type SB = SupabaseClient<Database>;
 
@@ -81,6 +82,26 @@ export async function approveExtraDemand(sb: SB, id: string) {
       dme_id: dme.id,
       account_id,
       category_id,
+    });
+  }
+
+  const { data: userData } = await sb.auth.getUser();
+  await sb.rpc('notify_user', {
+    p_user_id: project?.owner_id || userData.user?.id,
+    p_title: "DME Aprovada",
+    p_description: `A demanda ${dme.number_display} foi aprovada e gerou um Job.`,
+    p_category: 'approval',
+    p_origin_type: 'extra_demands',
+    p_origin_id: dme.id,
+    p_link: '/jobs'
+  } as any);
+
+  if (dme.description?.includes('@')) {
+    await handleMentions(dme.description, {
+      title: `DME: ${dme.title}`,
+      link: `/propostas`,
+      originType: 'extra_demands',
+      originId: dme.id
     });
   }
 
