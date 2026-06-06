@@ -457,14 +457,9 @@ function JobRow({ job, roles, canEdit, onChanged, onEditSchema, flowJobs }: { jo
 
   const { data: deps = [], refetch: refetchDeps } = useQuery({
     queryKey: ["job-deps", job.id],
-    queryFn: () => {
-      const { fetchJobDependencies } = require("@/lib/operational-flows-api");
-      return fetchJobDependencies(job.id);
-    },
+    queryFn: () => fetchJobDependencies(job.id),
     enabled: showDeps
   });
-
-  const { addJobDependency, removeJobDependency } = require("@/lib/operational-flows-api");
 
   const addDepMut = useMutation({
     mutationFn: (dependsOnId: string) => addJobDependency(job.id, dependsOnId),
