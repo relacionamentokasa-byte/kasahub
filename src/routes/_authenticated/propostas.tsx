@@ -311,7 +311,7 @@ function ProposalsPage() {
 
   return (
 
-    <div className="p-6 lg:p-10 max-w-7xl mx-auto w-full">
+    <div className="p-4 lg:p-10 max-w-7xl mx-auto w-full pb-20 md:pb-10">
       <div className="flex items-end justify-between gap-4 flex-wrap mb-8">
         <div>
           <span className="text-primary text-[10px] capitalize">Comercial · Propostas</span>

@@ -25,13 +25,13 @@ function ApprovalsPage() {
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="p-4 lg:p-8 space-y-6 pb-20 md:pb-8">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-[10px] font-mono-kasa capitalize text-primary/70">
             Experiência · Aprovações
           </p>
-          <h1 className="font-display text-3xl lg:text-4xl mt-1">Feed de aprovações</h1>
+          <h1 className="font-display text-2xl lg:text-4xl mt-1">Feed de aprovações</h1>
           <p className="text-sm text-foreground/60 mt-2">
             Pré-visualize, comente e aprove cada peça antes da publicação — no estilo Instagram.
           </p>
@@ -41,7 +41,7 @@ function ApprovalsPage() {
         </Button>
       </header>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-background/95 backdrop-blur py-2">
         <Select value={clientId} onValueChange={setClientId}>
           <SelectTrigger className="w-56 bg-surface border-border"><SelectValue /></SelectTrigger>
           <SelectContent>

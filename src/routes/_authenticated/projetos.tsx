@@ -118,7 +118,7 @@ function ProjetosPage() {
             <span className="text-primary text-[10px] capitalize font-bold tracking-widest">
               Operação · Projetos
             </span>
-            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+            <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
               Projetos
             </h1>
           </div>
@@ -213,7 +213,7 @@ function ProjetosPage() {
             <p className="text-sm">Nenhum projeto criado ainda.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20 md:pb-0">
             {projects.map((p) => {
               const c = p.client_id ? clientById.get(p.client_id) : null;
               const ct = allContracts.find(x => x.id === p.contract_id);
