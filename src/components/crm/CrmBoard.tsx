@@ -122,7 +122,7 @@ export function CrmBoard() {
               placeholder="Buscar lead, empresa, e-mail…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-10 w-72 bg-surface border-border"
+              className="pl-9 h-10 w-56 bg-surface border-border"
             />
           </div>
           <div className="flex items-center gap-2 bg-surface border border-border px-3 h-10 rounded-lg">
