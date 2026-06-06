@@ -25,13 +25,13 @@ export async function fetchNotifications() {
     .eq("is_archived", false)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data as Notification[];
+  return data as any as Notification[];
 }
 
 export async function markAsRead(id: string) {
   const { error } = await supabase
     .from("notifications")
-    .update({ is_read: true })
+    .update({ is_read: true } as any)
     .eq("id", id);
   if (error) throw error;
 }
@@ -41,7 +41,7 @@ export async function markAllAsRead() {
   if (!user) return;
   const { error } = await supabase
     .from("notifications")
-    .update({ is_read: true })
+    .update({ is_read: true } as any)
     .eq("user_id", user.id)
     .eq("is_read", false);
   if (error) throw error;
@@ -50,7 +50,7 @@ export async function markAllAsRead() {
 export async function archiveNotification(id: string) {
   const { error } = await supabase
     .from("notifications")
-    .update({ is_archived: true })
+    .update({ is_archived: true } as any)
     .eq("id", id);
   if (error) throw error;
 }
