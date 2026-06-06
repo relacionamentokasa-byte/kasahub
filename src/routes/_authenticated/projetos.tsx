@@ -34,6 +34,14 @@ function ProjetosPage() {
       return data || [];
     }
   });
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name, avatar_url");
+      return data || [];
+    }
+  });
+
 
   const { data: allJobs = [] } = useQuery({
     queryKey: ["all-jobs-stats"],
