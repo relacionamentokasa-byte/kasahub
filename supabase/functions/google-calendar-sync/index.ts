@@ -35,7 +35,7 @@ serve(async (req) => {
 
     // 1. PULL: Google -> KASA
     if (action === "sync-all" || action === "pull") {
-      const response = await fetch("https://gateway.lovable.app/google-calendar/v3/calendars/primary/events", {
+      const response = await fetch("https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events", {
         headers: { "Authorization": `Bearer ${googleApiKey}` }
       });
 
@@ -87,8 +87,8 @@ serve(async (req) => {
 
       const method = eventData.google_event_id ? "PUT" : "POST";
       const url = eventData.google_event_id 
-        ? `https://gateway.lovable.app/google-calendar/v3/calendars/primary/events/${eventData.google_event_id}`
-        : `https://gateway.lovable.app/google-calendar/v3/calendars/primary/events`;
+        ? `https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events/${eventData.google_event_id}`
+        : `https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events`;
 
       const response = await fetch(url, {
         method,
@@ -109,7 +109,7 @@ serve(async (req) => {
 
     // 3. DELETE: KASA -> Google
     if (action === "delete-event" && googleEventId) {
-      await fetch(`https://gateway.lovable.app/google-calendar/v3/calendars/primary/events/${googleEventId}`, {
+      await fetch(`https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events/${googleEventId}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${googleApiKey}` }
       });
