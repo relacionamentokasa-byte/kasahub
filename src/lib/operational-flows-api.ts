@@ -60,7 +60,7 @@ export const fetchOperationalFlowDetails = async (flowId: string) => {
   return stages;
 };
 
-export const createOperationalFlow = async (flow: Partial<OperationalFlow>) => {
+export const createOperationalFlow = async (flow: { name: string; description?: string | null; status?: string; default_project_name?: string | null }) => {
   const { data, error } = await supabase
     .from('operational_flows')
     .insert(flow)
@@ -70,7 +70,7 @@ export const createOperationalFlow = async (flow: Partial<OperationalFlow>) => {
   return data;
 };
 
-export const updateOperationalFlow = async (id: string, flow: Partial<OperationalFlow>) => {
+export const updateOperationalFlow = async (id: string, flow: Partial<{ name: string; description: string | null; status: string; default_project_name: string | null }>) => {
   const { data, error } = await supabase
     .from('operational_flows')
     .update(flow)
@@ -87,4 +87,75 @@ export const deleteOperationalFlow = async (id: string) => {
     .delete()
     .eq('id', id);
   if (error) throw error;
+};
+
+export const duplicateOperationalFlow = async (id: string) => {
+  // Buscar fluxo original
+  const { data: flow, error: flowError } = await supabase
+    .from('operational_flows')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (flowError) throw flowError;
+
+  // Criar cópia do fluxo
+  const { data: newFlow, error: newFlowError } = await supabase
+    .from('operational_flows')
+    .insert({
+      name: `${flow.name} (Cópia)`,
+      description: flow.description,
+      default_project_name: flow.default_project_name,
+      status: flow.status
+    })
+    .select()
+    .single();
+
+  if (newFlowError) throw newFlowError;
+
+  // Buscar estágios, jobs e checklists
+  const details = await fetchOperationalFlowDetails(id);
+
+  for (const stage of details) {
+    const { data: newStage, error: stageError } = await supabase
+      .from('operational_flow_stages')
+      .insert({
+        flow_id: newFlow.id,
+        name: stage.name,
+        order: stage.order
+      })
+      .select()
+      .single();
+    
+    if (stageError) continue;
+
+    for (const job of (stage as any).jobs || []) {
+      const { data: newJob, error: jobError } = await supabase
+        .from('operational_flow_jobs')
+        .insert({
+          stage_id: newStage.id,
+          name: job.name,
+          job_type: job.job_type,
+          default_assignee_role_id: job.default_assignee_role_id,
+          sla_days: job.sla_days,
+          order: job.order
+        })
+        .select()
+        .single();
+      
+      if (jobError) continue;
+
+      for (const checklist of job.checklists || []) {
+        await supabase
+          .from('operational_flow_checklists')
+          .insert({
+            flow_job_id: newJob.id,
+            item_text: checklist.item_text,
+            order: checklist.order
+          });
+      }
+    }
+  }
+
+  return newFlow;
 };
