@@ -30,6 +30,7 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authenticated/aprovacoes'
+import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
@@ -141,6 +142,11 @@ const AuthenticatedAprovacoesRoute = AuthenticatedAprovacoesRouteImport.update({
   path: '/aprovacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicManifestRoute = ApiPublicManifestRouteImport.update({
+  id: '/api/public/manifest',
+  path: '/api/public/manifest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedPropostasProposalIdRoute =
   AuthenticatedPropostasProposalIdRouteImport.update({
     id: '/$proposalId',
@@ -194,6 +200,7 @@ export interface FileRoutesByFullPath {
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
@@ -221,6 +228,7 @@ export interface FileRoutesByTo {
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
@@ -250,6 +258,7 @@ export interface FileRoutesById {
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/clientes/$clientId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/api/public/manifest'
     | '/api/public/dme/$token'
     | '/api/public/proposal/$token'
   fileRoutesByTo: FileRoutesByTo
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/clientes/$clientId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/api/public/manifest'
     | '/api/public/dme/$token'
     | '/api/public/proposal/$token'
   id:
@@ -334,6 +345,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clientes/$clientId'
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
+    | '/api/public/manifest'
     | '/api/public/dme/$token'
     | '/api/public/proposal/$token'
   fileRoutesById: FileRoutesById
@@ -344,6 +356,7 @@ export interface RootRouteChildren {
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
   PTokenRoute: typeof PTokenRoute
+  ApiPublicManifestRoute: typeof ApiPublicManifestRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
 }
@@ -497,6 +510,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAprovacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/manifest': {
+      id: '/api/public/manifest'
+      path: '/api/public/manifest'
+      fullPath: '/api/public/manifest'
+      preLoaderRoute: typeof ApiPublicManifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/propostas/$proposalId': {
       id: '/_authenticated/propostas/$proposalId'
       path: '/$proposalId'
@@ -623,6 +643,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
   PTokenRoute: PTokenRoute,
+  ApiPublicManifestRoute: ApiPublicManifestRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
 }
