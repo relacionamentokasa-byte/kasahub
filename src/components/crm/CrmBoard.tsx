@@ -280,7 +280,7 @@ function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
             onClick={(e) => {
               e.stopPropagation();
               const phone = lead.phone?.replace(/\D/g, "");
-              if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}`, "_blank");
+              if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(`Olá, ${lead.name}. Vi seu interesse em nossos serviços e gostaria de entender melhor sua necessidade.`)}`, "_blank");
             }}
             className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-bold hover:underline"
           >
