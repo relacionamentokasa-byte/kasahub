@@ -97,11 +97,11 @@ export function TerminateRecurrenceDialog({
             Cancelar
           </Button>
           <Button
-            variant="warning"
-            className="bg-warning text-warning-foreground hover:bg-warning/90"
+            variant="destructive"
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
           >
+
             {mutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
