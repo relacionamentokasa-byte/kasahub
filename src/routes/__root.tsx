@@ -17,6 +17,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useAudioNotifications } from "@/hooks/use-audio-notifications";
+import { registerPWA } from "@/lib/pwa-register";
 
 
 function NotFoundComponent() {
