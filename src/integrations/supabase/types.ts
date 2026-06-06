@@ -1453,6 +1453,12 @@ export type Database = {
           jobs: boolean | null
           mentions: boolean | null
           push_enabled: boolean | null
+          sound_agenda: boolean | null
+          sound_approvals: boolean | null
+          sound_enabled: boolean | null
+          sound_jobs: boolean | null
+          sound_mentions: boolean | null
+          sound_volume: string | null
           updated_at: string
           user_id: string
           whatsapp_enabled: boolean | null
@@ -1466,6 +1472,12 @@ export type Database = {
           jobs?: boolean | null
           mentions?: boolean | null
           push_enabled?: boolean | null
+          sound_agenda?: boolean | null
+          sound_approvals?: boolean | null
+          sound_enabled?: boolean | null
+          sound_jobs?: boolean | null
+          sound_mentions?: boolean | null
+          sound_volume?: string | null
           updated_at?: string
           user_id: string
           whatsapp_enabled?: boolean | null
@@ -1479,6 +1491,12 @@ export type Database = {
           jobs?: boolean | null
           mentions?: boolean | null
           push_enabled?: boolean | null
+          sound_agenda?: boolean | null
+          sound_approvals?: boolean | null
+          sound_enabled?: boolean | null
+          sound_jobs?: boolean | null
+          sound_mentions?: boolean | null
+          sound_volume?: string | null
           updated_at?: string
           user_id?: string
           whatsapp_enabled?: boolean | null
