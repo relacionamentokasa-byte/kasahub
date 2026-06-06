@@ -44,13 +44,13 @@ function PublicApprovalPage() {
           last_feedback: feedback,
           feedback_at: new Date().toISOString()
         })
-        .eq("id", job.id);
+        .eq("id", job!.id);
       
       if (error) throw error;
 
       // Log no histórico
       await supabase.from("job_history").insert({
-        job_id: job.id,
+        job_id: job!.id,
         action: 'feedback_received',
         to_value: status,
         metadata: { feedback }
