@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { handleMentions } from "./notifications-api";
 
 export type ApprovalStatus = "draft" | "pending" | "changes_requested" | "approved" | "published";
 export type ApprovalKind = "post" | "reel" | "story" | "carousel" | "video" | "art";
@@ -141,6 +142,16 @@ export async function createApproval(input: {
     source: "system",
     created_by: u.user?.id
   } as never);
+
+  if (approval.caption?.includes('@')) {
+    await handleMentions(approval.caption, {
+      title: `Aprovação: ${approval.title}`,
+      link: `/aprovacoes`,
+      originType: 'approvals',
+      originId: approval.id
+    });
+  }
+
   return data as unknown as Approval;
 }
 
