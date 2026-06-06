@@ -96,16 +96,23 @@ export async function handleMentions(text: string, context: {
     .select("id, display_name, full_name")
     .or(`display_name.in.(${names.join(",")}),full_name.in.(${names.join(",")})`);
 
-  if (!profiles) return;
+  if (!profiles || profiles.length === 0) return;
 
   const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const { data: currentProfile } = await supabase
+    .from("profiles")
+    .select("display_name, full_name")
+    .eq("id", currentUser?.id || '')
+    .single();
+
+  const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
 
   for (const profile of profiles) {
     if (profile.id === currentUser?.id) continue;
     
     await notify({
       userId: profile.id,
-      title: `${currentUser?.user_metadata?.display_name || 'Alguém'} mencionou você`,
+      title: `${authorName} mencionou você`,
       description: `Em: ${context.title}`,
       category: "mention",
       link: context.link,
