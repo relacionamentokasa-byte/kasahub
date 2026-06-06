@@ -57,6 +57,7 @@ import {
   RotateCcw,
   XCircle,
   Ban,
+  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 
