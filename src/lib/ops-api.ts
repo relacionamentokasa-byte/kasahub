@@ -105,6 +105,15 @@ export async function createProject(input: Database["public"]["Tables"]["project
     .single();
   if (error) throw error;
   
+  if (data.briefing?.includes('@')) {
+    await handleMentions(data.briefing, {
+      title: `Projeto: ${data.name}`,
+      link: `/projetos/${data.id}`,
+      originType: 'projects',
+      originId: data.id
+    });
+  }
+
   await logAudit("create", "project", data.id, null, data);
   return data;
 }
