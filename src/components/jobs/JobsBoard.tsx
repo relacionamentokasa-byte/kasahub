@@ -29,6 +29,7 @@ import {
   deleteJob,
   priorityColor,
   priorityLabel,
+  JOB_STATUS_LABELS,
   type Job,
   type JobStage,
 } from "@/lib/ops-api";
