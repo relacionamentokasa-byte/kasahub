@@ -301,20 +301,37 @@ function ServiceFormDialog({
                 </div>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Template Contratual Padrão</Label>
-              <select
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                value={form.contract_template_id}
-                onChange={(e) => setForm({ ...form, contract_template_id: e.target.value })}
-              >
-                <option value="">Sem contrato padrão</option>
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Template Contratual Padrão</Label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  value={form.contract_template_id}
+                  onChange={(e) => setForm({ ...form, contract_template_id: e.target.value })}
+                >
+                  <option value="">Sem contrato padrão</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Fluxo Operacional Padrão</Label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  value={form.operational_flow_id}
+                  onChange={(e) => setForm({ ...form, operational_flow_id: e.target.value })}
+                >
+                  <option value="">Sem fluxo padrão</option>
+                  {flows.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Descrição</Label>
