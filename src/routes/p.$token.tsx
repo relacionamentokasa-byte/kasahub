@@ -179,7 +179,7 @@ function PublicProposalView() {
 
       <div className="no-print sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
         <div className="text-sm font-semibold text-slate-700 truncate">
-          {agency?.name ?? "Proposta Comercial"}
+          {agency?.name ?? "HUB"}
         </div>
         <div className="flex items-center gap-2">
           <Button

@@ -68,6 +68,8 @@ function PublicDmeView() {
 
   const { dme, agency } = data;
   const isApproved = dme.status === "approved" || dme.status === "aprovada" || dme.status === "in_production" || dme.status === "completed";
+  const brandPrimary = agency?.brand_primary || "#FFBC45";
+  const brandSecondary = agency?.brand_secondary || "#000000";
 
   const BRL = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -82,14 +84,14 @@ function PublicDmeView() {
             <div className="text-2xl font-bold tracking-tighter mb-6">{agency?.name || "KASA ERP"}</div>
           )}
           <div className="inline-flex items-center gap-2 bg-white border border-slate-200 px-3 py-1 rounded-full shadow-sm mb-4">
-            <span className="size-2 rounded-full bg-primary animate-pulse" />
+            <span className="size-2 rounded-full animate-pulse" style={{ backgroundColor: brandPrimary }} />
             <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Solicitação de Aprovação</span>
           </div>
           <h1 className="text-3xl font-display font-bold text-slate-900 leading-tight">
             {dme.title}
           </h1>
           <p className="text-slate-500 mt-2">
-            Referente ao contrato: <span className="font-semibold text-primary">{dme.contracts?.title}</span>
+            Referente ao contrato: <span className="font-semibold" style={{ color: brandPrimary }}>{dme.contracts?.title}</span>
           </p>
         </div>
 
@@ -97,7 +99,7 @@ function PublicDmeView() {
         <div className="bg-white border border-slate-200 rounded-[2.5rem] shadow-xl shadow-slate-200/50 overflow-hidden">
           <div className="p-8 lg:p-12">
             <div className="flex items-center justify-between mb-8">
-              <div className="text-[11px] font-mono font-bold text-primary tracking-tighter bg-primary/5 px-3 py-1 rounded-lg">
+              <div className="text-[11px] font-mono font-bold tracking-tighter px-3 py-1 rounded-lg" style={{ backgroundColor: `${brandPrimary}10`, color: brandPrimary }}>
                 DME {dme.number_display}
               </div>
               <div className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-lg ${
@@ -133,7 +135,7 @@ function PublicDmeView() {
           <div className="bg-slate-50/50 border-t border-slate-100 p-8 lg:p-12 flex flex-col items-center">
             {isApproved ? (
               <div className="text-center">
-                <div className="size-16 bg-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/20">
+                <div className="size-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg" style={{ backgroundColor: brandPrimary, boxShadow: `0 10px 15px -3px ${brandPrimary}33` }}>
                   <Check className="size-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">Demanda Aprovada!</h3>
@@ -152,7 +154,8 @@ function PublicDmeView() {
                 <Button 
                   onClick={handleApprove} 
                   disabled={approving}
-                  className="w-full h-14 rounded-2xl text-base font-bold uppercase tracking-widest shadow-xl shadow-primary/20 gap-3"
+                  className="w-full h-14 rounded-2xl text-base font-bold uppercase tracking-widest shadow-xl gap-3 text-white border-0"
+                  style={{ backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }}
                 >
                   {approving ? (
                     <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
