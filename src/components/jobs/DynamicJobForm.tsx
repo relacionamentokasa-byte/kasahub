@@ -33,7 +33,8 @@ export function DynamicJobForm({ jobType, flowJobId, data, onChange, readOnly }:
           .single();
         
         if (error) throw error;
-        setSchema(jobConfig?.custom_fields_schema || []);
+        const schemaData = jobConfig?.custom_fields_schema;
+        setSchema(Array.isArray(schemaData) ? schemaData : []);
       } catch (err) {
         console.error("Erro ao carregar esquema do formulário:", err);
       } finally {
