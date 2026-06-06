@@ -673,6 +673,17 @@ function FinanceiroPage() {
       <NewBankAccountDialog open={openAcc} onOpenChange={setOpenAcc} />
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
+      
+      <DeleteFutureInstallmentsDialog 
+        recurrenceId={deleteFutureRecurrenceId} 
+        onClose={() => setDeleteFutureRecurrenceId(null)} 
+      />
+      
+      <TerminateRecurrenceDialog 
+        recurrenceId={terminateRecurrenceId} 
+        onClose={() => setTerminateRecurrenceId(null)} 
+      />
+
     </div>
   );
 }
