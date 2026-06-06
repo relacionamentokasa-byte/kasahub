@@ -88,24 +88,7 @@ export async function deleteContract(id: string) {
 }
 
 // ---------- Transactions ----------
-export async function fetchTransactions(filters: {
-  kind?: "income" | "expense";
-  clientId?: string;
-  from?: string;
-  to?: string;
-} = {}): Promise<Transaction[]> {
-  let q = supabase
-    .from("transactions")
-    .select("*")
-    .order("due_date", { ascending: false });
-  if (filters.kind) q = q.eq("kind", filters.kind);
-  if (filters.clientId) q = q.eq("client_id", filters.clientId);
-  if (filters.from) q = q.gte("due_date", filters.from);
-  if (filters.to) q = q.lte("due_date", filters.to);
-  const { data, error } = await q;
-  if (error) throw error;
-  return data ?? [];
-}
+
 
 // ---------- Recurrences ----------
 export async function fetchRecurrences(): Promise<Recurrence[]> {
