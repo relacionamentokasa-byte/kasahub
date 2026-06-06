@@ -122,6 +122,8 @@ function FinanceiroPage() {
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
+  const { data: recurrences = [] } = useQuery({ queryKey: ["recurrences"], queryFn: () => supabase.from("recurrences").select("*").order("created_at", { ascending: false }).then(r => r.data ?? []) });
+
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
