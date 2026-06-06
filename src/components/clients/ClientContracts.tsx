@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { terminateContract } from "@/lib/finance-api";
 import { toast } from "sonner";
-import { TerminateRecurrenceDialog } from "@/components/finance/TerminateRecurrenceDialog";
+import { TerminateContractDialog } from "@/components/finance/TerminateContractDialog";
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -192,14 +192,15 @@ function TerminateContractWorkflow({ contractId, onClose }: { contractId: string
   };
 
   return (
-    <TerminateRecurrenceDialog 
-      recurrenceId={contractId} 
+    <TerminateContractDialog 
+      contractId={contractId} 
       onClose={onClose}
       onConfirm={handleConfirm}
       title="Encerrar Contrato"
       description="Ao encerrar o contrato, o que deseja fazer com as cobranças recorrentes vinculadas a ele?"
     />
   );
+
 }
 
 

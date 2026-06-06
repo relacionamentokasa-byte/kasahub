@@ -36,16 +36,15 @@ export function TerminateRecurrenceDialog({
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!contractId) throw new Error("Identificador não encontrado");
+      if (!recurrenceId) throw new Error("Identificador não encontrado");
       if (onConfirm) {
         return onConfirm(cleanupMode);
       }
-      return terminateContract(contractId, cleanupMode);
-
+      return terminateContract(recurrenceId, cleanupMode);
     },
     onSuccess: (result) => {
       const isContract = !!onConfirm;
-      toast.success(`${isContract ? "Contrato" : "Lançamentos"} encerrado com sucesso.`);
+      toast.success(`${isContract ? "Contrato" : "Recorrência"} encerrada com sucesso.`);
       
       if (result && result.count > 0) {
         toast.info(`${result.count} cobranças futuras foram tratadas.`);
@@ -63,7 +62,7 @@ export function TerminateRecurrenceDialog({
   });
 
   return (
-    <Dialog open={!!contractId} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={!!recurrenceId} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center gap-2 text-warning mb-2">
