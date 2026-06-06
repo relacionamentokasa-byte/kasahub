@@ -31,7 +31,7 @@ export async function approveExtraDemand(sb: SB, id: string) {
   if (dme.contract_id) {
     const { data: p } = await sb
       .from("projects")
-      .select("id")
+      .select("id, owner_id")
       .eq("contract_id", dme.contract_id)
       .limit(1)
       .maybeSingle();
@@ -87,7 +87,7 @@ export async function approveExtraDemand(sb: SB, id: string) {
 
   const { data: userData } = await sb.auth.getUser();
   await sb.rpc('notify_user', {
-    p_user_id: project?.owner_id || userData.user?.id,
+    p_user_id: (project as any)?.owner_id || userData.user?.id,
     p_title: "DME Aprovada",
     p_description: `A demanda ${dme.number_display} foi aprovada e gerou um Job.`,
     p_category: 'approval',
