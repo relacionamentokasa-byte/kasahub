@@ -42,16 +42,19 @@ export function TerminateRecurrenceDialog({
       return terminateRecurrence(recurrenceId, cleanupMode);
     },
     onSuccess: (result) => {
-      if (!onConfirm) {
-        toast.success("Recorrência encerrada com sucesso.");
-        if (result && result.count > 0) {
-          toast.info(`${result.count} parcelas futuras foram removidas.`);
-        }
-        qc.invalidateQueries({ queryKey: ["transactions"] });
-        qc.invalidateQueries({ queryKey: ["recurrences"] });
-        onClose();
+      const isContract = !!onConfirm;
+      toast.success(`${isContract ? "Contrato" : "Recorrência"} encerrada com sucesso.`);
+      
+      if (result && result.count > 0) {
+        toast.info(`${result.count} cobranças futuras foram tratadas.`);
       }
+      
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["recurrences"] });
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      onClose();
     },
+
     onError: (e: Error) => {
       toast.error(`Falha ao encerrar: ${e.message}`);
     },
