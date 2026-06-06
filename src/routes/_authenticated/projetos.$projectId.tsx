@@ -136,32 +136,61 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
 
 
       <Tabs defaultValue="board" className="flex-1 flex flex-col">
-        <div className="px-6 lg:px-10 border-b border-border">
-          <TabsList className="bg-transparent border-0 h-auto p-0 gap-1">
-            {["board", "briefing", "team"].map((v) => (
+        <div className="px-6 lg:px-10 border-b border-border bg-surface">
+          <TabsList className="bg-transparent border-0 h-auto p-0 gap-6">
+            {[
+              { id: "board", label: "Jobs", icon: <Kanban className="size-3.5" /> },
+              { id: "dme", label: "Demandas Extras", icon: <DollarSign className="size-3.5" /> },
+              { id: "files", label: "Arquivos", icon: <Folder className="size-3.5" /> },
+              { id: "timeline", label: "Timeline", icon: <History className="size-3.5" /> },
+              { id: "finance", label: "Financeiro", icon: <DollarSign className="size-3.5" /> },
+              { id: "briefing", label: "Briefing", icon: <FileText className="size-3.5" /> },
+            ].map((t) => (
               <TabsTrigger
-                key={v}
-                value={v}
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs capitalize"
+                key={t.id}
+                value={t.id}
+                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-0 py-4 text-xs font-bold uppercase tracking-widest gap-2"
               >
-                {{ board: "Kanban", briefing: "Briefing", team: "Equipe" }[v]}
+                {t.icon}
+                {t.label}
               </TabsTrigger>
             ))}
           </TabsList>
         </div>
 
         <TabsContent value="board" className="flex-1 mt-0 min-h-0">
-          <JobsBoard projectId={projectId} title="Jobs do projeto" eyebrow="Projeto · Kanban" />
+          <JobsBoard projectId={projectId} title="Kanban de Jobs" eyebrow="Operação · Jobs" />
         </TabsContent>
-        <TabsContent value="briefing" className="px-6 lg:px-10 py-6 mt-0">
-          {project.briefing ? (
-            <p className="text-sm whitespace-pre-wrap">{project.briefing}</p>
-          ) : (
-            <p className="text-foreground/40 text-sm">Nenhum briefing adicionado.</p>
-          )}
+        <TabsContent value="dme" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto">
+          <ExtraDemandsManager clientId={project.client_id!} contractId={project.contract_id!} />
         </TabsContent>
-        <TabsContent value="team" className="px-6 lg:px-10 py-6 mt-0 text-foreground/40 text-sm">
-          Em breve.
+        <TabsContent value="files" className="px-6 lg:px-10 py-8 mt-0 text-foreground/40 text-sm">
+          <div className="flex flex-col items-center justify-center py-20 border border-dashed border-border rounded-3xl bg-surface/30">
+            <Folder className="size-10 mb-4 opacity-20" />
+            <p className="font-medium">Repositório de Arquivos</p>
+            <p className="text-xs opacity-60 mt-1 text-center max-w-xs">Arraste seus documentos, briefings e arquivos finais aqui para centralizar a entrega.</p>
+            <Button variant="outline" className="mt-6 rounded-full border-border">Selecionar arquivos</Button>
+          </div>
+        </TabsContent>
+        <TabsContent value="timeline" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto max-w-4xl">
+          <ClientTimeline clientId={project.client_id!} />
+        </TabsContent>
+        <TabsContent value="finance" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto">
+          <ProjectFinanceView projectId={projectId} />
+        </TabsContent>
+        <TabsContent value="briefing" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto">
+          <div className="bg-surface border border-border rounded-3xl p-8 max-w-4xl shadow-sm">
+            <h3 className="font-display font-bold text-xl mb-6 flex items-center gap-2">
+              <FileText className="size-5 text-primary" /> Briefing do Projeto
+            </h3>
+            {project.briefing ? (
+              <div className="prose prose-sm prose-invert max-w-none text-foreground/70 leading-relaxed whitespace-pre-wrap">
+                {project.briefing}
+              </div>
+            ) : (
+              <p className="text-foreground/40 text-sm italic">Nenhum briefing detalhado adicionado ainda.</p>
+            )}
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -169,3 +198,16 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
     </div>
   );
 }
+
+function StatMini({ label, value, icon, color = "text-foreground/60" }: { label: string; value: string | number; icon: React.ReactNode; color?: string }) {
+  return (
+    <div className="bg-foreground/[0.03] border border-border/50 rounded-xl p-3 flex flex-col justify-between min-h-[70px] hover:bg-foreground/[0.05] transition-colors">
+      <div className="flex items-center gap-1.5 text-[9px] uppercase font-bold text-foreground/40 tracking-wider">
+        {icon}
+        {label}
+      </div>
+      <div className={`text-xl font-display font-bold ${color}`}>{value}</div>
+    </div>
+  );
+}
+
