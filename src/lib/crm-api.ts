@@ -38,10 +38,13 @@ export async function createLead(input: {
   stage_id: string;
   origin_partner_id?: string | null;
 }) {
+  const phone = input.phone?.replace(/\D/g, "");
+  const formattedPhone = phone ? (phone.startsWith("55") ? `+${phone}` : `+55${phone}`) : null;
+  
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("leads")
-    .insert({ ...input, owner_id: userData.user?.id ?? null })
+    .insert({ ...input, phone: formattedPhone, owner_id: userData.user?.id ?? null })
     .select()
     .single();
   if (error) throw error;
@@ -60,9 +63,15 @@ export async function updateLead(
   id: string,
   patch: Partial<Database["public"]["Tables"]["leads"]["Update"]>,
 ) {
+  const patchWithPhone = { ...patch };
+  if (patch.phone) {
+    const phone = patch.phone.replace(/\D/g, "");
+    patchWithPhone.phone = phone.startsWith("55") ? `+${phone}` : `+55${phone}`;
+  }
+
   const { data, error } = await supabase
     .from("leads")
-    .update(patch)
+    .update(patchWithPhone)
     .eq("id", id)
     .select()
     .single();
