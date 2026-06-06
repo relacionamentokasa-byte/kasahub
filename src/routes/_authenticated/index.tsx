@@ -15,16 +15,16 @@ export const Route = createFileRoute("/_authenticated/")({
 
 function DashboardPage() {
   return (
-    <div className="p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
-      <header className="flex items-end justify-between gap-6 flex-wrap border-b border-border pb-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-[1600px] mx-auto animate-reveal">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border pb-6 lg:pb-8">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa capitalize font-medium">
             KASA HUB · Inteligência Operacional
           </span>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-2">
+          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1 lg:mt-2">
             Centro de Comando
           </h1>
-          <p className="text-foreground/50 text-sm mt-1">Bem-vindo de volta. Veja o que precisa de sua atenção hoje.</p>
+          <p className="text-foreground/50 text-xs lg:text-sm mt-1">Bem-vindo de volta. Veja o que precisa de sua atenção.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link to="/propostas">

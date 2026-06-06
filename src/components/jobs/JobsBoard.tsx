@@ -133,7 +133,7 @@ export function JobsBoard({
           <span className="text-primary text-[10px] capitalize">
             {eyebrow}
           </span>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
             {title}
           </h1>
         </div>
@@ -172,7 +172,7 @@ export function JobsBoard({
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto px-6 lg:px-10 pb-10">
+      <div className="flex-1 overflow-x-auto px-6 lg:px-10 pb-10 scroll-smooth snap-x">
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <div className="flex gap-4 min-w-max h-full">
             {stages.map((stage) => {
@@ -216,7 +216,7 @@ function Column({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
   return (
-    <div className="w-[300px] shrink-0 flex flex-col">
+    <div className="w-[280px] sm:w-[300px] shrink-0 flex flex-col snap-center">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <span className="size-2 rounded-full" style={{ background: stage.color }} />

@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyProfile } from "@/lib/profile-api";
@@ -64,9 +64,10 @@ const groups: { label: string; items: SidebarItem[] }[] = [
 ];
 
 export function AppSidebar() {
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
   const { can, isAdmin } = usePermissions();
 
   const isActive = (path: string) =>
@@ -105,7 +106,13 @@ export function AppSidebar() {
                             : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/5"
                         }
                       >
-                        <Link to={item.url} className="flex items-center gap-3">
+                        <Link 
+                          to={item.url} 
+                          className="flex items-center gap-3"
+                          onClick={() => {
+                            if (isMobile) setOpenMobile(false);
+                          }}
+                        >
                           <item.icon className="size-4 shrink-0" />
                           <span className="text-sm font-medium">{item.title}</span>
                         </Link>

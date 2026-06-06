@@ -230,9 +230,9 @@ export function ExecutiveDashboard() {
   return (
     <div className="space-y-10">
       <header className="flex items-center justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="font-display text-2xl font-bold">Resumo Geral</h2>
-          <p className="text-sm text-foreground/50">Visualize os indicadores vitais da sua agência.</p>
+        <div className="flex-1 min-w-[200px]">
+          <h2 className="font-display text-xl lg:text-2xl font-bold">Resumo Geral</h2>
+          <p className="text-xs lg:text-sm text-foreground/50 truncate">Vitalidade da agência.</p>
         </div>
         <div className="flex items-center gap-2">
           <Popover>
@@ -310,7 +310,7 @@ export function ExecutiveDashboard() {
         <AgendaSection items={agendaItems} />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8">
         {visibleSections.clientes && <ClientesSection clients={clientRanking} />}
         {visibleSections.feed && <FeedSection events={feedEvents} />}
       </div>

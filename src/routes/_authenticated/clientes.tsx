@@ -67,7 +67,7 @@ function ClientesPage() {
           <span className="text-primary text-[10px] capitalize">
             Operação · Clientes
           </span>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
             Painel do Cliente 360°
           </h1>
         </div>
@@ -139,7 +139,7 @@ function ClientesPage() {
             <p className="text-sm">Nenhum cliente cadastrado ainda.</p>
           </div>
         ) : view === "cards" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20 md:pb-0">
             {filtered.map((c) => (
               <div key={c.id} className="relative group">
                 <button

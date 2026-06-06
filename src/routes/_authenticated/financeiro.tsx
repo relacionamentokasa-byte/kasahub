@@ -237,7 +237,7 @@ function FinanceiroPage() {
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight">
+          <h1 className="font-display text-xl lg:text-3xl font-bold tracking-tight">
             Financeiro
           </h1>
           <p className="text-sm text-foreground/60 mt-1">Controle de receitas e despesas</p>
@@ -259,7 +259,7 @@ function FinanceiroPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
+      <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-20 md:pb-10">
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="bg-surface border border-border">
             <TabsTrigger value="list" className="gap-2"><List className="size-4" /> Lista</TabsTrigger>
