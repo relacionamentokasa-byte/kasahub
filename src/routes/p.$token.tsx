@@ -400,8 +400,12 @@ function PublicProposalView() {
                 </div>
                 <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-4">Contratada (Agência)</p>
                 <p className="text-sm font-bold text-slate-900">{agency?.name}</p>
-                <div className="mt-4 pt-4 border-t border-slate-200 italic font-serif text-slate-500 text-sm">
-                  {proposal.signature_agency || "Assinado eletronicamente"}
+                <div className="mt-4 pt-4 border-t border-slate-200 font-serif text-slate-500 text-sm min-h-[60px] flex items-center justify-center">
+                  {agency?.agency_signature_url ? (
+                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-16 object-contain grayscale" />
+                  ) : (
+                    <span className="italic">Assinado eletronicamente</span>
+                  )}
                 </div>
                 <p className="text-[10px] text-slate-400 mt-2">
                   Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
