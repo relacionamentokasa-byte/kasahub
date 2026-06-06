@@ -35,6 +35,7 @@ import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
 import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
+import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
 
 const AuthRoute = AuthRouteImport.update({
@@ -170,6 +171,12 @@ const ApiPublicProposalTokenRoute = ApiPublicProposalTokenRouteImport.update({
   path: '/api/public/proposal/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksDispatchPushRoute =
+  ApiPublicHooksDispatchPushRouteImport.update({
+    id: '/api/public/hooks/dispatch-push',
+    path: '/api/public/hooks/dispatch-push',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicDmeTokenRoute = ApiPublicDmeTokenRouteImport.update({
   id: '/api/public/dme/$token',
   path: '/api/public/dme/$token',
@@ -202,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
+  '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
 export interface FileRoutesByTo {
@@ -230,6 +238,7 @@ export interface FileRoutesByTo {
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
+  '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
 export interface FileRoutesById {
@@ -260,6 +269,7 @@ export interface FileRoutesById {
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
+  '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
 }
 export interface FileRouteTypes {
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/propostas/$proposalId'
     | '/api/public/manifest'
     | '/api/public/dme/$token'
+    | '/api/public/hooks/dispatch-push'
     | '/api/public/proposal/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/propostas/$proposalId'
     | '/api/public/manifest'
     | '/api/public/dme/$token'
+    | '/api/public/hooks/dispatch-push'
     | '/api/public/proposal/$token'
   id:
     | '__root__'
@@ -347,6 +359,7 @@ export interface FileRouteTypes {
     | '/_authenticated/propostas/$proposalId'
     | '/api/public/manifest'
     | '/api/public/dme/$token'
+    | '/api/public/hooks/dispatch-push'
     | '/api/public/proposal/$token'
   fileRoutesById: FileRoutesById
 }
@@ -358,6 +371,7 @@ export interface RootRouteChildren {
   PTokenRoute: typeof PTokenRoute
   ApiPublicManifestRoute: typeof ApiPublicManifestRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
+  ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
   ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
 }
 
@@ -545,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicProposalTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/dispatch-push': {
+      id: '/api/public/hooks/dispatch-push'
+      path: '/api/public/hooks/dispatch-push'
+      fullPath: '/api/public/hooks/dispatch-push'
+      preLoaderRoute: typeof ApiPublicHooksDispatchPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/dme/$token': {
       id: '/api/public/dme/$token'
       path: '/api/public/dme/$token'
@@ -645,6 +666,7 @@ const rootRouteChildren: RootRouteChildren = {
   PTokenRoute: PTokenRoute,
   ApiPublicManifestRoute: ApiPublicManifestRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
+  ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
   ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
 }
 export const routeTree = rootRouteImport
