@@ -5,7 +5,7 @@ export type BankAccount = Database["public"]["Tables"]["bank_accounts"]["Row"];
 export type FinancialCategory = Database["public"]["Tables"]["financial_categories"]["Row"];
 export type Contract = Database["public"]["Tables"]["contracts"]["Row"];
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
-export type Recurrence = Database["public"]["Tables"]["recurrences"]["Row"];
+
 
 
 
@@ -114,104 +114,6 @@ export async function terminateContract(id: string, cleanupMode: "keep" | "cance
 
 
 
-// ---------- Transactions ----------
-
-
-// ---------- Recurrences ----------
-export async function fetchRecurrences(): Promise<Recurrence[]> {
-  const { data, error } = await supabase.from("recurrences").select("*").order("created_at", { ascending: false });
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function createRecurrence(input: Database["public"]["Tables"]["recurrences"]["Insert"]) {
-  const { data: u } = await supabase.auth.getUser();
-  const { data, error } = await supabase
-    .from("recurrences")
-    .insert({ ...input, owner_id: u.user?.id ?? "" })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function updateRecurrence(id: string, patch: Database["public"]["Tables"]["recurrences"]["Update"]) {
-  const { data, error } = await supabase.from("recurrences").update(patch).eq("id", id).select().single();
-  if (error) throw error;
-  return data;
-}
-
-export async function deleteFutureRecurrenceInstallments(
-  recurrenceId: string,
-  mode: "open_only" | "from_date" | "all_future",
-  fromDate?: string,
-) {
-  const { data: u } = await supabase.auth.getUser();
-  const now = new Date().toISOString().slice(0, 10);
-  
-  let q = supabase.from("transactions").select("id, amount, status").eq("recurrence_id", recurrenceId);
-  
-  if (mode === "open_only") {
-    q = q.eq("status", "pending");
-  } else if (mode === "from_date" && fromDate) {
-    q = q.gte("due_date", fromDate);
-  } else if (mode === "all_future") {
-    q = q.gt("due_date", now);
-  }
-
-  const { data: txs, error: fetchErr } = await q;
-  if (fetchErr) throw fetchErr;
-
-  // Filter out paid/cleared/reconciled (we only have 'paid' status currently)
-  const toDelete = (txs ?? []).filter(t => t.status !== "paid");
-  const ids = toDelete.map(t => t.id);
-
-  if (ids.length > 0) {
-    const totalRemoved = toDelete.reduce((s, t) => s + Number(t.amount), 0);
-    const { error: delErr } = await supabase.from("transactions").delete().in("id", ids);
-    if (delErr) throw delErr;
-
-    // Audit
-    await supabase.from("recurrence_audit").insert({
-      recurrence_id: recurrenceId,
-      user_id: u.user?.id ?? "",
-      action: "delete_future_installments",
-      details: {
-        mode,
-        count: ids.length,
-        total: totalRemoved,
-        timestamp: new Date().toISOString()
-      }
-    });
-
-    return { count: ids.length, total: totalRemoved };
-  }
-
-  return { count: 0, total: 0 };
-}
-
-export async function terminateRecurrence(id: string, cleanupMode?: "keep" | "cancel" | "delete") {
-  const { data: u } = await supabase.auth.getUser();
-  await updateRecurrence(id, { status: "terminated" });
-
-  let removed = { count: 0, total: 0 };
-  if (cleanupMode === "delete") {
-    removed = await deleteFutureRecurrenceInstallments(id, "all_future");
-  } else if (cleanupMode === "cancel") {
-    const { data: txs } = await supabase
-      .from("transactions")
-      .select("id")
-      .eq("recurrence_id", id)
-      .eq("status", "pending")
-      .gt("due_date", new Date().toISOString().slice(0, 10));
-    
-    if (txs && txs.length > 0) {
-      await supabase.from("transactions").update({ status: "cancelled" }).in("id", txs.map(t => t.id));
-    }
-  }
-
-  return removed;
-}
 
 // ---------- Transactions ----------
 export async function fetchTransactions(filters: {
