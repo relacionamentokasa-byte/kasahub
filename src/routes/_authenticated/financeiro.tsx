@@ -567,9 +567,11 @@ function FinanceiroPage() {
                 <div className="col-span-3">Descrição</div>
                 <div className="col-span-2">Início</div>
                 <div className="col-span-2">Valor Base</div>
-                <div className="col-span-2">Status</div>
+                <div className="col-span-1">Status</div>
                 <div className="col-span-2">Parcelas</div>
+                <div className="col-span-1">Próx. Venc.</div>
                 <div className="col-span-1 text-right">Ações</div>
+
               </div>
               {recurrences.length === 0 ? (
                 <div className="p-12 text-center text-foreground/50 text-sm">Nenhuma recorrência ativa</div>
