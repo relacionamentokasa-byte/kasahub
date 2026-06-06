@@ -210,6 +210,20 @@ function ClientesPage() {
                           <span>{nextDueDate}</span>
                         </div>
                       </div>
+                      <div className="pt-3 mt-1 border-t border-border/40 grid grid-cols-3 gap-2 text-[10px] text-foreground/40 font-mono-kasa">
+                        <div className="flex flex-col">
+                          <span className="uppercase text-[8px] opacity-60">Jobs</span>
+                          <span className="font-bold text-foreground/70">{clientJobs.length}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="uppercase text-[8px] opacity-60">Projetos</span>
+                          <span className="font-bold text-foreground/70">{clientProjects.length}</span>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="uppercase text-[8px] opacity-60">DMEs</span>
+                          <span className="font-bold text-foreground/70">{clientDmes.length}</span>
+                        </div>
+                      </div>
                     </div>
                   </button>
                   <button
