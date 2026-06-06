@@ -286,7 +286,28 @@ export async function createCalendarEvent(input: {
   return data as unknown as CalendarEvent;
 }
 
+export async function updateCalendarEvent(id: string, patch: Partial<CalendarEvent>) {
+  const { data, error } = await sb
+    .from("calendar_events")
+    .update(patch as never)
+    .eq("id", id)
+    .select()
+    .single();
+  
+  if (error) throw error;
+
+  // Sincronizar com Google
+  if (data) {
+    supabase.functions.invoke("google-calendar-sync", {
+      body: { action: "push-event", eventData: data }
+    }).catch(console.error);
+  }
+
+  return data as unknown as CalendarEvent;
+}
+
 export async function deleteCalendarEvent(id: string) {
+
   // Buscar o evento antes de deletar para obter o google_event_id
   const { data: event } = await sb.from("calendar_events").select("google_event_id").eq("id", id).single();
   
