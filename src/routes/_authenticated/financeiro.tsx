@@ -382,13 +382,21 @@ function FinanceiroPage() {
                     : { label: "Manual", tone: "text-foreground/40 border-border" };
                   return (
                     <div key={t.id} className="grid grid-cols-12 px-5 py-3 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
-                      <div className="col-span-1">
+                      <div className="col-span-1 flex items-center gap-3">
+                        <Checkbox 
+                          checked={selectedIds.includes(t.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) setSelectedIds(prev => [...prev, t.id]);
+                            else setSelectedIds(prev => prev.filter(id => id !== t.id));
+                          }}
+                        />
                         {t.status === "paid" ? (
                           <CheckCircle2 className="size-5 text-emerald-400" />
                         ) : (
                           <Circle className={`size-5 ${overdue ? "text-rose-400" : "text-foreground/30"}`} />
                         )}
                       </div>
+
                       <div className="col-span-3 min-w-0">
                         <div className="text-sm font-medium truncate flex items-center gap-2">
                           {t.description}
