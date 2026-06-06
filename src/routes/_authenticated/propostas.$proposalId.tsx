@@ -233,6 +233,7 @@ export function ProposalEditorContent({
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
         scope: f.scope,
+        scope_text: f.scope_text || null,
         payment_method: f.payment_method,
         contract_template_id: f.contract_template_id || null,
         contract_content: f.contract_content || null,
