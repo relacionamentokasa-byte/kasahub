@@ -24,28 +24,22 @@ serve(async (req) => {
     if (userError || !user) throw new Error('Invalid token')
 
     const body = await req.json()
-    const { action, eventData } = body
+    const { action, eventData, googleEventId } = body
 
     const googleApiKey = Deno.env.get('GOOGLE_CALENDAR_API_KEY');
     const isConfigured = !!googleApiKey;
 
-    // 1. Sincronizar do Google para o KASA (Pull)
-    if (action === "sync-all" || action === "pull") {
-      if (!isConfigured) {
-        throw new Error("GOOGLE_CALENDAR_API_KEY não configurada no Lovable Gateway.");
-      }
+    if (!isConfigured) {
+      throw new Error("GOOGLE_CALENDAR_API_KEY não configurada.");
+    }
 
-      // Buscar eventos do Google via Gateway
+    // 1. PULL: Google -> KASA
+    if (action === "sync-all" || action === "pull") {
       const response = await fetch("https://gateway.lovable.app/google-calendar/v3/calendars/primary/events", {
-        headers: {
-          "Authorization": `Bearer ${googleApiKey}`
-        }
+        headers: { "Authorization": `Bearer ${googleApiKey}` }
       });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Erro ao buscar eventos do Google: ${errText}`);
-      }
+      if (!response.ok) throw new Error(`Erro Google: ${await response.text()}`);
 
       const googleData = await response.json();
       const googleEvents = googleData.items || [];
@@ -56,14 +50,13 @@ serve(async (req) => {
         const startsAt = gEvent.start.dateTime || gEvent.start.date;
         const endsAt = gEvent.end.dateTime || gEvent.end.date;
 
-        // Upsert no calendar_events
         const { data: existing } = await supabase
           .from('calendar_events')
           .select('id')
           .eq('google_event_id', gEvent.id)
           .maybeSingle();
 
-        const eventPayload = {
+        const payload = {
           title: gEvent.summary || "(Sem título)",
           description: gEvent.description || null,
           starts_at: startsAt,
@@ -76,22 +69,15 @@ serve(async (req) => {
         };
 
         if (existing) {
-          await supabase.from('calendar_events').update(eventPayload).eq('id', existing.id);
+          await supabase.from('calendar_events').update(payload).eq('id', existing.id);
         } else {
-          await supabase.from('calendar_events').insert(eventPayload);
+          await supabase.from('calendar_events').insert(payload);
         }
       }
-
-      await supabase
-        .from('google_calendar_connections')
-        .update({ last_pulled_at: new Date().toISOString() })
-        .eq('user_id', user.id);
     }
 
-    // 2. Sincronizar do KASA para o Google (Push)
+    // 2. PUSH: KASA -> Google (Create or Update)
     if (action === "push-event" && eventData) {
-      if (!isConfigured) return new Response(JSON.stringify({ success: true, warning: "Offline mode" }), { headers: corsHeaders });
-
       const gPayload = {
         summary: eventData.title,
         description: eventData.description,
@@ -116,20 +102,21 @@ serve(async (req) => {
       if (response.ok) {
         const created = await response.json();
         await supabase.from('calendar_events')
-          .update({ google_event_id: created.id, source: 'system', last_synced_at: new Date().toISOString() })
+          .update({ google_event_id: created.id, last_synced_at: new Date().toISOString() })
           .eq('id', eventData.id);
       }
     }
 
-    return new Response(
-      JSON.stringify({ message: "Operação concluída", success: true }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    // 3. DELETE: KASA -> Google
+    if (action === "delete-event" && googleEventId) {
+      await fetch(`https://gateway.lovable.app/google-calendar/v3/calendars/primary/events/${googleEventId}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${googleApiKey}` }
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
-    console.error(error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 })

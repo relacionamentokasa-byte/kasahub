@@ -287,8 +287,18 @@ export async function createCalendarEvent(input: {
 }
 
 export async function deleteCalendarEvent(id: string) {
+  // Buscar o evento antes de deletar para obter o google_event_id
+  const { data: event } = await sb.from("calendar_events").select("google_event_id").eq("id", id).single();
+  
   const { error } = await sb.from("calendar_events").delete().eq("id", id);
   if (error) throw error;
+
+  // Se o evento estiver no Google, avisar a Edge Function para deletar lá também
+  if (event?.google_event_id) {
+    supabase.functions.invoke("google-calendar-sync", {
+      body: { action: "delete-event", googleEventId: event.google_event_id }
+    }).catch(console.error);
+  }
 }
 
 // ---------- Portal client lookup ----------
