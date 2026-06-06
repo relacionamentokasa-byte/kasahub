@@ -207,12 +207,16 @@ export async function fetchCalendarEvents(filters?: {
   from?: string;
   to?: string;
 }) {
-  let q = sb.from("calendar_events").select("*").order("starts_at", { ascending: true });
-  if (filters?.clientId) q = q.eq("client_id", filters.clientId);
-  if (filters?.from) q = q.gte("starts_at", filters.from);
-  if (filters?.to) q = q.lte("starts_at", filters.to);
+  const q = sb.from("calendar_events").select("*").order("starts_at", { ascending: true });
+  if (filters?.clientId) q.eq("client_id", filters.clientId);
+  if (filters?.from) q.gte("starts_at", filters.from);
+  if (filters?.to) q.lte("starts_at", filters.to);
   const { data, error } = await q;
   if (error) throw error;
+
+  // Se não houver eventos manuais ou filtrados, podemos buscar dinamicamente eventos do sistema
+  // Mas para o MVP de hoje, focamos nos registros da tabela calendar_events que são populados via triggers ou funções de UI.
+  
   return (data ?? []) as unknown as CalendarEvent[];
 }
 
