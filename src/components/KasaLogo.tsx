@@ -1,22 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchMyProfile } from "@/lib/profile-api";
+import { fetchAgencySettings } from "@/lib/settings-api";
 
 interface KasaLogoProps {
   collapsed?: boolean;
 }
 
 export function KasaLogo({ collapsed = false }: KasaLogoProps) {
-  const { data: profile } = useQuery({
-    queryKey: ["my-profile"],
-    queryFn: fetchMyProfile,
+  const { data: settings } = useQuery({
+    queryKey: ["agency-settings"],
+    queryFn: fetchAgencySettings,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
-  const logoUrl = profile?.agency_logo_url;
+  const logoUrl = settings?.logo_url;
 
   return (
     <div className="flex items-center gap-3 px-1">
-      <div className="size-8 bg-primary rounded-md flex items-center justify-center shrink-0 shadow-[0_0_20px_-4px] shadow-primary/40 overflow-hidden">
+      <div className="size-8 bg-white rounded-md flex items-center justify-center shrink-0 shadow-[0_0_20px_-4px] shadow-primary/20 overflow-hidden border border-border p-1">
         {logoUrl ? (
           <img src={logoUrl} alt="Logo" className="size-full object-cover" />
         ) : (
@@ -25,7 +25,13 @@ export function KasaLogo({ collapsed = false }: KasaLogoProps) {
       </div>
       {!collapsed && (
         <span className="font-display text-lg font-bold tracking-tight whitespace-nowrap">
-          KASA <span className="text-primary">HUB</span>
+          {settings?.name ? (
+            <>
+              {settings.name.split(" ").slice(0, -1).join(" ")} <span className="text-primary">{settings.name.split(" ").slice(-1)}</span>
+            </>
+          ) : (
+            <>KASA <span className="text-primary">HUB</span></>
+          )}
         </span>
       )}
     </div>

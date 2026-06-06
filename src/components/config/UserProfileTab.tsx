@@ -74,19 +74,7 @@ export function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
             </p>
           </div>
 
-          {canEdit && (
-            <div className="space-y-4 pt-6 border-t border-border">
-              <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">Logo da Agência (HUB)</Label>
-              <ProfileImageUpload
-                value={form.agency_logo_url}
-                onChange={(url) => setForm({ ...form, agency_logo_url: url })}
-                label="Logo Hub"
-              />
-              <p className="text-[10px] text-foreground/40 text-center">
-                Atualiza em todo o sistema e links de aprovação
-              </p>
-            </div>
-          )}
+          {/* Removido duplicidade da logo aqui, pois agora está em Identidade Visual */}
         </div>
 
         <div className="flex-1 space-y-4">

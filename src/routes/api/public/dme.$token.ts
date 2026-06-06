@@ -18,7 +18,7 @@ export const Route = createFileRoute("/api/public/dme/$token")({
           .from("extra_demands")
           .select(`
             *,
-            clients (name, company, logo_url, brand_primary),
+            clients (name, company, logo_url, brand_primary, brand_secondary),
             contracts (title),
             projects:jobs(project_id)
           `)
