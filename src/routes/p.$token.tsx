@@ -174,6 +174,36 @@ function PublicProposalView() {
     };
   }, [data]);
 
+  const contractContent = useMemo(() => {
+    const rawContractContent = data?.proposal.contract_content;
+    if (!rawContractContent) return null;
+    const { proposal, agency } = data;
+    return replaceContractVariables(rawContractContent, {
+      client_name: proposal.client_name,
+      client_legal_name: proposal.client_name,
+      client_document: agency?.document || "",
+      client_address: agency?.address || "",
+      client_email: proposal.client_email || "",
+      services_list: (proposal.scope || []).join(", "),
+      monthly_value: formatCurrency(proposal.monthly_investment),
+      total_value: formatCurrency(
+        proposal.monthly_investment * (proposal.recurring_months || 12),
+      ),
+      payment_method:
+        proposal.payment_method === "credit_card"
+          ? "Cartão de Crédito"
+          : proposal.payment_method === "pix"
+            ? "PIX"
+            : proposal.payment_method === "transfer"
+              ? "Transferência"
+              : "Boleto",
+      contract_term: `${proposal.recurring_months || 12} meses`,
+      start_date: new Date().toLocaleDateString("pt-BR"),
+      due_day: "5",
+      installments: String(proposal.installments || 1),
+    });
+  }, [data]);
+
   if (loading) {
     return (
       <div className="min-h-screen grid place-items-center bg-white text-slate-600">
@@ -210,28 +240,6 @@ function PublicProposalView() {
       </div>
     );
   }
-
-
-  const contractContent = useMemo(() => {
-    if (!proposal.contract_content) return null;
-    return replaceContractVariables(proposal.contract_content, {
-      client_name: proposal.client_name,
-      client_legal_name: proposal.client_name, // fallback for now
-      client_document: agency?.document || "",
-      client_address: agency?.address || "",
-      client_email: proposal.client_email || "",
-      services_list: (proposal.scope || []).join(", "),
-      monthly_value: formatCurrency(proposal.monthly_investment),
-      total_value: formatCurrency(proposal.monthly_investment * (proposal.recurring_months || 12)),
-      payment_method: proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
-                      proposal.payment_method === 'pix' ? 'PIX' : 
-                      proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto',
-      contract_term: `${proposal.recurring_months || 12} meses`,
-      start_date: new Date().toLocaleDateString("pt-BR"),
-      due_day: "5", // fallback
-      installments: String(proposal.installments || 1),
-    });
-  }, [proposal, agency]);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 print:bg-white">
