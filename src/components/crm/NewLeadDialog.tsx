@@ -127,10 +127,11 @@ export function NewLeadDialog({
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </Field>
-            <Field label="Telefone">
+            <Field label="Telefone / WhatsApp *">
               <Input
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                placeholder="(62) 99999-9999"
               />
             </Field>
           </div>
@@ -155,7 +156,7 @@ export function NewLeadDialog({
             Cancelar
           </Button>
           <Button
-            disabled={!form.name || mut.isPending}
+            disabled={!form.name || !form.phone || mut.isPending}
             onClick={() => mut.mutate()}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
           >
