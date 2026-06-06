@@ -29,6 +29,7 @@ function ClientesPage() {
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: allJobs = [] } = useQuery({ queryKey: ["jobs"], queryFn: () => fetchJobs() });
   const { data: allDmes = [] } = useQuery({ queryKey: ["extra-demands"], queryFn: () => fetchExtraDemands() });
+  const { data: allProjects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"cards" | "list">(() => {
