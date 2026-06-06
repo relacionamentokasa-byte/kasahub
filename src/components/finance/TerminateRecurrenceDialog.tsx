@@ -11,17 +11,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { terminateRecurrence } from "@/lib/finance-api";
+import { terminateContract } from "@/lib/finance-api";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
 
 interface TerminateRecurrenceDialogProps {
-  recurrenceId: string | null;
+  recurrenceId: string | null; // This is now used as contractId
   onClose: () => void;
   title?: string;
   description?: string;
   onConfirm?: (mode: "keep" | "cancel" | "delete") => Promise<any>;
 }
+
 
 export function TerminateRecurrenceDialog({
   recurrenceId,
@@ -39,7 +40,7 @@ export function TerminateRecurrenceDialog({
       if (onConfirm) {
         return onConfirm(cleanupMode);
       }
-      return terminateRecurrence(recurrenceId, cleanupMode);
+      return terminateContract(recurrenceId, cleanupMode);
     },
     onSuccess: (result) => {
       const isContract = !!onConfirm;
@@ -50,7 +51,7 @@ export function TerminateRecurrenceDialog({
       }
       
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      qc.invalidateQueries({ queryKey: ["recurrences"] });
+      
       qc.invalidateQueries({ queryKey: ["contracts"] });
       onClose();
     },
