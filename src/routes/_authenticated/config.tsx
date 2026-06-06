@@ -21,7 +21,8 @@ import {
   MessageSquare, 
   Mail,
   ChevronRight,
-  Menu
+  Menu,
+  Smartphone
 } from "lucide-react";
 import { ServicesManager } from "@/components/config/ServicesManager";
 import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
