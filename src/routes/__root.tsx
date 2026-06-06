@@ -144,7 +144,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthListener />
-        <AudioNotificationManager />
+        <ClientOnly fallback={null}><AudioNotificationManager /></ClientOnly>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
 
         <Outlet />
