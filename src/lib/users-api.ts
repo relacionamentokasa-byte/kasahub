@@ -1,5 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
-import { type PermissionMap, type ProfileWithRole } from "./permissions-api";
+import { type ProfileWithRole } from "./permissions-api";
 
 export type UserStatus = "active" | "inactive" | "suspended" | "pending_invite";
 
@@ -85,4 +85,3 @@ export async function fetchAccessLogs(userId?: string) {
   if (error) throw error;
   return data;
 }
-
