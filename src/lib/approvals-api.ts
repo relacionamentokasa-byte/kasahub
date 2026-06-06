@@ -208,6 +208,8 @@ export async function addApprovalComment(input: {
   author_role?: "team" | "client";
 }) {
   const { data: u } = await supabase.auth.getUser();
+  const { data: approval } = await sb.from('approvals').select('title').eq('id', input.approval_id).single();
+
   const { data, error } = await sb
     .from("approval_comments")
     .insert({
@@ -220,6 +222,16 @@ export async function addApprovalComment(input: {
     .select()
     .single();
   if (error) throw error;
+
+  if (input.body.includes('@')) {
+    await handleMentions(input.body, {
+      title: `Comentário em: ${approval?.title}`,
+      link: `/aprovacoes`,
+      originType: 'approvals',
+      originId: input.approval_id
+    });
+  }
+
   if (input.is_change_request) {
     await updateApprovalStatus(input.approval_id, "changes_requested");
   }
