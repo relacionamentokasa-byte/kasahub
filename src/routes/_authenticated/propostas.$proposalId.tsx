@@ -13,6 +13,7 @@ import {
   fetchLeads,
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
+import { fetchPartners } from "@/lib/partners-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
 import { fetchServices, fetchServiceTemplate, type Service } from "@/lib/services-api";
 import { fetchContractTemplates, replaceContractVariables } from "@/lib/contracts-api";
@@ -106,6 +107,10 @@ export function ProposalEditorContent({
   const { data: contractTemplates = [] } = useQuery({
     queryKey: ["contract-templates"],
     queryFn: fetchContractTemplates,
+  });
+  const { data: representatives = [] } = useQuery({
+    queryKey: ["partners", "representative"],
+    queryFn: () => fetchPartners("representative"),
   });
 
   const [isEditing, setIsEditing] = useState<string | null>(null);
