@@ -1,0 +1,30 @@
+import { supabase } from "@/integrations/supabase/client";
+
+export async function fetchMyProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autenticado");
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  if (error) throw error;
+  return { ...data, email: user.email };
+}
+
+export async function updateMyProfile(patch: any) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Não autenticado");
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update(patch)
+    .eq("id", user.id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
