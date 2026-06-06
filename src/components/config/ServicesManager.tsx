@@ -219,6 +219,7 @@ function ServiceFormDialog({
     is_active: service?.is_active ?? true,
     default_scope: (service?.default_scope as string[]) ?? [],
     contract_template_id: (service as any)?.contract_template_id ?? "",
+    operational_flow_id: (service as any)?.operational_flow_id ?? "",
   });
 
   const { data: templates = [] } = useQuery({
