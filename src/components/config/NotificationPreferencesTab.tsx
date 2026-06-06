@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchMyProfile } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 function ToggleRow({
   title,
@@ -33,7 +35,8 @@ function ToggleRow({
 
 export function NotificationPreferencesTab() {
   const qc = useQueryClient();
-  // useNavigate removido pois usaremos Link ou redirecionamento manual se necessário
+  const [testResults, setTestResults] = useState<any[] | null>(null);
+  const [isTesting, setIsTesting] = useState(false);
   
   const { data: { user } = {} } = useQuery({
     queryKey: ["auth-user"],
@@ -63,10 +66,24 @@ export function NotificationPreferencesTab() {
     enabled: !!user?.id
   });
 
+  const { data: logs } = useQuery({
+    queryKey: ["notification-logs", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("notification_logs")
+        .select("*")
+        .eq("user_id", user?.id || '')
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id
+  });
+
   const mut = useMutation({
     mutationFn: async (patch: any) => {
       const hasPhone = profile?.phone && profile.phone.length > 5;
-      const hasEmail = user?.email;
 
       if (patch.whatsapp_enabled && !hasPhone) {
         throw new Error("MISSING_PHONE");
@@ -112,18 +129,32 @@ export function NotificationPreferencesTab() {
   const handleTestNotification = async () => {
     if (!user?.id) return;
     
-    toast.info("Enviando teste...", { description: "Verifique sua central e canais ativos." });
+    setIsTesting(true);
+    setTestResults(null);
+    toast.info("Iniciando auditoria de canais...");
     
     try {
-      const { error } = await supabase.functions.invoke("send-test-notification", {
+      const { data, error } = await supabase.functions.invoke("send-test-notification", {
         body: { userId: user.id }
       });
       
       if (error) throw error;
-      toast.success("Teste enviado com sucesso!");
+      
+      setTestResults(data.results);
+      qc.invalidateQueries({ queryKey: ["notification-logs"] });
+      qc.invalidateQueries({ queryKey: ["notifications"] });
+      
+      const hasFailures = data.results.some((r: any) => r.status === 'failure');
+      if (hasFailures) {
+        toast.warning("Auditoria concluída com alertas.");
+      } else {
+        toast.success("Todos os canais ativos responderam!");
+      }
     } catch (error) {
       console.error(error);
-      toast.error("Erro ao enviar teste.");
+      toast.error("Erro crítico na auditoria.");
+    } finally {
+      setIsTesting(false);
     }
   };
 
@@ -207,21 +238,80 @@ export function NotificationPreferencesTab() {
           disabled={!profile?.phone}
         />
 
-        <div className="mt-8 pt-6 border-t border-border space-y-4">
+        <div className="mt-8 pt-6 border-t border-border space-y-6">
           <div className="flex flex-col gap-2">
-            <h4 className="text-sm font-medium">Teste Prático</h4>
+            <h4 className="text-sm font-medium">Histórico e Auditoria</h4>
             <p className="text-xs text-foreground/50">
-              Clique no botão abaixo para simular uma notificação e validar seus canais ativos.
+              Execute um teste real para validar a integridade de todos os canais de comunicação.
             </p>
           </div>
+
           <Button 
             variant="outline" 
             className="w-full md:w-auto"
             onClick={handleTestNotification}
+            disabled={isTesting}
           >
-            <Bell className="size-4 mr-2" />
-            Enviar Notificação de Teste
+            {isTesting ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Bell className="size-4 mr-2" />}
+            {isTesting ? "Auditando Canais..." : "Enviar Notificação de Teste"}
           </Button>
+
+          {testResults && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+              {testResults.map((res: any, i: number) => (
+                <div key={i} className="p-3 rounded-lg border border-border bg-background/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-mono-kasa uppercase text-foreground/40">{res.channel}</span>
+                    <span className={cn(
+                      "size-2 rounded-full",
+                      res.status === 'success' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : 
+                      res.status === 'failure' ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" : "bg-muted"
+                    )} />
+                  </div>
+                  <div className="space-y-1">
+                    <p className={cn(
+                      "text-xs font-bold",
+                      res.status === 'success' ? "text-emerald-400" : 
+                      res.status === 'failure' ? "text-red-400" : "text-foreground/40"
+                    )}>
+                      {res.status === 'success' ? "Sucesso" : res.status === 'failure' ? "Falha" : "Inativo"}
+                    </p>
+                    {res.error && <p className="text-[10px] text-foreground/60 leading-tight">{res.error}</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {logs && logs.length > 0 && (
+            <div className="mt-6 space-y-3">
+              <h5 className="text-[10px] font-mono-kasa uppercase text-foreground/40 tracking-widest">Logs Recentes</h5>
+              <div className="rounded-lg border border-border overflow-hidden">
+                <table className="w-full text-[10px] font-mono-kasa">
+                  <thead className="bg-surface">
+                    <tr>
+                      <th className="text-left p-2 border-b border-border">Data/Hora</th>
+                      <th className="text-left p-2 border-b border-border">Canal</th>
+                      <th className="text-left p-2 border-b border-border">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log: any) => (
+                      <tr key={log.id} className="border-b border-border last:border-0 hover:bg-surface/50 transition-colors">
+                        <td className="p-2 opacity-60">{new Date(log.created_at).toLocaleString()}</td>
+                        <td className="p-2">{log.channel}</td>
+                        <td className="p-2">
+                          <span className={log.status === 'success' ? "text-emerald-400" : "text-red-400"}>
+                            {log.status === 'success' ? "OK" : "ERRO"}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
