@@ -280,7 +280,7 @@ export function ExecutiveDashboard() {
         </div>
       </header>
 
-      {isFinance && (
+      {isFinance && visibleSections.gestao && (
         <GestaoSection stats={{
           contractedRevenue: ind.mrr,
           receivedRevenue: ind.incomePaid,
@@ -289,7 +289,7 @@ export function ExecutiveDashboard() {
         }} />
       )}
 
-      {isOps && (
+      {isOps && visibleSections.operacao && (
         <OperacaoSection stats={{
           jobsInProgress,
           jobsOverdue,
@@ -299,15 +299,17 @@ export function ExecutiveDashboard() {
         }} />
       )}
 
-      {isManager && (
+      {isManager && visibleSections.performance && (
         <PerformanceSection metrics={performanceMetrics} />
       )}
 
-      <AgendaSection items={agendaItems} />
+      {visibleSections.agenda && (
+        <AgendaSection items={agendaItems} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <ClientesSection clients={clientRanking} />
-        <FeedSection events={feedEvents} />
+        {visibleSections.clientes && <ClientesSection clients={clientRanking} />}
+        {visibleSections.feed && <FeedSection events={feedEvents} />}
       </div>
     </div>
   );
