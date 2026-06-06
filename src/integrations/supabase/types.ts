@@ -2134,6 +2134,7 @@ export type Database = {
           responsible_id: string | null
           root_proposal_id: string | null
           scope: string[] | null
+          scope_text: string | null
           sent_at: string | null
           service_ids: string[]
           service_type: string | null
@@ -2195,6 +2196,7 @@ export type Database = {
           responsible_id?: string | null
           root_proposal_id?: string | null
           scope?: string[] | null
+          scope_text?: string | null
           sent_at?: string | null
           service_ids?: string[]
           service_type?: string | null
@@ -2256,6 +2258,7 @@ export type Database = {
           responsible_id?: string | null
           root_proposal_id?: string | null
           scope?: string[] | null
+          scope_text?: string | null
           sent_at?: string | null
           service_ids?: string[]
           service_type?: string | null
@@ -2309,6 +2312,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scope_templates: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          name: string
+          owner_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          name: string
+          owner_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       service_job_checklist: {
         Row: {
