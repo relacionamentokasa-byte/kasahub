@@ -11,7 +11,9 @@ import {
   Send,
   ExternalLink,
   Smartphone,
+  RefreshCw as RefreshIcon,
 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -125,6 +127,7 @@ function ResendPanel() {
 }
 
 function GCalPanel() {
+  const [isConnected, setIsConnected] = useState(true);
   const list = useServerFn(listGoogleEvents);
   const { data, isLoading, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["gcal", "events"],
@@ -136,22 +139,38 @@ function GCalPanel() {
           timeMin: new Date().toISOString(),
         },
       }),
+    enabled: isConnected,
   });
 
   return (
     <Card>
       <Header
         title="Google Agenda"
-        status="conectado"
+        status={isConnected ? "conectado" : "pendente"}
         right={
-          <Button size="sm" variant="outline" className="gap-2" onClick={() => refetch()}>
-            <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
-          </Button>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" className="gap-2" onClick={() => refetch()} disabled={!isConnected}>
+              <RefreshCw className={`size-3.5 ${isFetching ? "animate-spin" : ""}`} /> Atualizar
+            </Button>
+            <Button size="sm" variant={isConnected ? "destructive" : "default"} onClick={() => setIsConnected(!isConnected)}>
+              {isConnected ? "Desconectar" : "Conectar Conta Google"}
+            </Button>
+          </div>
         }
       />
-      <p className="text-xs text-foreground/50 mb-4">
-        Próximos eventos do calendário primário conectado.
-      </p>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between p-3 rounded-lg bg-background border border-border">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">Sincronização Automática</p>
+            <p className="text-xs text-foreground/50">Sincronizar eventos bidirecionalmente.</p>
+          </div>
+          <Switch checked={isConnected} />
+        </div>
+        
+        <p className="text-xs text-foreground/50">
+          Próximos eventos do calendário primário conectado.
+        </p>
+      </div>
       {isLoading ? (
         <div className="py-10 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>
       ) : isError ? (

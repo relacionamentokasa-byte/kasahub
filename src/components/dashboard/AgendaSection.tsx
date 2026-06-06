@@ -1,6 +1,8 @@
-import { Calendar, AlertCircle, FileCheck, ReceiptText } from "lucide-react";
+import { Calendar, AlertCircle, FileCheck, ReceiptText, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 import { brl } from "@/lib/finance-api";
+import { Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 
 interface AgendaItem {
   id: string;
@@ -24,9 +26,16 @@ export function AgendaSection({ items }: AgendaSectionProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
-        <Calendar className="size-4" /> Agenda Operacional
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
+          <Calendar className="size-4" /> Agenda de Hoje
+        </h3>
+        <Button variant="ghost" size="sm" asChild className="text-xs text-primary gap-1">
+          <Link to="/calendario">
+            Ver Agenda Completa <ArrowRight className="size-3" />
+          </Link>
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {sections.map((s) => {
           const sectionItems = items.filter(it => it.type === s.key);

@@ -51,7 +51,7 @@ export interface CalendarEvent {
   approval_id: string | null;
   title: string;
   description: string | null;
-  kind: "post" | "meeting" | "deadline" | "task" | "other";
+  kind: "meeting" | "task" | "approval" | "dme" | "deadline" | "other" | string;
   starts_at: string;
   ends_at: string | null;
   all_day: boolean;
@@ -126,6 +126,21 @@ export async function createApproval(input: {
     .select()
     .single();
   if (error) throw error;
+
+  const approval = data as unknown as Approval;
+  // Criar evento na agenda
+  await sb.from("calendar_events").insert({
+    title: `Aprovação: ${approval.title}`,
+    client_id: approval.client_id,
+    project_id: approval.project_id,
+    approval_id: approval.id,
+    starts_at: approval.scheduled_for || new Date().toISOString(),
+    kind: "approval",
+    origin_type: "approval",
+    origin_id: approval.id,
+    source: "system",
+    created_by: u.user?.id
+  } as never);
   return data as unknown as Approval;
 }
 
@@ -207,12 +222,18 @@ export async function fetchCalendarEvents(filters?: {
   from?: string;
   to?: string;
 }) {
-  let q = sb.from("calendar_events").select("*").order("starts_at", { ascending: true });
-  if (filters?.clientId) q = q.eq("client_id", filters.clientId);
-  if (filters?.from) q = q.gte("starts_at", filters.from);
-  if (filters?.to) q = q.lte("starts_at", filters.to);
+  const q = sb.from("calendar_events").select("*").order("starts_at", { ascending: true });
+  if (filters?.clientId && filters.clientId !== 'all') {
+    q.eq("client_id", filters.clientId);
+  }
+  if (filters?.from) q.gte("starts_at", filters.from);
+  if (filters?.to) q.lte("starts_at", filters.to);
   const { data, error } = await q;
   if (error) throw error;
+
+  // Se não houver eventos manuais ou filtrados, podemos buscar dinamicamente eventos do sistema
+  // Mas para o MVP de hoje, focamos nos registros da tabela calendar_events que são populados via triggers ou funções de UI.
+  
   return (data ?? []) as unknown as CalendarEvent[];
 }
 
@@ -233,7 +254,7 @@ export async function createCalendarEvent(input: {
     .from("calendar_events")
     .insert({
       ...input,
-      kind: input.kind ?? "post",
+      kind: input.kind ?? "other",
       created_by: u.user?.id,
     } as never)
     .select()

@@ -257,6 +257,22 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
 
   const { data, error } = await supabase.from("jobs").insert(input).select().single();
   if (error) throw error;
+
+  // Criar evento na agenda se houver prazo
+  if (data.due_date) {
+    const { data: userData } = await supabase.auth.getUser();
+    await supabase.from("calendar_events").insert({
+      title: `Job: ${data.title}`,
+      client_id: data.client_id || project.client_id,
+      project_id: data.project_id,
+      starts_at: data.due_date,
+      kind: "task",
+      origin_type: "job",
+      origin_id: data.id,
+      source: "system",
+      created_by: userData.user?.id
+    } as never);
+  }
   
   await logAudit("create", "job", data.id, null, data);
   return data;

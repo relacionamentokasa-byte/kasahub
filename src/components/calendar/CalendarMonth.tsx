@@ -7,18 +7,20 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const KIND_COLOR: Record<string, string> = {
-  post: "bg-primary/20 text-primary border-primary/40",
-  meeting: "bg-sky-500/20 text-sky-300 border-sky-500/40",
-  deadline: "bg-red-500/20 text-red-300 border-red-500/40",
-  task: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40",
+  meeting: "bg-sky-500/20 text-sky-300 border-sky-500/40",    // Azul
+  task: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", // Verde
+  approval: "bg-amber-500/20 text-amber-300 border-amber-500/40", // Amarelo
+  dme: "bg-purple-500/20 text-purple-300 border-purple-500/40", // Roxo
+  deadline: "bg-red-500/20 text-red-300 border-red-500/40",   // Vermelho (Financeiro/Vencimentos)
   other: "bg-muted text-muted-foreground border-border",
 };
 
 const KIND_LABEL: Record<string, string> = {
-  post: "Post",
   meeting: "Reunião",
-  deadline: "Prazo",
-  task: "Tarefa",
+  task: "Job",
+  approval: "Aprovação",
+  dme: "Demanda Extra",
+  deadline: "Financeiro/Prazo",
   other: "Outro",
 };
 
@@ -111,7 +113,7 @@ export function CalendarMonth({ clientId, onSelectEvent }: Props) {
                     onClick={() => onSelectEvent?.(e)}
                     className={cn(
                       "text-[10px] px-1.5 py-0.5 rounded border text-left truncate",
-                      KIND_COLOR[e.kind] || KIND_COLOR.other,
+                      KIND_COLOR[e.kind as keyof typeof KIND_COLOR] || KIND_COLOR.other,
                     )}
                   >
                     {e.title}
@@ -128,7 +130,7 @@ export function CalendarMonth({ clientId, onSelectEvent }: Props) {
 
       <div className="flex flex-wrap gap-2">
         {Object.entries(KIND_LABEL).map(([k, l]) => (
-          <Badge key={k} variant="outline" className={cn("text-[10px] font-mono-kasa uppercase", KIND_COLOR[k])}>
+          <Badge key={k} variant="outline" className={cn("text-[10px] font-mono-kasa uppercase", KIND_COLOR[k as keyof typeof KIND_COLOR])}>
             {l}
           </Badge>
         ))}
