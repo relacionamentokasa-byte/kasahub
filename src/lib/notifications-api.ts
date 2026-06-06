@@ -74,7 +74,7 @@ export async function notify(input: {
     p_link: input.link || null,
     p_origin_type: input.originType || null,
     p_origin_id: input.originId || null
-  });
+  } as any);
   if (error) throw error;
 }
 
@@ -115,7 +115,7 @@ export async function handleMentions(text: string, context: {
       userId: profile.id,
       title: `${authorName} mencionou você`,
       description: `Em: ${context.title}`,
-      category: "mention",
+      category: "mention" as const,
       link: context.link,
       originType: context.originType,
       originId: context.originId
