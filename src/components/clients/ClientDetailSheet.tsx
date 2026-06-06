@@ -55,7 +55,7 @@ function QuickPreview({ clientId }: { clientId: string }) {
   const activeDmes = dmes.filter((d: any) => d.status !== 'completed' && d.status !== 'cancelled').length;
   
   const mainContract = activeContracts[0];
-  const responsibleId = client.responsible_id || mainContract?.owner_id;
+  const responsibleId = (client as any).responsible_id || mainContract?.owner_id;
   const responsible = profiles.find(p => p.id === responsibleId);
 
   return (
