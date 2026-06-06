@@ -227,6 +227,11 @@ function ServiceFormDialog({
     queryFn: fetchContractTemplates,
   });
 
+  const { data: flows = [] } = useQuery({
+    queryKey: ["operational-flows"],
+    queryFn: fetchOperationalFlows,
+  });
+
   const saveMut = useMutation({
     mutationFn: async () => {
       const payload = {
