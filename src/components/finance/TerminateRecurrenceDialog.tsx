@@ -20,6 +20,7 @@ interface TerminateRecurrenceDialogProps {
   onClose: () => void;
   title?: string;
   description?: string;
+  onConfirm?: (mode: "keep" | "cancel" | "delete") => Promise<any>;
 }
 
 export function TerminateRecurrenceDialog({
@@ -27,26 +28,32 @@ export function TerminateRecurrenceDialog({
   onClose,
   title = "Encerrar Recorrência",
   description = "Ao encerrar a recorrência, as cobranças futuras podem ser tratadas de diferentes formas.",
+  onConfirm,
 }: TerminateRecurrenceDialogProps) {
   const qc = useQueryClient();
   const [cleanupMode, setCleanupMode] = useState<"keep" | "cancel" | "delete">("cancel");
 
   const mutation = useMutation({
-    mutationFn: () => {
-      if (!recurrenceId) throw new Error("Recorrência não identificada");
+    mutationFn: async () => {
+      if (!recurrenceId) throw new Error("Identificador não encontrado");
+      if (onConfirm) {
+        return onConfirm(cleanupMode);
+      }
       return terminateRecurrence(recurrenceId, cleanupMode);
     },
     onSuccess: (result) => {
-      toast.success("Recorrência encerrada com sucesso.");
-      if (result.count > 0) {
-        toast.info(`${result.count} parcelas futuras foram removidas.`);
+      if (!onConfirm) {
+        toast.success("Recorrência encerrada com sucesso.");
+        if (result && result.count > 0) {
+          toast.info(`${result.count} parcelas futuras foram removidas.`);
+        }
+        qc.invalidateQueries({ queryKey: ["transactions"] });
+        qc.invalidateQueries({ queryKey: ["recurrences"] });
+        onClose();
       }
-      qc.invalidateQueries({ queryKey: ["transactions"] });
-      qc.invalidateQueries({ queryKey: ["recurrences"] });
-      onClose();
     },
     onError: (e: Error) => {
-      toast.error(`Falha ao encerrar recorrência: ${e.message}`);
+      toast.error(`Falha ao encerrar: ${e.message}`);
     },
   });
 
@@ -55,7 +62,7 @@ export function TerminateRecurrenceDialog({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center gap-2 text-warning mb-2">
-            <AlertTriangle className="size-5" />
+            <AlertTriangle className="size-5 text-amber-500" />
             <DialogTitle>{title}</DialogTitle>
           </div>
           <DialogDescription>{description}</DialogDescription>
@@ -101,7 +108,6 @@ export function TerminateRecurrenceDialog({
             onClick={() => mutation.mutate()}
             disabled={mutation.isPending}
           >
-
             {mutation.isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
