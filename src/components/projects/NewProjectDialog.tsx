@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { createProject, fetchClients } from "@/lib/ops-api";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProposals } from "@/lib/crm-api";
@@ -222,7 +223,7 @@ export function NewProjectDialog({
               >
                 <SelectTrigger><SelectValue placeholder="Responsável" /></SelectTrigger>
                 <SelectContent>
-                  {users.map((u) => (
+                  {users.map((u: any) => (
                     <SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>
                   ))}
                 </SelectContent>

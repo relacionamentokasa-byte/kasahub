@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2, FileSignature, Users } from "lucide-react";
+import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2, FileSignature, Users, Search, Filter } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchClients, deleteProject, duplicateProject, archiveProject } from "@/lib/ops-api";
@@ -25,12 +29,23 @@ export const Route = createFileRoute("/_authenticated/projetos")({
 
 function ProjetosPage() {
   const qc = useQueryClient();
-  const { data: projects = [], isLoading } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "all",
+    type: "all",
+    clientId: "all",
+    contractId: "all"
+  });
+
+  const { data: projects = [], isLoading } = useQuery({ 
+    queryKey: ["projects", filters], 
+    queryFn: () => fetchProjects(filters) 
+  });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: allContracts = [] } = useQuery({
     queryKey: ["all-contracts"],
     queryFn: async () => {
-      const { data } = await supabase.from("contracts").select("id, title");
+      const { data } = await supabase.from("contracts").select("id, title, client_id");
       return data || [];
     }
   });
@@ -97,21 +112,98 @@ function ProjetosPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <span className="text-primary text-[10px] capitalize">
-            Operação · Projetos
-          </span>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
-            Projetos
-          </h1>
+      <div className="px-6 lg:px-10 pt-6 pb-4">
+        <div className="flex items-end justify-between gap-4 flex-wrap mb-6">
+          <div>
+            <span className="text-primary text-[10px] capitalize font-bold tracking-widest">
+              Operação · Projetos
+            </span>
+            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+              Projetos
+            </h1>
+          </div>
+          <Button
+            onClick={() => setOpen(true)}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
+          >
+            <Plus className="size-4" /> Projeto Especial
+          </Button>
         </div>
-        <Button
-          onClick={() => setOpen(true)}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
-        >
-          <Plus className="size-4" /> Novo projeto
-        </Button>
+
+        {/* Filters */}
+        <div className="space-y-4 mb-6">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative flex-1 min-w-[240px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground/30" />
+              <Input
+                placeholder="Pesquisar por projeto, cliente ou contrato..."
+                className="pl-9 h-10 rounded-xl bg-surface border-border/40 focus:border-primary/50 transition-all"
+                value={filters.search}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              />
+            </div>
+            
+            <Select value={filters.type} onValueChange={(v) => setFilters({ ...filters, type: v })}>
+              <SelectTrigger className="w-[180px] h-10 rounded-xl bg-surface border-border/40">
+                <SelectValue placeholder="Tipo de Projeto" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os tipos</SelectItem>
+                <SelectItem value="automatic">Automáticos</SelectItem>
+                <SelectItem value="special">Projetos Especiais</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={filters.clientId} onValueChange={(v) => setFilters({ ...filters, clientId: v, contractId: "all" })}>
+              <SelectTrigger className="w-[180px] h-10 rounded-xl bg-surface border-border/40">
+                <SelectValue placeholder="Cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Clientes</SelectItem>
+                {clients.map(c => (
+                  <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {filters.clientId !== "all" && (
+              <Select value={filters.contractId} onValueChange={(v) => setFilters({ ...filters, contractId: v })}>
+                <SelectTrigger className="w-[180px] h-10 rounded-xl bg-surface border-border/40">
+                  <SelectValue placeholder="Contrato" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Contratos</SelectItem>
+                  {allContracts.filter(ct => ct.client_id === filters.clientId).map(ct => (
+                    <SelectItem key={ct.id} value={ct.id}>{ct.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+            {[
+              { id: "all", label: "Todos" },
+              { id: "active", label: "Ativos" },
+              { id: "completed", label: "Concluídos" },
+              { id: "paused", label: "Pausados" },
+              { id: "cancelled", label: "Cancelados" },
+            ].map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setFilters({ ...filters, status: s.id })}
+                className={cn(
+                  "px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all",
+                  filters.status === s.id
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-surface text-foreground/40 hover:text-foreground border border-border/40"
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
@@ -133,12 +225,17 @@ function ProjetosPage() {
                     className="text-left w-full block bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 pr-8">
+                      <div className="flex items-center gap-2 pr-8 flex-wrap">
                         <span className="size-2 rounded-full" style={{ background: p.color ?? "#FFBC45" }} />
-                        <span className="text-[10px] capitalize text-foreground/40 font-mono-kasa">
-                          {p.status === 'completed' ? 'Concluído' : p.status === 'cancelled' ? 'Cancelado' : p.status}
+                        <Badge variant="outline" className="text-[9px] uppercase font-bold tracking-tighter h-5 px-1.5 bg-background/50 border-border/40">
+                          {p.type === 'special' ? 'Especial' : 'Automático'}
+                        </Badge>
+                        <span className={cn(
+                          "text-[9px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full",
+                          p.status === 'active' ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground"
+                        )}>
+                          {p.status === 'completed' ? 'Concluído' : p.status === 'cancelled' ? 'Cancelado' : p.status === 'active' ? 'Ativo' : p.status}
                         </span>
-
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -196,18 +293,18 @@ function ProjetosPage() {
                         </div>
                       )}
                       {(() => {
-                        const owner = users.find(u => u.id === p.owner_id);
+                        const owner = users.find(u => u.id === (p as any).responsible_id || u.id === p.owner_id);
                         if (!owner) return null;
                         return (
                           <div className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase font-bold tracking-wider">
-                            <div className="size-5 rounded-full bg-foreground/5 overflow-hidden flex items-center justify-center shrink-0">
-                              {owner.avatar_url ? (
-                                <img src={owner.avatar_url} alt="" className="size-full object-cover" />
+                            <div className="size-5 rounded-full bg-foreground/5 overflow-hidden flex items-center justify-center shrink-0 border border-border/40">
+                              {(owner as any).avatar_url ? (
+                                <img src={(owner as any).avatar_url} alt="" className="size-full object-cover" />
                               ) : (
-                                <span className="text-[8px]">{owner.full_name?.charAt(0)}</span>
+                                <span className="text-[8px]">{(owner as any).full_name?.charAt(0)}</span>
                               )}
                             </div>
-                            <span className="truncate">Resp: {owner.full_name?.split(' ')[0]}</span>
+                            <span className="truncate">Resp: {(owner as any).full_name?.split(' ')[0]}</span>
                           </div>
                         );
                       })()}
