@@ -239,7 +239,7 @@ export async function createCalendarEvent(input: {
     .from("calendar_events")
     .insert({
       ...input,
-      kind: input.kind ?? "post",
+      kind: input.kind ?? "other",
       created_by: u.user?.id,
     } as never)
     .select()
