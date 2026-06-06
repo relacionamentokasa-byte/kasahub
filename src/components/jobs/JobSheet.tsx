@@ -40,6 +40,7 @@ import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSqua
 import { toast } from "sonner";
 import { JOB_TYPES } from "@/lib/job-types";
 import { supabase } from "@/integrations/supabase/client";
+import { DynamicJobForm } from "./DynamicJobForm";
 
 
 export function JobSheet({
