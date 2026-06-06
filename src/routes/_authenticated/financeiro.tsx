@@ -81,7 +81,9 @@ import {
   fetchCategories,
   fetchContracts,
   fetchTransactions,
+  fetchRecurrences,
   markPaid,
+
   bulkDeleteTransactions,
   bulkUpdateTransactions,
   updateRecurrence,
@@ -122,6 +124,9 @@ function FinanceiroPage() {
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
+  const { data: recurrences = [] } = useQuery({ queryKey: ["recurrences"], queryFn: fetchRecurrences });
+
+
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -266,9 +271,11 @@ function FinanceiroPage() {
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="bg-surface border border-border">
             <TabsTrigger value="list" className="gap-2"><List className="size-4" /> Lista</TabsTrigger>
+            <TabsTrigger value="recurrences" className="gap-2"><Clock className="size-4" /> Recorrências</TabsTrigger>
             <TabsTrigger value="monthly" className="gap-2"><BarChart3 className="size-4" /> Visão Mensal</TabsTrigger>
             <TabsTrigger value="annual" className="gap-2"><LineIcon className="size-4" /> Previsão Anual</TabsTrigger>
             <TabsTrigger value="accounts" className="gap-2"><Landmark className="size-4" /> Contas Banc.</TabsTrigger>
+
           </TabsList>
 
           {/* ============ LISTA ============ */}
@@ -314,19 +321,40 @@ function FinanceiroPage() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => {
-                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
-                        if (firstRecurrenceId) setDeleteFutureRecurrenceId(firstRecurrenceId);
-                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        const selectedRecurrenceIds = Array.from(new Set(
+                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
+                              .map(r => r.recurrence_id)
+                        )) as string[];
+
+                        if (selectedRecurrenceIds.length > 0) {
+                          setDeleteFutureRecurrenceId(selectedRecurrenceIds[0]);
+                          if (selectedRecurrenceIds.length > 1) {
+                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
+                          }
+                        } else {
+                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        }
                       }}>
                         <Calendar className="size-4 mr-2" /> Excluir parcelas futuras
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
-                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
-                        if (firstRecurrenceId) setTerminateRecurrenceId(firstRecurrenceId);
-                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        const selectedRecurrenceIds = Array.from(new Set(
+                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
+                              .map(r => r.recurrence_id)
+                        )) as string[];
+
+                        if (selectedRecurrenceIds.length > 0) {
+                          setTerminateRecurrenceId(selectedRecurrenceIds[0]);
+                          if (selectedRecurrenceIds.length > 1) {
+                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
+                          }
+                        } else {
+                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        }
                       }}>
                         <XCircle className="size-4 mr-2" /> Encerrar recorrência
                       </DropdownMenuItem>
+
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-rose-400" onClick={() => bulkDelete.mutate(selectedIds)}>
                         <Trash2 className="size-4 mr-2" /> Excluir selecionadas
@@ -528,6 +556,102 @@ function FinanceiroPage() {
               )}
             </div>
           </TabsContent>
+
+          {/* ============ RECORRÊNCIAS ============ */}
+          <TabsContent value="recurrences" className="mt-6 space-y-6">
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+              <div className="px-5 py-3 border-b border-border font-display font-semibold">
+                Gestão de Recorrências
+              </div>
+              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border">
+                <div className="col-span-3">Descrição</div>
+                <div className="col-span-2">Início</div>
+                <div className="col-span-2">Valor Base</div>
+                <div className="col-span-1">Status</div>
+                <div className="col-span-2">Parcelas</div>
+                <div className="col-span-1">Próx. Venc.</div>
+                <div className="col-span-1 text-right">Ações</div>
+
+              </div>
+              {recurrences.length === 0 ? (
+                <div className="p-12 text-center text-foreground/50 text-sm">Nenhuma recorrência ativa</div>
+              ) : (
+                recurrences.map((r) => {
+                  const txsForRec = txs.filter(t => t.recurrence_id === r.id);
+                  const paid = txsForRec.filter(t => t.status === 'paid').length;
+                  const total = txsForRec.length;
+                  const nextTx = txsForRec
+                    .filter(t => t.status === 'pending')
+                    .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+
+                  
+                  return (
+                    <div key={r.id} className="grid grid-cols-12 px-5 py-4 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
+                      <div className="col-span-3 min-w-0">
+                        <div className="text-sm font-medium truncate">{r.description}</div>
+                        {r.contract_id && (
+                          <div className="text-[10px] text-primary flex items-center gap-1 mt-1">
+                            <LinkIcon className="size-3" /> Contrato Vinculado
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-span-2 text-xs text-foreground/60">
+                        {new Date(r.start_date).toLocaleDateString("pt-BR")}
+                      </div>
+                      <div className="col-span-2 text-xs font-semibold">
+                        {brl(Number(r.amount))}
+                      </div>
+                      <div className="col-span-1">
+                        <Badge variant="outline" className={`text-[10px] capitalize ${
+                          r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          r.status === 'paused' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          'bg-foreground/10 text-foreground/40 border-border'
+                        }`}>
+                          {r.status === 'active' ? 'Ativa' : r.status === 'paused' ? 'Pausada' : 'Encerrada'}
+                        </Badge>
+                      </div>
+                      <div className="col-span-2 text-xs text-foreground/60">
+                        {paid}/{total} pagas
+                      </div>
+                      <div className="col-span-1 text-xs text-foreground/60">
+                        {nextTx ? new Date(nextTx.due_date).toLocaleDateString("pt-BR") : "—"}
+                      </div>
+
+                      <div className="col-span-1 flex items-center justify-end gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-full">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>Ações da Recorrência</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => setDeleteFutureRecurrenceId(r.id)}>
+                              <Trash2 className="size-4 mr-2 text-rose-400" /> Excluir Parcelas Futuras
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setTerminateRecurrenceId(r.id)}>
+                              <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Recorrência
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {r.status === 'active' ? (
+                              <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: r.id, status: 'paused' })}>
+                                <Pause className="size-4 mr-2" /> Pausar
+                              </DropdownMenuItem>
+                            ) : r.status === 'paused' ? (
+                              <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: r.id, status: 'active' })}>
+                                <Play className="size-4 mr-2" /> Reativar
+                              </DropdownMenuItem>
+                            ) : null}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </TabsContent>
+
 
 
           {/* ============ VISÃO MENSAL ============ */}
