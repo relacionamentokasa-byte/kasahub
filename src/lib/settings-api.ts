@@ -21,6 +21,14 @@ export interface AgencySettings {
   integrations: Record<string, unknown>;
   plan_name: string;
   user_limit: number;
+  pwa_name: string | null;
+  pwa_short_name: string | null;
+  pwa_description: string | null;
+  pwa_theme_color: string | null;
+  pwa_background_color: string | null;
+  pwa_icon_192_url: string | null;
+  pwa_icon_512_url: string | null;
+  pwa_favicon_url: string | null;
 }
 
 const sb = supabase as unknown as {
