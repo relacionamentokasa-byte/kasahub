@@ -334,7 +334,7 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
                     onChange={(e) => setNewDme({ ...newDme, value: Number(e.target.value) })}
                     className="bg-background border-border/60 h-11 rounded-xl font-mono-kasa"
                   />
-                  {(dme as any).origin === "independent" && newDme.value >= 1000 && !(dme as any).conversion_alert_dismissed && (
+                  {newDme.origin === "independent" && newDme.value >= 1000 && !(newDme as any).conversion_alert_dismissed && (
                     <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-2">
                       <p className="text-[10px] text-amber-200 leading-tight flex items-center gap-1.5 font-bold uppercase">
                         <AlertCircle className="size-3" /> Demanda de Valor Elevado

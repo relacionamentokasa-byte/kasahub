@@ -346,7 +346,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                           {contract ? (
                             <span className="flex items-center gap-1"><FileSignature className="size-3 text-primary" /> {contract.title}</span>
                           ) : (t as any).dme_id ? (
-                            <span className="flex items-center gap-1 text-primary">DME</span>
+                            <span className="flex items-center gap-1 text-primary">DME {(t as any).origin === 'independent' ? '(Independente)' : '(Extra)'}</span>
                           ) : "—"}
 
                         </td>
