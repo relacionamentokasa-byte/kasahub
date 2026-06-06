@@ -635,10 +635,10 @@ function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <KPIBox title="Usuários Utilizados" value={`${usedUsers} / ${userLimit}`} sub={`Plano ${agency?.plan_name || 'Professional'}`} />
-        <KPIBox title="Convites Pendentes" value={pendingInvites.toString()} />
-        <KPIBox title="Usuários Ativos" value={users.filter(u => u.status === 'active').length.toString()} />
-        <KPIBox title="Disponíveis" value={Math.max(0, userLimit - usedUsers - pendingInvites).toString()} />
+        <UserKPIBox title="Usuários Utilizados" value={`${usedUsers} / ${userLimit}`} sub={`Plano ${agency?.plan_name || 'Professional'}`} />
+        <UserKPIBox title="Convites Pendentes" value={pendingInvites.toString()} />
+        <UserKPIBox title="Usuários Ativos" value={users.filter(u => u.status === 'active').length.toString()} />
+        <UserKPIBox title="Disponíveis" value={Math.max(0, userLimit - usedUsers - pendingInvites).toString()} />
       </div>
 
       <section className="rounded-xl border border-border bg-surface p-6">
