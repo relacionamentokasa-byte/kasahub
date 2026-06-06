@@ -20,7 +20,16 @@ import {
   LineChart as LineIcon,
   Landmark,
   Link as LinkIcon,
+  MoreHorizontal,
+  Pause,
+  Play,
+  XCircle,
+  Calendar,
+  Tag,
+  Briefcase,
+  CheckSquare,
 } from "lucide-react";
+
 import {
   ResponsiveContainer,
   BarChart,
@@ -39,6 +48,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -63,7 +82,11 @@ import {
   fetchContracts,
   fetchTransactions,
   markPaid,
+  bulkDeleteTransactions,
+  bulkUpdateTransactions,
+  updateRecurrence,
 } from "@/lib/finance-api";
+
 import { fetchClients } from "@/lib/ops-api";
 import { NewTransactionDialog } from "@/components/finance/NewTransactionDialog";
 import { NewBankAccountDialog } from "@/components/finance/NewBankAccountDialog";
@@ -71,6 +94,9 @@ import { ImportTransactionsDialog } from "@/components/finance/ImportTransaction
 import { SettleTransactionDialog } from "@/components/finance/SettleTransactionDialog";
 import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
+import { DeleteFutureInstallmentsDialog } from "@/components/finance/DeleteFutureInstallmentsDialog";
+import { TerminateRecurrenceDialog } from "@/components/finance/TerminateRecurrenceDialog";
+
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA OS" }] }),
@@ -115,6 +141,10 @@ function FinanceiroPage() {
   const [openAcc, setOpenAcc] = useState(false);
   const [openImport, setOpenImport] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteFutureRecurrenceId, setDeleteFutureRecurrenceId] = useState<string | null>(null);
+  const [terminateRecurrenceId, setTerminateRecurrenceId] = useState<string | null>(null);
+
 
   function shiftMonth(delta: number) {
     const d = new Date(year, month + delta, 1);
