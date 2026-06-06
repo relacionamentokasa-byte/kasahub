@@ -53,14 +53,12 @@ import {
   Save,
   Send,
   Trash2,
-  CheckCircle2,
   Rocket,
   RotateCcw,
   XCircle,
   Ban,
 } from "lucide-react";
 import { toast } from "sonner";
-import { ProposalApprovalDialog } from "@/components/proposals/ProposalApprovalDialog";
 
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
