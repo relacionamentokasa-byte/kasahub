@@ -605,7 +605,7 @@ function FinanceiroPage() {
         onClose={() => setTerminateContractId(null)} 
         title="Encerrar Contrato"
         description="Deseja cancelar automaticamente todos os lançamentos financeiros futuros vinculados a este contrato?"
-        onConfirm={async (mode) => terminateContractMutation.mutateAsync({ id: terminateContractId!, cleanup: mode })}
+        onConfirm={async (mode: "keep" | "cancel" | "delete") => terminateContractMutation.mutateAsync({ id: terminateContractId!, cleanup: mode })}
       />
 
     </div>
