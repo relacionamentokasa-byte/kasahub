@@ -8,6 +8,7 @@ import { Plus, Search, MoreHorizontal, Phone, Mail, MapPin, Trash2, Edit2, Exter
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { PartnerDialog } from "./PartnerDialog";
+import { PartnerSheet } from "./PartnerSheet";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -20,6 +21,7 @@ export function PartnerList({ type }: Props) {
   const { isAdmin, can } = usePermissions();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [sheetPartner, setSheetPartner] = useState<Partner | null>(null);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
 
   const { data: partners = [], isLoading } = useQuery({
@@ -75,7 +77,11 @@ export function PartnerList({ type }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((p) => (
-          <Card key={p.id} className="p-5 bg-surface border-border hover:border-primary/50 transition-colors group">
+          <Card 
+            key={p.id} 
+            className="p-5 bg-surface border-border hover:border-primary/50 transition-colors group cursor-pointer"
+            onClick={() => setSheetPartner(p)}
+          >
             <div className="flex items-start justify-between mb-4">
               <div className="flex gap-4">
                 <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden">
@@ -164,6 +170,11 @@ export function PartnerList({ type }: Props) {
         onOpenChange={setDialogOpen} 
         partner={editingPartner} 
         type={type} 
+      />
+
+      <PartnerSheet
+        partner={sheetPartner}
+        onClose={() => setSheetPartner(null)}
       />
     </div>
   );
