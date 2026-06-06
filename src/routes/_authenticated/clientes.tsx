@@ -220,7 +220,7 @@ function ClientesPage() {
                       ? `${mainContract.title} +${clientContracts.length - 1}`
                       : mainContract?.title || "Nenhum contrato";
 
-                    const responsibleId = c.responsible_id || mainContract?.owner_id;
+                    const responsibleId = (c as any).responsible_id || mainContract?.owner_id;
                     const responsible = profiles.find(p => p.id === responsibleId);
                     const responsibleName = responsible?.display_name || responsible?.full_name || "—";
 
