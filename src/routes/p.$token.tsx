@@ -36,6 +36,7 @@ type Proposal = {
   accepted_name: string | null;
   public_token: string;
   scope: string[] | null;
+  scope_text?: string | null;
   recurring_months?: number | null;
   installments?: number | null;
   payment_method?: string | null;
