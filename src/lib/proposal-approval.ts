@@ -120,34 +120,54 @@ export async function approveProposal(
   }
 
   // Now handle project creation/linkage
+  const isRecurring = proposal.contract_type === "recurring" || (monthly > 0 && !proposal.contract_type);
+  
   if (projectId) {
     // reactivate if archived and ensure linkage
     await sb.from("projects").update({ 
       status: "active", 
       contract_id: contractId,
-      client_id: clientId
+      client_id: clientId,
+      type: "automatic"
     }).eq("id", projectId);
   } else {
-    // Check if contract already has a project
-    const { data: existingPrj } = await sb.from("projects")
-      .select("id")
-      .eq("contract_id", contractId)
-      .maybeSingle();
-      
-    if (existingPrj) {
-      projectId = existingPrj.id;
-      await sb.from("projects").update({ status: "active" }).eq("id", projectId);
+    // For recurring contracts, check if a main project already exists for this client/contract
+    let existingPrjId = null;
+    
+    if (isRecurring) {
+      const { data: existingPrj } = await sb.from("projects")
+        .select("id")
+        .eq("client_id", clientId)
+        .eq("type", "automatic")
+        .ilike("name", "Operação Mensal %")
+        .limit(1)
+        .maybeSingle();
+      existingPrjId = existingPrj?.id;
+    }
+
+    if (existingPrjId) {
+      projectId = existingPrjId;
+      await sb.from("projects").update({ 
+        status: "active",
+        contract_id: contractId 
+      }).eq("id", projectId);
     } else {
+      const projectName = isRecurring 
+        ? `Operação Mensal ${proposal.client_name || "Cliente"}`
+        : proposal.title;
+
       const { data: createdProject, error: prjErr } = await sb
         .from("projects")
         .insert({
-          name: proposal.title,
+          name: projectName,
           client_id: clientId,
           proposal_id: proposal.id,
           contract_id: contractId,
           briefing: proposal.briefing ?? proposal.intro ?? null,
           owner_id: proposal.responsible_id ?? proposal.owner_id ?? null,
+          responsible_id: proposal.responsible_id ?? proposal.owner_id ?? null,
           status: "active",
+          type: "automatic"
         })
         .select("id")
         .single();
@@ -197,7 +217,8 @@ export async function approveProposal(
     // Check if we have service_ids to generate jobs from templates
     if (proposal.service_ids?.length) {
       // Use the common generation logic
-      const result = await generateJobsForProject(projectId!, clientId!, proposal.service_ids);
+      const currentPeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const result = await generateJobsForProject(projectId!, clientId!, proposal.service_ids, currentPeriod);
       jobsCreated = result.created;
     } 
     
