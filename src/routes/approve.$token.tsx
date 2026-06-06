@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { CheckCircle2, XCircle, Clock, FileText, ExternalLink, MessageSquare, Send } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, FileText, ExternalLink, MessageSquare, Send, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
