@@ -580,6 +580,10 @@ function FinanceiroPage() {
                   const txsForRec = txs.filter(t => t.recurrence_id === r.id);
                   const paid = txsForRec.filter(t => t.status === 'paid').length;
                   const total = txsForRec.length;
+                  const nextTx = txsForRec
+                    .filter(t => t.status === 'pending')
+                    .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+
                   
                   return (
                     <div key={r.id} className="grid grid-cols-12 px-5 py-4 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
@@ -597,7 +601,7 @@ function FinanceiroPage() {
                       <div className="col-span-2 text-xs font-semibold">
                         {brl(Number(r.amount))}
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-1">
                         <Badge variant="outline" className={`text-[10px] capitalize ${
                           r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                           r.status === 'paused' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
@@ -609,6 +613,10 @@ function FinanceiroPage() {
                       <div className="col-span-2 text-xs text-foreground/60">
                         {paid}/{total} pagas
                       </div>
+                      <div className="col-span-1 text-xs text-foreground/60">
+                        {nextTx ? new Date(nextTx.due_date).toLocaleDateString("pt-BR") : "—"}
+                      </div>
+
                       <div className="col-span-1 flex items-center justify-end gap-2">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
