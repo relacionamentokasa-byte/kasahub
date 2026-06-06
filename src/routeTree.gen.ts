@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as PTokenRouteImport } from './routes/p.$token'
+import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
@@ -50,6 +51,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
 const PTokenRoute = PTokenRouteImport.update({
   id: '/p/$token',
   path: '/p/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DmeTokenRoute = DmeTokenRouteImport.update({
+  id: '/dme/$token',
+  path: '/dme/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
@@ -169,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/dme/$token': typeof DmeTokenRoute
   '/p/$token': typeof PTokenRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/dme/$token': typeof DmeTokenRoute
   '/p/$token': typeof PTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/_authenticated/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/_authenticated/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/dme/$token': typeof DmeTokenRoute
   '/p/$token': typeof PTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
@@ -245,6 +254,7 @@ export interface FileRouteTypes {
     | '/projetos'
     | '/propostas'
     | '/relatorios'
+    | '/dme/$token'
     | '/p/$token'
     | '/clientes/$clientId'
     | '/projetos/$projectId'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
     | '/projetos'
     | '/propostas'
     | '/relatorios'
+    | '/dme/$token'
     | '/p/$token'
     | '/'
     | '/clientes/$clientId'
@@ -293,6 +304,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projetos'
     | '/_authenticated/propostas'
     | '/_authenticated/relatorios'
+    | '/dme/$token'
     | '/p/$token'
     | '/_authenticated/'
     | '/_authenticated/clientes/$clientId'
@@ -305,6 +317,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  DmeTokenRoute: typeof DmeTokenRoute
   PTokenRoute: typeof PTokenRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
@@ -338,6 +351,13 @@ declare module '@tanstack/react-router' {
       path: '/p/$token'
       fullPath: '/p/$token'
       preLoaderRoute: typeof PTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dme/$token': {
+      id: '/dme/$token'
+      path: '/dme/$token'
+      fullPath: '/dme/$token'
+      preLoaderRoute: typeof DmeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/relatorios': {
@@ -559,6 +579,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  DmeTokenRoute: DmeTokenRoute,
   PTokenRoute: PTokenRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
@@ -566,3 +587,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
