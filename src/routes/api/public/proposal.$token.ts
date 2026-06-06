@@ -30,6 +30,20 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           return Response.json({ error: "not_found" }, { status: 404 });
         }
 
+        // Fallback: if proposal has no contract_content, load the first available template
+        if (!proposal.contract_content) {
+          const { data: tpl } = await supabaseAdmin
+            .from("contract_templates")
+            .select("content")
+            .is("archived_at", null)
+            .order("created_at", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          if (tpl?.content) {
+            (proposal as { contract_content?: string | null }).contract_content = tpl.content;
+          }
+        }
+
         const [{ data: items }, { data: agency }, { data: client }] = await Promise.all([
           supabaseAdmin
             .from("proposal_items")
