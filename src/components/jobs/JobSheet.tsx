@@ -126,141 +126,287 @@ export function JobSheet({
           </SheetTitle>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-[10px] capitalize text-foreground/50">Etapa</Label>
-              <Select
-                value={job.stage_id ?? undefined}
-                onValueChange={(v) => updateMut.mutate({ stage_id: v })}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {stages.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-[10px] capitalize text-foreground/50">Prioridade</Label>
-              <Select
-                value={job.priority}
-                onValueChange={(v) => updateMut.mutate({ priority: v })}
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Baixa</SelectItem>
-                  <SelectItem value="normal">Normal</SelectItem>
-                  <SelectItem value="high">Alta</SelectItem>
-                  <SelectItem value="urgent">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 col-span-2">
-              <Label className="text-[10px] capitalize text-foreground/50">Prazo</Label>
-              <Input
-                type="date"
-                defaultValue={job.due_date ?? ""}
-                onBlur={(e) => updateMut.mutate({ due_date: e.target.value || null })}
-              />
-            </div>
-            <div className="space-y-1.5 col-span-2">
-              <Label className="text-[10px] capitalize text-foreground/50">Descrição</Label>
-              <Textarea
-                rows={3}
-                defaultValue={job.description ?? ""}
-                onBlur={(e) => updateMut.mutate({ description: e.target.value || null })}
-              />
-            </div>
-          </div>
+        <div className="mt-6">
+          <Tabs defaultValue="details" className="space-y-6">
+            <TabsList className="w-full flex justify-start gap-1 overflow-x-auto scrollbar-none bg-transparent h-auto p-0 border-b border-border rounded-none">
+              <TabsTrigger value="details" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs">Detalhes</TabsTrigger>
+              <TabsTrigger value="briefing" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs">Briefing</TabsTrigger>
+              <TabsTrigger value="checklist" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs">Checklist</TabsTrigger>
+              <TabsTrigger value="files" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs">Arquivos</TabsTrigger>
+              <TabsTrigger value="comments" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs">Comentários</TabsTrigger>
+              <TabsTrigger value="history" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-3 py-2 text-xs">Histórico</TabsTrigger>
+            </TabsList>
 
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-[10px] capitalize text-foreground/50">Checklist</h3>
-              <span className="text-[10px] text-foreground/40">
-                {checklist.filter((c) => c.done).length}/{checklist.length}
-              </span>
-            </div>
-            <div className="space-y-1.5">
-              {checklist.map((item) => (
-                <div key={item.id} className="flex items-center gap-2 group">
-                  <Checkbox
-                    checked={item.done}
-                    onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: !!v })}
-                  />
-                  <span className={`flex-1 text-sm ${item.done ? "line-through text-foreground/40" : ""}`}>
-                    {item.content}
-                  </span>
-                  <button
-                    onClick={() => delItemMut.mutate(item.id)}
-                    className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive"
+            <TabsContent value="details" className="space-y-6 pt-2">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Status</Label>
+                  <Select
+                    value={(job as any).status || "not_started"}
+                    onValueChange={(v) => updateMut.mutate({ status: v } as any)}
                   >
-                    <Trash2 className="size-3.5" />
-                  </button>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(JOB_STATUS_LABELS).map(([val, { label }]) => (
+                        <SelectItem key={val} value={val}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ))}
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Prioridade</Label>
+                  <Select
+                    value={job.priority}
+                    onValueChange={(v) => updateMut.mutate({ priority: v })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="normal">Normal</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="text-[10px] capitalize text-foreground/50">Prazo</Label>
+                  <Input
+                    type="date"
+                    defaultValue={job.due_date ?? ""}
+                    onBlur={(e) => updateMut.mutate({ due_date: e.target.value || null })}
+                  />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="text-[10px] capitalize text-foreground/50">Descrição Geral</Label>
+                  <Textarea
+                    rows={3}
+                    defaultValue={job.description ?? ""}
+                    onBlur={(e) => updateMut.mutate({ description: e.target.value || null })}
+                  />
+                </div>
+              </div>
+
+              {(job as any).status === 'in_progress' && (
+                <div className="pt-4 border-t border-border">
+                  <Button 
+                    className="w-full bg-primary text-primary-foreground font-semibold gap-2"
+                    onClick={() => {
+                      updateMut.mutate({ status: 'review' } as any);
+                      toast.success("Job enviado para aprovação!");
+                    }}
+                  >
+                    <CheckCircle2 className="size-4" /> Enviar para Aprovação
+                  </Button>
+                  <p className="text-[10px] text-center text-foreground/40 mt-2">
+                    Isso gerará um link para o cliente revisar a entrega.
+                  </p>
+                </div>
+              )}
+
+              {((job as any).status === 'review' || (job as any).status === 'done') && (
+                <div className="p-4 bg-muted/20 border border-border rounded-xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold flex items-center gap-1.5">
+                      <LinkIcon className="size-3.5" /> Link de Aprovação
+                    </span>
+                    <Button variant="ghost" size="sm" className="h-7 text-[10px]" onClick={() => {
+                      const url = `${window.location.origin}/approve/${(job as any).approval_token}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("Link copiado!");
+                    }}>Copiar</Button>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-background border border-border rounded text-[10px] font-mono text-foreground/60 truncate">
+                    {window.location.origin}/approve/{(job as any).approval_token}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="briefing" className="space-y-4 pt-2">
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Objetivo da Tarefa</Label>
+                  <Textarea 
+                    rows={2}
+                    defaultValue={(job as any).briefing_objective ?? ""}
+                    onBlur={(e) => updateMut.mutate({ briefing_objective: e.target.value } as any)}
+                    placeholder="O que este job deve atingir?"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Orientações e Diretrizes</Label>
+                  <Textarea 
+                    rows={4}
+                    defaultValue={(job as any).briefing_guidelines ?? ""}
+                    onBlur={(e) => updateMut.mutate({ briefing_guidelines: e.target.value } as any)}
+                    placeholder="Regras, tom de voz, restrições..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Referências e Links</Label>
+                  <Textarea 
+                    rows={2}
+                    defaultValue={(job as any).briefing_references ?? ""}
+                    onBlur={(e) => updateMut.mutate({ briefing_references: e.target.value } as any)}
+                    placeholder="Links, inspirações, drives..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Observações Extras</Label>
+                  <Textarea 
+                    rows={2}
+                    defaultValue={(job as any).briefing_notes ?? ""}
+                    onBlur={(e) => updateMut.mutate({ briefing_notes: e.target.value } as any)}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="checklist" className="space-y-4 pt-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-foreground/70">Checklist de Execução</h3>
+                <span className="text-[10px] text-foreground/40 font-mono">
+                  {checklist.filter((c) => c.done).length}/{checklist.length}
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {checklist.map((item) => (
+                  <div key={item.id} className="flex items-center gap-2 group p-2 hover:bg-muted/10 rounded-lg transition-colors">
+                    <Checkbox
+                      checked={item.done}
+                      onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: !!v })}
+                    />
+                    <span className={`flex-1 text-sm ${item.done ? "line-through text-foreground/40" : ""}`}>
+                      {item.content}
+                    </span>
+                    <button
+                      onClick={() => delItemMut.mutate(item.id)}
+                      className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (draft.trim()) addItemMut.mutate(draft.trim());
+                  }}
+                  className="flex gap-2 mt-4"
+                >
+                  <Input
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    placeholder="Novo item de checklist…"
+                    className="h-9"
+                  />
+                  <Button type="submit" size="icon" variant="ghost" className="size-9 shrink-0">
+                    <Plus className="size-4" />
+                  </Button>
+                </form>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="files" className="space-y-4 pt-2">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-semibold text-foreground/70">Anexos do Job</h3>
+                <Button variant="outline" size="sm" className="h-8 gap-2 text-[10px]" onClick={() => toast.info("Upload em breve")}>
+                  <Paperclip className="size-3.5" /> Subir Arquivo
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {attachments.map(att => (
+                  <div key={att.id} className="flex items-center justify-between p-3 bg-muted/20 border border-border rounded-lg group">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded bg-background flex items-center justify-center">
+                        <FileText className="size-4 text-foreground/40" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium">{att.file_name}</p>
+                        <p className="text-[10px] text-foreground/40">{format(new Date(att.created_at), "dd/MM/yyyy")}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="icon" className="size-8 opacity-0 group-hover:opacity-100" asChild>
+                      <a href={att.file_url} target="_blank" rel="noreferrer"><ExternalLink className="size-3.5" /></a>
+                    </Button>
+                  </div>
+                ))}
+                {attachments.length === 0 && (
+                  <div className="text-center py-8 border-2 border-dashed border-border rounded-xl">
+                    <p className="text-[10px] text-foreground/40">Nenhum arquivo anexado a este job.</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="comments" className="space-y-4 pt-2">
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 scrollbar-none">
+                {comments.map((c) => (
+                  <div key={c.id} className="bg-surface-elevated border border-border rounded-xl p-3 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-semibold text-primary">Sistema</span>
+                      <span className="text-[9px] text-foreground/30">
+                        {format(new Date(c.created_at), "dd MMM HH:mm")}
+                      </span>
+                    </div>
+                    <p className="text-sm whitespace-pre-wrap">{c.content}</p>
+                  </div>
+                ))}
+              </div>
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
-                  if (draft.trim()) addItemMut.mutate(draft.trim());
+                  if (comment.trim()) commentMut.mutate(comment.trim());
                 }}
-                className="flex gap-2"
+                className="flex gap-2 sticky bottom-0 bg-surface pt-2"
               >
-                <Input
-                  value={draft}
-                  onChange={(e) => setDraft(e.target.value)}
-                  placeholder="Adicionar item…"
-                  className="h-9"
+                <Textarea
+                  rows={2}
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Comentar… use @nome para mencionar"
+                  className="resize-none"
                 />
-                <Button type="submit" size="icon" variant="ghost" className="size-9 shrink-0">
-                  <Plus className="size-4" />
+                <Button type="submit" size="icon" className="size-10 shrink-0 bg-primary text-primary-foreground">
+                  <Send className="size-4" />
                 </Button>
               </form>
-            </div>
-          </div>
+            </TabsContent>
 
-          <div>
-            <h3 className="text-[10px] capitalize text-foreground/50 mb-2">
-              Comentários
-            </h3>
-            <div className="space-y-3 mb-3">
-              {comments.map((c) => (
-                <div key={c.id} className="bg-surface-elevated border border-border rounded-lg p-3">
-                  <div className="text-xs text-foreground/40 mb-1">
-                    {format(new Date(c.created_at), "dd MMM HH:mm")}
+            <TabsContent value="history" className="space-y-3 pt-2">
+              {history.map((h: any) => (
+                <div key={h.id} className="flex gap-3 items-start border-l-2 border-muted pl-4 py-1">
+                  <div className="size-2 rounded-full bg-muted -ml-[21px] mt-1.5" />
+                  <div className="flex-1">
+                    <p className="text-xs text-foreground/70">
+                      <span className="font-semibold text-foreground">Ação: {h.action}</span>
+                      {h.from_value && ` de ${h.from_value}`}
+                      {h.to_value && ` para ${h.to_value}`}
+                    </p>
+                    <p className="text-[10px] text-foreground/40">
+                      {format(new Date(h.created_at), "dd MMM yyyy, HH:mm")}
+                    </p>
                   </div>
-                  <p className="text-sm whitespace-pre-wrap">{c.content}</p>
                 </div>
               ))}
-            </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (comment.trim()) commentMut.mutate(comment.trim());
-              }}
-              className="flex gap-2"
-            >
-              <Textarea
-                rows={2}
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Comentar… use @nome para mencionar"
-              />
-              <Button type="submit" size="icon" className="size-10 shrink-0 bg-primary text-primary-foreground">
-                <Send className="size-4" />
-              </Button>
-            </form>
-          </div>
+              {history.length === 0 && (
+                <p className="text-[10px] text-center text-foreground/40 py-8">Nenhum histórico registrado.</p>
+              )}
+            </TabsContent>
+          </Tabs>
 
-          <div className="pt-4 border-t border-border">
+          <div className="mt-8 pt-4 border-t border-border flex items-center justify-between">
             <Button
               variant="ghost"
+              size="sm"
               onClick={() => confirm("Remover este job?") && deleteMut.mutate()}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 w-full"
+              className="text-destructive hover:text-destructive hover:bg-destructive/10 text-[10px] h-8"
             >
-              <Trash2 className="size-4 mr-2" /> Excluir job
+              <Trash2 className="size-3.5 mr-2" /> Excluir job
             </Button>
+            <span className="text-[10px] text-foreground/20 font-mono">
+              ID: {job.id.slice(0, 8)}
+            </span>
           </div>
         </div>
       </SheetContent>
