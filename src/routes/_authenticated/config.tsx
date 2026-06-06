@@ -115,6 +115,10 @@ function ConfigPage() {
           <UserProfileTab canEdit={canEdit} />
         </TabsContent>
 
+        <TabsContent value="users" className="space-y-4">
+          <UsersManagementTab canEdit={canEdit} />
+        </TabsContent>
+
         <TabsContent value="perms" className="space-y-4">
           <PermissionsManager canEdit={canEdit} />
         </TabsContent>
