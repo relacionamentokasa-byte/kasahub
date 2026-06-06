@@ -54,11 +54,27 @@ export function NotificationPreferencesTab() {
 
   const mut = useMutation({
     mutationFn: async (patch: any) => {
-      const { error } = await supabase
+      const { data: existing } = await supabase
         .from("notification_preferences")
-        .update(patch)
-        .eq("user_id", user?.id || '');
-      if (error) throw error;
+        .select("user_id")
+        .eq("user_id", user?.id || '')
+        .maybeSingle();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("notification_preferences")
+          .update(patch)
+          .eq("user_id", user?.id || '');
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("notification_preferences")
+          .insert({
+            user_id: user?.id,
+            ...patch
+          });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notification-preferences"] });
