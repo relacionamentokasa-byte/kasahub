@@ -282,7 +282,59 @@ function FinanceiroPage() {
               <Button variant="outline" size="icon" onClick={() => shiftMonth(1)} aria-label="Próximo mês">
                 <ChevronRight className="size-4" />
               </Button>
-            </div>
+            {/* Bulk Actions Toolbar */}
+            {selectedIds.length > 0 && (
+              <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-2xl px-5 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-medium text-primary">{selectedIds.length} selecionados</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setSelectedIds([])}
+                    className="h-8 text-[11px] uppercase tracking-wider"
+                  >
+                    Desmarcar tudo
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size="sm" className="h-8 rounded-full gap-2">
+                        Ações em Massa <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuItem onClick={() => bulkUpdate.mutate({ ids: selectedIds, patch: { status: 'paid', paid_at: new Date().toISOString().slice(0,10) } })}>
+                        <CheckCircle2 className="size-4 mr-2 text-emerald-400" /> Dar baixa
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => bulkUpdate.mutate({ ids: selectedIds, patch: { status: 'pending', paid_at: null } })}>
+                        <Clock className="size-4 mr-2" /> Remover baixa
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => {
+                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
+                        if (firstRecurrenceId) setDeleteFutureRecurrenceId(firstRecurrenceId);
+                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                      }}>
+                        <Calendar className="size-4 mr-2" /> Excluir parcelas futuras
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => {
+                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
+                        if (firstRecurrenceId) setTerminateRecurrenceId(firstRecurrenceId);
+                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                      }}>
+                        <XCircle className="size-4 mr-2" /> Encerrar recorrência
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-rose-400" onClick={() => bulkDelete.mutate(selectedIds)}>
+                        <Trash2 className="size-4 mr-2" /> Excluir selecionadas
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            )}
+
 
             {/* KPI grid — apenas 4 indicadores */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
