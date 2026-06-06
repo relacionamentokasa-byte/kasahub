@@ -428,22 +428,46 @@ function FinanceiroPage() {
                           >
                             Dar baixa
                           </Button>
-                        ) : (
-                          <button
-                            onClick={() => togglePaid.mutate({ id: t.id, paid: false })}
-                            className="text-[10px] text-foreground/40 hover:text-foreground/70"
-                            title="Reverter baixa"
-                          >
-                            Reverter
-                          </button>
-                        )}
-                        <button
-                          onClick={() => delTx.mutate(t.id)}
-                          className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-rose-400"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
+                        ) : null}
+
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-full">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            {t.status === "paid" && (
+                              <DropdownMenuItem onClick={() => togglePaid.mutate({ id: t.id, paid: false })}>
+                                <Clock className="size-4 mr-2" /> Reverter baixa
+                              </DropdownMenuItem>
+                            )}
+                            
+                            {t.recurrence_id && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Recorrência</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => setDeleteFutureRecurrenceId(t.recurrence_id)}>
+                                  <Trash2 className="size-4 mr-2 text-rose-400" /> Excluir Parcelas Futuras
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setTerminateRecurrenceId(t.recurrence_id)}>
+                                  <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Recorrência
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: t.recurrence_id!, status: 'paused' })}>
+                                  <Pause className="size-4 mr-2" /> Pausar Recorrência
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-rose-400" onClick={() => delTx.mutate(t.id)}>
+                              <Trash2 className="size-4 mr-2" /> Excluir Lançamento
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
+
                     </div>
                   );
                 })
