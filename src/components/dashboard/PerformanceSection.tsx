@@ -35,7 +35,7 @@ export function PerformanceSection({ metrics }: PerformanceSectionProps) {
           return (
             <div key={i} className="bg-surface border border-border rounded-2xl p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-mono-kasa capitalize text-foreground/40">{m.label}</span>
+                <span className="text-[14px] font-semibold text-[#334155] capitalize">{m.label}</span>
                 <span className={`text-xs font-bold font-mono-kasa ${textColor}`}>{Math.round(pct)}%</span>
               </div>
               
