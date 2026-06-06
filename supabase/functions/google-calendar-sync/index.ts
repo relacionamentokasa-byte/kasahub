@@ -85,16 +85,21 @@ serve(async (req) => {
           ends_at: endsAt,
           google_event_id: gEvent.id,
           source: "google",
-          user_id: user.id,
+          created_by: user.id,
           kind: "meeting",
           all_day: !gEvent.start.dateTime
         };
 
         if (existing) {
-          await supabase.from('calendar_events').update(payload).eq('id', existing.id);
+          console.log(`Updating existing event: ${existing.id}`);
+          const { error: updateError } = await supabase.from('calendar_events').update(payload).eq('id', existing.id);
+          if (updateError) console.error("Update error:", updateError);
         } else {
-          await supabase.from('calendar_events').insert(payload);
+          console.log(`Inserting new event from Google: ${gEvent.id}`);
+          const { error: insertError } = await supabase.from('calendar_events').insert(payload);
+          if (insertError) console.error("Insert error:", insertError);
         }
+
       }
     }
 
