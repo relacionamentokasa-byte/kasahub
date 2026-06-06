@@ -37,6 +37,7 @@ import { BrandTab } from "@/components/config/BrandTab";
 import { SignatureTab } from "@/components/config/SignatureTab";
 import { IntegrationsTab } from "@/components/config/IntegrationsTab";
 import { PreferencesTab } from "@/components/config/PreferencesTab";
+import { PwaSettingsTab } from "@/components/config/PwaSettingsTab";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
