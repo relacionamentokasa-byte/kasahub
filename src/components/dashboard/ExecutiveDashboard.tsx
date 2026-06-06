@@ -70,6 +70,10 @@ export function ExecutiveDashboard() {
     queryKey: ["agency-goals", new Date().getFullYear()], 
     queryFn: () => fetchAgencyGoals(new Date().getFullYear()) 
   });
+  const { data: indicators = [] } = useQuery({
+    queryKey: ["agency-indicators"],
+    queryFn: fetchIndicators
+  });
   const { data: dmes = [] } = useQuery({
     queryKey: ["extra-demands"],
     queryFn: async () => {
