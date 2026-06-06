@@ -73,10 +73,11 @@ export function NewEventDialog({
               <Select value={form.kind} onValueChange={(v) => setForm({ ...form, kind: v as CalendarEvent["kind"] })}>
                 <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="post">Post</SelectItem>
                   <SelectItem value="meeting">Reunião</SelectItem>
-                  <SelectItem value="deadline">Prazo</SelectItem>
-                  <SelectItem value="task">Tarefa</SelectItem>
+                  <SelectItem value="task">Job</SelectItem>
+                  <SelectItem value="approval">Aprovação</SelectItem>
+                  <SelectItem value="dme">Demanda Extra</SelectItem>
+                  <SelectItem value="deadline">Financeiro/Prazo</SelectItem>
                   <SelectItem value="other">Outro</SelectItem>
                 </SelectContent>
               </Select>
