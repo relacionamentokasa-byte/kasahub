@@ -106,10 +106,14 @@ function EquipePage() {
                   <tr key={m.id} className="border-t border-border">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0">
-                          <span className="text-xs font-semibold text-primary">
-                            {(m.display_name ?? m.full_name ?? "?").slice(0, 2).toUpperCase()}
-                          </span>
+                        <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
+                          {m.avatar_url ? (
+                            <img src={m.avatar_url} alt={m.display_name ?? m.full_name ?? ""} className="size-full object-cover" />
+                          ) : (
+                            <span className="text-xs font-semibold text-primary">
+                              {(m.display_name ?? m.full_name ?? "?").slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
                         </div>
                         <div>
                           <p className="font-medium">{m.display_name ?? m.full_name ?? "—"}</p>
