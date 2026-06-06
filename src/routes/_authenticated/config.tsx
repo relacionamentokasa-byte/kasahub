@@ -201,22 +201,7 @@ function ConfigPage() {
         </TabsContent>
 
         <TabsContent value="notif" className="space-y-4">
-          <Card>
-            <ToggleRow
-              title="Notificações por e-mail"
-              description="Enviar alertas e resumos por e-mail."
-              checked={form.notify_email ?? true}
-              onChange={(v) => set("notify_email", v)}
-              disabled={!canEdit}
-            />
-            <ToggleRow
-              title="Notificações por WhatsApp"
-              description="Disparos automáticos via WhatsApp (exige integração)."
-              checked={form.notify_whatsapp ?? false}
-              onChange={(v) => set("notify_whatsapp", v)}
-              disabled={!canEdit}
-            />
-          </Card>
+          <NotificationPreferencesTab />
         </TabsContent>
 
         <TabsContent value="integr" className="space-y-4">
