@@ -276,6 +276,7 @@ function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
         )}
         {lead.phone && (
           <button
+            type="button"
             onClick={(e) => {
               e.stopPropagation();
               const phone = lead.phone?.replace(/\D/g, "");
