@@ -186,6 +186,7 @@ export function ProposalEditorContent({
         auto_create_jobs: p.auto_create_jobs ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
         scope: p.scope ?? [],
+        scope_text: p.scope_text ?? (Array.isArray(p.scope) && p.scope.length > 0 ? (p.scope as string[]).map((i: string) => `- ${i}`).join("\n") : ""),
         payment_method: p.payment_method ?? "boleto",
         monthly_investment: Number(proposal.monthly_investment || 0),
         one_time_investment: Number(proposal.one_time_investment || 0),
