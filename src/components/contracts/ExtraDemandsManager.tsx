@@ -37,6 +37,7 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
     deadline_days: 3,
     is_billable: true,
     contract_id: initialContractId || "",
+    origin: initialContractId ? "contract" : "contract", // Default to contract, but will show toggle
     status: "draft"
   });
 
@@ -73,6 +74,7 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
         deadline_days: 3, 
         is_billable: true, 
         contract_id: initialContractId || "",
+        origin: initialContractId ? "contract" : "contract",
         status: "draft"
       });
     },
@@ -163,12 +165,21 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-[11px] font-bold text-primary font-mono-kasa tracking-tighter">{dme.number_display}</span>
-                    {getStatusBadge(dme.status)}
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] uppercase font-bold text-foreground/30 tracking-widest px-1.5 py-0.5 rounded border border-border/40">
+                        {(dme as any).origin === 'independent' ? 'Independente' : 'Contratual'}
+                      </span>
+                      {getStatusBadge(dme.status)}
+                    </div>
                   </div>
                   <h5 className="font-display font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors">{dme.title}</h5>
-                  {contract && (
+                  {contract ? (
                     <div className="text-[10px] text-foreground/40 flex items-center gap-1.5 uppercase font-bold tracking-widest mb-3">
                       <FileText className="size-3 text-primary" /> {contract.title}
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-foreground/30 flex items-center gap-1.5 uppercase font-bold tracking-widest mb-3">
+                      <FileText className="size-3 text-foreground/20" /> Sem contrato
                     </div>
                   )}
                   
@@ -255,22 +266,44 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
           
           <div className="p-6 pt-2 space-y-5">
             <div className="space-y-2">
-              <Label className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Contrato Vinculado</Label>
+              <Label className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Origem da Demanda *</Label>
               <Select 
-                value={newDme.contract_id} 
-                onValueChange={(v) => setNewDme({ ...newDme, contract_id: v })}
-                disabled={!!initialContractId}
+                value={newDme.origin} 
+                onValueChange={(v: "contract" | "independent") => setNewDme({ 
+                  ...newDme, 
+                  origin: v,
+                  contract_id: v === "independent" ? "" : newDme.contract_id 
+                })}
               >
                 <SelectTrigger className="bg-background border-border/60 h-11 rounded-xl">
-                  <SelectValue placeholder="Selecione o contrato..." />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {contracts.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
-                  ))}
+                  <SelectItem value="contract">Vinculada ao Contrato</SelectItem>
+                  <SelectItem value="independent">Independente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+
+            {newDme.origin === "contract" && (
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Contrato *</Label>
+                <Select 
+                  value={newDme.contract_id} 
+                  onValueChange={(v) => setNewDme({ ...newDme, contract_id: v })}
+                  disabled={!!initialContractId}
+                >
+                  <SelectTrigger className="bg-background border-border/60 h-11 rounded-xl">
+                    <SelectValue placeholder="Selecione o contrato..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {contracts.map(c => (
+                      <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Título da Demanda</Label>
@@ -295,22 +328,36 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Valor (R$)</Label>
-                <Input 
-                  type="number" 
-                  value={newDme.value} 
-                  onChange={(e) => setNewDme({ ...newDme, value: Number(e.target.value) })}
-                  className="bg-background border-border/60 h-11 rounded-xl font-mono-kasa"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Prazo (Dias)</Label>
-                <Input 
-                  type="number" 
-                  value={newDme.deadline_days} 
-                  onChange={(e) => setNewDme({ ...newDme, deadline_days: Number(e.target.value) })}
-                  className="bg-background border-border/60 h-11 rounded-xl font-mono-kasa"
-                />
-              </div>
+                  <Input 
+                    type="number" 
+                    value={newDme.value} 
+                    onChange={(e) => setNewDme({ ...newDme, value: Number(e.target.value) })}
+                    className="bg-background border-border/60 h-11 rounded-xl font-mono-kasa"
+                  />
+                  {newDme.origin === "independent" && newDme.value >= 1000 && !(newDme as any).conversion_alert_dismissed && (
+                    <div className="mt-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-2">
+                      <p className="text-[10px] text-amber-200 leading-tight flex items-center gap-1.5 font-bold uppercase">
+                        <AlertCircle className="size-3" /> Demanda de Valor Elevado
+                      </p>
+                      <p className="text-[10px] text-foreground/60 leading-tight">
+                        Esta demanda possui valor elevado (R$ 1.000+). Deseja converter esta demanda em uma Proposta Comercial?
+                      </p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="h-7 text-[9px] font-bold uppercase px-2" onClick={() => toast.info("Funcionalidade de conversão será implementada em breve.")}>Converter em Proposta</Button>
+                        <Button variant="ghost" size="sm" className="h-7 text-[9px] font-bold uppercase px-2" onClick={() => setNewDme({ ...newDme, conversion_alert_dismissed: true } as any)}>Continuar como DME</Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Prazo (Dias)</Label>
+                  <Input 
+                    type="number" 
+                    value={newDme.deadline_days} 
+                    onChange={(e) => setNewDme({ ...newDme, deadline_days: Number(e.target.value) })}
+                    className="bg-background border-border/60 h-11 rounded-xl font-mono-kasa"
+                  />
+                </div>
             </div>
 
             <div className="space-y-2">
@@ -341,7 +388,7 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
             <Button 
               className="flex-1 h-11 rounded-xl font-bold uppercase tracking-widest text-xs gap-2 shadow-lg shadow-primary/10" 
               onClick={() => createMut.mutate(newDme)} 
-              disabled={!newDme.title || !newDme.contract_id || createMut.isPending}
+              disabled={!newDme.title || (newDme.origin === "contract" && !newDme.contract_id) || createMut.isPending}
             >
               {createMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
               Criar DME

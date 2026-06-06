@@ -545,13 +545,15 @@ export type Database = {
         Row: {
           approved_at: string | null
           client_id: string
-          contract_id: string
+          contract_id: string | null
+          conversion_alert_dismissed: boolean | null
           created_at: string
           deadline_days: number | null
           description: string | null
           id: string
           is_billable: boolean
           number_display: string
+          origin: string | null
           owner_id: string | null
           public_token: string | null
           responsible_id: string | null
@@ -563,13 +565,15 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           client_id: string
-          contract_id: string
+          contract_id?: string | null
+          conversion_alert_dismissed?: boolean | null
           created_at?: string
           deadline_days?: number | null
           description?: string | null
           id?: string
           is_billable?: boolean
           number_display?: string
+          origin?: string | null
           owner_id?: string | null
           public_token?: string | null
           responsible_id?: string | null
@@ -581,13 +585,15 @@ export type Database = {
         Update: {
           approved_at?: string | null
           client_id?: string
-          contract_id?: string
+          contract_id?: string | null
+          conversion_alert_dismissed?: boolean | null
           created_at?: string
           deadline_days?: number | null
           description?: string | null
           id?: string
           is_billable?: boolean
           number_display?: string
+          origin?: string | null
           owner_id?: string | null
           public_token?: string | null
           responsible_id?: string | null
