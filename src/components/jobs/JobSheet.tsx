@@ -65,6 +65,17 @@ export function JobSheet({
     enabled: !!job,
   });
 
+  const { data: history = [] } = useQuery({
+    queryKey: ["job-history", job?.id],
+    queryFn: () => fetchJobHistory(job!.id),
+    enabled: !!job,
+  });
+  const { data: attachments = [] } = useQuery({
+    queryKey: ["job-attachments", job?.id],
+    queryFn: () => fetchJobAttachments(job!.id),
+    enabled: !!job,
+  });
+
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => updateJob(job!.id, patch),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["jobs"] }),
