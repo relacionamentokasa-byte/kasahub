@@ -31,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/config")({
 });
 
 function ConfigPage() {
+  const { tab } = Route.useSearch() as { tab?: string };
   const qc = useQueryClient();
   const { can, isLoading: permissionsLoading } = usePermissions();
   const { data, isLoading } = useQuery({
@@ -92,7 +93,7 @@ function ConfigPage() {
         </div>
       )}
 
-      <Tabs defaultValue="agency" className="space-y-6">
+      <Tabs defaultValue={tab || "agency"} className="space-y-6">
         <TabsList>
           <TabsTrigger value="profile" className="gap-2"><User className="size-3.5" /> Meu Perfil</TabsTrigger>
           <TabsTrigger value="agency" className="gap-2"><Building2 className="size-3.5" /> Identidade</TabsTrigger>

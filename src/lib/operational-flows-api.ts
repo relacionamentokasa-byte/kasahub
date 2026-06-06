@@ -25,6 +25,7 @@ export interface OperationalFlowJob {
   default_assignee_role_id: string | null;
   sla_days: number;
   order: number;
+  custom_fields_schema: any | null;
 }
 
 export interface OperationalFlowChecklist {

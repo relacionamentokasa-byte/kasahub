@@ -29,6 +29,7 @@ import {
   deleteJob,
   priorityColor,
   priorityLabel,
+  JOB_STATUS_LABELS,
   type Job,
   type JobStage,
 } from "@/lib/ops-api";
@@ -300,7 +301,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
               </div>
             )}
             {(() => {
-              const respId = (job as any).responsible_id;
+              const respId = (job as any).responsible_id || job.assignee_id;
               if (!respId) return null;
               const profile = profiles.find(p => p.id === respId);
               if (!profile) return null;
@@ -320,6 +321,13 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                 </div>
               );
             })()}
+            {/* Status Indicator */}
+            <div 
+              className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider bg-muted/30 text-foreground/40"
+              style={ (job as any).status ? { backgroundColor: `${JOB_STATUS_LABELS[(job as any).status]?.color}15`, color: JOB_STATUS_LABELS[(job as any).status]?.color } : {} }
+            >
+              { (job as any).status ? JOB_STATUS_LABELS[(job as any).status]?.label : 'Pendentes' }
+            </div>
           </div>
         </div>
       </div>

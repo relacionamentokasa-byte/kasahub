@@ -151,6 +151,53 @@ export async function fetchProjectStats(projectId: string) {
 
 
 // ---------- Jobs ----------
+export const JOB_STATUS_LABELS: Record<string, { label: string, color: string }> = {
+  not_started: { label: 'Não Iniciado', color: '#64748B' },
+  in_progress: { label: 'Em Andamento', color: '#3B82F6' },
+  review: { label: 'Em Aprovação', color: '#F59E0B' },
+  adjustments: { label: 'Aguardando Ajustes', color: '#EF4444' },
+  done: { label: 'Concluído', color: '#10B981' },
+  cancelled: { label: 'Cancelado', color: '#94A3B8' },
+};
+
+export async function fetchJobHistory(jobId: string) {
+  const { data, error } = await supabase
+    .from("job_history")
+    .select("*")
+    .eq("job_id", jobId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function fetchJobAttachments(jobId: string) {
+  const { data, error } = await supabase
+    .from("job_attachments")
+    .select("*")
+    .eq("job_id", jobId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function addJobAttachment(input: {
+  job_id: string;
+  file_name: string;
+  file_url: string;
+  file_type?: string;
+  file_size?: number;
+  category?: string;
+}) {
+  const { data: u } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from("job_attachments")
+    .insert({ ...input, user_id: u.user?.id })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function fetchJobStages(): Promise<JobStage[]> {
   const { data, error } = await supabase
     .from("job_stages")

@@ -240,17 +240,26 @@ export async function approveProposal(
               ? new Date(Date.now() + flowJob.sla_days * 86400000).toISOString().slice(0, 10)
               : null;
 
+            const customFields: Record<string, any> = {};
+            if (flowJob.custom_fields_schema && Array.isArray(flowJob.custom_fields_schema)) {
+              flowJob.custom_fields_schema.forEach((field: any) => {
+                customFields[field.name] = "";
+              });
+            }
+
             const { data: job, error: jobErr } = await sb
               .from("jobs")
               .insert({
                 project_id: projectId,
                 client_id: clientId,
                 title: flowJob.name,
-                stage_id: firstStageId, // Use first stage for all flow jobs for now, or match stage names
+                stage_id: firstStageId,
+                status: 'not_started',
                 order_index: flowJob.order,
                 due_date: jobDueDate,
                 labels: ["operational_flow"],
-                assignee_id: proposal.responsible_id ?? null, // Fallback to proposal responsible
+                assignee_id: flowJob.default_assignee_role_id || proposal.responsible_id || null,
+                custom_fields: customFields,
               })
               .select()
               .single();

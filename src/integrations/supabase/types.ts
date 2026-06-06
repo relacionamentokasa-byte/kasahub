@@ -649,6 +649,50 @@ export type Database = {
         }
         Relationships: []
       }
+      job_attachments: {
+        Row: {
+          category: string | null
+          created_at: string
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          file_url: string
+          id: string
+          job_id: string
+          user_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url: string
+          id?: string
+          job_id: string
+          user_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          file_url?: string
+          id?: string
+          job_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_attachments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_checklist: {
         Row: {
           content: string
@@ -719,6 +763,47 @@ export type Database = {
           },
         ]
       }
+      job_history: {
+        Row: {
+          action: string
+          created_at: string
+          from_value: string | null
+          id: string
+          job_id: string
+          metadata: Json | null
+          to_value: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          from_value?: string | null
+          id?: string
+          job_id: string
+          metadata?: Json | null
+          to_value?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          from_value?: string | null
+          id?: string
+          job_id?: string
+          metadata?: Json | null
+          to_value?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_history_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_stages: {
         Row: {
           color: string
@@ -751,56 +836,86 @@ export type Database = {
       }
       jobs: {
         Row: {
+          approval_token: string | null
           assignee_id: string | null
+          briefing_guidelines: string | null
+          briefing_links: string[] | null
+          briefing_notes: string | null
+          briefing_objective: string | null
+          briefing_references: string | null
           client_id: string | null
           created_at: string
+          custom_fields: Json | null
           description: string | null
           dme_id: string | null
           done_at: string | null
           due_date: string | null
+          feedback_at: string | null
           id: string
           labels: Json
+          last_feedback: string | null
           order_index: number
           period: string | null
           priority: string
           project_id: string | null
           stage_id: string | null
+          status: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          approval_token?: string | null
           assignee_id?: string | null
+          briefing_guidelines?: string | null
+          briefing_links?: string[] | null
+          briefing_notes?: string | null
+          briefing_objective?: string | null
+          briefing_references?: string | null
           client_id?: string | null
           created_at?: string
+          custom_fields?: Json | null
           description?: string | null
           dme_id?: string | null
           done_at?: string | null
           due_date?: string | null
+          feedback_at?: string | null
           id?: string
           labels?: Json
+          last_feedback?: string | null
           order_index?: number
           period?: string | null
           priority?: string
           project_id?: string | null
           stage_id?: string | null
+          status?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          approval_token?: string | null
           assignee_id?: string | null
+          briefing_guidelines?: string | null
+          briefing_links?: string[] | null
+          briefing_notes?: string | null
+          briefing_objective?: string | null
+          briefing_references?: string | null
           client_id?: string | null
           created_at?: string
+          custom_fields?: Json | null
           description?: string | null
           dme_id?: string | null
           done_at?: string | null
           due_date?: string | null
+          feedback_at?: string | null
           id?: string
           labels?: Json
+          last_feedback?: string | null
           order_index?: number
           period?: string | null
           priority?: string
           project_id?: string | null
           stage_id?: string | null
+          status?: string | null
           title?: string
           updated_at?: string
         }
@@ -1039,6 +1154,7 @@ export type Database = {
       operational_flow_jobs: {
         Row: {
           created_at: string
+          custom_fields_schema: Json | null
           default_assignee_role_id: string | null
           id: string
           job_type: string | null
@@ -1050,6 +1166,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_role_id?: string | null
           id?: string
           job_type?: string | null
@@ -1061,6 +1178,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_role_id?: string | null
           id?: string
           job_type?: string | null
