@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createCalendarEvent, type CalendarEvent } from "@/lib/approvals-api";
 import { fetchClients, fetchProjects } from "@/lib/ops-api";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
