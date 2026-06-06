@@ -7,24 +7,34 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log(`Sync function triggered: ${req.method}`);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    console.log("Initializing Supabase client...");
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
+
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('No authorization header')
     
+    console.log("Getting user from token...");
     const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-    if (userError || !user) throw new Error('Invalid token')
+    if (userError || !user) {
+      console.error("User error:", userError);
+      throw new Error('Invalid token');
+    }
+    console.log(`User authenticated: ${user.id}`);
 
     const body = await req.json()
+    console.log("Request body:", JSON.stringify(body));
     const { action, eventData, googleEventId } = body
+
 
     const googleApiKey = Deno.env.get('GOOGLE_CALENDAR_API_KEY');
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -39,12 +49,19 @@ serve(async (req) => {
 
     // 1. PULL: Google -> KASA
     if (action === "sync-all" || action === "pull") {
+      console.log("Action: Pulling from Google...");
+
       const response = await fetch("https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events", {
         headers: gatewayHeaders,
       });
 
 
-      if (!response.ok) throw new Error(`Erro Google: ${await response.text()}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Google API Error: ${errorText}`);
+        throw new Error(`Erro Google: ${errorText}`);
+      }
+
 
       const googleData = await response.json();
       const googleEvents = googleData.items || [];
@@ -122,6 +139,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
+    console.error("Function error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 })
