@@ -12,6 +12,7 @@ import {
   Wallet,
   BarChart3,
   Settings,
+  Handshake,
   CalendarRange,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -47,6 +48,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
       { title: "Clientes", url: "/clientes", icon: Users, module: "clientes" },
       { title: "Projetos", url: "/projetos", icon: FolderKanban, module: "projetos" },
       { title: "Tarefas", url: "/jobs", icon: CheckSquare, module: "jobs" },
+      { title: "Parceiros", url: "/parceiros", icon: Handshake, module: "parceiros" },
       { title: "Agenda", url: "/calendario", icon: CalendarRange, module: "dashboard" },
     ],
   },

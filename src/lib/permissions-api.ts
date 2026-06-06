@@ -10,6 +10,7 @@ export const MODULES = [
   { id: "financeiro", label: "Financeiro" },
   { id: "relatorios", label: "Relatórios" },
   { id: "config", label: "Configurações" },
+  { id: "parceiros", label: "Parceiros" },
 ] as const;
 
 export const ACTIONS = [
