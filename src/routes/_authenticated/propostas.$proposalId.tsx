@@ -141,6 +141,7 @@ export function ProposalEditorContent({
     auto_create_jobs: true,
     recurring_months: 12,
     scope: [] as string[],
+    scope_text: "",
     payment_method: "boleto",
     monthly_investment: 0,
     one_time_investment: 0,
