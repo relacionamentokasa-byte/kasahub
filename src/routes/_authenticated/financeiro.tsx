@@ -147,8 +147,9 @@ function FinanceiroPage() {
   const [openImport, setOpenImport] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [deleteFutureRecurrenceId, setDeleteFutureRecurrenceId] = useState<string | null>(null);
-  const [terminateRecurrenceId, setTerminateRecurrenceId] = useState<string | null>(null);
+  const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
+  const [terminateContractId, setTerminateContractId] = useState<string | null>(null);
+
 
 
   function shiftMonth(delta: number) {
@@ -198,9 +199,15 @@ function FinanceiroPage() {
     onError: (e: Error) => toast.error(e.message),
   });
   const delTx = useMutation({
-    mutationFn: (id: string) => deleteTransaction(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
+    mutationFn: ({ id, cascade }: { id: string; cascade?: boolean }) => deleteTransaction(id, cascade),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setDeleteTxId(null);
+      toast.success("Lançamento removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
+
   const delAcc = useMutation({
     mutationFn: (id: string) => deleteBankAccount(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bank_accounts"] }),
