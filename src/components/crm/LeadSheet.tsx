@@ -327,11 +327,11 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
               value={note}
               onChange={(e) => setNote(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && note.trim()) noteMut.mutate();
+                if (e.key === "Enter" && note.trim()) noteMut.mutate({});
               }}
             />
             <Button
-              onClick={() => note.trim() && noteMut.mutate()}
+              onClick={() => note.trim() && noteMut.mutate({})}
               disabled={!note.trim() || noteMut.isPending}
               size="sm"
             >
