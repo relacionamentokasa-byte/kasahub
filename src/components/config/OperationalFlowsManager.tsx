@@ -385,6 +385,10 @@ function JobRow({ job, roles, canEdit, onChanged, onEditSchema }: { job: any, ro
         </div>
 
         <div className="flex items-center gap-6">
+          <Button size="icon" variant="ghost" className="size-8" title="Configurar Campos Personalizados" onClick={() => onEditSchema(job)}>
+            <Settings2 className="size-3.5" />
+          </Button>
+
           <div className="flex items-center gap-2 text-foreground/50">
             <Clock className="size-3.5" />
             <input 
