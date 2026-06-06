@@ -321,7 +321,7 @@ function ClientesPage() {
                             <span className="text-foreground/60 text-xs truncate max-w-[120px]">{responsibleName}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-foreground/60 text-xs">{responsibleName}</td>
+                        
                         <td className="px-4 py-3 text-foreground/60 text-xs">{contractLabel}</td>
                         <td className="px-4 py-3 text-right text-xs font-mono-kasa font-bold">
                           {monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}
