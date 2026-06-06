@@ -1,7 +1,7 @@
 import { Bell, LogOut, Moon, Search, Sparkles, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -58,7 +58,7 @@ export function AppTopbar() {
   const name = profile?.display_name || profile?.full_name || profile?.email?.split("@")[0] || "Usuário";
   const initials = name
     .split(" ")
-    .map((p) => p[0])
+    .map((p: string) => p[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
