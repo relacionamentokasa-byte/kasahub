@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateAgencySettings, type AgencySettings } from "@/lib/settings-api";
 import { Button } from "@/components/ui/button";
@@ -6,9 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { Bell, Download, Loader2, Save, Smartphone } from "lucide-react";
+import { Bell, BellOff, Download, Loader2, Save, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { APP_VERSION } from "@/lib/version";
+import {
+  getCurrentPushSubscription,
+  isPushSupported,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from "@/lib/push-client";
+import { sendTestPush } from "@/lib/push.functions";
 
 export function PwaSettingsTab({
   form,
@@ -37,34 +44,66 @@ export function PwaSettingsTab({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const supported = typeof window !== "undefined" && isPushSupported();
+
+  useEffect(() => {
+    if (!supported) return;
+    getCurrentPushSubscription().then((s) => setPushEnabled(Boolean(s))).catch(() => {});
+  }, [supported]);
+
+  async function enablePush() {
+    setPushBusy(true);
+    try {
+      await subscribeToPush();
+      setPushEnabled(true);
+      toast.success("Notificações push ativadas neste dispositivo");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao ativar push");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
+  async function disablePush() {
+    setPushBusy(true);
+    try {
+      await unsubscribeFromPush();
+      setPushEnabled(false);
+      toast.success("Notificações push desativadas");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao desativar push");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
   async function sendTestNotification() {
-    if (!("Notification" in window)) {
-      toast.error("Notificações não suportadas neste navegador");
-      return;
-    }
-    let perm = Notification.permission;
-    if (perm === "default") perm = await Notification.requestPermission();
-    if (perm !== "granted") {
-      toast.error("Permissão de notificações negada");
-      return;
-    }
-    if ("serviceWorker" in navigator) {
-      const reg = await navigator.serviceWorker.getRegistration();
-      if (reg) {
-        reg.showNotification(form.pwa_name || "KASA HUB", {
-          body: "🔔 Notificação de teste enviada com sucesso.",
-          icon: form.pwa_icon_512_url || "/icon-512.png",
-          badge: form.pwa_icon_192_url || "/icon-512.png",
-        });
-        toast.success("Notificação de teste enviada");
+    try {
+      if (pushEnabled) {
+        const res = await sendTestPush({});
+        toast.success(`Push enviado para ${res.sent} dispositivo(s)`);
         return;
       }
+      if (!("Notification" in window)) {
+        toast.error("Notificações não suportadas neste navegador");
+        return;
+      }
+      let perm = Notification.permission;
+      if (perm === "default") perm = await Notification.requestPermission();
+      if (perm !== "granted") {
+        toast.error("Permissão de notificações negada");
+        return;
+      }
+      new Notification(form.pwa_name || "KASA HUB", {
+        body: "🔔 Notificação de teste local (ative o Push para envio remoto).",
+        icon: form.pwa_icon_512_url || "/icon-512.png",
+      });
+      toast.success("Notificação local enviada");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Falha ao enviar");
     }
-    new Notification(form.pwa_name || "KASA HUB", {
-      body: "🔔 Notificação de teste enviada com sucesso.",
-      icon: form.pwa_icon_512_url || "/icon-512.png",
-    });
-    toast.success("Notificação de teste enviada");
   }
 
   return (
@@ -170,13 +209,34 @@ export function PwaSettingsTab({
             <Bell className="size-4 text-primary" /> Notificações
           </h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Teste as notificações em desktop, Android e iPhone. Para preferências detalhadas,
-            acesse <strong>Configurações → Notificações</strong>.
+            Ative as notificações push (VAPID) neste dispositivo para receber avisos mesmo
+            com o app fechado. O push real só funciona na versão publicada.
           </p>
         </header>
-        <Button variant="outline" onClick={sendTestNotification}>
-          <Bell className="size-4" /> Enviar Notificação de Teste
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {pushEnabled ? (
+            <Button variant="outline" onClick={disablePush} disabled={pushBusy || !supported}>
+              {pushBusy ? <Loader2 className="size-4 animate-spin" /> : <BellOff className="size-4" />}
+              Desativar Push
+            </Button>
+          ) : (
+            <Button onClick={enablePush} disabled={pushBusy || !supported}>
+              {pushBusy ? <Loader2 className="size-4 animate-spin" /> : <Bell className="size-4" />}
+              Ativar Notificações Push
+            </Button>
+          )}
+          <Button variant="outline" onClick={sendTestNotification}>
+            <Bell className="size-4" /> Enviar Notificação de Teste
+          </Button>
+        </div>
+        {!supported && (
+          <p className="text-[11px] text-muted-foreground">
+            Este navegador não suporta Web Push. Use Chrome, Edge, Firefox ou Safari recente.
+          </p>
+        )}
+        <p className="text-[11px] text-muted-foreground">
+          Status: {pushEnabled ? "🟢 Inscrito neste dispositivo" : "⚪ Não inscrito"}
+        </p>
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-6 space-y-3">
