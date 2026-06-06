@@ -27,17 +27,22 @@ serve(async (req) => {
     const { action, eventData, googleEventId } = body
 
     const googleApiKey = Deno.env.get('GOOGLE_CALENDAR_API_KEY');
-    const isConfigured = !!googleApiKey;
-
-    if (!isConfigured) {
-      throw new Error("GOOGLE_CALENDAR_API_KEY não configurada.");
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!googleApiKey || !lovableApiKey) {
+      throw new Error("Conexão Google Calendar não configurada (faltando GOOGLE_CALENDAR_API_KEY ou LOVABLE_API_KEY).");
     }
+
+    const gatewayHeaders = {
+      "Authorization": `Bearer ${lovableApiKey}`,
+      "X-Connection-Api-Key": googleApiKey,
+    };
 
     // 1. PULL: Google -> KASA
     if (action === "sync-all" || action === "pull") {
       const response = await fetch("https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events", {
-        headers: { "Authorization": `Bearer ${googleApiKey}` }
+        headers: gatewayHeaders,
       });
+
 
       if (!response.ok) throw new Error(`Erro Google: ${await response.text()}`);
 
