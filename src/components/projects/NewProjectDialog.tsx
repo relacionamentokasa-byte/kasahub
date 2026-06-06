@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { createProject, fetchClients } from "@/lib/ops-api";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProposals } from "@/lib/crm-api";
@@ -53,8 +54,11 @@ export function NewProjectDialog({
     contract_id: "",
     proposal_id: "",
     briefing: "",
+    start_date: "",
     due_date: "",
+    responsible_id: "",
     cover_url: "" as string | null,
+    type: "special" as const,
   });
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
@@ -78,6 +82,14 @@ export function NewProjectDialog({
       ["accepted", "sent", "viewed"].includes(p.status),
   );
 
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name");
+      return data || [];
+    }
+  });
+
   const mut = useMutation({
     mutationFn: async () => {
       const project = await createProject({
@@ -86,8 +98,11 @@ export function NewProjectDialog({
         contract_id: form.contract_id || null,
         proposal_id: form.proposal_id || null,
         briefing: form.briefing || null,
+        start_date: form.start_date || null,
         due_date: form.due_date || null,
         cover_url: form.cover_url || null,
+        responsible_id: form.responsible_id || null,
+        type: form.type,
       } as Parameters<typeof createProject>[0]);
       if (form.client_id && selectedServiceIds.length) {
         const r = await generateJobsForProject(project.id, form.client_id, selectedServiceIds);
@@ -100,7 +115,7 @@ export function NewProjectDialog({
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Projeto criado");
       onOpenChange(false);
-      setForm({ name: "", client_id: defaultClientId ?? "", contract_id: "", proposal_id: "", briefing: "", due_date: "", cover_url: "" });
+      setForm({ name: "", client_id: defaultClientId ?? "", contract_id: "", proposal_id: "", briefing: "", start_date: "", due_date: "", responsible_id: "", cover_url: "", type: "special" });
       setSelectedServiceIds([]);
       onCreated?.(p.id);
     },
@@ -119,7 +134,7 @@ export function NewProjectDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-surface border-border max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">Novo projeto</DialogTitle>
+          <DialogTitle className="font-display text-xl">Novo Projeto Especial</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5">
@@ -182,13 +197,13 @@ export function NewProjectDialog({
 
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1.5">
-              <Label>Contrato <span className="text-destructive">*</span></Label>
+              <Label>Contrato (opcional)</Label>
               <Select
                 value={form.contract_id || undefined}
                 onValueChange={(v) => setForm({ ...form, contract_id: v })}
                 disabled={!form.client_id}
               >
-                <SelectTrigger><SelectValue placeholder="Selecione o contrato de origem" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Vincular a um contrato (opcional)" /></SelectTrigger>
                 <SelectContent>
                   {clientContracts.map((c) => (
                     <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
@@ -199,8 +214,29 @@ export function NewProjectDialog({
           </div>
 
 
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Responsável</Label>
+              <Select
+                value={form.responsible_id || undefined}
+                onValueChange={(v) => setForm({ ...form, responsible_id: v })}
+              >
+                <SelectTrigger><SelectValue placeholder="Responsável" /></SelectTrigger>
+                <SelectContent>
+                  {users.map((u: any) => (
+                    <SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Data de Início</Label>
+              <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+            </div>
+          </div>
+
           <div className="space-y-1.5">
-            <Label>Prazo final</Label>
+            <Label>Prazo (Entrega Final)</Label>
             <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
           </div>
           <div className="space-y-1.5">
@@ -212,7 +248,7 @@ export function NewProjectDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.name || !form.client_id || !form.contract_id}
+            disabled={mut.isPending || !form.name || !form.client_id}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
 

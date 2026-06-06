@@ -220,13 +220,11 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
         </TabsContent>
 
         <TabsContent value="overview" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card label="Projetos" value={projects.length} />
             <Card label="Contratos Ativos" value={contracts.filter((c: any) => c.status === "active").length} />
-            <Card label="Propostas" value={proposals.length} />
+            <Card label="Jobs Pendentes" value={allJobs.filter(j => !j.done_at).length} />
             <Card label="Receita Extra (R$)" value={summary.extraTotal > 0 ? BRL(summary.extraTotal) : "—"} />
-            <Card label="Pendente (R$)" value={summary.pendingTotal !== 0 ? BRL(Math.abs(summary.pendingTotal)) : "—"} />
-
           </div>
           {client.notes && (
             <div className="mt-6 bg-surface border border-border rounded-2xl p-5">
@@ -260,7 +258,9 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <span className="size-1.5 rounded-full" style={{ background: p.color || '#FFBC45' }} />
-                        <span className="text-[9px] uppercase font-bold text-foreground/40 tracking-wider">{p.status}</span>
+                        <span className="text-[9px] uppercase font-bold text-foreground/40 tracking-wider">
+                          {p.status} · {p.type === 'special' ? 'Especial' : 'Automático'}
+                        </span>
                       </div>
                       <div className="font-display font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors">{p.name}</div>
                       {contract && (

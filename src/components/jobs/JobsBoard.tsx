@@ -1,5 +1,14 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { ptBR } from "date-fns/locale";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   DndContext,
   DragOverlay,
@@ -34,17 +43,31 @@ export function JobsBoard({
   clientId,
   title = "Tarefas",
   eyebrow = "Operação · Tarefas",
+  showPeriodFilter = false,
 }: {
   projectId?: string;
   clientId?: string;
   title?: string;
   eyebrow?: string;
+  showPeriodFilter?: boolean;
 }) {
   const qc = useQueryClient();
   const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
-  const filters = { projectId, clientId };
+  const [period, setPeriod] = useState<string>("all");
+  const filters = { projectId, clientId, period };
   const queryKey = ["jobs", filters];
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
+
+  const { data: availablePeriods = [] } = useQuery({
+    queryKey: ["available-periods", projectId],
+    queryFn: async () => {
+      if (!projectId) return [];
+      const { data } = await supabase.from("jobs").select("period").eq("project_id", projectId).not("period", "is", null);
+      const unique = Array.from(new Set(data?.map(d => d.period))).filter(Boolean).sort().reverse();
+      return unique as string[];
+    },
+    enabled: !!projectId && showPeriodFilter
+  });
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [open, setOpen] = useState<Job | null>(null);
@@ -109,7 +132,23 @@ export function JobsBoard({
             {title}
           </h1>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          {showPeriodFilter && (
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="w-40 h-10 bg-surface border-border">
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os Períodos</SelectItem>
+                {availablePeriods.map(p => {
+                  const [year, month] = p.split('-');
+                  const date = new Date(parseInt(year), parseInt(month) - 1);
+                  const label = format(date, "MMMM yyyy", { locale: ptBR });
+                  return <SelectItem key={p} value={p}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
+                })}
+              </SelectContent>
+            </Select>
+          )}
           <div className="relative">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
@@ -152,6 +191,7 @@ export function JobsBoard({
         onOpenChange={(o) => !o && setNewStage(null)}
         defaultProjectId={projectId}
         defaultClientId={clientId}
+        defaultPeriod={period !== 'all' ? period : undefined}
       />
       <JobSheet job={open} stages={stages} onClose={() => setOpen(null)} />
     </div>

@@ -2,6 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Pencil, FileSignature, CheckCircle2, Clock, AlertCircle, LayoutDashboard, Kanban, FileText, History, DollarSign, Folder } from "lucide-react";
+import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProject, fetchClient, fetchJobs, fetchJobStages, fetchProjectStats } from "@/lib/ops-api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -121,7 +122,7 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
           <StatMini label="Concluídos" value={stats?.done ?? 0} icon={<CheckCircle2 className="size-3" />} color="text-emerald-400" />
           <StatMini label="Pendentes" value={stats?.pending ?? 0} icon={<Clock className="size-3" />} color="text-amber-400" />
           <StatMini label="Atrasados" value={stats?.overdue ?? 0} icon={<AlertCircle className="size-3" />} color="text-rose-400" />
-          <StatMini label="DMEs" value={stats?.dmeCount ?? 0} icon={<DollarSign className="size-3" />} />
+          <StatMini label="Demandas Extras" value={stats?.dmeCount ?? 0} icon={<DollarSign className="size-3" />} />
           <div className="bg-foreground/[0.03] border border-border/50 rounded-xl p-3 flex flex-col justify-between min-h-[70px]">
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Progresso</span>
@@ -159,7 +160,7 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
         </div>
 
         <TabsContent value="board" className="flex-1 mt-0 min-h-0">
-          <JobsBoard projectId={projectId} title="Kanban de Jobs" eyebrow="Operação · Jobs" />
+          <JobsBoard projectId={projectId} title="Kanban de Jobs" eyebrow="Operação · Jobs" showPeriodFilter={project.type === 'automatic' || (contract as any)?.type === 'recurring'} />
         </TabsContent>
         <TabsContent value="dme" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto">
           <ExtraDemandsManager clientId={project.client_id!} contractId={project.contract_id!} />
@@ -195,7 +196,7 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
         </TabsContent>
       </Tabs>
 
-      <EditProjectDialog project={project} open={editOpen} onOpenChange={setEditOpen} />
+      <EditProjectDialog project={project as any} open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { updateProject, deleteProject, fetchClients } from "@/lib/ops-api";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProposals } from "@/lib/crm-api";
@@ -29,6 +30,8 @@ type Project = {
   status: string;
   cover_url: string | null;
   color: string | null;
+  type: string | null;
+  responsible_id: string | null;
 };
 
 export function EditProjectDialog({
@@ -56,6 +59,8 @@ export function EditProjectDialog({
     status: project.status ?? "active",
     cover_url: (project.cover_url ?? "") as string | null,
     color: project.color ?? "#FFBC45",
+    type: project.type ?? "automatic",
+    responsible_id: project.responsible_id ?? "",
   });
 
   useEffect(() => {
@@ -70,6 +75,8 @@ export function EditProjectDialog({
         status: project.status ?? "active",
         cover_url: project.cover_url ?? "",
         color: project.color ?? "#FFBC45",
+        type: project.type ?? "automatic",
+        responsible_id: project.responsible_id ?? "",
       });
     }
   }, [open, project]);
@@ -78,6 +85,14 @@ export function EditProjectDialog({
   const clientProposals = proposals.filter(
     (p) => !form.client_id || (p as { client_id?: string | null }).client_id === form.client_id,
   );
+
+  const { data: users = [] } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("id, full_name");
+      return data || [];
+    }
+  });
 
   const mut = useMutation({
     mutationFn: () =>
@@ -91,6 +106,8 @@ export function EditProjectDialog({
         status: form.status,
         cover_url: form.cover_url || null,
         color: form.color,
+        type: form.type,
+        responsible_id: form.responsible_id || null,
       } as Parameters<typeof updateProject>[1]),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["project", project.id] });
@@ -149,7 +166,7 @@ export function EditProjectDialog({
           </div>
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1.5">
-              <Label>Contrato <span className="text-destructive">*</span></Label>
+              <Label>Contrato {form.type === 'automatic' && <span className="text-destructive">*</span>}</Label>
               <Select
                 value={form.contract_id || undefined}
                 onValueChange={(v) => setForm({ ...form, contract_id: v })}
@@ -185,6 +202,29 @@ export function EditProjectDialog({
               <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
             </div>
           </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>Tipo</Label>
+              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="automatic">Automático</SelectItem>
+                  <SelectItem value="special">Especial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label>Responsável</Label>
+              <Select value={form.responsible_id || undefined} onValueChange={(v) => setForm({ ...form, responsible_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectContent>
+                  {users.map((u: any) => (
+                    <SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="space-y-1.5">
             <Label>Cor</Label>
             <div className="flex gap-2">
@@ -212,7 +252,7 @@ export function EditProjectDialog({
             <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button
               onClick={() => mut.mutate()}
-              disabled={mut.isPending || !form.name || !form.client_id || !form.contract_id}
+              disabled={mut.isPending || !form.name || !form.client_id || (form.type === 'automatic' && !form.contract_id)}
               className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
 

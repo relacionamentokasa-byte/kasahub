@@ -51,9 +51,15 @@ export async function deleteClient(id: string) {
 }
 
 // ---------- Projects ----------
-export async function fetchProjects(filters: { clientId?: string } = {}): Promise<Project[]> {
+export async function fetchProjects(filters: { clientId?: string; status?: string; type?: string; contractId?: string; search?: string } = {}): Promise<Project[]> {
   let q = supabase.from("projects").select("*").order("created_at", { ascending: false });
-  if (filters.clientId) q = q.eq("client_id", filters.clientId);
+  if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
+  if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
+  if (filters.type && filters.type !== "all") q = q.eq("type", filters.type);
+  if (filters.contractId) q = q.eq("contract_id", filters.contractId);
+  if (filters.search) {
+    q = q.or(`name.ilike.%${filters.search}%`);
+  }
   const { data, error } = await q;
   if (error) throw error;
   return data ?? [];
@@ -151,7 +157,7 @@ export async function fetchJobStages(): Promise<JobStage[]> {
   return data ?? [];
 }
 
-export async function fetchJobs(filters: { projectId?: string; clientId?: string } = {}): Promise<Job[]> {
+export async function fetchJobs(filters: { projectId?: string; clientId?: string; period?: string } = {}): Promise<Job[]> {
   let q = supabase
     .from("jobs")
     .select("*")
@@ -159,12 +165,13 @@ export async function fetchJobs(filters: { projectId?: string; clientId?: string
     .order("created_at", { ascending: false });
   if (filters.projectId) q = q.eq("project_id", filters.projectId);
   if (filters.clientId) q = q.eq("client_id", filters.clientId);
+  if (filters.period && filters.period !== "all") q = q.eq("period", filters.period);
   const { data, error } = await q;
   if (error) throw error;
   return data ?? [];
 }
 
-export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"]) {
+export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"] & { period?: string | null }) {
   const { data, error } = await supabase.from("jobs").insert(input).select().single();
   if (error) throw error;
   return data;
