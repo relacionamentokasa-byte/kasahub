@@ -135,6 +135,10 @@ function ConfigPage() {
           <ContractTemplatesManager canEdit={canEdit} />
         </TabsContent>
 
+        <TabsContent value="indicators" className="space-y-4">
+          <IndicatorsManager />
+        </TabsContent>
+
         <TabsContent value="agency" className="space-y-4">
           <Card>
             <Grid>
