@@ -348,9 +348,19 @@ function FinanceiroPage() {
               <div className="px-5 py-3 border-b border-border font-display font-semibold">
                 Lançamentos de {monthLabelShort}
               </div>
-              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border">
-                <div className="col-span-1">Status</div>
+              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center">
+                <div className="col-span-1 flex items-center gap-3">
+                  <Checkbox 
+                    checked={rows.length > 0 && selectedIds.length === rows.length}
+                    onCheckedChange={(checked) => {
+                      if (checked) setSelectedIds(rows.map(r => r.id));
+                      else setSelectedIds([]);
+                    }}
+                  />
+                  <span>Status</span>
+                </div>
                 <div className="col-span-3">Descrição</div>
+
                 <div className="col-span-2">Categoria</div>
                 <div className="col-span-2">Cliente</div>
                 <div className="col-span-1 text-right">Valor</div>
