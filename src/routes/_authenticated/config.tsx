@@ -124,7 +124,8 @@ function ConfigPage() {
     { id: "email", label: "E-mail", icon: Mail, group: "Integrações", component: <IntegrationsTab form={form} /> },
     
     { id: "licensing", label: "Licenciamento", icon: CreditCard, component: <div className="p-12 text-center text-foreground/40 border-2 border-dashed rounded-xl">Módulo de licenciamento em breve.</div> },
-    { id: "prefs", label: "Preferências do Sistema", icon: UserCog, component: <PreferencesTab /> },
+    { id: "pwa", label: "Aplicativo (PWA)", icon: Smartphone, group: "Sistema", component: <PwaSettingsTab form={form} set={set} canEdit={canEdit} /> },
+    { id: "prefs", label: "Preferências do Sistema", icon: UserCog, group: "Sistema", component: <PreferencesTab /> },
   ];
 
   const currentSection = sections.find(s => s.id === activeTab) || sections[0];
