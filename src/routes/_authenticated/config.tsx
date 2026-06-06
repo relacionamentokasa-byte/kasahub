@@ -21,6 +21,7 @@ import {
 } from "@/lib/settings-api";
 import { fetchMyProfile, updateMyProfile } from "@/lib/profile-api";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/config")({
