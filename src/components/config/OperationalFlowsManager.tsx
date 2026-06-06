@@ -91,67 +91,70 @@ export function OperationalFlowsManager({ canEdit }: Props) {
 
   if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>;
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-      {/* Sidebar - Lista de Fluxos */}
-      <div className="lg:col-span-1 space-y-4">
+  if (selectedFlow && viewMode === 'builder') {
+    return (
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">Fluxos</h3>
-          <Button size="icon" variant="ghost" onClick={() => setIsCreating(true)} disabled={!canEdit}>
-            <Plus className="size-4" />
+          <Button variant="ghost" size="sm" onClick={() => setViewMode('cards')}>
+            <ChevronRight className="size-4 rotate-180 mr-2" /> Voltar para lista
           </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={() => duplicateMut.mutate(selectedFlow)}>
+              <Copy className="size-4 mr-2" /> Duplicar Fluxo
+            </Button>
+            <Button size="sm" variant="destructive" onClick={() => {
+              if (confirm("Excluir fluxo?")) delMut.mutate(selectedFlow);
+            }}>
+              <Trash2 className="size-4 mr-2" /> Excluir
+            </Button>
+          </div>
         </div>
-        <div className="space-y-1">
-          {flows.map(flow => (
-            <button
-              key={flow.id}
-              onClick={() => setSelectedFlow(flow.id)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center justify-between group ${
-                selectedFlow === flow.id ? "bg-primary/10 text-primary font-medium" : "hover:bg-muted text-foreground/70"
-              }`}
-            >
-              <span className="truncate">{flow.name}</span>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost" className="size-6 opacity-0 group-hover:opacity-100">
-                    <MoreHorizontal className="size-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => duplicateMut.mutate(flow.id)}>
-                    <Copy className="size-3.5 mr-2" /> Duplicar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className="text-destructive"
-                    onClick={() => {
-                      if (confirm(`Excluir o fluxo "${flow.name}"?`)) delMut.mutate(flow.id);
-                    }}
-                  >
-                    <Trash2 className="size-3.5 mr-2" /> Excluir
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </button>
-          ))}
-          {flows.length === 0 && (
-            <p className="text-xs text-foreground/40 text-center py-4">Nenhum fluxo cadastrado.</p>
-          )}
+        <FlowEditor flowId={selectedFlow} canEdit={canEdit} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold font-display">Fluxos Operacionais</h2>
+          <p className="text-sm text-foreground/50">Padronize a execução dos seus serviços.</p>
         </div>
+        <Button onClick={() => setIsCreating(true)} disabled={!canEdit} className="gap-2">
+          <Plus className="size-4" /> Novo Fluxo
+        </Button>
       </div>
 
-      {/* Área de Conteúdo - Editor do Fluxo */}
-      <div className="lg:col-span-3">
-        {selectedFlow ? (
-          <FlowEditor flowId={selectedFlow} canEdit={canEdit} />
-        ) : (
-          <div className="h-full border border-dashed border-border rounded-xl flex flex-col items-center justify-center p-12 text-center space-y-3">
-            <div className="size-12 rounded-full bg-muted flex items-center justify-center">
-              <Settings2 className="size-6 text-foreground/40" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {flows.map(flow => (
+          <div 
+            key={flow.id} 
+            onClick={() => {
+              setSelectedFlow(flow.id);
+              setViewMode('builder');
+            }}
+            className="bg-surface border border-border rounded-2xl p-6 cursor-pointer hover:border-primary/40 hover:shadow-lg transition-all group relative"
+          >
+            <div className="flex items-start justify-between mb-4">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Settings2 className="size-5 text-primary" />
+              </div>
+              <Badge variant={flow.status === 'active' ? 'default' : 'secondary'}>
+                {flow.status === 'active' ? 'Ativo' : 'Arquivado'}
+              </Badge>
             </div>
-            <div>
-              <p className="font-medium">Nenhum fluxo selecionado</p>
-              <p className="text-sm text-foreground/50">Selecione um fluxo ao lado ou crie um novo para começar.</p>
+            <h3 className="font-bold text-lg group-hover:text-primary transition-colors">{flow.name}</h3>
+            <p className="text-xs text-foreground/50 mt-1 mb-4 line-clamp-2">{flow.description || "Sem descrição."}</p>
+            
+            <div className="flex items-center gap-4 text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40 border-t border-border pt-4">
+              <span className="flex items-center gap-1.5"><ChevronRight className="size-3" /> Configurar Estrutura</span>
             </div>
+          </div>
+        ))}
+        {flows.length === 0 && (
+          <div className="col-span-full py-12 text-center border-2 border-dashed border-border rounded-2xl text-foreground/40 italic">
+            Nenhum fluxo cadastrado. Clique em "Novo Fluxo" para começar.
           </div>
         )}
       </div>
