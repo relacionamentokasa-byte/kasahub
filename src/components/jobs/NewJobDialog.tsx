@@ -86,7 +86,7 @@ export function NewJobDialog({
         project_id: defaultProjectId ?? "",
         client_id: defaultClientId ?? "",
         period: defaultPeriod ?? "",
-
+        freelancer_id: "",
       });
     },
     onError: (e: Error) => toast.error(e.message),
