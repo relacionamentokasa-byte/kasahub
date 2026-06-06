@@ -33,7 +33,9 @@ import {
   type Job,
   type JobStage,
 } from "@/lib/ops-api";
+import { getJobTypeLabel } from "@/lib/job-types";
 import { fetchProfiles } from "@/lib/profile-api";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewJobDialog } from "./NewJobDialog";
@@ -294,6 +296,12 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
         />
         <div className="min-w-0 flex-1 pr-6">
           <div className="font-semibold text-sm leading-snug">{job.title}</div>
+          <div className="mt-0.5">
+            <span className="text-[9px] font-bold uppercase tracking-widest text-primary/70">
+              {getJobTypeLabel((job as any).job_type)}
+            </span>
+          </div>
+
           <div className="flex items-center justify-between mt-2">
             {job.due_date && (
               <div className="text-[10px] text-foreground/40 capitalize">
