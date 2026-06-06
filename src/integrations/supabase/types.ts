@@ -194,6 +194,84 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          all_day: boolean | null
+          approval_id: string | null
+          client_id: string | null
+          color: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          ends_at: string | null
+          external_id: string | null
+          id: string
+          kind: string | null
+          origin_id: string | null
+          origin_type: string | null
+          project_id: string | null
+          source: string | null
+          starts_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean | null
+          approval_id?: string | null
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          external_id?: string | null
+          id?: string
+          kind?: string | null
+          origin_id?: string | null
+          origin_type?: string | null
+          project_id?: string | null
+          source?: string | null
+          starts_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean | null
+          approval_id?: string | null
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          ends_at?: string | null
+          external_id?: string | null
+          id?: string
+          kind?: string | null
+          origin_id?: string | null
+          origin_type?: string | null
+          project_id?: string | null
+          source?: string | null
+          starts_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_deletion_audit: {
         Row: {
           client_id: string
@@ -1369,6 +1447,9 @@ export type Database = {
           custom_role_id: string | null
           display_name: string | null
           full_name: string | null
+          google_calendar_connected: boolean | null
+          google_calendar_id: string | null
+          google_refresh_token: string | null
           id: string
           job_title: string | null
           phone: string | null
@@ -1381,6 +1462,9 @@ export type Database = {
           custom_role_id?: string | null
           display_name?: string | null
           full_name?: string | null
+          google_calendar_connected?: boolean | null
+          google_calendar_id?: string | null
+          google_refresh_token?: string | null
           id: string
           job_title?: string | null
           phone?: string | null
@@ -1393,6 +1477,9 @@ export type Database = {
           custom_role_id?: string | null
           display_name?: string | null
           full_name?: string | null
+          google_calendar_connected?: boolean | null
+          google_calendar_id?: string | null
+          google_refresh_token?: string | null
           id?: string
           job_title?: string | null
           phone?: string | null
