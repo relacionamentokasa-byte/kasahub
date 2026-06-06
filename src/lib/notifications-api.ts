@@ -90,7 +90,6 @@ export async function handleMentions(text: string, context: {
 
   const names = matches.map(m => m.substring(1));
   
-  // Buscar usuários por display_name ou full_name
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, display_name, full_name")
@@ -98,17 +97,19 @@ export async function handleMentions(text: string, context: {
 
   if (!profiles || profiles.length === 0) return;
 
-  const { data: { user: currentUser } } = await supabase.auth.getUser();
+  const { data: userData } = await supabase.auth.getUser();
+  const currentUserId = userData.user?.id || '';
+  
   const { data: currentProfile } = await supabase
     .from("profiles")
     .select("display_name, full_name")
-    .eq("id", currentUser?.id || '')
-    .single();
+    .eq("id", currentUserId)
+    .maybeSingle();
 
   const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
 
   for (const profile of profiles) {
-    if (profile.id === currentUser?.id) continue;
+    if (profile.id === currentUserId) continue;
     
     await notify({
       userId: profile.id,
