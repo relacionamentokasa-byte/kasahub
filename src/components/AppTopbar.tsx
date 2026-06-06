@@ -27,30 +27,25 @@ export function AppTopbar() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { theme, toggle } = useTheme();
-  const [profile, setProfile] = useState<Profile | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
+  const { data: profile } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || cancelled) return;
+      if (!user) return null;
       const { data } = await supabase
         .from("profiles")
         .select("display_name, full_name, avatar_url")
         .eq("id", user.id)
         .maybeSingle();
-      if (cancelled) return;
-      setProfile({
+      return {
         display_name: data?.display_name ?? null,
         full_name: data?.full_name ?? null,
         avatar_url: data?.avatar_url ?? null,
         email: user.email ?? "",
-      });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+      };
+    },
+  });
 
   const handleSignOut = async () => {
     await queryClient.cancelQueries();

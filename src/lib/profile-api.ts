@@ -28,3 +28,13 @@ export async function updateMyProfile(patch: any) {
   if (error) throw error;
   return data;
 }
+
+export async function fetchProfiles() {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name, display_name, avatar_url, job_title")
+    .order("full_name", { ascending: true });
+
+  if (error) throw error;
+  return data || [];
+}
