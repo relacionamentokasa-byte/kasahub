@@ -269,17 +269,6 @@ export function NotificationPreferencesTab() {
               }
             }}
           />
-          {Notification.permission !== 'granted' && (
-            <Button 
-              variant="link" 
-              size="sm" 
-              className="h-auto p-0 text-[10px] text-primary"
-              onClick={handleRequestPushPermission}
-            >
-              <Smartphone className="size-3 mr-1" />
-              Solicitar Permissão do Navegador
-            </Button>
-          )}
         </div>
 
         <div className="mt-8 pt-6 border-t border-border space-y-6">
