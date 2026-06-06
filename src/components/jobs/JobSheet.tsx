@@ -203,39 +203,30 @@ export function JobSheet({
                 </div>
               </div>
 
-              {/* Campos Personalizados Dinâmicos baseados no tipo do Job */}
+              {/* Formulário Dinâmico baseado no tipo do Job */}
               <div className="space-y-4 pt-4 border-t border-border">
                 <h4 className="text-[10px] uppercase font-bold text-primary tracking-wider flex items-center gap-1.5">
-                  <Plus className="size-3" /> Campos da Tarefa
+                  <FileText className="size-3" /> Formulário da Tarefa
                 </h4>
                 <div className="grid grid-cols-1 gap-4">
-                  {/* Se houver labels ou informações sobre o fluxo no job, poderíamos buscar o esquema aqui. 
-                      Para implementação imediata, vamos checar se o job tem custom_fields e renderizar inputs */}
-                  {Object.entries((job as any).custom_fields || {}).map(([key, val]: [string, any]) => (
+                  {/* TODO: Implementar busca do esquema baseado no tipo do Job + Fluxo */}
+                  <p className="text-[10px] text-foreground/40 italic">
+                    Formulário dinâmico para: <span className="font-semibold">{JOB_TYPES.find(t => t.value === (job as any).job_type)?.label || "Tarefa"}</span>
+                  </p>
+                  
+                  {/* Exemplo de campos que seriam renderizados dinamicamente */}
+                  {Object.entries((job as any).custom_form_data || {}).map(([key, val]: [string, any]) => (
                     <div key={key} className="space-y-1.5">
                       <Label className="text-[10px] capitalize text-foreground/50">{key}</Label>
-                      {typeof val === 'string' && val.length > 50 ? (
-                        <Textarea 
-                          defaultValue={val} 
-                          onBlur={(e) => {
-                            const next = { ...(job as any).custom_fields, [key]: e.target.value };
-                            updateMut.mutate({ custom_fields: next } as any);
-                          }}
-                        />
-                      ) : (
-                        <Input 
-                          defaultValue={val}
-                          onBlur={(e) => {
-                            const next = { ...(job as any).custom_fields, [key]: e.target.value };
-                            updateMut.mutate({ custom_fields: next } as any);
-                          }}
-                        />
-                      )}
+                      <Input 
+                        value={val}
+                        onChange={(e) => {
+                          const next = { ...(job as any).custom_form_data, [key]: e.target.value };
+                          updateMut.mutate({ custom_form_data: next } as any);
+                        }}
+                      />
                     </div>
                   ))}
-                  {Object.keys((job as any).custom_fields || {}).length === 0 && (
-                    <p className="text-[10px] text-foreground/40 italic">Nenhum campo personalizado definido para este tipo de job.</p>
-                  )}
                 </div>
               </div>
 
