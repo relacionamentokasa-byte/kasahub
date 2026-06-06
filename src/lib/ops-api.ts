@@ -107,6 +107,33 @@ export async function archiveProject(id: string) {
   return updateProject(id, { status: "archived" });
 }
 
+export async function fetchProjectStats(projectId: string) {
+  const { data: jobs, error } = await supabase
+    .from("jobs")
+    .select("id, done_at, due_date, stage_id")
+    .eq("project_id", projectId);
+  
+  if (error) throw error;
+  
+  const { data: stages } = await supabase.from("job_stages").select("id, is_done");
+  const doneStageIds = new Set(stages?.filter(s => s.is_done).map(s => s.id) || []);
+  
+  const total = jobs.length;
+  const done = jobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
+  const pending = total - done;
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = jobs.filter(j => !j.done_at && !(j.stage_id && doneStageIds.has(j.stage_id)) && j.due_date && j.due_date < today).length;
+  const progress = total === 0 ? 0 : Math.round((done / total) * 100);
+  
+  const { count: dmeCount } = await supabase
+    .from("extra_demands")
+    .select("id", { count: "exact", head: true })
+    .eq("contract_id", (await supabase.from("projects").select("contract_id").eq("id", projectId).single()).data?.contract_id);
+
+  return { total, done, pending, overdue, progress, dmeCount: dmeCount || 0 };
+}
+
+
 // ---------- Jobs ----------
 export async function fetchJobStages(): Promise<JobStage[]> {
   const { data, error } = await supabase
