@@ -171,7 +171,7 @@ export async function fetchJobs(filters: { projectId?: string; clientId?: string
   return data ?? [];
 }
 
-export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"]) {
+export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"] & { period?: string | null }) {
   const { data, error } = await supabase.from("jobs").insert(input).select().single();
   if (error) throw error;
   return data;

@@ -33,6 +33,7 @@ export function NewJobDialog({
   onOpenChange: (o: boolean) => void;
   defaultProjectId?: string;
   defaultClientId?: string;
+  defaultPeriod?: string;
 }) {
   const qc = useQueryClient();
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
@@ -44,6 +45,7 @@ export function NewJobDialog({
     due_date: "",
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
+    period: defaultPeriod ?? "",
   });
 
   const mut = useMutation({
@@ -56,6 +58,7 @@ export function NewJobDialog({
         project_id: form.project_id || null,
         client_id: form.client_id || null,
         stage_id: stage?.id ?? null,
+        period: form.period || null,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
@@ -68,6 +71,7 @@ export function NewJobDialog({
         due_date: "",
         project_id: defaultProjectId ?? "",
         client_id: defaultClientId ?? "",
+        period: defaultPeriod ?? "",
       });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -134,6 +138,17 @@ export function NewJobDialog({
               </div>
             )}
           </div>
+          {form.project_id && (
+            <div className="space-y-1.5">
+              <Label>Período (Opcional)</Label>
+              <Input 
+                placeholder="Ex: 2026-06" 
+                value={form.period} 
+                onChange={(e) => setForm({ ...form, period: e.target.value })} 
+                className="bg-background border-border"
+              />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>

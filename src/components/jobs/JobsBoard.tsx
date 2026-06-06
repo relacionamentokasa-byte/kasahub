@@ -191,6 +191,7 @@ export function JobsBoard({
         onOpenChange={(o) => !o && setNewStage(null)}
         defaultProjectId={projectId}
         defaultClientId={clientId}
+        defaultPeriod={period !== 'all' ? period : undefined}
       />
       <JobSheet job={open} stages={stages} onClose={() => setOpen(null)} />
     </div>
