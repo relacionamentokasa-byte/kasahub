@@ -53,13 +53,16 @@ export async function deleteClient(id: string) {
 // ---------- Projects ----------
 export async function fetchProjects(filters: { clientId?: string; status?: string; type?: string; contractId?: string; search?: string } = {}): Promise<Project[]> {
   let q = supabase.from("projects").select("*").order("created_at", { ascending: false });
+  
   if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
   if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
   if (filters.type && filters.type !== "all") q = q.eq("type", filters.type);
-  if (filters.contractId) q = q.eq("contract_id", filters.contractId);
+  if (filters.contractId && filters.contractId !== "all") q = q.eq("contract_id", filters.contractId);
+  
   if (filters.search) {
-    q = q.or(`name.ilike.%${filters.search}%`);
+    q = q.ilike("name", `%${filters.search}%`);
   }
+  
   const { data, error } = await q;
   if (error) throw error;
   return data ?? [];
