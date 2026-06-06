@@ -173,8 +173,9 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
           </div>
         </TabsContent>
         <TabsContent value="timeline" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto max-w-4xl">
-          <ClientTimeline clientId={project.client_id!} />
+          <ClientTimeline projectId={projectId} />
         </TabsContent>
+
         <TabsContent value="finance" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto">
           <ProjectFinanceView projectId={projectId} />
         </TabsContent>
