@@ -305,7 +305,7 @@ export function ExecutiveDashboard() {
     jobsCompleted,
     pendingApprovals,
     dmesInProduction,
-    performanceMetrics,
+    performanceMetrics: initialPerformanceMetrics,
     agendaItems,
     clientRanking,
     feedEvents,
