@@ -565,9 +565,14 @@ export function ProposalEditorContent({
               </F>
               {form.contract_template_id && <Textarea rows={10} value={form.contract_content} onChange={(e) => setForm({ ...form, contract_content: e.target.value })} className="font-mono text-xs" />}
               <div className="grid grid-cols-2 gap-4">
-                <F label="Assinatura Agência"><Input value={form.signature_agency} onChange={(e) => setForm({ ...form, signature_agency: e.target.value })} /></F>
+                <F label="Assinatura Agência">
+                  <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-foreground/70">
+                    Puxada automaticamente da assinatura cadastrada em <strong>Configurações → Assinatura</strong>.
+                  </div>
+                </F>
                 <F label="Assinatura Cliente"><Input value={form.signature_client} disabled placeholder="Aguardando..." /></F>
               </div>
+
               <F label="Observações Internas (Não aparecem para o cliente)">
                 <Textarea 
                   placeholder="Anotações para a equipe..." 
