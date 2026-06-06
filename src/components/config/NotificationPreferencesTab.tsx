@@ -1,6 +1,6 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, Phone, Mail, Bell } from "lucide-react";
+import { Loader2, AlertTriangle, Phone, Mail, Bell, Smartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyProfile } from "@/lib/profile-api";
@@ -126,6 +126,26 @@ export function NotificationPreferencesTab() {
     }
   });
 
+  const handleRequestPushPermission = async () => {
+    if (!('Notification' in window)) {
+      toast.error("Este navegador não suporta notificações Push.");
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      toast.success("Permissão concedida!", {
+        description: "Agora você pode ativar o canal Push Mobile."
+      });
+      // Ativar o canal automaticamente se a permissão for concedida
+      mut.mutate({ push_enabled: true });
+    } else {
+      toast.error("Permissão negada", {
+        description: "Habilite as notificações nas configurações do seu navegador."
+      });
+    }
+  };
+
   const handleTestNotification = async () => {
     if (!user?.id) return;
     
@@ -134,6 +154,12 @@ export function NotificationPreferencesTab() {
     toast.info("Iniciando auditoria de canais...");
     
     try {
+      // Registrar token se push estiver ativo (simulado para este MVP)
+      if (prefs?.push_enabled && 'serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        console.log("Service Worker pronto para teste de Push");
+      }
+
       const { data, error } = await supabase.functions.invoke("send-test-notification", {
         body: { userId: user.id }
       });
@@ -230,13 +256,31 @@ export function NotificationPreferencesTab() {
           onChange={(v) => mut.mutate({ whatsapp_enabled: v })}
           disabled={!profile?.phone}
         />
-        <ToggleRow 
-          title="Push Mobile" 
-          description="Notificações no seu smartphone Android ou iPhone." 
-          checked={prefs?.push_enabled ?? false}
-          onChange={(v) => mut.mutate({ push_enabled: v })}
-          disabled={!profile?.phone}
-        />
+        <div className="space-y-3">
+          <ToggleRow 
+            title="Push Mobile" 
+            description="Notificações no seu smartphone Android ou iPhone." 
+            checked={prefs?.push_enabled ?? false}
+            onChange={(v) => {
+              if (v && Notification.permission !== 'granted') {
+                handleRequestPushPermission();
+              } else {
+                mut.mutate({ push_enabled: v });
+              }
+            }}
+          />
+          {Notification.permission !== 'granted' && (
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="h-auto p-0 text-[10px] text-primary"
+              onClick={handleRequestPushPermission}
+            >
+              <Smartphone className="size-3 mr-1" />
+              Solicitar Permissão do Navegador
+            </Button>
+          )}
+        </div>
 
         <div className="mt-8 pt-6 border-t border-border space-y-6">
           <div className="flex flex-col gap-2">
