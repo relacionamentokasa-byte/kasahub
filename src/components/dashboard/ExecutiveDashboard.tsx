@@ -344,38 +344,6 @@ export function ExecutiveDashboard() {
         </div>
       </header>
 
-      {alerts.length > 0 && (
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
-            <AlertCircle className="size-4" /> Central de Alertas
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {alerts.map((a, i) => (
-              <Card key={i} className={cn(
-                "p-4 border-l-4 transition-all hover:scale-[1.02]",
-                a.type === 'critical' ? "border-l-rose-500 bg-rose-500/5" : 
-                a.type === 'warning' ? "border-l-amber-500 bg-amber-500/5" : 
-                "border-l-blue-500 bg-blue-500/5"
-              )}>
-                <div className="flex gap-3">
-                  <div className={cn(
-                    "size-8 rounded-full flex items-center justify-center shrink-0",
-                    a.type === 'critical' ? "bg-rose-500/20 text-rose-500" : 
-                    a.type === 'warning' ? "bg-amber-500/20 text-amber-500" : 
-                    "bg-blue-500/20 text-blue-500"
-                  )}>
-                    <a.icon className="size-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold truncate">{a.message}</p>
-                    <p className="text-xs text-foreground/60 line-clamp-2">{a.detail}</p>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
 
       {isFinance && visibleSections.gestao && (
         <GestaoSection stats={{
