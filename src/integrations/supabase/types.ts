@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_goals: {
+        Row: {
+          created_at: string
+          id: string
+          month: number | null
+          owner_id: string | null
+          period: string
+          target_value: number
+          type: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month?: number | null
+          owner_id?: string | null
+          period: string
+          target_value?: number
+          type: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number | null
+          owner_id?: string | null
+          period?: string
+          target_value?: number
+          type?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       agency_settings: {
         Row: {
           address: string | null
