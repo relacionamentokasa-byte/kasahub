@@ -5,6 +5,7 @@ import { CheckCircle2, Printer, FileSignature, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 
 export const Route = createFileRoute("/p/$token")({
   head: () => ({ meta: [{ title: "Proposta Comercial" }] }),
