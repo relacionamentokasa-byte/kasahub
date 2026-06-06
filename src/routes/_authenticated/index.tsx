@@ -6,7 +6,7 @@ import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
-      { title: "Dashboard Executiva — KASA OS" },
+      { title: "Dashboard Executiva — KASA HUB" },
       { name: "description", content: "Painel de comando da agência." },
     ],
   }),
@@ -19,7 +19,7 @@ function DashboardPage() {
       <header className="flex items-end justify-between gap-6 flex-wrap border-b border-border pb-8">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa capitalize font-medium">
-            KASA OS · Inteligência Operacional
+            KASA HUB · Inteligência Operacional
           </span>
           <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-2">
             Centro de Comando
@@ -44,7 +44,7 @@ function DashboardPage() {
       
       <footer className="pt-12 border-t border-border flex justify-between items-center text-[10px] font-mono-kasa text-foreground/30 uppercase tracking-widest">
         <span>KASA Marketing Consultoria</span>
-        <span>ERP Executivo v2.0</span>
+        <span>KASA HUB v2.0</span>
       </footer>
     </div>
   );

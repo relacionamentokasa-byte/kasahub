@@ -77,8 +77,8 @@ export function AppSidebar() {
     .filter((g) => g.items.length > 0);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="h-16 flex justify-center px-4">
+    <Sidebar collapsible="icon" className="border-r border-white/5 bg-[#0C1618]">
+      <SidebarHeader className="h-20 flex justify-center px-4 mb-4">
         <KasaLogo collapsed={collapsed} />
       </SidebarHeader>
 
@@ -101,7 +101,7 @@ export function AppSidebar() {
                         isActive={active}
                         className={
                           active
-                            ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                            ? "bg-[#FFBC45]/10 text-[#FFBC45] hover:bg-[#FFBC45]/15 hover:text-[#FFBC45] data-[active=true]:bg-[#FFBC45]/10 data-[active=true]:text-[#FFBC45]"
                             : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/5"
                         }
                       >
@@ -119,7 +119,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-sidebar-border">
+      <SidebarFooter className="p-3 border-t border-white/5">
         <UserFooter collapsed={collapsed} />
       </SidebarFooter>
     </Sidebar>
@@ -137,11 +137,11 @@ function UserFooter({ collapsed }: { collapsed: boolean }) {
 
   return (
     <Link to="/config?tab=profile" className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/5 transition-colors cursor-pointer">
-      <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
+      <div className="size-9 rounded-full bg-[#FFBC45]/15 ring-1 ring-[#FFBC45]/30 flex items-center justify-center shrink-0 overflow-hidden">
         {profile?.avatar_url ? (
           <img src={profile.avatar_url} alt={name} className="size-full object-cover" />
         ) : (
-          <span className="text-xs font-semibold text-primary">{initials}</span>
+          <span className="text-xs font-semibold text-[#FFBC45]">{initials}</span>
         )}
       </div>
       {!collapsed && (
