@@ -357,7 +357,10 @@ function UserProfileTab() {
 
   const [form, setForm] = useState<any>({});
   useEffect(() => {
-    if (profile) setForm(profile);
+    if (profile) {
+      const { email, ...rest } = profile;
+      setForm(rest);
+    }
   }, [profile]);
 
   const mut = useMutation({
