@@ -174,9 +174,10 @@ export function EditProjectDialog({
                 <SelectContent>
                   <SelectItem value="active">Ativo</SelectItem>
                   <SelectItem value="paused">Pausado</SelectItem>
-                  <SelectItem value="done">Concluído</SelectItem>
-                  <SelectItem value="archived">Arquivado</SelectItem>
+                  <SelectItem value="completed">Concluído</SelectItem>
+                  <SelectItem value="cancelled">Cancelado</SelectItem>
                 </SelectContent>
+
               </Select>
             </div>
             <div className="space-y-1.5">
