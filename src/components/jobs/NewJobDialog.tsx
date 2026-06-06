@@ -20,6 +20,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { JOB_TYPES } from "@/lib/job-types";
+
 
 export function NewJobDialog({
   stage,
@@ -43,11 +45,13 @@ export function NewJobDialog({
     title: "",
     description: "",
     priority: "normal",
+    job_type: "post",
     due_date: "",
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
     period: defaultPeriod ?? "",
   });
+
 
   const mut = useMutation({
     mutationFn: () =>
@@ -55,11 +59,13 @@ export function NewJobDialog({
         title: form.title,
         description: form.description || null,
         priority: form.priority,
+        job_type: form.job_type,
         due_date: form.due_date || null,
         project_id: form.project_id || null,
         client_id: form.client_id || null,
         stage_id: stage?.id ?? null,
         period: form.period || null,
+
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
@@ -69,10 +75,12 @@ export function NewJobDialog({
         title: "",
         description: "",
         priority: "normal",
+        job_type: "post",
         due_date: "",
         project_id: defaultProjectId ?? "",
         client_id: defaultClientId ?? "",
         period: defaultPeriod ?? "",
+
       });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -91,6 +99,17 @@ export function NewJobDialog({
             <Label>Título</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           </div>
+          <div className="space-y-1.5">
+            <Label>Tipo de Job</Label>
+            <Select value={form.job_type} onValueChange={(v) => setForm({ ...form, job_type: v })}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {JOB_TYPES.map(t => (
+                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
           <div className="space-y-1.5">
             <Label>Descrição</Label>
             <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />

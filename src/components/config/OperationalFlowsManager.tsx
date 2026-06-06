@@ -15,6 +15,8 @@ import {
   Loader2
 } from "lucide-react";
 import { toast } from "sonner";
+import { JOB_TYPES } from "@/lib/job-types";
+
 import { 
   fetchOperationalFlows, 
   fetchOperationalFlowDetails,
@@ -382,7 +384,20 @@ function JobRow({ job, roles, canEdit, onChanged, onEditSchema }: { job: any, ro
         
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">{job.name}</p>
+          <div className="mt-1">
+            <select
+              className="bg-transparent border-none text-[10px] focus:ring-0 p-0 text-primary font-semibold uppercase tracking-wider"
+              value={job.job_type || ""}
+              onChange={e => updateJobMut.mutate({ job_type: e.target.value || null })}
+            >
+              <option value="">Tipo: Não definido</option>
+              {JOB_TYPES.map(t => (
+                <option key={t.value} value={t.value}>{t.label}</option>
+              ))}
+            </select>
+          </div>
         </div>
+
 
         <div className="flex items-center gap-6">
           <Button size="icon" variant="ghost" className="size-8" title="Configurar Campos Personalizados" onClick={() => onEditSchema(job)}>
