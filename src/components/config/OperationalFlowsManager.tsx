@@ -539,6 +539,10 @@ function JobRow({ job, roles, canEdit, onChanged, onEditSchema, flowJobs }: { jo
             <FileText className="size-3.5" />
           </Button>
 
+          <Button size="icon" variant="ghost" className={`size-8 ${showDeps ? "text-primary" : ""}`} title="Configurar Dependências" onClick={() => setShowDeps(!showDeps)}>
+            <ArrowDown className="size-3.5" />
+          </Button>
+
           <div className="flex items-center gap-2 text-foreground/50">
             <Clock className="size-3.5" />
             <input 
