@@ -120,7 +120,7 @@ export function JobSheet({
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="bg-surface border-border w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="font-display text-2xl">
+          <SheetTitle className="font-display text-xl lg:text-2xl">
             <input
               defaultValue={job.title}
               onBlur={(e) => e.target.value !== job.title && updateMut.mutate({ title: e.target.value })}

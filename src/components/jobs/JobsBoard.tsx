@@ -133,7 +133,7 @@ export function JobsBoard({
           <span className="text-primary text-[10px] capitalize">
             {eyebrow}
           </span>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
             {title}
           </h1>
         </div>

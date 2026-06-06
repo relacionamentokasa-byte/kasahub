@@ -315,7 +315,7 @@ function ProposalsPage() {
       <div className="flex items-end justify-between gap-4 flex-wrap mb-8">
         <div>
           <span className="text-primary text-[10px] capitalize">Comercial · Propostas</span>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
             Propostas comerciais
           </h1>
           <p className="text-foreground/60 mt-2 max-w-xl text-sm">
