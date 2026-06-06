@@ -241,6 +241,7 @@ function ServiceFormDialog({
         is_active: form.is_active,
         default_scope: form.default_scope,
         contract_template_id: form.contract_template_id || null,
+        operational_flow_id: form.operational_flow_id || null,
       } as any;
       if (!payload.name) throw new Error("Nome obrigatório");
       if (service) return updateService(service.id, payload);
