@@ -258,6 +258,8 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
 
   if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>;
 
+  const allJobs = stages.flatMap((s: any) => s.jobs || []);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -291,7 +293,15 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
 
             <div className="divide-y divide-border">
               {stage.jobs?.map((job: any) => (
-                <JobRow key={job.id} job={job} roles={roles} canEdit={canEdit} onChanged={invalidate} onEditSchema={(job) => setSchemaEditor({ open: true, job })} />
+                <JobRow 
+                  key={job.id} 
+                  job={job} 
+                  roles={roles} 
+                  canEdit={canEdit} 
+                  onChanged={invalidate} 
+                  onEditSchema={(job) => setSchemaEditor({ open: true, job })}
+                  flowJobs={allJobs.filter((j: any) => j.id !== job.id)}
+                />
               ))}
               {(!stage.jobs || stage.jobs.length === 0) && (
                 <div className="px-10 py-4 text-xs text-foreground/40 italic">Nenhum job nesta etapa.</div>
