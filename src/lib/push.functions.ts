@@ -11,10 +11,20 @@ const SubscriptionSchema = z.object({
   userAgent: z.string().max(512).optional(),
 });
 
+function cleanVapidKey(raw: string | undefined, name: string): string {
+  if (!raw) throw new Error(`${name} não configurado`);
+  const compact = raw.replace(/\s+/g, "").replace(/^['"]|['"]$/g, "");
+  if (/^[A-Za-z0-9_-]+$/.test(compact)) return compact;
+
+  const matches = raw.match(/[A-Za-z0-9_-]{20,}/g) ?? [];
+  const key = matches.find((value) => value.length >= 40);
+  if (key) return key;
+
+  throw new Error(`${name} inválida`);
+}
+
 export const getVapidPublicKey = createServerFn({ method: "GET" }).handler(async () => {
-  const raw = process.env.VAPID_PUBLIC_KEY;
-  if (!raw) throw new Error("VAPID_PUBLIC_KEY não configurado");
-  const publicKey = raw.replace(/\s+/g, "");
+  const publicKey = cleanVapidKey(process.env.VAPID_PUBLIC_KEY, "VAPID_PUBLIC_KEY");
   return { publicKey };
 });
 
@@ -57,12 +67,9 @@ export const sendTestPush = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const publicKey = process.env.VAPID_PUBLIC_KEY;
-    const privateKey = process.env.VAPID_PRIVATE_KEY;
+    const publicKey = cleanVapidKey(process.env.VAPID_PUBLIC_KEY, "VAPID_PUBLIC_KEY");
+    const privateKey = cleanVapidKey(process.env.VAPID_PRIVATE_KEY, "VAPID_PRIVATE_KEY");
     const subject = process.env.VAPID_SUBJECT || "mailto:admin@kasahub.app";
-    if (!publicKey || !privateKey) {
-      throw new Error("Chaves VAPID não configuradas");
-    }
 
     const { data: subs, error } = await supabase
       .from("push_subscriptions")
