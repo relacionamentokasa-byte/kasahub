@@ -67,6 +67,12 @@ export async function fetchContracts(filters: { clientId?: string } = {}): Promi
 }
 
 export async function createContract(input: Database["public"]["Tables"]["contracts"]["Insert"]) {
+  if (!input.client_id) throw new Error("O contrato deve estar vinculado a um cliente.");
+  if (!input.monthly_value || Number(input.monthly_value) <= 0) throw new Error("O contrato deve possuir um valor mensal.");
+  
+  const { data: client } = await supabase.from('clients').select('status').eq('id', input.client_id).single();
+  if (client?.status === 'inactive') throw new Error("Não é possível criar contratos para clientes inativos.");
+
   const { data: u } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("contracts")
@@ -139,6 +145,10 @@ export async function createTransaction(
   input: Database["public"]["Tables"]["transactions"]["Insert"],
   installments?: number,
 ) {
+  if (!input.contract_id && !input.dme_id && !input.description) {
+    throw new Error("Lançamentos manuais devem possuir uma descrição/origem.");
+  }
+
   const { data: u } = await supabase.auth.getUser();
   const owner_id = u.user?.id ?? null;
   const total = Math.max(1, installments ?? 1);
@@ -188,6 +198,12 @@ export async function bulkInsertTransactions(rows: Database["public"]["Tables"][
 }
 
 export async function updateTransaction(id: string, patch: Database["public"]["Tables"]["transactions"]["Update"]) {
+  const { data: existing } = await supabase.from('transactions').select('status, amount').eq('id', id).single();
+  
+  if (existing?.status === 'paid' && patch.amount !== undefined && patch.amount !== existing.amount) {
+    throw new Error("Não é possível alterar o valor de um lançamento já pago.");
+  }
+
   const { data, error } = await supabase.from("transactions").update(patch).eq("id", id).select().single();
   if (error) throw error;
   return data;

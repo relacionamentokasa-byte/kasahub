@@ -376,7 +376,7 @@ export async function createExtraDemand(input: Database["public"]["Tables"]["ext
   const client = await fetchClient(input.client_id);
   if (client.status === 'inactive') throw new Error("Não é possível criar DMEs para clientes inativos.");
 
-  if (input.is_billable && (!input.amount || Number(input.amount) <= 0)) {
+  if (input.is_billable && (!input.value || Number(input.value) <= 0)) {
     throw new Error("DMEs cobráveis devem ter um valor definido.");
   }
 
