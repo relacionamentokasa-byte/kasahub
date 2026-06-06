@@ -320,6 +320,18 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
           </div>
         ))}
 
+        <div className="flex items-center gap-4 py-8 overflow-x-auto scrollbar-none">
+          {stages.map((stage: any, i: number) => (
+            <div key={stage.id} className="flex items-center shrink-0">
+              <div className="bg-surface border border-border rounded-xl px-6 py-4 min-w-[160px] text-center shadow-sm">
+                <span className="text-[10px] font-mono-kasa text-primary font-bold uppercase tracking-wider mb-1 block">Etapa {i+1}</span>
+                <p className="font-bold text-sm">{stage.name}</p>
+              </div>
+              {i < stages.length - 1 && <ChevronRight className="size-5 text-foreground/20 mx-2" />}
+            </div>
+          ))}
+        </div>
+
         {stages.length === 0 && (
           <div className="text-center py-12 border-2 border-dashed border-border rounded-xl">
             <p className="text-sm text-foreground/40">Crie a primeira etapa para começar a definir o fluxo.</p>
