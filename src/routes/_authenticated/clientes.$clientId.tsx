@@ -230,35 +230,52 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
 
         <TabsContent value="projects" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0">
           {projects.length === 0 ? (
-            <p className="text-foreground/40 text-sm">Nenhum projeto para este cliente.</p>
+            <p className="text-foreground/40 text-sm italic">Nenhum projeto operacional para este cliente.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {projects.map((p) => {
                 const contract = (contracts as any[]).find(c => c.id === p.contract_id);
+                const pJobs = (allJobs as any[]).filter(j => j.project_id === p.id);
+                const total = pJobs.length;
+                const done = pJobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
+                const progress = total === 0 ? 0 : Math.round((done / total) * 100);
+                
                 return (
                   <Link
                     key={p.id}
                     to="/projetos/$projectId"
                     params={{ projectId: p.id }}
-                    className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition"
+                    className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/50 transition flex flex-col justify-between"
                   >
-                    <div className="font-display font-semibold mb-1">{p.name}</div>
-                    {contract && (
-                      <div className="text-[10px] text-primary flex items-center gap-1 mb-2">
-                        <FileSignature className="size-3" /> {contract.title}
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="size-1.5 rounded-full" style={{ background: p.color || '#FFBC45' }} />
+                        <span className="text-[9px] uppercase font-bold text-foreground/40 tracking-wider">{p.status}</span>
                       </div>
-                    )}
-                    {p.due_date && (
-                      <div className="text-xs text-foreground/50 inline-flex items-center gap-1.5">
-                        <Calendar className="size-3" /> {fmtDate(p.due_date)}
+                      <div className="font-display font-bold text-lg leading-tight mb-2 group-hover:text-primary transition-colors">{p.name}</div>
+                      {contract && (
+                        <div className="text-[10px] text-primary flex items-center gap-1.5 uppercase font-bold tracking-widest mb-4">
+                          <FileSignature className="size-3" /> {contract.title}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-end">
+                        <span className="text-[10px] text-foreground/40 font-mono-kasa">{total} Jobs · {done} OK</span>
+                        <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
                       </div>
-                    )}
+                      <div className="h-1 bg-background rounded-full overflow-hidden">
+                        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+                      </div>
+                    </div>
                   </Link>
                 );
               })}
             </div>
           )}
         </TabsContent>
+
 
         <TabsContent value="jobs" className="flex-1 mt-0 min-h-0">
           <JobsBoard clientId={clientId} title="Jobs do cliente" eyebrow="Cliente · Jobs" />
