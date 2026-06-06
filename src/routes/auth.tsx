@@ -11,7 +11,7 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Entrar — KASA HUB" },
+      { title: "Entrar — KASA OS" },
       {
         name: "description",
         content: "Acesso ao sistema de gestão inteligente da Kasa Marketing Consultoria.",
@@ -58,7 +58,7 @@ function AuthPage() {
           },
         });
         if (error) throw error;
-        toast.success("Conta criada. Bem-vindo ao KASA HUB.");
+        toast.success("Conta criada. Bem-vindo ao KASA OS.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -152,7 +152,7 @@ function AuthPage() {
             {mode === "signin" ? "Acesso restrito" : "Nova conta"}
           </span>
           <h2 className="font-display text-3xl font-bold tracking-tight">
-            {mode === "signin" ? "Entrar no KASA HUB" : "Criar conta no KASA HUB"}
+            {mode === "signin" ? "Entrar no KASA OS" : "Criar conta no KASA OS"}
           </h2>
           <p className="text-foreground/60 text-sm">
             {mode === "signin"

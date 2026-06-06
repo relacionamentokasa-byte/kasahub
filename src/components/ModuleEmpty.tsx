@@ -38,7 +38,7 @@ export function ModuleEmpty({ icon: Icon, eyebrow, title, description, bullets, 
           </div>
           <h2 className="font-display text-2xl font-semibold mb-2">Módulo em construção</h2>
           <p className="text-foreground/60 max-w-md mb-8">
-            Esta área será ativada quando avançarmos para a fase correspondente do roadmap KASA HUB.
+            Esta área será ativada quando avançarmos para a fase correspondente do roadmap KASA OS.
           </p>
 
           {bullets && bullets.length > 0 && (

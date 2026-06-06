@@ -93,7 +93,7 @@ import { DeleteTransactionCascadeDialog } from "@/components/finance/DeleteTrans
 import { TerminateContractDialog } from "@/components/finance/TerminateContractDialog";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
-  head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Financeiro — KASA OS" }] }),
   component: FinanceiroPage,
 });
 

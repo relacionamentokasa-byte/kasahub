@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const FROM_DEFAULT = "KASA HUB <onboarding@resend.dev>";
+const FROM_DEFAULT = "KASA OS <onboarding@resend.dev>";
 
 const SendEmailInput = z.object({
   to: z.string().email().max(320),

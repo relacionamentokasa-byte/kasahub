@@ -13,7 +13,7 @@ import { ApprovalSheet } from "@/components/approvals/ApprovalSheet";
 import { CalendarMonth } from "@/components/calendar/CalendarMonth";
 
 export const Route = createFileRoute("/_authenticated/portal")({
-  head: () => ({ meta: [{ title: "Portal do Cliente — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Portal do Cliente — KASA OS" }] }),
   component: PortalPage,
 });
 

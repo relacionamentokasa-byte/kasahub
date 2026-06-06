@@ -70,7 +70,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/propostas")({
-  head: () => ({ meta: [{ title: "Propostas — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Propostas — KASA OS" }] }),
   component: ProposalsPage,
 });
 

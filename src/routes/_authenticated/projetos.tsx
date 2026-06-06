@@ -23,7 +23,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/projetos")({
-  head: () => ({ meta: [{ title: "Projetos — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Projetos — KASA OS" }] }),
   component: ProjetosPage,
 });
 
