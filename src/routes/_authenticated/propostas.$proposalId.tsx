@@ -154,7 +154,7 @@ export function ProposalEditorContent({
 
   const [showReopenDialog, setShowReopenDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
-  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
+  
   const [cancelType, setCancelType] = useState<"termination" | "archiving">("termination");
   const [cancelReason, setCancelReason] = useState("");
 
