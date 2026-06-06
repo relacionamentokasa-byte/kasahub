@@ -258,8 +258,10 @@ export async function approveProposal(
                 order_index: flowJob.order,
                 due_date: jobDueDate,
                 labels: ["operational_flow"],
+                job_type: flowJob.job_type || "post",
                 assignee_id: flowJob.default_assignee_role_id || proposal.responsible_id || null,
                 custom_fields: customFields,
+
               })
               .select()
               .single();

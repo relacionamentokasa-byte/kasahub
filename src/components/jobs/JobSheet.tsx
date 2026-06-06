@@ -38,7 +38,9 @@ import {
 } from "@/lib/ops-api";
 import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { JOB_TYPES } from "@/lib/job-types";
 import { supabase } from "@/integrations/supabase/client";
+
 
 export function JobSheet({
   job,
@@ -154,6 +156,21 @@ export function JobSheet({
                   </Select>
                 </div>
                 <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Tipo de Job</Label>
+                  <Select
+                    value={(job as any).job_type || "post"}
+                    onValueChange={(v) => updateMut.mutate({ job_type: v } as any)}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {JOB_TYPES.map(t => (
+                        <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+
                   <Label className="text-[10px] capitalize text-foreground/50">Prioridade</Label>
                   <Select
                     value={job.priority}

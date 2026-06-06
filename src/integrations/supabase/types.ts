@@ -852,6 +852,7 @@ export type Database = {
           due_date: string | null
           feedback_at: string | null
           id: string
+          job_type: string | null
           labels: Json
           last_feedback: string | null
           order_index: number
@@ -880,6 +881,7 @@ export type Database = {
           due_date?: string | null
           feedback_at?: string | null
           id?: string
+          job_type?: string | null
           labels?: Json
           last_feedback?: string | null
           order_index?: number
@@ -908,6 +910,7 @@ export type Database = {
           due_date?: string | null
           feedback_at?: string | null
           id?: string
+          job_type?: string | null
           labels?: Json
           last_feedback?: string | null
           order_index?: number
