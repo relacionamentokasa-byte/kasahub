@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       agency_goals: {
         Row: {
           created_at: string
@@ -120,8 +144,10 @@ export type Database = {
           notify_email: boolean
           notify_whatsapp: boolean
           phone: string | null
+          plan_name: string | null
           timezone: string
           updated_at: string
+          user_limit: number | null
           website: string | null
         }
         Insert: {
@@ -142,8 +168,10 @@ export type Database = {
           notify_email?: boolean
           notify_whatsapp?: boolean
           phone?: string | null
+          plan_name?: string | null
           timezone?: string
           updated_at?: string
+          user_limit?: number | null
           website?: string | null
         }
         Update: {
@@ -164,8 +192,10 @@ export type Database = {
           notify_email?: boolean
           notify_whatsapp?: boolean
           phone?: string | null
+          plan_name?: string | null
           timezone?: string
           updated_at?: string
+          user_limit?: number | null
           website?: string | null
         }
         Relationships: []
@@ -1701,6 +1731,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           custom_role_id: string | null
+          department: string | null
           display_name: string | null
           full_name: string | null
           google_calendar_connected: boolean | null
@@ -1708,7 +1739,9 @@ export type Database = {
           google_refresh_token: string | null
           id: string
           job_title: string | null
+          last_access: string | null
           phone: string | null
+          status: string | null
           updated_at: string
         }
         Insert: {
@@ -1716,6 +1749,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           custom_role_id?: string | null
+          department?: string | null
           display_name?: string | null
           full_name?: string | null
           google_calendar_connected?: boolean | null
@@ -1723,7 +1757,9 @@ export type Database = {
           google_refresh_token?: string | null
           id: string
           job_title?: string | null
+          last_access?: string | null
           phone?: string | null
+          status?: string | null
           updated_at?: string
         }
         Update: {
@@ -1731,6 +1767,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           custom_role_id?: string | null
+          department?: string | null
           display_name?: string | null
           full_name?: string | null
           google_calendar_connected?: boolean | null
@@ -1738,7 +1775,9 @@ export type Database = {
           google_refresh_token?: string | null
           id?: string
           job_title?: string | null
+          last_access?: string | null
           phone?: string | null
+          status?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2418,6 +2457,50 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_invites: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string | null
+          full_name: string
+          id: string
+          inviter_id: string | null
+          role_id: string | null
+          status: string | null
+          token: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at?: string | null
+          full_name: string
+          id?: string
+          inviter_id?: string | null
+          role_id?: string | null
+          status?: string | null
+          token?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string | null
+          full_name?: string
+          id?: string
+          inviter_id?: string | null
+          role_id?: string | null
+          status?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_invites_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
             referencedColumns: ["id"]
           },
         ]
