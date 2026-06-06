@@ -288,7 +288,7 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
 
             <div className="divide-y divide-border">
               {stage.jobs?.map((job: any) => (
-                <JobRow key={job.id} job={job} roles={roles} canEdit={canEdit} onChanged={invalidate} />
+                <JobRow key={job.id} job={job} roles={roles} canEdit={canEdit} onChanged={invalidate} onEditSchema={(job) => setSchemaEditor({ open: true, job })} />
               ))}
               {(!stage.jobs || stage.jobs.length === 0) && (
                 <div className="px-10 py-4 text-xs text-foreground/40 italic">Nenhum job nesta etapa.</div>
