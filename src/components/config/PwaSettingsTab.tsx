@@ -148,21 +148,18 @@ export function PwaSettingsTab({
             value={form.pwa_icon_192_url ?? ""}
             onChange={(url) => set("pwa_icon_192_url", url)}
             folder="pwa"
-            disabled={!canEdit}
           />
           <ImageUpload
             label="Ícone 512×512"
             value={form.pwa_icon_512_url ?? ""}
             onChange={(url) => set("pwa_icon_512_url", url)}
             folder="pwa"
-            disabled={!canEdit}
           />
           <ImageUpload
             label="Favicon"
             value={form.pwa_favicon_url ?? ""}
             onChange={(url) => set("pwa_favicon_url", url)}
             folder="pwa"
-            disabled={!canEdit}
           />
         </div>
       </section>
