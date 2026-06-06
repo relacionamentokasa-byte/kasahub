@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ProposalDetailSheet } from "@/components/proposals/ProposalDetailSheet";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+
 import {
   fetchProposals,
   fetchLeads,
