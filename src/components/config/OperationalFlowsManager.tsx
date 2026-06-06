@@ -24,7 +24,10 @@ import {
   createOperationalFlow,
   updateOperationalFlow,
   deleteOperationalFlow,
-  duplicateOperationalFlow
+  duplicateOperationalFlow,
+  fetchJobDependencies,
+  addJobDependency,
+  removeJobDependency
 } from "@/lib/operational-flows-api";
 import { fetchCustomRoles } from "@/lib/permissions-api";
 import { Button } from "@/components/ui/button";
