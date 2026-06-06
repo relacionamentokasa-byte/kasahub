@@ -263,15 +263,8 @@ function PublicProposalView() {
             <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
               O que será entregue (Escopo)
             </h2>
-            <div className="grid gap-3">
-              {proposal.scope.map((item, idx) => (
-                <div key={idx} className="flex gap-3 items-start">
-                  <div className="size-4 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
-                    <div className="size-1.5 rounded-full" style={{ background: brand }} />
-                  </div>
-                  <span className="text-sm text-slate-700 leading-snug">{item}</span>
-                </div>
-              ))}
+            <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+              {proposal.scope.join(" · ")}
             </div>
           </div>
         )}
