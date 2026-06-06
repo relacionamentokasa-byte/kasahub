@@ -50,6 +50,57 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_indicators: {
+        Row: {
+          category: string
+          created_at: string
+          data_source: string
+          end_date: string | null
+          id: string
+          name: string
+          owner_id: string | null
+          periodicity: string
+          responsible: string
+          start_date: string
+          status: string | null
+          target_value: number
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          data_source: string
+          end_date?: string | null
+          id?: string
+          name: string
+          owner_id?: string | null
+          periodicity: string
+          responsible: string
+          start_date: string
+          status?: string | null
+          target_value: number
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          data_source?: string
+          end_date?: string | null
+          id?: string
+          name?: string
+          owner_id?: string | null
+          periodicity?: string
+          responsible?: string
+          start_date?: string
+          status?: string | null
+          target_value?: number
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       agency_settings: {
         Row: {
           address: string | null
