@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAudioNotifications } from "@/hooks/use-audio-notifications";
+
 
 function ToggleRow({
   title,
