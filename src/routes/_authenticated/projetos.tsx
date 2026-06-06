@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2, FileSignature } from "lucide-react";
+import { Plus, FolderKanban, MoreVertical, Eye, Pencil, Copy, Archive, Trash2, FileSignature, Users } from "lucide-react";
+
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchClients, deleteProject, duplicateProject, archiveProject } from "@/lib/ops-api";
 import { Button } from "@/components/ui/button";
