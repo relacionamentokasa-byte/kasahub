@@ -60,7 +60,7 @@ import {
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
-  head: () => ({ meta: [{ title: "Editor de proposta — KASA OS" }] }),
+  head: () => ({ meta: [{ title: "Editor de proposta — KASA HUB" }] }),
   component: ProposalEditorPage,
 });
 

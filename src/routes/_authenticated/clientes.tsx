@@ -14,7 +14,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 type SortKey = "name" | "status" | "created_at";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
-  head: () => ({ meta: [{ title: "Clientes — KASA OS" }] }),
+  head: () => ({ meta: [{ title: "Clientes — KASA HUB" }] }),
   component: ClientesPage,
 });
 

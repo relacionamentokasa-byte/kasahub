@@ -73,7 +73,7 @@ function PublicApprovalPage() {
       <div className="max-w-3xl mx-auto space-y-8">
         <header className="text-center space-y-2">
           <div className="inline-block px-3 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded-full uppercase tracking-wider mb-2">
-            Portal de Aprovação · Kasa OS
+            Portal de Aprovação · KASA HUB
           </div>
           <h1 className="text-3xl font-display font-bold">{job.title}</h1>
           <p className="text-foreground/60">{job.project?.name} · {job.client?.company || job.client?.name}</p>
