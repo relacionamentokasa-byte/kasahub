@@ -557,6 +557,92 @@ function FinanceiroPage() {
             </div>
           </TabsContent>
 
+          {/* ============ RECORRÊNCIAS ============ */}
+          <TabsContent value="recurrences" className="mt-6 space-y-6">
+            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+              <div className="px-5 py-3 border-b border-border font-display font-semibold">
+                Gestão de Recorrências
+              </div>
+              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border">
+                <div className="col-span-3">Descrição</div>
+                <div className="col-span-2">Início</div>
+                <div className="col-span-2">Valor Base</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-2">Parcelas</div>
+                <div className="col-span-1 text-right">Ações</div>
+              </div>
+              {recurrences.length === 0 ? (
+                <div className="p-12 text-center text-foreground/50 text-sm">Nenhuma recorrência ativa</div>
+              ) : (
+                recurrences.map((r) => {
+                  const txsForRec = txs.filter(t => t.recurrence_id === r.id);
+                  const paid = txsForRec.filter(t => t.status === 'paid').length;
+                  const total = txsForRec.length;
+                  
+                  return (
+                    <div key={r.id} className="grid grid-cols-12 px-5 py-4 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
+                      <div className="col-span-3 min-w-0">
+                        <div className="text-sm font-medium truncate">{r.description}</div>
+                        {r.contract_id && (
+                          <div className="text-[10px] text-primary flex items-center gap-1 mt-1">
+                            <LinkIcon className="size-3" /> Contrato Vinculado
+                          </div>
+                        )}
+                      </div>
+                      <div className="col-span-2 text-xs text-foreground/60">
+                        {new Date(r.start_date).toLocaleDateString("pt-BR")}
+                      </div>
+                      <div className="col-span-2 text-xs font-semibold">
+                        {brl(Number(r.amount))}
+                      </div>
+                      <div className="col-span-2">
+                        <Badge variant="outline" className={`text-[10px] capitalize ${
+                          r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                          r.status === 'paused' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                          'bg-foreground/10 text-foreground/40 border-border'
+                        }`}>
+                          {r.status === 'active' ? 'Ativa' : r.status === 'paused' ? 'Pausada' : 'Encerrada'}
+                        </Badge>
+                      </div>
+                      <div className="col-span-2 text-xs text-foreground/60">
+                        {paid}/{total} pagas
+                      </div>
+                      <div className="col-span-1 flex items-center justify-end gap-2">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-full">
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>Ações da Recorrência</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => setDeleteFutureRecurrenceId(r.id)}>
+                              <Trash2 className="size-4 mr-2 text-rose-400" /> Excluir Parcelas Futuras
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setTerminateRecurrenceId(r.id)}>
+                              <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Recorrência
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            {r.status === 'active' ? (
+                              <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: r.id, status: 'paused' })}>
+                                <Pause className="size-4 mr-2" /> Pausar
+                              </DropdownMenuItem>
+                            ) : r.status === 'paused' ? (
+                              <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: r.id, status: 'active' })}>
+                                <Play className="size-4 mr-2" /> Reativar
+                              </DropdownMenuItem>
+                            ) : null}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </TabsContent>
+
+
 
           {/* ============ VISÃO MENSAL ============ */}
           <TabsContent value="monthly" className="mt-6 space-y-6">
