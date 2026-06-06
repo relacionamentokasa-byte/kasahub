@@ -20,6 +20,24 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function ShellLayout() {
+  const { user } = Route.useRouteContext();
+  
+  useEffect(() => {
+    if (user?.id) {
+      supabase
+        .from("profiles")
+        .update({ last_access: new Date().toISOString() })
+        .eq("id", user.id)
+        .then(() => {
+          supabase.from("access_logs").insert({
+            user_id: user.id,
+            action: "login",
+            metadata: { user_agent: navigator.userAgent }
+          }).then(() => {});
+        });
+    }
+  }, [user?.id]);
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background text-foreground relative">
