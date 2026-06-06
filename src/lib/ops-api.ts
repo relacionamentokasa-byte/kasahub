@@ -281,7 +281,7 @@ export async function approveExtraDemand(id: string) {
 
   // 3. Create Financeiro if billable
   if (dme.is_billable) {
-    const { data: contract } = await supabase.from("contracts").select("account_id, category_id").eq("id", dme.contract_id).single();
+    const { data: contract } = await supabase.from("contracts").select("*").eq("id", dme.contract_id).single();
     await supabase.from("transactions").insert({
       kind: "income",
       description: `Demanda Extra ${dme.number_display}: ${dme.title}`,
@@ -291,8 +291,9 @@ export async function approveExtraDemand(id: string) {
       client_id: dme.client_id,
       contract_id: dme.contract_id,
       dme_id: dme.id,
-      account_id: contract?.account_id,
-      category_id: contract?.category_id,
+      account_id: (contract as any)?.account_id || null,
+      category_id: (contract as any)?.category_id || null,
+
     });
   }
 
