@@ -19,6 +19,8 @@ export interface AgencySettings {
   notify_email: boolean;
   notify_whatsapp: boolean;
   integrations: Record<string, unknown>;
+  plan_name: string;
+  user_limit: number;
 }
 
 const sb = supabase as unknown as {
