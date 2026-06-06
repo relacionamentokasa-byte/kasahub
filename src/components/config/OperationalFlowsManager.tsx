@@ -315,7 +315,7 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
               id="schema-json"
               className="font-mono text-[10px]"
             />
-            <p className="text-[10px] text-foreground/40 italic">Ex: [{"name": "URL", "type": "text"}, {"name": "Legenda", "type": "textarea"}]</p>
+            <p className="text-[10px] text-foreground/40 italic">{"Ex: [{\"name\": \"URL\", \"type\": \"text\"}]"}</p>
           </div>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setSchemaEditor({ open: false, job: null })}>Cancelar</Button>
