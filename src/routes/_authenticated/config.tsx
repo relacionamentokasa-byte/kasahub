@@ -111,6 +111,7 @@ function ConfigPage() {
     { id: "services", label: "Serviços", icon: Briefcase, group: "Operação", component: <ServicesManager canEdit={canEdit} /> },
     { id: "flows", label: "Fluxos Operacionais", icon: GitBranch, group: "Operação", component: <OperationalFlowsManager canEdit={canEdit} /> },
     { id: "contracts", label: "Templates de Jobs", icon: FileText, group: "Operação", component: <ContractTemplatesManager canEdit={canEdit} /> },
+    { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Operação", component: <ScopeTemplatesManager canEdit={canEdit} /> },
     
     { id: "indicators", label: "Indicadores e Metas", icon: Target, group: "Performance", component: <IndicatorsManager /> },
     
