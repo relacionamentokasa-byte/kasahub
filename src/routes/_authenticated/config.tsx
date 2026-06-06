@@ -124,6 +124,10 @@ function ConfigPage() {
           <ServicesManager canEdit={canEdit} />
         </TabsContent>
 
+        <TabsContent value="flows" className="space-y-4">
+          <OperationalFlowsManager canEdit={canEdit} />
+        </TabsContent>
+
         <TabsContent value="contracts" className="space-y-4">
           <ContractTemplatesManager canEdit={canEdit} />
         </TabsContent>
