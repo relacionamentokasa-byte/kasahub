@@ -99,18 +99,25 @@ export function PartnerList({ type }: Props) {
                 </div>
               </div>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                   <Button variant="ghost" size="icon" className="size-8">
                     <MoreHorizontal className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => handleEdit(p)} className="gap-2">
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(p);
+                    }} 
+                    className="gap-2"
+                  >
                     <Edit2 className="size-3.5" /> Editar
                   </DropdownMenuItem>
                   {(isAdmin || can("parceiros", "delete")) && (
                     <DropdownMenuItem 
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         if (confirm("Deseja realmente excluir este parceiro?")) {
                           deleteMut.mutate(p.id);
                         }
