@@ -114,7 +114,7 @@ export function AppTopbar() {
                   {profile?.email ?? "Kasa Marketing"}
                 </p>
               </div>
-              <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center overflow-hidden">
+              <div className="size-9 rounded-full bg-[#FFBC45]/15 ring-1 ring-[#FFBC45]/30 flex items-center justify-center overflow-hidden">
                 {profile?.avatar_url ? (
                   // eslint-disable-next-line jsx-a11y/alt-text
                   <img src={profile.avatar_url} className="size-full object-cover" />

@@ -77,7 +77,7 @@ export function AppSidebar() {
     .filter((g) => g.items.length > 0);
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-[#0C1618]">
       <SidebarHeader className="h-16 flex justify-center px-4">
         <KasaLogo collapsed={collapsed} />
       </SidebarHeader>
@@ -101,7 +101,7 @@ export function AppSidebar() {
                         isActive={active}
                         className={
                           active
-                            ? "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                            ? "bg-[#FFBC45]/10 text-[#FFBC45] hover:bg-[#FFBC45]/15 hover:text-[#FFBC45] data-[active=true]:bg-[#FFBC45]/10 data-[active=true]:text-[#FFBC45]"
                             : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/5"
                         }
                       >
