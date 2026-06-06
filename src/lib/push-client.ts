@@ -9,8 +9,12 @@ import {
 } from "@/lib/push.functions";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const clean = base64String.replace(/\s+/g, "").replace(/=+$/, "");
+  const padding = "=".repeat((4 - (clean.length % 4)) % 4);
+  const base64 = (clean + padding).replace(/-/g, "+").replace(/_/g, "/");
+  if (!/^[A-Za-z0-9+/=]*$/.test(base64)) {
+    throw new Error("Chave VAPID pública inválida (caracteres não base64).");
+  }
   const raw = atob(base64);
   const out = new Uint8Array(raw.length);
   for (let i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i);
