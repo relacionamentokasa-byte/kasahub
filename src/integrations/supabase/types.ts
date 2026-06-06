@@ -611,6 +611,7 @@ export type Database = {
           monthly_value: number
           notes: string | null
           owner_id: string | null
+          partner_id: string | null
           proposal_id: string | null
           service_ids: string[] | null
           start_date: string
@@ -629,6 +630,7 @@ export type Database = {
           monthly_value?: number
           notes?: string | null
           owner_id?: string | null
+          partner_id?: string | null
           proposal_id?: string | null
           service_ids?: string[] | null
           start_date?: string
@@ -647,6 +649,7 @@ export type Database = {
           monthly_value?: number
           notes?: string | null
           owner_id?: string | null
+          partner_id?: string | null
           proposal_id?: string | null
           service_ids?: string[] | null
           start_date?: string
@@ -656,7 +659,15 @@ export type Database = {
           type?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "contracts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       custom_roles: {
         Row: {
@@ -1000,6 +1011,7 @@ export type Database = {
           due_date: string | null
           feedback_at: string | null
           flow_job_id: string | null
+          freelancer_id: string | null
           id: string
           job_type: string | null
           labels: Json
@@ -1032,6 +1044,7 @@ export type Database = {
           due_date?: string | null
           feedback_at?: string | null
           flow_job_id?: string | null
+          freelancer_id?: string | null
           id?: string
           job_type?: string | null
           labels?: Json
@@ -1064,6 +1077,7 @@ export type Database = {
           due_date?: string | null
           feedback_at?: string | null
           flow_job_id?: string | null
+          freelancer_id?: string | null
           id?: string
           job_type?: string | null
           labels?: Json
@@ -1098,6 +1112,13 @@ export type Database = {
             columns: ["flow_job_id"]
             isOneToOne: false
             referencedRelation: "operational_flow_jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
           {
@@ -1197,6 +1218,7 @@ export type Database = {
           name: string
           notes: string | null
           order_index: number
+          origin_partner_id: string | null
           owner_id: string | null
           phone: string | null
           source: string | null
@@ -1214,6 +1236,7 @@ export type Database = {
           name: string
           notes?: string | null
           order_index?: number
+          origin_partner_id?: string | null
           owner_id?: string | null
           phone?: string | null
           source?: string | null
@@ -1231,6 +1254,7 @@ export type Database = {
           name?: string
           notes?: string | null
           order_index?: number
+          origin_partner_id?: string | null
           owner_id?: string | null
           phone?: string | null
           source?: string | null
@@ -1240,6 +1264,13 @@ export type Database = {
           won_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_origin_partner_id_fkey"
+            columns: ["origin_partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_stage_id_fkey"
             columns: ["stage_id"]
@@ -1436,6 +1467,90 @@ export type Database = {
           name?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      partners: {
+        Row: {
+          availability: string | null
+          bank_info: string | null
+          city: string | null
+          commission_type: string | null
+          commission_value: number | null
+          company_name: string | null
+          created_at: string
+          created_by: string | null
+          document: string | null
+          email: string | null
+          hourly_rate: number | null
+          id: string
+          name: string
+          observations: string | null
+          partnership_type: string | null
+          phone: string | null
+          photo_url: string | null
+          pix_key: string | null
+          project_rate: number | null
+          responsible_name: string | null
+          specialty: string | null
+          status: string | null
+          type: string
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          availability?: string | null
+          bank_info?: string | null
+          city?: string | null
+          commission_type?: string | null
+          commission_value?: number | null
+          company_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          document?: string | null
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name: string
+          observations?: string | null
+          partnership_type?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          pix_key?: string | null
+          project_rate?: number | null
+          responsible_name?: string | null
+          specialty?: string | null
+          status?: string | null
+          type: string
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          availability?: string | null
+          bank_info?: string | null
+          city?: string | null
+          commission_type?: string | null
+          commission_value?: number | null
+          company_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          document?: string | null
+          email?: string | null
+          hourly_rate?: number | null
+          id?: string
+          name?: string
+          observations?: string | null
+          partnership_type?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          pix_key?: string | null
+          project_rate?: number | null
+          responsible_name?: string | null
+          specialty?: string | null
+          status?: string | null
+          type?: string
+          updated_at?: string
+          whatsapp?: string | null
         }
         Relationships: []
       }
@@ -2087,6 +2202,7 @@ export type Database = {
           notes: string | null
           owner_id: string | null
           paid_at: string | null
+          partner_id: string | null
           project_id: string | null
           proposal_id: string | null
           status: string
@@ -2111,6 +2227,7 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           paid_at?: string | null
+          partner_id?: string | null
           project_id?: string | null
           proposal_id?: string | null
           status?: string
@@ -2135,6 +2252,7 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           paid_at?: string | null
+          partner_id?: string | null
           project_id?: string | null
           proposal_id?: string | null
           status?: string
@@ -2146,6 +2264,13 @@ export type Database = {
             columns: ["dme_id"]
             isOneToOne: false
             referencedRelation: "extra_demands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
         ]

@@ -74,7 +74,7 @@ export function AppTopbar() {
           <Search className="size-4 text-foreground/40" />
           <input
             type="text"
-            placeholder="Busca global — clientes, tarefas, propostas…"
+            placeholder="Busca global — clientes, tarefas, parceiros, propostas…"
             className="bg-transparent border-none outline-none text-sm w-full placeholder:text-foreground/40"
           />
           <kbd className="text-[10px] font-mono-kasa text-foreground/30 border border-border rounded px-1.5 py-0.5">

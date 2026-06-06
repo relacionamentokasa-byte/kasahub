@@ -19,6 +19,7 @@ import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedParceirosRouteImport } from './routes/_authenticated/parceiros'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
@@ -82,6 +83,11 @@ const AuthenticatedProjetosRoute = AuthenticatedProjetosRouteImport.update({
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedParceirosRoute = AuthenticatedParceirosRouteImport.update({
+  id: '/parceiros',
+  path: '/parceiros',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
@@ -177,6 +183,7 @@ export interface FileRoutesByFullPath {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
+  '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
@@ -202,6 +209,7 @@ export interface FileRoutesByTo {
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
+  '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
@@ -230,6 +238,7 @@ export interface FileRoutesById {
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
+  '/_authenticated/parceiros': typeof AuthenticatedParceirosRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/projetos': typeof AuthenticatedProjetosRouteWithChildren
   '/_authenticated/propostas': typeof AuthenticatedPropostasRouteWithChildren
@@ -259,6 +268,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/integracoes'
     | '/jobs'
+    | '/parceiros'
     | '/portal'
     | '/projetos'
     | '/propostas'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/financeiro'
     | '/integracoes'
     | '/jobs'
+    | '/parceiros'
     | '/portal'
     | '/projetos'
     | '/propostas'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/_authenticated/financeiro'
     | '/_authenticated/integracoes'
     | '/_authenticated/jobs'
+    | '/_authenticated/parceiros'
     | '/_authenticated/portal'
     | '/_authenticated/projetos'
     | '/_authenticated/propostas'
@@ -406,6 +418,13 @@ declare module '@tanstack/react-router' {
       path: '/portal'
       fullPath: '/portal'
       preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/parceiros': {
+      id: '/_authenticated/parceiros'
+      path: '/parceiros'
+      fullPath: '/parceiros'
+      preLoaderRoute: typeof AuthenticatedParceirosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/jobs': {
@@ -568,6 +587,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
+  AuthenticatedParceirosRoute: typeof AuthenticatedParceirosRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedProjetosRoute: typeof AuthenticatedProjetosRouteWithChildren
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRouteWithChildren
@@ -586,6 +606,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
+  AuthenticatedParceirosRoute: AuthenticatedParceirosRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedProjetosRoute: AuthenticatedProjetosRouteWithChildren,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRouteWithChildren,

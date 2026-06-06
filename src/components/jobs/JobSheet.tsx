@@ -36,7 +36,8 @@ import {
   type Job,
   type JobStage,
 } from "@/lib/ops-api";
-import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { fetchPartners } from "@/lib/partners-api";
+import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink, User } from "lucide-react";
 import { toast } from "sonner";
 import { JOB_TYPES } from "@/lib/job-types";
 import { supabase } from "@/integrations/supabase/client";
@@ -77,6 +78,10 @@ export function JobSheet({
     queryKey: ["job-attachments", job?.id],
     queryFn: () => fetchJobAttachments(job!.id),
     enabled: !!job,
+  });
+  const { data: freelancers = [] } = useQuery({
+    queryKey: ["partners", "freelancer"],
+    queryFn: () => fetchPartners("freelancer"),
   });
 
   const updateMut = useMutation({
@@ -193,6 +198,24 @@ export function JobSheet({
                     defaultValue={job.due_date ?? ""}
                     onBlur={(e) => updateMut.mutate({ due_date: e.target.value || null })}
                   />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="text-[10px] capitalize text-foreground/50">Responsável / Freelancer</Label>
+                  <Select
+                    value={(job as any).freelancer_id || "internal"}
+                    onValueChange={(v) => updateMut.mutate({ freelancer_id: v === 'internal' ? null : v } as any)}
+                  >
+                    <SelectTrigger className="gap-2">
+                      <User className="size-3 text-foreground/40" />
+                      <SelectValue placeholder="Usuário Interno" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="internal">Usuário Interno</SelectItem>
+                      {freelancers.map(f => (
+                        <SelectItem key={f.id} value={f.id}>{f.name} ({f.specialty})</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1.5 col-span-2">
                   <Label className="text-[10px] capitalize text-foreground/50">Descrição Geral</Label>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { createLead, type Stage } from "@/lib/crm-api";
+import { fetchPartners } from "@/lib/partners-api";
 import { toast } from "sonner";
 
 export function NewLeadDialog({
@@ -29,7 +31,13 @@ export function NewLeadDialog({
     phone: "",
     value: "",
     source: "",
+    origin_partner_id: "",
     notes: "",
+  });
+
+  const { data: representatives = [] } = useQuery({
+    queryKey: ["partners", "representative"],
+    queryFn: () => fetchPartners("representative"),
   });
 
   const mut = useMutation({
@@ -41,6 +49,7 @@ export function NewLeadDialog({
         phone: form.phone || null,
         value: form.value ? Number(form.value) : 0,
         source: form.source || null,
+        origin_partner_id: form.source === 'Representante' ? form.origin_partner_id : null,
         stage_id: stage.id,
       }),
     onSuccess: () => {
@@ -76,13 +85,40 @@ export function NewLeadDialog({
               />
             </Field>
             <Field label="Origem">
-              <Input
-                value={form.source}
-                onChange={(e) => setForm({ ...form, source: e.target.value })}
-                placeholder="Indicação, Instagram…"
-              />
+              <Select 
+                value={form.source} 
+                onValueChange={(v) => setForm({ ...form, source: v })}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Selecione a origem" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Site">Site</SelectItem>
+                  <SelectItem value="Instagram">Instagram</SelectItem>
+                  <SelectItem value="Google">Google</SelectItem>
+                  <SelectItem value="Indicação">Indicação</SelectItem>
+                  <SelectItem value="Representante">Representante</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
           </div>
+          {form.source === 'Representante' && (
+            <Field label="Representante Responsável *">
+              <Select 
+                value={form.origin_partner_id} 
+                onValueChange={(v) => setForm({ ...form, origin_partner_id: v })}
+              >
+                <SelectTrigger className="bg-background">
+                  <SelectValue placeholder="Selecione o representante" />
+                </SelectTrigger>
+                <SelectContent>
+                  {representatives.map(r => (
+                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
           <div className="grid grid-cols-2 gap-3">
             <Field label="E-mail">
               <Input

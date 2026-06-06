@@ -13,6 +13,7 @@ import {
   fetchLeads,
 } from "@/lib/crm-api";
 import { fetchClients } from "@/lib/ops-api";
+import { fetchPartners } from "@/lib/partners-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
 import { fetchServices, fetchServiceTemplate, type Service } from "@/lib/services-api";
 import { fetchContractTemplates, replaceContractVariables } from "@/lib/contracts-api";
@@ -106,6 +107,10 @@ export function ProposalEditorContent({
   const { data: contractTemplates = [] } = useQuery({
     queryKey: ["contract-templates"],
     queryFn: fetchContractTemplates,
+  });
+  const { data: representatives = [] } = useQuery({
+    queryKey: ["partners", "representative"],
+    queryFn: () => fetchPartners("representative"),
   });
 
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -456,6 +461,17 @@ export function ProposalEditorContent({
                   <SelectContent>
                     <SelectItem value="m" className="cursor-pointer">Mensal</SelectItem>
                     <SelectItem value="a" className="cursor-pointer">Avulso</SelectItem>
+                  </SelectContent>
+                </Select>
+              </F>
+              <F label="Representante Comercial (Comissão)">
+                <Select value={form.commercial_id || "n"} onValueChange={(v) => setForm({ ...form, commercial_id: v === "n" ? "" : v })}>
+                  <SelectTrigger className="cursor-pointer">
+                    <SelectValue placeholder="Sem representante" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="n" className="cursor-pointer">Sem representante</SelectItem>
+                    {representatives.map(r => <SelectItem key={r.id} value={r.id} className="cursor-pointer">{r.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </F>
