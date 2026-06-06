@@ -104,6 +104,7 @@ export async function approveProposal(
     start_date: proposal.first_due_date ?? ymd(new Date()),
     status: "active",
     owner_id: proposal.owner_id ?? null,
+    partner_id: proposal.commercial_id || null, -- Link to representative
     type: proposal.contract_type || (monthly > 0 ? "recurring" : "one_time"),
     service_ids: proposal.service_ids ?? [],
   };
