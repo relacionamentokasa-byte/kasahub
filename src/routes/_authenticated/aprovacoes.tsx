@@ -12,7 +12,7 @@ import { fetchClients } from "@/lib/ops-api";
 import { type Approval, type ApprovalStatus } from "@/lib/approvals-api";
 
 export const Route = createFileRoute("/_authenticated/aprovacoes")({
-  head: () => ({ meta: [{ title: "Aprovações — KASA OS" }] }),
+  head: () => ({ meta: [{ title: "Aprovações — KASA HUB" }] }),
   component: ApprovalsPage,
 });
 

@@ -9,7 +9,7 @@ import { NewEventDialog } from "@/components/calendar/NewEventDialog";
 import { fetchClients } from "@/lib/ops-api";
 
 export const Route = createFileRoute("/_authenticated/calendario")({
-  head: () => ({ meta: [{ title: "Calendário — KASA OS" }] }),
+  head: () => ({ meta: [{ title: "Calendário — KASA HUB" }] }),
   component: CalendarPage,
 });
 

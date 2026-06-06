@@ -35,7 +35,7 @@ export async function updateMyProfile(patch: any) {
 export async function fetchProfiles() {
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, full_name, display_name, avatar_url, job_title")
+    .select("id, full_name, display_name, avatar_url, job_title, agency_logo_url")
     .order("full_name", { ascending: true });
 
   if (error) throw error;

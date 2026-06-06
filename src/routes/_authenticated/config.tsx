@@ -26,7 +26,7 @@ import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/config")({
-  head: () => ({ meta: [{ title: "Configurações — KASA OS" }] }),
+  head: () => ({ meta: [{ title: "Configurações — KASA HUB" }] }),
   component: ConfigPage,
 });
 
@@ -74,7 +74,7 @@ function ConfigPage() {
           </span>
           <h1 className="font-display text-3xl font-bold mt-1">Configurações da agência</h1>
           <p className="text-foreground/60 text-sm mt-1">
-            Dados, identidade visual, notificações e integrações do KASA OS.
+            Dados, identidade visual, notificações e integrações do KASA HUB.
           </p>
         </div>
         <Button
@@ -108,7 +108,7 @@ function ConfigPage() {
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
-          <UserProfileTab />
+          <UserProfileTab canEdit={canEdit} />
         </TabsContent>
 
         <TabsContent value="perms" className="space-y-4">
@@ -349,7 +349,7 @@ function ThemePreference() {
   );
 }
 
-function UserProfileTab() {
+function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
   const qc = useQueryClient();
   const { data: profile, isLoading } = useQuery({
     queryKey: ["my-profile"],
@@ -379,16 +379,32 @@ function UserProfileTab() {
   return (
     <Card>
       <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/3 space-y-4">
-          <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">Foto de perfil</Label>
-          <ProfileImageUpload
-            value={form.avatar_url}
-            onChange={(url) => setForm({ ...form, avatar_url: url })}
-            label="Sua Foto"
-          />
-          <p className="text-[10px] text-foreground/40 text-center">
-            Recomendado: 400x400px (JPG, PNG ou WebP)
-          </p>
+        <div className="w-full md:w-1/3 space-y-6">
+          <div className="space-y-4">
+            <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">Foto de perfil</Label>
+            <ProfileImageUpload
+              value={form.avatar_url}
+              onChange={(url) => setForm({ ...form, avatar_url: url })}
+              label="Sua Foto"
+            />
+            <p className="text-[10px] text-foreground/40 text-center">
+              Recomendado: 400x400px (JPG, PNG ou WebP)
+            </p>
+          </div>
+
+          {canEdit && (
+            <div className="space-y-4 pt-6 border-t border-border">
+              <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">Logo da Agência (HUB)</Label>
+              <ProfileImageUpload
+                value={form.agency_logo_url}
+                onChange={(url) => setForm({ ...form, agency_logo_url: url })}
+                label="Logo Hub"
+              />
+              <p className="text-[10px] text-foreground/40 text-center">
+                Atualiza em todo o sistema e links de aprovação
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 space-y-4">
