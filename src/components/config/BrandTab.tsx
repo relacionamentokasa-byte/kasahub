@@ -42,6 +42,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
               value={form.logo_url}
               onChange={(url) => set("logo_url", url)}
               label="Logo HUB"
+              shape="rect"
             />
             <p className="text-[10px] text-foreground/40 text-center">
               Aparece na barra lateral, propostas e DMEs.

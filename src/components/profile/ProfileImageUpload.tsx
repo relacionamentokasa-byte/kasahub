@@ -12,10 +12,12 @@ export function ProfileImageUpload({
   value,
   onChange,
   label = "Foto de perfil",
+  shape = "round",
 }: {
   value?: string | null;
   onChange: (url: string | null) => void;
   label?: string;
+  shape?: "round" | "rect";
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -78,7 +80,7 @@ export function ProfileImageUpload({
     <div className="space-y-4">
       <div className="flex flex-col items-center gap-4">
         <div className="relative group">
-          <div className="size-32 rounded-full border-2 border-primary/20 bg-muted overflow-hidden">
+          <div className={`size-32 border-2 border-primary/20 bg-muted overflow-hidden ${shape === "round" ? "rounded-full" : "rounded-xl"}`}>
             {value ? (
               <img
                 src={value}
@@ -93,7 +95,7 @@ export function ProfileImageUpload({
           </div>
           <button
             onClick={() => inputRef.current?.click()}
-            className="absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer"
+            className={`absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${shape === "round" ? "rounded-full" : "rounded-xl"}`}
           >
             <Move className="size-5 mb-1" />
             <span className="text-[10px] font-medium">Ajustar</span>
@@ -150,8 +152,8 @@ export function ProfileImageUpload({
                 image={image}
                 crop={crop}
                 zoom={zoom}
-                aspect={1}
-                cropShape="round"
+                aspect={shape === "round" ? 1 : 16 / 9}
+                cropShape={shape === "round" ? "round" : "rect"}
                 showGrid={false}
                 onCropChange={setCrop}
                 onCropComplete={onCropComplete}
