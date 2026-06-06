@@ -180,7 +180,10 @@ export function ExecutiveDashboard() {
         id: c.id, time: new Date(c.created_at), user: "Sistema", action: "Novo Contrato", target: clients.find(cl => cl.id === c.client_id)?.company || "Cliente", description: `R$ ${c.monthly_value}/mês`, type: 'contract' as const
       })),
       ...periodDmes.filter(d => d.status === 'approved').map(d => ({
-        id: d.id, time: new Date(d.created_at), user: "Cliente", action: "Aprovou DME", target: d.title, type: 'dme' as const
+        id: d.id, time: new Date(d.updated_at), user: "Cliente", action: "Aprovou DME", target: d.title, type: 'dme' as const
+      })),
+      ...periodTxs.filter(t => t.status === 'paid' && t.kind === 'income').map(t => ({
+        id: t.id, time: new Date(t.paid_at || t.updated_at), user: "Financeiro", action: "Recebimento", target: t.description || "Transação", description: `Valor: R$ ${t.amount}`, type: 'finance' as const
       }))
     ];
 
