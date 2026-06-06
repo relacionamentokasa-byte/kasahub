@@ -300,7 +300,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
               </div>
             )}
             {(() => {
-              const respId = (job as any).responsible_id;
+              const respId = (job as any).responsible_id || job.assignee_id;
               if (!respId) return null;
               const profile = profiles.find(p => p.id === respId);
               if (!profile) return null;
