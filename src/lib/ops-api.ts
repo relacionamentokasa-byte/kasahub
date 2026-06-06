@@ -350,6 +350,7 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
 
 export async function addJobComment(jobId: string, content: string) {
   const { data: u } = await supabase.auth.getUser();
+  const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
   const mentions = Array.from(content.matchAll(/@(\w+)/g)).map((m) => m[1]);
   const { data, error } = await supabase
     .from("job_comments")
@@ -357,6 +358,16 @@ export async function addJobComment(jobId: string, content: string) {
     .select()
     .single();
   if (error) throw error;
+
+  if (content.includes('@')) {
+    await handleMentions(content, {
+      title: `Job: ${job?.title}`,
+      link: `/jobs`,
+      originType: 'jobs',
+      originId: jobId
+    });
+  }
+
   return data;
 }
 
