@@ -110,7 +110,7 @@ serve(async (req) => {
           .select('id, google_event_id')
           .eq('created_by', user.id)
           .not('google_event_id', 'is', null)
-          .not('google_event_id', 'in', `(${pulledGoogleIds.join(',')})`);
+          .not('google_event_id', 'in', pulledGoogleIds);
         
         if (eventsToDelete && eventsToDelete.length > 0) {
           console.log(`Deleting ${eventsToDelete.length} events that were removed from Google`);
