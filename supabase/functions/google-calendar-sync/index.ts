@@ -7,11 +7,13 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log(`Sync function triggered: ${req.method}`);
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    console.log("Initializing Supabase client...");
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -20,10 +22,16 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) throw new Error('No authorization header')
     
+    console.log("Getting user from token...");
     const { data: { user }, error: userError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-    if (userError || !user) throw new Error('Invalid token')
+    if (userError || !user) {
+      console.error("User error:", userError);
+      throw new Error('Invalid token');
+    }
+    console.log(`User authenticated: ${user.id}`);
 
     const body = await req.json()
+    console.log("Request body:", JSON.stringify(body));
     const { action, eventData, googleEventId } = body
 
     const googleApiKey = Deno.env.get('GOOGLE_CALENDAR_API_KEY');
@@ -37,17 +45,24 @@ serve(async (req) => {
       "X-Connection-Api-Key": googleApiKey,
     };
 
+    let resultCount = 0;
+
     // 1. PULL: Google -> KASA
     if (action === "sync-all" || action === "pull") {
+      console.log("Action: Pulling from Google...");
       const response = await fetch("https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events", {
         headers: gatewayHeaders,
       });
 
-
-      if (!response.ok) throw new Error(`Erro Google: ${await response.text()}`);
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`Google API Error: ${errorText}`);
+        throw new Error(`Erro Google: ${errorText}`);
+      }
 
       const googleData = await response.json();
       const googleEvents = googleData.items || [];
+      console.log(`Found ${googleEvents.length} events in Google Calendar`);
 
       for (const gEvent of googleEvents) {
         if (gEvent.status === 'cancelled') continue;
@@ -68,21 +83,51 @@ serve(async (req) => {
           ends_at: endsAt,
           google_event_id: gEvent.id,
           source: "google",
-          user_id: user.id,
+          created_by: user.id,
           kind: "meeting",
           all_day: !gEvent.start.dateTime
         };
 
         if (existing) {
-          await supabase.from('calendar_events').update(payload).eq('id', existing.id);
+          console.log(`Updating existing event: ${existing.id}`);
+          const { error: updateError } = await supabase.from('calendar_events').update(payload).eq('id', existing.id);
+          if (updateError) console.error("Update error:", updateError);
+          else resultCount++;
         } else {
-          await supabase.from('calendar_events').insert(payload);
+          console.log(`Inserting new event from Google: ${gEvent.id}`);
+          const { error: insertError } = await supabase.from('calendar_events').insert(payload);
+          if (insertError) console.error("Insert error:", insertError);
+          else resultCount++;
         }
       }
+
+      // 1.1 Handle Deletions from Google -> KASA
+      // Find events in KASA HUB that have a google_event_id but are not in the pulled list
+      const pulledGoogleIds = googleEvents.map((e: any) => e.id);
+      if (pulledGoogleIds.length > 0) {
+        const { data: eventsToDelete } = await supabase
+          .from('calendar_events')
+          .select('id, google_event_id')
+          .eq('created_by', user.id)
+          .not('google_event_id', 'is', null)
+          .not('google_event_id', 'in', pulledGoogleIds);
+        
+        if (eventsToDelete && eventsToDelete.length > 0) {
+          console.log(`Deleting ${eventsToDelete.length} events that were removed from Google`);
+          await supabase.from('calendar_events').delete().in('id', eventsToDelete.map(e => e.id));
+        }
+      }
+
+
+      // Update last_pulled_at
+      await supabase.from('google_calendar_connections')
+        .update({ last_pulled_at: new Date().toISOString() })
+        .eq('user_id', user.id);
     }
 
     // 2. PUSH: KASA -> Google (Create or Update)
     if (action === "push-event" && eventData) {
+      console.log(`Action: Pushing event to Google: ${eventData.id}`);
       const gPayload = {
         summary: eventData.title,
         description: eventData.description,
@@ -109,19 +154,27 @@ serve(async (req) => {
         await supabase.from('calendar_events')
           .update({ google_event_id: created.id, last_synced_at: new Date().toISOString() })
           .eq('id', eventData.id);
+        resultCount = 1;
+      } else {
+        const errorText = await response.text();
+        console.error(`Push error: ${errorText}`);
+        throw new Error(`Erro ao enviar para Google: ${errorText}`);
       }
     }
 
     // 3. DELETE: KASA -> Google
     if (action === "delete-event" && googleEventId) {
-      await fetch(`https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events/${googleEventId}`, {
+      console.log(`Action: Deleting event from Google: ${googleEventId}`);
+      const response = await fetch(`https://connector-gateway.lovable.dev/google_calendar/calendar/v3/calendars/primary/events/${googleEventId}`, {
         method: "DELETE",
         headers: gatewayHeaders,
       });
+      if (response.ok) resultCount = 1;
     }
 
-    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ success: true, count: resultCount }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   } catch (error) {
+    console.error("Function error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
   }
 })

@@ -23,7 +23,9 @@ import { supabase } from "@/integrations/supabase/client";
 export function GoogleCalendarIntegration() {
   const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [emailInput, setEmailInput] = useState("");
+
 
   const { data: connection, isLoading } = useQuery({
     queryKey: ["google-calendar-connection"],
@@ -75,19 +77,36 @@ export function GoogleCalendarIntegration() {
   };
 
   const handleSyncNow = async () => {
-    toast.info("Sincronização iniciada...");
+    setIsSyncing(true);
+    const syncToast = toast.info("Sincronização iniciada...", { duration: 10000 });
     try {
-      // Trigger edge function for sync
+      console.log("Chamando edge function de sincronização...");
       const { data, error } = await supabase.functions.invoke("google-calendar-sync", {
         body: { action: "sync-all" }
       });
-      if (error) throw error;
-      toast.success("Sincronização concluída!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Erro ao sincronizar eventos.");
+      
+      if (error) {
+        console.error("Erro invoke:", error);
+        throw error;
+      }
+      
+      if (data?.error) {
+        console.error("Erro retornado pela função:", data.error);
+        throw new Error(data.error);
+      }
+      
+      await queryClient.invalidateQueries({ queryKey: ["google-calendar-connection"] });
+      toast.dismiss(syncToast);
+      toast.success(`Sincronização concluída! ${data?.count || 0} eventos processados.`);
+    } catch (error: any) {
+      console.error("Erro na sincronização:", error);
+      toast.dismiss(syncToast);
+      toast.error(`Erro ao sincronizar: ${error.message || 'Verifique sua conexão'}`);
+    } finally {
+      setIsSyncing(false);
     }
   };
+
 
   if (isLoading) {
     return (
@@ -181,8 +200,16 @@ export function GoogleCalendarIntegration() {
                   variant="secondary" 
                   className="w-full" 
                   onClick={handleSyncNow}
+                  disabled={isSyncing}
+
                 >
-                  <RefreshCw className="size-4 mr-2" /> Forçar Sincronização Agora
+                    {isSyncing ? (
+                      <Loader2 className="size-4 mr-2 animate-spin" />
+                    ) : (
+                      <RefreshCw className="size-4 mr-2" />
+                    )}
+                    {isSyncing ? "Sincronizando..." : "Forçar Sincronização Agora"}
+
                 </Button>
               </div>
             </div>
