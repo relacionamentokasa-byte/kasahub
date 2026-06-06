@@ -98,8 +98,8 @@ serve(async (req) => {
       const response = await fetch(url, {
         method,
         headers: {
-          "Authorization": `Bearer ${googleApiKey}`,
-          "Content-Type": "application/json"
+          ...gatewayHeaders,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(gPayload)
       });
