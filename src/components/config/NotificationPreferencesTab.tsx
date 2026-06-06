@@ -5,7 +5,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyProfile } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { Link } from "@tanstack/react-router";
 
 function ToggleRow({
   title,
@@ -33,7 +33,7 @@ function ToggleRow({
 
 export function NotificationPreferencesTab() {
   const qc = useQueryClient();
-  const navigate = useNavigate();
+  // useNavigate removido pois usaremos Link ou redirecionamento manual se necessário
   
   const { data: { user } = {} } = useQuery({
     queryKey: ["auth-user"],
