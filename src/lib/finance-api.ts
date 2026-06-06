@@ -5,7 +5,8 @@ export type BankAccount = Database["public"]["Tables"]["bank_accounts"]["Row"];
 export type FinancialCategory = Database["public"]["Tables"]["financial_categories"]["Row"];
 export type Contract = Database["public"]["Tables"]["contracts"]["Row"];
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
-export type Recurrence = Database["public"]["Tables"]["recurrences"]["Row"];
+
+
 
 
 // ---------- Bank accounts ----------
@@ -76,138 +77,43 @@ export async function createContract(input: Database["public"]["Tables"]["contra
   return data;
 }
 
-export async function updateContract(id: string, patch: Database["public"]["Tables"]["contracts"]["Update"]) {
-  const { data, error } = await supabase.from("contracts").update(patch).eq("id", id).select().single();
-  if (error) throw error;
-  return data;
-}
-
 export async function deleteContract(id: string) {
   const { error } = await supabase.from("contracts").delete().eq("id", id);
   if (error) throw error;
 }
 
 export async function terminateContract(id: string, cleanupMode: "keep" | "cancel" | "delete") {
-  const { data: u } = await supabase.auth.getUser();
-  
   // 1. Update contract status
   const { error: ctErr } = await supabase.from("contracts").update({ status: "finished" }).eq("id", id);
   if (ctErr) throw ctErr;
 
-  // 2. Find associated recurrences
-  const { data: recs } = await supabase.from("recurrences").select("id").eq("contract_id", id).eq("status", "active");
-  
-  let totalRemoved = { count: 0, total: 0 };
-  if (recs && recs.length > 0) {
-    for (const rec of recs) {
-      const res = await terminateRecurrence(rec.id, cleanupMode);
-      totalRemoved.count += res.count;
-      totalRemoved.total += res.total;
-    }
-  }
-
-  return totalRemoved;
-}
-
-
-// ---------- Transactions ----------
-
-
-// ---------- Recurrences ----------
-export async function fetchRecurrences(): Promise<Recurrence[]> {
-  const { data, error } = await supabase.from("recurrences").select("*").order("created_at", { ascending: false });
-  if (error) throw error;
-  return data ?? [];
-}
-
-export async function createRecurrence(input: Database["public"]["Tables"]["recurrences"]["Insert"]) {
-  const { data: u } = await supabase.auth.getUser();
-  const { data, error } = await supabase
-    .from("recurrences")
-    .insert({ ...input, owner_id: u.user?.id ?? "" })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function updateRecurrence(id: string, patch: Database["public"]["Tables"]["recurrences"]["Update"]) {
-  const { data, error } = await supabase.from("recurrences").update(patch).eq("id", id).select().single();
-  if (error) throw error;
-  return data;
-}
-
-export async function deleteFutureRecurrenceInstallments(
-  recurrenceId: string,
-  mode: "open_only" | "from_date" | "all_future",
-  fromDate?: string,
-) {
-  const { data: u } = await supabase.auth.getUser();
+  // 2. Find associated transactions that are pending and future
   const now = new Date().toISOString().slice(0, 10);
-  
-  let q = supabase.from("transactions").select("id, amount, status").eq("recurrence_id", recurrenceId);
-  
-  if (mode === "open_only") {
-    q = q.eq("status", "pending");
-  } else if (mode === "from_date" && fromDate) {
-    q = q.gte("due_date", fromDate);
-  } else if (mode === "all_future") {
-    q = q.gt("due_date", now);
-  }
+  const { data: txs } = await supabase
+    .from("transactions")
+    .select("id")
+    .eq("contract_id", id)
+    .eq("status", "pending")
+    .gt("due_date", now);
 
-  const { data: txs, error: fetchErr } = await q;
-  if (fetchErr) throw fetchErr;
-
-  // Filter out paid/cleared/reconciled (we only have 'paid' status currently)
-  const toDelete = (txs ?? []).filter(t => t.status !== "paid");
-  const ids = toDelete.map(t => t.id);
-
-  if (ids.length > 0) {
-    const totalRemoved = toDelete.reduce((s, t) => s + Number(t.amount), 0);
-    const { error: delErr } = await supabase.from("transactions").delete().in("id", ids);
-    if (delErr) throw delErr;
-
-    // Audit
-    await supabase.from("recurrence_audit").insert({
-      recurrence_id: recurrenceId,
-      user_id: u.user?.id ?? "",
-      action: "delete_future_installments",
-      details: {
-        mode,
-        count: ids.length,
-        total: totalRemoved,
-        timestamp: new Date().toISOString()
-      }
-    });
-
-    return { count: ids.length, total: totalRemoved };
-  }
-
-  return { count: 0, total: 0 };
-}
-
-export async function terminateRecurrence(id: string, cleanupMode?: "keep" | "cancel" | "delete") {
-  const { data: u } = await supabase.auth.getUser();
-  await updateRecurrence(id, { status: "terminated" });
-
-  let removed = { count: 0, total: 0 };
-  if (cleanupMode === "delete") {
-    removed = await deleteFutureRecurrenceInstallments(id, "all_future");
-  } else if (cleanupMode === "cancel") {
-    const { data: txs } = await supabase
-      .from("transactions")
-      .select("id")
-      .eq("recurrence_id", id)
-      .eq("status", "pending")
-      .gt("due_date", new Date().toISOString().slice(0, 10));
-    
-    if (txs && txs.length > 0) {
-      await supabase.from("transactions").update({ status: "cancelled" }).in("id", txs.map(t => t.id));
+  let result = { count: 0, total: 0 };
+  if (txs && txs.length > 0) {
+    if (cleanupMode === "delete") {
+      const { error: delErr } = await supabase.from("transactions").delete().in("id", txs.map(t => t.id));
+      if (delErr) throw delErr;
+      result.count = txs.length;
+    } else if (cleanupMode === "cancel") {
+      const { error: upErr } = await supabase.from("transactions").update({ status: "cancelled" }).in("id", txs.map(t => t.id));
+      if (upErr) throw upErr;
+      result.count = txs.length;
     }
   }
 
-  return removed;
+  return result;
 }
+
+
+
 
 // ---------- Transactions ----------
 export async function fetchTransactions(filters: {
@@ -247,16 +153,8 @@ export async function createTransaction(
     return [data];
   }
 
-  // Create recurrence for multi-installment transactions
-  const recurrence = await createRecurrence({
-    start_date: input.due_date ?? new Date().toISOString().slice(0, 10),
-    status: "active",
-    amount: input.amount,
-    description: input.description,
-    contract_id: input.contract_id,
-    owner_id: owner_id ?? "",
-  });
-
+  // For backward compatibility or internal grouping, we still use recurrence_id if needed,
+  // but architecturally everything is contract-driven now.
   const base = new Date(input.due_date ?? new Date().toISOString().slice(0, 10));
   const amount = Math.round(((Number(input.amount) ?? 0) / total) * 100) / 100;
   const rows = Array.from({ length: total }).map((_, i) => {
@@ -269,15 +167,15 @@ export async function createTransaction(
       due_date: d.toISOString().slice(0, 10),
       installment_total: total,
       installment_number: i + 1,
-      description: `${input.description} (${i + 1}/${total})`,
-      recurrence_id: recurrence.id,
-      is_recurring: true,
+      description: total > 1 ? `${input.description} (${i + 1}/${total})` : input.description,
+      is_recurring: total > 1,
     };
   });
   const { data, error } = await supabase.from("transactions").insert(rows).select();
   if (error) throw error;
   return data ?? [];
 }
+
 
 
 export async function bulkInsertTransactions(rows: Database["public"]["Tables"]["transactions"]["Insert"][]) {
@@ -295,10 +193,28 @@ export async function updateTransaction(id: string, patch: Database["public"]["T
   return data;
 }
 
-export async function deleteTransaction(id: string) {
-  const { error } = await supabase.from("transactions").delete().eq("id", id);
-  if (error) throw error;
+export async function deleteTransaction(id: string, cascadeContractFuture: boolean = false) {
+  const { data: tx } = await supabase.from("transactions").select("*").eq("id", id).single();
+  if (!tx) return;
+
+  if (tx.status === 'paid') {
+    throw new Error("Lançamentos pagos não podem ser excluídos. Realize um estorno ou cancelamento.");
+  }
+
+  if (cascadeContractFuture && tx.contract_id) {
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("contract_id", tx.contract_id)
+      .eq("status", "pending")
+      .gte("due_date", tx.due_date);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("transactions").delete().eq("id", id);
+    if (error) throw error;
+  }
 }
+
 
 export async function bulkDeleteTransactions(ids: string[]) {
   const { error } = await supabase.from("transactions").delete().in("id", ids);

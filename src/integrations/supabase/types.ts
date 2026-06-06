@@ -1304,88 +1304,6 @@ export type Database = {
           },
         ]
       }
-      recurrence_audit: {
-        Row: {
-          action: string
-          created_at: string
-          details: Json | null
-          id: string
-          recurrence_id: string | null
-          user_id: string
-        }
-        Insert: {
-          action: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          recurrence_id?: string | null
-          user_id: string
-        }
-        Update: {
-          action?: string
-          created_at?: string
-          details?: Json | null
-          id?: string
-          recurrence_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recurrence_audit_recurrence_id_fkey"
-            columns: ["recurrence_id"]
-            isOneToOne: false
-            referencedRelation: "recurrences"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      recurrences: {
-        Row: {
-          amount: number | null
-          contract_id: string | null
-          created_at: string
-          description: string | null
-          end_date: string | null
-          id: string
-          owner_id: string
-          start_date: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          amount?: number | null
-          contract_id?: string | null
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          id?: string
-          owner_id: string
-          start_date: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          amount?: number | null
-          contract_id?: string | null
-          created_at?: string
-          description?: string | null
-          end_date?: string | null
-          id?: string
-          owner_id?: string
-          start_date?: string
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "recurrences_contract_id_fkey"
-            columns: ["contract_id"]
-            isOneToOne: false
-            referencedRelation: "contracts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       service_job_checklist: {
         Row: {
           content: string
@@ -1573,7 +1491,6 @@ export type Database = {
           paid_at: string | null
           project_id: string | null
           proposal_id: string | null
-          recurrence_id: string | null
           status: string
           updated_at: string
         }
@@ -1597,7 +1514,6 @@ export type Database = {
           paid_at?: string | null
           project_id?: string | null
           proposal_id?: string | null
-          recurrence_id?: string | null
           status?: string
           updated_at?: string
         }
@@ -1621,19 +1537,10 @@ export type Database = {
           paid_at?: string | null
           project_id?: string | null
           proposal_id?: string | null
-          recurrence_id?: string | null
           status?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "transactions_recurrence_id_fkey"
-            columns: ["recurrence_id"]
-            isOneToOne: false
-            referencedRelation: "recurrences"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {

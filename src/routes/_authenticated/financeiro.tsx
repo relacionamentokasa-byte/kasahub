@@ -21,13 +21,8 @@ import {
   Landmark,
   Link as LinkIcon,
   MoreHorizontal,
-  Pause,
-  Play,
   XCircle,
   Calendar,
-  Tag,
-  Briefcase,
-  CheckSquare,
 } from "lucide-react";
 
 import {
@@ -81,12 +76,10 @@ import {
   fetchCategories,
   fetchContracts,
   fetchTransactions,
-  fetchRecurrences,
   markPaid,
-
   bulkDeleteTransactions,
   bulkUpdateTransactions,
-  updateRecurrence,
+  terminateContract,
 } from "@/lib/finance-api";
 
 import { fetchClients } from "@/lib/ops-api";
@@ -96,9 +89,8 @@ import { ImportTransactionsDialog } from "@/components/finance/ImportTransaction
 import { SettleTransactionDialog } from "@/components/finance/SettleTransactionDialog";
 import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
-import { DeleteFutureInstallmentsDialog } from "@/components/finance/DeleteFutureInstallmentsDialog";
+import { DeleteTransactionCascadeDialog } from "@/components/finance/DeleteTransactionCascadeDialog";
 import { TerminateRecurrenceDialog } from "@/components/finance/TerminateRecurrenceDialog";
-
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA OS" }] }),
@@ -124,9 +116,6 @@ function FinanceiroPage() {
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
-  const { data: recurrences = [] } = useQuery({ queryKey: ["recurrences"], queryFn: fetchRecurrences });
-
-
 
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
@@ -147,9 +136,8 @@ function FinanceiroPage() {
   const [openImport, setOpenImport] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [deleteFutureRecurrenceId, setDeleteFutureRecurrenceId] = useState<string | null>(null);
-  const [terminateRecurrenceId, setTerminateRecurrenceId] = useState<string | null>(null);
-
+  const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
+  const [terminateContractId, setTerminateContractId] = useState<string | null>(null);
 
   function shiftMonth(delta: number) {
     const d = new Date(year, month + delta, 1);
@@ -177,7 +165,6 @@ function FinanceiroPage() {
     { income: 0, expense: 0 },
   );
 
-  // Filtered rows for Lista
   const rows = useMemo(() => {
     return txs.filter((t) => {
       if (period.from && t.due_date < period.from) return false;
@@ -197,10 +184,17 @@ function FinanceiroPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
     onError: (e: Error) => toast.error(e.message),
   });
+
   const delTx = useMutation({
-    mutationFn: (id: string) => deleteTransaction(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
+    mutationFn: ({ id, cascade }: { id: string; cascade?: boolean }) => deleteTransaction(id, cascade),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setDeleteTxId(null);
+      toast.success("Lançamento removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
+
   const delAcc = useMutation({
     mutationFn: (id: string) => deleteBankAccount(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bank_accounts"] }),
@@ -226,19 +220,17 @@ function FinanceiroPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const toggleRecurrenceStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: "active" | "paused" | "terminated" }) => 
-      updateRecurrence(id, { status }),
+  const terminateContractMutation = useMutation({
+    mutationFn: ({ id, cleanup }: { id: string; cleanup: "keep" | "cancel" | "delete" }) => 
+      terminateContract(id, cleanup),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      qc.invalidateQueries({ queryKey: ["recurrences"] });
-      toast.success("Status da recorrência atualizado");
+      qc.invalidateQueries({ queryKey: ["contracts"] });
+      toast.success("Contrato encerrado");
     },
     onError: (e: Error) => toast.error(e.message),
   });
 
-
-  // Visão Mensal aggregations
   const monthly = chartData.map((m) => ({ ...m, profit: m.income - m.expense }));
 
   return (
@@ -271,16 +263,13 @@ function FinanceiroPage() {
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="bg-surface border border-border">
             <TabsTrigger value="list" className="gap-2"><List className="size-4" /> Lista</TabsTrigger>
-            <TabsTrigger value="recurrences" className="gap-2"><Clock className="size-4" /> Recorrências</TabsTrigger>
             <TabsTrigger value="monthly" className="gap-2"><BarChart3 className="size-4" /> Visão Mensal</TabsTrigger>
             <TabsTrigger value="annual" className="gap-2"><LineIcon className="size-4" /> Previsão Anual</TabsTrigger>
             <TabsTrigger value="accounts" className="gap-2"><Landmark className="size-4" /> Contas Banc.</TabsTrigger>
-
           </TabsList>
 
           {/* ============ LISTA ============ */}
           <TabsContent value="list" className="mt-6 space-y-6">
-            {/* Month nav */}
             <div className="flex items-center justify-between bg-surface border border-border rounded-2xl px-4 py-3">
               <Button variant="outline" size="icon" onClick={() => shiftMonth(-1)} aria-label="Mês anterior">
                 <ChevronLeft className="size-4" />
@@ -291,7 +280,6 @@ function FinanceiroPage() {
               </Button>
             </div>
 
-            {/* Bulk Actions Toolbar */}
             {selectedIds.length > 0 && (
               <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-2xl px-5 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
                 <div className="flex items-center gap-3">
@@ -321,40 +309,22 @@ function FinanceiroPage() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => {
-                        const selectedRecurrenceIds = Array.from(new Set(
-                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
-                              .map(r => r.recurrence_id)
+                        const selectedContractIds = Array.from(new Set(
+                          rows.filter(r => selectedIds.includes(r.id) && r.contract_id)
+                              .map(r => r.contract_id)
                         )) as string[];
 
-                        if (selectedRecurrenceIds.length > 0) {
-                          setDeleteFutureRecurrenceId(selectedRecurrenceIds[0]);
-                          if (selectedRecurrenceIds.length > 1) {
-                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
+                        if (selectedContractIds.length > 0) {
+                          setTerminateContractId(selectedContractIds[0]);
+                          if (selectedContractIds.length > 1) {
+                            toast.info("Múltiplas contratos selecionados. Agindo sobre o primeiro encontrado.");
                           }
                         } else {
-                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                          toast.error("Nenhum contrato identificado nos itens selecionados");
                         }
                       }}>
-                        <Calendar className="size-4 mr-2" /> Excluir parcelas futuras
+                        <XCircle className="size-4 mr-2" /> Encerrar Contrato
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => {
-                        const selectedRecurrenceIds = Array.from(new Set(
-                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
-                              .map(r => r.recurrence_id)
-                        )) as string[];
-
-                        if (selectedRecurrenceIds.length > 0) {
-                          setTerminateRecurrenceId(selectedRecurrenceIds[0]);
-                          if (selectedRecurrenceIds.length > 1) {
-                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
-                          }
-                        } else {
-                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
-                        }
-                      }}>
-                        <XCircle className="size-4 mr-2" /> Encerrar recorrência
-                      </DropdownMenuItem>
-
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-rose-400" onClick={() => bulkDelete.mutate(selectedIds)}>
                         <Trash2 className="size-4 mr-2" /> Excluir selecionadas
@@ -365,36 +335,13 @@ function FinanceiroPage() {
               </div>
             )}
 
-
-            {/* KPI grid — apenas 4 indicadores */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Kpi
-                label="Receitas Previstas"
-                value={brl(indicators.receitasPrevistas)}
-                tone="primary"
-                icon={<Clock className="size-4" />}
-              />
-              <Kpi
-                label="Receitas Recebidas"
-                value={brl(indicators.receitasRecebidas)}
-                tone="success"
-                icon={<TrendingUp className="size-4" />}
-              />
-              <Kpi
-                label="Parcelas Futuras"
-                value={brl(indicators.parcelasFuturas)}
-                tone="warning"
-                icon={<CircleDollarSign className="size-4" />}
-              />
-              <Kpi
-                label="Despesas Pagas"
-                value={brl(indicators.despesasPagas)}
-                tone="danger"
-                icon={<TrendingDown className="size-4" />}
-              />
+              <Kpi label="Receitas Previstas" value={brl(indicators.receitasPrevistas)} tone="primary" icon={<Clock className="size-4" />} />
+              <Kpi label="Receitas Recebidas" value={brl(indicators.receitasRecebidas)} tone="success" icon={<TrendingUp className="size-4" />} />
+              <Kpi label="Parcelas Futuras" value={brl(indicators.parcelasFuturas)} tone="warning" icon={<CircleDollarSign className="size-4" />} />
+              <Kpi label="Despesas Pagas" value={brl(indicators.despesasPagas)} tone="danger" icon={<TrendingDown className="size-4" />} />
             </div>
 
-            {/* Filters (optional) */}
             <div className="grid grid-cols-12 gap-3">
               <div className="col-span-12 md:col-span-4 relative">
                 <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
@@ -425,24 +372,14 @@ function FinanceiroPage() {
               ]} />
             </div>
 
-            {/* Lançamentos do mês */}
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-border font-display font-semibold">
-                Lançamentos de {monthLabelShort}
-              </div>
+              <div className="px-5 py-3 border-b border-border font-display font-semibold">Lançamentos de {monthLabelShort}</div>
               <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center">
                 <div className="col-span-1 flex items-center gap-3">
-                  <Checkbox 
-                    checked={rows.length > 0 && selectedIds.length === rows.length}
-                    onCheckedChange={(checked) => {
-                      if (checked) setSelectedIds(rows.map(r => r.id));
-                      else setSelectedIds([]);
-                    }}
-                  />
+                  <Checkbox checked={rows.length > 0 && selectedIds.length === rows.length} onCheckedChange={(checked) => setSelectedIds(checked ? rows.map(r => r.id) : [])} />
                   <span>Status</span>
                 </div>
                 <div className="col-span-3">Descrição</div>
-
                 <div className="col-span-2">Categoria</div>
                 <div className="col-span-2">Cliente</div>
                 <div className="col-span-1 text-right">Valor</div>
@@ -456,7 +393,7 @@ function FinanceiroPage() {
                   const todayStr = new Date().toISOString().slice(0, 10);
                   const overdue = t.status === "pending" && t.due_date < todayStr;
                   const origin = t.contract_id
-                    ? { label: "Recorrência", tone: "text-primary border-primary/40" }
+                    ? { label: "Contrato", tone: "text-primary border-primary/40" }
                     : t.installment_total && t.installment_total > 1
                     ? { label: `Parcela ${t.installment_number}/${t.installment_total}`, tone: "text-blue-300 border-blue-500/40" }
                     : t.proposal_id
@@ -465,20 +402,13 @@ function FinanceiroPage() {
                   return (
                     <div key={t.id} className="grid grid-cols-12 px-5 py-3 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
                       <div className="col-span-1 flex items-center gap-3">
-                        <Checkbox 
-                          checked={selectedIds.includes(t.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) setSelectedIds(prev => [...prev, t.id]);
-                            else setSelectedIds(prev => prev.filter(id => id !== t.id));
-                          }}
-                        />
+                        <Checkbox checked={selectedIds.includes(t.id)} onCheckedChange={(checked) => setSelectedIds(prev => checked ? [...prev, t.id] : prev.filter(id => id !== t.id))} />
                         {t.status === "paid" ? (
                           <CheckCircle2 className="size-5 text-emerald-400" />
                         ) : (
                           <Circle className={`size-5 ${overdue ? "text-rose-400" : "text-foreground/30"}`} />
                         )}
                       </div>
-
                       <div className="col-span-3 min-w-0">
                         <div className="text-sm font-medium truncate flex items-center gap-2">
                           {t.description}
@@ -489,9 +419,7 @@ function FinanceiroPage() {
                       <div className="col-span-2 text-xs text-foreground/60 truncate">{catName(t.category_id)}</div>
                       <div className="col-span-2 text-xs text-foreground/60 truncate">
                         {t.client_id ? (
-                          <Link to="/clientes/$clientId" params={{ clientId: t.client_id }} className="hover:text-primary">
-                            {clientName(t.client_id)}
-                          </Link>
+                          <Link to="/clientes/$clientId" params={{ clientId: t.client_id }} className="hover:text-primary">{clientName(t.client_id)}</Link>
                         ) : "—"}
                       </div>
                       <div className={`col-span-1 text-right font-display font-semibold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
@@ -502,146 +430,27 @@ function FinanceiroPage() {
                         {overdue && <div className="text-[10px] text-rose-400">Em atraso</div>}
                       </div>
                       <div className="col-span-2 flex items-center justify-end gap-2">
-                        {t.status !== "paid" ? (
-                          <Button
-                            size="sm"
-                            onClick={() => setSettleTx(t)}
-                            className="h-8 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs px-3"
-                          >
-                            Dar baixa
-                          </Button>
-                        ) : null}
-
+                        {t.status !== "paid" && (
+                          <Button size="sm" onClick={() => setSettleTx(t)} className="h-8 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs px-3">Dar baixa</Button>
+                        )}
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-full">
-                              <MoreHorizontal className="size-4" />
-                            </Button>
+                            <Button variant="ghost" size="icon" className="size-8 rounded-full"><MoreHorizontal className="size-4" /></Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-56">
                             <DropdownMenuLabel>Ações</DropdownMenuLabel>
                             {t.status === "paid" && (
-                              <DropdownMenuItem onClick={() => togglePaid.mutate({ id: t.id, paid: false })}>
-                                <Clock className="size-4 mr-2" /> Reverter baixa
-                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => togglePaid.mutate({ id: t.id, paid: false })}><Clock className="size-4 mr-2" /> Reverter baixa</DropdownMenuItem>
                             )}
-                            
-                            {t.recurrence_id && (
+                            {t.contract_id && (
                               <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Recorrência</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => setDeleteFutureRecurrenceId(t.recurrence_id)}>
-                                  <Trash2 className="size-4 mr-2 text-rose-400" /> Excluir Parcelas Futuras
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setTerminateRecurrenceId(t.recurrence_id)}>
-                                  <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Recorrência
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: t.recurrence_id!, status: 'paused' })}>
-                                  <Pause className="size-4 mr-2" /> Pausar Recorrência
-                                </DropdownMenuItem>
+                                <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Contrato</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => setTerminateContractId(t.contract_id)}><XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Contrato</DropdownMenuItem>
                               </>
                             )}
-                            
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-rose-400" onClick={() => delTx.mutate(t.id)}>
-                              <Trash2 className="size-4 mr-2" /> Excluir Lançamento
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </TabsContent>
-
-          {/* ============ RECORRÊNCIAS ============ */}
-          <TabsContent value="recurrences" className="mt-6 space-y-6">
-            <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-border font-display font-semibold">
-                Gestão de Recorrências
-              </div>
-              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border">
-                <div className="col-span-3">Descrição</div>
-                <div className="col-span-2">Início</div>
-                <div className="col-span-2">Valor Base</div>
-                <div className="col-span-1">Status</div>
-                <div className="col-span-2">Parcelas</div>
-                <div className="col-span-1">Próx. Venc.</div>
-                <div className="col-span-1 text-right">Ações</div>
-
-              </div>
-              {recurrences.length === 0 ? (
-                <div className="p-12 text-center text-foreground/50 text-sm">Nenhuma recorrência ativa</div>
-              ) : (
-                recurrences.map((r) => {
-                  const txsForRec = txs.filter(t => t.recurrence_id === r.id);
-                  const paid = txsForRec.filter(t => t.status === 'paid').length;
-                  const total = txsForRec.length;
-                  const nextTx = txsForRec
-                    .filter(t => t.status === 'pending')
-                    .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
-
-                  
-                  return (
-                    <div key={r.id} className="grid grid-cols-12 px-5 py-4 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
-                      <div className="col-span-3 min-w-0">
-                        <div className="text-sm font-medium truncate">{r.description}</div>
-                        {r.contract_id && (
-                          <div className="text-[10px] text-primary flex items-center gap-1 mt-1">
-                            <LinkIcon className="size-3" /> Contrato Vinculado
-                          </div>
-                        )}
-                      </div>
-                      <div className="col-span-2 text-xs text-foreground/60">
-                        {new Date(r.start_date).toLocaleDateString("pt-BR")}
-                      </div>
-                      <div className="col-span-2 text-xs font-semibold">
-                        {brl(Number(r.amount))}
-                      </div>
-                      <div className="col-span-1">
-                        <Badge variant="outline" className={`text-[10px] capitalize ${
-                          r.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                          r.status === 'paused' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
-                          'bg-foreground/10 text-foreground/40 border-border'
-                        }`}>
-                          {r.status === 'active' ? 'Ativa' : r.status === 'paused' ? 'Pausada' : 'Encerrada'}
-                        </Badge>
-                      </div>
-                      <div className="col-span-2 text-xs text-foreground/60">
-                        {paid}/{total} pagas
-                      </div>
-                      <div className="col-span-1 text-xs text-foreground/60">
-                        {nextTx ? new Date(nextTx.due_date).toLocaleDateString("pt-BR") : "—"}
-                      </div>
-
-                      <div className="col-span-1 flex items-center justify-end gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-full">
-                              <MoreHorizontal className="size-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>Ações da Recorrência</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => setDeleteFutureRecurrenceId(r.id)}>
-                              <Trash2 className="size-4 mr-2 text-rose-400" /> Excluir Parcelas Futuras
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => setTerminateRecurrenceId(r.id)}>
-                              <XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Recorrência
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {r.status === 'active' ? (
-                              <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: r.id, status: 'paused' })}>
-                                <Pause className="size-4 mr-2" /> Pausar
-                              </DropdownMenuItem>
-                            ) : r.status === 'paused' ? (
-                              <DropdownMenuItem onClick={() => toggleRecurrenceStatus.mutate({ id: r.id, status: 'active' })}>
-                                <Play className="size-4 mr-2" /> Reativar
-                              </DropdownMenuItem>
-                            ) : null}
+                            <DropdownMenuItem className="text-rose-400" onClick={() => setDeleteTxId(t.id)}><Trash2 className="size-4 mr-2" /> Excluir Lançamento</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -651,8 +460,6 @@ function FinanceiroPage() {
               )}
             </div>
           </TabsContent>
-
-
 
           {/* ============ VISÃO MENSAL ============ */}
           <TabsContent value="monthly" className="mt-6 space-y-6">
@@ -727,9 +534,7 @@ function FinanceiroPage() {
                   </LineChart>
                 </ResponsiveContainer>
               </div>
-              <p className="text-xs text-foreground/50 mt-3">
-                Inclui parcelas e recorrências já lançadas. Contratos ativos ({brl(indicators.mrr)}/mês) continuam gerando lançamentos conforme aprovações.
-              </p>
+              <p className="text-xs text-foreground/50 mt-3">Inclui parcelas e lançamentos automáticos. Contratos ativos continuam gerando lançamentos conforme o plano contratado.</p>
             </div>
           </TabsContent>
 
@@ -743,14 +548,10 @@ function FinanceiroPage() {
                   <div className="font-display text-2xl font-bold text-primary">{brl(consolidated)}</div>
                 </div>
               </div>
-              <Button onClick={() => setOpenAcc(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-10 px-5 gap-2">
-                <Plus className="size-4" /> Nova conta
-              </Button>
+              <Button onClick={() => setOpenAcc(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full h-10 px-5 gap-2"><Plus className="size-4" /> Nova conta</Button>
             </div>
             {accounts.length === 0 ? (
-              <div className="border border-dashed border-border/60 rounded-2xl p-12 text-center text-foreground/50 text-sm">
-                Nenhuma conta bancária cadastrada.
-              </div>
+              <div className="border border-dashed border-border/60 rounded-2xl p-12 text-center text-foreground/50 text-sm">Nenhuma conta bancária cadastrada.</div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {accounts.map((a) => {
@@ -759,14 +560,10 @@ function FinanceiroPage() {
                     <div key={a.id} className="bg-surface border border-border rounded-2xl p-5 relative overflow-hidden">
                       <div className="absolute inset-x-0 top-0 h-1" style={{ background: a.color ?? "#FFBC45" }} />
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-xl grid place-items-center" style={{ background: `${a.color}22`, color: a.color ?? "#FFBC45" }}>
-                          <Landmark className="size-5" />
-                        </div>
+                        <div className="size-10 rounded-xl grid place-items-center" style={{ background: `${a.color}22`, color: a.color ?? "#FFBC45" }}><Landmark className="size-5" /></div>
                         <div className="min-w-0 flex-1">
                           <div className="font-display font-semibold truncate">{a.name}</div>
-                          <div className="text-xs text-foreground/50 truncate">
-                            {[a.bank, a.agency && `Ag. ${a.agency}`, a.account_number && `CC ${a.account_number}`].filter(Boolean).join(" · ") || a.account_type}
-                          </div>
+                          <div className="text-xs text-foreground/50 truncate">{[a.bank, a.agency && `Ag. ${a.agency}`, a.account_number && `CC ${a.account_number}`].filter(Boolean).join(" · ") || a.account_type}</div>
                         </div>
                       </div>
                       <div className="mt-4 font-display text-2xl font-bold">{brl(stats.balance)}</div>
@@ -781,9 +578,7 @@ function FinanceiroPage() {
                           <div className="text-rose-400 font-semibold">{brl(stats.expense)}</div>
                         </div>
                       </div>
-                      <button onClick={() => delAcc.mutate(a.id)} className="mt-4 text-xs text-foreground/40 hover:text-rose-400 flex items-center gap-1">
-                        <Trash2 className="size-3" /> Remover
-                      </button>
+                      <button onClick={() => delAcc.mutate(a.id)} className="mt-4 text-xs text-foreground/40 hover:text-rose-400 flex items-center gap-1"><Trash2 className="size-3" /> Remover</button>
                     </div>
                   );
                 })}
@@ -798,43 +593,27 @@ function FinanceiroPage() {
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
       
-      <DeleteFutureInstallmentsDialog 
-        recurrenceId={deleteFutureRecurrenceId} 
-        onClose={() => setDeleteFutureRecurrenceId(null)} 
+      <DeleteTransactionCascadeDialog
+        transactionId={deleteTxId}
+        onClose={() => setDeleteTxId(null)}
+        onConfirm={(cascade) => delTx.mutate({ id: deleteTxId!, cascade })}
+        isPending={delTx.isPending}
       />
       
       <TerminateRecurrenceDialog 
-        recurrenceId={terminateRecurrenceId} 
-        onClose={() => setTerminateRecurrenceId(null)} 
+        recurrenceId={terminateContractId} 
+        onClose={() => setTerminateContractId(null)} 
+        title="Encerrar Contrato"
+        description="Deseja cancelar automaticamente todos os lançamentos financeiros futuros vinculados a este contrato?"
+        onConfirm={async (mode) => terminateContractMutation.mutateAsync({ id: terminateContractId!, cleanup: mode })}
       />
-
     </div>
   );
 }
 
-function Kpi({
-  label,
-  value,
-  icon,
-  tone,
-}: {
-  label: string;
-  value: string;
-  icon?: React.ReactNode;
-  tone?: "primary" | "success" | "danger" | "warning";
-}) {
-  const toneText =
-    tone === "success" ? "text-emerald-400"
-    : tone === "danger" ? "text-rose-400"
-    : tone === "warning" ? "text-amber-400"
-    : tone === "primary" ? "text-primary"
-    : "text-foreground";
-  const toneBg =
-    tone === "success" ? "bg-emerald-500/10"
-    : tone === "danger" ? "bg-rose-500/10"
-    : tone === "warning" ? "bg-amber-500/10"
-    : tone === "primary" ? "bg-primary/10"
-    : "bg-foreground/5";
+function Kpi({ label, value, icon, tone }: { label: string; value: string; icon?: React.ReactNode; tone?: "primary" | "success" | "danger" | "warning"; }) {
+  const toneText = tone === "success" ? "text-emerald-400" : tone === "danger" ? "text-rose-400" : tone === "warning" ? "text-amber-400" : tone === "primary" ? "text-primary" : "text-foreground";
+  const toneBg = tone === "success" ? "bg-emerald-500/10" : tone === "danger" ? "bg-rose-500/10" : tone === "warning" ? "bg-amber-500/10" : tone === "primary" ? "bg-primary/10" : "bg-foreground/5";
   return (
     <div className="bg-surface border border-border rounded-2xl p-5">
       <div className="flex items-center justify-between text-[10px] uppercase tracking-wide text-foreground/50">
@@ -846,25 +625,13 @@ function Kpi({
   );
 }
 
-function FilterSelect({
-  value,
-  onChange,
-  placeholder,
-  options,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  options: { value: string; label: string }[];
-}) {
+function FilterSelect({ value, onChange, placeholder, options }: { value: string; onChange: (v: string) => void; placeholder: string; options: { value: string; label: string }[]; }) {
   return (
     <div className="col-span-6 md:col-span-2">
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger><SelectValue placeholder={placeholder} /></SelectTrigger>
         <SelectContent>
-          {options.map((o) => (
-            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-          ))}
+          {options.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}
         </SelectContent>
       </Select>
     </div>
