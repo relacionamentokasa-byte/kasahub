@@ -204,31 +204,18 @@ export function JobSheet({
                 </div>
               </div>
 
-              {/* Formulário Dinâmico baseado no tipo do Job */}
+              {/* Formulário Dinâmico da Tarefa */}
               <div className="space-y-4 pt-4 border-t border-border">
                 <h4 className="text-[10px] uppercase font-bold text-primary tracking-wider flex items-center gap-1.5">
                   <FileText className="size-3" /> Formulário da Tarefa
                 </h4>
-                <div className="grid grid-cols-1 gap-4">
-                  {/* TODO: Implementar busca do esquema baseado no tipo do Job + Fluxo */}
-                  <p className="text-[10px] text-foreground/40 italic">
-                    Formulário dinâmico para: <span className="font-semibold">{JOB_TYPES.find(t => t.value === (job as any).job_type)?.label || "Tarefa"}</span>
-                  </p>
-                  
-                  {/* Exemplo de campos que seriam renderizados dinamicamente */}
-                  {Object.entries((job as any).custom_form_data || {}).map(([key, val]: [string, any]) => (
-                    <div key={key} className="space-y-1.5">
-                      <Label className="text-[10px] capitalize text-foreground/50">{key}</Label>
-                      <Input 
-                        value={val}
-                        onChange={(e) => {
-                          const next = { ...(job as any).custom_form_data, [key]: e.target.value };
-                          updateMut.mutate({ custom_form_data: next } as any);
-                        }}
-                      />
-                    </div>
-                  ))}
-                </div>
+                
+                <DynamicJobForm 
+                  jobType={(job as any).job_type}
+                  flowJobId={(job as any).flow_job_id}
+                  data={(job as any).custom_form_data || {}}
+                  onChange={(newData) => updateMut.mutate({ custom_form_data: newData } as any)}
+                />
               </div>
 
               {(job as any).status === 'in_progress' && (
