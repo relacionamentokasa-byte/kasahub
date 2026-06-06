@@ -51,7 +51,7 @@ export interface CalendarEvent {
   approval_id: string | null;
   title: string;
   description: string | null;
-  kind: "post" | "meeting" | "deadline" | "task" | "other";
+  kind: "meeting" | "task" | "approval" | "dme" | "deadline" | "other" | string;
   starts_at: string;
   ends_at: string | null;
   all_day: boolean;
