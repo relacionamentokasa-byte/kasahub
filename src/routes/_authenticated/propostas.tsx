@@ -787,9 +787,9 @@ function ProposalsPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProposals.map((p) => {
-
+                {filteredProposals.map((p: Proposal) => {
                   const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.draft;
+
                   return (
                     <tr
                       key={p.id}
