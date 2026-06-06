@@ -17,7 +17,7 @@ export function OperacaoSection({ stats }: OperacaoSectionProps) {
       <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
         <Layers className="size-4" /> Operação
       </h3>
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <DashboardKPI 
           icon={Clock} 
           label="Em Andamento" 
