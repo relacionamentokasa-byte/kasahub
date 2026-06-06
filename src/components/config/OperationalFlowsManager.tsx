@@ -13,7 +13,8 @@ import {
   User,
   CheckSquare,
   Loader2,
-  FileText
+  FileText,
+  ArrowDown
 } from "lucide-react";
 import { toast } from "sonner";
 import { JOB_TYPES } from "@/lib/job-types";
