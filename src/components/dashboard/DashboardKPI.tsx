@@ -21,8 +21,8 @@ export function DashboardKPI({ icon: Icon, label, value, subValue, isCurrency, c
         </div>
       </div>
       <div className="mt-3">
-        <p className="text-[10px] font-mono-kasa text-foreground/40 capitalize mb-1">{label}</p>
-        <p className="font-display text-2xl font-bold tracking-tight">{displayValue}</p>
+        <p className="text-[14px] font-semibold text-[#334155] capitalize mb-1">{label}</p>
+        <p className="text-[28px] font-bold tracking-tight text-foreground">{displayValue}</p>
         {subValue && <p className="text-[10px] text-foreground/40 mt-0.5">{subValue}</p>}
       </div>
     </div>
