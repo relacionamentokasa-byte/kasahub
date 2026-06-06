@@ -36,7 +36,15 @@ import {
   Trash2,
   Sparkles,
   Activity,
+  MessageCircle,
+  MoreVertical,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
 export function LeadSheet({
@@ -99,7 +107,8 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
   });
 
   const noteMut = useMutation({
-    mutationFn: () => addActivity(lead.id, noteType, note),
+    mutationFn: (data?: { type: string; content: string }) => 
+      addActivity(lead.id, data?.type || noteType, data?.content || note),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "activities", lead.id] });
       setNote("");
@@ -147,10 +156,11 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
               onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </F>
-          <F label="Telefone">
+          <F label="Telefone / WhatsApp">
             <Input
               value={form.phone ?? ""}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              placeholder="(62) 99999-9999"
             />
           </F>
           <F label="Valor (R$)">
@@ -192,7 +202,84 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
           />
         </F>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex bg-surface-elevated border border-border rounded-lg p-1 gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const phone = form.phone?.replace(/\D/g, "");
+                if (phone) {
+                  window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}`, "_blank");
+                  noteMut.mutateAsync({ type: "whatsapp", content: "WhatsApp iniciado" });
+                } else {
+                  toast.error("Telefone não cadastrado");
+                }
+              }}
+              className="h-8 text-emerald-500 hover:text-emerald-600 hover:bg-emerald-500/10 gap-1.5"
+            >
+              <MessageCircle className="size-4" /> WhatsApp
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 px-2">
+                  <MoreVertical className="size-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => {
+                  const text = `Olá, ${form.name}. Vi seu interesse em nossos serviços e gostaria de entender melhor sua necessidade.`;
+                  const phone = form.phone?.replace(/\D/g, "");
+                  if (phone) {
+                    window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(text)}`, "_blank");
+                    noteMut.mutateAsync({ type: "whatsapp", content: "Apresentação via WhatsApp" });
+                  }
+                }}>Apresentação</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const text = `Olá, ${form.name}. Passando para verificar se conseguiu analisar nossa proposta.`;
+                  const phone = form.phone?.replace(/\D/g, "");
+                  if (phone) {
+                    window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(text)}`, "_blank");
+                    noteMut.mutateAsync({ type: "whatsapp", content: "Follow-up via WhatsApp" });
+                  }
+                }}>Follow-up</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  const text = `Olá, ${form.name}. Gostaria de confirmar nossa reunião agendada para hoje.`;
+                  const phone = form.phone?.replace(/\D/g, "");
+                  if (phone) {
+                    window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(text)}`, "_blank");
+                    noteMut.mutateAsync({ type: "whatsapp", content: "Reunião via WhatsApp" });
+                  }
+                }}>Confirmar Reunião</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (form.email) window.location.href = `mailto:${form.email}`;
+            }}
+            className="h-9 gap-1.5"
+          >
+            <Mail className="size-4" /> E-mail
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (form.phone) window.location.href = `tel:${form.phone}`;
+            }}
+            className="h-9 gap-1.5"
+          >
+            <Phone className="size-4" /> Ligar
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-2 pt-2">
           <Button
             onClick={() => saveMut.mutate()}
             disabled={saveMut.isPending}
@@ -297,10 +384,13 @@ function F({ label, children }: { label: string; children: React.ReactNode }) {
 
 function ActivityIcon({ type }: { type: string }) {
   const Icon =
-    type === "call" ? Phone : type === "email" ? Mail : type === "meeting" ? FileText : MessageSquare;
+    type === "call" ? Phone : type === "email" ? Mail : type === "meeting" ? FileText : type === "whatsapp" ? MessageCircle : MessageSquare;
   return (
-    <div className="size-7 rounded-md bg-primary/10 grid place-items-center shrink-0">
-      <Icon className="size-3.5 text-primary" />
+    <div className={cn(
+      "size-7 rounded-md grid place-items-center shrink-0",
+      type === "whatsapp" ? "bg-emerald-500/10" : "bg-primary/10"
+    )}>
+      <Icon className={cn("size-3.5", type === "whatsapp" ? "text-emerald-500" : "text-primary")} />
     </div>
   );
 }
