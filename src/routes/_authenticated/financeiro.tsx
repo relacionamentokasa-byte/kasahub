@@ -90,7 +90,7 @@ import { SettleTransactionDialog } from "@/components/finance/SettleTransactionD
 import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
 import { DeleteTransactionCascadeDialog } from "@/components/finance/DeleteTransactionCascadeDialog";
-import { TerminateRecurrenceDialog } from "@/components/finance/TerminateRecurrenceDialog";
+import { TerminateContractDialog } from "@/components/finance/TerminateContractDialog";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA OS" }] }),
@@ -600,13 +600,14 @@ function FinanceiroPage() {
         isPending={delTx.isPending}
       />
       
-      <TerminateRecurrenceDialog 
-        recurrenceId={terminateContractId} 
+      <TerminateContractDialog 
+        contractId={terminateContractId} 
         onClose={() => setTerminateContractId(null)} 
         title="Encerrar Contrato"
         description="Deseja cancelar automaticamente todos os lançamentos financeiros futuros vinculados a este contrato?"
-        onConfirm={async (mode) => terminateContractMutation.mutateAsync({ id: terminateContractId!, cleanup: mode })}
+        onConfirm={async (mode: "keep" | "cancel" | "delete") => terminateContractMutation.mutateAsync({ id: terminateContractId!, cleanup: mode })}
       />
+
     </div>
   );
 }

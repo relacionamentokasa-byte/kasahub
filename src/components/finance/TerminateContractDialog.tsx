@@ -15,54 +15,51 @@ import { terminateContract } from "@/lib/finance-api";
 import { toast } from "sonner";
 import { Loader2, AlertTriangle } from "lucide-react";
 
-interface TerminateRecurrenceDialogProps {
-  recurrenceId: string | null; // This is now used as contractId
+interface TerminateContractDialogProps {
+  contractId: string | null;
   onClose: () => void;
   title?: string;
   description?: string;
   onConfirm?: (mode: "keep" | "cancel" | "delete") => Promise<any>;
 }
 
-
-export function TerminateRecurrenceDialog({
-  recurrenceId,
+export function TerminateContractDialog({
+  contractId,
   onClose,
-  title = "Encerrar Recorrência",
-  description = "Ao encerrar a recorrência, as cobranças futuras podem ser tratadas de diferentes formas.",
+  title = "Encerrar Contrato",
+  description = "Ao encerrar o contrato, as cobranças futuras podem ser tratadas de diferentes formas.",
   onConfirm,
-}: TerminateRecurrenceDialogProps) {
+}: TerminateContractDialogProps) {
   const qc = useQueryClient();
   const [cleanupMode, setCleanupMode] = useState<"keep" | "cancel" | "delete">("cancel");
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!recurrenceId) throw new Error("Identificador não encontrado");
+      if (!contractId) throw new Error("Identificador não encontrado");
       if (onConfirm) {
         return onConfirm(cleanupMode);
       }
-      return terminateContract(recurrenceId, cleanupMode);
+      return terminateContract(contractId, cleanupMode);
     },
     onSuccess: (result) => {
       const isContract = !!onConfirm;
-      toast.success(`${isContract ? "Contrato" : "Recorrência"} encerrada com sucesso.`);
+      toast.success(`${isContract ? "Contrato" : "Lançamentos"} encerrado com sucesso.`);
       
       if (result && result.count > 0) {
         toast.info(`${result.count} cobranças futuras foram tratadas.`);
       }
       
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      
       qc.invalidateQueries({ queryKey: ["contracts"] });
       onClose();
     },
-
     onError: (e: Error) => {
       toast.error(`Falha ao encerrar: ${e.message}`);
     },
   });
 
   return (
-    <Dialog open={!!recurrenceId} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={!!contractId} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <div className="flex items-center gap-2 text-warning mb-2">
