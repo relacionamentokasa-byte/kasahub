@@ -706,17 +706,72 @@ function ProposalsPage() {
         </Dialog>
       </div>
 
-      {proposals.length === 0 ? (
+      <div className="space-y-6 mb-8">
+        {/* Search and simple client filter */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="md:col-span-2 relative">
+            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
+            <Input 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nome da proposta ou cliente..." 
+              className="pl-9 bg-surface border-border"
+            />
+          </div>
+          <Select value={filterClient} onValueChange={setFilterClient}>
+            <SelectTrigger className="bg-surface border-border">
+              <SelectValue placeholder="Filtrar por cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os clientes</SelectItem>
+              {clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Status Chips */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            { id: "all", label: "Todas" },
+            { id: "waiting_signature", label: "Aguardando Assinatura" },
+            { id: "accepted", label: "Aprovadas" },
+            { id: "rejected", label: "Rejeitadas" },
+          ].map((chip) => (
+            <button
+              key={chip.id}
+              onClick={() => setFilterStatus(chip.id)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${
+                filterStatus === chip.id 
+                  ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/20" 
+                  : "bg-surface border border-border text-foreground/60 hover:border-primary/50"
+              }`}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {filteredProposals.length === 0 ? (
         <div className="rounded-2xl border border-border bg-surface p-16 text-center">
           <div className="size-14 rounded-2xl bg-primary/10 ring-1 ring-primary/30 grid place-items-center mx-auto mb-4">
             <FileText className="size-6 text-primary" />
           </div>
-          <h2 className="font-display text-xl font-semibold mb-1">Nenhuma proposta ainda</h2>
+          <h2 className="font-display text-xl font-semibold mb-1">
+            {search || filterStatus !== "all" || filterClient !== "all" 
+              ? "Nenhuma proposta encontrada" 
+              : "Nenhuma proposta ainda"}
+          </h2>
           <p className="text-foreground/60 text-sm">
-            Crie sua primeira proposta ou gere uma a partir de um lead no CRM.
+            {search || filterStatus !== "all" || filterClient !== "all" 
+              ? "Tente ajustar seus filtros de busca." 
+              : "Crie sua primeira proposta ou gere uma a partir de um lead no CRM."}
           </p>
         </div>
       ) : (
+
         <>
           {/* Desktop table */}
           <div className="hidden md:block rounded-2xl border border-border bg-surface overflow-hidden">
