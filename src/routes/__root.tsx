@@ -14,6 +14,8 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
+import { useAudioNotifications } from "@/hooks/use-audio-notifications";
+
 
 function NotFoundComponent() {
   return (
@@ -140,7 +142,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthListener />
+        <AudioNotificationManager />
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+
         <Outlet />
         <ThemedToaster />
       </ThemeProvider>
