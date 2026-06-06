@@ -37,7 +37,7 @@ import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 const ROLES: AppRole[] = ["admin", "ceo", "gestor", "operador", "cliente"];
 
 export const Route = createFileRoute("/_authenticated/equipe")({
-  head: () => ({ meta: [{ title: "Equipe — KASA OS" }] }),
+  head: () => ({ meta: [{ title: "Equipe — KASA HUB" }] }),
   component: EquipePage,
 });
 
@@ -75,7 +75,7 @@ function EquipePage() {
           </span>
           <h1 className="font-display text-3xl font-bold mt-1">Equipe & permissões</h1>
           <p className="text-foreground/60 text-sm mt-1">
-            Gerencie membros, papéis e convites de acesso ao KASA OS.
+            Gerencie membros, papéis e convites de acesso ao KASA HUB.
           </p>
         </div>
         {isAdmin && <NewInviteDialog />}

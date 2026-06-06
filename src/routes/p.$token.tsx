@@ -469,7 +469,7 @@ function PublicProposalView() {
         </div>
 
         <div className="px-8 py-4 text-center text-[10px] text-slate-400 border-t border-slate-100">
-          {agency?.name ?? "Kasa Marketing"} · Documento gerado por KASA OS
+          {agency?.name ?? "Kasa Marketing"} · Documento gerado por KASA HUB
         </div>
       </div>
     </div>

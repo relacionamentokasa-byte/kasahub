@@ -1327,6 +1327,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          agency_logo_url: string | null
           avatar_url: string | null
           created_at: string
           custom_role_id: string | null
@@ -1338,6 +1339,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agency_logo_url?: string | null
           avatar_url?: string | null
           created_at?: string
           custom_role_id?: string | null
@@ -1349,6 +1351,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agency_logo_url?: string | null
           avatar_url?: string | null
           created_at?: string
           custom_role_id?: string | null
