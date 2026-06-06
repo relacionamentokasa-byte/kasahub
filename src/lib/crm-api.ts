@@ -35,6 +35,7 @@ export async function createLead(input: {
   value?: number;
   source?: string | null;
   stage_id: string;
+  origin_partner_id?: string | null;
 }) {
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase
