@@ -14,7 +14,8 @@ import {
   CheckSquare,
   Loader2,
   FileText,
-  ArrowDown
+  ArrowDown,
+  X
 } from "lucide-react";
 import { toast } from "sonner";
 import { JOB_TYPES } from "@/lib/job-types";
