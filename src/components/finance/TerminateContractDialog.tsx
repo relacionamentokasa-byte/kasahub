@@ -101,6 +101,17 @@ export function TerminateContractDialog({
               </div>
             </div>
           </RadioGroup>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <Label className="text-sm font-semibold">Ações Operacionais em cascata</Label>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="cancelProjects" checked={cancelProjects} onCheckedChange={(v) => setCancelProjects(!!v)} />
+              <Label htmlFor="cancelProjects" className="text-sm font-medium text-foreground/70">Encerrar Projetos vinculados</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="cancelJobs" checked={cancelJobs} onCheckedChange={(v) => setCancelJobs(!!v)} />
+              <Label htmlFor="cancelJobs" className="text-sm font-medium text-foreground/70">Cancelar Jobs abertos</Label>
+            </div>
+          </div>
         </div>
 
         <DialogFooter>

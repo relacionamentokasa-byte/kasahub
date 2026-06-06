@@ -6,7 +6,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, Ban, Trash2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { analyzeClientImpact, deleteClientCascade } from "@/lib/client-deletion";
 
@@ -114,19 +114,36 @@ export function DeleteClientDialog({
           </div>
         )}
 
-        <DialogFooter className="flex-row sm:justify-end gap-2">
-          <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={mut.isPending}>
-            Cancelar
+        <DialogFooter className="flex-col sm:flex-row gap-3">
+          <Button 
+            variant="outline" 
+            className="flex-1 gap-2 min-h-[44px]"
+            disabled={mut.isPending}
+            onClick={() => {
+              supabase.from('clients').update({ status: 'inactive' }).eq('id', clientId!)
+                .then(() => {
+                  qc.invalidateQueries({ queryKey: ["clients"] });
+                  toast.success("Cliente inativado com sucesso.");
+                  onOpenChange(false);
+                });
+            }}
+          >
+            <Ban className="size-4 text-amber-500" />
+            Inativar Cliente
           </Button>
+
           <Button
             onClick={() => mut.mutate()}
             disabled={!canDelete || mut.isPending}
-            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            className="flex-1 bg-destructive text-destructive-foreground hover:bg-destructive/90 gap-2 min-h-[44px]"
           >
-            {mut.isPending ? <Loader2 className="size-4 animate-spin mr-1" /> : null}
-            Excluir definitivamente
+            {mut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+            Excluir Tudo
           </Button>
         </DialogFooter>
+        <p className="text-[10px] text-center text-foreground/40 pb-4">
+          Somente administradores podem realizar a exclusão total.
+        </p>
       </DialogContent>
     </Dialog>
   );
