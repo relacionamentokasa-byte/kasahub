@@ -874,3 +874,13 @@ function InviteUserDialog({ roles, disabled, limitReached }: { roles: any[], dis
     </Dialog>
   );
 }
+
+function UserKPIBox({ title, value, sub }: { title: string; value: string; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-surface p-5">
+      <p className="text-[10px] font-mono-kasa capitalize text-foreground/40 font-semibold">{title}</p>
+      <p className="text-2xl font-bold mt-1 text-primary">{value}</p>
+      {sub && <p className="text-[10px] text-foreground/40 mt-1">{sub}</p>}
+    </div>
+  );
+}
