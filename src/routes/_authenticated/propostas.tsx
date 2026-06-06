@@ -1014,32 +1014,17 @@ function ActionsMenu({
         <DropdownMenuItem onClick={onEmail}>
           <Mail className="size-4" /> Enviar por E-mail
         </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40">
-          Status
-        </DropdownMenuLabel>
-        {proposal.status !== "accepted" && (
-          <DropdownMenuItem onClick={onApprove}>
-            <CheckCircle2 className="size-4 text-green-400" /> Aprovar
-          </DropdownMenuItem>
+        {proposal.status === "draft" && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={onDelete}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="size-4" /> Excluir
+            </DropdownMenuItem>
+          </>
         )}
-        {proposal.status !== "draft" && (
-          <DropdownMenuItem onClick={onReopen}>
-            <RotateCcw className="size-4" /> Reabrir
-          </DropdownMenuItem>
-        )}
-        {proposal.status !== "cancelled" && (
-          <DropdownMenuItem onClick={onCancel}>
-            <Ban className="size-4" /> Cancelar
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={onDelete}
-          className="text-destructive focus:text-destructive"
-        >
-          <Trash2 className="size-4" /> Excluir
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
