@@ -201,6 +201,38 @@ function FinanceiroPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["bank_accounts"] }),
   });
 
+  const bulkDelete = useMutation({
+    mutationFn: (ids: string[]) => bulkDeleteTransactions(ids),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setSelectedIds([]);
+      toast.success("Transações excluídas com sucesso");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const bulkUpdate = useMutation({
+    mutationFn: ({ ids, patch }: { ids: string[]; patch: any }) => bulkUpdateTransactions(ids, patch),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      setSelectedIds([]);
+      toast.success("Transações atualizadas com sucesso");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const toggleRecurrenceStatus = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: "active" | "paused" | "terminated" }) => 
+      updateRecurrence(id, { status }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["recurrences"] });
+      toast.success("Status da recorrência atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+
   // Visão Mensal aggregations
   const monthly = chartData.map((m) => ({ ...m, profit: m.income - m.expense }));
 
