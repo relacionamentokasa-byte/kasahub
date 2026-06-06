@@ -1,4 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard,
   KanbanSquare,
@@ -117,20 +119,38 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3 border-t border-sidebar-border">
-        <div className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/5 transition-colors cursor-pointer">
-          <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0">
-            <span className="text-xs font-semibold text-primary">LA</span>
-          </div>
-          {!collapsed && (
-            <div className="overflow-hidden">
-              <p className="text-sm font-medium truncate text-sidebar-foreground">Lucas Andrade</p>
-              <p className="text-[10px] text-sidebar-foreground/40 truncate font-mono-kasa capitalize">
-                Diretor Criativo
-              </p>
-            </div>
-          )}
-        </div>
+        <UserFooter collapsed={collapsed} />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function UserFooter({ collapsed }: { collapsed: boolean }) {
+  const { data: profile } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => supabase.from("profiles").select("*").single().then(r => r.data),
+  });
+
+  const name = profile?.display_name || profile?.full_name || "Membro";
+  const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
+
+  return (
+    <div className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/5 transition-colors cursor-pointer">
+      <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
+        {profile?.avatar_url ? (
+          <img src={profile.avatar_url} alt={name} className="size-full object-cover" />
+        ) : (
+          <span className="text-xs font-semibold text-primary">{initials}</span>
+        )}
+      </div>
+      {!collapsed && (
+        <div className="overflow-hidden">
+          <p className="text-sm font-medium truncate text-sidebar-foreground">{name}</p>
+          <p className="text-[10px] text-sidebar-foreground/40 truncate font-mono-kasa capitalize">
+            {profile?.job_title || "Membro da Equipe"}
+          </p>
+        </div>
+      )}
+    </div>
   );
 }
