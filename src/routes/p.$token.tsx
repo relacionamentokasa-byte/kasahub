@@ -54,6 +54,7 @@ type Agency = {
   website: string | null;
   document: string | null;
   address: string | null;
+  agency_signature_url: string | null;
 } | null;
 
 function formatCurrency(value: number, currency = "BRL") {
