@@ -27,6 +27,7 @@ export function NewJobDialog({
   onOpenChange,
   defaultProjectId,
   defaultClientId,
+  defaultPeriod,
 }: {
   stage: JobStage | null;
   open: boolean;

@@ -272,7 +272,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-end">
-                        <span className="text-[10px] text-foreground/40 font-mono-kasa">{total} Jobs · {done} OK · Type: {p.type}</span>
+                        <span className="text-[10px] text-foreground/40 font-mono-kasa">{total} Jobs · {done} OK</span>
                         <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
                       </div>
                       <div className="h-1 bg-background rounded-full overflow-hidden">
