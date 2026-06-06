@@ -128,7 +128,10 @@ export function AppSidebar() {
 function UserFooter({ collapsed }: { collapsed: boolean }) {
   const { data: profile } = useQuery({
     queryKey: ["my-profile"],
-    queryFn: () => supabase.from("profiles").select("*").single().then(r => r.data),
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("*").single();
+      return data;
+    },
   });
 
   const name = profile?.display_name || profile?.full_name || "Membro";
