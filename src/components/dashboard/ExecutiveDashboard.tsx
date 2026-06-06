@@ -8,7 +8,7 @@ import {
   brl
 } from "@/lib/finance-api";
 import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
-import { fetchAgencyGoals } from "@/lib/performance-api";
+import { fetchAgencyGoals, fetchIndicators } from "@/lib/performance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { GestaoSection } from "./GestaoSection";
 import { OperacaoSection } from "./OperacaoSection";
