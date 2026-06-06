@@ -314,19 +314,40 @@ function FinanceiroPage() {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onClick={() => {
-                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
-                        if (firstRecurrenceId) setDeleteFutureRecurrenceId(firstRecurrenceId);
-                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        const selectedRecurrenceIds = Array.from(new Set(
+                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
+                              .map(r => r.recurrence_id)
+                        )) as string[];
+
+                        if (selectedRecurrenceIds.length > 0) {
+                          setDeleteFutureRecurrenceId(selectedRecurrenceIds[0]);
+                          if (selectedRecurrenceIds.length > 1) {
+                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
+                          }
+                        } else {
+                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        }
                       }}>
                         <Calendar className="size-4 mr-2" /> Excluir parcelas futuras
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => {
-                        const firstRecurrenceId = rows.find(r => selectedIds.includes(r.id))?.recurrence_id;
-                        if (firstRecurrenceId) setTerminateRecurrenceId(firstRecurrenceId);
-                        else toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        const selectedRecurrenceIds = Array.from(new Set(
+                          rows.filter(r => selectedIds.includes(r.id) && r.recurrence_id)
+                              .map(r => r.recurrence_id)
+                        )) as string[];
+
+                        if (selectedRecurrenceIds.length > 0) {
+                          setTerminateRecurrenceId(selectedRecurrenceIds[0]);
+                          if (selectedRecurrenceIds.length > 1) {
+                            toast.info("Múltiplas recorrências selecionadas. Agindo sobre a primeira encontrada.");
+                          }
+                        } else {
+                          toast.error("Nenhuma recorrência identificada nos itens selecionados");
+                        }
                       }}>
                         <XCircle className="size-4 mr-2" /> Encerrar recorrência
                       </DropdownMenuItem>
+
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-rose-400" onClick={() => bulkDelete.mutate(selectedIds)}>
                         <Trash2 className="size-4 mr-2" /> Excluir selecionadas
