@@ -193,6 +193,21 @@ export async function createTransaction(
       .select()
       .single();
     if (error) throw error;
+
+    // Criar evento na agenda se for receita e tiver vencimento
+    if (data.kind === 'income' && data.due_date) {
+      await supabase.from("calendar_events").insert({
+        title: `Financeiro: ${data.description || 'Receita'}`,
+        client_id: data.client_id,
+        starts_at: data.due_date,
+        kind: "deadline",
+        origin_type: "finance",
+        origin_id: data.id,
+        source: "system",
+        created_by: owner_id
+      } as never);
+    }
+
     return [data];
   }
 
