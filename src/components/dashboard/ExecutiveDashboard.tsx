@@ -23,7 +23,16 @@ import { Loader2, Filter } from "lucide-react";
 type FilterRange = 'today' | 'week' | 'month' | 'quarter' | 'year';
 
 export function ExecutiveDashboard() {
-  const { can, userRole } = usePermissions();
+  const { can, isAdmin } = usePermissions();
+  const { data: roles = [] } = useQuery({ 
+    queryKey: ["roles", "me"], 
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data } = await supabase.from('user_roles').select('role').eq('user_id', user.id);
+      return (data || []).map(r => r.role);
+    } 
+  });
   const [range, setRange] = useState<FilterRange>('month');
 
   // Queries
