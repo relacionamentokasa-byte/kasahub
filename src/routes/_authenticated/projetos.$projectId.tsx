@@ -1,13 +1,17 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Calendar, Pencil, FileSignature } from "lucide-react";
+import { ArrowLeft, Calendar, Pencil, FileSignature, CheckCircle2, Clock, AlertCircle, LayoutDashboard, Kanban, FileText, History, DollarSign, Folder } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProject, fetchClient, fetchJobs, fetchJobStages } from "@/lib/ops-api";
+import { fetchProject, fetchClient, fetchJobs, fetchJobStages, fetchProjectStats } from "@/lib/ops-api";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { Button } from "@/components/ui/button";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
+import { ExtraDemandsManager } from "@/components/contracts/ExtraDemandsManager";
+import { ProjectFinanceView } from "@/components/projects/ProjectFinanceView";
+import { ClientTimeline } from "@/components/clients/ClientTimeline";
+
 
 export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
   head: () => ({ meta: [{ title: "Projeto — KASA OS" }] }),
