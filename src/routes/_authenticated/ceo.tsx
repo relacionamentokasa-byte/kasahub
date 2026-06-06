@@ -27,7 +27,7 @@ import {
 import { fetchClients, fetchJobs } from "@/lib/ops-api";
 
 export const Route = createFileRoute("/_authenticated/ceo")({
-  head: () => ({ meta: [{ title: "Painel CEO — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Painel CEO — KASA OS" }] }),
   component: CeoPage,
 });
 

@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { downloadCSV, toCSV } from "@/lib/csv";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
-  head: () => ({ meta: [{ title: "Relatórios — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Relatórios — KASA OS" }] }),
   component: RelatoriosPage,
 });
 

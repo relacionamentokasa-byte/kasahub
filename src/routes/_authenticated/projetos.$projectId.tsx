@@ -15,7 +15,7 @@ import { ClientTimeline } from "@/components/clients/ClientTimeline";
 
 
 export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
-  head: () => ({ meta: [{ title: "Projeto — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Projeto — KASA OS" }] }),
   component: ProjectDetail,
 });
 

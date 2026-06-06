@@ -21,7 +21,7 @@ import { sendEmail } from "@/lib/email.functions";
 import { listGoogleEvents } from "@/lib/calendar-google.functions";
 
 export const Route = createFileRoute("/_authenticated/integracoes")({
-  head: () => ({ meta: [{ title: "Integrações — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Integrações — KASA OS" }] }),
   component: IntegrationsPage,
 });
 
@@ -62,9 +62,9 @@ function Card({ children }: { children: React.ReactNode }) {
 function ResendPanel() {
   const send = useServerFn(sendEmail);
   const [to, setTo] = useState("relacionamentokasa@gmail.com");
-  const [subject, setSubject] = useState("KASA HUB — teste de envio");
+  const [subject, setSubject] = useState("KASA OS — teste de envio");
   const [html, setHtml] = useState(
-    "<h2>Olá!</h2><p>Este é um teste de envio do KASA HUB via Resend.</p>",
+    "<h2>Olá!</h2><p>Este é um teste de envio do KASA OS via Resend.</p>",
   );
   const [loading, setLoading] = useState(false);
 

@@ -89,7 +89,7 @@ export function OnboardingWizard() {
         name: agencyName,
         logo_url: logoUrl || null,
       });
-      toast.success("Tudo pronto. Bem-vindo ao KASA HUB.");
+      toast.success("Tudo pronto. Bem-vindo ao KASA OS.");
       dismiss();
     } catch (e) {
       toast.error((e as Error).message);

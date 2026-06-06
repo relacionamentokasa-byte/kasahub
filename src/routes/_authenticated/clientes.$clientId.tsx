@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
-  head: () => ({ meta: [{ title: "Cliente — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Cliente — KASA OS" }] }),
   component: ClientDetail,
 });
 

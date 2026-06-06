@@ -26,7 +26,7 @@ import { ProfileImageUpload } from "@/components/profile/ProfileImageUpload";
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/config")({
-  head: () => ({ meta: [{ title: "Configurações — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Configurações — KASA OS" }] }),
   component: ConfigPage,
 });
 
@@ -74,7 +74,7 @@ function ConfigPage() {
           </span>
           <h1 className="font-display text-3xl font-bold mt-1">Configurações da agência</h1>
           <p className="text-foreground/60 text-sm mt-1">
-            Dados, identidade visual, notificações e integrações do KASA HUB.
+            Dados, identidade visual, notificações e integrações do KASA OS.
           </p>
         </div>
         <Button
