@@ -369,6 +369,21 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
                             <option value="currency">Moeda (R$)</option>
                           </select>
                         </div>
+                        {field.type === 'select' && (
+                          <div className="space-y-1 col-span-2">
+                            <Label className="text-[10px]">Opções (separadas por vírgula)</Label>
+                            <Input 
+                              value={field.options || ""} 
+                              onChange={(e) => {
+                                const next = [...schemaEditor.job.custom_fields_schema];
+                                next[idx].options = e.target.value;
+                                setSchemaEditor({ ...schemaEditor, job: { ...schemaEditor.job, custom_fields_schema: next } });
+                              }}
+                              placeholder="Opção 1, Opção 2, Opção 3"
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        )}
                       </div>
                       <Button size="icon" variant="ghost" className="size-8 text-destructive self-end" onClick={() => {
                         const next = schemaEditor.job.custom_fields_schema.filter((_: any, i: number) => i !== idx);
