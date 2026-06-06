@@ -282,6 +282,8 @@ function FinanceiroPage() {
               <Button variant="outline" size="icon" onClick={() => shiftMonth(1)} aria-label="Próximo mês">
                 <ChevronRight className="size-4" />
               </Button>
+            </div>
+
             {/* Bulk Actions Toolbar */}
             {selectedIds.length > 0 && (
               <div className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-2xl px-5 py-3 animate-in fade-in slide-in-from-top-2 duration-300">
