@@ -130,8 +130,13 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-3 border-t border-white/5">
+      <SidebarFooter className="p-3 border-t border-white/5 space-y-2">
         <UserFooter collapsed={collapsed} />
+        {!collapsed && (
+          <p className="text-[10px] text-sidebar-foreground/30 font-mono-kasa text-center pt-1">
+            KASA HUB v{APP_VERSION}
+          </p>
+        )}
       </SidebarFooter>
     </Sidebar>
   );
