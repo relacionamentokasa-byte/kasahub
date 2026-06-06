@@ -353,9 +353,12 @@ export function ProposalEditorContent({
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" onClick={copyShareLink} className="gap-2"><Copy className="size-4" /> Copiar link</Button>
           {proposal.status === "draft" && (
-            <Button 
-              variant="outline" 
-              onClick={() => saveMut.mutate({ status: "sent", sent_at: new Date().toISOString() } as any)} 
+            <Button
+              variant="outline"
+              onClick={async () => {
+                await saveMut.mutateAsync({ status: "sent", sent_at: new Date().toISOString() } as any);
+                setShowApprovalDialog(true);
+              }}
               className="gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-50"
             >
               <Send className="size-4" /> Enviar para Aprovação
@@ -363,18 +366,18 @@ export function ProposalEditorContent({
           )}
           <Button onClick={() => saveMut.mutate(undefined)} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
           {proposal.status !== "accepted" && proposal.status !== "cancelled" && (
-            <Button 
-              onClick={() => {
-                if (confirm("Esta ação irá:\n\n✓ Converter a proposta em Contrato Ativo\n✓ Vincular ao Cliente\n✓ Vincular os Serviços Contratados\n✓ Criar Projetos\n✓ Criar Jobs dos Templates\n✓ Criar lançamentos financeiros\n✓ Atualizar Cliente 360\n\nDeseja continuar?")) {
-                  approveMut.mutate();
-                }
-              }} 
-              disabled={approveMut.isPending} 
+            <Button
+              onClick={async () => {
+                await saveMut.mutateAsync(undefined);
+                setShowApprovalDialog(true);
+              }}
+              disabled={saveMut.isPending}
               className="bg-green-600 text-white hover:bg-green-700 font-semibold gap-2"
             >
-              <CheckCircle2 className="size-4" /> Aprovar e Converter em Contrato
+              <CheckCircle2 className="size-4" /> Aprovar Proposta
             </Button>
           )}
+
           {proposal.status !== "cancelled" && (
             <Button 
               variant="outline" 
