@@ -29,6 +29,7 @@ import {
   type Service,
   type ServiceJobTemplate,
 } from "@/lib/services-api";
+import { fetchOperationalFlows } from "@/lib/operational-flows-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -218,11 +219,17 @@ function ServiceFormDialog({
     is_active: service?.is_active ?? true,
     default_scope: (service?.default_scope as string[]) ?? [],
     contract_template_id: (service as any)?.contract_template_id ?? "",
+    operational_flow_id: (service as any)?.operational_flow_id ?? "",
   });
 
   const { data: templates = [] } = useQuery({
     queryKey: ["contract-templates"],
     queryFn: fetchContractTemplates,
+  });
+
+  const { data: flows = [] } = useQuery({
+    queryKey: ["operational-flows"],
+    queryFn: fetchOperationalFlows,
   });
 
   const saveMut = useMutation({
@@ -234,6 +241,7 @@ function ServiceFormDialog({
         is_active: form.is_active,
         default_scope: form.default_scope,
         contract_template_id: form.contract_template_id || null,
+        operational_flow_id: form.operational_flow_id || null,
       } as any;
       if (!payload.name) throw new Error("Nome obrigatório");
       if (service) return updateService(service.id, payload);
@@ -293,20 +301,37 @@ function ServiceFormDialog({
                 </div>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs">Template Contratual Padrão</Label>
-              <select
-                className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                value={form.contract_template_id}
-                onChange={(e) => setForm({ ...form, contract_template_id: e.target.value })}
-              >
-                <option value="">Sem contrato padrão</option>
-                {templates.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Template Contratual Padrão</Label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  value={form.contract_template_id}
+                  onChange={(e) => setForm({ ...form, contract_template_id: e.target.value })}
+                >
+                  <option value="">Sem contrato padrão</option>
+                  {templates.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Fluxo Operacional Padrão</Label>
+                <select
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                  value={form.operational_flow_id}
+                  onChange={(e) => setForm({ ...form, operational_flow_id: e.target.value })}
+                >
+                  <option value="">Sem fluxo padrão</option>
+                  {flows.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Descrição</Label>

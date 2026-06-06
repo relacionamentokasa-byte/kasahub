@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User } from "lucide-react";
+import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User, GitBranch } from "lucide-react";
 import { ServicesManager } from "@/components/config/ServicesManager";
+import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
 import { PermissionsManager } from "@/components/PermissionsManager";
 import { ContractTemplatesManager } from "@/components/config/ContractTemplatesManager";
 import { useTheme } from "@/lib/theme";
@@ -98,6 +99,7 @@ function ConfigPage() {
           <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Identidade Visual</TabsTrigger>
           <TabsTrigger value="perms" className="gap-2"><Shield className="size-3.5" /> Perfis e Permissões</TabsTrigger>
           <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
+          <TabsTrigger value="flows" className="gap-2"><GitBranch className="size-3.5" /> Fluxos Operacionais</TabsTrigger>
           <TabsTrigger value="contracts" className="gap-2"><FileText className="size-3.5" /> Contratos</TabsTrigger>
           <TabsTrigger value="notif" className="gap-2"><Bell className="size-3.5" /> Notificações</TabsTrigger>
           <TabsTrigger value="integr" className="gap-2"><Plug className="size-3.5" /> Integrações</TabsTrigger>
@@ -120,6 +122,10 @@ function ConfigPage() {
 
         <TabsContent value="services" className="space-y-4">
           <ServicesManager canEdit={canEdit} />
+        </TabsContent>
+
+        <TabsContent value="flows" className="space-y-4">
+          <OperationalFlowsManager canEdit={canEdit} />
         </TabsContent>
 
         <TabsContent value="contracts" className="space-y-4">
@@ -351,7 +357,10 @@ function UserProfileTab() {
 
   const [form, setForm] = useState<any>({});
   useEffect(() => {
-    if (profile) setForm(profile);
+    if (profile) {
+      const { email, ...rest } = profile;
+      setForm(rest);
+    }
   }, [profile]);
 
   const mut = useMutation({

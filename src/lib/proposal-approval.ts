@@ -1,8 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { JOB_TEMPLATES } from "./job-templates";
 import { recordProposalEventAdmin } from "./proposal-events";
-import { generateJobsForProject } from "./client-services-api";
 import { recordTimelineEvent } from "./client-timeline";
+import { fetchOperationalFlowDetails } from "./operational-flows-api";
+import { fetchJobStages } from "./ops-api";
 
 type SB = SupabaseClient;
 
@@ -211,28 +212,70 @@ export async function approveProposal(
     }
   }
 
-  // 5. Jobs
+  // 5. Jobs & Operational Flows
   let jobsCreated = 0;
   if (proposal.auto_create_jobs !== false) {
-    // Check if we have service_ids to generate jobs from templates
-    if (proposal.service_ids?.length) {
-      // Use the common generation logic
-      const currentPeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
-      const result = await generateJobsForProject(projectId!, clientId!, proposal.service_ids, currentPeriod);
-      jobsCreated = result.created;
-    } 
-    
-    // If no jobs were created from templates, fallback to scope items as basic jobs
-    if (jobsCreated === 0) {
-      // first stage
-      const { data: stages } = await sb
-        .from("job_stages")
-        .select("id, order_index")
-        .order("order_index", { ascending: true })
-        .limit(1);
-      const firstStage = stages?.[0]?.id ?? null;
+    const { data: services } = await sb
+      .from("services")
+      .select("id, operational_flow_id")
+      .in("id", proposal.service_ids ?? []);
 
-      // existing job titles to avoid dupes (idempotent re-approval)
+    const flowIds = Array.from(new Set(services?.map(s => s.operational_flow_id).filter(Boolean)));
+    const stagesList = await fetchJobStages();
+    const firstStageId = stagesList[0]?.id ?? null;
+
+    if (flowIds.length > 0) {
+      for (const flowId of flowIds) {
+        const flowDetails = await fetchOperationalFlowDetails(flowId as string);
+        
+        // Create stages/jobs from flow
+        for (const stage of flowDetails) {
+          for (const flowJob of (stage as any).jobs || []) {
+            const dueDate = flowJob.sla_days 
+              ? ymd(addMonths(new Date(), 0)).replace(/-(\d+)$/, (_, day) => `-${Math.min(31, parseInt(day) + flowJob.sla_days)}`) // Simplified SLA calculation
+              : null;
+
+            // Proper SLA calculation
+            const jobDueDate = flowJob.sla_days 
+              ? new Date(Date.now() + flowJob.sla_days * 86400000).toISOString().slice(0, 10)
+              : null;
+
+            const { data: job, error: jobErr } = await sb
+              .from("jobs")
+              .insert({
+                project_id: projectId,
+                client_id: clientId,
+                title: flowJob.name,
+                stage_id: firstStageId, // Use first stage for all flow jobs for now, or match stage names
+                order_index: flowJob.order,
+                due_date: jobDueDate,
+                labels: ["operational_flow"],
+                assignee_id: proposal.responsible_id ?? null, // Fallback to proposal responsible
+              })
+              .select()
+              .single();
+
+            if (!jobErr && job) {
+              jobsCreated++;
+              // Create checklists
+              if (flowJob.checklists?.length) {
+                await sb.from("job_checklist").insert(
+                  flowJob.checklists.map((c: any) => ({
+                    job_id: job.id,
+                    content: c.item_text,
+                    order_index: c.order
+                  }))
+                );
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Fallback if no flow jobs were created
+    if (jobsCreated === 0) {
+      // existing job titles to avoid dupes
       const { data: existingJobs } = await sb
         .from("jobs")
         .select("title")
@@ -249,7 +292,7 @@ export async function approveProposal(
           description: null,
           project_id: projectId,
           client_id: clientId,
-          stage_id: firstStage,
+          stage_id: firstStageId,
           assignee_id: proposal.responsible_id ?? null,
           order_index: order++,
           priority: "normal",
