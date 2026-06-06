@@ -181,19 +181,36 @@ function PublicProposalView() {
       </div>
     );
   }
-  if (error || !data) {
+  if (errorCode || !data) {
+    const msg =
+      errorCode === "not_found"
+        ? "Esta proposta não foi encontrada."
+        : "Não foi possível carregar esta proposta. Tente novamente em instantes.";
     return (
       <div className="min-h-screen grid place-items-center bg-white text-slate-600 px-6 text-center">
         <div>
           <p className="text-lg font-semibold text-slate-900">Proposta indisponível</p>
-          <p className="text-sm mt-2">{error ?? "Link inválido ou expirado."}</p>
+          <p className="text-sm mt-2">{msg}</p>
         </div>
       </div>
     );
   }
 
-  const { proposal, agency } = data;
+  const { proposal, agency, client } = data;
   const accepted = proposal.status === "accepted";
+  const cancelled = proposal.status === "cancelled";
+
+  if (cancelled) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-white text-slate-600 px-6 text-center">
+        <div>
+          <p className="text-lg font-semibold text-slate-900">Proposta cancelada</p>
+          <p className="text-sm mt-2">Esta proposta não está mais disponível.</p>
+        </div>
+      </div>
+    );
+  }
+
 
   const contractContent = useMemo(() => {
     if (!proposal.contract_content) return null;
