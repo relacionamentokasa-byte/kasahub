@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { recordTimelineEvent } from "./client-timeline";
+import { handleMentions } from "./notifications-api";
 
 export type Stage = Database["public"]["Tables"]["lead_stages"]["Row"];
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
@@ -90,12 +91,24 @@ export async function fetchActivities(leadId: string): Promise<LeadActivity[]> {
 
 export async function addActivity(leadId: string, type: string, content: string) {
   const { data: userData } = await supabase.auth.getUser();
+  const { data: lead } = await supabase.from('leads').select('name').eq('id', leadId).single();
+  
   const { data, error } = await supabase
     .from("lead_activities")
     .insert({ lead_id: leadId, user_id: userData.user?.id ?? null, type, content })
     .select()
     .single();
   if (error) throw error;
+
+  if (content.includes('@')) {
+    await handleMentions(content, {
+      title: `Atividade no Lead: ${lead?.name}`,
+      link: `/crm`,
+      originType: 'leads',
+      originId: leadId
+    });
+  }
+
   return data;
 }
 
