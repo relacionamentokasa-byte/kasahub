@@ -32,7 +32,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           .order("order_index", { ascending: true });
         const { data: agency } = await supabaseAdmin
           .from("agency_settings")
-          .select("name, logo_url, brand_primary, brand_secondary, email, phone, website, document, address")
+          .select("name, logo_url, brand_primary, brand_secondary, email, phone, website, document, address, agency_signature_url")
           .order("created_at", { ascending: true })
           .limit(1)
           .maybeSingle();

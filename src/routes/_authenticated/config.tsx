@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User, GitBranch, Target } from "lucide-react";
+import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User, GitBranch, Target, Pencil } from "lucide-react";
 import { ServicesManager } from "@/components/config/ServicesManager";
 import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
 import { PermissionsManager } from "@/components/PermissionsManager";
@@ -99,6 +99,7 @@ function ConfigPage() {
           <TabsTrigger value="profile" className="gap-2"><User className="size-3.5" /> Meu Perfil</TabsTrigger>
           <TabsTrigger value="agency" className="gap-2"><Building2 className="size-3.5" /> Identidade</TabsTrigger>
           <TabsTrigger value="brand" className="gap-2"><Palette className="size-3.5" /> Identidade Visual</TabsTrigger>
+          <TabsTrigger value="signature" className="gap-2"><Pencil className="size-3.5" /> Assinatura</TabsTrigger>
           <TabsTrigger value="perms" className="gap-2"><Shield className="size-3.5" /> Perfis e Permissões</TabsTrigger>
           <TabsTrigger value="services" className="gap-2"><Briefcase className="size-3.5" /> Serviços</TabsTrigger>
           <TabsTrigger value="flows" className="gap-2"><GitBranch className="size-3.5" /> Fluxos Operacionais</TabsTrigger>
@@ -203,6 +204,38 @@ function ConfigPage() {
                 <span className="text-xs text-foreground/40 font-mono-kasa capitalize">Visualização</span>
               </div>
             )}
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="signature" className="space-y-4">
+          <Card>
+            <div className="mb-6">
+              <h3 className="font-display text-lg font-semibold">Assinatura da Empresa</h3>
+              <p className="text-xs text-foreground/50">
+                Esta assinatura será exibida automaticamente no Contrato Jurídico das propostas aprovadas.
+              </p>
+            </div>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-4">
+                <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">Assinatura Digitalizada</Label>
+                <ProfileImageUpload
+                  value={form.agency_signature_url}
+                  onChange={(url) => set("agency_signature_url", url)}
+                  label="Assinatura"
+                />
+                <p className="text-[10px] text-foreground/40 text-center">
+                  Recomendado: PNG transparente ou JPG
+                </p>
+              </div>
+              {form.agency_signature_url && (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">Visualização</Label>
+                  <div className="p-6 rounded-lg bg-white border border-border flex items-center justify-center min-h-[160px]">
+                    <img src={form.agency_signature_url} alt="Assinatura" className="max-h-32 object-contain" />
+                  </div>
+                </div>
+              )}
+            </div>
           </Card>
         </TabsContent>
 

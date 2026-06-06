@@ -104,6 +104,7 @@ export type Database = {
       agency_settings: {
         Row: {
           address: string | null
+          agency_signature_url: string | null
           banner_url: string | null
           brand_primary: string | null
           brand_secondary: string | null
@@ -125,6 +126,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          agency_signature_url?: string | null
           banner_url?: string | null
           brand_primary?: string | null
           brand_secondary?: string | null
@@ -146,6 +148,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          agency_signature_url?: string | null
           banner_url?: string | null
           brand_primary?: string | null
           brand_secondary?: string | null
@@ -1941,6 +1944,7 @@ export type Database = {
           accepted_ip: string | null
           accepted_name: string | null
           account_id: string | null
+          approval_token: string | null
           auto_create_jobs: boolean
           billing_day: number
           briefing: string | null
@@ -1980,6 +1984,7 @@ export type Database = {
           responsible_id: string | null
           root_proposal_id: string | null
           scope: string[] | null
+          sent_at: string | null
           service_ids: string[]
           service_type: string | null
           signature_agency: string | null
@@ -2000,6 +2005,7 @@ export type Database = {
           accepted_ip?: string | null
           accepted_name?: string | null
           account_id?: string | null
+          approval_token?: string | null
           auto_create_jobs?: boolean
           billing_day?: number
           briefing?: string | null
@@ -2039,6 +2045,7 @@ export type Database = {
           responsible_id?: string | null
           root_proposal_id?: string | null
           scope?: string[] | null
+          sent_at?: string | null
           service_ids?: string[]
           service_type?: string | null
           signature_agency?: string | null
@@ -2059,6 +2066,7 @@ export type Database = {
           accepted_ip?: string | null
           accepted_name?: string | null
           account_id?: string | null
+          approval_token?: string | null
           auto_create_jobs?: boolean
           billing_day?: number
           briefing?: string | null
@@ -2098,6 +2106,7 @@ export type Database = {
           responsible_id?: string | null
           root_proposal_id?: string | null
           scope?: string[] | null
+          sent_at?: string | null
           service_ids?: string[]
           service_type?: string | null
           signature_agency?: string | null

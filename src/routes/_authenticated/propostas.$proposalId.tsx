@@ -344,9 +344,17 @@ export function ProposalEditorContent({
         ) : <span />}
         <div className="flex items-center gap-2 flex-wrap">
           <Button variant="outline" onClick={copyShareLink} className="gap-2"><Copy className="size-4" /> Copiar link</Button>
-          <Button variant="outline" onClick={() => saveMut.mutate({ status: "sent" })} className="gap-2"><Send className="size-4" /> Marcar como enviada</Button>
+          {proposal.status === "draft" && (
+            <Button 
+              variant="outline" 
+              onClick={() => saveMut.mutate({ status: "sent", sent_at: new Date().toISOString() } as any)} 
+              className="gap-2 border-amber-500/50 text-amber-600 hover:bg-amber-50"
+            >
+              <Send className="size-4" /> Enviar para Aprovação
+            </Button>
+          )}
           <Button onClick={() => saveMut.mutate(undefined)} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
-          {proposal.status !== "accepted" ? (
+          {proposal.status !== "accepted" && proposal.status !== "cancelled" && (
             <Button 
               onClick={() => {
                 if (confirm("Esta ação irá:\n\n✓ Converter a proposta em Contrato Ativo\n✓ Vincular ao Cliente\n✓ Vincular os Serviços Contratados\n✓ Criar Projetos\n✓ Criar Jobs dos Templates\n✓ Criar lançamentos financeiros\n✓ Atualizar Cliente 360\n\nDeseja continuar?")) {
@@ -354,21 +362,25 @@ export function ProposalEditorContent({
                 }
               }} 
               disabled={approveMut.isPending} 
-              className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold gap-2"
+              className="bg-green-600 text-white hover:bg-green-700 font-semibold gap-2"
             >
               <CheckCircle2 className="size-4" /> Aprovar e Converter em Contrato
             </Button>
-          ) : (
-            <>
-              {proposal.status === 'accepted' ? (
-                <>
-                  <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir e Versionar</Button>
-                  <Button variant="outline" onClick={() => setShowCancelDialog(true)} className="gap-2 text-destructive"><Ban className="size-4" /> Cancelar contrato e estrutura</Button>
-                </>
-              ) : proposal.status === 'cancelled' ? (
-                <Button variant="outline" onClick={() => reopenCancelledMut.mutate()} disabled={reopenCancelledMut.isPending} className="gap-2"><RotateCcw className="size-4" /> Reabrir para Edição</Button>
-              ) : null}
-            </>
+          )}
+          {proposal.status !== "cancelled" && (
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCancelDialog(true)} 
+              className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/5"
+            >
+              <Ban className="size-4" /> Cancelar Proposta
+            </Button>
+          )}
+          {proposal.status === 'accepted' && (
+            <Button variant="outline" onClick={() => setShowReopenDialog(true)} className="gap-2"><RotateCcw className="size-4" /> Reabrir e Versionar</Button>
+          )}
+          {proposal.status === 'cancelled' && (
+            <Button variant="outline" onClick={() => reopenCancelledMut.mutate()} disabled={reopenCancelledMut.isPending} className="gap-2"><RotateCcw className="size-4" /> Reabrir para Edição</Button>
           )}
         </div>
       </div>
