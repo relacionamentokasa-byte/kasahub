@@ -13,6 +13,7 @@ export interface AgencySettings {
   banner_url: string | null;
   brand_primary: string | null;
   brand_secondary: string | null;
+  agency_signature_url: string | null;
   default_currency: string;
   timezone: string;
   notify_email: boolean;
