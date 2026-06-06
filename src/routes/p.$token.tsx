@@ -60,6 +60,14 @@ type Agency = {
   address: string | null;
   agency_signature_url: string | null;
 } | null;
+type Client = {
+  name: string | null;
+  company: string | null;
+  email: string | null;
+  phone: string | null;
+  document: string | null;
+} | null;
+
 
 function formatCurrency(value: number, currency = "BRL") {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(
