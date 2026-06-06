@@ -496,17 +496,17 @@ export function ProposalEditorContent({
 
           <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-primary text-[10px] capitalize">Escopo</span>
-              <Button size="sm" variant="outline" onClick={() => setForm({ ...form, scope: [...form.scope, ""] })}><Plus className="size-3" /> Item</Button>
+              <div>
+                <span className="text-primary text-[10px] capitalize">Escopo dos Serviços</span>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Texto livre com Markdown. Use modelos prontos ou salve seus próprios.
+                </p>
+              </div>
             </div>
-            <div className="space-y-2">
-              {form.scope.map((it, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <Input value={it} onChange={(e) => { const n = [...form.scope]; n[idx] = e.target.value; setForm({ ...form, scope: n }); }} />
-                  <Button variant="ghost" size="icon" onClick={() => { const n = [...form.scope]; n.splice(idx, 1); setForm({ ...form, scope: n }); }}><Trash2 className="size-4" /></Button>
-                </div>
-              ))}
-            </div>
+            <ScopeEditor
+              value={form.scope_text}
+              onChange={(v) => setForm({ ...form, scope_text: v })}
+            />
           </div>
 
           <div className="rounded-2xl border border-border bg-surface p-6">
