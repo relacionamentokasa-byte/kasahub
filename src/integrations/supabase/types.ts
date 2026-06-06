@@ -888,6 +888,7 @@ export type Database = {
           done_at: string | null
           due_date: string | null
           feedback_at: string | null
+          flow_job_id: string | null
           id: string
           job_type: string | null
           labels: Json
@@ -918,6 +919,7 @@ export type Database = {
           done_at?: string | null
           due_date?: string | null
           feedback_at?: string | null
+          flow_job_id?: string | null
           id?: string
           job_type?: string | null
           labels?: Json
@@ -948,6 +950,7 @@ export type Database = {
           done_at?: string | null
           due_date?: string | null
           feedback_at?: string | null
+          flow_job_id?: string | null
           id?: string
           job_type?: string | null
           labels?: Json
@@ -974,6 +977,13 @@ export type Database = {
             columns: ["dme_id"]
             isOneToOne: false
             referencedRelation: "extra_demands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_flow_job_id_fkey"
+            columns: ["flow_job_id"]
+            isOneToOne: false
+            referencedRelation: "operational_flow_jobs"
             referencedColumns: ["id"]
           },
           {

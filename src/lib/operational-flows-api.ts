@@ -35,6 +35,12 @@ export interface OperationalFlowChecklist {
   order: number;
 }
 
+export interface OperationalFlowDependency {
+  id: string;
+  flow_job_id: string;
+  depends_on_job_id: string;
+}
+
 export const fetchOperationalFlows = async () => {
   const { data, error } = await supabase
     .from('operational_flows')
@@ -91,7 +97,6 @@ export const deleteOperationalFlow = async (id: string) => {
 };
 
 export const duplicateOperationalFlow = async (id: string) => {
-  // Buscar fluxo original
   const { data: flow, error: flowError } = await supabase
     .from('operational_flows')
     .select('*')
@@ -100,7 +105,6 @@ export const duplicateOperationalFlow = async (id: string) => {
   
   if (flowError) throw flowError;
 
-  // Criar cópia do fluxo
   const { data: newFlow, error: newFlowError } = await supabase
     .from('operational_flows')
     .insert({
@@ -114,7 +118,6 @@ export const duplicateOperationalFlow = async (id: string) => {
 
   if (newFlowError) throw newFlowError;
 
-  // Buscar estágios, jobs e checklists
   const details = await fetchOperationalFlowDetails(id);
 
   for (const stage of details) {
@@ -139,7 +142,8 @@ export const duplicateOperationalFlow = async (id: string) => {
           job_type: job.job_type,
           default_assignee_role_id: job.default_assignee_role_id,
           sla_days: job.sla_days,
-          order: job.order
+          order: job.order,
+          custom_fields_schema: job.custom_fields_schema
         })
         .select()
         .single();
@@ -159,4 +163,31 @@ export const duplicateOperationalFlow = async (id: string) => {
   }
 
   return newFlow;
+};
+
+export const fetchJobDependencies = async (jobId: string) => {
+  const { data, error } = await supabase
+    .from('operational_flow_dependencies')
+    .select('*')
+    .eq('flow_job_id', jobId);
+  if (error) throw error;
+  return data as OperationalFlowDependency[];
+};
+
+export const addJobDependency = async (jobId: string, dependsOnJobId: string) => {
+  const { data, error } = await supabase
+    .from('operational_flow_dependencies')
+    .insert({ flow_job_id: jobId, depends_on_job_id: dependsOnJobId })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const removeJobDependency = async (id: string) => {
+  const { error } = await supabase
+    .from('operational_flow_dependencies')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
 };
