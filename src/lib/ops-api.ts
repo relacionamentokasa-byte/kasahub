@@ -275,6 +275,19 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
     } as never);
   }
   
+  const { data: userData } = await supabase.auth.getUser();
+  if (data.assignee_id && data.assignee_id !== userData.user?.id) {
+    await supabase.rpc('notify_user', {
+      p_user_id: data.assignee_id,
+      p_title: "Novo Job Atribuído",
+      p_description: `Você foi designado para: ${data.title}`,
+      p_category: 'job',
+      p_origin_type: 'jobs',
+      p_origin_id: data.id,
+      p_link: '/jobs'
+    } as any);
+  }
+  
   await logAudit("create", "job", data.id, null, data);
   return data;
 }
@@ -295,6 +308,23 @@ export async function updateJob(
   const { data, error } = await supabase.from("jobs").update(patch).eq("id", id).select().single();
   if (error) throw error;
   
+  const { data: userData } = await supabase.auth.getUser();
+  if (patch.assignee_id && patch.assignee_id !== userData.user?.id) {
+    await supabase.rpc('notify_user', {
+      p_user_id: patch.assignee_id,
+      p_title: "Responsabilidade de Job",
+      p_description: `Você agora é responsável por: ${data.title}`,
+      p_category: 'job',
+      p_origin_type: 'jobs',
+      p_origin_id: data.id,
+      p_link: '/jobs'
+    } as any);
+  }
+
+  if (patch.status === 'done' || patch.done_at) {
+    // Notificar criador ou gestor? Para o MVP, focar nas atribuições e menções.
+  }
+
   await logAudit("update", "job", id, null, patch);
   return data;
 }
