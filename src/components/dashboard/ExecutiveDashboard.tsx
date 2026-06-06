@@ -18,7 +18,11 @@ import { FeedSection, FeedEvent } from "./FeedSection";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { startOfToday, startOfWeek, startOfMonth, startOfQuarter, startOfYear, endOfDay, isWithinInterval, subDays } from "date-fns";
 import { usePermissions } from "@/hooks/use-permissions";
-import { Loader2, Filter } from "lucide-react";
+import { Loader2, Filter, Settings2, Check } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 type FilterRange = 'today' | 'week' | 'month' | 'quarter' | 'year';
 
