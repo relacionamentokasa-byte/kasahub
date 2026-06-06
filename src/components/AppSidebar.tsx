@@ -136,7 +136,7 @@ function UserFooter({ collapsed }: { collapsed: boolean }) {
   const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <div className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/5 transition-colors cursor-pointer">
+    <Link to="/config?tab=profile" className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/5 transition-colors cursor-pointer">
       <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
         {profile?.avatar_url ? (
           <img src={profile.avatar_url} alt={name} className="size-full object-cover" />
@@ -152,6 +152,6 @@ function UserFooter({ collapsed }: { collapsed: boolean }) {
           </p>
         </div>
       )}
-    </div>
+    </Link>
   );
 }
