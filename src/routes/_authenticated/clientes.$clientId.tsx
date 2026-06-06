@@ -14,7 +14,7 @@ import { ClientServicesManager } from "@/components/clients/ClientServicesManage
 import { ClientContracts } from "@/components/clients/ClientContracts";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { toast } from "sonner";
-import { fetchClient, fetchProjects, updateClient, fetchExtraDemands } from "@/lib/ops-api";
+import { fetchClient, fetchProjects, updateClient, fetchExtraDemands, fetchJobs, fetchJobStages } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalUser, deletePortalUser, resetPortalUserPassword } from "@/lib/portal-users.functions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -86,6 +86,16 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
     queryKey: ["extra-demands", { clientId }],
     queryFn: () => fetchExtraDemands({ clientId }),
   });
+  const { data: allJobs = [] } = useQuery({
+    queryKey: ["jobs", { clientId }],
+    queryFn: () => fetchJobs({ clientId }),
+  });
+  const { data: jobStages = [] } = useQuery({
+    queryKey: ["job-stages"],
+    queryFn: fetchJobStages,
+  });
+  const doneStageIds = new Set(jobStages.filter(s => s.is_done).map(s => s.id));
+
 
 
   const summary = useMemo(() => {
