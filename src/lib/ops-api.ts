@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { approveExtraDemand as approveExtraDemandShared } from "./dme-approval";
 
 export type Client = Database["public"]["Tables"]["clients"]["Row"];
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
