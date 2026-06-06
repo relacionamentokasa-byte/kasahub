@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User, GitBranch, Target } from "lucide-react";
+import { Save, Loader2, Bell, Building2, Palette, Plug, Sun, Moon, UserCog, Shield, Briefcase, FileText, User, GitBranch, Target, Pencil } from "lucide-react";
 import { ServicesManager } from "@/components/config/ServicesManager";
 import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
 import { PermissionsManager } from "@/components/PermissionsManager";
