@@ -38,6 +38,23 @@ export function ExecutiveDashboard() {
     } 
   });
   const [range, setRange] = useState<FilterRange>('month');
+  const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('dashboard-visibility');
+    return saved ? JSON.parse(saved) : {
+      gestao: true,
+      operacao: true,
+      performance: true,
+      agenda: true,
+      clientes: true,
+      feed: true
+    };
+  });
+
+  const toggleSection = (id: string) => {
+    const next = { ...visibleSections, [id]: !visibleSections[id] };
+    setVisibleSections(next);
+    localStorage.setItem('dashboard-visibility', JSON.stringify(next));
+  };
 
   // Queries
   const { data: txs = [], isLoading: txLoading } = useQuery({ queryKey: ["transactions"], queryFn: () => fetchTransactions() });
