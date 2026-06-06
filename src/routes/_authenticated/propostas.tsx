@@ -843,8 +843,9 @@ function ProposalsPage() {
 
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
-            {filteredProposals.map((p) => {
-              const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.draft;
+                {filteredProposals.map((p: Proposal) => {
+                  const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.draft;
+
               return (
                 <div
                   key={p.id}
