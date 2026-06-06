@@ -1,6 +1,6 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, Phone, Mail, Bell, Smartphone } from "lucide-react";
+import { Loader2, AlertTriangle, Phone, Mail, Bell, Smartphone, Volume2, Music } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMyProfile } from "@/lib/profile-api";
@@ -37,6 +37,8 @@ export function NotificationPreferencesTab() {
   const qc = useQueryClient();
   const [testResults, setTestResults] = useState<any[] | null>(null);
   const [isTesting, setIsTesting] = useState(false);
+  const { playSound } = useAudioNotifications();
+
   
   const { data: { user } = {} } = useQuery({
     queryKey: ["auth-user"],
@@ -347,6 +349,87 @@ export function NotificationPreferencesTab() {
           )}
         </div>
       </div>
+
+      <div className="rounded-xl border border-border bg-surface p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10 text-primary">
+              <Volume2 className="size-5" />
+            </div>
+            <h3 className="font-display font-bold">Alertas Sonoros</h3>
+          </div>
+          <Switch 
+            checked={prefs?.sound_enabled ?? true} 
+            onCheckedChange={(v) => mut.mutate({ sound_enabled: v })}
+          />
+        </div>
+
+        <div className={cn("space-y-6 transition-opacity", !(prefs?.sound_enabled ?? true) && "opacity-50 pointer-events-none")}>
+          <div className="space-y-4">
+            <p className="text-[10px] font-mono-kasa uppercase text-foreground/40 tracking-widest">Configurações de Áudio</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Volume do Alerta</p>
+                <div className="flex items-center gap-2">
+                  {['low', 'medium', 'high'].map((vol) => (
+                    <Button
+                      key={vol}
+                      variant={prefs?.sound_volume === vol ? "default" : "outline"}
+                      size="sm"
+                      className="flex-1 capitalize h-8 text-xs"
+                      onClick={() => mut.mutate({ sound_volume: vol })}
+                    >
+                      {vol === 'low' ? 'Baixo' : vol === 'medium' ? 'Médio' : 'Alto'}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Teste de Som</p>
+                <Button 
+                  variant="outline" 
+                  className="w-full gap-2 h-8 text-xs"
+                  onClick={() => playSound(prefs?.sound_volume as any)}
+                >
+                  <Music className="size-3" /> Reproduzir Som de Teste
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-6 border-t border-border space-y-2">
+            <p className="text-[10px] font-mono-kasa uppercase text-foreground/40 tracking-widest mb-4">Ativar som para:</p>
+            
+            <ToggleRow 
+              title="Sons de Menções" 
+              description="Alertas sonoros para quando você for citado." 
+              checked={prefs?.sound_mentions ?? true}
+              onChange={(v) => mut.mutate({ sound_mentions: v })}
+            />
+            <ToggleRow 
+              title="Sons de Aprovações" 
+              description="Alertas para novos status de aprovação." 
+              checked={prefs?.sound_approvals ?? true}
+              onChange={(v) => mut.mutate({ sound_approvals: v })}
+            />
+            <ToggleRow 
+              title="Sons de Jobs" 
+              description="Alertas para mudanças em seus jobs." 
+              checked={prefs?.sound_jobs ?? true}
+              onChange={(v) => mut.mutate({ sound_jobs: v })}
+            />
+            <ToggleRow 
+              title="Sons de Agenda" 
+              description="Alertas para reuniões e compromissos." 
+              checked={prefs?.sound_agenda ?? true}
+              onChange={(v) => mut.mutate({ sound_agenda: v })}
+            />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
