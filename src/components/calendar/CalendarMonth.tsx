@@ -57,6 +57,8 @@ export function CalendarMonth({ clientId, filter, onSelectEvent }: Props) {
   const { data: events = [] } = useQuery({
     queryKey: ["calendar", { clientId, from, to, filter }],
     queryFn: () => fetchCalendarEvents({ clientId, from, to }),
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   const filteredEvents = useMemo(() => {
