@@ -175,26 +175,43 @@ function ProjetosPage() {
                       </DropdownMenu>
                     </div>
 
-                    <div className="font-display font-bold text-lg leading-tight group-hover:text-primary transition-colors">{p.name}</div>
+                    <div className="font-display font-bold text-xl leading-tight group-hover:text-primary transition-colors">{p.name}</div>
                     
-                    <div className="mt-3 space-y-2">
+                    <div className="mt-4 space-y-2.5">
                       {c && (
                         <div className="flex items-center gap-2 text-xs text-foreground/60">
                           <div className="size-5 rounded bg-primary/10 flex items-center justify-center shrink-0">
                             <Users className="size-3 text-primary" />
                           </div>
-                          <span className="truncate">{c.company || c.name}</span>
+                          <span className="truncate font-medium">{c.company || c.name}</span>
                         </div>
                       )}
                       {ct && (
-                        <div className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase font-medium">
+                        <div className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase font-bold tracking-wider">
                           <div className="size-5 rounded bg-foreground/5 flex items-center justify-center shrink-0">
                             <FileSignature className="size-3" />
                           </div>
                           <span className="truncate">{ct.title}</span>
                         </div>
                       )}
+                      {(() => {
+                        const owner = users.find(u => u.id === p.owner_id);
+                        if (!owner) return null;
+                        return (
+                          <div className="flex items-center gap-2 text-[10px] text-foreground/40 uppercase font-bold tracking-wider">
+                            <div className="size-5 rounded-full bg-foreground/5 overflow-hidden flex items-center justify-center shrink-0">
+                              {owner.avatar_url ? (
+                                <img src={owner.avatar_url} alt="" className="size-full object-cover" />
+                              ) : (
+                                <span className="text-[8px]">{owner.full_name?.charAt(0)}</span>
+                              )}
+                            </div>
+                            <span className="truncate">Resp: {owner.full_name?.split(' ')[0]}</span>
+                          </div>
+                        );
+                      })()}
                     </div>
+
 
                     {(() => {
                       const pJobs = allJobs.filter(j => j.project_id === p.id);
