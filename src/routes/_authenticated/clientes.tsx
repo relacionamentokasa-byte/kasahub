@@ -211,51 +211,75 @@ function ClientesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((c) => (
-                    <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-surface-elevated transition">
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedId(c.id)}
-                          className="flex items-center gap-3 min-w-0 text-left w-full"
-                        >
-                          <div
-                            className="size-9 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
-                            style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                  {filtered.map((c) => {
+                    const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
+                    const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
+                    
+                    const mainContract = clientContracts[0];
+                    const contractLabel = clientContracts.length > 1 
+                      ? `${mainContract.title} +${clientContracts.length - 1}`
+                      : mainContract?.title || "Nenhum contrato";
+
+                    const responsibleId = c.responsible_id || mainContract?.owner_id;
+                    const responsible = profiles.find(p => p.id === responsibleId);
+                    const responsibleName = responsible?.display_name || responsible?.full_name || "—";
+
+                    const nextTransaction = transactions
+                      .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
+                      .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
+                    
+                    const nextDueDate = nextTransaction?.due_date 
+                      ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
+                      : "Não definido";
+
+                    return (
+                      <tr key={c.id} className="border-b border-border/60 last:border-0 hover:bg-surface-elevated transition group">
+                        <td className="px-4 py-3">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedId(c.id)}
+                            className="flex items-center gap-3 min-w-0 text-left w-full"
                           >
-                            {c.logo_url ? (
-                              <img src={c.logo_url} alt="" className="size-full object-cover" />
-                            ) : (
-                              (c.company || c.name).charAt(0).toUpperCase()
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <div className="font-semibold truncate hover:text-primary">{c.company || c.name}</div>
-                            {c.email && <div className="text-[11px] text-foreground/50 truncate">{c.email}</div>}
-                          </div>
-                        </button>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`text-[10px] capitalize px-2 py-1 rounded ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
-                          {c.status === "active" ? "Ativo" : c.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-right text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-foreground/60">—</td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setDeleteId(c.id)}
-                          className="p-1.5 rounded-md text-destructive opacity-60 hover:opacity-100 hover:bg-destructive/10 transition"
-                          aria-label="Excluir cliente"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                            <div
+                              className="size-9 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
+                              style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                            >
+                              {c.logo_url ? (
+                                <img src={c.logo_url} alt="" className="size-full object-cover" />
+                              ) : (
+                                (c.company || c.name).charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="font-semibold truncate group-hover:text-primary transition-colors">{c.company || c.name}</div>
+                              {c.email && <div className="text-[11px] text-foreground/50 truncate">{c.email}</div>}
+                            </div>
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`text-[10px] capitalize px-2 py-1 rounded font-bold ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+                            {c.status === "active" ? "Ativo" : c.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground/60 text-xs">{responsibleName}</td>
+                        <td className="px-4 py-3 text-foreground/60 text-xs">{contractLabel}</td>
+                        <td className="px-4 py-3 text-right text-xs font-mono-kasa font-bold">
+                          {monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}
+                        </td>
+                        <td className="px-4 py-3 text-foreground/60 text-xs">{nextDueDate}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setDeleteId(c.id)}
+                            className="p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-60 hover:!opacity-100 hover:bg-destructive/10 transition"
+                            aria-label="Excluir cliente"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
