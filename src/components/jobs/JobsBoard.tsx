@@ -339,7 +339,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
               style={ (job as any).status ? { backgroundColor: `${JOB_STATUS_LABELS[(job as any).status]?.color}15`, color: JOB_STATUS_LABELS[(job as any).status]?.color } : {} }
             >
               {(job as any).last_activity_at && differenceInDays(new Date(), new Date((job as any).last_activity_at)) >= 5 && !job.done_at && (
-                <AlertTriangle className="size-2 text-amber-500 animate-bounce" title="Sem movimentação há mais de 5 dias" />
+                <AlertTriangle className="size-2 text-amber-500 animate-bounce" />
               )}
               { (job as any).status ? JOB_STATUS_LABELS[(job as any).status]?.label : 'Pendentes' }
             </div>
