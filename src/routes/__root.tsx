@@ -170,3 +170,9 @@ function AuthListener() {
   }, [router, queryClient]);
   return null;
 }
+
+function AudioNotificationManager() {
+  useAudioNotifications();
+  return null;
+}
+
