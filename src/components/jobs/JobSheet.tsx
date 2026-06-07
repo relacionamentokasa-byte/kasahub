@@ -561,6 +561,7 @@ export function JobSheet({
                           selected={job.due_date ? new Date(job.due_date + 'T12:00:00') : undefined}
                           onSelect={(date: Date | undefined) => updateMut.mutate({ due_date: date ? format(date, 'yyyy-MM-dd') : null })}
                           initialFocus
+                          locale={ptBR}
                           className="bg-surface text-white"
                         />
                       </PopoverContent>
