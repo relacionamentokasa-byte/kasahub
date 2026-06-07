@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { createJob, fetchClients, fetchProjects, type JobStage } from "@/lib/ops-api";
 import { fetchPartners } from "@/lib/partners-api";
+import { fetchProfiles } from "@/lib/profile-api";
 import {
   Dialog,
   DialogContent,
