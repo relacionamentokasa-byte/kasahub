@@ -87,23 +87,34 @@ export function NewJobDialog({
 
   const mut = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.from("jobs").insert({
+      const payload = {
         title: form.title,
         description: form.description || null,
         priority: form.priority,
         due_date: form.due_date || null,
-        project_id: form.project_id,
-        client_id: form.client_id,
+        project_id: form.project_id || null,
+        client_id: form.client_id || null,
         contract_id: form.contract_id || null,
-        service_id: form.service_id,
+        service_id: form.service_id || null,
         stage_id: stage?.id ?? null,
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
         main_responsible_id: form.main_responsible_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
-      } as any).select().single();
+      };
+
+      console.log("NewJobDialog: Submitting payload", payload);
+
+      const { data, error } = await supabase
+        .from("jobs")
+        .insert(payload as any)
+        .select()
+        .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("NewJobDialog: Error creating job", error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {

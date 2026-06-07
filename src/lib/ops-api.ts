@@ -266,22 +266,33 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   // Herança automática de campos se não fornecidos
   const finalInput = {
     ...input,
-    client_id: (input.client_id || project.client_id) as string,
-    project_id: input.project_id as string,
-    contract_id: input.contract_id || project.contract_id,
-    main_responsible_id: input.main_responsible_id || project.responsible_id || project.owner_id,
-  } as any;
+    client_id: (input.client_id || project.client_id || null),
+    project_id: (input.project_id || null),
+    contract_id: (input.contract_id || project.contract_id || null),
+    main_responsible_id: (input.main_responsible_id || project.responsible_id || project.owner_id || null),
+  };
 
-  const { data, error } = await supabase.from("jobs").insert(finalInput).select().single();
+  // Limpeza de campos UUID vazios para evitar erro de sintaxe
+  const cleanInput = Object.entries(finalInput).reduce((acc, [key, value]) => {
+    acc[key] = value === "" ? null : value;
+    return acc;
+  }, {} as any);
 
-  if (error) throw error;
+  console.log("createJob: Final payload after cleaning", cleanInput);
+
+  const { data, error } = await supabase.from("jobs").insert(cleanInput).select().single();
+
+  if (error) {
+    console.error("createJob: Supabase error", error);
+    throw error;
+  }
 
   // Criar evento na agenda se houver prazo
   if (data.due_date) {
     const { data: userData } = await supabase.auth.getUser();
     await supabase.from("calendar_events").insert({
       title: `Job: ${data.title}`,
-      client_id: data.client_id || project.client_id,
+      client_id: data.client_id,
       project_id: data.project_id,
       starts_at: data.due_date,
       kind: "task",
@@ -289,7 +300,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
       origin_id: data.id,
       source: "system",
       created_by: userData.user?.id
-    } as never);
+    } as any);
   }
   
   const { data: userData } = await supabase.auth.getUser();
