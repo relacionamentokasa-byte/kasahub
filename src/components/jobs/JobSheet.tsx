@@ -88,12 +88,10 @@ export function JobSheet({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Realtime mentions and typing indicator
+  // Realtime mentions
   const [mentionSearch, setMentionSearch] = useState("");
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionCoords, setMentionCoords] = useState({ top: 0, left: 0 });
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [showVersionsId, setShowVersionsId] = useState<string | null>(null);
