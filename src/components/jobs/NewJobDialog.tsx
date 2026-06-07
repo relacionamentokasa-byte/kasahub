@@ -91,7 +91,6 @@ export function NewJobDialog({
         title: form.title,
         description: form.description || null,
         priority: form.priority,
-        job_type: form.job_type,
         due_date: form.due_date || null,
         project_id: form.project_id,
         client_id: form.client_id,
@@ -101,14 +100,10 @@ export function NewJobDialog({
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
         main_responsible_id: form.main_responsible_id || null,
-        // operational_template_id: form.operational_template_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
       } as any).select().single();
       
       if (error) throw error;
-
-      // Template Steps Logic Removed
-
       return data;
     },
     onSuccess: () => {
@@ -119,7 +114,6 @@ export function NewJobDialog({
         title: "",
         description: "",
         priority: "normal",
-        job_type: "post",
         due_date: "",
         project_id: defaultProjectId ?? "",
         client_id: defaultClientId ?? "",
@@ -128,7 +122,6 @@ export function NewJobDialog({
         period: defaultPeriod ?? "",
         freelancer_id: "",
         main_responsible_id: "",
-        // operational_template_id: "", // Removed
         team_involved_ids: [],
       });
     },
