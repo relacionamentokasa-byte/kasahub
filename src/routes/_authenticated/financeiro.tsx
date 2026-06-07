@@ -675,7 +675,7 @@ function FinanceiroPage() {
                             {brl(t.amount)}
                           </div>
 
-                          <div className="flex flex-col items-center">
+                          <div className="flex flex-col items-center justify-center">
                             <div className="relative group/date w-full flex items-center justify-center">
                               <Calendar className="size-3 absolute left-1.5 text-foreground/30 pointer-events-none group-hover/date:text-primary transition-colors" />
                               <input 
