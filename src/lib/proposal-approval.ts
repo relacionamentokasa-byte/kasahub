@@ -403,7 +403,7 @@ export async function approveProposal(
 
   // 7. Update proposal status + linkage
   const patch: Record<string, unknown> = {
-    status: "accepted",
+    status: "converted",
     accepted_at: new Date().toISOString(),
     converted_at: new Date().toISOString(),
     client_id: clientId,
