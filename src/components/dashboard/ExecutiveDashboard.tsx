@@ -170,10 +170,13 @@ export function ExecutiveDashboard() {
       placeholderData: (prev) => prev,
     });
 
-    // Performance
-    const month = new Date().getMonth() + 1;
-    const year = new Date().getFullYear();
-    const currentGoals = goals.filter(g => g.month === month || g.period === 'yearly');
+    const performanceMetrics = [
+      ...indicators.filter(i => i.status === 'active').map(i => {
+        let actual = 0;
+        const monthStr = new Date().toISOString().slice(0, 7);
+        
+        switch (i.data_source) {
+          case 'contracts_mrr': actual = ind.mrr; break;
           case 'contracts_count': actual = contracts.filter(c => c.status === 'active' && c.created_at?.startsWith(monthStr)).length; break;
           case 'proposals_accepted': actual = periodContracts.length; break; // simplistic fallback
           case 'jobs_done': actual = jobsCompleted; break;
