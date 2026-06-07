@@ -18,7 +18,7 @@ export function DynamicJobForm({ serviceId, data, onChange, readOnly }: DynamicF
     queryKey: ["service-schema", serviceId],
     queryFn: async () => {
       if (!serviceId) return null;
-      const { data } = await supabase.from("services").select("default_scope").eq("id", serviceId).single();
+      const { data } = await supabase.from("services").select("default_scope, checklist_items").eq("id", serviceId).single();
       return data;
     },
     enabled: !!serviceId
