@@ -101,9 +101,9 @@ const BRANDING_ASSETS: BrandingAsset[] = [
 export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>, set: any, canEdit: boolean }) {
   const [validating, setValidating] = useState<string | null>(null);
 
-  const handleUpload = (key: string, url: string) => {
+  const handleUpload = (key: string, url: string | null) => {
     setValidating(key);
-    set(key, url);
+    set(key as any, url);
     
     // Simulate some validation after upload
     setTimeout(() => {
