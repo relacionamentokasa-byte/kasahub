@@ -605,7 +605,7 @@ function FinanceiroPage() {
               </div>
               
               {/* Desktop Header */}
-              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1fr)_160px_180px_140px_140px_100px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(150px,1fr)_140px_160px_130px_145px_100px_90px] px-3 py-2 text-[10px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-3">
                 <div className="flex items-center justify-center">
                   <Checkbox 
                     checked={rows.length > 0 && selectedIds.length === rows.length} 
@@ -618,7 +618,7 @@ function FinanceiroPage() {
                 <div>Cliente</div>
                 <div className="text-right">Valor</div>
                 <div className="text-center">Vencimento</div>
-                <div>Origem</div>
+                <div className="text-center">Origem</div>
                 <div className="text-right">Ações</div>
               </div>
 
@@ -640,7 +640,7 @@ function FinanceiroPage() {
                     return (
                       <div key={t.id} className="group hover:bg-foreground/[0.02] transition-colors">
                         {/* Desktop Row */}
-                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1fr)_160px_180px_140px_140px_100px_100px] px-5 py-4 items-center gap-4">
+                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(150px,1fr)_140px_160px_130px_145px_100px_90px] px-3 py-3 items-center gap-3">
                           <div className="flex items-center justify-center">
                             <Checkbox 
                               checked={selectedIds.includes(t.id)} 
@@ -650,43 +650,19 @@ function FinanceiroPage() {
                           
                           <div>
                             {t.status === "paid" ? (
-                              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 gap-1.5 px-2 py-0.5">
+                              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 gap-1 px-1.5 py-0.5 text-[10px]">
                                 <CheckCircle2 className="size-3" /> Pago
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className={`${overdue ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-foreground/5 text-foreground/50 border-border"} gap-1.5 px-2 py-0.5`}>
+                              <Badge variant="outline" className={`${overdue ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-foreground/5 text-foreground/50 border-border"} gap-1 px-1.5 py-0.5 text-[10px]`}>
                                 <Circle className="size-3" /> {overdue ? "Atrasado" : "Pendente"}
                               </Badge>
                             )}
                           </div>
-
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium flex items-center gap-2">
-                              <span className="truncate" title={t.description}>{t.description}</span>
-                              {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40 shrink-0" />}
-                            </div>
-                          </div>
-
-                          <div className="text-xs text-foreground/60 truncate" title={catName(t.category_id)}>
-                            {catName(t.category_id)}
-                          </div>
-
-                          <div className="text-xs text-foreground/60 truncate">
-                            {t.client_id ? (
-                              <Link to="/clientes/$clientId" params={{ clientId: t.client_id }} className="hover:text-primary transition-colors truncate block" title={clientName(t.client_id)}>
-                                {clientName(t.client_id)}
-                              </Link>
-                            ) : <span className="text-foreground/20">—</span>}
-                          </div>
-
-                          <div className={`text-right font-display font-bold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                            <span className="text-[10px] mr-1 opacity-70">R$</span>
-                            {brl(Number(t.amount)).replace("R$", "").trim()}
-                          </div>
-
+...
                           <div className="flex flex-col items-center">
                             <div className="relative group/date w-full flex items-center justify-center">
-                              <Calendar className="size-3 absolute left-1 text-foreground/30 pointer-events-none group-hover/date:text-primary transition-colors" />
+                              <Calendar className="size-3 absolute left-1.5 text-foreground/30 pointer-events-none group-hover/date:text-primary transition-colors" />
                               <input 
                                 type="date" 
                                 value={t.due_date} 
@@ -700,13 +676,13 @@ function FinanceiroPage() {
                                     updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
                                   }
                                 }}
-                                className="bg-surface/50 border border-border/50 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md py-1 pl-5 pr-1 text-[11px] w-full text-center cursor-pointer transition-all outline-none font-medium"
+                                className="bg-surface/50 border border-border/50 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md py-1 pl-6 pr-1 text-[11px] w-full text-center cursor-pointer transition-all outline-none font-medium"
                               />
                             </div>
                             {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter mt-1">Vencido</div>}
                           </div>
 
-                          <div>
+                          <div className="text-center">
                             <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
                           </div>
 
