@@ -340,6 +340,11 @@ function ServiceFormDialog({
               <Textarea
                 rows={10}
                 value={form.checklist_items.map((it: any) => it.text || it).join("\n")}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.stopPropagation();
+                  }
+                }}
                 onChange={(e) =>
                   setForm({
                     ...form,

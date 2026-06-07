@@ -546,6 +546,14 @@ export function JobSheet({
                   rows={3}
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      if (comment.trim()) {
+                        commentMut.mutate({ content: comment.trim() });
+                      }
+                    }
+                  }}
                   placeholder="Escreva sua mensagem... use @nome para mencionar membros da equipe"
                   className="resize-none pr-16 bg-muted/5 border-border rounded-2xl p-4 text-sm"
                 />
