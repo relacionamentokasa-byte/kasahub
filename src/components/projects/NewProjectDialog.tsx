@@ -104,10 +104,8 @@ export function NewProjectDialog({
         responsible_id: form.responsible_id || null,
         type: form.type,
       } as Parameters<typeof createProject>[0]);
-      if (form.client_id && selectedServiceIds.length) {
-        const r = await generateJobsForProject(project.id, form.client_id, selectedServiceIds);
-        if (r.created > 0) toast.success(`${r.created} jobs gerados a partir dos templates`);
-      }
+      // Geração automática de jobs desabilitada (limpeza operacional)
+
       return project;
     },
     onSuccess: (p) => {
@@ -165,35 +163,8 @@ export function NewProjectDialog({
             </Select>
           </div>
 
-          {form.client_id && contracted.length > 0 && (
-            <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3">
-              <div>
-                <div className="text-[10px] uppercase text-foreground/50">
-                  Serviços contratados
-                </div>
-                <div className="text-xs text-foreground/60">
-                  Selecione quais serviços gerarão jobs neste projeto (templates serão aplicados automaticamente).
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                {contracted.map((cs) => (
-                  <label
-                    key={cs.id}
-                    className="flex items-center gap-2 text-sm cursor-pointer hover:bg-accent/40 rounded px-2 py-1.5"
-                  >
-                    <Checkbox
-                      checked={selectedServiceIds.includes(cs.service_id)}
-                      onCheckedChange={() => toggleService(cs.service_id)}
-                    />
-                    <span className="flex-1">{serviceName(cs.service_id)}</span>
-                    <span className="text-[10px] text-foreground/40 capitalize">
-                      {cs.contract_type === "recurring" ? "Mensal" : "Único"}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Seleção de serviços para geração de jobs removida (limpeza operacional) */}
+
 
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1.5">

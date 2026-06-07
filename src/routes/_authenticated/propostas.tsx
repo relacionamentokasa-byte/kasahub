@@ -178,7 +178,7 @@ function ProposalsPage() {
         total: form.contract_type === "mensal" ? form.monthly_investment : form.one_time_investment,
         contract_type: form.contract_type === "mensal" ? "recurring" : "one_time",
         payment_kind: form.contract_type === "mensal" ? "recurring" : "one_time",
-        auto_create_jobs: true,
+        auto_create_jobs: false,
         contract_term: form.contract_term,
         installments: form.contract_type === "avulso" ? form.installments : 1,
         recurring_months: recurring_months,
@@ -343,16 +343,9 @@ function ProposalsPage() {
             <DialogHeader className="px-6 py-4 border-b border-border flex-row items-center justify-between space-y-0 sticky top-0 bg-surface z-10">
               <DialogTitle className="font-display text-2xl">Nova proposta</DialogTitle>
               <div className="flex items-center gap-2 mr-8">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => toast.info("Templates em breve")}
-                  className="gap-2"
-                >
-                  <FileText className="size-4" /> Templates
-                </Button>
+                {/* Botão de templates removido (limpeza operacional) */}
               </div>
+
             </DialogHeader>
             <div className="overflow-y-auto px-6 py-5">
               <div className="grid gap-6">
