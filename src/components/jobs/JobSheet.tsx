@@ -607,13 +607,17 @@ export function JobSheet({
                                   onSelect={() => updateMut.mutate({ client_id: c.id } as any)}
                                   className="flex items-center gap-3 p-3 hover:bg-primary/10 cursor-pointer aria-selected:bg-primary/10"
                                 >
-                                  <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm ${
-                                    ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
-                                  }`}>
-                                    {(c.company || c.name).substring(0, 2)}
-                                  </div>
+                                   <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm ${
+                                    (c as any).logo_url ? "" : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
+                                   }`}>
+                                    {(c as any).logo_url ? (
+                                      <img src={(c as any).logo_url} className="size-full rounded-full object-cover" />
+                                    ) : (
+                                      (c.company || c.name).substring(0, 2)
+                                    )}
+                                   </div>
 
-                                  <span className="text-sm font-medium text-white">{c.company || c.name}</span>
+                                   <span className="text-sm font-medium text-white">{c.company || c.name}</span>
                                   {(job as any).client_id === c.id && <Check className="size-4 text-primary ml-auto" />}
                                 </CommandItem>
                               ))}
