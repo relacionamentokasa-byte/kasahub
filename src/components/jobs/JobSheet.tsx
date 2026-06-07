@@ -122,16 +122,18 @@ export function JobSheet({
     },
     onMutate: async (patch) => {
       await qc.cancelQueries({ queryKey: ["jobs"] });
-      // Also cancel specific job query if it exists
       await qc.cancelQueries({ queryKey: ["job", job!.id] });
       
       const prev = qc.getQueryData<Job[]>(["jobs"]);
-      qc.setQueryData<Job[]>(["jobs"], (old) =>
-        (old ?? []).map((j) => (j.id === job!.id ? { ...j, ...patch } : j)),
-      );
       
-      // Update the local sheet UI immediately by updating the parent state if possible
-      // (Assuming the parent uses "jobs" query to render this)
+      // Update ALL queries starting with "jobs" (board, list, etc)
+      qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
+        if (!old) return old;
+        if (Array.isArray(old)) {
+          return old.map((j) => (j.id === job!.id ? { ...j, ...patch } : j));
+        }
+        return old;
+      });
       
       return { prev };
     },
