@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ptBR } from "date-fns/locale";
@@ -45,6 +45,8 @@ import { JobSheet } from "./JobSheet";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 
+export const JOBS_QUERY_KEY = (filters: any) => ["jobs", filters];
+
 export function JobsBoard({
   projectId,
   clientId,
@@ -61,12 +63,29 @@ export function JobsBoard({
   showPeriodFilter?: boolean;
 }) {
   const qc = useQueryClient();
-  const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
   const [period, setPeriod] = useState<string>("all");
-  const filters = { projectId, clientId, serviceId, period };
-  const queryKey = ["jobs", filters];
+  const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
+  const queryKey = useMemo(() => JOBS_QUERY_KEY(filters), [filters]);
+  const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('jobs-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'jobs' },
+        () => {
+          qc.invalidateQueries({ queryKey: ["jobs"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
 
   const { data: availablePeriods = [] } = useQuery({
     queryKey: ["available-periods", projectId],
@@ -111,9 +130,12 @@ export function JobsBoard({
       await qc.cancelQueries({ queryKey });
       const prev = qc.getQueryData<Job[]>(queryKey);
       qc.setQueryData<Job[]>(queryKey, (old) =>
-        (old ?? []).map((j) => (j.id === id ? { ...j, stage_id: stage.id } : j)),
+        (old ?? []).map((j) => (j.id === id ? { ...j, stage_id: stage.id, done_at: stage.is_done ? new Date().toISOString() : j.done_at } : j)),
       );
       return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
@@ -190,7 +212,13 @@ export function JobsBoard({
               return (
                 <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
                   {cards.map((j) => (
-                    <JobCard key={j.id} job={j} profiles={profiles} onClick={() => setOpen(j)} />
+                    <JobCard 
+                      key={j.id} 
+                      job={j} 
+                      profiles={profiles} 
+                      onClick={() => setOpen(j)}
+                      queryKey={queryKey}
+                    />
                   ))}
                 </Column>
               );
@@ -274,40 +302,54 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClick: () => void }) {
+function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[] }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
+  
+  const isOptimistic = job.id.startsWith('temp-');
+
   const delMut = useMutation({
     mutationFn: () => deleteJob(job.id),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData<Job[]>(queryKey);
+      qc.setQueryData<Job[]>(queryKey, (old) => (old ?? []).filter((j) => j.id !== job.id));
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job removido");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
+      toast.error(e.message);
+    },
   });
   return (
-    <div className={`relative group ${isDragging ? "opacity-30" : ""}`}>
+    <div className={`relative group ${isDragging ? "opacity-30" : ""} ${isOptimistic ? "opacity-60" : ""}`}>
       <div
         ref={setNodeRef}
-        {...listeners}
-        {...attributes}
-        onClick={onClick}
-        className="cursor-grab active:cursor-grabbing"
+        {...(isOptimistic ? {} : listeners)}
+        {...(isOptimistic ? {} : attributes)}
+        onClick={() => !isOptimistic && onClick()}
+        className={isOptimistic ? "cursor-wait" : "cursor-grab active:cursor-grabbing"}
       >
         <JobCardInner job={job} profiles={profiles} />
       </div>
-      <button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
-        }}
-        className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-40 group-hover:opacity-100 hover:bg-destructive/10 transition"
-        aria-label="Excluir tarefa"
-      >
-        <Trash2 className="size-3.5" />
-      </button>
+      {!isOptimistic && (
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
+          }}
+          className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-40 group-hover:opacity-100 hover:bg-destructive/10 transition"
+          aria-label="Excluir tarefa"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+      )}
     </div>
   );
 }

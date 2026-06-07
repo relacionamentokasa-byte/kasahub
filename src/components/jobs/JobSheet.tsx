@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -92,59 +92,175 @@ export function JobSheet({
   }});
   const services = servicesData as any[];
 
+  useEffect(() => {
+    if (!job?.id) return;
+
+    const channels = [
+      supabase.channel(`job-checklist-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] })),
+      supabase.channel(`job-comments-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] })),
+      supabase.channel(`job-history-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] })),
+      supabase.channel(`job-updates-${job.id}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
+    ];
+
+    channels.forEach(c => c.subscribe());
+
+    return () => {
+      channels.forEach(c => supabase.removeChannel(c));
+    };
+  }, [job?.id, qc]);
+
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
-      // Filtrar campos UUID vazios ("") para null
       const cleanPatch = Object.entries(patch).reduce((acc, [key, value]) => {
-        // Se for string vazia, converte para null
         acc[key] = value === "" ? null : value;
         return acc;
       }, {} as any);
-
-      console.log(`JobSheet: Updating job ${job!.id}`, cleanPatch);
       return updateJob(job!.id, cleanPatch);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["jobs"] }),
-    onError: (e: Error) => {
-      console.error("JobSheet: Error updating job", e);
+    onMutate: async (patch) => {
+      await qc.cancelQueries({ queryKey: ["jobs"] });
+      const prev = qc.getQueryData<Job[]>(["jobs"]);
+      qc.setQueryData<Job[]>(["jobs"], (old) =>
+        (old ?? []).map((j) => (j.id === job!.id ? { ...j, ...patch } : j)),
+      );
+      return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
       toast.error(e.message);
     }
   });
 
   const deleteMut = useMutation({
     mutationFn: () => deleteJob(job!.id),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["jobs"] });
+      const prev = qc.getQueryData<Job[]>(["jobs"]);
+      qc.setQueryData<Job[]>(["jobs"], (old) => (old ?? []).filter((j) => j.id !== job!.id));
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job removido");
       onClose();
     },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
+      toast.error(e.message);
+    },
   });
 
   const addItemMut = useMutation({
     mutationFn: (content: string) => addChecklistItem(job!.id, content),
+    onMutate: async (content) => {
+      const qk = ["job-checklist", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      const tempId = Math.random().toString(36).substring(7);
+      const newItem = { id: tempId, job_id: job!.id, content, done: false, order_index: (prev?.length || 0) + 1 };
+      qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newItem]);
+      setDraft("");
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
-      setDraft("");
     },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
+    }
   });
 
   const toggleItemMut = useMutation({
     mutationFn: ({ id, done }: { id: string; done: boolean }) => toggleChecklistItem(id, done),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] }),
+    onMutate: async ({ id, done }) => {
+      const qk = ["job-checklist", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      qc.setQueryData<any[]>(qk, (old) =>
+        (old ?? []).map((item) => (item.id === id ? { ...item, done } : item)),
+      );
+      
+      // Update job progress optimistically in the list
+      qc.setQueryData<Job[]>(["jobs"], (old) => {
+        if (!old) return old;
+        return old.map(j => {
+          if (j.id === job!.id) {
+            const currentChecklist = prev || [];
+            const newChecklist = currentChecklist.map(it => it.id === id ? { ...it, done } : it);
+            const total = newChecklist.length;
+            const completed = newChecklist.filter(it => it.done).length;
+            return {
+              ...j,
+              completed_steps: completed,
+              total_steps: total,
+              progress_percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+            };
+          }
+          return j;
+        });
+      });
+
+      return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
+    }
   });
 
   const delItemMut = useMutation({
     mutationFn: (id: string) => deleteChecklistItem(id),
+    onMutate: async (id) => {
+      const qk = ["job-checklist", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      qc.setQueryData<any[]>(qk, (old) => (old ?? []).filter(it => it.id !== id));
+      return { prev };
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] }),
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
+    }
   });
 
   const commentMut = useMutation({
     mutationFn: ({ content, type, metadata, isSystem }: { content: string; type?: string; metadata?: any; isSystem?: boolean }) => 
       addJobComment(job!.id, content, type, metadata, isSystem),
+    onMutate: async ({ content, type, isSystem }) => {
+      const qk = ["job-comments", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const tempId = Math.random().toString(36).substring(7);
+      const newComment = {
+        id: tempId,
+        job_id: job!.id,
+        user_id: user?.id,
+        content,
+        type: type || 'comment',
+        is_system: isSystem || false,
+        created_at: new Date().toISOString(),
+        mentions: []
+      };
+      
+      qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
       setComment("");
     },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
+    }
   });
 
   if (!job) return null;
@@ -211,12 +327,10 @@ export function JobSheet({
                   <Select
                     value={(job as any).status || "not_started"}
                     onValueChange={(v) => {
-                      updateMut.mutate({ status: v } as any);
-                      if (v === 'done') {
-                        updateMut.mutate({ done_at: new Date().toISOString() });
-                      } else {
-                        updateMut.mutate({ done_at: null });
-                      }
+                      updateMut.mutate({ 
+                        status: v,
+                        done_at: v === 'done' ? new Date().toISOString() : null
+                      } as any);
                     }}
                   >
                     <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue /></SelectTrigger>
