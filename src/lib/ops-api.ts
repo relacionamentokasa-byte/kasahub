@@ -238,7 +238,7 @@ export async function fetchJobStages(): Promise<JobStage[]> {
   return data ?? [];
 }
 
-export async function fetchJobs(filters: { projectId?: string; clientId?: string; period?: string } = {}): Promise<Job[]> {
+export async function fetchJobs(filters: { projectId?: string; clientId?: string; serviceId?: string; period?: string } = {}): Promise<Job[]> {
   let q = supabase
     .from("jobs")
     .select("*, clients(id, name, company), projects(id, name), services(id, name), contracts(id, title)")
@@ -246,6 +246,7 @@ export async function fetchJobs(filters: { projectId?: string; clientId?: string
     .order("created_at", { ascending: false });
   if (filters.projectId) q = q.eq("project_id", filters.projectId);
   if (filters.clientId) q = q.eq("client_id", filters.clientId);
+  if (filters.serviceId) q = q.eq("service_id", filters.serviceId);
   if (filters.period && filters.period !== "all") q = q.eq("period", filters.period);
   const { data, error } = await q;
   if (error) throw error;
