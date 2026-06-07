@@ -387,7 +387,15 @@ function ApprovalInner() {
             Kasa Marketing Consultoria · ERP Operacional
           </p>
         </footer>
+
+        <AttachmentViewer
+          url={viewerConfig?.url || null}
+          fileName={viewerConfig?.name || ""}
+          isOpen={!!viewerConfig}
+          onClose={() => setViewerConfig(null)}
+        />
       </div>
     </div>
   );
 }
+
