@@ -250,7 +250,7 @@ export function NewJobDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id}
+            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Criar
