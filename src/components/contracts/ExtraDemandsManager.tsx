@@ -233,10 +233,10 @@ export function ExtraDemandsManager({ clientId, contractId: initialContractId }:
                     </>
                   )}
                   
-                  {["draft", "rascunho", "pending_approval", "aguardando_aprovação"].includes(dme.status) && (
-                    <Button variant="secondary" size="sm" className="h-9 flex-1 gap-2 font-bold uppercase tracking-widest text-[10px] rounded-xl hover:bg-emerald-500 hover:text-white transition-all" onClick={() => approveMut.mutate(dme.id)}>
-                      <Check className="size-4" /> Aprovar
-                    </Button>
+                  {["approved", "aprovada"].includes(dme.status) && (
+                    <div className="flex-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold uppercase tracking-widest h-9 flex items-center justify-center rounded-xl border border-emerald-500/20">
+                      Aprovada pelo Cliente
+                    </div>
                   )}
                   
                   <TooltipProvider>
