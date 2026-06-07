@@ -58,6 +58,10 @@ type Proposal = {
   signed_metadata?: any | null;
   accepted_ip?: string | null;
   accepted_user_agent?: string | null;
+  contract_type: string;
+  contract_term: string | null;
+  first_due_date: string | null;
+  billing_day: number;
 };
 type Agency = {
   name: string;
@@ -222,6 +226,7 @@ function PublicProposalView() {
       client_document: agency?.document || "",
       client_address: agency?.address || "",
       client_email: proposal.client_email || "",
+      client_phone: agency?.phone || "",
       services_list: (proposal.scope || []).join(", "),
       monthly_value: formatCurrency(proposal.monthly_investment),
       setup_value: formatCurrency(proposal.one_time_investment),
@@ -236,9 +241,17 @@ function PublicProposalView() {
             : proposal.payment_method === "transfer"
               ? "Transferência"
               : "Boleto",
-      contract_term: `${proposal.recurring_months || 12} meses`,
-      start_date: new Date().toLocaleDateString("pt-BR"),
-      due_day: "5",
+      contract_term: proposal.contract_term === "indeterminado" 
+        ? "Prazo Indeterminado" 
+        : proposal.contract_term === "monthly" 
+          ? "Mensal"
+          : proposal.contract_term?.includes("_months")
+            ? `${proposal.contract_term.replace("_months", "")} meses`
+            : `${proposal.recurring_months || 12} meses`,
+      start_date: proposal.first_due_date 
+        ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") 
+        : new Date().toLocaleDateString("pt-BR"),
+      due_day: String(proposal.billing_day || 5),
       installments: String(proposal.installments || 1),
     });
   }, [data]);
@@ -525,14 +538,33 @@ function PublicProposalView() {
             <div className="space-y-8">
               <div className="grid sm:grid-cols-2 gap-6">
                 <Stat 
-                  label="Valor Mensal" 
-                  value={formatCurrency(proposal.monthly_investment)} 
-                  highlight 
+                  label="Tipo de Contrato" 
+                  value={proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'} 
                   brand="#FFBC45" 
                 />
                 <Stat 
-                  label="Prazo do Contrato" 
-                  value={`${proposal.recurring_months || 12} meses`} 
+                  label="Validade" 
+                  value={proposal.contract_term === "indeterminado" 
+                    ? "Prazo Indeterminado" 
+                    : proposal.contract_term === "monthly" 
+                      ? "Mensal"
+                      : proposal.contract_term?.includes("_months")
+                        ? `${proposal.contract_term.replace("_months", "")} meses`
+                        : `${proposal.recurring_months || 12} meses`
+                  } 
+                  brand="#FFBC45" 
+                />
+                <Stat 
+                  label="Início" 
+                  value={proposal.first_due_date 
+                    ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") 
+                    : "—"
+                  } 
+                  brand="#FFBC45" 
+                />
+                <Stat 
+                  label="Dia de Cobrança" 
+                  value={String(proposal.billing_day || proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—")} 
                   brand="#FFBC45" 
                 />
               </div>
@@ -548,17 +580,23 @@ function PublicProposalView() {
               )}
 
               <div className="pt-8 border-t border-slate-200/50">
-                <div className="flex justify-between items-end bg-[#0C1618] p-8 rounded-[2rem] text-white">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 bg-[#0C1618] p-8 rounded-[2rem] text-white">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Investimento Total Estimado</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Investimento Mensal</p>
                     <p className="text-4xl font-bold">
-                      {formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}
+                      {formatCurrency(proposal.monthly_investment)}
                     </p>
                   </div>
-                  <div className="text-right text-xs text-slate-400 font-medium">
-                    Pagamento via <span className="text-white">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
-                                   proposal.payment_method === 'pix' ? 'PIX' : 
-                                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</span>
+                  <div className="sm:text-right">
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Valor Total do Contrato</p>
+                    <p className="text-2xl font-bold opacity-80">
+                      {formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}
+                    </p>
+                    <div className="text-xs text-slate-400 font-medium mt-2">
+                      Pagamento via <span className="text-white">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                                     proposal.payment_method === 'pix' ? 'PIX' : 
+                                     proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
