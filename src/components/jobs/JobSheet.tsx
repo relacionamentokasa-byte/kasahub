@@ -430,7 +430,6 @@ export function JobSheet({
   return (
     <Sheet open={open} onOpenChange={(o) => {
       if (!o) {
-        handleTyping(false);
         onClose();
       }
     }}>
