@@ -691,7 +691,7 @@ function FinanceiroPage() {
                                     updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
                                   }
                                 }}
-                                className="bg-surface/50 border border-border/50 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md py-1 pl-6 pr-1 text-[11px] w-full text-center cursor-pointer transition-all outline-none font-medium"
+                                className="bg-surface/50 border border-border/50 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md py-1 pl-6 pr-1 text-[11px] w-[115px] text-center cursor-pointer transition-all outline-none font-medium"
                               />
                             </div>
                             {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter mt-1">Vencido</div>}
