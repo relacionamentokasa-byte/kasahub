@@ -226,6 +226,7 @@ function PublicProposalView() {
       client_document: agency?.document || "",
       client_address: agency?.address || "",
       client_email: proposal.client_email || "",
+      client_phone: agency?.phone || "",
       services_list: (proposal.scope || []).join(", "),
       monthly_value: formatCurrency(proposal.monthly_investment),
       setup_value: formatCurrency(proposal.one_time_investment),
@@ -240,9 +241,17 @@ function PublicProposalView() {
             : proposal.payment_method === "transfer"
               ? "Transferência"
               : "Boleto",
-      contract_term: `${proposal.recurring_months || 12} meses`,
-      start_date: new Date().toLocaleDateString("pt-BR"),
-      due_day: "5",
+      contract_term: proposal.contract_term === "indeterminado" 
+        ? "Prazo Indeterminado" 
+        : proposal.contract_term === "monthly" 
+          ? "Mensal"
+          : proposal.contract_term?.includes("_months")
+            ? `${proposal.contract_term.replace("_months", "")} meses`
+            : `${proposal.recurring_months || 12} meses`,
+      start_date: proposal.first_due_date 
+        ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") 
+        : new Date().toLocaleDateString("pt-BR"),
+      due_day: String(proposal.billing_day || 5),
       installments: String(proposal.installments || 1),
     });
   }, [data]);
