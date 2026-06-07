@@ -140,9 +140,22 @@ export function OperationalFlowsManager({ canEdit }: Props) {
               <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Settings2 className="size-5 text-primary" />
               </div>
-              <Badge variant={flow.status === 'active' ? 'default' : 'secondary'}>
-                {flow.status === 'active' ? 'Ativo' : 'Arquivado'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="size-8 text-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Excluir o fluxo "${flow.name}"?`)) delMut.mutate(flow.id);
+                  }}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+                <Badge variant={flow.status === 'active' ? 'default' : 'secondary'}>
+                  {flow.status === 'active' ? 'Ativo' : 'Arquivado'}
+                </Badge>
+              </div>
             </div>
             <h3 className="font-bold text-lg group-hover:text-primary transition-colors">{flow.name}</h3>
             <p className="text-xs text-foreground/50 mt-1 mb-4 line-clamp-2">{flow.description || "Sem descrição."}</p>
@@ -266,6 +279,21 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
     onError: (e: Error) => toast.error(e.message)
   });
 
+  const deleteStageMut = useMutation({
+    mutationFn: async (stageId: string) => {
+      const { error } = await supabase
+        .from('operational_flow_stages')
+        .delete()
+        .eq('id', stageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Etapa excluída");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
   if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>;
 
   const allJobs = stages.flatMap((s: any) => s.jobs || []);
@@ -291,12 +319,26 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
                 <h3 className="text-sm font-semibold">{stage.name}</h3>
                 <Badge variant="outline" className="text-[10px] ml-2">Etapa</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                 <Button size="icon" variant="ghost" className="size-8" onClick={() => {
+              <div className="flex items-center gap-1">
+                 <Button size="icon" variant="ghost" className="size-8 text-foreground/40 hover:text-primary" title="Adicionar Job" onClick={() => {
                    const name = prompt("Nome do Job:");
                    if (name) addJobMut.mutate({ stageId: stage.id, name, order: stage.jobs?.length || 0 });
                  }}>
                    <Plus className="size-4" />
+                 </Button>
+                 
+                 <Button 
+                   size="icon" 
+                   variant="ghost" 
+                   className="size-8 text-foreground/40 hover:text-destructive" 
+                   title="Excluir Etapa"
+                   onClick={() => {
+                     if (confirm(`Deseja excluir a etapa "${stage.name}" e todos os seus jobs?`)) {
+                       deleteStageMut.mutate(stage.id);
+                     }
+                   }}
+                 >
+                   <Trash2 className="size-4" />
                  </Button>
               </div>
             </header>
@@ -589,8 +631,11 @@ function JobRow({ job, roles, canEdit, onChanged, onEditSchema, flowJobs }: { jo
           <Button 
             size="icon" 
             variant="ghost" 
-            className="size-8 text-destructive opacity-0 group-hover:opacity-100"
-            onClick={() => confirm(`Excluir job "${job.name}"?`) && deleteJobMut.mutate()}
+            className="size-8 text-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Excluir Job"
+            onClick={() => {
+              if (confirm(`Excluir job "${job.name}"?`)) deleteJobMut.mutate();
+            }}
           >
             <Trash2 className="size-3.5" />
           </Button>
