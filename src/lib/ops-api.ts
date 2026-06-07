@@ -405,16 +405,36 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
   return data ?? [];
 }
 
-export async function addJobComment(jobId: string, content: string) {
+export async function addJobComment(
+  jobId: string, 
+  content: string, 
+  type: string = 'comment', 
+  metadata: any = {}, 
+  isSystem: boolean = false
+) {
   const { data: u } = await supabase.auth.getUser();
-  const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
   const mentions = Array.from(content.matchAll(/@(\w+)/g)).map((m) => m[1]);
   const { data, error } = await supabase
     .from("job_comments")
-    .insert({ job_id: jobId, user_id: u.user?.id ?? null, content, mentions })
+    .insert({ 
+      job_id: jobId, 
+      user_id: u.user?.id ?? null, 
+      content, 
+      mentions,
+      type,
+      metadata,
+      is_system: isSystem
+    })
     .select()
     .single();
   if (error) throw error;
+
+  if (mentions.length > 0) {
+    await handleMentions(jobId, mentions, content);
+  }
+
+  return data;
+}
 
   if (content.includes('@')) {
     await handleMentions(content, {
