@@ -13,6 +13,7 @@ interface BrandingAsset {
   recommendedSize: string;
   formats: string[];
   description: string;
+  aspect?: number;
 }
 
 const BRANDING_ASSETS: BrandingAsset[] = [
@@ -22,7 +23,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Dashboard, Relatórios, Documentos, Portal do Cliente",
     recommendedSize: "1200x400px (Horizontal)",
     formats: ["PNG Transparente", "SVG"],
-    description: "Versão principal da marca usada na maioria das comunicações."
+    description: "Versão principal da marca usada na maioria das comunicações.",
+    aspect: 3
   },
   {
     key: "logo_sidebar_url",
@@ -30,7 +32,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Sidebar Desktop e Sidebar Mobile",
     recommendedSize: "400x120px",
     formats: ["PNG Transparente", "SVG"],
-    description: "Versão otimizada para o menu de navegação lateral."
+    description: "Versão otimizada para o menu de navegação lateral.",
+    aspect: 400 / 120
   },
   {
     key: "logo_login_url",
@@ -38,7 +41,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Página de Login e Recuperação de Senha",
     recommendedSize: "800x300px",
     formats: ["PNG Transparente", "SVG"],
-    description: "Exibida no centro das telas de autenticação."
+    description: "Exibida no centro das telas de autenticação.",
+    aspect: 800 / 300
   },
   {
     key: "icon_system_url",
@@ -46,7 +50,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Menu recolhido, Cards, Avatares padrão",
     recommendedSize: "512x512px (Quadrado)",
     formats: ["PNG Transparente", "SVG"],
-    description: "Versão reduzida/símbolo da marca."
+    description: "Versão reduzida/símbolo da marca.",
+    aspect: 1
   },
   {
     key: "pwa_favicon_url",
@@ -54,7 +59,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Aba do navegador, Favoritos",
     recommendedSize: "32x32px ou 48x48px",
     formats: ["PNG", "ICO"],
-    description: "Ícone pequeno exibido na aba do navegador."
+    description: "Ícone pequeno exibido na aba do navegador.",
+    aspect: 1
   },
   {
     key: "pwa_icon_192_url",
@@ -62,7 +68,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Instalação Android, iPhone (PWA)",
     recommendedSize: "192x192px",
     formats: ["PNG"],
-    description: "Ícone para dispositivos com menor densidade de pixels."
+    description: "Ícone para dispositivos com menor densidade de pixels.",
+    aspect: 1
   },
   {
     key: "pwa_icon_512_url",
@@ -70,7 +77,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Instalação Android, iPhone (PWA)",
     recommendedSize: "512x512px",
     formats: ["PNG"],
-    description: "Ícone principal de alta resolução para o aplicativo mobile."
+    description: "Ícone principal de alta resolução para o aplicativo mobile.",
+    aspect: 1
   },
   {
     key: "splash_screen_url",
@@ -78,7 +86,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Tela de abertura do App (PWA)",
     recommendedSize: "1242x2688px",
     formats: ["PNG"],
-    description: "Imagem de carregamento exibida ao abrir o aplicativo mobile."
+    description: "Imagem de carregamento exibida ao abrir o aplicativo mobile.",
+    aspect: 1242 / 2688
   },
   {
     key: "logo_proposals_url",
@@ -86,7 +95,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Propostas Comerciais (PDF e Página Pública)",
     recommendedSize: "1200x400px",
     formats: ["PNG Transparente", "SVG"],
-    description: "Versão de alta qualidade para documentos comerciais."
+    description: "Versão de alta qualidade para documentos comerciais.",
+    aspect: 3
   },
   {
     key: "agency_signature_url",
@@ -94,7 +104,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Contratos, Aprovação de Propostas",
     recommendedSize: "1000x300px",
     formats: ["PNG Transparente"],
-    description: "Assinatura digital padrão para documentos jurídicos."
+    description: "Assinatura digital padrão para documentos jurídicos.",
+    aspect: 1000 / 300
   },
   {
     key: "logo_reports_url",
@@ -102,7 +113,8 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     usage: "Relatórios PDF, Exportações de Dados",
     recommendedSize: "1200x400px",
     formats: ["PNG Transparente", "SVG"],
-    description: "Logotipo otimizado para visualização em documentos PDF."
+    description: "Logotipo otimizado para visualização em documentos PDF.",
+    aspect: 3
   }
 ];
 
@@ -170,6 +182,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
                       onChange={(url) => handleUpload(asset.key as string, url)}
                       label={asset.label}
                       shape={asset.key === 'icon_system_url' || asset.key === 'pwa_favicon_url' || asset.key === 'pwa_icon_512_url' ? 'round' : 'rect'}
+                      aspect={asset.aspect}
                     />
                   </div>
                   
