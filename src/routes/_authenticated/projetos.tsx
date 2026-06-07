@@ -61,9 +61,14 @@ function ProjetosPage() {
   const { data: allJobs = [] } = useQuery({
     queryKey: ["all-jobs-stats"],
     queryFn: async () => {
-      const { data } = await supabase.from("jobs").select("id, project_id, done_at, stage_id");
+      const { data, error } = await supabase.from("jobs").select("id, project_id, done_at, stage_id");
+      if (error) {
+        console.error("Erro ao buscar jobs para estatísticas:", error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    refetchOnWindowFocus: true,
   });
 
   const { data: stages = [] } = useQuery({ 
