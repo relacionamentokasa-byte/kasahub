@@ -451,34 +451,150 @@ function FinanceiroPage() {
               <Kpi label="Despesas Pagas" value={brl(indicators.despesasPagas)} tone="danger" icon={<TrendingDown className="size-4" />} />
             </div>
 
-            <div className="grid grid-cols-12 gap-3">
-              <div className="col-span-12 md:col-span-4 relative">
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              <div className="relative flex-1 w-full">
                 <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar..." className="pl-9" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍 Buscar..." className="pl-9 h-11 rounded-xl" />
               </div>
-              <FilterSelect value={fKind} onChange={setFKind} placeholder="Todos Tipos" options={[
-                { value: "all", label: "Todos Tipos" },
-                { value: "income", label: "Receitas" },
-                { value: "expense", label: "Despesas" },
-              ]} />
-              <FilterSelect value={fStatus} onChange={setFStatus} placeholder="Todos Status" options={[
-                { value: "all", label: "Todos Status" },
-                { value: "paid", label: "Pagas" },
-                { value: "pending", label: "Pendentes" },
-                { value: "cancelled", label: "Canceladas" },
-              ]} />
-              <FilterSelect value={fClient} onChange={setFClient} placeholder="Todos Clientes" options={[
-                { value: "all", label: "Todos Clientes" },
-                ...clients.map((c) => ({ value: c.id, label: c.company || c.name })),
-              ]} />
-              <FilterSelect value={fCategory} onChange={setFCategory} placeholder="Todas categorias" options={[
-                { value: "all", label: "Todas categorias" },
-                ...categories.map((c) => ({ value: c.id, label: c.name })),
-              ]} />
-              <FilterSelect value={fAccount} onChange={setFAccount} placeholder="Todas contas" options={[
-                { value: "all", label: "Todas contas" },
-                ...accounts.map((a) => ({ value: a.id, label: a.name })),
-              ]} />
+              
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="h-11 rounded-xl px-5 gap-2 border-border/60 hover:border-primary/40 transition-all">
+                    <Filter className="size-4" /> 
+                    ⚙️ Filtros
+                    {activeFiltersCount > 0 && (
+                      <Badge className="ml-1 bg-primary text-primary-foreground h-5 px-1.5 min-w-[20px] justify-center">
+                        {activeFiltersCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="bg-surface border-border w-full sm:max-w-md p-0 overflow-hidden flex flex-col">
+                  <SheetHeader className="px-6 py-5 border-b border-border bg-surface sticky top-0 z-10">
+                    <div className="flex items-center justify-between">
+                      <SheetTitle className="text-xl font-display font-bold">Configurar Filtros</SheetTitle>
+                      {activeFiltersCount > 0 && (
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10">
+                          Limpar tudo
+                        </Button>
+                      )}
+                    </div>
+                  </SheetHeader>
+                  <ScrollArea className="flex-1 px-6">
+                    <div className="py-6 space-y-8">
+                      {/* Tipo e Status */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Tipo</Label>
+                          <Select value={fKind} onValueChange={setFKind}>
+                            <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Todos Tipos</SelectItem>
+                              <SelectItem value="income">Receitas</SelectItem>
+                              <SelectItem value="expense">Despesas</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Status</Label>
+                          <Select value={fStatus} onValueChange={setFStatus}>
+                            <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Todos Status</SelectItem>
+                              <SelectItem value="paid">Pagas</SelectItem>
+                              <SelectItem value="pending">Pendentes</SelectItem>
+                              <SelectItem value="cancelled">Canceladas</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Cliente */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Cliente</Label>
+                        <Select value={fClient} onValueChange={setFClient}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos Clientes</SelectItem>
+                            {clients.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Categoria */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Categoria</Label>
+                        <Select value={fCategory} onValueChange={setFCategory}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas categorias</SelectItem>
+                            {categories.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Conta */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Conta Bancária</Label>
+                        <Select value={fAccount} onValueChange={setFAccount}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas contas</SelectItem>
+                            {accounts.map((a) => (
+                              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Origem */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Origem</Label>
+                        <Select value={fOrigin} onValueChange={setFOrigin}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas origens</SelectItem>
+                            <SelectItem value="contract">Contrato Recorrente</SelectItem>
+                            <SelectItem value="dme">DME (Extra)</SelectItem>
+                            <SelectItem value="proposal">Proposta</SelectItem>
+                            <SelectItem value="manual">Lançamento Manual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Faixa de Valor */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Faixa de Valor</Label>
+                          <span className="text-xs font-mono text-primary font-bold">
+                            {brl(fValueRange[0])} - {fValueRange[1] === 100000 ? 'Máx.' : brl(fValueRange[1])}
+                          </span>
+                        </div>
+                        <Slider 
+                          defaultValue={[0, 100000]} 
+                          max={100000} 
+                          step={100} 
+                          value={fValueRange} 
+                          onValueChange={(v) => setFValueRange(v as [number, number])} 
+                          className="py-4"
+                        />
+                      </div>
+                    </div>
+                  </ScrollArea>
+                  <div className="p-6 border-t border-border bg-surface sticky bottom-0 z-10">
+                    <Button className="w-full rounded-xl h-11 font-bold" onClick={() => {
+                      const closeBtn = document.querySelector('[data-radix-collection-item]') as HTMLElement;
+                      if (closeBtn) closeBtn.click();
+                    }}>
+                      <Check className="size-4 mr-2" /> Aplicar Filtros
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
 
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
