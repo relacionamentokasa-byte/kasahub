@@ -471,10 +471,15 @@ export async function deleteJobComment(id: string) {
 }
 
 export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
+  const { data, error } = await supabase
+    .from("job_comments")
+    .select("*")
+    .eq("job_id", jobId)
+    .order("created_at", { ascending: true });
   if (error) throw error;
 
   // Gerar URLs assinadas para anexos em comentários
-  const dataWithUrls = await Promise.all((data || []).map(async (c) => {
+  const dataWithUrls = await Promise.all((data || []).map(async (c: any) => {
     const metadata = (c as any).metadata;
     let updatedComment = { ...c };
     
