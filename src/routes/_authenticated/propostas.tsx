@@ -221,8 +221,16 @@ function ProposalsPage() {
   });
 
   const statusMut = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: string }) =>
-      updateProposal(id, { status }),
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      // Bloqueio extra no front-end para garantir que não aprovem sem assinatura
+      if (status === "accepted" || status === "converted" || status === "signed") {
+        const { data: p } = await supabase.from("proposals").select("signature_client").eq("id", id).single();
+        if (!p?.signature_client) {
+          throw new Error("Não é possível aprovar uma proposta sem a assinatura digital do cliente.");
+        }
+      }
+      return updateProposal(id, { status });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
       toast.success("Status atualizado");
