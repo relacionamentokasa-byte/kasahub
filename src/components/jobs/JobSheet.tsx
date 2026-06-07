@@ -968,10 +968,10 @@ export function JobSheet({
                 </div>
               )}
               
-              <div className="relative">
+              <div className="relative z-[100]">
                 <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
                   <PopoverTrigger asChild>
-                    <div className="absolute" style={{ top: mentionCoords.top, left: mentionCoords.left }} />
+                    <div className="absolute pointer-events-none" style={{ top: mentionCoords.top, left: mentionCoords.left }} />
                   </PopoverTrigger>
                   <PopoverContent className="p-0 w-[200px] bg-popover border-border" align="start">
                     <Command className="bg-popover">
