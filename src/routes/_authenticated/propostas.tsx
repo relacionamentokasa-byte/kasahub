@@ -965,7 +965,6 @@ function ActionsMenu({
   onShare,
   onWhatsApp,
   onEmail,
-  onApprove,
   onReopen,
   onCancel,
   onDelete,
@@ -978,7 +977,6 @@ function ActionsMenu({
   onShare: () => void;
   onWhatsApp: () => void;
   onEmail: () => void;
-  onApprove: () => void;
   onReopen: () => void;
   onCancel: () => void;
   onDelete: () => void;
