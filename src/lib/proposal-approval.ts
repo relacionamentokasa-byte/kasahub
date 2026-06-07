@@ -375,7 +375,7 @@ export async function approveProposal(
   // 6b. One-time (installments)
   const oneTime = Number(proposal.one_time_investment ?? 0);
   const wantsOneTime =
-    oneTime > 0 && (proposal.payment_kind === "one_time" || proposal.payment_kind === "mixed");
+    oneTime > 0 && (proposal.payment_kind === "one_time" || proposal.payment_kind === "mixed" || isRecurring);
   if (wantsOneTime) {
     // skip if already created (idempotent)
     const { count } = await sb
