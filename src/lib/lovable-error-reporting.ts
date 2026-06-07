@@ -35,7 +35,7 @@ export async function reportLovableError(error: unknown, context: Record<string,
       message,
       stack,
       page_url: typeof window !== "undefined" ? window.location.href : undefined,
-      context,
+      context: context as any,
       user_id: user?.id,
     }).then(({ error: insertError }) => {
       if (insertError) console.error("[Lovable Error Reporting] Failed to persist log:", insertError);
