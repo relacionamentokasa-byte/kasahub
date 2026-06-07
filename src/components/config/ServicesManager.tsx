@@ -592,7 +592,7 @@ function TemplateJobRow({
           variant="ghost"
           onClick={() => setExpanded((v) => !v)}
         >
-          Checklist
+          Checklist / Form
         </Button>
         <Button
           size="icon"
