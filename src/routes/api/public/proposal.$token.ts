@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { approveProposal } from "@/lib/proposal-approval";
 import { z } from "zod";
+import { UAParser } from "ua-parser-js";
 
 const TokenSchema = z.string().min(8).max(200);
 
