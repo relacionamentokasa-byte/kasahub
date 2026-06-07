@@ -51,6 +51,11 @@ type Proposal = {
   signature_client?: string | null;
   signed_at_agency?: string | null;
   signed_at_client?: string | null;
+  client_cpf?: string | null;
+  client_role?: string | null;
+  client_signed_email?: string | null;
+  client_signature_data?: string | null;
+  signed_metadata?: any | null;
 };
 type Agency = {
   name: string;
