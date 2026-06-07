@@ -924,7 +924,7 @@ export function JobSheet({
                             </div>
                           )}
                           <span className="text-[9px] text-foreground/30 font-mono">
-                            {format(new Date(item.created_at), "HH:mm", { locale: ptBR })}
+                            {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                           </span>
                         </div>
                       </div>
@@ -1138,7 +1138,7 @@ export function JobSheet({
                       }
                     }}
                     placeholder="Escreva uma mensagem..."
-                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white relative z-[120]"
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-foreground placeholder:text-foreground/40 relative z-[120]"
                     rows={1}
                   />
                   <div className="flex flex-col justify-end gap-1">
