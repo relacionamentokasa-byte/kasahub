@@ -10,6 +10,7 @@ import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 
 
 export const Route = createFileRoute("/p/$token")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Proposta Comercial" }] }),
   component: PublicProposalView,
 });
