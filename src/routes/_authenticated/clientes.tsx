@@ -308,18 +308,6 @@ function ClientesPage() {
                             {c.status === "active" ? "Ativo" : c.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden shrink-0">
-                              {responsible?.avatar_url ? (
-                                <img src={responsible.avatar_url} className="size-full object-cover" />
-                              ) : (
-                                <User className="size-3 text-primary/60" />
-                              )}
-                            </div>
-                            <span className="text-foreground/60 text-xs truncate max-w-[120px]">{responsibleName}</span>
-                          </div>
-                        </td>
                         
                         <td className="px-4 py-3 text-foreground/60 text-xs">{contractLabel}</td>
                         <td className="px-4 py-3 text-right text-xs font-mono-kasa font-bold">
