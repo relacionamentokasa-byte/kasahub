@@ -339,14 +339,27 @@ function ProposalsPage() {
         <div>
           <span className="text-primary text-[10px] capitalize">Comercial · Propostas</span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            Propostas comerciais
+            {showTrash ? "Lixeira de propostas" : "Propostas comerciais"}
           </h1>
           <p className="text-foreground/60 mt-2 max-w-xl text-sm">
-            Construa propostas com destaque para o Investimento Mensal e envie por link
-            compartilhável.
+            {showTrash 
+              ? "Visualize e restaure propostas excluídas ou remova-as permanentemente."
+              : "Construa propostas com destaque para o Investimento Mensal e envie por link compartilhável."
+            }
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowTrash(!showTrash)}
+            className="rounded-full font-semibold h-10 px-5 gap-2"
+          >
+            {showTrash ? <ArrowUpRight className="size-4 rotate-180" /> : <Trash2 className="size-4" />}
+            {showTrash ? "Voltar para propostas" : "Ver lixeira"}
+          </Button>
+          {!showTrash && (
+            <Dialog open={open} onOpenChange={setOpen}>
+
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2">
               <Plus className="size-4" /> Nova proposta
@@ -719,7 +732,9 @@ function ProposalsPage() {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+            </Dialog>
+          )}
+        </div>
       </div>
 
       <div className="space-y-6 mb-8">
