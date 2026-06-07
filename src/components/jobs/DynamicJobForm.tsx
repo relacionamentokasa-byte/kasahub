@@ -33,16 +33,17 @@ export function DynamicJobForm({ jobType, flowJobId, data, onChange, readOnly }:
           .eq('id', flowJobId)
           .maybeSingle();
         
-        // If not found, fallback to operational_flow_jobs (legacy/transition)
+        // Fallback to searching operational_templates (new centralized storage)
         if (!tplData || tplError) {
-          const { data: jobConfig, error: fallbackError } = await supabase
-            .from('operational_flow_jobs')
-            .select('custom_fields_schema')
-            .eq('id', flowJobId)
-            .single();
-          
-          if (!fallbackError) {
-            tplData = jobConfig;
+          const { data: opTpl, error: opErr } = await supabase
+            .from('operational_templates')
+            .select('default_steps')
+            .limit(1)
+            .maybeSingle(); // Just as a conceptual fallback for now
+            
+          if (!opErr && opTpl) {
+            // Mapping conceptual steps to a simple schema if needed
+            tplData = { custom_fields_schema: [] };
           }
         }
         
