@@ -52,6 +52,7 @@ type Proposal = {
 type Agency = {
   name: string;
   logo_url: string | null;
+  logo_proposals_url: string | null;
   brand_primary: string | null;
   email: string | null;
   phone: string | null;
@@ -269,9 +270,9 @@ function PublicProposalView() {
         >
           <div className="flex items-start justify-between gap-6 flex-wrap">
             <div>
-              {agency?.logo_url ? (
+              {agency?.logo_proposals_url || agency?.logo_url ? (
                 <img
-                  src={agency.logo_url}
+                  src={(agency.logo_proposals_url || agency.logo_url) as string}
                   alt={agency.name}
                   className="h-12 object-contain mb-4"
                 />

@@ -10,10 +10,16 @@ export interface AgencySettings {
   website: string | null;
   address: string | null;
   logo_url: string | null;
+  logo_sidebar_url: string | null;
+  logo_login_url: string | null;
+  icon_system_url: string | null;
   banner_url: string | null;
   brand_primary: string | null;
   brand_secondary: string | null;
   agency_signature_url: string | null;
+  logo_proposals_url: string | null;
+  logo_reports_url: string | null;
+  splash_screen_url: string | null;
   default_currency: string;
   timezone: string;
   notify_email: boolean;

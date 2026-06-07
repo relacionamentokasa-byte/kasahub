@@ -1,30 +1,52 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchAgencySettings } from "@/lib/settings-api";
+import { cn } from "@/lib/utils";
 
 interface KasaLogoProps {
   collapsed?: boolean;
+  variant?: 'primary' | 'sidebar' | 'login' | 'system' | 'proposals' | 'reports';
+  className?: string;
+  iconOnly?: boolean;
 }
 
-export function KasaLogo({ collapsed = false }: KasaLogoProps) {
+export function KasaLogo({ 
+  collapsed = false, 
+  variant = 'primary', 
+  className = "",
+  iconOnly = false
+}: KasaLogoProps) {
   const { data: settings } = useQuery({
     queryKey: ["agency-settings"],
     queryFn: fetchAgencySettings,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
-  const logoUrl = settings?.logo_url;
+  const getLogoUrl = () => {
+    switch (variant) {
+      case 'sidebar': return settings?.logo_sidebar_url || settings?.logo_url;
+      case 'login': return settings?.logo_login_url || settings?.logo_url;
+      case 'system': return settings?.icon_system_url || settings?.logo_url;
+      case 'proposals': return settings?.logo_proposals_url || settings?.logo_url;
+      case 'reports': return settings?.logo_reports_url || settings?.logo_url;
+      default: return settings?.logo_url;
+    }
+  };
+
+  const logoUrl = getLogoUrl();
 
   return (
-    <div className="flex items-center gap-3 px-1">
-      <div className="size-10 bg-white rounded-md flex items-center justify-center shrink-0 shadow-[0_0_20px_-4px] shadow-primary/20 overflow-hidden border border-border p-1.5">
+    <div className={`flex items-center gap-3 px-1 ${className}`}>
+      <div className={cn(
+        "bg-white flex items-center justify-center shrink-0 shadow-[0_0_20px_-4px] shadow-primary/20 overflow-hidden border border-border",
+        variant === 'login' ? "h-16 w-48 rounded-xl p-3" : "size-10 rounded-md p-1.5"
+      )}>
         {logoUrl ? (
           <img src={logoUrl} alt="Logo" className="size-full object-contain" />
-
         ) : (
-          <div className="size-3.5 border-2 border-primary-foreground rotate-45" />
+          <div className="size-3.5 border-2 border-primary rotate-45" />
         )}
       </div>
-      {!collapsed && (
+      {!collapsed && !iconOnly && variant !== 'login' && (
         <span className="font-display text-lg font-bold tracking-tight whitespace-nowrap">
           {settings?.name ? (
             <>

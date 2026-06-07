@@ -176,31 +176,11 @@ export function PwaSettingsTab({
 
       <section className="rounded-2xl border border-border bg-surface p-6 space-y-4">
         <header>
-          <h3 className="font-display text-lg font-semibold">Identidade Visual</h3>
+          <h3 className="font-display text-lg font-semibold italic opacity-50">Identidade Visual</h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Imagens em PNG. Use ícones quadrados (192×192 e 512×512).
+            Ícones e Splash Screen agora são gerenciados na aba <span className="font-bold text-primary">Identidade Visual</span>.
           </p>
         </header>
-        <div className="grid gap-4 md:grid-cols-3">
-          <ImageUpload
-            label="Ícone 192×192"
-            value={form.pwa_icon_192_url ?? ""}
-            onChange={(url) => set("pwa_icon_192_url", url)}
-            folder="pwa"
-          />
-          <ImageUpload
-            label="Ícone 512×512"
-            value={form.pwa_icon_512_url ?? ""}
-            onChange={(url) => set("pwa_icon_512_url", url)}
-            folder="pwa"
-          />
-          <ImageUpload
-            label="Favicon"
-            value={form.pwa_favicon_url ?? ""}
-            onChange={(url) => set("pwa_favicon_url", url)}
-            folder="pwa"
-          />
-        </div>
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-6 space-y-3">

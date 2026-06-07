@@ -85,7 +85,7 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader className="h-20 flex justify-center px-4 mb-4">
-        <KasaLogo collapsed={collapsed} />
+        <KasaLogo collapsed={collapsed} variant="sidebar" />
       </SidebarHeader>
 
       <SidebarContent className="px-2 gap-2">

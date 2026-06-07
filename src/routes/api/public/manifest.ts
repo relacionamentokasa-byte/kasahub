@@ -8,7 +8,7 @@ export const Route = createFileRoute("/api/public/manifest")({
         const { data } = await supabaseAdmin
           .from("agency_settings")
           .select(
-            "name, pwa_name, pwa_short_name, pwa_description, pwa_theme_color, pwa_background_color, pwa_icon_192_url, pwa_icon_512_url",
+            "name, pwa_name, pwa_short_name, pwa_description, pwa_theme_color, pwa_background_color, pwa_icon_192_url, pwa_icon_512_url, splash_screen_url",
           )
           .order("created_at", { ascending: true })
           .limit(1)

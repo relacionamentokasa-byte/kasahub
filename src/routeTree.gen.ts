@@ -31,6 +31,7 @@ import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ce
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authenticated/aprovacoes'
 import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
+import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
@@ -149,6 +150,11 @@ const ApiPublicManifestRoute = ApiPublicManifestRouteImport.update({
   path: '/api/public/manifest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicFaviconRoute = ApiPublicFaviconRouteImport.update({
+  id: '/api/public/favicon',
+  path: '/api/public/favicon',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedPropostasProposalIdRoute =
   AuthenticatedPropostasProposalIdRouteImport.update({
     id: '/$proposalId',
@@ -213,6 +219,7 @@ export interface FileRoutesByFullPath {
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
@@ -243,6 +250,7 @@ export interface FileRoutesByTo {
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
@@ -275,6 +283,7 @@ export interface FileRoutesById {
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
@@ -307,6 +316,7 @@ export interface FileRouteTypes {
     | '/clientes/$clientId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/api/public/favicon'
     | '/api/public/manifest'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/clientes/$clientId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/api/public/favicon'
     | '/api/public/manifest'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
@@ -368,6 +379,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clientes/$clientId'
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
+    | '/api/public/favicon'
     | '/api/public/manifest'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
@@ -381,6 +393,7 @@ export interface RootRouteChildren {
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
   PTokenRoute: typeof PTokenRoute
+  ApiPublicFaviconRoute: typeof ApiPublicFaviconRoute
   ApiPublicManifestRoute: typeof ApiPublicManifestRoute
   ApiPublicApproveTokenRoute: typeof ApiPublicApproveTokenRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
@@ -544,6 +557,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicManifestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/favicon': {
+      id: '/api/public/favicon'
+      path: '/api/public/favicon'
+      fullPath: '/api/public/favicon'
+      preLoaderRoute: typeof ApiPublicFaviconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/propostas/$proposalId': {
       id: '/_authenticated/propostas/$proposalId'
       path: '/$proposalId'
@@ -684,6 +704,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
   PTokenRoute: PTokenRoute,
+  ApiPublicFaviconRoute: ApiPublicFaviconRoute,
   ApiPublicManifestRoute: ApiPublicManifestRoute,
   ApiPublicApproveTokenRoute: ApiPublicApproveTokenRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
