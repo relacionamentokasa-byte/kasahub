@@ -270,6 +270,21 @@ export function JobSheet({
                 </div>
 
                 <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Serviço</Label>
+                  <Select
+                    value={(job as any).service_id || ""}
+                    onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
+                  >
+                    <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {(useQuery({ queryKey: ["services"], queryFn: () => supabase.from("services").select("*") }).data?.data || []).map((s: any) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Responsável Principal</Label>
                   <Select
                     value={(job as any).main_responsible_id || ""}

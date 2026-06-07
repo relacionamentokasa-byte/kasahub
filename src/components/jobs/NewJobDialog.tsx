@@ -78,6 +78,7 @@ export function NewJobDialog({
           ...f,
           client_id: p.client_id || f.client_id,
           contract_id: p.contract_id || f.contract_id,
+          service_id: f.service_id, // Manter o serviço selecionado se houver
           main_responsible_id: p.responsible_id || p.owner_id || f.main_responsible_id,
         }));
       }
@@ -201,6 +202,18 @@ export function NewJobDialog({
             </div>
 
             <div className="space-y-1.5 col-span-2">
+              <Label>Serviço</Label>
+              <Select value={form.service_id || undefined} onValueChange={(v) => setForm({ ...form, service_id: v })}>
+                <SelectTrigger className={!form.service_id ? "border-destructive" : ""}><SelectValue placeholder="Obrigatório" /></SelectTrigger>
+                <SelectContent>
+                  {services.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5 col-span-2">
               <Label>Responsável Principal</Label>
               <Select value={form.main_responsible_id} onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -261,7 +274,7 @@ export function NewJobDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id}
+            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Criar

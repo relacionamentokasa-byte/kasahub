@@ -256,6 +256,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
   if (!input.service_id) throw new Error("Um job deve estar vinculado a um serviço.");
+  if (!input.contract_id) throw new Error("Um job deve estar vinculado a um contrato.");
   
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
@@ -266,17 +267,22 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   // Herança automática de campos se não fornecidos
   const finalInput = {
     ...input,
-    client_id: (input.client_id || project.client_id || null),
-    project_id: (input.project_id || null),
-    contract_id: (input.contract_id || project.contract_id || null),
-    main_responsible_id: (input.main_responsible_id || project.responsible_id || project.owner_id || null),
+    client_id: input.client_id || project.client_id || null,
+    project_id: input.project_id || null,
+    contract_id: input.contract_id || project.contract_id || null,
+    main_responsible_id: input.main_responsible_id || project.responsible_id || project.owner_id || null,
   };
 
   // Limpeza de campos UUID vazios para evitar erro de sintaxe
   const cleanInput = Object.entries(finalInput).reduce((acc, [key, value]) => {
-    acc[key] = value === "" ? null : value;
+    acc[key] = (value === "" || value === undefined) ? null : value;
     return acc;
   }, {} as any);
+
+  // Garantir que campos obrigatórios não são nulos após limpeza
+  if (!cleanInput.client_id || !cleanInput.project_id || !cleanInput.service_id || !cleanInput.contract_id) {
+    throw new Error("Vínculos obrigatórios ausentes: Cliente, Projeto, Serviço e Contrato.");
+  }
 
   console.log("createJob: Final payload after cleaning", cleanInput);
 
