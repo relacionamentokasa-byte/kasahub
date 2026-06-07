@@ -183,10 +183,35 @@ export function JobSheet({
   const commentMut = useMutation({
     mutationFn: ({ content, type, metadata, isSystem }: { content: string; type?: string; metadata?: any; isSystem?: boolean }) => 
       addJobComment(job!.id, content, type, metadata, isSystem),
+    onMutate: async ({ content, type, isSystem }) => {
+      const qk = ["job-comments", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const tempId = Math.random().toString(36).substring(7);
+      const newComment = {
+        id: tempId,
+        job_id: job!.id,
+        user_id: user?.id,
+        content,
+        type: type || 'comment',
+        is_system: isSystem || false,
+        created_at: new Date().toISOString(),
+        mentions: []
+      };
+      
+      qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
       setComment("");
     },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
+    }
   });
 
   if (!job) return null;
