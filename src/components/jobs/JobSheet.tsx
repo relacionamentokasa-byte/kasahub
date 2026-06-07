@@ -718,7 +718,6 @@ export function JobSheet({
                                 )}
                               </div>
                             )}
-                            )}
                           </div>
                         </div>
                       </div>
