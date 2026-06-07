@@ -208,7 +208,29 @@ export async function fetchJobAttachments(jobId: string) {
     .eq("job_id", jobId)
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data;
+
+  // Gerar URLs assinadas para o ambiente interno (bucket privado)
+  const dataWithUrls = await Promise.all((data || []).map(async (att) => {
+    try {
+      const urlParts = att.file_url.split('/job-attachments/');
+      if (urlParts.length < 2) return att;
+      const path = urlParts[1];
+      
+      const { data: signedData } = await supabase.storage
+        .from('job-attachments')
+        .createSignedUrl(path, 3600);
+        
+      return {
+        ...att,
+        file_url: signedData?.signedUrl || att.file_url
+      };
+    } catch (e) {
+      console.warn("Erro ao gerar URL assinada para anexo", e);
+      return att;
+    }
+  }));
+
+  return dataWithUrls;
 }
 
 export async function addJobAttachment(input: {
