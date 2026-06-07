@@ -557,6 +557,20 @@ function TemplateJobRow({
           className="flex-1 h-8"
         />
         <div className="flex items-center gap-1">
+          <select
+            className="h-8 rounded-md border border-input bg-background text-[10px] focus:outline-none focus:ring-1 focus:ring-ring"
+            value={local.initial_stage_id}
+            onChange={(e) => setLocal({ ...local, initial_stage_id: e.target.value })}
+          >
+            <option value="">Estágio Inicial</option>
+            {stages.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-1">
           <Input
             type="number"
             min={0}
