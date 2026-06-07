@@ -13,6 +13,7 @@ export type IndicatorDataSource =
   | "projects_finished" 
   | "clients_active" 
   | "clients_new"
+  | "revenue_monthly"
   | "revenue_yearly";
 
 export interface AgencyIndicator {
