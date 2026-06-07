@@ -252,7 +252,7 @@ function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClic
     mutationFn: () => deleteJob(job.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
-      toast.success("Tarefa removida");
+      toast.success("Job removido");
     },
     onError: (e: Error) => toast.error(e.message),
   });
