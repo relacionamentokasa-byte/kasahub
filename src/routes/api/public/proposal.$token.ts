@@ -133,6 +133,8 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           const ip =
             request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "127.0.0.1";
           const userAgent = request.headers.get("user-agent") ?? "Desconhecido";
+          const parser = new UAParser(userAgent);
+          const uaResult = parser.getResult();
 
           const { data: proposal } = await supabaseAdmin
             .from("proposals")
