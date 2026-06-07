@@ -252,7 +252,6 @@ export async function approveProposal(
             labels: ["operational_template"],
             assignee_id: tpl.default_assignee_id || proposal.responsible_id || null,
             custom_fields_schema: (tpl as any).custom_fields_schema || null,
-            main_responsible_id: (tpl as any).default_assignee_id || proposal.responsible_id || null,
           })
           .select()
           .single();
