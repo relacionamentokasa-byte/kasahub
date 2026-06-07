@@ -37,10 +37,8 @@ export interface AgencySettings {
   pwa_favicon_url: string | null;
 }
 
-const sb = supabase;
-
 export async function fetchAgencySettings(): Promise<AgencySettings | null> {
-  const { data, error } = await sb
+  const { data, error } = await supabase
     .from("agency_settings")
     .select("*")
     .order("created_at", { ascending: true })
@@ -51,6 +49,6 @@ export async function fetchAgencySettings(): Promise<AgencySettings | null> {
 }
 
 export async function updateAgencySettings(id: string, patch: Partial<AgencySettings>) {
-  const { error } = await sb.from("agency_settings").update(patch as never).eq("id", id);
+  const { error } = await supabase.from("agency_settings").update(patch as any).eq("id", id);
   if (error) throw error;
 }
