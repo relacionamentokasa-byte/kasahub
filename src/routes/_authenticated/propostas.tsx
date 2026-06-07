@@ -95,7 +95,11 @@ function ProposalsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const qc = useQueryClient();
   const sendEmailFn = useServerFn(sendEmail);
-  const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
+  const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "active"], queryFn: () => fetchProposals(false) });
+  const { data: trashedProposals = [] } = useQuery({ queryKey: ["proposals", "trashed"], queryFn: () => fetchProposals(true) });
+  const [showTrash, setShowTrash] = useState(false);
+  
+  const proposalsToDisplay = showTrash ? trashedProposals.filter(p => p.deleted_at !== null) : proposals;
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
   const { data: services = [] } = useQuery({
@@ -203,10 +207,18 @@ function ProposalsPage() {
 
 
   const delMut = useMutation({
-    mutationFn: (id: string) => deleteProposal(id),
+    mutationFn: ({ id, permanent }: { id: string; permanent?: boolean }) => deleteProposal(id, permanent),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ["proposals"] });
+      toast.success(variables.permanent ? "Proposta excluída permanentemente" : "Proposta enviada para a lixeira");
+    },
+  });
+
+  const restoreMut = useMutation({
+    mutationFn: (id: string) => restoreProposal(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Proposta excluída");
+      toast.success("Proposta restaurada");
     },
   });
 
