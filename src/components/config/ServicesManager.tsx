@@ -483,6 +483,7 @@ function TemplateJobRow({
         name: local.name,
         default_duration_days: local.default_duration_days,
         initial_stage_id: local.initial_stage_id || null,
+        custom_fields_schema: JSON.parse(local.custom_fields_schema || "[]"),
       }),
     onSuccess: () => {
       toast.success("Job atualizado");
