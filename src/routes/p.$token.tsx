@@ -148,10 +148,29 @@ function PublicProposalView() {
       toast.error("Informe um CPF válido");
       return;
     }
-    if (!acceptTerms) {
-      toast.error("Você precisa marcar que leu e aceita os termos");
+    if (!signerRole.trim()) {
+      toast.error("Informe seu cargo");
       return;
     }
+    if (!signerEmail.trim() || !signerEmail.includes("@")) {
+      toast.error("Informe um e-mail válido");
+      return;
+    }
+    if (sigPad.current?.isEmpty()) {
+      toast.error("Você precisa desenhar sua assinatura");
+      return;
+    }
+    if (!acceptTerms) {
+      toast.error("Você precisa concordar com os termos");
+      return;
+    }
+    if (!acceptRepresentation) {
+      toast.error("Você precisa declarar que possui poderes para representar a empresa");
+      return;
+    }
+
+    const signatureData = sigPad.current?.getTrimmedCanvas().toDataURL('image/png');
+
     setSigning(true);
     try {
       const res = await fetch(`/api/public/proposal/${token}`, {
@@ -160,7 +179,11 @@ function PublicProposalView() {
         body: JSON.stringify({
           accepted_name: signerName.trim(),
           accepted_cpf: signerCpf.trim(),
+          accepted_role: signerRole.trim(),
+          accepted_email: signerEmail.trim(),
+          signature_data: signatureData,
           accepted_terms: true,
+          accepted_representation: true,
         }),
       });
       if (!res.ok) {
