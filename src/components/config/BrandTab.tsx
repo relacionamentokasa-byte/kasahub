@@ -30,10 +30,10 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     key: "logo_sidebar_url",
     label: "Logo Menu Lateral",
     usage: "Sidebar Desktop e Sidebar Mobile",
-    recommendedSize: "400x120px",
+    recommendedSize: "512x512px (Quadrado)",
     formats: ["PNG Transparente", "SVG"],
     description: "Versão otimizada para o menu de navegação lateral.",
-    aspect: 400 / 120
+    aspect: 1
   },
   {
     key: "logo_login_url",
