@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -32,6 +32,7 @@ import {
   updateJob,
   fetchJobHistory,
   fetchJobAttachments,
+  addJobAttachment,
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
@@ -39,7 +40,7 @@ import {
   fetchProjects,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
@@ -58,6 +59,8 @@ export function JobSheet({
   const open = !!job;
   const [draft, setDraft] = useState("");
   const [comment, setComment] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: checklist = [] } = useQuery({
     queryKey: ["job-checklist", job?.id],
@@ -119,20 +122,72 @@ export function JobSheet({
     },
     onMutate: async (patch) => {
       await qc.cancelQueries({ queryKey: ["jobs"] });
+      // Also cancel specific job query if it exists
+      await qc.cancelQueries({ queryKey: ["job", job!.id] });
+      
       const prev = qc.getQueryData<Job[]>(["jobs"]);
       qc.setQueryData<Job[]>(["jobs"], (old) =>
         (old ?? []).map((j) => (j.id === job!.id ? { ...j, ...patch } : j)),
       );
+      
+      // Update the local sheet UI immediately by updating the parent state if possible
+      // (Assuming the parent uses "jobs" query to render this)
+      
       return { prev };
     },
-    onSuccess: () => {
+    onSuccess: (updatedJob) => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["job", job!.id] });
+      toast.success("Job atualizado");
     },
     onError: (e: Error, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
       toast.error(e.message);
     }
   });
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !job) return;
+
+    try {
+      setIsUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${job.id}/${Math.random()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('job-attachments')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('job-attachments')
+        .getPublicUrl(filePath);
+
+      await addJobAttachment({
+        job_id: job.id,
+        file_name: file.name,
+        file_url: publicUrl,
+        file_type: file.type,
+        file_size: file.size
+      });
+
+      await addJobComment(job.id, `Arquivo anexado: ${file.name}`, 'attachment', { 
+        file_name: file.name, 
+        file_url: publicUrl 
+      });
+
+      qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
+      qc.invalidateQueries({ queryKey: ["job-comments", job.id] });
+      toast.success("Arquivo enviado com sucesso!");
+    } catch (error: any) {
+      toast.error("Erro no upload: " + error.message);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   const deleteMut = useMutation({
     mutationFn: () => deleteJob(job!.id),
@@ -252,14 +307,15 @@ export function JobSheet({
       };
       
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
+      setComment(""); // Clear immediately for better feel
       return { prev };
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
-      setComment("");
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
+      toast.error("Erro ao enviar mensagem");
     }
   });
 
@@ -549,9 +605,22 @@ export function JobSheet({
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <MessageSquare className="size-4 text-primary" /> Timeline de Comunicação
                 </h3>
-                <Button variant="outline" size="sm" className="h-8 gap-2 text-[10px] font-bold uppercase tracking-wider" onClick={() => toast.info("Upload disponível na timeline abaixo")}>
-                  <FileUp className="size-3.5" /> Anexar Arquivo
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-8 gap-2 text-[10px] font-bold uppercase tracking-wider" 
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? <Loader2 className="size-3.5 animate-spin" /> : <FileUp className="size-3.5" />}
+                  {isUploading ? "Enviando..." : "Anexar Arquivo"}
                 </Button>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload}
+                />
               </div>
 
               <ScrollArea className="h-[500px] w-full pr-4 rounded-xl border border-border/50 bg-muted/5 p-4">
@@ -656,24 +725,37 @@ export function JobSheet({
                 }}
                 className="relative mt-4"
               >
-                <Textarea
-                  rows={3}
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      if (comment.trim()) {
-                        commentMut.mutate({ content: comment.trim() });
+                <div className="flex flex-col gap-2 p-3 bg-muted/5 border border-border rounded-2xl">
+                  <Textarea
+                    rows={3}
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        if (comment.trim() && !commentMut.isPending) {
+                          commentMut.mutate({ content: comment.trim() });
+                        }
                       }
-                    }
-                  }}
-                  placeholder="Escreva sua mensagem... use @nome para mencionar membros da equipe"
-                  className="resize-none pr-16 bg-muted/5 border-border rounded-2xl p-4 text-sm"
-                />
-                <Button type="submit" size="icon" className="absolute right-3 bottom-3 size-10 rounded-xl bg-primary shadow-lg shadow-primary/20">
-                  <Send className="size-5" />
-                </Button>
+                    }}
+                    placeholder="Escreva sua mensagem... use @nome para mencionar membros da equipe"
+                    className="resize-none border-none bg-transparent focus-visible:ring-0 p-0 text-sm min-h-[80px]"
+                  />
+                  <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/50">
+                    <span className="text-[10px] text-foreground/40 italic">
+                      Pressione Enter para enviar, Shift+Enter para nova linha
+                    </span>
+                    <Button 
+                      type="submit" 
+                      size="sm" 
+                      className="gap-2 px-4 rounded-xl shadow-lg shadow-primary/20"
+                      disabled={!comment.trim() || commentMut.isPending}
+                    >
+                      {commentMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                      Enviar
+                    </Button>
+                  </div>
+                </div>
               </form>
             </TabsContent>
 
