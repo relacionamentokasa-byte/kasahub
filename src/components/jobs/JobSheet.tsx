@@ -188,6 +188,7 @@ export function JobSheet({
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(() => handleTyping(false), 3000);
     } else {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       handleTyping(false);
     }
   }, [comment, handleTyping]);
@@ -404,6 +405,8 @@ export function JobSheet({
       
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
       setComment("");
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      handleTyping(false);
       return { prev };
     },
     onSuccess: () => {
@@ -1048,6 +1051,7 @@ export function JobSheet({
                           )).reverse()}
                         </div>
                       )}
+                      </div>
                     </div>
                   );
                 })}
