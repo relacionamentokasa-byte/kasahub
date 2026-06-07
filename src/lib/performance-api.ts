@@ -33,6 +33,16 @@ export interface AgencyIndicator {
   updated_at: string;
 }
 
+export interface AgencyIndicatorTarget {
+  id: string;
+  indicator_id: string;
+  year: number;
+  month: number | null;
+  target_value: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function fetchIndicators() {
   const { data, error } = await supabase
     .from("agency_indicators")
