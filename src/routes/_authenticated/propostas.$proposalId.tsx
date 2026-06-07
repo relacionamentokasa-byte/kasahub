@@ -259,22 +259,6 @@ export function ProposalEditorContent({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const approveMut = useMutation({
-    mutationFn: async () => {
-      await saveMut.mutateAsync(undefined);
-      // Pass internal approval by current user
-      const { data: { user } } = await supabase.auth.getUser();
-      return approveProposal(supabase, proposalId, {
-        internalApproval: true,
-        internalApprovalBy: user?.id
-      });
-    },
-    onSuccess: (r) => {
-      toast.success(`Proposta aprovada e convertida em contrato!`);
-      qc.invalidateQueries();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
 
   const reopenCancelledMut = useMutation({
     mutationFn: () => reopenProposal(proposalId),
