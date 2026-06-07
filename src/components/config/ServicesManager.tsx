@@ -95,7 +95,7 @@ export function ServicesManager({ canEdit }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-lg font-semibold">Serviços e Templates Operacionais</p>
+          <p className="font-display text-lg font-semibold">Serviços e Jobs</p>
           <p className="text-xs text-foreground/50">
             Biblioteca central de serviços da agência e seus Jobs padrão.
           </p>
@@ -265,7 +265,7 @@ function ServiceFormDialog({
           <TabsList>
             <TabsTrigger value="general">Geral</TabsTrigger>
             <TabsTrigger value="template" disabled={!service}>
-              Template Operacional
+              Jobs Padrão
             </TabsTrigger>
           </TabsList>
 
@@ -582,20 +582,7 @@ function TemplateJobRow({
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-1">
-          <select
-            className="h-8 rounded-md border border-input bg-background text-[10px] focus:outline-none focus:ring-1 focus:ring-ring"
-            value={local.operational_template_id}
-            onChange={(e) => setLocal({ ...local, operational_template_id: e.target.value })}
-          >
-            <option value="">Template Etapas</option>
-            {opTemplates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Template Etapas Removed */}
         <div className="flex items-center gap-1">
           <Input
             type="number"
