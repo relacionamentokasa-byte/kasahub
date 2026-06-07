@@ -561,6 +561,7 @@ export function JobSheet({
                           selected={job.due_date ? new Date(job.due_date + 'T12:00:00') : undefined}
                           onSelect={(date: Date | undefined) => updateMut.mutate({ due_date: date ? format(date, 'yyyy-MM-dd') : null })}
                           initialFocus
+                          locale={ptBR}
                           className="bg-surface text-white"
                         />
                       </PopoverContent>
@@ -574,9 +575,15 @@ export function JobSheet({
                       <PopoverTrigger asChild>
                         <button className="w-full flex items-center gap-3 h-12 px-4 rounded-xl border border-border bg-background/50 hover:border-primary/50 transition-all group">
                           <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 uppercase shadow-sm ${
-                            ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
+                            (clients.find(c => c.id === (job as any).client_id) as any)?.logo_url 
+                            ? "" 
+                            : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
                           }`}>
-                            {clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"}
+                            {(clients.find(c => c.id === (job as any).client_id) as any)?.logo_url ? (
+                              <img src={(clients.find(c => c.id === (job as any).client_id) as any)?.logo_url} className="size-full rounded-full object-cover" />
+                            ) : (
+                              clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"
+                            )}
                           </div>
 
                           <div className="flex-1 text-left">
@@ -600,13 +607,17 @@ export function JobSheet({
                                   onSelect={() => updateMut.mutate({ client_id: c.id } as any)}
                                   className="flex items-center gap-3 p-3 hover:bg-primary/10 cursor-pointer aria-selected:bg-primary/10"
                                 >
-                                  <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm ${
-                                    ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
-                                  }`}>
-                                    {(c.company || c.name).substring(0, 2)}
-                                  </div>
+                                   <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm ${
+                                    (c as any).logo_url ? "" : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
+                                   }`}>
+                                    {(c as any).logo_url ? (
+                                      <img src={(c as any).logo_url} className="size-full rounded-full object-cover" />
+                                    ) : (
+                                      (c.company || c.name).substring(0, 2)
+                                    )}
+                                   </div>
 
-                                  <span className="text-sm font-medium text-white">{c.company || c.name}</span>
+                                   <span className="text-sm font-medium text-white">{c.company || c.name}</span>
                                   {(job as any).client_id === c.id && <Check className="size-4 text-primary ml-auto" />}
                                 </CommandItem>
                               ))}
@@ -654,8 +665,8 @@ export function JobSheet({
                       value={(job as any).service_id || ""}
                       onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
                     >
-                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg">
-                        <SelectValue placeholder="Selecione o serviço" />
+                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg text-white">
+                        <SelectValue placeholder="Selecione o serviço" className="text-white" />
                       </SelectTrigger>
                       <SelectContent className="bg-surface border-border">
                         {services.map((s: any) => (
@@ -796,7 +807,7 @@ export function JobSheet({
                             value={draft}
                             onChange={(e) => setDraft(e.target.value)}
                             placeholder="Adicionar nova etapa de execução…"
-                            className="h-10 bg-background border-border"
+                            className="h-10 bg-background border-border text-white"
                           />
                           <Button type="submit" size="icon" className="size-10 shrink-0">
                             <Plus className="size-5" />
@@ -808,7 +819,7 @@ export function JobSheet({
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <AlertCircle className="size-4 text-primary" />
-                        <Label className="text-xs font-bold uppercase tracking-wider">Observações Operacionais</Label>
+                        <Label className="text-xs font-bold uppercase tracking-wider">Briefing</Label>
                       </div>
                       <Textarea
                         rows={4}
@@ -816,7 +827,7 @@ export function JobSheet({
                         onChange={(e) => setObservations(e.target.value)}
                         onBlur={() => observations !== (job as any).operational_observations && updateMut.mutate({ operational_observations: observations } as any)}
                         placeholder="Registros internos da equipe..."
-                        className="bg-background text-sm leading-relaxed border-border min-h-[100px]"
+                        className="bg-background text-sm leading-relaxed border-border min-h-[100px] text-white"
                       />
                     </div>
                   </AccordionContent>
@@ -1138,7 +1149,7 @@ export function JobSheet({
                       }
                     }}
                     placeholder="Escreva uma mensagem..."
-                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-foreground placeholder:text-foreground/40 relative z-[120]"
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white placeholder:text-foreground/40 relative z-[120]"
                     rows={1}
                   />
                   <div className="flex flex-col justify-end gap-1">
