@@ -59,14 +59,14 @@ function ApprovalsPage() {
           <TabsTrigger value="approved">Aprovados</TabsTrigger>
           <TabsTrigger value="published">Publicados</TabsTrigger>
         </TabsList>
-        <TabsContent value={status} className="mt-6">
+        <div className="mt-6">
           <ApprovalsGrid
             clientId={clientId === "all" ? undefined : clientId}
             status={status === "all" ? undefined : status}
             onSelect={setSelected}
             showClient
           />
-        </TabsContent>
+        </div>
       </Tabs>
 
       <ApprovalSheet
