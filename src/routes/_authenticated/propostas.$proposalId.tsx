@@ -15,7 +15,7 @@ import {
 import { fetchClients } from "@/lib/ops-api";
 import { fetchPartners } from "@/lib/partners-api";
 import { fetchBankAccounts, fetchCategories } from "@/lib/finance-api";
-import { fetchServices, fetchServiceTemplate, type Service } from "@/lib/services-api";
+import { fetchServices, type Service } from "@/lib/services-api";
 import { fetchContractTemplates, replaceContractVariables } from "@/lib/contracts-api";
 import { supabase } from "@/integrations/supabase/client";
 import { approveProposal, revertProposalApproval } from "@/lib/proposal-approval";

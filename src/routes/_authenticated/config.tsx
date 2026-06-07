@@ -110,7 +110,7 @@ function ConfigPage() {
     { id: "perms", label: "Perfis e Permissões", icon: Shield, group: "Usuários e Permissões", component: <PermissionsManager canEdit={canEdit} /> },
     
     { id: "services", label: "Serviços", icon: Briefcase, group: "Operação", component: <ServicesManager canEdit={canEdit} /> },
-    { id: "contracts", label: "Templates de Jobs", icon: FileText, group: "Operação", component: <ContractTemplatesManager canEdit={canEdit} /> },
+    { id: "contracts", label: "Templates de Contratos", icon: FileText, group: "Operação", component: <ContractTemplatesManager canEdit={canEdit} /> },
     { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Operação", component: <ScopeTemplatesManager canEdit={canEdit} /> },
     
     { id: "indicators", label: "Indicadores e Metas", icon: Target, group: "Performance", component: <IndicatorsManager /> },

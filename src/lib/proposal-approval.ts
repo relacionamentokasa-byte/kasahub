@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { JOB_TEMPLATES } from "./job-templates";
+// import { JOB_TEMPLATES } from "./job-templates"; // removed
 import { recordProposalEventAdmin } from "./proposal-events";
 import { recordTimelineEvent } from "./client-timeline";
 
@@ -220,113 +220,11 @@ export async function approveProposal(
     }
   }
 
-  // 5. Jobs from Templates
+  // 5. Jobs from Templates (DEACTIVATED)
   let jobsCreated = 0;
-  if (proposal.auto_create_jobs !== false) {
-    const { data: jobTemplates, error: tplErr } = await sb
-      .from("service_job_templates")
-      .select(`
-        *,
-        checklists:service_job_checklist(*),
-        op_template:operational_templates(id, default_steps)
-      `)
-      .in("service_id", proposal.service_ids ?? [])
-      .order("order_index");
-    
-    if (tplErr) console.error("Error fetching templates", tplErr);
+  // A criação automática de jobs foi removida conforme solicitação para limpeza da estrutura operacional.
+  // Os jobs devem ser criados manualmente.
 
-    const stagesList = await fetchJobStages();
-    const firstStageId = stagesList[0]?.id ?? null;
-
-    if (jobTemplates && jobTemplates.length > 0) {
-      for (const tpl of jobTemplates) {
-        const jobDueDate = tpl.default_duration_days 
-          ? new Date(Date.now() + tpl.default_duration_days * 86400000).toISOString().slice(0, 10)
-          : null;
-
-        const { data: job, error: jobErr } = await sb
-          .from("jobs")
-          .insert({
-            project_id: projectId,
-            client_id: clientId,
-            title: tpl.name,
-            stage_id: tpl.initial_stage_id || firstStageId,
-            status: 'not_started',
-            order_index: tpl.order_index,
-            due_date: jobDueDate,
-            main_responsible_id: tpl.default_assignee_id || proposal.responsible_id || null,
-            labels: ["operational_template"],
-            operational_template_id: (tpl as any).operational_template_id || null,
-            custom_fields_schema: (tpl as any).custom_fields_schema || null,
-          })
-          .select()
-          .single();
-
-        if (!jobErr && job) {
-          jobsCreated++;
-          if ((tpl as any).checklists?.length || (tpl as any).op_template?.default_steps?.length) {
-            const items = [];
-            
-            // From service_job_checklist
-            if ((tpl as any).checklists) {
-              items.push(...(tpl as any).checklists.map((c: any) => ({
-                job_id: job.id,
-                content: c.content,
-                order_index: c.order_index
-              })));
-            }
-            
-            // From op_template steps
-            if ((tpl as any).op_template?.default_steps) {
-              const startIdx = items.length;
-              items.push(...(tpl as any).op_template.default_steps.map((step: string, idx: number) => ({
-                job_id: job.id,
-                content: step,
-                order_index: startIdx + idx
-              })));
-            }
-
-            if (items.length > 0) {
-              await sb.from("job_checklist").insert(items);
-            }
-          }
-        }
-      }
-    }
-
-    // Fallback if no flow jobs were created
-    if (jobsCreated === 0) {
-      // existing job titles to avoid dupes
-      const { data: existingJobs } = await sb
-        .from("jobs")
-        .select("title")
-        .eq("project_id", projectId);
-      const existingTitles = new Set((existingJobs ?? []).map((j: { title: string }) => j.title));
-
-      const rows: Array<Record<string, unknown>> = [];
-      let order = 0;
-      for (const item of proposal.scope ?? []) {
-        const title = String(item);
-        if (existingTitles.has(title)) continue;
-        rows.push({
-          title,
-          description: null,
-          project_id: projectId,
-          client_id: clientId,
-          stage_id: firstStageId,
-          assignee_id: proposal.responsible_id ?? null,
-          order_index: order++,
-          priority: "normal",
-          labels: ["proposal_scope"],
-        });
-      }
-      if (rows.length) {
-        const { error: jErr } = await sb.from("jobs").insert(rows);
-        if (jErr) throw jErr;
-        jobsCreated = rows.length;
-      }
-    }
-  }
 
   // 6. Transactions
   let txCreated = 0;
