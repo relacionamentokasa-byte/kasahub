@@ -182,68 +182,15 @@ export function IndicatorsManager() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {indicators.map((indicator) => {
-          const actual = calculateActual(indicator);
-          const percent = indicator.target_value > 0 ? (actual / indicator.target_value) * 100 : 0;
-          const statusColor = percent >= 100 ? "text-emerald-500" : percent >= 70 ? "text-amber-500" : "text-rose-500";
-          const bgColor = percent >= 100 ? "bg-emerald-500/10" : percent >= 70 ? "bg-amber-500/10" : "bg-rose-500/10";
-
-          return (
-            <Card key={indicator.id} className="p-6 bg-surface border-border hover:border-primary/40 transition-all group">
-              <div className="flex items-start justify-between mb-4">
-                <div className={cn("size-10 rounded-xl flex items-center justify-center shrink-0", bgColor)}>
-                  <Target className={cn("size-5", statusColor)} />
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-8 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => { setEditingIndicator(indicator); setIsDialogOpen(true); }} className="gap-2">
-                      <Edit2 className="size-3.5" /> Editar
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => deleteMut.mutate(indicator.id)} className="gap-2 text-rose-500">
-                      <Trash2 className="size-3.5" /> Arquivar
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="space-y-1">
-                <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">{indicator.category}</p>
-                <h3 className="font-bold text-lg leading-tight">{indicator.name}</h3>
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-4 border-t border-border pt-4">
-                <div>
-                  <p className="text-[10px] text-foreground/40 uppercase">Meta</p>
-                  <p className="text-sm font-bold">{indicator.type === 'monetary' ? brl(indicator.target_value) : indicator.target_value}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-foreground/40 uppercase">Realizado</p>
-                  <p className={cn("text-sm font-bold", statusColor)}>{indicator.type === 'monetary' ? brl(actual) : actual}</p>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                <div className="flex items-center justify-between text-[10px] font-bold">
-                  <span className="text-foreground/40">{indicator.periodicity}</span>
-                  <span className={statusColor}>{Math.round(percent)}%</span>
-                </div>
-                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className={cn("h-full transition-all duration-1000", 
-                      percent >= 100 ? "bg-emerald-500" : percent >= 70 ? "bg-amber-500" : "bg-rose-500"
-                    )}
-                    style={{ width: `${Math.min(100, percent)}%` }}
-                  />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
+        {indicators.map((indicator) => (
+          <IndicatorCard 
+            key={indicator.id}
+            indicator={indicator}
+            actual={calculateActual(indicator)}
+            onEdit={() => { setEditingIndicator(indicator); setIsDialogOpen(true); }}
+            onDelete={() => deleteMut.mutate(indicator.id)}
+          />
+        ))}
       </div>
 
       <IndicatorDialog 
