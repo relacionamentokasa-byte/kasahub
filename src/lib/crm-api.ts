@@ -88,6 +88,16 @@ export async function moveLead(id: string, stage_id: string, extras: { won_at?: 
   return updateLead(id, { stage_id, ...extras });
 }
 
+export async function deleteLeadStage(id: string) {
+  // Check if stage has leads
+  const { count } = await supabase.from("leads").select("id", { count: "exact", head: true }).eq("stage_id", id);
+  if (count && count > 0) {
+    throw new Error(`Não é possível excluir uma coluna que contém ${count} leads. Mova os leads para outra coluna primeiro.`);
+  }
+  const { error } = await supabase.from("lead_stages").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function fetchActivities(leadId: string): Promise<LeadActivity[]> {
   const { data, error } = await supabase
     .from("lead_activities")
