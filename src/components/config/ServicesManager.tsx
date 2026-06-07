@@ -639,7 +639,17 @@ function TemplateJobRow({
             <Button size="sm" onClick={() => addItemMut.mutate()}>
               Adicionar
             </Button>
+          <div className="pt-3 border-t border-border space-y-2">
+            <Label className="text-[10px] uppercase font-bold text-primary">Esquema do Formulário Dinâmico (JSON)</Label>
+            <p className="text-[10px] text-foreground/40 italic">Ex: [{"label": "Nome do Post", "type": "text", "required": true}]</p>
+            <Textarea
+              value={local.custom_fields_schema}
+              onChange={(e) => setLocal({ ...local, custom_fields_schema: e.target.value })}
+              className="font-mono text-[10px] h-32"
+              placeholder='[{"label": "Exemplo", "type": "text"}]'
+            />
           </div>
+        </div>
         </div>
       )}
     </div>
