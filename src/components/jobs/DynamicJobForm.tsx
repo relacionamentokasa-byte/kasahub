@@ -26,26 +26,12 @@ export function DynamicJobForm({ jobType, flowJobId, data, onChange, readOnly }:
       }
       setLoading(true);
       try {
-        // First try to load from service_job_templates (new architecture)
-        let { data: tplData, error: tplError } = await supabase
+        // Try to load from service_job_templates (linked to services)
+        const { data: tplData } = await supabase
           .from('service_job_templates')
           .select('custom_fields_schema')
           .eq('id', flowJobId)
-          .maybeSingle();
-        
-        // Fallback to searching operational_templates (new centralized storage)
-        if (!tplData || tplError) {
-          const { data: opTpl, error: opErr } = await supabase
-            .from('operational_templates')
-            .select('default_steps')
-            .limit(1)
-            .maybeSingle(); // Just as a conceptual fallback for now
-            
-          if (!opErr && opTpl) {
-            // Mapping conceptual steps to a simple schema if needed
-            tplData = { custom_fields_schema: [] };
-          }
-        }
+          .maybeSingle() as any;
         
         const schemaData = tplData?.custom_fields_schema;
         setSchema(Array.isArray(schemaData) ? schemaData : []);
