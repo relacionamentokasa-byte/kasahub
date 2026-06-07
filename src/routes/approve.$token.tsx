@@ -8,7 +8,6 @@ import {
   FileText,
   ExternalLink,
   MessageSquare,
-  Info,
   FileUp,
   Eye,
 } from "lucide-react";
