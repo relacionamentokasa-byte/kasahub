@@ -67,6 +67,11 @@ export async function deleteInvite(id: string) {
   if (error) throw error;
 }
 
+export async function deleteUser(userId: string) {
+  const { error } = await supabase.from("profiles").delete().eq("id", userId);
+  if (error) throw error;
+}
+
 export async function updateUserStatus(userId: string, status: UserStatus) {
   const { error } = await supabase
     .from("profiles")

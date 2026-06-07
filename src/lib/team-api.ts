@@ -104,6 +104,11 @@ export async function deleteInvite(id: string) {
   if (error) throw error;
 }
 
+export async function deleteTeamMember(userId: string) {
+  const { error } = await supabase.from("profiles").delete().eq("id", userId);
+  if (error) throw error;
+}
+
 export const ROLE_LABEL: Record<AppRole, string> = {
   admin: "Admin",
   ceo: "CEO",
