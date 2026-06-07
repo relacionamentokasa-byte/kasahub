@@ -192,7 +192,7 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
         </div>
 
         <TabsContent value="board" className="flex-1 mt-0 min-h-0">
-          <JobsBoard projectId={projectId} title="Kanban de Jobs" eyebrow="Operação · Jobs" showPeriodFilter={project.type === 'automatic' || (contract as any)?.type === 'recurring'} />
+          <JobsBoard projectId={projectId} title="Central de Execução" eyebrow="Projeto · Jobs" showPeriodFilter={project.type === 'automatic' || (contract as any)?.type === 'recurring'} />
         </TabsContent>
         <TabsContent value="dme" className="px-6 lg:px-10 py-8 mt-0 overflow-y-auto">
           <ExtraDemandsManager clientId={project.client_id!} contractId={project.contract_id!} />

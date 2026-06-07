@@ -94,8 +94,7 @@ export function NewJobDialog({
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
       };
 
-      const { data, error } = await createJob(payload as any);
-      if (error) throw error;
+      const data = await createJob(payload as any);
       return data;
     },
     onSuccess: () => {

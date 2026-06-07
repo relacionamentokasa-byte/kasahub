@@ -244,6 +244,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
               {projects.map((p) => {
                 const contract = (contracts as any[]).find(c => c.id === p.contract_id);
                 const pJobs = (allJobs as any[]).filter(j => j.project_id === p.id);
+                const sJobs = (allJobs as any[]).filter(j => j.service_id === p.service_id); // Exemplo de uso de serviço se aplicável
                 const total = pJobs.length;
                 const done = pJobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
                 const progress = total === 0 ? 0 : Math.round((done / total) * 100);
