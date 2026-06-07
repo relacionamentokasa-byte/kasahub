@@ -57,7 +57,6 @@ export function NewJobDialog({
     title: "",
     description: "",
     priority: "normal",
-    job_type: "post",
     due_date: "",
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
