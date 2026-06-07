@@ -463,77 +463,85 @@ function PublicProposalView() {
 
         {/* Investment Details */}
         <div
-          className="px-8 py-8 border-b border-slate-100"
-          style={{ background: `${brand}10` }}
+          className="px-10 py-12 border-b border-slate-100 bg-[#0C1618]/[0.02]"
         >
-          <h2 className="text-xs uppercase tracking-widest text-slate-500 mb-6">
-            Investimento
-          </h2>
+          <div className="flex items-center gap-3 mb-8">
+            <div className="size-8 rounded-lg bg-[#FFBC45] flex items-center justify-center">
+              <span className="text-[#0C1618] font-bold text-xs">$</span>
+            </div>
+            <h2 className="text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
+              Investimento
+            </h2>
+          </div>
           
           {proposal.monthly_investment > 0 ? (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="grid sm:grid-cols-2 gap-6">
                 <Stat 
                   label="Valor Mensal" 
                   value={formatCurrency(proposal.monthly_investment)} 
                   highlight 
-                  brand={brand} 
+                  brand="#FFBC45" 
                 />
                 <Stat 
-                  label="Prazo" 
+                  label="Prazo do Contrato" 
                   value={`${proposal.recurring_months || 12} meses`} 
-                  brand={brand} 
+                  brand="#FFBC45" 
                 />
               </div>
 
               {proposal.one_time_investment > 0 && (
-                <div className="pt-6 border-t border-slate-200/50">
+                <div className="pt-8 border-t border-slate-200/50">
                    <Stat 
                     label="Setup / Investimento Único" 
                     value={formatCurrency(proposal.one_time_investment)} 
-                    brand={brand} 
+                    brand="#FFBC45" 
                   />
                 </div>
               )}
 
-              <div className="pt-6 border-t border-slate-200/50">
-                <div className="flex justify-between items-end">
+              <div className="pt-8 border-t border-slate-200/50">
+                <div className="flex justify-between items-end bg-[#0C1618] p-8 rounded-[2rem] text-white">
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400">Investimento Total do Contrato</p>
-                    <p className="text-3xl font-bold mt-1" style={{ color: brand }}>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Investimento Total Estimado</p>
+                    <p className="text-4xl font-bold">
                       {formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}
                     </p>
                   </div>
-                  <div className="text-right text-xs text-slate-500">
-                    Pagamento via {proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                  <div className="text-right text-xs text-slate-400 font-medium">
+                    Pagamento via <span className="text-white">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
                                    proposal.payment_method === 'pix' ? 'PIX' : 
-                                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}
+                                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</span>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="grid sm:grid-cols-2 gap-6">
                 <Stat 
                   label="Valor do Projeto" 
                   value={formatCurrency(proposal.one_time_investment)} 
                   highlight 
-                  brand={brand} 
+                  brand="#FFBC45" 
                 />
                 <Stat 
                   label="Parcelamento" 
                   value={`${proposal.installments || 1}x de ${formatCurrency(proposal.one_time_investment / (proposal.installments || 1))}`} 
-                  brand={brand} 
+                  brand="#FFBC45" 
                 />
               </div>
-              <div className="pt-6 border-t border-slate-200/50 text-right">
-                <p className="text-[10px] uppercase tracking-widest text-slate-400">Forma de Pagamento</p>
-                <p className="text-sm font-semibold mt-1">
-                  {proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
-                   proposal.payment_method === 'pix' ? 'PIX' : 
-                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}
-                </p>
+              <div className="pt-8 border-t border-slate-200/50 flex justify-between items-center bg-[#0C1618] p-8 rounded-[2rem] text-white">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-1">Forma de Pagamento</p>
+                  <p className="text-xl font-bold">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                                   proposal.payment_method === 'pix' ? 'PIX' : 
+                                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-1">Valor Total</p>
+                  <p className="text-3xl font-bold">{formatCurrency(proposal.one_time_investment)}</p>
+                </div>
               </div>
             </div>
           )}
@@ -541,65 +549,84 @@ function PublicProposalView() {
 
         {/* Contract */}
         {contractContent && (
-          <div className="px-8 py-10 border-b border-slate-100 bg-slate-50/50 print:bg-white page-break-before">
-            <h2 className="text-xs uppercase tracking-widest text-slate-500 mb-8 text-center print:mt-10">
-              Contrato de Prestação de Serviços
-            </h2>
-            <div className="prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed whitespace-pre-wrap font-serif px-4 sm:px-8">
-              {contractContent}
+          <div className="px-10 py-16 border-b border-slate-100 bg-white page-break-before">
+            <div className="text-center mb-12">
+              <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-4">
+                Documento Jurídico
+              </div>
+              <h2 className="text-2xl font-bold text-[#0C1618]">
+                Contrato de Prestação de Serviços
+              </h2>
+            </div>
+            
+            <div className="contract-text contract-content max-w-none px-4 sm:px-10 text-justify">
+              {contractContent.split('\n').map((line, i) => {
+                // Heuristic for clause titles: starts with number and is short or uppercase
+                const isClauseTitle = /^\d+\.\s+[A-Z\s]+$/.test(line.trim());
+                if (isClauseTitle) {
+                  return <div key={i} className="clause-title">{line}</div>;
+                }
+                return <p key={i}>{line}</p>;
+              })}
             </div>
           </div>
         )}
 
         {/* Signature */}
-        <div className="px-8 py-10">
-          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
-            Aceite digital
-          </h2>
+        <div className="px-10 py-16">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="size-8 rounded-lg bg-green-500 flex items-center justify-center">
+              <FileSignature className="size-4 text-white" />
+            </div>
+            <h2 className="text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
+              Aceite & Assinatura Digital
+            </h2>
+          </div>
+
           {accepted ? (
             <div className="grid sm:grid-cols-2 gap-8 mt-4">
-              <div className="rounded-xl border border-slate-200 p-6 bg-slate-50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-2 opacity-10">
-                  <CheckCircle2 className="size-12 text-slate-900" />
+              <div className="rounded-3xl border border-slate-200 p-8 bg-slate-50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <CheckCircle2 className="size-16 text-[#0C1618]" />
                 </div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-4">Contratada (Agência)</p>
-                <p className="text-sm font-bold text-slate-900">{agency?.name}</p>
-                <div className="mt-4 pt-4 border-t border-slate-200 font-serif text-slate-500 text-sm min-h-[60px] flex items-center justify-center">
+                <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-6">Contratada (Agência)</p>
+                <p className="text-lg font-bold text-[#0C1618]">{agency?.name}</p>
+                <div className="mt-6 pt-6 border-t border-slate-200 text-[#0C1618] text-sm min-h-[80px] flex items-center justify-center">
                   {agency?.agency_signature_url ? (
-                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-16 object-contain grayscale" />
+                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-20 object-contain" />
                   ) : (
-                    <span className="italic">Assinado eletronicamente</span>
+                    <span className="italic font-medium opacity-50">Assinado eletronicamente</span>
                   )}
                 </div>
-                <p className="text-[10px] text-slate-400 mt-2">
+                <p className="text-[10px] text-slate-400 mt-4 font-medium">
                   Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
                 </p>
               </div>
 
-              <div className="rounded-xl border border-green-200 p-6 bg-green-50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-2 opacity-10">
-                  <CheckCircle2 className="size-12 text-green-600" />
+              <div className="rounded-3xl border border-green-200 p-8 bg-green-50/50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                  <CheckCircle2 className="size-16 text-green-600" />
                 </div>
-                <p className="text-[10px] uppercase tracking-widest text-green-600/60 mb-4">Contratante (Cliente)</p>
-                <p className="text-sm font-bold text-slate-900">{proposal.accepted_name}</p>
-                <div className="mt-4 pt-4 border-t border-green-200 italic font-serif text-slate-700 text-sm">
+                <p className="text-[10px] uppercase tracking-widest font-bold text-green-600/60 mb-6">Contratante (Cliente)</p>
+                <p className="text-lg font-bold text-[#0C1618]">{proposal.accepted_name}</p>
+                <div className="mt-6 pt-6 border-t border-green-200 italic font-medium text-green-700 text-lg text-center flex items-center justify-center min-h-[80px]">
                   {proposal.signature_client || proposal.accepted_name}
                 </div>
-                <p className="text-[10px] text-green-600/60 mt-2">
+                <p className="text-[10px] text-green-600/60 mt-4 font-medium">
                   Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
                 </p>
               </div>
             </div>
           ) : (
-            <div className="space-y-5">
-              <div className="rounded-xl border border-slate-200 p-5 bg-slate-50/50">
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-3">Contratada (Agência)</p>
-                <p className="text-sm font-bold text-slate-900">{agency?.name}</p>
-                <div className="mt-3 pt-3 border-t border-slate-200 min-h-[60px] flex items-center justify-center">
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-slate-200 p-8 bg-slate-50/50">
+                <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-4">Contratada (Agência)</p>
+                <p className="text-lg font-bold text-[#0C1618]">{agency?.name}</p>
+                <div className="mt-6 pt-6 border-t border-slate-200 min-h-[80px] flex items-center justify-center">
                   {agency?.agency_signature_url ? (
-                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-16 object-contain" />
+                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-20 object-contain" />
                   ) : (
-                    <span className="italic text-slate-400 text-xs">Assinatura digital da agência</span>
+                    <span className="italic text-slate-400 text-xs font-medium">Assinatura digital pendente</span>
                   )}
                 </div>
               </div>
