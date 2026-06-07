@@ -159,25 +159,38 @@ function EquipePage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      {isAdmin ? (
-                        <Select
-                          value={m.roles[0] ?? "operador"}
-                          onValueChange={(v) => roleMut.mutate({ userId: m.id, role: v as AppRole })}
-                        >
-                          <SelectTrigger className="w-36 ml-auto h-8 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {ROLES.map((r) => (
-                              <SelectItem key={r} value={r}>
-                                {ROLE_LABEL[r]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <span className="text-xs text-foreground/40">somente admin</span>
-                      )}
+                      <div className="flex items-center justify-end gap-2">
+                        {isAdmin ? (
+                          <>
+                            <Select
+                              value={m.roles[0] ?? "operador"}
+                              onValueChange={(v) => roleMut.mutate({ userId: m.id, role: v as AppRole })}
+                            >
+                              <SelectTrigger className="w-32 h-8 text-[10px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ROLES.map((r) => (
+                                  <SelectItem key={r} value={r}>
+                                    {ROLE_LABEL[r]}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setMemberToDelete(m.id)}
+                              className="text-foreground/40 hover:text-destructive h-8 w-8 p-0"
+                              title="Remover membro"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <span className="text-[10px] text-foreground/40 uppercase font-mono-kasa">Somente admin</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -186,6 +199,26 @@ function EquipePage() {
           )}
         </div>
       </section>
+
+      <AlertDialog open={!!memberToDelete} onOpenChange={(open) => !open && setMemberToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover membro da equipe?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação removerá o acesso do usuário e excluirá seu perfil. Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => memberToDelete && delMember.mutate(memberToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {delMember.isPending ? "Removendo..." : "Remover permanentemente"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <section className="space-y-3">
         <h2 className="text-[10px] font-mono-kasa capitalize text-foreground/40">
