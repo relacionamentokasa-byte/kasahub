@@ -65,6 +65,8 @@ export function JobSheet({
   const [observations, setObservations] = useState((job as any)?.operational_observations || "");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
+
 
   const { data: checklist = [] } = useQuery({
     queryKey: ["job-checklist", job?.id],
