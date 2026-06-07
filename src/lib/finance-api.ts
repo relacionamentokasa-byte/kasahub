@@ -242,13 +242,6 @@ export async function createTransaction(
       }
     }
     
-    // Fallback: Não Classificado
-    if (!input.category_id) {
-      const { data: unclassified } = await supabase.from('financial_categories').select('id').ilike('name', 'Não Classificado').limit(1).maybeSingle();
-      if (unclassified) {
-        input.category_id = unclassified.id;
-      }
-    }
   }
 
   const { data: u } = await supabase.auth.getUser();
