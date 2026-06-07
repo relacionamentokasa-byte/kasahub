@@ -784,7 +784,8 @@ function ProposalsPage() {
             </button>
           ))}
         </div>
-      </div>
+        </div>
+      )}
 
       {filteredProposals.length === 0 ? (
         <div className="rounded-2xl border border-border bg-surface p-16 text-center">
