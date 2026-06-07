@@ -136,7 +136,43 @@ export function JobSheet({
 
   const toggleItemMut = useMutation({
     mutationFn: ({ id, done }: { id: string; done: boolean }) => toggleChecklistItem(id, done),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] }),
+    onMutate: async ({ id, done }) => {
+      const qk = ["job-checklist", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      qc.setQueryData<any[]>(qk, (old) =>
+        (old ?? []).map((item) => (item.id === id ? { ...item, done } : item)),
+      );
+      
+      // Update job progress optimistically in the list
+      qc.setQueryData<Job[]>(["jobs"], (old) => {
+        if (!old) return old;
+        return old.map(j => {
+          if (j.id === job!.id) {
+            const currentChecklist = prev || [];
+            const newChecklist = currentChecklist.map(it => it.id === id ? { ...it, done } : it);
+            const total = newChecklist.length;
+            const completed = newChecklist.filter(it => it.done).length;
+            return {
+              ...j,
+              completed_steps: completed,
+              total_steps: total,
+              progress_percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+            };
+          }
+          return j;
+        });
+      });
+
+      return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
+    }
   });
 
   const delItemMut = useMutation({
