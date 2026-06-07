@@ -136,10 +136,20 @@ export function JobSheet({
 
   const deleteMut = useMutation({
     mutationFn: () => deleteJob(job!.id),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["jobs"] });
+      const prev = qc.getQueryData<Job[]>(["jobs"]);
+      qc.setQueryData<Job[]>(["jobs"], (old) => (old ?? []).filter((j) => j.id !== job!.id));
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job removido");
       onClose();
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
+      toast.error(e.message);
     },
   });
 
