@@ -242,7 +242,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
           <div className="p-6 rounded-lg bg-background/40 border border-border space-y-4">
             <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">Menu Lateral</p>
             <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-lg">
-              <div className="h-8 w-24 flex items-center justify-center border border-border/50 p-1 bg-background rounded">
+              <div className="size-10 flex items-center justify-center border border-border/50 p-1 bg-background rounded">
                 {form.logo_sidebar_url || form.logo_url ? (
                   <img src={(form.logo_sidebar_url || form.logo_url) as string} alt="Logo" className="max-h-full max-w-full object-contain" />
                 ) : (
