@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/public/dme/$token")({
 
         const { data: agency } = await supabaseAdmin
           .from("agency_settings")
-          .select("name, logo_url, brand_primary, brand_secondary, email, phone, website, document, address")
+          .select("name, logo_url, logo_proposals_url, brand_primary, brand_secondary, email, phone, website, document, address")
           .order("created_at", { ascending: true })
           .limit(1)
           .maybeSingle();
