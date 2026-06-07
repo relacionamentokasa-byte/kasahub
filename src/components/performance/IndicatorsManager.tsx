@@ -58,6 +58,10 @@ export function IndicatorsManager() {
         return clients.filter(c => c.status === 'active').length;
       case 'clients_new':
         return clients.filter(c => c.created_at.startsWith(monthStr)).length;
+      case 'extra_income':
+        return transactions
+          .filter(t => t.kind === 'income' && t.status === 'paid' && !t.contract_id && (t.paid_at || t.due_date || '').startsWith(monthStr))
+          .reduce((acc, t) => acc + Number(t.amount), 0);
       case 'revenue_monthly':
         return transactions
           .filter(t => t.kind === 'income' && t.status === 'paid' && (t.paid_at || t.due_date || '').startsWith(monthStr))
