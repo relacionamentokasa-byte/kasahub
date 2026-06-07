@@ -359,7 +359,7 @@ export function JobSheet({
         metadata: { file_name: a.file_name, file_url: a.file_url },
         file_url: a.file_url || undefined
       }))
-    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [comments, attachments, job]);
 
   if (!job) return null;
