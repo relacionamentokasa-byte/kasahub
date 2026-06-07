@@ -96,8 +96,12 @@ function PublicProposalView() {
   const [signing, setSigning] = useState(false);
   const [signerName, setSignerName] = useState("");
   const [signerCpf, setSignerCpf] = useState("");
+  const [signerRole, setSignerRole] = useState("");
+  const [signerEmail, setSignerEmail] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptRepresentation, setAcceptRepresentation] = useState(false);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  const sigPad = useRef<SignatureCanvas>(null);
 
   async function load() {
     setLoading(true);
