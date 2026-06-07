@@ -10,11 +10,14 @@ import {
   MessageSquare,
   Info,
   FileUp,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { AttachmentViewer } from "@/components/AttachmentViewer";
+
 
 export const Route = createFileRoute("/approve/$token")({
   ssr: false,
@@ -106,6 +109,8 @@ function PublicApprovalPage() {
 function ApprovalInner() {
   const { token } = Route.useParams();
   const [feedback, setFeedback] = useState("");
+  const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
+
 
   const { data, isLoading, isError, error, refetch } = useQuery<{ job: JobData }>({
     queryKey: ["public-job-approval", token],
@@ -207,11 +212,15 @@ function ApprovalInner() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button variant="outline" size="sm" className="gap-2 h-9 px-3" asChild>
-                        <a href={att.file_url} target="_blank" rel="noreferrer">
-                          <ExternalLink className="size-4" /> Visualizar
-                        </a>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 h-9 px-3" 
+                        onClick={() => setViewerConfig({ url: att.file_url, name: att.file_name })}
+                      >
+                        <Eye className="size-4" /> Visualizar
                       </Button>
+
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -378,7 +387,15 @@ function ApprovalInner() {
             Kasa Marketing Consultoria · ERP Operacional
           </p>
         </footer>
+
+        <AttachmentViewer
+          url={viewerConfig?.url || null}
+          fileName={viewerConfig?.name || ""}
+          isOpen={!!viewerConfig}
+          onClose={() => setViewerConfig(null)}
+        />
       </div>
     </div>
   );
 }
+

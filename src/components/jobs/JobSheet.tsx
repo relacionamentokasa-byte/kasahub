@@ -40,12 +40,14 @@ import {
   fetchProjects,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { AttachmentViewer } from "@/components/AttachmentViewer";
+
 
 export function JobSheet({
   job,
@@ -63,6 +65,8 @@ export function JobSheet({
   const [observations, setObservations] = useState((job as any)?.operational_observations || "");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
+
 
   const { data: checklist = [] } = useQuery({
     queryKey: ["job-checklist", job?.id],
@@ -687,11 +691,16 @@ export function JobSheet({
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
-                                    <Button size="icon" variant="outline" title="Visualizar" className="size-8 hover:bg-blue-500 hover:text-white transition-colors" asChild>
-                                      <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="size-4" />
-                                      </a>
+                                    <Button 
+                                      size="icon" 
+                                      variant="outline" 
+                                      title="Visualizar" 
+                                      className="size-8 hover:bg-primary hover:text-white transition-colors"
+                                      onClick={() => setViewerConfig({ url: item.file_url!, name: item.metadata?.file_name || "Anexo" })}
+                                    >
+                                      <Eye className="size-4" />
                                     </Button>
+
                                     <Button 
                                       size="icon" 
                                       variant="outline" 
@@ -849,8 +858,16 @@ export function JobSheet({
             </div>
           </div>
         </div>
+
+        <AttachmentViewer
+          url={viewerConfig?.url || null}
+          fileName={viewerConfig?.name || ""}
+          isOpen={!!viewerConfig}
+          onClose={() => setViewerConfig(null)}
+        />
       </SheetContent>
     </Sheet>
   );
 }
+
 
