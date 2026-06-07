@@ -1196,7 +1196,13 @@ export function JobSheet({
                       {isUploading ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
                     </Button>
                     <Button 
-                      onClick={() => comment.trim() && commentMut.mutate({ content: comment.trim() })}
+                      onClick={async () => {
+                        if (comment.trim()) {
+                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                          await handleTyping(false);
+                          commentMut.mutate({ content: comment.trim() });
+                        }
+                      }}
                       disabled={!comment.trim() || commentMut.isPending}
                       size="icon" 
                       className="size-8 rounded-lg shadow-lg shadow-primary/20"
