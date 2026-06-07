@@ -313,20 +313,10 @@ function ServiceFormDialog({
                   ))}
                 </select>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Fluxo Operacional Padrão</Label>
-                <select
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  value={form.operational_flow_id}
-                  onChange={(e) => setForm({ ...form, operational_flow_id: e.target.value })}
-                >
-                  <option value="">Sem fluxo padrão</option>
-                  {flows.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="space-y-1.5 flex items-center h-full pt-6">
+                <span className="text-xs text-foreground/40 italic">
+                  O fluxo operacional é gerado via aba "Template Operacional"
+                </span>
               </div>
             </div>
             <div className="space-y-1.5">
