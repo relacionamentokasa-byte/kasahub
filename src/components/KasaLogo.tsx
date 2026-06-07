@@ -3,16 +3,35 @@ import { fetchAgencySettings } from "@/lib/settings-api";
 
 interface KasaLogoProps {
   collapsed?: boolean;
+  variant?: 'primary' | 'sidebar' | 'login' | 'system' | 'proposals' | 'reports';
+  className?: string;
+  iconOnly?: boolean;
 }
 
-export function KasaLogo({ collapsed = false }: KasaLogoProps) {
+export function KasaLogo({ 
+  collapsed = false, 
+  variant = 'primary', 
+  className = "",
+  iconOnly = false
+}: KasaLogoProps) {
   const { data: settings } = useQuery({
     queryKey: ["agency-settings"],
     queryFn: fetchAgencySettings,
     staleTime: 1000 * 60 * 5, // 5 minutos
   });
 
-  const logoUrl = settings?.logo_url;
+  const getLogoUrl = () => {
+    switch (variant) {
+      case 'sidebar': return settings?.logo_sidebar_url || settings?.logo_url;
+      case 'login': return settings?.logo_login_url || settings?.logo_url;
+      case 'system': return settings?.icon_system_url || settings?.logo_url;
+      case 'proposals': return settings?.logo_proposals_url || settings?.logo_url;
+      case 'reports': return settings?.logo_reports_url || settings?.logo_url;
+      default: return settings?.logo_url;
+    }
+  };
+
+  const logoUrl = getLogoUrl();
 
   return (
     <div className="flex items-center gap-3 px-1">
