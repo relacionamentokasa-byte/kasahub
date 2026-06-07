@@ -365,10 +365,47 @@ export function accountStats(account: BankAccount, txs: Transaction[]) {
   return { income, expense, balance: Number(account.initial_balance) + income - expense };
 }
 
-export function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}) {
+export async function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}) {
   const now = new Date();
   const from = opts.from ?? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const to = opts.to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
+
+  // Performance: Try to use the optimized RPC if possible, otherwise fallback to local calculation
+  try {
+    const { data: summary, error } = await supabase.rpc('get_finance_summary', { 
+      p_from: from, 
+      p_to: to 
+    });
+    
+    if (!error && summary) {
+      const s = summary as any;
+      return {
+        receitasPrevistas: s.receitas_previstas,
+        receitasRecebidas: s.receitas_recebidas,
+        despesasPagas: s.despesas_pagas,
+        parcelasFuturas: s.parcelas_futuras,
+        overdueCount: s.atrasados_count,
+        overdueAmount: s.atrasados_amount,
+        incomePaid: s.receitas_recebidas,
+        expensePaid: s.despesas_pagas,
+        receivable: s.receitas_previstas,
+        payable: 0, // Not explicitly in RPC but can be derived if needed
+        profit: s.receitas_recebidas - s.despesas_pagas,
+        mrr: contracts.filter(c => c.status === 'active').reduce((acc, c) => acc + Number(c.monthly_value), 0),
+        arr: 0,
+        recurringIncome: 0,
+        extraIncome: 0,
+        ticketRecurrente: 0,
+        ticketGeral: 0,
+        monthIncome: s.receitas_recebidas + s.receitas_previstas,
+        monthExpense: s.despesas_pagas,
+        monthResult: (s.receitas_recebidas + s.receitas_previstas) - s.despesas_pagas,
+        extraThisMonth: 0,
+      };
+    }
+  } catch (e) {
+    console.error("RPC get_finance_summary failed, using local fallback", e);
+  }
 
   const periodTx = txs.filter((t) => t.due_date >= from && t.due_date <= to);
   const incomePaid = periodTx.filter((t) => t.kind === "income" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);

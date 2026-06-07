@@ -156,10 +156,16 @@ function FinanceiroPage() {
   const accName = (id: string | null | undefined) =>
     id ? accounts.find((a) => a.id === id)?.name || "—" : "—";
 
-  const indicators = useMemo(
-    () => computeIndicators(txs, contracts, period),
-    [txs, contracts, period],
-  );
+  const { data: indicators = {
+    receitasPrevistas: 0,
+    receitasRecebidas: 0,
+    parcelasFuturas: 0,
+    despesasPagas: 0,
+  } } = useQuery({
+    queryKey: ["financial_indicators", period.from, period.to, txs.length],
+    queryFn: () => computeIndicators(txs, contracts, period),
+    placeholderData: (prev) => prev,
+  });
   const consolidated = accounts.reduce((s, a) => s + accountBalance(a, txs), 0);
 
   const chartData = useMemo(() => cashflowByMonth(txs, 6), [txs]);
@@ -185,29 +191,64 @@ function FinanceiroPage() {
 
   const togglePaid = useMutation({
     mutationFn: ({ id, paid }: { id: string; paid: boolean }) => markPaid(id, paid),
+    onMutate: async ({ id, paid }) => {
+      await qc.cancelQueries({ queryKey: ["transactions"] });
+      const previous = qc.getQueryData<Transaction[]>(["transactions"]);
+      if (previous) {
+        qc.setQueryData(["transactions"], previous.map(t => 
+          t.id === id ? { ...t, status: paid ? 'paid' : 'pending', paid_at: paid ? new Date().toISOString().slice(0,10) : null } : t
+        ));
+      }
+      return { previous };
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["transactions"] }),
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _, context) => {
+      if (context?.previous) qc.setQueryData(["transactions"], context.previous);
+      toast.error(e.message);
+    },
   });
 
   const delTx = useMutation({
     mutationFn: ({ id, cascade }: { id: string; cascade?: boolean }) => deleteTransaction(id, cascade),
+    onMutate: async ({ id }) => {
+      await qc.cancelQueries({ queryKey: ["transactions"] });
+      const previous = qc.getQueryData<Transaction[]>(["transactions"]);
+      if (previous) {
+        qc.setQueryData(["transactions"], previous.filter(t => t.id !== id));
+      }
+      return { previous };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      qc.invalidateQueries({ queryKey: ["contract"] }); // Invalidate single contract if it was open
+      qc.invalidateQueries({ queryKey: ["contract"] });
       setDeleteTxId(null);
       toast.success("Lançamento removido");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _, context) => {
+      if (context?.previous) qc.setQueryData(["transactions"], context.previous);
+      toast.error(e.message);
+    },
   });
 
   const updateTx = useMutation({
     mutationFn: ({ id, patch, cascade }: { id: string; patch: any; cascade?: boolean }) => 
       updateTransaction(id, patch, cascade),
+    onMutate: async ({ id, patch }) => {
+      await qc.cancelQueries({ queryKey: ["transactions"] });
+      const previous = qc.getQueryData<Transaction[]>(["transactions"]);
+      if (previous) {
+        qc.setQueryData(["transactions"], previous.map(t => t.id === id ? { ...t, ...patch } : t));
+      }
+      return { previous };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
       toast.success("Lançamento atualizado");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _, context) => {
+      if (context?.previous) qc.setQueryData(["transactions"], context.previous);
+      toast.error(e.message);
+    },
   });
 
   const delAcc = useMutation({
@@ -388,7 +429,10 @@ function FinanceiroPage() {
             </div>
 
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
-              <div className="px-5 py-3 border-b border-border font-display font-semibold">Lançamentos de {monthLabelShort}</div>
+              <div className="px-5 py-3 border-b border-border font-display font-semibold flex items-center justify-between">
+                <div>Lançamentos de {monthLabelShort}</div>
+                {txs.length === 0 && <span className="text-xs font-normal text-foreground/40 italic">Carregando dados...</span>}
+              </div>
               
               {/* Desktop Header */}
               <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
