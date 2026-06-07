@@ -52,7 +52,10 @@ export async function approveProposal(
     .single();
   if (pErr || !proposal) throw new Error(pErr?.message ?? "Proposta não encontrada");
 
-  const { data: items, error: iErr } = await sb
+  if (!proposal.signature_client) {
+    throw new Error("Esta proposta não pode ser aprovada pois ainda não possui a assinatura digital do cliente. O cliente deve assinar através do link da proposta.");
+  }
+
     .from("proposal_items")
     .select("*")
     .eq("proposal_id", proposalId)
