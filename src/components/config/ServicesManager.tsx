@@ -330,6 +330,38 @@ function ServiceFormDialog({
               </Button>
             </DialogFooter>
           </TabsContent>
+
+          <TabsContent value="checklist" className="space-y-4 pt-4">
+            <div className="space-y-3">
+              <Label className="text-xs">Itens do Checklist (um por linha)</Label>
+              <p className="text-[10px] text-muted-foreground">
+                Estes itens serão adicionados automaticamente ao checklist de cada novo Job criado com este serviço.
+              </p>
+              <Textarea
+                rows={10}
+                value={form.checklist_items.map((it: any) => it.text || it).join("\n")}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    checklist_items: e.target.value
+                      .split("\n")
+                      .filter((x) => x.trim())
+                      .map(text => ({ text, required: false })),
+                  })
+                }
+                placeholder="Ex:&#10;Criar arte&#10;Revisar texto&#10;Agendar post"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+                {saveMut.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
+                Salvar
+              </Button>
+            </DialogFooter>
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
