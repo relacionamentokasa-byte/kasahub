@@ -671,6 +671,39 @@ export function ProposalEditorContent({
           </div>
 
 
+          {proposal.status === "converted" && (
+            <div className="rounded-2xl border border-green-500/20 bg-green-500/5 p-6 space-y-4">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="size-4 text-green-600" />
+                <span className="text-green-600 text-[10px] uppercase font-bold tracking-widest">Assinatura Digital Confirmada</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-xs">
+                <div>
+                  <p className="text-foreground/50 uppercase font-bold text-[9px]">Assinante</p>
+                  <p className="font-semibold">{(proposal as any).accepted_name}</p>
+                </div>
+                <div>
+                  <p className="text-foreground/50 uppercase font-bold text-[9px]">CPF</p>
+                  <p className="font-semibold">{(proposal as any).client_cpf || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-foreground/50 uppercase font-bold text-[9px]">Cargo</p>
+                  <p className="font-semibold">{(proposal as any).client_role || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-foreground/50 uppercase font-bold text-[9px]">Data/Hora</p>
+                  <p className="font-semibold">{new Date(proposal.accepted_at!).toLocaleString("pt-BR")}</p>
+                </div>
+              </div>
+              { (proposal as any).client_signature_data && (
+                <div className="pt-4 border-t border-green-500/10 flex flex-col items-center">
+                   <p className="text-foreground/50 uppercase font-bold text-[9px] w-full mb-2 text-left">Assinatura</p>
+                   <img src={(proposal as any).client_signature_data} alt="Assinatura" className="max-h-16 object-contain grayscale brightness-50 contrast-125" />
+                </div>
+              )}
+            </div>
+          )}
+
           <ProposalTimeline proposalId={proposalId} />
         </div>
       </div>

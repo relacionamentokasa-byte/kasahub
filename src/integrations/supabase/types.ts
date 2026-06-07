@@ -2223,9 +2223,13 @@ export type Database = {
           cancelled_at: string | null
           cancelled_by: string | null
           category_id: string | null
+          client_cpf: string | null
           client_email: string | null
           client_id: string | null
           client_name: string
+          client_role: string | null
+          client_signature_data: string | null
+          client_signed_email: string | null
           commercial_id: string | null
           contract_content: string | null
           contract_template_id: string | null
@@ -2265,6 +2269,7 @@ export type Database = {
           signature_client: string | null
           signed_at_agency: string | null
           signed_at_client: string | null
+          signed_metadata: Json | null
           status: string
           structure_status: string | null
           target_kind: string
@@ -2289,9 +2294,13 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           category_id?: string | null
+          client_cpf?: string | null
           client_email?: string | null
           client_id?: string | null
           client_name: string
+          client_role?: string | null
+          client_signature_data?: string | null
+          client_signed_email?: string | null
           commercial_id?: string | null
           contract_content?: string | null
           contract_template_id?: string | null
@@ -2331,6 +2340,7 @@ export type Database = {
           signature_client?: string | null
           signed_at_agency?: string | null
           signed_at_client?: string | null
+          signed_metadata?: Json | null
           status?: string
           structure_status?: string | null
           target_kind?: string
@@ -2355,9 +2365,13 @@ export type Database = {
           cancelled_at?: string | null
           cancelled_by?: string | null
           category_id?: string | null
+          client_cpf?: string | null
           client_email?: string | null
           client_id?: string | null
           client_name?: string
+          client_role?: string | null
+          client_signature_data?: string | null
+          client_signed_email?: string | null
           commercial_id?: string | null
           contract_content?: string | null
           contract_template_id?: string | null
@@ -2397,6 +2411,7 @@ export type Database = {
           signature_client?: string | null
           signed_at_agency?: string | null
           signed_at_client?: string | null
+          signed_metadata?: Json | null
           status?: string
           structure_status?: string | null
           target_kind?: string

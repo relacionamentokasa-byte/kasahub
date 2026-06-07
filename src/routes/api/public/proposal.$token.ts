@@ -2,13 +2,18 @@ import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { approveProposal } from "@/lib/proposal-approval";
 import { z } from "zod";
+import { UAParser } from "ua-parser-js";
 
 const TokenSchema = z.string().min(8).max(200);
 
 const SignSchema = z.object({
   accepted_name: z.string().trim().min(2).max(200),
   accepted_cpf: z.string().trim().min(11).max(20),
+  accepted_role: z.string().trim().min(2).max(100),
+  accepted_email: z.string().trim().email(),
+  signature_data: z.string().min(100), // Base64 image
   accepted_terms: z.literal(true),
+  accepted_representation: z.literal(true),
 });
 
 export const Route = createFileRoute("/api/public/proposal/$token")({
@@ -117,16 +122,19 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           let body: z.infer<typeof SignSchema>;
           try {
             body = SignSchema.parse(await request.json());
-          } catch {
+          } catch (e) {
+            console.error("[API Public Proposal POST] Validation Error:", e);
             return Response.json(
-              { error: "Preencha nome, CPF e aceite os termos" },
+              { error: "Preencha todos os campos obrigatórios, desenhe sua assinatura e aceite os termos." },
               { status: 400 },
             );
           }
 
           const ip =
-            request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? null;
-          const userAgent = request.headers.get("user-agent") ?? null;
+            request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "127.0.0.1";
+          const userAgent = request.headers.get("user-agent") ?? "Desconhecido";
+          const parser = new UAParser(userAgent);
+          const uaResult = parser.getResult();
 
           const { data: proposal } = await supabaseAdmin
             .from("proposals")
@@ -144,19 +152,46 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             return Response.json({ error: "already_accepted" }, { status: 409 });
           }
 
-          const signatureLine = body.accepted_cpf
-            ? `${body.accepted_name} — CPF ${body.accepted_cpf}`
-            : body.accepted_name;
+          const signatureLine = `${body.accepted_name} — CPF ${body.accepted_cpf} (${body.accepted_role})`;
 
           await supabaseAdmin
             .from("proposals")
             .update({
+              status: "signed",
               signature_client: signatureLine,
               signed_at_client: new Date().toISOString(),
               accepted_user_agent: userAgent,
               accepted_ip: ip,
+              client_cpf: body.accepted_cpf,
+              client_role: body.accepted_role,
+              client_signed_email: body.accepted_email,
+              client_signature_data: body.signature_data,
+              signed_metadata: {
+                ip,
+                user_agent: userAgent,
+                browser: `${uaResult.browser.name} ${uaResult.browser.version}`,
+                device: uaResult.device.type || "desktop",
+                os: `${uaResult.os.name} ${uaResult.os.version}`,
+                timestamp: new Date().toISOString(),
+                email: body.accepted_email,
+                role: body.accepted_role
+              }
             })
             .eq("id", proposal.id);
+
+          await supabaseAdmin.from("proposal_events").insert({
+            proposal_id: proposal.id,
+            type: "signed",
+            actor_name: body.accepted_name,
+            payload: {
+              ip,
+              browser: `${uaResult.browser.name} ${uaResult.browser.version}`,
+              device: uaResult.device.type || "desktop",
+              os: `${uaResult.os.name} ${uaResult.os.version}`,
+              email: body.accepted_email,
+              role: body.accepted_role
+            }
+          });
 
           await approveProposal(supabaseAdmin, proposal.id, {
             acceptedName: body.accepted_name,
