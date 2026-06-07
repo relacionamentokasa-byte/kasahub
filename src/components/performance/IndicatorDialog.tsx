@@ -74,17 +74,44 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
   }, [existingTargets]);
 
   const mut = useMutation({
-    mutationFn: (data: Partial<AgencyIndicator>) => {
-      if (indicator?.id) return updateIndicator(indicator.id, data);
-      return createIndicator(data);
+    mutationFn: async (data: Partial<AgencyIndicator>) => {
+      let savedIndicator: AgencyIndicator;
+      if (indicator?.id) {
+        savedIndicator = await updateIndicator(indicator.id, data);
+      } else {
+        savedIndicator = await createIndicator(data);
+      }
+
+      // Save monthly targets if periodicity is monthly
+      if (data.periodicity === 'monthly' || (!data.periodicity && form.periodicity === 'monthly')) {
+        const currentYear = new Date().getFullYear();
+        await Promise.all(targets.map(t => {
+          const existing = existingTargets?.find(et => et.month === t.month && et.year === currentYear);
+          return saveIndicatorTarget({
+            id: existing?.id,
+            indicator_id: savedIndicator.id,
+            year: currentYear,
+            month: t.month,
+            target_value: t.value
+          });
+        }));
+      }
+
+      return savedIndicator;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agency-indicators"] });
+      qc.invalidateQueries({ queryKey: ["indicator-targets", indicator?.id] });
       toast.success(indicator ? "Meta atualizada" : "Meta criada");
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message)
   });
+
+  const months = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
 
   const handleSubmit = () => {
     if (!form.name || !form.target_value || !form.start_date) {
