@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
+import { ProposalApprovalDialog } from "@/components/proposals/ProposalApprovalDialog";
 import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import { ScopeEditor } from "@/components/proposals/ScopeEditor";
 import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
