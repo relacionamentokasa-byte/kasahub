@@ -858,8 +858,16 @@ export function JobSheet({
             </div>
           </div>
         </div>
+
+        <AttachmentViewer
+          url={viewerConfig?.url || null}
+          fileName={viewerConfig?.name || ""}
+          isOpen={!!viewerConfig}
+          onClose={() => setViewerConfig(null)}
+        />
       </SheetContent>
     </Sheet>
   );
 }
+
 
