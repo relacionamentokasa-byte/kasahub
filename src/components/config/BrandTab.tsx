@@ -261,6 +261,24 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
           </div>
 
           <div className="p-6 rounded-lg bg-background/40 border border-border space-y-4">
+            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">Proposta Comercial</p>
+            <div className="bg-white p-4 rounded-lg border border-border/50">
+              <div className="h-6 w-20 flex items-center justify-center border-b border-border/20 mb-2">
+                {form.logo_proposals_url || form.logo_url ? (
+                  <img src={(form.logo_proposals_url || form.logo_url) as string} alt="Logo" className="max-h-full max-w-full object-contain" />
+                ) : (
+                  <div className="size-2 rounded-full bg-primary" />
+                )}
+              </div>
+              <div className="space-y-1">
+                <div className="h-1 w-full bg-foreground/5 rounded" />
+                <div className="h-1 w-full bg-foreground/5 rounded" />
+                <div className="h-1 w-2/3 bg-foreground/5 rounded" />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 rounded-lg bg-background/40 border border-border space-y-4">
             <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">Assinatura Digital</p>
             <div className="h-20 flex flex-col justify-end bg-muted/30 p-4 rounded-lg">
               {form.agency_signature_url ? (
