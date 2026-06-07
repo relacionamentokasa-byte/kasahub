@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -45,13 +45,22 @@ import {
   fetchProjects,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AttachmentViewer } from "@/components/AttachmentViewer";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export function JobSheet({
   job,
@@ -71,6 +80,14 @@ export function JobSheet({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Realtime mentions and typing indicator
+  const [mentionSearch, setMentionSearch] = useState("");
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionCoords, setMentionCoords] = useState({ top: 0, left: 0 });
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: checklist = [] } = useQuery({
     queryKey: ["job-checklist", job?.id],
@@ -108,19 +125,63 @@ export function JobSheet({
   useEffect(() => {
     if (!job?.id) return;
 
-    const channels = [
-      supabase.channel(`job-checklist-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] })),
-      supabase.channel(`job-comments-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] })),
-      supabase.channel(`job-history-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] })),
-      supabase.channel(`job-updates-${job.id}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
-    ];
-
-    channels.forEach(c => c.subscribe());
+    const channel = supabase.channel(`job-room-${job.id}`);
+    
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] }))
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const users: string[] = [];
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((p: any) => {
+            if (p.is_typing) users.push(p.user_name);
+          });
+        });
+        setTypingUsers([...new Set(users)]);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          const { data: { user } } = await supabase.auth.getUser();
+          const profile = team.find(p => p.id === user?.id);
+          await channel.track({
+            user_id: user?.id,
+            user_name: profile?.display_name || profile?.full_name || 'Usuário',
+            is_typing: false
+          });
+        }
+      });
 
     return () => {
-      channels.forEach(c => supabase.removeChannel(c));
+      supabase.removeChannel(channel);
     };
-  }, [job?.id, qc]);
+  }, [job?.id, qc, team]);
+
+  const handleTyping = useCallback(async (isTyping: boolean) => {
+    if (!job?.id) return;
+    const channel = supabase.getChannels().find(c => c.topic === `realtime:job-room-${job.id}`);
+    if (channel) {
+      const { data: { user } } = await supabase.auth.getUser();
+      const profile = team.find(p => p.id === user?.id);
+      channel.track({
+        user_id: user?.id,
+        user_name: profile?.display_name || profile?.full_name || 'Usuário',
+        is_typing: isTyping
+      });
+    }
+  }, [job?.id, team]);
+
+  useEffect(() => {
+    if (comment.length > 0) {
+      handleTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 3000);
+    } else {
+      handleTyping(false);
+    }
+  }, [comment, handleTyping]);
 
   useEffect(() => {
     if (job) {
@@ -725,7 +786,13 @@ export function JobSheet({
                         {item.type === 'attachment' || item.file_url ? (
                           <div className="space-y-3">
                             {item.content && !item.content.startsWith('Anexou um arquivo:') && (
-                              <p className="whitespace-pre-wrap leading-relaxed text-xs">{item.content}</p>
+                              <p className="whitespace-pre-wrap leading-relaxed text-xs">
+                                {item.content.split(/(@\w+)/).map((part, i) => 
+                                  part.startsWith('@') ? (
+                                    <span key={i} className="text-primary font-bold">{part}</span>
+                                  ) : part
+                                )}
+                              </p>
                             )}
                             <div className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-xl border border-blue-500/10">
                               <div className="flex items-center gap-2 overflow-hidden">
@@ -761,7 +828,13 @@ export function JobSheet({
                             </div>
                           </div>
                         ) : (
-                          <p className="whitespace-pre-wrap leading-relaxed text-xs">{item.content}</p>
+                          <p className="whitespace-pre-wrap leading-relaxed text-xs">
+                            {item.content.split(/(@\w+)/).map((part, i) => 
+                              part.startsWith('@') ? (
+                                <span key={i} className="text-primary font-bold">{part}</span>
+                              ) : part
+                            )}
+                          </p>
                         )}
                       </div>
                     </div>
