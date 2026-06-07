@@ -222,8 +222,51 @@ export async function approveProposal(
 
   // 5. Jobs from Templates (DEACTIVATED)
   let jobsCreated = 0;
-  // A criação automática de jobs foi removida conforme solicitação para limpeza da estrutura operacional.
-  // Os jobs devem ser criados manualmente.
+  if (proposal.service_ids?.length) {
+    const { data: services } = await sb
+      .from("services")
+      .select("id, name, checklist_items")
+      .in("id", proposal.service_ids)
+      .eq("is_active", true);
+
+    if (services?.length) {
+      for (const service of services) {
+        // Criar Job para cada serviço do contrato
+        const { data: job, error: jobErr } = await sb
+          .from("jobs")
+          .insert({
+            title: service.name,
+            client_id: clientId,
+            project_id: projectId,
+            contract_id: contractId,
+            service_id: service.id,
+            status: "not_started",
+            priority: "normal",
+            main_responsible_id: proposal.responsible_id ?? proposal.owner_id ?? null,
+          })
+          .select("id")
+          .single();
+
+        if (jobErr) {
+          console.error(`Erro ao criar job para serviço ${service.name}:`, jobErr);
+          continue;
+        }
+
+        jobsCreated++;
+
+        // Criar Checklist se o serviço tiver itens padrão
+        if (service.checklist_items && Array.isArray(service.checklist_items) && service.checklist_items.length > 0) {
+          const checklistRows = service.checklist_items.map((it: any, idx: number) => ({
+            job_id: job.id,
+            content: it.text || it,
+            order_index: idx,
+            done: false
+          }));
+          await sb.from("job_checklist").insert(checklistRows);
+        }
+      }
+    }
+  }
 
 
   // 6. Transactions
