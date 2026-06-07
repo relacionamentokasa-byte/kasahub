@@ -181,7 +181,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
                       value={form[asset.key] as string | null}
                       onChange={(url) => handleUpload(asset.key as string, url)}
                       label={asset.label}
-                      shape={asset.key === 'icon_system_url' || asset.key === 'pwa_favicon_url' || asset.key === 'pwa_icon_512_url' ? 'round' : 'rect'}
+                      shape={asset.key === 'icon_system_url' || asset.key === 'pwa_favicon_url' || asset.key === 'pwa_icon_512_url' || asset.key === 'logo_sidebar_url' ? 'round' : 'rect'}
                       aspect={asset.aspect}
                     />
                   </div>
