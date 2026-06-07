@@ -2212,6 +2212,7 @@ export type Database = {
           accepted_at: string | null
           accepted_ip: string | null
           accepted_name: string | null
+          accepted_user_agent: string | null
           account_id: string | null
           approval_token: string | null
           auto_create_jobs: boolean
@@ -2238,6 +2239,9 @@ export type Database = {
           generated_project_id: string | null
           id: string
           installments: number
+          internal_approval: boolean | null
+          internal_approval_at: string | null
+          internal_approval_by: string | null
           intro: string | null
           lead_id: string | null
           monthly_investment: number
@@ -2274,6 +2278,7 @@ export type Database = {
           accepted_at?: string | null
           accepted_ip?: string | null
           accepted_name?: string | null
+          accepted_user_agent?: string | null
           account_id?: string | null
           approval_token?: string | null
           auto_create_jobs?: boolean
@@ -2300,6 +2305,9 @@ export type Database = {
           generated_project_id?: string | null
           id?: string
           installments?: number
+          internal_approval?: boolean | null
+          internal_approval_at?: string | null
+          internal_approval_by?: string | null
           intro?: string | null
           lead_id?: string | null
           monthly_investment?: number
@@ -2336,6 +2344,7 @@ export type Database = {
           accepted_at?: string | null
           accepted_ip?: string | null
           accepted_name?: string | null
+          accepted_user_agent?: string | null
           account_id?: string | null
           approval_token?: string | null
           auto_create_jobs?: boolean
@@ -2362,6 +2371,9 @@ export type Database = {
           generated_project_id?: string | null
           id?: string
           installments?: number
+          internal_approval?: boolean | null
+          internal_approval_at?: string | null
+          internal_approval_by?: string | null
           intro?: string | null
           lead_id?: string | null
           monthly_investment?: number

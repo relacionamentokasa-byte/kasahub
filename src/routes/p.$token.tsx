@@ -138,7 +138,7 @@ function PublicProposalView() {
       return;
     }
     if (!acceptTerms) {
-      toast.error("Confirme que leu e concorda com os termos");
+      toast.error("Você precisa marcar que leu e aceita os termos");
       return;
     }
     setSigning(true);
@@ -156,7 +156,7 @@ function PublicProposalView() {
         const j = await res.json().catch(() => ({}));
         if (j.error === "cancelled") throw new Error("Esta proposta não está mais disponível.");
         if (j.error === "already_accepted") throw new Error("Esta proposta já foi aprovada.");
-        throw new Error(j.error || "Falha ao assinar");
+        throw new Error(j.error || "Esta proposta não pode ser aprovada sem a assinatura do cliente.");
       }
       toast.success("Proposta aprovada e assinada com sucesso!");
       await load();

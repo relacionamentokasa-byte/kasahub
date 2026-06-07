@@ -26,6 +26,8 @@ function safeBillingDay(year: number, month0: number, day: number): Date {
 export type ApproveContext = {
   acceptedName?: string | null;
   acceptedIp?: string | null;
+  internalApproval?: boolean;
+  internalApprovalBy?: string | null;
 };
 
 export type ApproveResult = {
@@ -410,13 +412,19 @@ export async function approveProposal(
   };
   if (ctx.acceptedName) patch.accepted_name = ctx.acceptedName;
   if (ctx.acceptedIp) patch.accepted_ip = ctx.acceptedIp;
+  if (ctx.internalApproval) {
+    patch.internal_approval = true;
+    patch.internal_approval_by = ctx.internalApprovalBy;
+    patch.internal_approval_at = new Date().toISOString();
+  }
   const { error: upErr } = await sb.from("proposals").update(patch).eq("id", proposalId);
   if (upErr) throw upErr;
 
-  await recordProposalEventAdmin(sb, proposalId, "approved", {
+  await recordProposalEventAdmin(sb, proposalId, ctx.internalApproval ? "internal_approval" : "approved", {
     jobs_created: jobsCreated,
     transactions_created: txCreated,
     accepted_name: ctx.acceptedName ?? null,
+    internal_approval: ctx.internalApproval ?? false,
   }, { name: ctx.acceptedName ?? null });
 
   // Record timeline event

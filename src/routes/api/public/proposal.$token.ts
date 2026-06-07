@@ -7,7 +7,7 @@ const TokenSchema = z.string().min(8).max(200);
 
 const SignSchema = z.object({
   accepted_name: z.string().trim().min(2).max(200),
-  accepted_cpf: z.string().trim().min(11).max(20).optional().default(""),
+  accepted_cpf: z.string().trim().min(11).max(20),
   accepted_terms: z.literal(true),
 });
 
@@ -126,6 +126,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
 
           const ip =
             request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? null;
+          const userAgent = request.headers.get("user-agent") ?? null;
 
           const { data: proposal } = await supabaseAdmin
             .from("proposals")
@@ -152,6 +153,8 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             .update({
               signature_client: signatureLine,
               signed_at_client: new Date().toISOString(),
+              accepted_user_agent: userAgent,
+              accepted_ip: ip,
             })
             .eq("id", proposal.id);
 
