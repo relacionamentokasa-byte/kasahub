@@ -53,6 +53,7 @@ export async function approveExtraDemand(sb: SB, id: string) {
     dme_id: dme.id,
     stage_id: stages?.[0]?.id,
     priority: "normal",
+    main_responsible_id: (project as any)?.owner_id || null,
   });
 
   // 4. Create Financeiro if billable
