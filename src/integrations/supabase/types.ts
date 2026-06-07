@@ -2367,6 +2367,7 @@ export type Database = {
         Row: {
           archived_at: string | null
           category: string | null
+          checklist_items: Json | null
           contract_template_id: string | null
           created_at: string
           default_scope: Json | null
@@ -2380,6 +2381,7 @@ export type Database = {
         Insert: {
           archived_at?: string | null
           category?: string | null
+          checklist_items?: Json | null
           contract_template_id?: string | null
           created_at?: string
           default_scope?: Json | null
@@ -2393,6 +2395,7 @@ export type Database = {
         Update: {
           archived_at?: string | null
           category?: string | null
+          checklist_items?: Json | null
           contract_template_id?: string | null
           created_at?: string
           default_scope?: Json | null
