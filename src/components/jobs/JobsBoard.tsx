@@ -283,6 +283,7 @@ function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClic
   );
 }
 
+function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: any[]; dragging?: boolean }) {
   const progress = (job as any).progress_percentage || 0;
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
