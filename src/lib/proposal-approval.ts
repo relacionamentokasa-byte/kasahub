@@ -101,6 +101,20 @@ export async function approveProposal(
   const monthly = Number(proposal.monthly_investment ?? 0);
   const totalValue = Number(proposal.total ?? proposal.one_time_investment ?? 0);
   
+  // Determine installments count for the contract
+  let installmentsCount = 0; // 0 means indeterminate
+  if (proposal.contract_type === "recurring") {
+    if (proposal.contract_term === "monthly") {
+      installmentsCount = 1;
+    } else if (proposal.contract_term?.includes("_months")) {
+      installmentsCount = Number(proposal.contract_term.replace("_months", ""));
+    } else if (proposal.contract_term === "indeterminado") {
+      installmentsCount = 0;
+    } else {
+      installmentsCount = Number(proposal.recurring_months ?? 12);
+    }
+  }
+
   const contractData = {
     title: proposal.title,
     client_id: clientId,
@@ -111,9 +125,10 @@ export async function approveProposal(
     start_date: proposal.first_due_date ?? ymd(new Date()),
     status: "active",
     owner_id: proposal.owner_id ?? null,
-    partner_id: (proposal as any).commercial_id || null, // Link to representative
+    partner_id: (proposal as any).commercial_id || null, 
     type: proposal.contract_type || (monthly > 0 ? "recurring" : "one_time"),
     service_ids: proposal.service_ids ?? [],
+    installments_count: installmentsCount,
   };
 
   if (contractId) {
