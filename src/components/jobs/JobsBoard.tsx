@@ -78,6 +78,7 @@ export function JobsBoard({
         { event: '*', schema: 'public', table: 'jobs' },
         () => {
           qc.invalidateQueries({ queryKey: ["jobs"] });
+          qc.refetchQueries({ queryKey: ["jobs"], type: 'active' });
         }
       )
       .subscribe();
