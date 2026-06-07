@@ -605,7 +605,7 @@ function FinanceiroPage() {
               </div>
               
               {/* Desktop Header */}
-              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(150px,1fr)_140px_160px_130px_145px_100px_90px] px-3 py-2 text-[10px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-3">
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1.2fr)_140px_180px_130px_145px_90px] px-3 py-2 text-[10px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-3">
                 <div className="flex items-center justify-center">
                   <Checkbox 
                     checked={rows.length > 0 && selectedIds.length === rows.length} 
@@ -618,7 +618,6 @@ function FinanceiroPage() {
                 <div>Cliente</div>
                 <div className="text-right">Valor</div>
                 <div className="text-center">Vencimento</div>
-                <div className="text-center">Origem</div>
                 <div className="text-right">Ações</div>
               </div>
 
@@ -640,7 +639,7 @@ function FinanceiroPage() {
                     return (
                       <div key={t.id} className="group hover:bg-foreground/[0.02] transition-colors">
                         {/* Desktop Row */}
-                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(150px,1fr)_140px_160px_130px_145px_100px_90px] px-3 py-3 items-center gap-3">
+                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1.2fr)_140px_180px_130px_145px_90px] px-3 py-3 items-center gap-3">
                           <div className="flex items-center justify-center">
                             <Checkbox 
                               checked={selectedIds.includes(t.id)} 
@@ -659,8 +658,24 @@ function FinanceiroPage() {
                               </Badge>
                             )}
                           </div>
-...
-                          <div className="flex flex-col items-center">
+                          
+                          <div className="font-medium text-xs truncate max-w-full" title={t.description}>
+                            {t.description}
+                          </div>
+
+                          <div className="text-[11px] text-foreground/60 truncate">
+                            {catName(t.category_id)}
+                          </div>
+
+                          <div className="text-[11px] font-semibold text-foreground/70 truncate">
+                            {clientName(t.client_id)}
+                          </div>
+
+                          <div className={`text-sm font-bold text-right ${t.kind === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {brl(t.amount)}
+                          </div>
+
+                          <div className="flex flex-col items-center justify-center">
                             <div className="relative group/date w-full flex items-center justify-center">
                               <Calendar className="size-3 absolute left-1.5 text-foreground/30 pointer-events-none group-hover/date:text-primary transition-colors" />
                               <input 
@@ -676,14 +691,10 @@ function FinanceiroPage() {
                                     updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
                                   }
                                 }}
-                                className="bg-surface/50 border border-border/50 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md py-1 pl-6 pr-1 text-[11px] w-full text-center cursor-pointer transition-all outline-none font-medium"
+                                className="bg-surface/50 border border-border/50 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md py-1 pl-6 pr-1 text-[11px] w-[115px] text-center cursor-pointer transition-all outline-none font-medium"
                               />
                             </div>
                             {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter mt-1">Vencido</div>}
-                          </div>
-
-                          <div className="text-center">
-                            <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
                           </div>
 
                           <div className="flex items-center justify-end gap-2">
