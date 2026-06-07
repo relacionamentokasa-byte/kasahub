@@ -48,6 +48,15 @@ export function NewJobDialog({
     queryKey: ["partners", "freelancer"], 
     queryFn: () => fetchPartners("freelancer") 
   });
+  const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: opTemplates = [] } = useQuery({ 
+    queryKey: ["operational-templates"], 
+    queryFn: async () => {
+      const { data, error } = await supabase.from("operational_templates").select("*").order("name");
+      if (error) throw error;
+      return data;
+    }
+  });
   const [form, setForm] = useState({
     title: "",
     description: "",
