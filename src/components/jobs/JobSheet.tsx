@@ -63,6 +63,9 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 export function JobSheet({
   job,
@@ -556,7 +559,7 @@ export function JobSheet({
                         <Calendar
                           mode="single"
                           selected={job.due_date ? new Date(job.due_date + 'T12:00:00') : undefined}
-                          onSelect={(date) => updateMut.mutate({ due_date: date ? format(date, 'yyyy-MM-dd') : null })}
+                          onSelect={(date: Date | undefined) => updateMut.mutate({ due_date: date ? format(date, 'yyyy-MM-dd') : null })}
                           initialFocus
                           className="bg-surface text-white"
                         />
@@ -673,8 +676,9 @@ export function JobSheet({
                             }`}>
                               <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
                                 {p.avatar_url ? (
-                                  <img src={p.avatar_url} alt={p.display_name} className="size-full object-cover" />
+                                  <img src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
                                 ) : (
+
                                   <span className="text-xs font-bold text-foreground/40 uppercase">
                                     {(p.display_name || p.full_name || "??").substring(0, 2)}
                                   </span>
@@ -714,8 +718,9 @@ export function JobSheet({
                             }`}>
                               <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
                                 {p.avatar_url ? (
-                                  <img src={p.avatar_url} alt={p.display_name} className="size-full object-cover" />
+                                  <img src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
                                 ) : (
+
                                   <span className="text-xs font-bold text-foreground/40 uppercase">
                                     {(p.display_name || p.full_name || "??").substring(0, 2)}
                                   </span>
