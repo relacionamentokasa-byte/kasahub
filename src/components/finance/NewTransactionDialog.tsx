@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createTransaction,
   fetchBankAccounts,
   fetchCategories,
   fetchContracts,
-
+  autoCategorize,
 } from "@/lib/finance-api";
 import { fetchClients, fetchProjects } from "@/lib/ops-api";
 import { type Transaction } from "@/lib/finance-api";
@@ -64,9 +64,20 @@ export function NewTransactionDialog({
     installments: 1,
   });
 
+  useEffect(() => {
+    if (form.description) {
+      const catName = autoCategorize(form.description);
+      if (catName) {
+        const cat = categories.find(c => c.name.toLowerCase() === catName.toLowerCase());
+        if (cat) {
+          setForm(f => ({ ...f, category_id: cat.id }));
+        }
+      }
+    }
+  }, [form.description, categories]);
+
   const clientContracts = contracts.filter((c) => !form.client_id || c.client_id === form.client_id);
   const clientProjects = projects.filter((p) => !form.client_id || p.client_id === form.client_id);
-
 
   const filteredCats = categories.filter((c) => c.kind === form.kind);
 

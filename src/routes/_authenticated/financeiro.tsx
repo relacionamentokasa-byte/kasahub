@@ -24,6 +24,8 @@ import {
   XCircle,
   Calendar,
   Info,
+  Filter,
+  Check,
 } from "lucide-react";
 
 import {
@@ -57,6 +59,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -94,6 +97,9 @@ import { toast } from "sonner";
 import { DeleteTransactionCascadeDialog } from "@/components/finance/DeleteTransactionCascadeDialog";
 import { TerminateContractDialog } from "@/components/finance/TerminateContractDialog";
 import { TransactionAuditDialog } from "@/components/finance/TransactionAuditDialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Slider } from "@/components/ui/slider";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
@@ -133,6 +139,30 @@ function FinanceiroPage() {
   const [fClient, setFClient] = useState<string>("all");
   const [fCategory, setFCategory] = useState<string>("all");
   const [fAccount, setFAccount] = useState<string>("all");
+  const [fOrigin, setFOrigin] = useState<string>("all");
+  const [fValueRange, setFValueRange] = useState<[number, number]>([0, 100000]);
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (fKind !== "all") count++;
+    if (fStatus !== "all") count++;
+    if (fClient !== "all") count++;
+    if (fCategory !== "all") count++;
+    if (fAccount !== "all") count++;
+    if (fOrigin !== "all") count++;
+    if (fValueRange[0] > 0 || fValueRange[1] < 100000) count++;
+    return count;
+  }, [fKind, fStatus, fClient, fCategory, fAccount, fOrigin, fValueRange]);
+
+  function clearFilters() {
+    setFKind("all");
+    setFStatus("all");
+    setFClient("all");
+    setFCategory("all");
+    setFAccount("all");
+    setFOrigin("all");
+    setFValueRange([0, 100000]);
+  }
 
   const [openTx, setOpenTx] = useState<false | "income" | "expense">(false);
   const [openAcc, setOpenAcc] = useState(false);
@@ -201,10 +231,17 @@ function FinanceiroPage() {
       if (fClient !== "all" && (t.client_id ?? "") !== fClient) return false;
       if (fCategory !== "all" && (t.category_id ?? "") !== fCategory) return false;
       if (fAccount !== "all" && (t.account_id ?? "") !== fAccount) return false;
+      
+      const originLabel = t.contract_id ? "contract" : t.dme_id ? "dme" : t.proposal_id ? "proposal" : "manual";
+      if (fOrigin !== "all" && originLabel !== fOrigin) return false;
+      
+      const val = Number(t.amount);
+      if (val < fValueRange[0] || val > fValueRange[1]) return false;
+
       if (search && !t.description.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [txs, period, fKind, fStatus, fClient, fCategory, fAccount, search]);
+  }, [txs, period, fKind, fStatus, fClient, fCategory, fAccount, fOrigin, fValueRange, search]);
 
   const togglePaid = useMutation({
     mutationFn: ({ id, paid }: { id: string; paid: boolean }) => markPaid(id, paid),
@@ -415,34 +452,150 @@ function FinanceiroPage() {
               <Kpi label="Despesas Pagas" value={brl(indicators.despesasPagas)} tone="danger" icon={<TrendingDown className="size-4" />} />
             </div>
 
-            <div className="grid grid-cols-12 gap-3">
-              <div className="col-span-12 md:col-span-4 relative">
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              <div className="relative flex-1 w-full">
                 <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
-                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar..." className="pl-9" />
+                <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="🔍 Buscar..." className="pl-9 h-11 rounded-xl" />
               </div>
-              <FilterSelect value={fKind} onChange={setFKind} placeholder="Todos Tipos" options={[
-                { value: "all", label: "Todos Tipos" },
-                { value: "income", label: "Receitas" },
-                { value: "expense", label: "Despesas" },
-              ]} />
-              <FilterSelect value={fStatus} onChange={setFStatus} placeholder="Todos Status" options={[
-                { value: "all", label: "Todos Status" },
-                { value: "paid", label: "Pagas" },
-                { value: "pending", label: "Pendentes" },
-                { value: "cancelled", label: "Canceladas" },
-              ]} />
-              <FilterSelect value={fClient} onChange={setFClient} placeholder="Todos Clientes" options={[
-                { value: "all", label: "Todos Clientes" },
-                ...clients.map((c) => ({ value: c.id, label: c.company || c.name })),
-              ]} />
-              <FilterSelect value={fCategory} onChange={setFCategory} placeholder="Todas categorias" options={[
-                { value: "all", label: "Todas categorias" },
-                ...categories.map((c) => ({ value: c.id, label: c.name })),
-              ]} />
-              <FilterSelect value={fAccount} onChange={setFAccount} placeholder="Todas contas" options={[
-                { value: "all", label: "Todas contas" },
-                ...accounts.map((a) => ({ value: a.id, label: a.name })),
-              ]} />
+              
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" className="h-11 rounded-xl px-5 gap-2 border-border/60 hover:border-primary/40 transition-all">
+                    <Filter className="size-4" /> 
+                    ⚙️ Filtros
+                    {activeFiltersCount > 0 && (
+                      <Badge className="ml-1 bg-primary text-primary-foreground h-5 px-1.5 min-w-[20px] justify-center">
+                        {activeFiltersCount}
+                      </Badge>
+                    )}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="bg-surface border-border w-full sm:max-w-md p-0 overflow-hidden flex flex-col">
+                  <SheetHeader className="px-6 py-5 border-b border-border bg-surface sticky top-0 z-10">
+                    <div className="flex items-center justify-between">
+                      <SheetTitle className="text-xl font-display font-bold">Configurar Filtros</SheetTitle>
+                      {activeFiltersCount > 0 && (
+                        <Button variant="ghost" size="sm" onClick={clearFilters} className="text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10">
+                          Limpar tudo
+                        </Button>
+                      )}
+                    </div>
+                  </SheetHeader>
+                  <ScrollArea className="flex-1 px-6">
+                    <div className="py-6 space-y-8">
+                      {/* Tipo e Status */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Tipo</Label>
+                          <Select value={fKind} onValueChange={setFKind}>
+                            <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Todos Tipos</SelectItem>
+                              <SelectItem value="income">Receitas</SelectItem>
+                              <SelectItem value="expense">Despesas</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Status</Label>
+                          <Select value={fStatus} onValueChange={setFStatus}>
+                            <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all">Todos Status</SelectItem>
+                              <SelectItem value="paid">Pagas</SelectItem>
+                              <SelectItem value="pending">Pendentes</SelectItem>
+                              <SelectItem value="cancelled">Canceladas</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Cliente */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Cliente</Label>
+                        <Select value={fClient} onValueChange={setFClient}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todos Clientes</SelectItem>
+                            {clients.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Categoria */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Categoria</Label>
+                        <Select value={fCategory} onValueChange={setFCategory}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas categorias</SelectItem>
+                            {categories.map((c) => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Conta */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Conta Bancária</Label>
+                        <Select value={fAccount} onValueChange={setFAccount}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas contas</SelectItem>
+                            {accounts.map((a) => (
+                              <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Origem */}
+                      <div className="space-y-2">
+                        <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Origem</Label>
+                        <Select value={fOrigin} onValueChange={setFOrigin}>
+                          <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Todas origens</SelectItem>
+                            <SelectItem value="contract">Contrato Recorrente</SelectItem>
+                            <SelectItem value="dme">DME (Extra)</SelectItem>
+                            <SelectItem value="proposal">Proposta</SelectItem>
+                            <SelectItem value="manual">Lançamento Manual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Faixa de Valor */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-[11px] uppercase tracking-wider text-foreground/40 font-bold">Faixa de Valor</Label>
+                          <span className="text-xs font-mono text-primary font-bold">
+                            {brl(fValueRange[0])} - {fValueRange[1] === 100000 ? 'Máx.' : brl(fValueRange[1])}
+                          </span>
+                        </div>
+                        <Slider 
+                          defaultValue={[0, 100000]} 
+                          max={100000} 
+                          step={100} 
+                          value={fValueRange} 
+                          onValueChange={(v) => setFValueRange(v as [number, number])} 
+                          className="py-4"
+                        />
+                      </div>
+                    </div>
+                  </ScrollArea>
+                  <div className="p-6 border-t border-border bg-surface sticky bottom-0 z-10">
+                    <Button className="w-full rounded-xl h-11 font-bold" onClick={() => {
+                      const closeBtn = document.querySelector('[data-radix-collection-item]') as HTMLElement;
+                      if (closeBtn) closeBtn.click();
+                    }}>
+                      <Check className="size-4 mr-2" /> Aplicar Filtros
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
 
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
@@ -452,7 +605,7 @@ function FinanceiroPage() {
               </div>
               
               {/* Desktop Header */}
-              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1fr)_160px_180px_140px_140px_100px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
                 <div className="flex items-center justify-center">
                   <Checkbox 
                     checked={rows.length > 0 && selectedIds.length === rows.length} 
@@ -460,11 +613,12 @@ function FinanceiroPage() {
                   />
                 </div>
                 <div>Status</div>
-                <div>Descrição / Origem</div>
+                <div>Descrição</div>
                 <div>Categoria</div>
                 <div>Cliente</div>
                 <div className="text-right">Valor</div>
                 <div className="text-center">Vencimento</div>
+                <div>Origem</div>
                 <div className="text-right">Ações</div>
               </div>
 
@@ -486,7 +640,7 @@ function FinanceiroPage() {
                     return (
                       <div key={t.id} className="group hover:bg-foreground/[0.02] transition-colors">
                         {/* Desktop Row */}
-                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-4 items-center gap-4">
+                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1fr)_160px_180px_140px_140px_100px_100px] px-5 py-4 items-center gap-4">
                           <div className="flex items-center justify-center">
                             <Checkbox 
                               checked={selectedIds.includes(t.id)} 
@@ -510,10 +664,6 @@ function FinanceiroPage() {
                             <div className="text-sm font-medium flex items-center gap-2">
                               <span className="truncate" title={t.description}>{t.description}</span>
                               {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40 shrink-0" />}
-                            </div>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
-                              {t.origin_type && <Badge variant="outline" className="text-[9px] uppercase tracking-wider h-4 px-1.5 text-foreground/40 border-border">{t.origin_type}</Badge>}
                             </div>
                           </div>
 
@@ -554,6 +704,10 @@ function FinanceiroPage() {
                               />
                             </div>
                             {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter mt-1">Vencido</div>}
+                          </div>
+
+                          <div>
+                            <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
                           </div>
 
                           <div className="flex items-center justify-end gap-2">
