@@ -187,8 +187,9 @@ function PublicProposalView() {
       client_email: proposal.client_email || "",
       services_list: (proposal.scope || []).join(", "),
       monthly_value: formatCurrency(proposal.monthly_investment),
+      setup_value: formatCurrency(proposal.one_time_investment),
       total_value: formatCurrency(
-        proposal.monthly_investment * (proposal.recurring_months || 12),
+        (proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment,
       ),
       payment_method:
         proposal.payment_method === "credit_card"
