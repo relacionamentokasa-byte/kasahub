@@ -323,16 +323,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
     } as any);
   }
   
-  // Criar itens de checklist padrão se houver
-  const { data: service } = await supabase.from("services").select("checklist_items").eq("id", data.service_id).single();
-  if (service?.checklist_items && Array.isArray(service.checklist_items) && service.checklist_items.length > 0) {
-    const checklistPayload = service.checklist_items.map((it: any, idx: number) => ({
-      job_id: data.id,
-      content: it.text || it, // Suporta string ou objeto {text: "..."}
-      order_index: idx
-    }));
-    await supabase.from("job_checklist").insert(checklistPayload);
-  }
+  // Checklist padrão é inicializado via trigger no banco de dados (tr_initialize_job_checklist)
 
   await logAudit("create", "job", data.id, null, data);
   return data;

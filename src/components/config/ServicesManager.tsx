@@ -248,7 +248,7 @@ function ServiceFormDialog({
         <Tabs defaultValue="general">
           <TabsList>
             <TabsTrigger value="general">Geral</TabsTrigger>
-            <TabsTrigger value="checklist">Checklist Padrão</TabsTrigger>
+            <TabsTrigger value="checklist">Etapas de Execução</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 pt-4">
@@ -334,7 +334,7 @@ function ServiceFormDialog({
           <TabsContent value="checklist" className="space-y-4 pt-4">
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label className="text-sm font-semibold">Itens do Checklist</Label>
+                <Label className="text-sm font-semibold">Etapas de Execução</Label>
                 <p className="text-[11px] text-muted-foreground leading-relaxed">
                   Estes itens serão adicionados automaticamente ao checklist de cada novo Job criado com este serviço.
                 </p>

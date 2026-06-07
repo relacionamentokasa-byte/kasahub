@@ -314,6 +314,8 @@ function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClic
 
 function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: any[]; dragging?: boolean }) {
   const progress = (job as any).progress_percentage || 0;
+  const totalSteps = (job as any).total_steps || 0;
+  const completedSteps = (job as any).completed_steps || 0;
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
   const teamInvolved = (job as any).team_involved || [];
@@ -356,7 +358,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
         {/* Progress Section */}
         <div className="space-y-1">
           <div className="flex justify-between text-[9px] font-mono-kasa text-foreground/50">
-            <span>Progresso</span>
+            <span>{totalSteps > 0 ? `${completedSteps}/${totalSteps} Etapas` : "Progresso"}</span>
             <span>{progress}%</span>
           </div>
           <Progress value={progress} className="h-1" />

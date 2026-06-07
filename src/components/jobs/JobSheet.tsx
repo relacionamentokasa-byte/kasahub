@@ -150,9 +150,9 @@ export function JobSheet({
   if (!job) return null;
 
   // Calcular progresso automaticamente
-  const completedStages = checklist.filter(c => c.done).length;
-  const totalStages = checklist.length;
-  const progressPercent = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
+  const totalStages = (job as any).total_steps || checklist.length;
+  const completedStages = (job as any).completed_steps || checklist.filter(c => c.done).length;
+  const progressPercent = (job as any).progress_percentage || (totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0);
 
   // Unificar timeline de comunicação
   const communicationTimeline = [

@@ -254,16 +254,7 @@ export async function approveProposal(
 
         jobsCreated++;
 
-        // Criar Checklist se o serviço tiver itens padrão
-        if (service.checklist_items && Array.isArray(service.checklist_items) && service.checklist_items.length > 0) {
-          const checklistRows = service.checklist_items.map((it: any, idx: number) => ({
-            job_id: job.id,
-            content: it.text || it,
-            order_index: idx,
-            done: false
-          }));
-          await sb.from("job_checklist").insert(checklistRows);
-        }
+        // Checklist inicializado via trigger (tr_initialize_job_checklist) no banco de dados
       }
     }
   }
