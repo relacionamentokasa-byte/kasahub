@@ -316,7 +316,7 @@ function ServiceFormDialog({
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Descrição</Label>
+              <Label className="text-xs">Descrição do Serviço</Label>
               <Textarea
                 rows={3}
                 value={form.description}
