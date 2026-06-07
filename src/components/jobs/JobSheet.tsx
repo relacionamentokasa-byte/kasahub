@@ -807,9 +807,9 @@ export function JobSheet({
                             value={draft}
                             onChange={(e) => setDraft(e.target.value)}
                             placeholder="Adicionar nova etapa de execução…"
-                            className="h-10 bg-background border-border text-white"
+                            className="h-10 bg-background border-border text-foreground placeholder:text-foreground/50"
                           />
-                          <Button type="submit" size="icon" className="size-10 shrink-0">
+                          <Button type="submit" size="icon" className="size-10 shrink-0 text-primary-foreground">
                             <Plus className="size-5" />
                           </Button>
                         </form>
@@ -827,7 +827,7 @@ export function JobSheet({
                         onChange={(e) => setObservations(e.target.value)}
                         onBlur={() => observations !== (job as any).operational_observations && updateMut.mutate({ operational_observations: observations } as any)}
                         placeholder="Registros internos da equipe..."
-                        className="bg-background text-sm leading-relaxed border-border min-h-[100px] text-white"
+                        className="bg-background text-sm leading-relaxed border-border min-h-[100px] text-foreground placeholder:text-foreground/50"
                       />
                     </div>
                   </AccordionContent>
@@ -941,7 +941,8 @@ export function JobSheet({
                       </div>
 
                       <div className={`text-sm p-3 rounded-2xl border transition-all ${
-                        item.type === 'attachment' ? 'bg-blue-50/5 border-blue-500/20 text-blue-100' : 
+                        item.type === 'attachment' ? 'bg-blue-50/5 border-blue-500/20 text-foreground' : 
+
                         isEditing ? 'bg-background border-primary ring-1 ring-primary/20' :
                         'bg-background border-border/50 text-foreground'
                       }`}>
@@ -984,7 +985,7 @@ export function JobSheet({
                                 <div className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-xl border border-blue-500/10">
                                   <div className="flex items-center gap-2 overflow-hidden">
                                     <FileText className="size-4 text-blue-400 shrink-0" />
-                                    <p className="font-bold text-blue-200 truncate text-[10px]">{item.metadata?.file_name || "Anexo"}</p>
+                                    <p className="font-bold text-foreground truncate text-[10px]">{item.metadata?.file_name || "Anexo"}</p>
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
                                     <Button 
@@ -1149,7 +1150,7 @@ export function JobSheet({
                       }
                     }}
                     placeholder="Escreva uma mensagem..."
-                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-foreground placeholder:text-foreground/40 relative z-[120]"
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-foreground placeholder:text-foreground/50 relative z-[120]"
                     rows={1}
                   />
                   <div className="flex flex-col justify-end gap-1">
