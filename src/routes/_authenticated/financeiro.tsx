@@ -640,7 +640,7 @@ function FinanceiroPage() {
                     return (
                       <div key={t.id} className="group hover:bg-foreground/[0.02] transition-colors">
                         {/* Desktop Row */}
-                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-4 items-center gap-4">
+                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1fr)_160px_180px_140px_140px_100px_100px] px-5 py-4 items-center gap-4">
                           <div className="flex items-center justify-center">
                             <Checkbox 
                               checked={selectedIds.includes(t.id)} 
@@ -664,10 +664,6 @@ function FinanceiroPage() {
                             <div className="text-sm font-medium flex items-center gap-2">
                               <span className="truncate" title={t.description}>{t.description}</span>
                               {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40 shrink-0" />}
-                            </div>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
-                              {t.origin_type && <Badge variant="outline" className="text-[9px] uppercase tracking-wider h-4 px-1.5 text-foreground/40 border-border">{t.origin_type}</Badge>}
                             </div>
                           </div>
 
@@ -708,6 +704,10 @@ function FinanceiroPage() {
                               />
                             </div>
                             {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter mt-1">Vencido</div>}
+                          </div>
+
+                          <div>
+                            <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
                           </div>
 
                           <div className="flex items-center justify-end gap-2">
