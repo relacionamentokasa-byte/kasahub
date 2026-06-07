@@ -147,48 +147,6 @@ export function JobSheet({
     };
   }, [job?.id, qc]);
 
-  const handleTyping = useCallback(async (isTyping: boolean) => {
-    if (!job?.id) return;
-    
-    // Find the channel for this specific job room
-    const channel = supabase.getChannels().find(c => c.topic === `realtime:job-room-${job.id}`);
-    
-    if (channel) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const profile = team.find(p => p.id === user.id);
-      
-      try {
-        await channel.track({
-          user_id: user.id,
-          user_name: profile?.display_name || profile?.full_name || 'Usuário',
-          is_typing: isTyping
-        });
-      } catch (err) {
-        console.error("Error tracking presence:", err);
-      }
-    }
-  }, [job?.id, team]);
-
-  useEffect(() => {
-    if (comment.length > 0) {
-      handleTyping(true);
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 2000);
-    } else {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      handleTyping(false);
-    }
-  }, [comment, handleTyping]);
-
-  // Clean up typing status when component unmounts
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      handleTyping(false);
-    };
-  }, [handleTyping]);
 
   useEffect(() => {
     if (job) {
