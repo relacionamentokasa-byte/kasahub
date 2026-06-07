@@ -380,7 +380,10 @@ export async function approveProposal(
           else if (serviceName.includes('social') || serviceName.includes('media')) targetCat = 'Social Media';
           else if (serviceName.includes('conteúdo') || serviceName.includes('copy')) targetCat = 'Conteúdo';
           else if (serviceName.includes('consultoria')) targetCat = 'Consultoria';
-          else if (serviceName.includes('especial')) targetCat = 'Projeto Especial';
+          else if (serviceName.includes('projeto') || serviceName.includes('especial')) targetCat = 'Projeto Especial';
+          else if (serviceName.includes('comissão') || serviceName.includes('comissao')) targetCat = 'Comissão';
+          else if (serviceName.includes('imposto') || serviceName.includes('taxa')) targetCat = 'Imposto / Taxa';
+          else if (serviceName.includes('despesa') || serviceName.includes('custo')) targetCat = 'Despesa';
           
           const cat = categories.find(c => c.name === targetCat);
           if (cat) categoryId = cat.id;
