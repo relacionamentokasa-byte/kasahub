@@ -195,7 +195,13 @@ export function JobsBoard({
               return (
                 <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
                   {cards.map((j) => (
-                    <JobCard key={j.id} job={j} profiles={profiles} onClick={() => setOpen(j)} />
+                    <JobCard 
+                      key={j.id} 
+                      job={j} 
+                      profiles={profiles} 
+                      onClick={() => setOpen(j)}
+                      queryKey={queryKey}
+                    />
                   ))}
                 </Column>
               );
