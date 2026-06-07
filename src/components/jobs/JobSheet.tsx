@@ -92,6 +92,23 @@ export function JobSheet({
   }});
   const services = servicesData as any[];
 
+  useEffect(() => {
+    if (!job?.id) return;
+
+    const channels = [
+      supabase.channel(`job-checklist-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] })),
+      supabase.channel(`job-comments-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] })),
+      supabase.channel(`job-history-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] })),
+      supabase.channel(`job-updates-${job.id}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
+    ];
+
+    channels.forEach(c => c.subscribe());
+
+    return () => {
+      channels.forEach(c => supabase.removeChannel(c));
+    };
+  }, [job?.id, qc]);
+
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
       const cleanPatch = Object.entries(patch).reduce((acc, [key, value]) => {
