@@ -26,14 +26,27 @@ export function DynamicJobForm({ jobType, flowJobId, data, onChange, readOnly }:
       }
       setLoading(true);
       try {
-        const { data: jobConfig, error } = await supabase
-          .from('operational_flow_jobs')
+        // First try to load from service_job_templates (new architecture)
+        let { data: tplData, error: tplError } = await supabase
+          .from('service_job_templates')
           .select('custom_fields_schema')
           .eq('id', flowJobId)
-          .single();
+          .maybeSingle();
         
-        if (error) throw error;
-        const schemaData = jobConfig?.custom_fields_schema;
+        // If not found, fallback to operational_flow_jobs (legacy/transition)
+        if (!tplData || tplError) {
+          const { data: jobConfig, error: fallbackError } = await supabase
+            .from('operational_flow_jobs')
+            .select('custom_fields_schema')
+            .eq('id', flowJobId)
+            .single();
+          
+          if (!fallbackError) {
+            tplData = jobConfig;
+          }
+        }
+        
+        const schemaData = tplData?.custom_fields_schema;
         setSchema(Array.isArray(schemaData) ? schemaData : []);
       } catch (err) {
         console.error("Erro ao carregar esquema do formulário:", err);
