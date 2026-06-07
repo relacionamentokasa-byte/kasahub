@@ -107,10 +107,8 @@ export function NewClientDialog({
         </DialogHeader>
 
         <Tabs defaultValue="dados" className="w-full">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="dados">Dados</TabsTrigger>
-            <TabsTrigger value="contrato">Contrato</TabsTrigger>
-            <TabsTrigger value="servicos">Serviços</TabsTrigger>
             <TabsTrigger value="portal">Portal</TabsTrigger>
           </TabsList>
 
@@ -188,88 +186,6 @@ export function NewClientDialog({
                 placeholder="Observações sobre o cliente…"
               />
             </div>
-          </TabsContent>
-
-          <TabsContent value="contrato" className="mt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Tipo de Contrato</Label>
-                <select
-                  value={form.contract_type}
-                  onChange={(e) => setForm({ ...form, contract_type: e.target.value })}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="recurring">Mensal (recorrente)</option>
-                  <option value="one_time">Projeto único</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Valor do Contrato (R$)</Label>
-                <Input
-                  type="number"
-                  value={form.contract_value}
-                  onChange={(e) => setForm({ ...form, contract_value: Number(e.target.value) || 0 })}
-                />
-              </div>
-              <div className="space-y-1.5 col-span-2">
-                <Label>Data de Início</Label>
-                <Input
-                  type="date"
-                  value={form.start_date}
-                  onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                />
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="servicos" className="mt-4 space-y-3">
-            <p className="text-xs text-foreground/60">
-              Selecione os serviços contratados. Após cadastrar, você poderá ajustar valores,
-              recorrência e dia de vencimento de cada serviço individualmente.
-            </p>
-            {services.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border bg-background/40 p-6 text-center">
-                <Package className="size-7 mx-auto text-foreground/30 mb-2" />
-                <p className="text-sm font-medium">Nenhum serviço cadastrado</p>
-                <p className="text-xs text-foreground/50 mt-1">
-                  Cadastre serviços em <b>Configurações → Serviços e Templates</b>.
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-lg border border-border divide-y divide-border max-h-72 overflow-y-auto">
-                {services.map((s) => {
-                  const checked = selectedServices.includes(s.id);
-                  return (
-                    <label
-                      key={s.id}
-                      className="flex items-start gap-3 p-3 hover:bg-background/40 cursor-pointer"
-                    >
-                      <Checkbox
-                        checked={checked}
-                        onCheckedChange={() => toggleService(s.id)}
-                        className="mt-0.5"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium">{s.name}</div>
-                        {s.category && (
-                          <div className="text-xs text-foreground/50">{s.category}</div>
-                        )}
-                        {s.description && (
-                          <div className="text-xs text-foreground/60 mt-0.5 line-clamp-2">
-                            {s.description}
-                          </div>
-                        )}
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-            {selectedServices.length > 0 && (
-              <p className="text-xs text-foreground/60">
-                {selectedServices.length} serviço(s) selecionado(s).
-              </p>
-            )}
           </TabsContent>
 
           <TabsContent value="portal" className="mt-4">
