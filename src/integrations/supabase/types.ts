@@ -776,12 +776,15 @@ export type Database = {
       }
       contracts: {
         Row: {
+          auto_renew: boolean | null
           billing_day: number
           client_id: string | null
           created_at: string
           end_date: string | null
           id: string
+          installments_count: number | null
           monthly_value: number
+          next_billing_date: string | null
           notes: string | null
           owner_id: string | null
           partner_id: string | null
@@ -795,12 +798,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_renew?: boolean | null
           billing_day?: number
           client_id?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
+          installments_count?: number | null
           monthly_value?: number
+          next_billing_date?: string | null
           notes?: string | null
           owner_id?: string | null
           partner_id?: string | null
@@ -814,12 +820,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_renew?: boolean | null
           billing_day?: number
           client_id?: string | null
           created_at?: string
           end_date?: string | null
           id?: string
+          installments_count?: number | null
           monthly_value?: number
+          next_billing_date?: string | null
           notes?: string | null
           owner_id?: string | null
           partner_id?: string | null
@@ -2499,6 +2508,7 @@ export type Database = {
           client_id: string | null
           contract_id: string | null
           created_at: string
+          created_by: string | null
           description: string
           dme_id: string | null
           due_date: string
@@ -2509,6 +2519,7 @@ export type Database = {
           job_id: string | null
           kind: string
           notes: string | null
+          origin_type: string | null
           owner_id: string | null
           paid_at: string | null
           partner_id: string | null
@@ -2524,6 +2535,7 @@ export type Database = {
           client_id?: string | null
           contract_id?: string | null
           created_at?: string
+          created_by?: string | null
           description: string
           dme_id?: string | null
           due_date?: string
@@ -2534,6 +2546,7 @@ export type Database = {
           job_id?: string | null
           kind: string
           notes?: string | null
+          origin_type?: string | null
           owner_id?: string | null
           paid_at?: string | null
           partner_id?: string | null
@@ -2549,6 +2562,7 @@ export type Database = {
           client_id?: string | null
           contract_id?: string | null
           created_at?: string
+          created_by?: string | null
           description?: string
           dme_id?: string | null
           due_date?: string
@@ -2559,6 +2573,7 @@ export type Database = {
           job_id?: string | null
           kind?: string
           notes?: string | null
+          origin_type?: string | null
           owner_id?: string | null
           paid_at?: string | null
           partner_id?: string | null
