@@ -371,10 +371,7 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
     queryKey: ["job-stages"],
     queryFn: fetchJobStages,
   });
-  const { data: opTemplates = [] } = useQuery({
-    queryKey: ["operational-templates"],
-    queryFn: async () => [],
-  });
+  // opTemplates removed
 
   const [newJobName, setNewJobName] = useState("");
 
@@ -470,7 +467,7 @@ function TemplateJobRow({
 }: {
   job: ServiceJobTemplate;
   stages: any[];
-  opTemplates: any[];
+  // opTemplates: any[]; removed
   isFirst: boolean;
   isLast: boolean;
   onMove: (dir: -1 | 1) => void;

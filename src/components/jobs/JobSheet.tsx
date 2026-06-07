@@ -89,10 +89,7 @@ export function JobSheet({
     queryFn: () => fetchPartners("freelancer"),
   });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
-  const { data: opTemplates = [] } = useQuery({ 
-    queryKey: ["operational-templates"], 
-    queryFn: async () => []
-  });
+  // opTemplates removed
   
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });

@@ -52,10 +52,7 @@ export function NewJobDialog({
     queryFn: () => fetchPartners("freelancer") 
   });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
-  const { data: opTemplates = [] } = useQuery({ 
-    queryKey: ["operational-templates"], 
-    queryFn: async () => []
-  });
+  // opTemplates removed
   const [form, setForm] = useState({
     title: "",
     description: "",
