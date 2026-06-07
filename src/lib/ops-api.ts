@@ -355,6 +355,16 @@ export async function moveJob(id: string, stageId: string, extras: { done_at?: s
   return updateJob(id, { stage_id: stageId, ...extras });
 }
 
+export async function deleteJobStage(id: string) {
+  // Check if stage has jobs
+  const { count } = await supabase.from("jobs").select("id", { count: "exact", head: true }).eq("stage_id", id);
+  if (count && count > 0) {
+    throw new Error(`Não é possível excluir uma coluna que contém ${count} jobs. Mova os jobs para outra coluna primeiro.`);
+  }
+  const { error } = await supabase.from("job_stages").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function fetchChecklist(jobId: string): Promise<JobChecklist[]> {
   const { data, error } = await supabase
     .from("job_checklist")
