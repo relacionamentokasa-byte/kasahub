@@ -121,16 +121,17 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           let body: z.infer<typeof SignSchema>;
           try {
             body = SignSchema.parse(await request.json());
-          } catch {
+          } catch (e) {
+            console.error("[API Public Proposal POST] Validation Error:", e);
             return Response.json(
-              { error: "Preencha nome, CPF e aceite os termos" },
+              { error: "Preencha todos os campos obrigatórios, desenhe sua assinatura e aceite os termos." },
               { status: 400 },
             );
           }
 
           const ip =
-            request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? null;
-          const userAgent = request.headers.get("user-agent") ?? null;
+            request.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "127.0.0.1";
+          const userAgent = request.headers.get("user-agent") ?? "Desconhecido";
 
           const { data: proposal } = await supabaseAdmin
             .from("proposals")
@@ -148,9 +149,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             return Response.json({ error: "already_accepted" }, { status: 409 });
           }
 
-          const signatureLine = body.accepted_cpf
-            ? `${body.accepted_name} — CPF ${body.accepted_cpf}`
-            : body.accepted_name;
+          const signatureLine = `${body.accepted_name} — CPF ${body.accepted_cpf} (${body.accepted_role})`;
 
           await supabaseAdmin
             .from("proposals")
@@ -159,6 +158,17 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
               signed_at_client: new Date().toISOString(),
               accepted_user_agent: userAgent,
               accepted_ip: ip,
+              client_cpf: body.accepted_cpf,
+              client_role: body.accepted_role,
+              client_signed_email: body.accepted_email,
+              client_signature_data: body.signature_data,
+              signed_metadata: {
+                ip,
+                user_agent: userAgent,
+                timestamp: new Date().toISOString(),
+                email: body.accepted_email,
+                role: body.accepted_role
+              }
             })
             .eq("id", proposal.id);
 
