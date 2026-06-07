@@ -205,11 +205,29 @@ function ApprovalInner() {
                         </p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm" className="gap-2" asChild>
-                      <a href={att.file_url} target="_blank" rel="noreferrer">
-                        <ExternalLink className="size-4" /> Visualizar
-                      </a>
-                    </Button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Button variant="outline" size="sm" className="gap-2 h-9 px-3" asChild>
+                        <a href={att.file_url} target="_blank" rel="noreferrer">
+                          <ExternalLink className="size-4" /> Visualizar
+                        </a>
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 h-9 px-3"
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = att.file_url;
+                          link.download = att.file_name;
+                          link.target = '_blank';
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                      >
+                        <FileUp className="size-4" /> Baixar
+                      </Button>
+                    </div>
                   </div>
                 ))}
                 {job.attachments.length === 0 && (

@@ -677,8 +677,8 @@ export function JobSheet({
                                   <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
                                 )}
                                 <div className="flex items-center justify-between gap-4 bg-white/50 p-3 rounded-xl border border-blue-100/50">
-                                  <div className="flex items-center gap-3">
-                                    <div className="size-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                  <div className="flex items-center gap-3 overflow-hidden">
+                                    <div className="size-10 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
                                       <FileText className="size-5 text-blue-600" />
                                     </div>
                                     <div className="min-w-0">
@@ -686,11 +686,30 @@ export function JobSheet({
                                       <p className="text-[9px] text-blue-600 uppercase font-bold tracking-wider">Arquivo anexado</p>
                                     </div>
                                   </div>
-                                  <Button size="icon" variant="outline" className="size-8 shrink-0 hover:bg-blue-500 hover:text-white transition-colors" asChild>
-                                    <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                                      <ExternalLink className="size-4" />
-                                    </a>
-                                  </Button>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Button size="icon" variant="outline" title="Visualizar" className="size-8 hover:bg-blue-500 hover:text-white transition-colors" asChild>
+                                      <a href={item.file_url} target="_blank" rel="noopener noreferrer">
+                                        <ExternalLink className="size-4" />
+                                      </a>
+                                    </Button>
+                                    <Button 
+                                      size="icon" 
+                                      variant="outline" 
+                                      title="Baixar"
+                                      className="size-8 hover:bg-blue-500 hover:text-white transition-colors" 
+                                      onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = item.file_url || '';
+                                        link.download = item.metadata?.file_name || 'arquivo';
+                                        link.target = '_blank';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                      }}
+                                    >
+                                      <FileUp className="size-4" />
+                                    </Button>
+                                  </div>
                                 </div>
                               </div>
                             ) : (
