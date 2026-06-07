@@ -391,7 +391,7 @@ function FinanceiroPage() {
               <div className="px-5 py-3 border-b border-border font-display font-semibold">Lançamentos de {monthLabelShort}</div>
               
               {/* Desktop Header */}
-              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(350px,1fr)_180px_200px_150px_150px_120px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
                 <div className="flex items-center justify-center">
                   <Checkbox 
                     checked={rows.length > 0 && selectedIds.length === rows.length} 
@@ -425,7 +425,7 @@ function FinanceiroPage() {
                     return (
                       <div key={t.id} className="group hover:bg-foreground/[0.02] transition-colors">
                         {/* Desktop Row */}
-                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(350px,1fr)_180px_200px_150px_150px_120px] px-5 py-4 items-center gap-4">
+                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-4 items-center gap-4">
                           <div className="flex items-center justify-center">
                             <Checkbox 
                               checked={selectedIds.includes(t.id)} 
@@ -450,7 +450,7 @@ function FinanceiroPage() {
                               <span className="truncate" title={t.description}>{t.description}</span>
                               {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40 shrink-0" />}
                             </div>
-                            <div className="flex flex-wrap gap-1 mt-1.5">
+                            <div className="flex flex-wrap gap-1 mt-1">
                               <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
                               {t.origin_type && <Badge variant="outline" className="text-[9px] uppercase tracking-wider h-4 px-1.5 text-foreground/40 border-border">{t.origin_type}</Badge>}
                             </div>
@@ -469,26 +469,30 @@ function FinanceiroPage() {
                           </div>
 
                           <div className={`text-right font-display font-bold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                            <span className="text-[10px] mr-1 opacity-70">{t.kind === "income" ? "R$" : "R$"}</span>
+                            <span className="text-[10px] mr-1 opacity-70">R$</span>
                             {brl(Number(t.amount)).replace("R$", "").trim()}
                           </div>
 
-                          <div className="flex flex-col items-center justify-center">
-                            <input 
-                              type="date" 
-                              value={t.due_date} 
-                              onChange={(e) => {
-                                const newDate = e.target.value;
-                                if (t.contract_id) {
-                                  const cascade = window.confirm("Deseja aplicar esta alteração de data também aos próximos vencimentos deste contrato?");
-                                  updateTx.mutate({ id: t.id, patch: { due_date: newDate }, cascade });
-                                } else {
-                                  updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
-                                }
-                              }}
-                              className="bg-transparent border-none focus:ring-1 focus:ring-primary rounded p-0.5 text-xs w-full text-center hover:bg-foreground/5 cursor-pointer transition-colors"
-                            />
-                            {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter">Vencido</div>}
+                          <div className="flex flex-col items-center">
+                            <div className="relative group/date w-full flex items-center justify-center">
+                              <Calendar className="size-3 absolute left-1 text-foreground/30 pointer-events-none group-hover/date:text-primary transition-colors" />
+                              <input 
+                                type="date" 
+                                value={t.due_date} 
+                                onChange={(e) => {
+                                  const newDate = e.target.value;
+                                  if (!newDate) return;
+                                  if (t.contract_id) {
+                                    const cascade = window.confirm("Deseja aplicar esta alteração de data também aos próximos vencimentos deste contrato?");
+                                    updateTx.mutate({ id: t.id, patch: { due_date: newDate }, cascade });
+                                  } else {
+                                    updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
+                                  }
+                                }}
+                                className="bg-surface/50 border border-border/50 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary/20 rounded-md py-1 pl-5 pr-1 text-[11px] w-full text-center cursor-pointer transition-all outline-none font-medium"
+                              />
+                            </div>
+                            {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter mt-1">Vencido</div>}
                           </div>
 
                           <div className="flex items-center justify-end gap-2">
@@ -552,17 +556,33 @@ function FinanceiroPage() {
                               {t.description}
                               {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40" />}
                             </div>
-                            <div className="text-xs text-foreground/50 mt-1 flex items-center gap-2">
-                              <span>{catName(t.category_id)}</span>
-                              <span>•</span>
-                              <span>{clientName(t.client_id)}</span>
+                            <div className="text-xs text-foreground/50 mt-1 flex flex-wrap items-center gap-2">
+                              <span className="bg-foreground/5 px-1.5 py-0.5 rounded border border-border/50">{catName(t.category_id)}</span>
+                              <span className="text-foreground/20">•</span>
+                              <span className="bg-foreground/5 px-1.5 py-0.5 rounded border border-border/50">{clientName(t.client_id)}</span>
                             </div>
                           </div>
 
                           <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/40">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] text-foreground/40 uppercase font-semibold">Vencimento</span>
-                              <span className="text-xs">{new Date(t.due_date + "T12:00:00").toLocaleDateString('pt-BR')}</span>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-foreground/40 uppercase font-semibold flex items-center gap-1">
+                                <Calendar className="size-2.5" /> Vencimento
+                              </span>
+                              <input 
+                                type="date" 
+                                value={t.due_date} 
+                                onChange={(e) => {
+                                  const newDate = e.target.value;
+                                  if (!newDate) return;
+                                  if (t.contract_id) {
+                                    const cascade = window.confirm("Deseja aplicar esta alteração de data também aos próximos vencimentos deste contrato?");
+                                    updateTx.mutate({ id: t.id, patch: { due_date: newDate }, cascade });
+                                  } else {
+                                    updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
+                                  }
+                                }}
+                                className="bg-surface/50 border border-border/50 rounded-md py-1 px-2 text-xs w-full text-left cursor-pointer transition-all outline-none font-medium hover:border-primary/50"
+                              />
                             </div>
                             <div className="flex items-center gap-2">
                               {t.status !== "paid" && (
