@@ -158,10 +158,10 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
                 <div className="flex flex-col sm:flex-row gap-6">
                   <div className="w-full sm:w-32 h-32 shrink-0">
                     <ProfileImageUpload
-                      value={form[asset.key] as string}
+                      value={form[asset.key] as string | null}
                       onChange={(url) => handleUpload(asset.key as string, url)}
                       label={asset.label}
-                      shape={asset.key === 'icon_system_url' || asset.key === 'pwa_favicon_url' || asset.key === 'pwa_icon_512_url' ? 'circle' : 'rect'}
+                      shape={asset.key === 'icon_system_url' || asset.key === 'pwa_favicon_url' || asset.key === 'pwa_icon_512_url' ? 'round' : 'rect'}
                     />
                   </div>
                   
