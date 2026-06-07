@@ -167,12 +167,13 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Valor da Meta</Label>
+            <Label>Valor da Meta (Padrão)</Label>
             <Input 
               type="number" 
               value={form.target_value} 
               onChange={e => setForm({...form, target_value: Number(e.target.value)})} 
               className="bg-background font-bold text-primary"
+              placeholder="Valor caso não haja meta mensal"
             />
           </div>
 
@@ -181,13 +182,47 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
             <Select value={form.periodicity} onValueChange={v => setForm({...form, periodicity: v as IndicatorPeriodicity})}>
               <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="monthly">Mensal</SelectItem>
+                <SelectItem value="monthly">Mensal (Metas por mês)</SelectItem>
                 <SelectItem value="quarterly">Trimestral</SelectItem>
                 <SelectItem value="semiannual">Semestral</SelectItem>
                 <SelectItem value="yearly">Anual</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {form.periodicity === 'monthly' && (
+            <div className="col-span-2 space-y-4 pt-4 border-t border-border">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-bold">Metas Mensais ({new Date().getFullYear()})</Label>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  type="button"
+                  className="h-7 text-[10px] uppercase font-bold"
+                  onClick={() => setTargets(targets.map(t => ({ ...t, value: form.target_value || 0 })))}
+                >
+                  Replicar Valor Padrão
+                </Button>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {targets.map((t, i) => (
+                  <div key={t.month} className="space-y-1">
+                    <Label className="text-[10px] text-foreground/50 uppercase">{months[i]}</Label>
+                    <Input 
+                      type="number"
+                      value={t.value}
+                      onChange={e => {
+                        const newTargets = [...targets];
+                        newTargets[i].value = Number(e.target.value);
+                        setTargets(newTargets);
+                      }}
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label>Data Inicial</Label>
