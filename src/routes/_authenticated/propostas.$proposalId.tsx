@@ -161,6 +161,7 @@ export function ProposalEditorContent({
   
   const [cancelType, setCancelType] = useState<"termination" | "archiving">("termination");
   const [cancelReason, setCancelReason] = useState("");
+  const [showApprovalDialog, setShowApprovalDialog] = useState(false);
 
 
   useEffect(() => {
@@ -399,14 +400,9 @@ export function ProposalEditorContent({
               <Send className="size-4" /> Enviar para o Cliente
             </Button>
           )}
-          {proposal.status !== "accepted" && proposal.status !== "cancelled" && (
+          {proposal.status !== "accepted" && proposal.status !== "converted" && proposal.status !== "cancelled" && (
             <Button
-              onClick={() => {
-                if (confirm("Aprovar esta proposta e converter em contrato, projeto, jobs e financeiro?")) {
-                  approveMut.mutate();
-                }
-              }}
-              disabled={approveMut.isPending}
+              onClick={() => setShowApprovalDialog(true)}
               className="gap-2 bg-green-600 text-white hover:bg-green-700"
             >
               <CheckCircle2 className="size-4" /> Aprovar e Converter em Contrato
@@ -429,6 +425,13 @@ export function ProposalEditorContent({
           )}
         </div>
       </div>
+
+      <ProposalApprovalDialog
+        proposalId={proposalId}
+        open={showApprovalDialog}
+        onOpenChange={setShowApprovalDialog}
+        onApproved={() => qc.invalidateQueries()}
+      />
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
