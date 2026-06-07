@@ -266,6 +266,21 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
     onError: (e: Error) => toast.error(e.message)
   });
 
+  const deleteStageMut = useMutation({
+    mutationFn: async (stageId: string) => {
+      const { error } = await supabase
+        .from('operational_flow_stages')
+        .delete()
+        .eq('id', stageId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Etapa excluída");
+      invalidate();
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
   if (isLoading) return <div className="p-8 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>;
 
   const allJobs = stages.flatMap((s: any) => s.jobs || []);
