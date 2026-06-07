@@ -23,7 +23,6 @@ interface Props {
 export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onApproved }: Props) {
   const qc = useQueryClient();
   const [signature, setSignature] = useState("");
-  const [isInternal, setIsInternal] = useState(false);
 
   const { data: proposal } = useQuery({
     queryKey: ["proposal", proposalId],
@@ -57,15 +56,15 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const approveMut = useMutation({
     mutationFn: async () => {
       if (!proposalId) throw new Error("Proposta inválida");
-      if (!isInternal && (!proposal?.signature_client && signature.trim().length < 2)) {
+      if (!proposal?.signature_client && signature.trim().length < 2) {
         throw new Error("Esta proposta não pode ser aprovada sem a assinatura do cliente.");
       }
       
       const { data: { user } } = await supabase.auth.getUser();
 
       return approveProposal(supabase, proposalId, { 
-        acceptedName: isInternal ? null : (signature.trim() || proposal?.accepted_name),
-        internalApproval: isInternal,
+        acceptedName: signature.trim() || proposal?.accepted_name,
+        internalApproval: false,
         internalApprovalBy: user?.id
       });
     },
@@ -176,32 +175,17 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                       placeholder="Nome completo do responsável"
                       value={signature}
                       onChange={(e) => setSignature(e.target.value)}
-                      disabled={isInternal}
+                      disabled={false}
                       className="mt-2"
                     />
                     <p className="text-[10px] text-foreground/50 mt-1">
-                      {isInternal 
-                        ? "Aprovação interna selecionada. Assinatura do cliente será ignorada." 
-                        : "Ao digitar o nome e clicar em Aprovar, você confirma que o cliente aceitou formalmente."}
+                      Ao digitar o nome e clicar em Aprovar, você confirma que o cliente aceitou formalmente.
                     </p>
                   </>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox 
-                id="internal-approval" 
-                checked={isInternal} 
-                onCheckedChange={(checked) => setIsInternal(checked === true)}
-              />
-              <label
-                htmlFor="internal-approval"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Aprovação Interna (Administrador)
-              </label>
-            </div>
 
             <Badge variant="outline" className="text-[10px]">
               Status atual: {proposal.status}
@@ -215,7 +199,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
           </Button>
           <Button
             onClick={() => approveMut.mutate()}
-            disabled={approveMut.isPending || !proposal || (!isInternal && !proposal.signature_client && signature.trim().length < 2)}
+            disabled={approveMut.isPending || !proposal || (!proposal.signature_client && signature.trim().length < 2)}
             className="bg-green-600 text-white hover:bg-green-700 gap-2"
           >
             {approveMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
