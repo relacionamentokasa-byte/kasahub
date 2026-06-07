@@ -251,7 +251,6 @@ function ClientesPage() {
                   <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
                     <th className="px-4 py-3">Cliente</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Responsável</th>
                     <th className="px-4 py-3">Contrato</th>
                     <th className="px-4 py-3 text-right">Valor mensal</th>
                     <th className="px-4 py-3">Próx. vencimento</th>
@@ -308,18 +307,6 @@ function ClientesPage() {
                           <span className={`text-[10px] capitalize px-2 py-1 rounded font-bold ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
                             {c.status === "active" ? "Ativo" : c.status}
                           </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden shrink-0">
-                              {responsible?.avatar_url ? (
-                                <img src={responsible.avatar_url} className="size-full object-cover" />
-                              ) : (
-                                <User className="size-3 text-primary/60" />
-                              )}
-                            </div>
-                            <span className="text-foreground/60 text-xs truncate max-w-[120px]">{responsibleName}</span>
-                          </div>
                         </td>
                         
                         <td className="px-4 py-3 text-foreground/60 text-xs">{contractLabel}</td>
