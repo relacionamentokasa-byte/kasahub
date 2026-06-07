@@ -161,7 +161,15 @@ export function JobSheet({
                   <Label className="text-[10px] capitalize text-foreground/50">Status</Label>
                   <Select
                     value={(job as any).status || "not_started"}
-                    onValueChange={(v) => updateMut.mutate({ status: v } as any)}
+                    onValueChange={(v) => {
+                      updateMut.mutate({ status: v } as any);
+                      // If moving to done, set done_at
+                      if (v === 'done') {
+                        updateMut.mutate({ done_at: new Date().toISOString() });
+                      } else {
+                        updateMut.mutate({ done_at: null });
+                      }
+                    }}
                   >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
