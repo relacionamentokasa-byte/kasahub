@@ -9,7 +9,6 @@ import {
 } from "@/lib/scope-templates-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { ScopeEditor } from "../proposals/ScopeEditor";
 
 export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean }) {
   const qc = useQueryClient();
