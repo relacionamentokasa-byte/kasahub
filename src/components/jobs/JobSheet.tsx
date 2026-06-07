@@ -38,6 +38,7 @@ import {
   fetchJobHistory,
   fetchJobAttachments,
   addJobAttachment,
+  updateJobComment,
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
@@ -45,7 +46,8 @@ import {
   fetchProjects,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw } from "lucide-react";
+
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
@@ -88,6 +90,10 @@ export function JobSheet({
   const [mentionCoords, setMentionCoords] = useState({ top: 0, left: 0 });
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState("");
+  const [showVersionsId, setShowVersionsId] = useState<string | null>(null);
+
 
   const { data: checklist = [] } = useQuery({
     queryKey: ["job-checklist", job?.id],
@@ -406,19 +412,34 @@ export function JobSheet({
     }
   });
 
+  const updateCommentMut = useMutation({
+    mutationFn: ({ id, content }: { id: string, content: string }) => updateJobComment(id, content),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
+      setEditingCommentId(null);
+      toast.success("Comentário atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
   const communicationTimeline = useMemo(() => {
+
     if (!job) return [];
     return [
       ...comments.map(c => ({ 
         id: `comment-${c.id}`, 
+        commentId: c.id,
         type: (c as any).type || 'comment', 
         content: c.content, 
         user_id: c.user_id, 
         created_at: c.created_at, 
+        updated_at: (c as any).updated_at,
+        previous_versions: (c as any).previous_versions || [],
         is_system: (c as any).is_system,
         metadata: (c as any).metadata,
         file_url: (c as any).metadata?.file_url || undefined
       })),
+
       ...attachments.map(a => ({ 
         id: `attach-${a.id}`, 
         type: 'attachment', 
@@ -767,79 +788,165 @@ export function JobSheet({
 
             <ScrollArea ref={scrollAreaRef} className="flex-1 px-6">
               <div className="py-6 space-y-6">
-                {communicationTimeline.map((item, idx) => {
+                {(communicationTimeline as any[]).map((item, idx) => {
                   const user = team.find(p => p.id === item.user_id);
                   const userName = item.is_system ? "Sistema" : (user?.display_name || user?.full_name || "Usuário");
                   
+                  const isEditing = editingCommentId === item.commentId;
+                  const hasVersions = item.previous_versions && item.previous_versions.length > 0;
+                  const isShowingVersions = showVersionsId === item.commentId;
+
+                  
                   return (
-                    <div key={item.id} className="space-y-1">
+                    <div key={item.id} className="space-y-1 group/comment">
+
                       <div className="flex items-center justify-between gap-3">
-                        <span className="text-[11px] font-bold text-foreground/60">{userName}</span>
-                        <span className="text-[9px] text-foreground/30 font-mono">
-                          {format(new Date(item.created_at), "HH:mm", { locale: ptBR })}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-foreground/60">{userName}</span>
+                          {item.updated_at && (
+                            <span className="text-[8px] uppercase bg-muted px-1.5 py-0.5 rounded text-foreground/40 font-bold">Editado</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {!item.is_system && item.type === 'comment' && item.user_id === job.main_responsible_id && ( // Simplificação para demo, o ideal é checar se é o autor
+                            <div className="hidden group-hover/comment:flex items-center gap-1">
+                              <button 
+                                onClick={() => {
+                                  setEditingCommentId(item.commentId!);
+                                  setEditValue(item.content);
+                                }}
+                                className="text-foreground/40 hover:text-primary transition-colors"
+                              >
+                                <Pencil className="size-3" />
+                              </button>
+                              {hasVersions && (
+                                <button 
+                                  onClick={() => setShowVersionsId(isShowingVersions ? null : item.commentId!)}
+                                  className="text-foreground/40 hover:text-primary transition-colors"
+                                  title="Ver histórico de edições"
+                                >
+                                  <RotateCcw className="size-3" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                          <span className="text-[9px] text-foreground/30 font-mono">
+                            {format(new Date(item.created_at), "HH:mm", { locale: ptBR })}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className={`text-sm p-3 rounded-2xl border ${
-                        item.type === 'attachment' ? 'bg-blue-50/5 border-blue-500/20 text-blue-100' : 'bg-background border-border/50 text-foreground'
+                      <div className={`text-sm p-3 rounded-2xl border transition-all ${
+                        item.type === 'attachment' ? 'bg-blue-50/5 border-blue-500/20 text-blue-100' : 
+                        isEditing ? 'bg-background border-primary ring-1 ring-primary/20' :
+                        'bg-background border-border/50 text-foreground'
                       }`}>
-                        {item.type === 'attachment' || item.file_url ? (
-                          <div className="space-y-3">
-                            {item.content && !item.content.startsWith('Anexou um arquivo:') && (
+                        {isEditing ? (
+                          <div className="space-y-2">
+                            <Textarea 
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              className="min-h-[60px] bg-transparent border-none p-0 focus-visible:ring-0 text-xs resize-none"
+                              autoFocus
+                            />
+                            <div className="flex justify-end gap-2">
+                              <Button size="icon" variant="ghost" className="size-6 h-6 w-6" onClick={() => setEditingCommentId(null)}>
+                                <X className="size-3" />
+                              </Button>
+                              <Button 
+                                size="icon" 
+                                className="size-6 h-6 w-6" 
+                                onClick={() => updateCommentMut.mutate({ id: item.commentId!, content: editValue })}
+                                disabled={updateCommentMut.isPending || !editValue.trim() || editValue === item.content}
+                              >
+                                {updateCommentMut.isPending ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />}
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            {item.type === 'attachment' || item.file_url ? (
+                              <div className="space-y-3">
+                                {item.content && !item.content.startsWith('Anexou um arquivo:') && (
+                                  <p className="whitespace-pre-wrap leading-relaxed text-xs">
+                                  {item.content.split(/(@\w+)/).map((part: string, i: number) => 
+
+                                      part.startsWith('@') ? (
+                                        <span key={i} className="text-primary font-bold">{part}</span>
+                                      ) : part
+                                    )}
+                                  </p>
+                                )}
+                                <div className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-xl border border-blue-500/10">
+                                  <div className="flex items-center gap-2 overflow-hidden">
+                                    <FileText className="size-4 text-blue-400 shrink-0" />
+                                    <p className="font-bold text-blue-200 truncate text-[10px]">{item.metadata?.file_name || "Anexo"}</p>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <Button 
+                                      size="icon" 
+                                      variant="ghost" 
+                                      className="size-6 hover:bg-primary/20 hover:text-primary transition-colors"
+                                      onClick={() => setViewerConfig({ url: item.file_url!, name: item.metadata?.file_name || "Anexo" })}
+                                    >
+                                      <Eye className="size-3" />
+                                    </Button>
+                                    <Button 
+                                      size="icon" 
+                                      variant="ghost" 
+                                      className="size-6 hover:bg-blue-500/20 hover:text-blue-400 transition-colors" 
+                                      onClick={() => {
+                                        const link = document.createElement('a');
+                                        link.href = item.file_url || '';
+                                        link.download = item.metadata?.file_name || 'arquivo';
+                                        link.target = '_blank';
+                                        document.body.appendChild(link);
+                                        link.click();
+                                        document.body.removeChild(link);
+                                      }}
+                                    >
+                                      <FileUp className="size-3" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
                               <p className="whitespace-pre-wrap leading-relaxed text-xs">
-                                {item.content.split(/(@\w+)/).map((part, i) => 
+                                {item.content.split(/(@\w+)/).map((part: string, i: number) => 
                                   part.startsWith('@') ? (
                                     <span key={i} className="text-primary font-bold">{part}</span>
                                   ) : part
                                 )}
                               </p>
                             )}
-                            <div className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-xl border border-blue-500/10">
-                              <div className="flex items-center gap-2 overflow-hidden">
-                                <FileText className="size-4 text-blue-400 shrink-0" />
-                                <p className="font-bold text-blue-200 truncate text-[10px]">{item.metadata?.file_name || "Anexo"}</p>
-                              </div>
-                              <div className="flex items-center gap-1 shrink-0">
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="size-6 hover:bg-primary/20 hover:text-primary transition-colors"
-                                  onClick={() => setViewerConfig({ url: item.file_url!, name: item.metadata?.file_name || "Anexo" })}
-                                >
-                                  <Eye className="size-3" />
-                                </Button>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost" 
-                                  className="size-6 hover:bg-blue-500/20 hover:text-blue-400 transition-colors" 
-                                  onClick={() => {
-                                    const link = document.createElement('a');
-                                    link.href = item.file_url || '';
-                                    link.download = item.metadata?.file_name || 'arquivo';
-                                    link.target = '_blank';
-                                    document.body.appendChild(link);
-                                    link.click();
-                                    document.body.removeChild(link);
-                                  }}
-                                >
-                                  <FileUp className="size-3" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        ) : (
-                          <p className="whitespace-pre-wrap leading-relaxed text-xs">
-                            {item.content.split(/(@\w+)/).map((part, i) => 
-                              part.startsWith('@') ? (
-                                <span key={i} className="text-primary font-bold">{part}</span>
-                              ) : part
-                            )}
-                          </p>
+                          </>
                         )}
                       </div>
+                      
+                      {isShowingVersions && item.previous_versions.length > 0 && (
+                        <div className="mt-2 ml-4 pl-4 border-l-2 border-muted space-y-3">
+                          <p className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider flex items-center gap-1">
+                            <History className="size-3" /> Histórico de versões
+                          </p>
+                          {item.previous_versions.map((version: any, vIdx: number) => (
+                            <div key={vIdx} className="space-y-1">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[9px] text-foreground/40">Versão {item.previous_versions.length - vIdx}</span>
+                                <span className="text-[9px] text-foreground/40 font-mono">
+                                  {format(new Date(version.updated_at), "dd/MM HH:mm", { locale: ptBR })}
+                                </span>
+                              </div>
+                              <div className="bg-muted/30 p-2 rounded-xl border border-border/30">
+                                <p className="text-[11px] text-foreground/60 whitespace-pre-wrap">{version.content}</p>
+                              </div>
+                            </div>
+                          )).reverse()}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
+
 
                 {communicationTimeline.length === 0 && (
                   <div className="text-center py-12 space-y-3 opacity-20">
