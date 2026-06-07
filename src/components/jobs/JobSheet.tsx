@@ -788,13 +788,14 @@ export function JobSheet({
 
             <ScrollArea ref={scrollAreaRef} className="flex-1 px-6">
               <div className="py-6 space-y-6">
-                {communicationTimeline.map((item, idx) => {
+                {(communicationTimeline as any[]).map((item, idx) => {
                   const user = team.find(p => p.id === item.user_id);
                   const userName = item.is_system ? "Sistema" : (user?.display_name || user?.full_name || "Usuário");
                   
                   const isEditing = editingCommentId === item.commentId;
                   const hasVersions = item.previous_versions && item.previous_versions.length > 0;
                   const isShowingVersions = showVersionsId === item.commentId;
+
                   
                   return (
                     <div key={item.id} className="space-y-1 group/comment">
