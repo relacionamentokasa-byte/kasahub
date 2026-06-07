@@ -366,6 +366,10 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
     queryKey: ["service-template", serviceId],
     queryFn: () => fetchServiceTemplate(serviceId),
   });
+  const { data: stages = [] } = useQuery({
+    queryKey: ["job-stages"],
+    queryFn: fetchJobStages,
+  });
 
   const [newJobName, setNewJobName] = useState("");
 
