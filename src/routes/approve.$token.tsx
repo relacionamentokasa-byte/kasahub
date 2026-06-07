@@ -109,6 +109,8 @@ function PublicApprovalPage() {
 function ApprovalInner() {
   const { token } = Route.useParams();
   const [feedback, setFeedback] = useState("");
+  const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
+
 
   const { data, isLoading, isError, error, refetch } = useQuery<{ job: JobData }>({
     queryKey: ["public-job-approval", token],
