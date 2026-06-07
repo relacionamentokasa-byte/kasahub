@@ -924,7 +924,7 @@ export function JobSheet({
                             </div>
                           )}
                           <span className="text-[9px] text-foreground/30 font-mono">
-                            {format(new Date(item.created_at), "HH:mm", { locale: ptBR })}
+                            {format(new Date(item.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                           </span>
                         </div>
                       </div>
