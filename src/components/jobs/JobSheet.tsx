@@ -173,9 +173,10 @@ export function JobSheet({
     const channel = supabase.getChannels().find(c => c.topic === `realtime:job-room-${job.id}`);
     if (channel) {
       const { data: { user } } = await supabase.auth.getUser();
-      const profile = team.find(p => p.id === user?.id);
+      if (!user) return;
+      const profile = team.find(p => p.id === user.id);
       channel.track({
-        user_id: user?.id,
+        user_id: user.id,
         user_name: profile?.display_name || profile?.full_name || 'Usuário',
         is_typing: isTyping
       });
