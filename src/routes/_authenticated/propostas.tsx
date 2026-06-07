@@ -330,7 +330,7 @@ function ProposalsPage() {
 
       return true;
     });
-  }, [proposals, filterStatus, filterClient, search]);
+  }, [proposalsToDisplay, filterStatus, filterClient, search]);
 
   return (
 
@@ -835,6 +835,7 @@ function ProposalsPage() {
                       <td className="px-5 py-3 text-right">
                         <ActionsMenu
                           proposal={p}
+                          isTrashed={showTrash}
                           onView={() => openView(p)}
                           onEdit={() => setSelectedId(p.id)}
                           onDuplicate={() => dupMut.mutate(p.id)}
@@ -844,8 +845,17 @@ function ProposalsPage() {
                           onEmail={() => openEmail(p)}
                           onReopen={() => statusMut.mutate({ id: p.id, status: "reopened" })}
                           onCancel={() => statusMut.mutate({ id: p.id, status: "cancelled" })}
+                          onRestore={() => restoreMut.mutate(p.id)}
                           onDelete={() => {
-                            if (confirm("Excluir proposta?")) delMut.mutate(p.id);
+                            if (showTrash) {
+                              if (confirm("Excluir permanentemente? Esta ação não pode ser desfeita.")) {
+                                delMut.mutate({ id: p.id, permanent: true });
+                              }
+                            } else {
+                              if (confirm("Mover para a lixeira?")) {
+                                delMut.mutate({ id: p.id });
+                              }
+                            }
                           }}
                         />
                       </td>
@@ -875,6 +885,7 @@ function ProposalsPage() {
                     </button>
                     <ActionsMenu
                       proposal={p}
+                      isTrashed={showTrash}
                       onView={() => openView(p)}
                       onEdit={() => setSelectedId(p.id)}
                       onDuplicate={() => dupMut.mutate(p.id)}
@@ -884,8 +895,17 @@ function ProposalsPage() {
                       onEmail={() => openEmail(p)}
                       onReopen={() => statusMut.mutate({ id: p.id, status: "reopened" })}
                       onCancel={() => statusMut.mutate({ id: p.id, status: "cancelled" })}
+                      onRestore={() => restoreMut.mutate(p.id)}
                       onDelete={() => {
-                        if (confirm("Excluir proposta?")) delMut.mutate(p.id);
+                        if (showTrash) {
+                          if (confirm("Excluir permanentemente? Esta ação não pode ser desfeita.")) {
+                            delMut.mutate({ id: p.id, permanent: true });
+                          }
+                        } else {
+                          if (confirm("Mover para a lixeira?")) {
+                            delMut.mutate({ id: p.id });
+                          }
+                        }
                       }}
                     />
                   </div>
@@ -964,6 +984,7 @@ function ProposalsPage() {
 
 function ActionsMenu({
   proposal,
+  isTrashed,
   onView,
   onEdit,
   onDuplicate,
@@ -973,9 +994,11 @@ function ActionsMenu({
   onEmail,
   onReopen,
   onCancel,
+  onRestore,
   onDelete,
 }: {
   proposal: Proposal;
+  isTrashed?: boolean;
   onView: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
@@ -985,6 +1008,7 @@ function ActionsMenu({
   onEmail: () => void;
   onReopen: () => void;
   onCancel: () => void;
+  onRestore: () => void;
   onDelete: () => void;
 }) {
   return (
@@ -1001,39 +1025,52 @@ function ActionsMenu({
         <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40">
           Proposta
         </DropdownMenuLabel>
-        <DropdownMenuItem onClick={onView}>
-          <Eye className="size-4" /> Visualizar
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onEdit}>
-          <Pencil className="size-4" /> Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onDuplicate}>
-          <Copy className="size-4" /> Duplicar
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onPdf}>
-          <Printer className="size-4" /> Gerar PDF
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40">
-          Compartilhar
-        </DropdownMenuLabel>
-        <DropdownMenuItem onClick={onShare}>
-          <Share2 className="size-4" /> Copiar link
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onWhatsApp}>
-          <MessageCircle className="size-4" /> Enviar por WhatsApp
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onEmail}>
-          <Mail className="size-4" /> Enviar por E-mail
-        </DropdownMenuItem>
-        {proposal.status === "draft" && (
+        {!isTrashed ? (
           <>
+            <DropdownMenuItem onClick={onView}>
+              <Eye className="size-4" /> Visualizar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="size-4" /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDuplicate}>
+              <Copy className="size-4" /> Duplicar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onPdf}>
+              <Printer className="size-4" /> Gerar PDF
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40">
+              Compartilhar
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={onShare}>
+              <Share2 className="size-4" /> Copiar link
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onWhatsApp}>
+              <MessageCircle className="size-4" /> Enviar por WhatsApp
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEmail}>
+              <Mail className="size-4" /> Enviar por E-mail
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={onDelete}
               className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="size-4" /> Excluir
+              <Trash2 className="size-4" /> Mover para lixeira
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem onClick={onRestore}>
+              <RotateCcw className="size-4" /> Restaurar Proposta
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={onDelete}
+              className="text-destructive focus:text-destructive font-bold"
+            >
+              <Trash2 className="size-4" /> Excluir permanentemente
             </DropdownMenuItem>
           </>
         )}
