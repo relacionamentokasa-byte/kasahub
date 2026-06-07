@@ -178,6 +178,7 @@ export function NewJobDialog({
               <Label>Prazo</Label>
               <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
             </div>
+
             {!defaultProjectId && (
               <div className="space-y-1.5">
                 <Label>Projeto</Label>
@@ -204,6 +205,61 @@ export function NewJobDialog({
                 </Select>
               </div>
             )}
+
+            <div className="space-y-1.5">
+              <Label>Responsável Principal</Label>
+              <Select value={form.main_responsible_id} onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {team.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Template Operacional</Label>
+              <Select value={form.operational_template_id} onValueChange={(v) => setForm({ ...form, operational_template_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                <SelectContent>
+                  {opTemplates.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5 col-span-2">
+              <Label>Equipe Envolvida</Label>
+              <Select 
+                value={form.team_involved_ids[0] || ""} 
+                onValueChange={(v) => setForm(f => ({ ...f, team_involved_ids: Array.from(new Set([...f.team_involved_ids, v])) }))}
+              >
+                <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
+                <SelectContent>
+                  {team.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.team_involved_ids.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {form.team_involved_ids.map(id => {
+                    const p = team.find(x => x.id === id);
+                    return p ? (
+                      <div key={id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
+                        {p.display_name || p.full_name}
+                        <button onClick={() => setForm(f => ({ ...f, team_involved_ids: f.team_involved_ids.filter(x => x !== id) }))}>
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1.5 col-span-2">
               <Label>Atribuir a Freelancer (Opcional)</Label>
               <Select value={form.freelancer_id} onValueChange={(v) => setForm({ ...form, freelancer_id: v })}>
