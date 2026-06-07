@@ -12,7 +12,9 @@ export type IndicatorDataSource =
   | "jobs_done" 
   | "projects_finished" 
   | "clients_active" 
-  | "clients_new";
+  | "clients_new"
+  | "revenue_monthly"
+  | "revenue_yearly";
 
 export interface AgencyIndicator {
   id: string;
