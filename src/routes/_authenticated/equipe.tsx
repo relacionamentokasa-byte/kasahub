@@ -28,11 +28,22 @@ import {
   setMemberRole,
   createInvite,
   deleteInvite,
+  deleteTeamMember,
   ROLE_LABEL,
   ROLE_COLOR,
   type AppRole,
 } from "@/lib/team-api";
 import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const ROLES: AppRole[] = ["admin", "ceo", "gestor", "operador", "cliente"];
 
