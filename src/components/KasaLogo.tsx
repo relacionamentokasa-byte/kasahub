@@ -34,16 +34,18 @@ export function KasaLogo({
   const logoUrl = getLogoUrl();
 
   return (
-    <div className="flex items-center gap-3 px-1">
-      <div className="size-10 bg-white rounded-md flex items-center justify-center shrink-0 shadow-[0_0_20px_-4px] shadow-primary/20 overflow-hidden border border-border p-1.5">
+    <div className={`flex items-center gap-3 px-1 ${className}`}>
+      <div className={cn(
+        "bg-white flex items-center justify-center shrink-0 shadow-[0_0_20px_-4px] shadow-primary/20 overflow-hidden border border-border",
+        variant === 'login' ? "h-16 w-48 rounded-xl p-3" : "size-10 rounded-md p-1.5"
+      )}>
         {logoUrl ? (
           <img src={logoUrl} alt="Logo" className="size-full object-contain" />
-
         ) : (
-          <div className="size-3.5 border-2 border-primary-foreground rotate-45" />
+          <div className="size-3.5 border-2 border-primary rotate-45" />
         )}
       </div>
-      {!collapsed && (
+      {!collapsed && !iconOnly && variant !== 'login' && (
         <span className="font-display text-lg font-bold tracking-tight whitespace-nowrap">
           {settings?.name ? (
             <>
@@ -57,3 +59,5 @@ export function KasaLogo({
     </div>
   );
 }
+
+import { cn } from "@/lib/utils";
