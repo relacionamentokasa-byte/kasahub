@@ -150,6 +150,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           });
         } catch (e) {
           const msg = e instanceof Error ? e.message : "erro ao aprovar";
+          console.error("[API Public Proposal] Failed to approve:", e);
           return Response.json({ error: msg }, { status: 500 });
         }
 
