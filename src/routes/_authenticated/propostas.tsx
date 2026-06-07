@@ -926,7 +926,7 @@ function ProposalsPage() {
                           }
                         } else {
                           if (confirm("Mover para a lixeira?")) {
-                            delMut.mutate({ id: p.id });
+                            delMut.mutate({ id: p.id, permanent: false });
                           }
                         }
                       }}
