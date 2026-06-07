@@ -430,7 +430,13 @@ export async function addJobComment(
   if (error) throw error;
 
   if (mentions.length > 0) {
-    await handleMentions(jobId, mentions, content);
+    const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
+    await handleMentions(content, {
+      title: `Job: ${job?.title || 'Job'}`,
+      link: `/jobs`,
+      originType: 'jobs',
+      originId: jobId
+    });
   }
 
   return data;
