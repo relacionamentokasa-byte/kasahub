@@ -222,6 +222,7 @@ function ServiceFormDialog({
         description: form.description.trim() || null,
         is_active: form.is_active,
         default_scope: form.default_scope,
+        checklist_items: form.checklist_items,
         contract_template_id: form.contract_template_id || null,
       } as any;
       if (!payload.name) throw new Error("Nome obrigatório");
