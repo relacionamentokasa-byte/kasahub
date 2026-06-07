@@ -169,7 +169,7 @@ export function JobsBoard({
             onClick={() => setNewStage(stages[0] ?? null)}
             className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
           >
-            <Plus className="size-4" /> Nova tarefa
+            <Plus className="size-4" /> Novo Job
           </Button>
         </div>
       </div>
