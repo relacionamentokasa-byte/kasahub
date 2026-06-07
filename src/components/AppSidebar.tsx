@@ -63,6 +63,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Sistema",
     items: [
+      { title: "Diagnóstico", url: "/ceo", icon: Activity, module: "config" },
       { title: "Configurações", url: "/config", icon: Settings, module: "config" },
     ],
   },
