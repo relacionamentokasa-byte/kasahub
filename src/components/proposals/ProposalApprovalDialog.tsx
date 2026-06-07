@@ -132,11 +132,39 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
             </Section>
 
             <Section icon={<Calendar className="size-4" />} title="Prazo & Cobrança">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <Stat label="Tipo de contrato" value={proposal.contract_type === "recurring" ? "Recorrente" : "Pontual"} />
-                <Stat label="Validade" value={proposal.valid_until ?? "—"} />
-                <Stat label="Início" value={(proposal as any).first_due_date ?? "—"} />
-                <Stat label="Dia de cobrança" value={String((proposal as any).billing_day ?? "—")} />
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                <Stat label="Tipo" value={proposal.contract_type === "recurring" ? "Recorrente" : "Pontual"} />
+                <Stat 
+                  label="Prazo" 
+                  value={
+                    proposal.contract_term === "indeterminado" 
+                      ? "Indeterminado" 
+                      : proposal.contract_term === "monthly"
+                        ? "Mensal"
+                        : proposal.contract_term?.includes("_months")
+                          ? `${proposal.contract_term.replace("_months", "")} meses`
+                          : `${proposal.recurring_months || 12} meses`
+                  } 
+                />
+                <Stat 
+                  label="Parcelas" 
+                  value={
+                    proposal.contract_type === "recurring"
+                      ? (proposal.contract_term === "indeterminado" ? "1 (inicial)" : 
+                         proposal.contract_term === "monthly" ? "1" :
+                         proposal.contract_term?.includes("_months") ? proposal.contract_term.replace("_months", "") :
+                         String(proposal.recurring_months || 12))
+                      : String(proposal.installments || 1)
+                  } 
+                />
+                <Stat label="Dia Cobrança" value={String((proposal as any).billing_day ?? "5")} />
+              </div>
+              <div className="mt-4 p-3 bg-blue-50 rounded-md border border-blue-100 flex items-start gap-2">
+                <AlertCircle className="size-4 text-blue-600 mt-0.5" />
+                <div className="text-[11px] text-blue-800 leading-relaxed">
+                  <strong>Confirmação de Geração Financeira:</strong> Ao aprovar, o sistema gerará automaticamente os lançamentos financeiros vinculados ao contrato com base no prazo e parcelas acima. 
+                  {proposal.contract_term === "indeterminado" && " Para prazos indeterminados, apenas o primeiro vencimento será gerado."}
+                </div>
               </div>
             </Section>
 
