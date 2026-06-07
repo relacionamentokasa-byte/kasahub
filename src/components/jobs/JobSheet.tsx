@@ -851,55 +851,118 @@ export function JobSheet({
             </ScrollArea>
 
             <div className="p-6 pt-2 border-t border-border shrink-0">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (comment.trim()) {
-                    commentMut.mutate({ content: comment.trim() });
-                  }
-                }}
-              >
-                <div className="flex flex-col gap-2 p-3 bg-background border border-border rounded-xl focus-within:border-primary/50 transition-colors">
+              {typingUsers.length > 0 && (
+                <div className="px-1 mb-2">
+                  <p className="text-[10px] text-primary font-medium animate-pulse">
+                    {typingUsers.length === 1 
+                      ? `${typingUsers[0]} está digitando...` 
+                      : `${typingUsers.join(', ')} estão digitando...`}
+                  </p>
+                </div>
+              )}
+              
+              <div className="relative">
+                <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
+                  <PopoverTrigger asChild>
+                    <div className="absolute" style={{ top: mentionCoords.top, left: mentionCoords.left }} />
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[200px] bg-popover border-border" align="start">
+                    <Command className="bg-popover">
+                      <CommandList>
+                        <CommandEmpty>Nenhum membro encontrado</CommandEmpty>
+                        <CommandGroup heading="Mencionar equipe">
+                          {team.filter(p => {
+                            const name = (p.display_name || p.full_name || '').toLowerCase();
+                            return name.includes(mentionSearch.toLowerCase());
+                          }).map(p => (
+                            <CommandItem
+                              key={p.id}
+                              onSelect={() => {
+                                const lastAt = comment.lastIndexOf('@');
+                                const before = comment.substring(0, lastAt);
+                                const after = comment.substring(lastAt + mentionSearch.length + 1);
+                                const name = (p.display_name || p.full_name || '').replace(/\s/g, '');
+                                setComment(`${before}@${name} ${after}`);
+                                setMentionOpen(false);
+                                commentInputRef.current?.focus();
+                              }}
+                              className="cursor-pointer hover:bg-accent"
+                            >
+                              <User className="size-4 mr-2" />
+                              {p.display_name || p.full_name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                <div className="flex gap-2 bg-background border border-border rounded-xl p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                   <Textarea
-                    rows={2}
+                    ref={commentInputRef}
                     value={comment}
-                    onChange={(e) => setComment(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setComment(val);
+                      
+                      const lastAt = val.lastIndexOf('@');
+                      if (lastAt !== -1 && (lastAt === 0 || val[lastAt - 1] === ' ' || val[lastAt - 1] === '\n')) {
+                        const search = val.substring(lastAt + 1);
+                        if (!search.includes(' ')) {
+                          setMentionSearch(search);
+                          setMentionOpen(true);
+                          
+                          const textarea = e.target;
+                          const { selectionStart } = textarea;
+                          const textBefore = val.substring(0, selectionStart);
+                          const lines = textBefore.split('\n');
+                          const currentLine = lines.length;
+                          setMentionCoords({
+                            top: currentLine * 20 - 40,
+                            left: lines[lines.length - 1].length * 7
+                          });
+                        } else {
+                          setMentionOpen(false);
+                        }
+                      } else {
+                        setMentionOpen(false);
+                      }
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
+                      if (e.key === 'Enter' && !e.shiftKey && !mentionOpen) {
                         e.preventDefault();
-                        if (comment.trim() && !commentMut.isPending) {
+                        if (comment.trim()) {
                           commentMut.mutate({ content: comment.trim() });
                         }
                       }
                     }}
-                    placeholder="Escreva sua mensagem..."
-                    className="resize-none border-none bg-transparent focus-visible:ring-0 p-0 text-xs min-h-[50px] text-white"
+                    placeholder="Escreva uma mensagem..."
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white"
+                    rows={1}
                   />
-                  <div className="flex justify-between items-center mt-2">
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
-                        className="size-7 text-foreground/40 hover:text-primary hover:bg-primary/10"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                      >
-                        {isUploading ? <Loader2 className="size-3 animate-spin" /> : <Paperclip className="size-3" />}
-                      </Button>
-                    </div>
+                  <div className="flex flex-col justify-end gap-1">
                     <Button 
-                      type="submit" 
-                      size="sm" 
-                      className="h-8 gap-2 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider"
-                      disabled={!comment.trim() || commentMut.isPending}
+                      type="button"
+                      variant="ghost" 
+                      size="icon" 
+                      className="size-8 rounded-lg text-foreground/40 hover:text-primary hover:bg-primary/10"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
                     >
-                      {commentMut.isPending ? <Loader2 className="size-3 animate-spin" /> : <Send className="size-3" />}
-                      Enviar
+                      {isUploading ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
+                    </Button>
+                    <Button 
+                      onClick={() => comment.trim() && commentMut.mutate({ content: comment.trim() })}
+                      disabled={!comment.trim() || commentMut.isPending}
+                      size="icon" 
+                      className="size-8 rounded-lg shadow-lg shadow-primary/20"
+                    >
+                      {commentMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                     </Button>
                   </div>
                 </div>
-              </form>
+              </div>
               <input 
                 type="file" 
                 className="hidden" 
