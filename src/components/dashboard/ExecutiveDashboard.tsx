@@ -146,18 +146,7 @@ export function ExecutiveDashboard() {
     const periodDmes = dmes.filter(d => inRange(d.created_at));
 
     // Stats
-    const ind = computeIndicators(txs, contracts, { 
-      from: start.toISOString().slice(0, 10), 
-      to: end.toISOString().slice(0, 10) 
-    });
-
-    const jobsInProgress = jobs.filter(j => !j.done_at).length;
-    const jobsOverdue = jobs.filter(j => !j.done_at && j.due_date && j.due_date < new Date().toISOString().slice(0, 10)).length;
-    const jobsCompleted = jobs.filter(j => j.done_at && inRange(j.done_at)).length;
-    const pendingApprovals = jobs.filter(j => j.status === 'review').length;
-    const dmesInProduction = dmes.filter(d => d.status === 'approved').length;
-
-    const { data: ind = {
+    const { data: indData = {
       mrr: 0,
       extraIncome: 0,
       monthIncome: 0,
@@ -169,6 +158,19 @@ export function ExecutiveDashboard() {
       queryFn: () => computeIndicators(txs, contracts),
       placeholderData: (prev) => prev,
     });
+
+    const ind = indData;
+
+    const jobsInProgress = jobs.filter(j => !j.done_at).length;
+    const jobsOverdue = jobs.filter(j => !j.done_at && j.due_date && j.due_date < new Date().toISOString().slice(0, 10)).length;
+    const jobsCompleted = jobs.filter(j => j.done_at && inRange(j.done_at)).length;
+    const pendingApprovals = jobs.filter(j => j.status === 'review').length;
+    const dmesInProduction = dmes.filter(d => d.status === 'approved').length;
+
+    // Performance
+    const month = new Date().getMonth() + 1;
+    const year = new Date().getFullYear();
+    const currentGoals = goals.filter(g => g.month === month || g.period === 'yearly');
 
     const performanceMetrics = [
       ...indicators.filter(i => i.status === 'active').map(i => {
