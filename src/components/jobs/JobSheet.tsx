@@ -356,7 +356,7 @@ export function JobSheet({
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="bg-surface border-border w-full sm:max-w-2xl overflow-y-auto">
+      <SheetContent key={job.id} className="bg-surface border-border w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader className="space-y-4">
           <div className="flex items-center gap-2 text-primary">
             <CheckCircle2 className="size-5" />
@@ -364,8 +364,8 @@ export function JobSheet({
           </div>
           <SheetTitle className="font-display text-2xl lg:text-3xl">
             <input
-              defaultValue={job.title}
-              onBlur={(e) => e.target.value !== job.title && updateMut.mutate({ title: e.target.value })}
+              value={job.title}
+              onChange={(e) => updateMut.mutate({ title: e.target.value })}
               className="bg-transparent border-none outline-none w-full focus:ring-0 p-0 h-auto"
             />
           </SheetTitle>
@@ -614,8 +614,8 @@ export function JobSheet({
                 </div>
                 <Textarea
                   rows={6}
-                  defaultValue={(job as any).operational_observations ?? ""}
-                  onBlur={(e) => updateMut.mutate({ operational_observations: e.target.value } as any)}
+                  value={(job as any).operational_observations ?? ""}
+                  onChange={(e) => updateMut.mutate({ operational_observations: e.target.value } as any)}
                   placeholder="Registros internos da equipe sobre a execução, intercorrências ou solicitações pontuais..."
                   className="bg-muted/5 text-sm leading-relaxed border-border min-h-[150px]"
                 />
@@ -627,25 +627,9 @@ export function JobSheet({
                 <h3 className="text-sm font-bold flex items-center gap-2">
                   <MessageSquare className="size-4 text-primary" /> Timeline de Comunicação
                 </h3>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="h-8 gap-2 text-[10px] font-bold uppercase tracking-wider" 
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                >
-                  {isUploading ? <Loader2 className="size-3.5 animate-spin" /> : <FileUp className="size-3.5" />}
-                  {isUploading ? "Enviando..." : "Anexar Arquivo"}
-                </Button>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  ref={fileInputRef} 
-                  onChange={handleFileUpload}
-                />
               </div>
 
-              <ScrollArea className="h-[500px] w-full pr-4 rounded-xl border border-border/50 bg-muted/5 p-4">
+              <ScrollArea className="h-[450px] w-full pr-4 rounded-xl border border-border/50 bg-muted/5 p-4">
                 <div className="space-y-6">
                   {communicationTimeline.map((item, idx) => {
                     const user = team.find(p => p.id === item.user_id);
@@ -653,22 +637,14 @@ export function JobSheet({
                     
                     return (
                       <div key={item.id} className="relative pl-8">
-                        {/* Linha vertical da timeline */}
                         {idx !== communicationTimeline.length - 1 && (
                           <div className="absolute left-[11px] top-7 bottom-[-24px] w-[2px] bg-border" />
                         )}
                         
-                        {/* Ponto da timeline */}
                         <div className={`absolute left-0 top-1.5 size-6 rounded-full border-2 border-background flex items-center justify-center ${
-                          item.type === 'attachment' ? 'bg-blue-500' : 
-                          item.type === 'approval' ? 'bg-green-500' :
-                          item.type === 'adjustment' ? 'bg-amber-500' :
-                          'bg-primary'
+                          item.type === 'attachment' ? 'bg-blue-500' : 'bg-primary'
                         }`}>
-                          {item.type === 'attachment' ? <Paperclip className="size-3 text-white" /> : 
-                           item.type === 'approval' ? <CheckCircle2 className="size-3 text-white" /> :
-                           item.type === 'adjustment' ? <AlertCircle className="size-3 text-white" /> :
-                           <MessageSquare className="size-3 text-white" />}
+                          {item.type === 'attachment' ? <Paperclip className="size-3 text-white" /> : <MessageSquare className="size-3 text-white" />}
                         </div>
 
                         <div className="space-y-1">
@@ -680,43 +656,32 @@ export function JobSheet({
                           </div>
 
                           <div className={`text-sm p-4 rounded-2xl shadow-sm border ${
-                            item.type === 'attachment' ? 'bg-blue-50/50 border-blue-100' : 
-                            item.type === 'approval' ? 'bg-green-50/50 border-green-100' :
-                            item.type === 'adjustment' ? 'bg-amber-50/50 border-amber-100' :
-                            'bg-background border-border/50'
+                            item.type === 'attachment' ? 'bg-blue-50/50 border-blue-100' : 'bg-background border-border/50'
                           }`}>
-                            {item.type === 'attachment' ? (
-                              <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                  <div className="size-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                                    <FileText className="size-5 text-blue-600" />
+                            {item.type === 'attachment' || item.file_url ? (
+                              <div className="space-y-3">
+                                {item.content && !item.content.startsWith('Anexou um arquivo:') && (
+                                  <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
+                                )}
+                                <div className="flex items-center justify-between gap-4 bg-white/50 p-3 rounded-xl border border-blue-100/50">
+                                  <div className="flex items-center gap-3">
+                                    <div className="size-10 rounded-lg bg-blue-100 flex items-center justify-center">
+                                      <FileText className="size-5 text-blue-600" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="font-bold text-blue-900 truncate text-xs">{item.metadata?.file_name || "Anexo"}</p>
+                                      <p className="text-[9px] text-blue-600 uppercase font-bold tracking-wider">Arquivo anexado</p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="font-bold text-blue-900">{item.metadata?.file_name}</p>
-                                    <p className="text-[10px] text-blue-600 uppercase font-bold tracking-wider">Clique para visualizar</p>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2">
-                                  <Button size="icon" variant="outline" className="size-8" asChild title="Visualizar anexo">
-                                    <a href={item.file_url} target="_blank" rel="noreferrer"><ExternalLink className="size-4" /></a>
+                                  <Button size="icon" variant="outline" className="size-8 shrink-0 hover:bg-blue-500 hover:text-white transition-colors" asChild>
+                                    <a href={item.file_url} target="_blank" rel="noopener noreferrer">
+                                      <ExternalLink className="size-4" />
+                                    </a>
                                   </Button>
                                 </div>
                               </div>
                             ) : (
-                              <div className="space-y-3">
-                                <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
-                                {item.file_url && (
-                                  <div className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-border/50">
-                                    <FileText className="size-4 text-primary" />
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-medium truncate">{item.metadata?.file_name || "Anexo"}</p>
-                                    </div>
-                                    <Button size="icon" variant="ghost" className="size-7" asChild>
-                                      <a href={item.file_url} target="_blank" rel="noreferrer"><ExternalLink className="size-3.5" /></a>
-                                    </Button>
-                                  </div>
-                                )}
-                              </div>
+                              <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
                             )}
                           </div>
                         </div>
@@ -733,47 +698,66 @@ export function JobSheet({
                 </div>
               </ScrollArea>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (comment.trim()) {
-                    commentMut.mutate({ content: comment.trim() });
-                  }
-                }}
-                className="relative mt-4"
-              >
-                <div className="flex flex-col gap-2 p-3 bg-muted/5 border border-border rounded-2xl">
-                  <Textarea
-                    rows={3}
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        if (comment.trim() && !commentMut.isPending) {
-                          commentMut.mutate({ content: comment.trim() });
+              <div className="relative mt-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (comment.trim()) {
+                      commentMut.mutate({ content: comment.trim() });
+                    }
+                  }}
+                >
+                  <div className="flex flex-col gap-2 p-3 bg-muted/5 border border-border rounded-2xl group focus-within:border-primary/50 transition-colors">
+                    <Textarea
+                      rows={3}
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          if (comment.trim() && !commentMut.isPending) {
+                            commentMut.mutate({ content: comment.trim() });
+                          }
                         }
-                      }
-                    }}
-                    placeholder="Escreva sua mensagem... use @nome para mencionar membros da equipe"
-                    className="resize-none border-none bg-transparent focus-visible:ring-0 p-0 text-sm min-h-[80px]"
-                  />
-                  <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/50">
-                    <span className="text-[10px] text-foreground/40 italic">
-                      Pressione Enter para enviar, Shift+Enter para nova linha
-                    </span>
-                    <Button 
-                      type="submit" 
-                      size="sm" 
-                      className="gap-2 px-4 rounded-xl shadow-lg shadow-primary/20"
-                      disabled={!comment.trim() || commentMut.isPending}
-                    >
-                      {commentMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-                      Enviar
-                    </Button>
+                      }}
+                      placeholder="Escreva sua mensagem..."
+                      className="resize-none border-none bg-transparent focus-visible:ring-0 p-0 text-sm min-h-[80px]"
+                    />
+                    <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/50">
+                      <div className="flex items-center gap-1">
+                        <Button 
+                          type="button" 
+                          variant="ghost" 
+                          size="icon" 
+                          className="size-8 text-foreground/40 hover:text-primary hover:bg-primary/10"
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                        >
+                          {isUploading ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
+                        </Button>
+                        <span className="text-[10px] text-foreground/30 italic hidden sm:inline">
+                          Shift+Enter para nova linha
+                        </span>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        size="sm" 
+                        className="gap-2 px-4 rounded-xl shadow-lg shadow-primary/20"
+                        disabled={!comment.trim() || commentMut.isPending}
+                      >
+                        {commentMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
+                        Enviar
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </form>
+                </form>
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  ref={fileInputRef} 
+                  onChange={handleFileUpload}
+                />
+              </div>
             </TabsContent>
 
             <TabsContent value="history" className="animate-in fade-in slide-in-from-bottom-2">
