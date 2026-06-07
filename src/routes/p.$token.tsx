@@ -179,7 +179,7 @@ function PublicProposalView() {
     if (!data?.proposal || !data?.proposal.contract_content) return null;
     const { proposal, agency } = data;
     const rawContractContent = proposal.contract_content;
-    return replaceContractVariables(rawContractContent, {
+    return replaceContractVariables(rawContractContent as string, {
       client_name: proposal.client_name,
       client_legal_name: proposal.client_name,
       client_document: agency?.document || "",

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Calendar, Pencil, FileSignature, CheckCircle2, Clock, AlertCircle, LayoutDashboard, Kanban, FileText, History, DollarSign, Folder } from "lucide-react";
+import { ArrowLeft, Calendar, Pencil, FileSignature, CheckCircle2, Clock, AlertCircle, LayoutDashboard, Kanban, FileText, History, DollarSign, Folder, Loader2 } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProject, fetchClient, fetchJobs, fetchJobStages, fetchProjectStats } from "@/lib/ops-api";
