@@ -180,7 +180,7 @@ function FinanceiroPage() {
     overdueAmount: 0,
   } } = useQuery({
     queryKey: ["financial_indicators", period.from, period.to, txs.length, contracts.length],
-    queryFn: async () => computeIndicators(txs, contracts, period),
+    queryFn: () => computeIndicators(txs, contracts, period),
     placeholderData: (prev) => prev,
   });
   const consolidated = accounts.reduce((s, a) => s + accountBalance(a, txs), 0);

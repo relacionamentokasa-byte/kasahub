@@ -394,18 +394,13 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
   const from = opts.from ?? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const to = opts.to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-  // Performance: We skip the RPC here because we need it to be synchronous for current dashboard usage
-  // unless we refactor the callers to handle the promise. 
-  // For now, we'll keep the local calculation which is already optimized with filters.
-  const summaryData: any = null;
-
   const periodTx = txs.filter((t) => t.due_date >= from && t.due_date <= to);
-  const incomePaid = summaryData ? summaryData.receitas_recebidas : periodTx.filter((t) => t.kind === "income" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
-  const expensePaid = summaryData ? summaryData.despesas_pagas : periodTx.filter((t) => t.kind === "expense" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
-  const receivable = summaryData ? summaryData.receitas_previstas : periodTx.filter((t) => t.kind === "income" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
+  const incomePaid = periodTx.filter((t) => t.kind === "income" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
+  const expensePaid = periodTx.filter((t) => t.kind === "expense" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
+  const receivable = periodTx.filter((t) => t.kind === "income" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
   const payable = periodTx.filter((t) => t.kind === "expense" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
 
-  const parcelasFuturas = summaryData ? summaryData.parcelas_futuras : txs
+  const parcelasFuturas = txs
     .filter((t) => t.kind === "income" && t.status === "pending" && t.due_date > to)
     .reduce((s, t) => s + Number(t.amount), 0);
 

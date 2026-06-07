@@ -46,7 +46,7 @@ function RelatoriosPage() {
     mrr: 0,
   } } = useQuery({
     queryKey: ["financial_indicators", txs.length, contracts.length],
-    queryFn: async () => computeIndicators(txs, contracts),
+    queryFn: () => computeIndicators(txs, contracts),
   });
   const clientName = (id: string | null | undefined) => clients.find((c) => c.id === id)?.company || clients.find((c) => c.id === id)?.name || "—";
   const stageName = (id: string | null | undefined) => leadStages.find((s) => s.id === id)?.name || "—";
