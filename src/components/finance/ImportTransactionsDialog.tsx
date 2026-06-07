@@ -1,5 +1,4 @@
 import { useState } from "react";
-import * as XLSX from "xlsx";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -30,7 +29,7 @@ import { Upload, FileSpreadsheet } from "lucide-react";
 
 type Row = Record<string, string | number | undefined | null>;
 
-function parseDate(v: unknown): string | null {
+function parseDate(v: unknown, XLSX: any): string | null {
   if (!v) return null;
   if (typeof v === "number") {
     // Excel serial
@@ -97,6 +96,7 @@ export function ImportTransactionsDialog({
   const [defaultKind, setDefaultKind] = useState<"income" | "expense">("expense");
 
   const onFile = async (file: File) => {
+    const XLSX = await import("xlsx");
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, { type: "array" });
     const sheet = wb.Sheets[wb.SheetNames[0]];
@@ -131,6 +131,7 @@ export function ImportTransactionsDialog({
 
   const mut = useMutation({
     mutationFn: async () => {
+      const XLSX = await import("xlsx");
       if (!mapping.description || !mapping.amount || !mapping.due_date) {
         throw new Error("Mapeie ao menos Descrição, Valor e Vencimento");
       }
@@ -147,7 +148,7 @@ export function ImportTransactionsDialog({
           : defaultKind;
         const statusRaw = String(r[mapping.status] ?? "").toLowerCase();
         const status = statusRaw.startsWith("pag") || statusRaw === "paid" ? "paid" : "pending";
-        const due = parseDate(r[mapping.due_date]) ?? new Date().toISOString().slice(0, 10);
+        const due = parseDate(r[mapping.due_date], XLSX) ?? new Date().toISOString().slice(0, 10);
         const cName = String(r[mapping.client] ?? "").toLowerCase().trim();
         const catName = String(r[mapping.category] ?? "").toLowerCase().trim();
         const accName = String(r[mapping.account] ?? "").toLowerCase().trim();
