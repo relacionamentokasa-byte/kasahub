@@ -1251,6 +1251,7 @@ export type Database = {
         Row: {
           approval_token: string | null
           assignee_id: string | null
+          attachments: Json | null
           briefing_guidelines: string | null
           briefing_links: string[] | null
           briefing_notes: string | null
@@ -1273,18 +1274,23 @@ export type Database = {
           labels: Json
           last_activity_at: string | null
           last_feedback: string | null
+          main_responsible_id: string | null
+          operational_template_id: string | null
           order_index: number
           period: string | null
           priority: string
+          progress_percentage: number | null
           project_id: string | null
           stage_id: string | null
           status: string | null
+          team_involved: Json | null
           title: string
           updated_at: string
         }
         Insert: {
           approval_token?: string | null
           assignee_id?: string | null
+          attachments?: Json | null
           briefing_guidelines?: string | null
           briefing_links?: string[] | null
           briefing_notes?: string | null
@@ -1307,18 +1313,23 @@ export type Database = {
           labels?: Json
           last_activity_at?: string | null
           last_feedback?: string | null
+          main_responsible_id?: string | null
+          operational_template_id?: string | null
           order_index?: number
           period?: string | null
           priority?: string
+          progress_percentage?: number | null
           project_id?: string | null
           stage_id?: string | null
           status?: string | null
+          team_involved?: Json | null
           title: string
           updated_at?: string
         }
         Update: {
           approval_token?: string | null
           assignee_id?: string | null
+          attachments?: Json | null
           briefing_guidelines?: string | null
           briefing_links?: string[] | null
           briefing_notes?: string | null
@@ -1341,12 +1352,16 @@ export type Database = {
           labels?: Json
           last_activity_at?: string | null
           last_feedback?: string | null
+          main_responsible_id?: string | null
+          operational_template_id?: string | null
           order_index?: number
           period?: string | null
           priority?: string
+          progress_percentage?: number | null
           project_id?: string | null
           stage_id?: string | null
           status?: string | null
+          team_involved?: Json | null
           title?: string
           updated_at?: string
         }
@@ -1377,6 +1392,13 @@ export type Database = {
             columns: ["freelancer_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_operational_template_id_fkey"
+            columns: ["operational_template_id"]
+            isOneToOne: false
+            referencedRelation: "operational_templates"
             referencedColumns: ["id"]
           },
           {
@@ -1857,6 +1879,33 @@ export type Database = {
           name?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      operational_templates: {
+        Row: {
+          created_at: string | null
+          default_steps: Json | null
+          description: string | null
+          id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          default_steps?: Json | null
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          default_steps?: Json | null
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2622,7 +2671,6 @@ export type Database = {
           id: string
           is_active: boolean
           name: string
-          operational_flow_id: string | null
           order_index: number
           updated_at: string
         }
@@ -2636,7 +2684,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           name: string
-          operational_flow_id?: string | null
           order_index?: number
           updated_at?: string
         }
@@ -2650,7 +2697,6 @@ export type Database = {
           id?: string
           is_active?: boolean
           name?: string
-          operational_flow_id?: string | null
           order_index?: number
           updated_at?: string
         }
@@ -2660,13 +2706,6 @@ export type Database = {
             columns: ["contract_template_id"]
             isOneToOne: false
             referencedRelation: "contract_templates"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "services_operational_flow_id_fkey"
-            columns: ["operational_flow_id"]
-            isOneToOne: false
-            referencedRelation: "operational_flows"
             referencedColumns: ["id"]
           },
         ]
