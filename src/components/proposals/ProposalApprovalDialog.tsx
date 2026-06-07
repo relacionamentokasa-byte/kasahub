@@ -56,9 +56,10 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const approveMut = useMutation({
     mutationFn: async () => {
       if (!proposalId) throw new Error("Proposta inválida");
-      if (!proposal?.signature_client && signature.trim().length < 2) {
-        throw new Error("Esta proposta não pode ser aprovada sem a assinatura do cliente.");
+      if (!proposal?.signature_client) {
+        throw new Error("Assinatura do cliente obrigatória.");
       }
+
       
       const { data: { user } } = await supabase.auth.getUser();
 
