@@ -447,6 +447,15 @@ export function JobSheet({
     onError: (e: Error) => toast.error(e.message)
   });
 
+  const deleteCommentMut = useMutation({
+    mutationFn: (id: string) => deleteJobComment(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
+      toast.success("Comentário excluído");
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
   const communicationTimeline = useMemo(() => {
 
     if (!job) return [];
