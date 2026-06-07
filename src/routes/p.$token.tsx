@@ -629,37 +629,58 @@ function PublicProposalView() {
           </div>
 
           {accepted ? (
-            <div className="grid sm:grid-cols-2 gap-8 mt-4">
-              <div className="rounded-3xl border border-slate-200 p-8 bg-slate-50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <CheckCircle2 className="size-16 text-[#0C1618]" />
+            <div className="space-y-8">
+              <div className="grid sm:grid-cols-2 gap-8">
+                <div className="rounded-3xl border border-slate-200 p-8 bg-slate-50 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <CheckCircle2 className="size-16 text-[#0C1618]" />
+                  </div>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-6">Contratada (Agência)</p>
+                  <p className="text-lg font-bold text-[#0C1618]">{agency?.name}</p>
+                  <div className="mt-6 pt-6 border-t border-slate-200 text-[#0C1618] text-sm min-h-[80px] flex items-center justify-center">
+                    {agency?.agency_signature_url ? (
+                      <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-24 object-contain" />
+                    ) : (
+                      <span className="italic font-medium opacity-50">Assinado eletronicamente</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-4 font-medium">
+                    Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
+                  </p>
                 </div>
-                <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-6">Contratada (Agência)</p>
-                <p className="text-lg font-bold text-[#0C1618]">{agency?.name}</p>
-                <div className="mt-6 pt-6 border-t border-slate-200 text-[#0C1618] text-sm min-h-[80px] flex items-center justify-center">
-                  {agency?.agency_signature_url ? (
-                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-20 object-contain" />
-                  ) : (
-                    <span className="italic font-medium opacity-50">Assinado eletronicamente</span>
-                  )}
+
+                <div className="rounded-3xl border border-green-200 p-8 bg-green-50/50 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <CheckCircle2 className="size-16 text-green-600" />
+                  </div>
+                  <p className="text-[10px] uppercase tracking-widest font-bold text-green-600/60 mb-6">Contratante (Cliente)</p>
+                  <p className="text-lg font-bold text-[#0C1618]">{proposal.accepted_name}</p>
+                  <div className="mt-6 pt-6 border-t border-green-200 flex items-center justify-center min-h-[80px]">
+                    {proposal.client_signature_data ? (
+                      <img src={proposal.client_signature_data} alt="Assinatura Cliente" className="max-h-24 object-contain grayscale brightness-50 contrast-125" />
+                    ) : (
+                      <span className="italic font-medium text-green-700 text-lg">{proposal.signature_client || proposal.accepted_name}</span>
+                    )}
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-green-100 text-[10px] text-green-600/80 space-y-1">
+                    <p><strong>CPF:</strong> {proposal.client_cpf}</p>
+                    <p><strong>Cargo:</strong> {proposal.client_role}</p>
+                    <p><strong>E-mail:</strong> {proposal.client_signed_email}</p>
+                    <p className="mt-2 opacity-60">Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}</p>
+                  </div>
                 </div>
-                <p className="text-[10px] text-slate-400 mt-4 font-medium">
-                  Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
-                </p>
               </div>
 
-              <div className="rounded-3xl border border-green-200 p-8 bg-green-50/50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10">
-                  <CheckCircle2 className="size-16 text-green-600" />
+              {/* Audit Trail */}
+              <div className="rounded-2xl border border-slate-100 p-6 bg-slate-50/30 text-[10px] text-slate-400 font-mono">
+                <p className="uppercase font-bold mb-2 tracking-widest text-slate-500">Log de Auditoria</p>
+                <div className="space-y-1">
+                  <p>ID: {proposal.id}</p>
+                  <p>Status: Assinatura realizada</p>
+                  <p>IP: {proposal.accepted_ip || '—'}</p>
+                  <p>Browser: {proposal.accepted_user_agent || '—'}</p>
+                  <p>Timestamp: {proposal.accepted_at}</p>
                 </div>
-                <p className="text-[10px] uppercase tracking-widest font-bold text-green-600/60 mb-6">Contratante (Cliente)</p>
-                <p className="text-lg font-bold text-[#0C1618]">{proposal.accepted_name}</p>
-                <div className="mt-6 pt-6 border-t border-green-200 italic font-medium text-green-700 text-lg text-center flex items-center justify-center min-h-[80px]">
-                  {proposal.signature_client || proposal.accepted_name}
-                </div>
-                <p className="text-[10px] text-green-600/60 mt-4 font-medium">
-                  Assinado em {proposal.accepted_at && new Date(proposal.accepted_at).toLocaleString("pt-BR")}
-                </p>
               </div>
             </div>
           ) : (
@@ -669,65 +690,120 @@ function PublicProposalView() {
                 <p className="text-lg font-bold text-[#0C1618]">{agency?.name}</p>
                 <div className="mt-6 pt-6 border-t border-slate-200 min-h-[80px] flex items-center justify-center">
                   {agency?.agency_signature_url ? (
-                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-20 object-contain" />
+                    <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-24 object-contain" />
                   ) : (
                     <span className="italic text-slate-400 text-xs font-medium">Assinatura digital pendente</span>
                   )}
                 </div>
               </div>
 
-              <div className="no-print rounded-[2rem] border border-slate-200 p-8 bg-white shadow-lg shadow-slate-100">
-                <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-6">Contratante (Cliente)</p>
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 mb-2 block uppercase tracking-wider">Nome completo *</label>
+              <div className="no-print rounded-[2.5rem] border border-slate-200 p-10 bg-white shadow-2xl shadow-slate-200/40">
+                <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 mb-8 border-b border-slate-100 pb-4">Assinatura do Contratante (Cliente)</p>
+                
+                <div className="grid sm:grid-cols-2 gap-8 mb-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Nome completo *</label>
                     <Input
                       value={signerName}
                       onChange={(e) => setSignerName(e.target.value)}
-                      placeholder="Seu nome completo"
-                      maxLength={200}
-                      className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl transition-all"
+                      placeholder="Nome completo do assinante"
+                      className="h-12 bg-slate-50 border-slate-100 focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl"
                     />
                   </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 mb-2 block uppercase tracking-wider">CPF *</label>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">CPF *</label>
                     <Input
                       value={signerCpf}
                       onChange={(e) => setSignerCpf(e.target.value)}
                       placeholder="000.000.000-00"
-                      maxLength={20}
-                      className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl transition-all"
+                      className="h-12 bg-slate-50 border-slate-100 focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Cargo / Função *</label>
+                    <Input
+                      value={signerRole}
+                      onChange={(e) => setSignerRole(e.target.value)}
+                      placeholder="Ex: Diretor, Proprietário..."
+                      className="h-12 bg-slate-50 border-slate-100 focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">E-mail *</label>
+                    <Input
+                      value={signerEmail}
+                      onChange={(e) => setSignerEmail(e.target.value)}
+                      placeholder="email@empresa.com.br"
+                      className="h-12 bg-slate-50 border-slate-100 focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl"
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600 mt-6 mb-2 block uppercase tracking-wider">Assinatura digital</label>
-                  <div
-                    className="mt-1.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-4 min-h-[70px] flex items-center italic font-medium text-[#0C1618] text-xl text-center justify-center"
-                  >
-                    {signerName || <span className="text-slate-400 not-italic text-xs font-normal">Sua assinatura aparecerá aqui ao digitar seu nome</span>}
+
+                <div className="mb-8">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Assinatura Digital (Desenhe abaixo) *</label>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => sigPad.current?.clear()}
+                      className="h-7 text-[10px] text-slate-400 hover:text-red-500 gap-1"
+                    >
+                      <Eraser className="size-3" /> Limpar
+                    </Button>
+                  </div>
+                  <div className="rounded-2xl border-2 border-dashed border-slate-100 bg-slate-50/50 overflow-hidden relative group">
+                    <SignatureCanvas 
+                      ref={sigPad}
+                      penColor='#0C1618'
+                      canvasProps={{
+                        className: 'signature-canvas w-full min-h-[160px] cursor-crosshair'
+                      }}
+                    />
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center opacity-0 group-hover:opacity-10 transition-opacity">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-900">Desenhe aqui</p>
+                    </div>
                   </div>
                 </div>
-                <label className="mt-6 flex items-center gap-3 text-xs text-slate-600 cursor-pointer bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-[#FFBC45]/30 transition-all">
-                  <Checkbox
-                    checked={acceptTerms}
-                    onCheckedChange={(v) => setAcceptTerms(v === true)}
-                    className="size-5 rounded-md border-slate-300 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
-                  />
-                  <span className="font-medium">Li e concordo integralmente com os termos desta proposta e contrato.</span>
-                </label>
+
+                <div className="space-y-4 mb-10">
+                  <label className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/50 border border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                    <Checkbox
+                      checked={acceptTerms}
+                      onCheckedChange={(v) => setAcceptTerms(v === true)}
+                      className="mt-0.5 size-5 rounded-md border-slate-300 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                    />
+                    <span className="text-xs font-medium text-slate-600 leading-relaxed">
+                      Declaro que li e concordo integralmente com os termos desta proposta e contrato.
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-4 p-4 rounded-2xl bg-slate-50/50 border border-slate-100 cursor-pointer hover:bg-slate-50 transition-colors">
+                    <Checkbox
+                      checked={acceptRepresentation}
+                      onCheckedChange={(v) => setAcceptRepresentation(v === true)}
+                      className="mt-0.5 size-5 rounded-md border-slate-300 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
+                    />
+                    <span className="text-xs font-medium text-slate-600 leading-relaxed">
+                      Declaro possuir poderes legais para representar esta empresa e firmar este aceite digital.
+                    </span>
+                  </label>
+                </div>
+
                 <Button
                   onClick={sign}
                   disabled={signing}
-                  className="mt-8 h-14 w-full gap-3 text-[#0C1618] bg-[#FFBC45] hover:bg-[#ffc864] font-bold text-sm uppercase tracking-widest rounded-xl shadow-lg shadow-[#FFBC45]/20 transition-all"
+                  className="h-16 w-full gap-4 text-[#0C1618] bg-[#FFBC45] hover:bg-[#ffc864] font-bold text-sm uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-[#FFBC45]/20 transition-all active:scale-[0.98]"
                 >
                   {signing ? (
                     <Loader2 className="size-5 animate-spin" />
                   ) : (
                     <FileSignature className="size-5" />
                   )}
-                  Aprovar e Assinar Proposta
+                  Aprovar e Assinar
                 </Button>
+                <p className="text-center text-[10px] text-slate-400 mt-6 font-medium">
+                  Sua assinatura será registrada com IP, Timestamp e Metadados para validade jurídica.
+                </p>
               </div>
             </div>
           )}
