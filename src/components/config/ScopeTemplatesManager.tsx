@@ -149,12 +149,10 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
               />
             </div>
             <div>
-              <label className="text-xs text-muted-foreground">Conteúdo (Markdown)</label>
-              <Textarea
+              <label className="text-xs text-muted-foreground">Conteúdo</label>
+              <ScopeEditor 
                 value={form.content}
-                onChange={(e) => setForm({ ...form, content: e.target.value })}
-                rows={14}
-                className="font-mono text-sm"
+                onChange={(content) => setForm({ ...form, content })}
               />
             </div>
           </div>
