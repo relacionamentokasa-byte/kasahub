@@ -169,6 +169,7 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
                 <SelectItem value="projects_finished">Projetos Finalizados (Projetos)</SelectItem>
                 <SelectItem value="clients_active">Clientes Ativos (Base)</SelectItem>
                 <SelectItem value="clients_new">Novos Clientes (Novos Cadastros)</SelectItem>
+                <SelectItem value="revenue_monthly">Faturamento Mensal (Transações Pagas)</SelectItem>
                 <SelectItem value="revenue_yearly">Faturamento Anual (Transações Pagas)</SelectItem>
               </SelectContent>
             </Select>
