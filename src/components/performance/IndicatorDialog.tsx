@@ -1,13 +1,17 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { 
   createIndicator, 
   updateIndicator, 
+  fetchIndicatorTargets,
+  saveIndicatorTarget,
+  deleteIndicatorTarget,
   type AgencyIndicator,
   type IndicatorCategory,
   type IndicatorType,
   type IndicatorPeriodicity,
-  type IndicatorDataSource
+  type IndicatorDataSource,
+  type AgencyIndicatorTarget
 } from "@/lib/performance-api";
 import {
   Dialog,
@@ -42,18 +46,72 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
     status: "active"
   });
 
+  const [targets, setTargets] = useState<{month: number, value: number}[]>(
+    Array.from({ length: 12 }, (_, i) => ({ month: i + 1, value: 0 }))
+  );
+
+  const { data: existingTargets } = useQuery({
+    queryKey: ["indicator-targets", indicator?.id],
+    queryFn: () => fetchIndicatorTargets(indicator!.id),
+    enabled: !!indicator?.id
+  });
+
+  useEffect(() => {
+    if (existingTargets && existingTargets.length > 0) {
+      const currentYear = new Date().getFullYear();
+      const yearTargets = existingTargets.filter(t => t.year === currentYear);
+      
+      if (yearTargets.length > 0) {
+        const newTargets = [...targets];
+        yearTargets.forEach(t => {
+          if (t.month) {
+            newTargets[t.month - 1].value = Number(t.target_value);
+          }
+        });
+        setTargets(newTargets);
+      }
+    }
+  }, [existingTargets]);
+
   const mut = useMutation({
-    mutationFn: (data: Partial<AgencyIndicator>) => {
-      if (indicator?.id) return updateIndicator(indicator.id, data);
-      return createIndicator(data);
+    mutationFn: async (data: Partial<AgencyIndicator>) => {
+      let savedIndicator: AgencyIndicator;
+      if (indicator?.id) {
+        savedIndicator = await updateIndicator(indicator.id, data);
+      } else {
+        savedIndicator = await createIndicator(data);
+      }
+
+      // Save monthly targets if periodicity is monthly
+      if (data.periodicity === 'monthly' || (!data.periodicity && form.periodicity === 'monthly')) {
+        const currentYear = new Date().getFullYear();
+        await Promise.all(targets.map(t => {
+          const existing = existingTargets?.find(et => et.month === t.month && et.year === currentYear);
+          return saveIndicatorTarget({
+            id: existing?.id,
+            indicator_id: savedIndicator.id,
+            year: currentYear,
+            month: t.month,
+            target_value: t.value
+          });
+        }));
+      }
+
+      return savedIndicator;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["agency-indicators"] });
+      qc.invalidateQueries({ queryKey: ["indicator-targets", indicator?.id] });
       toast.success(indicator ? "Meta atualizada" : "Meta criada");
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message)
   });
+
+  const months = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
 
   const handleSubmit = () => {
     if (!form.name || !form.target_value || !form.start_date) {
@@ -109,12 +167,13 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
           </div>
 
           <div className="space-y-1.5">
-            <Label>Valor da Meta</Label>
+            <Label>Valor da Meta (Padrão)</Label>
             <Input 
               type="number" 
               value={form.target_value} 
               onChange={e => setForm({...form, target_value: Number(e.target.value)})} 
               className="bg-background font-bold text-primary"
+              placeholder="Valor caso não haja meta mensal"
             />
           </div>
 
@@ -123,13 +182,47 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
             <Select value={form.periodicity} onValueChange={v => setForm({...form, periodicity: v as IndicatorPeriodicity})}>
               <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="monthly">Mensal</SelectItem>
+                <SelectItem value="monthly">Mensal (Metas por mês)</SelectItem>
                 <SelectItem value="quarterly">Trimestral</SelectItem>
                 <SelectItem value="semiannual">Semestral</SelectItem>
                 <SelectItem value="yearly">Anual</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {form.periodicity === 'monthly' && (
+            <div className="col-span-2 space-y-4 pt-4 border-t border-border">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-bold">Metas Mensais ({new Date().getFullYear()})</Label>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  type="button"
+                  className="h-7 text-[10px] uppercase font-bold"
+                  onClick={() => setTargets(targets.map(t => ({ ...t, value: form.target_value || 0 })))}
+                >
+                  Replicar Valor Padrão
+                </Button>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                {targets.map((t, i) => (
+                  <div key={t.month} className="space-y-1">
+                    <Label className="text-[10px] text-foreground/50 uppercase">{months[i]}</Label>
+                    <Input 
+                      type="number"
+                      value={t.value}
+                      onChange={e => {
+                        const newTargets = [...targets];
+                        newTargets[i].value = Number(e.target.value);
+                        setTargets(newTargets);
+                      }}
+                      className="h-8 text-xs bg-background"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-1.5">
             <Label>Data Inicial</Label>

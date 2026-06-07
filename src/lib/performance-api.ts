@@ -33,6 +33,16 @@ export interface AgencyIndicator {
   updated_at: string;
 }
 
+export interface AgencyIndicatorTarget {
+  id: string;
+  indicator_id: string;
+  year: number;
+  month: number | null;
+  target_value: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export async function fetchIndicators() {
   const { data, error } = await supabase
     .from("agency_indicators")
@@ -67,6 +77,43 @@ export async function updateIndicator(id: string, patch: Partial<AgencyIndicator
 
 export async function deleteIndicator(id: string) {
   const { error } = await supabase.from("agency_indicators").update({ status: "archived" } as any).eq("id", id);
+  if (error) throw error;
+}
+
+export async function fetchIndicatorTargets(indicatorId: string) {
+  const { data, error } = await supabase
+    .from("agency_indicator_targets")
+    .select("*")
+    .eq("indicator_id", indicatorId)
+    .order("year", { ascending: false })
+    .order("month", { ascending: false });
+  if (error) throw error;
+  return data as AgencyIndicatorTarget[];
+}
+
+export async function saveIndicatorTarget(input: Partial<AgencyIndicatorTarget>) {
+  if (input.id) {
+    const { data, error } = await supabase
+      .from("agency_indicator_targets")
+      .update(input as any)
+      .eq("id", input.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AgencyIndicatorTarget;
+  } else {
+    const { data, error } = await supabase
+      .from("agency_indicator_targets")
+      .insert(input as any)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AgencyIndicatorTarget;
+  }
+}
+
+export async function deleteIndicatorTarget(id: string) {
+  const { error } = await supabase.from("agency_indicator_targets").delete().eq("id", id);
   if (error) throw error;
 }
 
