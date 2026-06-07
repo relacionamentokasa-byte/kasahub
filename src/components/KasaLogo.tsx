@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchAgencySettings } from "@/lib/settings-api";
+import { cn } from "@/lib/utils";
 
 interface KasaLogoProps {
   collapsed?: boolean;
@@ -59,5 +60,3 @@ export function KasaLogo({
     </div>
   );
 }
-
-import { cn } from "@/lib/utils";
