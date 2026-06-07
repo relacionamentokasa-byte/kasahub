@@ -283,67 +283,108 @@ function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClic
   );
 }
 
-function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: any[]; dragging?: boolean }) {
+  const progress = (job as any).progress_percentage || 0;
+  const mainRespId = (job as any).main_responsible_id || job.assignee_id;
+  const mainResp = profiles.find(p => p.id === mainRespId);
+  const teamInvolved = (job as any).team_involved || [];
+
   return (
     <div
       className={`bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition ${
         dragging ? "shadow-2xl rotate-1" : ""
       }`}
     >
-      <div className="flex items-start gap-2">
-        <span
-          className="size-1.5 rounded-full mt-1.5 shrink-0"
-          style={{ background: priorityColor(job.priority) }}
-          title={priorityLabel(job.priority)}
-        />
-        <div className="min-w-0 flex-1 pr-6">
-          <div className="font-semibold text-sm leading-snug">{job.title}</div>
-          <div className="mt-0.5">
-            <span className="text-[9px] font-bold uppercase tracking-widest text-primary/70">
-              {getJobTypeLabel((job as any).job_type)}
-            </span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-start gap-2 min-w-0 flex-1">
+            <span
+              className="size-1.5 rounded-full mt-1.5 shrink-0"
+              style={{ background: priorityColor(job.priority) }}
+            />
+            <div className="min-w-0">
+              <div className="font-semibold text-sm leading-snug truncate">{job.title}</div>
+              <div className="text-[9px] text-foreground/40 mt-0.5 flex items-center gap-2">
+                <span className="font-bold uppercase tracking-widest text-primary/70">
+                  {getJobTypeLabel((job as any).job_type)}
+                </span>
+                {job.project_id && (
+                  <>
+                    <span>•</span>
+                    <span className="truncate">Projeto #{(job as any).project_id.slice(0, 4)}</span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between mt-2">
-            {job.due_date && (
-              <div className={cn(
-                "text-[10px] capitalize font-bold",
-                new Date(job.due_date) < new Date() && !job.done_at ? "text-rose-500 animate-pulse" : "text-foreground/40"
-              )}>
-                {format(new Date(job.due_date), "dd MMM")}
+        {/* Progress Section */}
+        <div className="space-y-1">
+          <div className="flex justify-between text-[9px] font-mono-kasa text-foreground/50">
+            <span>Progresso</span>
+            <span>{progress}%</span>
+          </div>
+          <Progress value={progress} className="h-1" />
+        </div>
+
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center gap-1.5">
+            {/* Responsável Principal */}
+            {mainResp && (
+              <div 
+                className="size-6 rounded-full bg-primary/10 border border-primary/20 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-surface"
+                title={`Responsável: ${mainResp.display_name || mainResp.full_name}`}
+              >
+                {mainResp.avatar_url ? (
+                  <img src={mainResp.avatar_url} alt="" className="size-full object-cover" />
+                ) : (
+                  <span className="text-[8px] font-bold text-primary">
+                    {(mainResp.display_name || mainResp.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  </span>
+                )}
               </div>
             )}
-            {(() => {
-              const respId = (job as any).responsible_id || job.assignee_id;
-              if (!respId) return null;
-              const profile = profiles.find(p => p.id === respId);
-              if (!profile) return null;
-              const name = profile.display_name || profile.full_name || "Membro";
-              return (
-                <div 
-                  className="size-5 rounded-full bg-primary/10 border border-border/40 overflow-hidden flex items-center justify-center shrink-0"
-                  title={`Responsável: ${name}`}
-                >
-                  {profile.avatar_url ? (
-                    <img src={profile.avatar_url} alt="" className="size-full object-cover" />
-                  ) : (
-                    <span className="text-[8px] font-bold text-primary">
-                      {name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                    </span>
-                  )}
-                </div>
-              );
-            })()}
-            {/* Status Indicator */}
-            <div 
-              className="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider flex items-center gap-1"
-              style={ (job as any).status ? { backgroundColor: `${JOB_STATUS_LABELS[(job as any).status]?.color}15`, color: JOB_STATUS_LABELS[(job as any).status]?.color } : {} }
-            >
-              {(job as any).last_activity_at && differenceInDays(new Date(), new Date((job as any).last_activity_at)) >= 5 && !job.done_at && (
-                <AlertTriangle className="size-2 text-amber-500 animate-bounce" />
-              )}
-              { (job as any).status ? JOB_STATUS_LABELS[(job as any).status]?.label : 'Pendentes' }
-            </div>
+            
+            {/* Equipe Envolvida */}
+            {teamInvolved.length > 0 && (
+              <div className="flex -space-x-2">
+                {teamInvolved.slice(0, 2).map((member: any, idx: number) => {
+                  const p = profiles.find(pr => pr.id === member.user_id);
+                  if (!p) return null;
+                  return (
+                    <div 
+                      key={idx}
+                      className="size-5 rounded-full bg-surface-elevated border border-border overflow-hidden flex items-center justify-center shrink-0"
+                      title={`${p.display_name || p.full_name} (${member.role || 'Membro'})`}
+                    >
+                      {p.avatar_url ? (
+                        <img src={p.avatar_url} alt="" className="size-full object-cover" />
+                      ) : (
+                        <span className="text-[7px] font-bold text-foreground/50">
+                          {(p.display_name || p.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+                {teamInvolved.length > 2 && (
+                  <div className="size-5 rounded-full bg-muted border border-border flex items-center justify-center shrink-0 text-[7px] font-bold text-foreground/40">
+                    +{teamInvolved.length - 2}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {job.due_date && (
+              <div className={cn(
+                "text-[9px] font-bold px-1.5 py-0.5 rounded bg-muted/30",
+                new Date(job.due_date) < new Date() && !job.done_at ? "text-rose-500 bg-rose-500/10" : "text-foreground/40"
+              )}>
+                {format(new Date(job.due_date), "dd/MM")}
+              </div>
+            )}
           </div>
         </div>
       </div>
