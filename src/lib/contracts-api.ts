@@ -60,6 +60,7 @@ export function replaceContractVariables(
     client_phone?: string;
     services_list?: string;
     monthly_value?: string;
+    setup_value?: string;
     total_value?: string;
     payment_method?: string;
     contract_term?: string;
