@@ -639,7 +639,7 @@ function FinanceiroPage() {
                     return (
                       <div key={t.id} className="group hover:bg-foreground/[0.02] transition-colors">
                         {/* Desktop Row */}
-                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(150px,1fr)_140px_160px_130px_145px_100px_90px] px-3 py-3 items-center gap-3">
+                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1.2fr)_140px_180px_130px_145px_90px] px-3 py-3 items-center gap-3">
                           <div className="flex items-center justify-center">
                             <Checkbox 
                               checked={selectedIds.includes(t.id)} 
