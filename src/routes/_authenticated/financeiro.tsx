@@ -389,107 +389,207 @@ function FinanceiroPage() {
 
             <div className="bg-surface border border-border rounded-2xl overflow-hidden">
               <div className="px-5 py-3 border-b border-border font-display font-semibold">Lançamentos de {monthLabelShort}</div>
-              <div className="grid grid-cols-12 px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center">
-                <div className="col-span-1 flex items-center gap-3">
-                  <Checkbox checked={rows.length > 0 && selectedIds.length === rows.length} onCheckedChange={(checked) => setSelectedIds(checked ? rows.map(r => r.id) : [])} />
-                  <span>Status</span>
+              
+              {/* Desktop Header */}
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(350px,1fr)_180px_200px_150px_150px_120px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
+                <div className="flex items-center justify-center">
+                  <Checkbox 
+                    checked={rows.length > 0 && selectedIds.length === rows.length} 
+                    onCheckedChange={(checked) => setSelectedIds(checked ? rows.map(r => r.id) : [])} 
+                  />
                 </div>
-                <div className="col-span-3">Descrição / Origem</div>
-                <div className="col-span-2">Categoria</div>
-                <div className="col-span-2">Cliente</div>
-                <div className="col-span-1 text-right">Valor</div>
-                <div className="col-span-1">Vencimento</div>
-                <div className="col-span-2 text-right">Ações</div>
+                <div>Status</div>
+                <div>Descrição / Origem</div>
+                <div>Categoria</div>
+                <div>Cliente</div>
+                <div className="text-right">Valor</div>
+                <div className="text-center">Vencimento</div>
+                <div className="text-right">Ações</div>
               </div>
+
               {rows.length === 0 ? (
                 <div className="p-12 text-center text-foreground/50 text-sm">Nenhum lançamento neste mês</div>
               ) : (
-                rows.map((t) => {
-                  const todayStr = new Date().toISOString().slice(0, 10);
-                  const overdue = t.status === "pending" && t.due_date < todayStr;
-                  const origin = t.contract_id
-                    ? { label: "Contrato", tone: "text-primary border-primary/40" }
-                    : t.installment_total && t.installment_total > 1
-                    ? { label: `Parcela ${t.installment_number}/${t.installment_total}`, tone: "text-blue-300 border-blue-500/40" }
-                    : t.proposal_id
-                    ? { label: "Proposta", tone: "text-purple-300 border-purple-500/40" }
-                    : { label: "Manual", tone: "text-foreground/40 border-border" };
-                  return (
-                    <div key={t.id} className="grid grid-cols-12 px-5 py-3 items-center border-b border-border/40 last:border-b-0 hover:bg-foreground/[0.02] group">
-                      <div className="col-span-1 flex items-center gap-3">
-                        <Checkbox checked={selectedIds.includes(t.id)} onCheckedChange={(checked) => setSelectedIds(prev => checked ? [...prev, t.id] : prev.filter(id => id !== t.id))} />
-                        {t.status === "paid" ? (
-                          <CheckCircle2 className="size-5 text-emerald-400" />
-                        ) : (
-                          <Circle className={`size-5 ${overdue ? "text-rose-400" : "text-foreground/30"}`} />
-                        )}
-                      </div>
-                      <div className="col-span-3 min-w-0">
-                        <div className="text-sm font-medium truncate flex items-center gap-2">
-                          {t.description}
-                          {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40" />}
-                        </div>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          <Badge variant="outline" className={`text-[9px] ${origin.tone}`}>{origin.label}</Badge>
-                          {t.origin_type && <Badge variant="outline" className="text-[9px] text-foreground/40 border-border capitalize">{t.origin_type}</Badge>}
-                        </div>
-                      </div>
-                      <div className="col-span-2 text-xs text-foreground/60 truncate">{catName(t.category_id)}</div>
-                      <div className="col-span-2 text-xs text-foreground/60 truncate">
-                        {t.client_id ? (
-                          <Link to="/clientes/$clientId" params={{ clientId: t.client_id }} className="hover:text-primary">{clientName(t.client_id)}</Link>
-                        ) : "—"}
-                      </div>
-                      <div className={`col-span-1 text-right font-display font-semibold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                        {t.kind === "income" ? "+" : "−"} {brl(Number(t.amount))}
-                      </div>
-                      <div className="col-span-1 text-xs text-foreground/60">
-                        <input 
-                          type="date" 
-                          value={t.due_date} 
-                          onChange={(e) => {
-                            const newDate = e.target.value;
-                            if (t.contract_id) {
-                              const cascade = window.confirm("Deseja aplicar esta alteração de data também aos próximos vencimentos deste contrato?");
-                              updateTx.mutate({ id: t.id, patch: { due_date: newDate }, cascade });
-                            } else {
-                              updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
-                            }
-                          }}
-                          className="bg-transparent border-none focus:ring-1 focus:ring-primary rounded p-0.5 text-xs w-full"
-                        />
-                        {overdue && <div className="text-[10px] text-rose-400">Em atraso</div>}
-                      </div>
-                      <div className="col-span-2 flex items-center justify-end gap-2">
-                        {t.status !== "paid" && (
-                          <Button size="sm" onClick={() => setSettleTx(t)} className="h-8 rounded-full bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/40 text-xs px-3">Dar baixa</Button>
-                        )}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-8 rounded-full"><MoreHorizontal className="size-4" /></Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-56">
-                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
-                            {t.status === "paid" && (
-                              <DropdownMenuItem onClick={() => togglePaid.mutate({ id: t.id, paid: false })}><Clock className="size-4 mr-2" /> Reverter baixa</DropdownMenuItem>
+                <div className="divide-y divide-border/40">
+                  {rows.map((t) => {
+                    const todayStr = new Date().toISOString().slice(0, 10);
+                    const overdue = t.status === "pending" && t.due_date < todayStr;
+                    const origin = t.contract_id
+                      ? { label: "Contrato", tone: "text-primary border-primary/40" }
+                      : t.installment_total && t.installment_total > 1
+                      ? { label: `Parcela ${t.installment_number}/${t.installment_total}`, tone: "text-blue-300 border-blue-500/40" }
+                      : t.proposal_id
+                      ? { label: "Proposta", tone: "text-purple-300 border-purple-500/40" }
+                      : { label: "Manual", tone: "text-foreground/40 border-border" };
+
+                    return (
+                      <div key={t.id} className="group hover:bg-foreground/[0.02] transition-colors">
+                        {/* Desktop Row */}
+                        <div className="hidden lg:grid grid-cols-[40px_100px_minmax(350px,1fr)_180px_200px_150px_150px_120px] px-5 py-4 items-center gap-4">
+                          <div className="flex items-center justify-center">
+                            <Checkbox 
+                              checked={selectedIds.includes(t.id)} 
+                              onCheckedChange={(checked) => setSelectedIds(prev => checked ? [...prev, t.id] : prev.filter(id => id !== t.id))} 
+                            />
+                          </div>
+                          
+                          <div>
+                            {t.status === "paid" ? (
+                              <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 gap-1.5 px-2 py-0.5">
+                                <CheckCircle2 className="size-3" /> Pago
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className={`${overdue ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-foreground/5 text-foreground/50 border-border"} gap-1.5 px-2 py-0.5`}>
+                                <Circle className="size-3" /> {overdue ? "Atrasado" : "Pendente"}
+                              </Badge>
                             )}
-                            {t.contract_id && (
-                              <>
+                          </div>
+
+                          <div className="min-w-0">
+                            <div className="text-sm font-medium flex items-center gap-2">
+                              <span className="truncate" title={t.description}>{t.description}</span>
+                              {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40 shrink-0" />}
+                            </div>
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
+                              {t.origin_type && <Badge variant="outline" className="text-[9px] uppercase tracking-wider h-4 px-1.5 text-foreground/40 border-border">{t.origin_type}</Badge>}
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-foreground/60 truncate" title={catName(t.category_id)}>
+                            {catName(t.category_id)}
+                          </div>
+
+                          <div className="text-xs text-foreground/60 truncate">
+                            {t.client_id ? (
+                              <Link to="/clientes/$clientId" params={{ clientId: t.client_id }} className="hover:text-primary transition-colors truncate block" title={clientName(t.client_id)}>
+                                {clientName(t.client_id)}
+                              </Link>
+                            ) : <span className="text-foreground/20">—</span>}
+                          </div>
+
+                          <div className={`text-right font-display font-bold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
+                            <span className="text-[10px] mr-1 opacity-70">{t.kind === "income" ? "R$" : "R$"}</span>
+                            {brl(Number(t.amount)).replace("R$", "").trim()}
+                          </div>
+
+                          <div className="flex flex-col items-center justify-center">
+                            <input 
+                              type="date" 
+                              value={t.due_date} 
+                              onChange={(e) => {
+                                const newDate = e.target.value;
+                                if (t.contract_id) {
+                                  const cascade = window.confirm("Deseja aplicar esta alteração de data também aos próximos vencimentos deste contrato?");
+                                  updateTx.mutate({ id: t.id, patch: { due_date: newDate }, cascade });
+                                } else {
+                                  updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
+                                }
+                              }}
+                              className="bg-transparent border-none focus:ring-1 focus:ring-primary rounded p-0.5 text-xs w-full text-center hover:bg-foreground/5 cursor-pointer transition-colors"
+                            />
+                            {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter">Vencido</div>}
+                          </div>
+
+                          <div className="flex items-center justify-end gap-2">
+                            {t.status !== "paid" && (
+                              <Button 
+                                size="sm" 
+                                onClick={() => setSettleTx(t)} 
+                                className="h-7 rounded-full bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 text-[10px] font-bold uppercase px-3 transition-all"
+                              >
+                                Baixar
+                              </Button>
+                            )}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="size-8 rounded-full hover:bg-foreground/10"><MoreHorizontal className="size-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                                {t.status === "paid" && (
+                                  <DropdownMenuItem onClick={() => togglePaid.mutate({ id: t.id, paid: false })}><Clock className="size-4 mr-2" /> Reverter baixa</DropdownMenuItem>
+                                )}
+                                {t.contract_id && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Contrato</DropdownMenuLabel>
+                                    <DropdownMenuItem onClick={() => setTerminateContractId(t.contract_id)}><XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Contrato</DropdownMenuItem>
+                                  </>
+                                )}
                                 <DropdownMenuSeparator />
-                                <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40 px-2 py-1">Contrato</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => setTerminateContractId(t.contract_id)}><XCircle className="size-4 mr-2 text-rose-400" /> Encerrar Contrato</DropdownMenuItem>
-                              </>
-                            )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => setAuditTx(t)}><Info className="size-4 mr-2" /> Detalhes e Auditoria</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-rose-400" onClick={() => setDeleteTxId(t.id)}><Trash2 className="size-4 mr-2" /> Excluir Lançamento</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                                <DropdownMenuItem onClick={() => setAuditTx(t)}><Info className="size-4 mr-2" /> Detalhes e Auditoria</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-rose-400" onClick={() => setDeleteTxId(t.id)}><Trash2 className="size-4 mr-2" /> Excluir Lançamento</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+
+                        {/* Mobile/Tablet Card */}
+                        <div className="lg:hidden p-4 flex flex-col gap-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <Checkbox 
+                                checked={selectedIds.includes(t.id)} 
+                                onCheckedChange={(checked) => setSelectedIds(prev => checked ? [...prev, t.id] : prev.filter(id => id !== t.id))} 
+                              />
+                              {t.status === "paid" ? (
+                                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">Pago</Badge>
+                              ) : (
+                                <Badge variant="outline" className={`${overdue ? "bg-rose-500/10 text-rose-400 border-rose-500/20" : "bg-foreground/5 text-foreground/50 border-border"} text-[10px]`}>
+                                  {overdue ? "Atrasado" : "Pendente"}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className={`font-display font-bold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
+                              {brl(Number(t.amount))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <div className="text-sm font-medium flex items-center gap-2">
+                              {t.description}
+                              {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40" />}
+                            </div>
+                            <div className="text-xs text-foreground/50 mt-1 flex items-center gap-2">
+                              <span>{catName(t.category_id)}</span>
+                              <span>•</span>
+                              <span>{clientName(t.client_id)}</span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/40">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] text-foreground/40 uppercase font-semibold">Vencimento</span>
+                              <span className="text-xs">{new Date(t.due_date + "T12:00:00").toLocaleDateString('pt-BR')}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {t.status !== "paid" && (
+                                <Button 
+                                  size="sm" 
+                                  onClick={() => setSettleTx(t)} 
+                                  className="h-8 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs"
+                                >
+                                  Baixar
+                                </Button>
+                              )}
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="size-8 rounded-full"><MoreHorizontal className="size-4" /></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => setAuditTx(t)}><Info className="size-4 mr-2" /> Detalhes</DropdownMenuItem>
+                                  <DropdownMenuItem className="text-rose-400" onClick={() => setDeleteTxId(t.id)}><Trash2 className="size-4 mr-2" /> Excluir</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </div>
           </TabsContent>
