@@ -16,6 +16,7 @@ import {
   fetchLeads,
   moveLead,
   deleteLead,
+  deleteLeadStage,
   formatCurrency,
   type Lead,
   type Stage,
@@ -198,9 +199,19 @@ function Column({
   onAdd: () => void;
   children: React.ReactNode;
 }) {
+  const qc = useQueryClient();
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
+  const delStageMut = useMutation({
+    mutationFn: () => deleteLeadStage(stage.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "stages"] });
+      toast.success("Coluna removida");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <div className="w-[300px] shrink-0 flex flex-col">
+    <div className="w-[300px] shrink-0 flex flex-col group/col">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <span
@@ -211,13 +222,24 @@ function Column({
           {stage.is_won && <Trophy className="size-3.5 text-primary" />}
           <span className="text-[10px] text-foreground/40">{count}</span>
         </div>
-        <button
-          onClick={onAdd}
-          className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
-          aria-label={`Adicionar em ${stage.name}`}
-        >
-          <Plus className="size-3.5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => {
+              if (confirm(`Remover a coluna "${stage.name}"?`)) delStageMut.mutate();
+            }}
+            className="size-6 rounded-md hover:bg-destructive/10 grid place-items-center text-foreground/20 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
+            aria-label="Excluir coluna"
+          >
+            <Trash2 className="size-3" />
+          </button>
+          <button
+            onClick={onAdd}
+            className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
+            aria-label={`Adicionar em ${stage.name}`}
+          >
+            <Plus className="size-3.5" />
+          </button>
+        </div>
       </div>
       <div className="text-[10px] text-foreground/40 mb-2 px-1 capitalize">
         {formatCurrency(total)}
