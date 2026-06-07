@@ -154,6 +154,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
           await supabaseAdmin
             .from("proposals")
             .update({
+              status: "signed",
               signature_client: signatureLine,
               signed_at_client: new Date().toISOString(),
               accepted_user_agent: userAgent,
