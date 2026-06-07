@@ -2709,6 +2709,10 @@ export type Database = {
         }
         Returns: string
       }
+      get_finance_summary: {
+        Args: { p_from: string; p_to: string }
+        Returns: Json
+      }
       has_module_permission: {
         Args: { _action: string; _module: string; _user_id: string }
         Returns: boolean
