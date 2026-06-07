@@ -1159,8 +1159,6 @@ export function JobSheet({
                         e.preventDefault();
                         e.stopPropagation();
                         if (comment.trim()) {
-                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                          await handleTyping(false);
                           commentMut.mutate({ content: comment.trim() });
                           commentInputRef.current?.focus();
                         }
