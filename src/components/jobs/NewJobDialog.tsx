@@ -69,7 +69,7 @@ export function NewJobDialog({
     period: defaultPeriod ?? "",
     freelancer_id: "",
     main_responsible_id: "",
-    operational_template_id: "",
+    // operational_template_id: "", // Removed
     team_involved_ids: [] as string[],
   });
 
@@ -132,7 +132,7 @@ export function NewJobDialog({
         period: defaultPeriod ?? "",
         freelancer_id: "",
         main_responsible_id: "",
-        operational_template_id: "",
+        // operational_template_id: "", // Removed
         team_involved_ids: [],
       });
     },
