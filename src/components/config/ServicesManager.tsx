@@ -221,8 +221,8 @@ function ServiceFormDialog({
         category: form.category.trim() || null,
         description: form.description.trim() || null,
         is_active: form.is_active,
-        default_scope: form.default_scope,
-        checklist_items: form.checklist_items,
+        default_scope: form.default_scope.filter((x) => x.trim()),
+        checklist_items: form.checklist_items.filter((it: any) => (it.text || it).trim()),
         contract_template_id: form.contract_template_id || null,
       } as any;
       if (!payload.name) throw new Error("Nome obrigatório");
@@ -314,7 +314,7 @@ function ServiceFormDialog({
                 onChange={(e) =>
                   setForm({
                     ...form,
-                    default_scope: e.target.value.split("\n").filter((x) => x.trim()),
+                    default_scope: e.target.value.split("\n"),
                   })
                 }
                 placeholder="Item 1&#10;Item 2&#10;Item 3"
@@ -340,17 +340,11 @@ function ServiceFormDialog({
               <Textarea
                 rows={10}
                 value={form.checklist_items.map((it: any) => it.text || it).join("\n")}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.stopPropagation();
-                  }
-                }}
                 onChange={(e) =>
                   setForm({
                     ...form,
                     checklist_items: e.target.value
                       .split("\n")
-                      .filter((x) => x.trim())
                       .map(text => ({ text, required: false })),
                   })
                 }
