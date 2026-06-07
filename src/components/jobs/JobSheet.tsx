@@ -39,6 +39,7 @@ import {
   fetchJobAttachments,
   addJobAttachment,
   updateJobComment,
+  deleteJobComment,
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
