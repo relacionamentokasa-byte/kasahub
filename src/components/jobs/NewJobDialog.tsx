@@ -106,8 +106,15 @@ export function NewJobDialog({
         period: defaultPeriod ?? form.period ?? 'all' 
       };
       const qk = JOBS_QUERY_KEY(filters);
+      
+      // Also target the global "jobs" key to catch any general views
+      const globalQk = ["jobs"];
+      
       await qc.cancelQueries({ queryKey: qk });
+      await qc.cancelQueries({ queryKey: globalQk });
+
       const prev = qc.getQueryData<Job[]>(qk);
+      const prevGlobal = qc.getQueryData<Job[]>(globalQk);
       
       const tempJob = {
         id: 'temp-' + Math.random().toString(36).substring(7),
@@ -124,10 +131,15 @@ export function NewJobDialog({
       };
       
       qc.setQueryData<Job[]>(qk, (old) => [tempJob as any, ...(old ?? [])]);
-      return { prev, qk };
+      qc.setQueryData<Job[]>(globalQk, (old) => [tempJob as any, ...(old ?? [])]);
+
+      return { prev, prevGlobal, qk, globalQk };
     },
     onSuccess: (_, __, ctx) => {
-      qc.invalidateQueries({ queryKey: ctx?.qk || ["jobs"] });
+      // Invalidate both keys to ensure we get real data from DB
+      qc.invalidateQueries({ queryKey: ctx?.qk });
+      qc.invalidateQueries({ queryKey: ctx?.globalQk });
+      
       toast.success("Job criado");
       onOpenChange(false);
       setForm({
@@ -145,7 +157,8 @@ export function NewJobDialog({
       });
     },
     onError: (e: Error, _, ctx) => {
-      if (ctx?.prev && ctx?.qk) qc.setQueryData(ctx.qk, ctx.prev);
+      if (ctx?.qk && ctx?.prev) qc.setQueryData(ctx.qk, ctx.prev);
+      if (ctx?.globalQk && ctx?.prevGlobal) qc.setQueryData(ctx.globalQk, ctx.prevGlobal);
       toast.error(e.message);
     },
   });
