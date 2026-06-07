@@ -24,7 +24,10 @@ export function DynamicJobForm({ serviceId, data, onChange, readOnly }: DynamicF
     enabled: !!serviceId
   });
 
-  const schema = (service?.default_scope as string[]) || [];
+  const scope = (service?.default_scope as string[]) || [];
+  const checklist = (service as any)?.checklist_items || [];
+
+  const hasItems = scope.length > 0 || checklist.length > 0;
 
   if (!serviceId) {
     return (
