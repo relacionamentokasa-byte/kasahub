@@ -7,6 +7,7 @@ export type ProposalEventType =
   | "sent"
   | "viewed"
   | "approved"
+  | "internal_approval"
   | "reopened"
   | "cancelled"
   | "rejected";
@@ -81,6 +82,7 @@ export const EVENT_LABELS: Record<string, { label: string; color: string }> = {
   sent: { label: "Proposta enviada", color: "text-blue-300" },
   viewed: { label: "Proposta visualizada", color: "text-amber-300" },
   approved: { label: "Proposta aprovada", color: "text-green-300" },
+  internal_approval: { label: "Proposta aprovada internamente", color: "text-green-300" },
   reopened: { label: "Proposta reaberta", color: "text-purple-300" },
   cancelled: { label: "Proposta cancelada", color: "text-red-300" },
   structure_removed: { label: "Estrutura removida", color: "text-gray-400" },
