@@ -280,7 +280,7 @@ export async function approveProposal(
 
   // 6a. Recurring (monthly contract)
   if (monthly > 0 && contractId) {
-    const months = Math.max(1, Number(proposal.recurring_months ?? 12));
+    const months = installmentsCount > 0 ? installmentsCount : 1;
     const billingDay = Number(proposal.billing_day ?? 5);
     const start = proposal.first_due_date
       ? new Date(proposal.first_due_date)
