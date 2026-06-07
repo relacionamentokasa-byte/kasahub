@@ -179,6 +179,20 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             })
             .eq("id", proposal.id);
 
+          await supabaseAdmin.from("proposal_events").insert({
+            proposal_id: proposal.id,
+            type: "signed",
+            actor_name: body.accepted_name,
+            payload: {
+              ip,
+              browser: `${uaResult.browser.name} ${uaResult.browser.version}`,
+              device: uaResult.device.type || "desktop",
+              os: `${uaResult.os.name} ${uaResult.os.version}`,
+              email: body.accepted_email,
+              role: body.accepted_role
+            }
+          });
+
           await approveProposal(supabaseAdmin, proposal.id, {
             acceptedName: body.accepted_name,
             acceptedIp: ip,
