@@ -178,6 +178,34 @@ export async function fetchTransactions(filters: {
   return data ?? [];
 }
 
+export function autoCategorize(description: string, originType?: string | null): string | null {
+  const desc = (description || "").toLowerCase();
+  const origin = (originType || "").toLowerCase();
+
+  // Contrato Recorrente -> Receita Recorrente
+  if (origin === 'contract' || origin === 'recurring' || desc.includes('contrato recorrente')) return 'Receita Recorrente';
+  
+  // Design Sob Demanda -> Receita de Projeto
+  if (desc.includes('design sob demanda') || desc.includes('projeto')) return 'Receita de Projeto';
+  
+  // DME -> Receita Extra
+  if (origin === 'dme' || desc.includes('dme') || desc.includes('demanda extra')) return 'Receita Extra';
+  
+  // Google Ads -> Investimento em Mídia
+  if (desc.includes('google ads') || desc.includes('googlead')) return 'Investimento em Mídia';
+  
+  // Meta Ads -> Investimento em Mídia
+  if (desc.includes('meta ads') || desc.includes('facebook ads') || desc.includes('instagram ads')) return 'Investimento em Mídia';
+  
+  // Freelancer -> Despesa Operacional
+  if (desc.includes('freelancer') || desc.includes('freela')) return 'Despesa Operacional';
+  
+  // Comissão -> Comissão Comercial
+  if (desc.includes('comissão') || desc.includes('comissao')) return 'Comissão Comercial';
+
+  return null;
+}
+
 export async function createTransaction(
   input: Database["public"]["Tables"]["transactions"]["Insert"],
   installments?: number,
@@ -190,6 +218,25 @@ export async function createTransaction(
     if (input.contract_id) input.origin_type = 'contract';
     else if (input.dme_id) input.origin_type = 'dme';
     else input.origin_type = 'manual';
+  }
+
+  // Auto categorization
+  if (!input.category_id) {
+    const categoryName = autoCategorize(input.description || "", input.origin_type);
+    if (categoryName) {
+      const { data: cat } = await supabase.from('financial_categories').select('id').ilike('name', categoryName).limit(1).maybeSingle();
+      if (cat) {
+        input.category_id = cat.id;
+      }
+    }
+    
+    // Fallback: Não Classificado
+    if (!input.category_id) {
+      const { data: unclassified } = await supabase.from('financial_categories').select('id').ilike('name', 'Não Classificado').limit(1).maybeSingle();
+      if (unclassified) {
+        input.category_id = unclassified.id;
+      }
+    }
   }
 
   const { data: u } = await supabase.auth.getUser();
