@@ -24,7 +24,7 @@ import {
   Smartphone
 } from "lucide-react";
 import { ServicesManager } from "@/components/config/ServicesManager";
-import { OperationalFlowsManager } from "@/components/config/OperationalFlowsManager";
+
 import { PermissionsManager } from "@/components/PermissionsManager";
 import { ContractTemplatesManager } from "@/components/config/ContractTemplatesManager";
 import { ScopeTemplatesManager } from "@/components/config/ScopeTemplatesManager";
