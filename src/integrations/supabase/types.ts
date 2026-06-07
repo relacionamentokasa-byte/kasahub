@@ -1267,6 +1267,7 @@ export type Database = {
           briefing_objective: string | null
           briefing_references: string | null
           client_id: string
+          completed_steps: number | null
           contract_id: string
           created_at: string
           custom_fields: Json | null
@@ -1295,6 +1296,7 @@ export type Database = {
           status: string | null
           team_involved: Json | null
           title: string
+          total_steps: number | null
           updated_at: string
         }
         Insert: {
@@ -1307,6 +1309,7 @@ export type Database = {
           briefing_objective?: string | null
           briefing_references?: string | null
           client_id: string
+          completed_steps?: number | null
           contract_id: string
           created_at?: string
           custom_fields?: Json | null
@@ -1335,6 +1338,7 @@ export type Database = {
           status?: string | null
           team_involved?: Json | null
           title: string
+          total_steps?: number | null
           updated_at?: string
         }
         Update: {
@@ -1347,6 +1351,7 @@ export type Database = {
           briefing_objective?: string | null
           briefing_references?: string | null
           client_id?: string
+          completed_steps?: number | null
           contract_id?: string
           created_at?: string
           custom_fields?: Json | null
@@ -1375,6 +1380,7 @@ export type Database = {
           status?: string | null
           team_involved?: Json | null
           title?: string
+          total_steps?: number | null
           updated_at?: string
         }
         Relationships: [
