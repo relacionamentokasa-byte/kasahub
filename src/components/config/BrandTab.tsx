@@ -57,12 +57,20 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     description: "Ícone pequeno exibido na aba do navegador."
   },
   {
-    key: "pwa_icon_512_url", // PWA usually needs multiple sizes, we'll map the main one here
-    label: "Ícone PWA",
+    key: "pwa_icon_192_url",
+    label: "Ícone PWA (192px)",
+    usage: "Instalação Android, iPhone (PWA)",
+    recommendedSize: "192x192px",
+    formats: ["PNG"],
+    description: "Ícone para dispositivos com menor densidade de pixels."
+  },
+  {
+    key: "pwa_icon_512_url",
+    label: "Ícone PWA (512px)",
     usage: "Instalação Android, iPhone (PWA)",
     recommendedSize: "512x512px",
     formats: ["PNG"],
-    description: "Ícone que aparecerá na tela inicial do celular ao instalar o app."
+    description: "Ícone principal de alta resolução para o aplicativo mobile."
   },
   {
     key: "splash_screen_url",
