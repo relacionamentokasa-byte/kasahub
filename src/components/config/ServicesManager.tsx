@@ -29,6 +29,7 @@ import {
   type Service,
   type ServiceJobTemplate,
 } from "@/lib/services-api";
+import { fetchJobStages } from "@/lib/ops-api";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
