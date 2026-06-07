@@ -133,10 +133,10 @@ export function JobsBoard({
       <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
         <div>
           <span className="text-primary text-[10px] capitalize">
-            {eyebrow}
+            Operação · Jobs
           </span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            {title}
+            Jobs
           </h1>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
