@@ -138,6 +138,30 @@ function FinanceiroPage() {
   const [fClient, setFClient] = useState<string>("all");
   const [fCategory, setFCategory] = useState<string>("all");
   const [fAccount, setFAccount] = useState<string>("all");
+  const [fOrigin, setFOrigin] = useState<string>("all");
+  const [fValueRange, setFValueRange] = useState<[number, number]>([0, 100000]);
+
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (fKind !== "all") count++;
+    if (fStatus !== "all") count++;
+    if (fClient !== "all") count++;
+    if (fCategory !== "all") count++;
+    if (fAccount !== "all") count++;
+    if (fOrigin !== "all") count++;
+    if (fValueRange[0] > 0 || fValueRange[1] < 100000) count++;
+    return count;
+  }, [fKind, fStatus, fClient, fCategory, fAccount, fOrigin, fValueRange]);
+
+  function clearFilters() {
+    setFKind("all");
+    setFStatus("all");
+    setFClient("all");
+    setFCategory("all");
+    setFAccount("all");
+    setFOrigin("all");
+    setFValueRange([0, 100000]);
+  }
 
   const [openTx, setOpenTx] = useState<false | "income" | "expense">(false);
   const [openAcc, setOpenAcc] = useState(false);
