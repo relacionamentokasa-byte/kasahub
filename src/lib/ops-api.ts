@@ -275,7 +275,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
 
   // Limpeza de campos UUID vazios para evitar erro de sintaxe
   const cleanInput = Object.entries(finalInput).reduce((acc, [key, value]) => {
-    acc[key] = (value === "" || value === undefined) ? null : value;
+    acc[key] = (value === "" || value === undefined || value === "null" || value === "undefined") ? null : value;
     return acc;
   }, {} as any);
 

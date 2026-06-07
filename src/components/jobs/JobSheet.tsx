@@ -86,6 +86,7 @@ export function JobSheet({
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const { data: services = [] } = useQuery({ queryKey: ["services", "active"], queryFn: () => supabase.from("services").select("*").eq("is_active", true).then(res => res.data || []) });
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
@@ -277,7 +278,7 @@ export function JobSheet({
                   >
                     <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
                     <SelectContent>
-                      {(useQuery({ queryKey: ["services"], queryFn: () => supabase.from("services").select("*") }).data?.data || []).map((s: any) => (
+                      {services.map((s: any) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
                     </SelectContent>
