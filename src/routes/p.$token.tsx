@@ -259,7 +259,7 @@ function PublicProposalView() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 print:bg-white font-sans">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap');
         
         @media print {
           .no-print { display: none !important; }
@@ -269,6 +269,7 @@ function PublicProposalView() {
           }
           .print-m-0 { margin: 0 !important; padding: 1.5cm !important; }
           .page-break-before { page-break-before: always; }
+          .page-break-inside-avoid { page-break-inside: avoid; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
         }
 
@@ -302,6 +303,16 @@ function PublicProposalView() {
 
         .contract-content p {
           margin-bottom: 1.25rem;
+        }
+
+        .items-table tr {
+          page-break-inside: avoid;
+        }
+
+        /* Prevent empty gaps at page breaks */
+        .content-section {
+          page-break-inside: avoid;
+          break-inside: avoid;
         }
       `}</style>
 
@@ -415,7 +426,7 @@ function PublicProposalView() {
         {/* Scope */}
         {((proposal.scope_text && proposal.scope_text.trim().length > 0) ||
           (Array.isArray(proposal.scope) && proposal.scope.length > 0)) && (
-          <div className="px-8 py-6 border-b border-slate-100">
+          <div className="px-8 py-6 border-b border-slate-100 content-section">
             <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
               O que será entregue (Escopo)
             </h2>
@@ -425,7 +436,7 @@ function PublicProposalView() {
 
         {/* Intro */}
         {proposal.intro && (
-          <div className="px-8 py-6 border-b border-slate-100">
+          <div className="px-8 py-6 border-b border-slate-100 content-section">
             <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-2">
               Apresentação
             </h2>
@@ -721,7 +732,7 @@ function ItemsTable({
           {title}
         </p>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto items-table">
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100 bg-slate-50/50">
