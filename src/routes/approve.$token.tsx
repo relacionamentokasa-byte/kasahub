@@ -10,11 +10,14 @@ import {
   MessageSquare,
   Info,
   FileUp,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { AttachmentViewer } from "@/components/AttachmentViewer";
+
 
 export const Route = createFileRoute("/approve/$token")({
   ssr: false,
