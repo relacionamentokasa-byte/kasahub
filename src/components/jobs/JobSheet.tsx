@@ -1176,6 +1176,8 @@ export function JobSheet({
                       if (e.key === 'Enter' && !e.shiftKey && !mentionOpen) {
                         e.preventDefault();
                         if (comment.trim()) {
+                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                          handleTyping(false);
                           commentMut.mutate({ content: comment.trim() });
                         }
                       }
