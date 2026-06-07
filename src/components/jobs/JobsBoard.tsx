@@ -274,7 +274,7 @@ function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClic
           e.stopPropagation();
           if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
         }}
-        className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition"
+        className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-40 group-hover:opacity-100 hover:bg-destructive/10 transition"
         aria-label="Excluir tarefa"
       >
         <Trash2 className="size-3.5" />
