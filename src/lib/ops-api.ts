@@ -241,7 +241,7 @@ export async function fetchJobStages(): Promise<JobStage[]> {
 export async function fetchJobs(filters: { projectId?: string; clientId?: string; period?: string } = {}): Promise<Job[]> {
   let q = supabase
     .from("jobs")
-    .select("*")
+    .select("*, clients(id, name, company), projects(id, name), services(id, name), contracts(id, title)")
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: false });
   if (filters.projectId) q = q.eq("project_id", filters.projectId);
@@ -254,16 +254,26 @@ export async function fetchJobs(filters: { projectId?: string; clientId?: string
 
 export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"] & { period?: string | null, job_type?: string | null }) {
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
+  if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
+  if (!input.service_id) throw new Error("Um job deve estar vinculado a um serviço.");
   
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
   
-  if (project.client_id) {
-    const client = await fetchClient(project.client_id);
-    if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
-  }
+  const client = await fetchClient(input.client_id || project.client_id!);
+  if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
 
-  const { data, error } = await supabase.from("jobs").insert(input).select().single();
+  // Herança automática de campos se não fornecidos
+  const finalInput = {
+    ...input,
+    client_id: (input.client_id || project.client_id) as string,
+    project_id: input.project_id as string,
+    contract_id: input.contract_id || project.contract_id,
+    main_responsible_id: input.main_responsible_id || project.responsible_id || project.owner_id,
+  } as any;
+
+  const { data, error } = await supabase.from("jobs").insert(finalInput).select().single();
+
   if (error) throw error;
 
   // Criar evento na agenda se houver prazo

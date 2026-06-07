@@ -304,15 +304,22 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
             />
             <div className="min-w-0">
               <div className="font-semibold text-sm leading-snug truncate">{job.title}</div>
-              <div className="text-[9px] text-foreground/40 mt-0.5 flex items-center gap-2">
-                <span className="font-bold uppercase tracking-widest text-primary/70">
-                  {getJobTypeLabel((job as any).job_type)}
-                </span>
+              <div className="text-[9px] text-foreground/40 mt-0.5 flex flex-col gap-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold uppercase tracking-widest text-primary/70">
+                    {getJobTypeLabel((job as any).job_type)}
+                  </span>
+                  {(job as any).client_id && (
+                    <span className="text-[8px] px-1 bg-primary/5 rounded border border-primary/10 truncate max-w-[100px]">
+                      Cliente: {(job as any).clients?.company || (job as any).clients?.name || "..."}
+                    </span>
+                  )}
+                </div>
                 {job.project_id && (
-                  <>
-                    <span>•</span>
-                    <span className="truncate">Projeto #{(job as any).project_id.slice(0, 4)}</span>
-                  </>
+                  <div className="flex items-center gap-1 truncate text-[8px] opacity-70">
+                    <span className="shrink-0">•</span>
+                    <span className="truncate">{(job as any).projects?.name || `Projeto #${job.project_id.slice(0, 4)}`}</span>
+                  </div>
                 )}
               </div>
             </div>

@@ -45,11 +45,14 @@ export async function approveExtraDemand(sb: SB, id: string) {
     .order("order_index")
     .limit(1);
     
+  if (!project?.id) throw new Error("Não foi possível encontrar um projeto vinculado a este contrato para gerar o job.");
+
   await sb.from("jobs").insert({
     title: `${dme.number_display}: ${dme.title}`,
     description: dme.description,
     client_id: dme.client_id,
-    project_id: project?.id || null,
+    project_id: project.id,
+    contract_id: dme.contract_id,
     dme_id: dme.id,
     stage_id: stages?.[0]?.id,
     priority: "normal",

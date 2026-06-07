@@ -1257,7 +1257,8 @@ export type Database = {
           briefing_notes: string | null
           briefing_objective: string | null
           briefing_references: string | null
-          client_id: string | null
+          client_id: string
+          contract_id: string | null
           created_at: string
           custom_fields: Json | null
           custom_fields_schema: Json | null
@@ -1280,7 +1281,8 @@ export type Database = {
           period: string | null
           priority: string
           progress_percentage: number | null
-          project_id: string | null
+          project_id: string
+          service_id: string | null
           stage_id: string | null
           status: string | null
           team_involved: Json | null
@@ -1296,7 +1298,8 @@ export type Database = {
           briefing_notes?: string | null
           briefing_objective?: string | null
           briefing_references?: string | null
-          client_id?: string | null
+          client_id: string
+          contract_id?: string | null
           created_at?: string
           custom_fields?: Json | null
           custom_fields_schema?: Json | null
@@ -1319,7 +1322,8 @@ export type Database = {
           period?: string | null
           priority?: string
           progress_percentage?: number | null
-          project_id?: string | null
+          project_id: string
+          service_id?: string | null
           stage_id?: string | null
           status?: string | null
           team_involved?: Json | null
@@ -1335,7 +1339,8 @@ export type Database = {
           briefing_notes?: string | null
           briefing_objective?: string | null
           briefing_references?: string | null
-          client_id?: string | null
+          client_id?: string
+          contract_id?: string | null
           created_at?: string
           custom_fields?: Json | null
           custom_fields_schema?: Json | null
@@ -1358,7 +1363,8 @@ export type Database = {
           period?: string | null
           priority?: string
           progress_percentage?: number | null
-          project_id?: string | null
+          project_id?: string
+          service_id?: string | null
           stage_id?: string | null
           status?: string | null
           team_involved?: Json | null
@@ -1371,6 +1377,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
           {
@@ -1399,6 +1412,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id"]
           },
           {

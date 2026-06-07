@@ -35,9 +35,12 @@ import {
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
+  fetchClients,
+  fetchProjects,
 } from "@/lib/ops-api";
 import { fetchPartners } from "@/lib/partners-api";
 import { fetchProfiles } from "@/lib/profile-api";
+import { fetchServices } from "@/lib/services-api";
 import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { JOB_TYPES } from "@/lib/job-types";
@@ -90,6 +93,17 @@ export function JobSheet({
     queryKey: ["operational-templates"], 
     queryFn: async () => {
       const { data } = await supabase.from("operational_templates").select("*").order("name");
+      return data || [];
+    }
+  });
+  
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const { data: services = [] } = useQuery({ queryKey: ["services"], queryFn: () => fetchServices() });
+  const { data: contracts = [] } = useQuery({ 
+    queryKey: ["contracts"], 
+    queryFn: async () => {
+      const { data } = await supabase.from("contracts").select("*");
       return data || [];
     }
   });
@@ -215,6 +229,67 @@ export function JobSheet({
                     defaultValue={job.due_date ?? ""}
                     onBlur={(e) => updateMut.mutate({ due_date: e.target.value || null })}
                   />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Cliente</Label>
+                  <Select
+                    value={(job as any).client_id || ""}
+                    onValueChange={(v) => updateMut.mutate({ client_id: v } as any)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {clients.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Projeto</Label>
+                  <Select
+                    value={(job as any).project_id || ""}
+                    onValueChange={(v) => updateMut.mutate({ project_id: v } as any)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {projects.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Serviço</Label>
+                  <Select
+                    value={(job as any).service_id || ""}
+                    onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {services.map(s => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Contrato</Label>
+                  <Select
+                    value={(job as any).contract_id || "none"}
+                    onValueChange={(v) => updateMut.mutate({ contract_id: v === 'none' ? null : v } as any)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {contracts.map(c => (
+                        <SelectItem key={c.id} value={c.id}>{c.title || `Contrato #${c.id.slice(0,5)}`}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-1.5">
