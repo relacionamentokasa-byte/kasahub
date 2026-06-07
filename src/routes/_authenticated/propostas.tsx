@@ -836,7 +836,6 @@ function ProposalsPage() {
                           onShare={() => copyLink(p)}
                           onWhatsApp={() => openWhatsApp(p)}
                           onEmail={() => openEmail(p)}
-                          onApprove={() => statusMut.mutate({ id: p.id, status: "accepted" })}
                           onReopen={() => statusMut.mutate({ id: p.id, status: "reopened" })}
                           onCancel={() => statusMut.mutate({ id: p.id, status: "cancelled" })}
                           onDelete={() => {
