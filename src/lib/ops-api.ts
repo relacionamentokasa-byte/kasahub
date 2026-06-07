@@ -368,6 +368,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   // Checklist padrão é inicializado via trigger no banco de dados (tr_initialize_job_checklist)
 
   await logAudit("create", "job", data.id, null, data);
+  await refreshProjectStats(data.project_id);
   return data;
 }
 
@@ -405,6 +406,7 @@ export async function updateJob(
   }
 
   await logAudit("update", "job", id, null, patch);
+  await refreshProjectStats(data.project_id);
   return data;
 }
 
