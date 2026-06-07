@@ -205,6 +205,7 @@ function ServiceFormDialog({
     description: service?.description ?? "",
     is_active: service?.is_active ?? true,
     default_scope: (service?.default_scope as string[]) ?? [],
+    checklist_items: (service as any)?.checklist_items ?? [],
     contract_template_id: (service as any)?.contract_template_id ?? "",
   });
 
