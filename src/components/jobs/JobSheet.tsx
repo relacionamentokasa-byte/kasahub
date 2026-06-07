@@ -482,175 +482,257 @@ export function JobSheet({
                 </SheetTitle>
               </SheetHeader>
 
-              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Status</Label>
-                  <Select
-                    value={(job as any).status || "not_started"}
-                    onValueChange={(v) => {
-                      updateMut.mutate({ 
-                        status: v,
-                        done_at: v === 'done' ? new Date().toISOString() : null
-                      } as any);
-                    }}
-                  >
-                    <SelectTrigger className="h-10 bg-background/50 border-border">
-                      {updateMut.isPending && updateMut.variables?.status ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="size-3 animate-spin" />
-                          <span>Atualizando...</span>
-                        </div>
-                      ) : (
-                        <SelectValue />
-                      )}
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(JOB_STATUS_LABELS).map(([val, { label }]) => (
-                        <SelectItem key={val} value={val}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Prioridade</Label>
-                  <Select
-                    value={job.priority}
-                    onValueChange={(v) => updateMut.mutate({ priority: v })}
-                  >
-                    <SelectTrigger className="h-10 bg-background/50 border-border">
-                      {updateMut.isPending && updateMut.variables?.priority ? (
-                        <div className="flex items-center gap-2">
-                          <Loader2 className="size-3 animate-spin" />
-                          <span>Atualizando...</span>
-                        </div>
-                      ) : (
-                        <SelectValue />
-                      )}
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                      <SelectItem value="urgent">Urgente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Cliente</Label>
-                  <Select
-                    value={(job as any).client_id || ""}
-                    onValueChange={(v) => updateMut.mutate({ client_id: v } as any)}
-                  >
-                    <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {clients.map(c => (
-                        <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Projeto</Label>
-                  <Select
-                    value={(job as any).project_id || ""}
-                    onValueChange={(v) => updateMut.mutate({ project_id: v } as any)}
-                  >
-                    <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {projects.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Serviço</Label>
-                  <Select
-                    value={(job as any).service_id || ""}
-                    onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
-                  >
-                    <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {services.map((s: any) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Responsável Principal</Label>
-                  <Select
-                    value={(job as any).main_responsible_id || ""}
-                    onValueChange={(v) => updateMut.mutate({ main_responsible_id: v } as any)}
-                  >
-                    <SelectTrigger className="h-10 bg-background/50 border-border gap-2">
-                      <User className="size-4 text-foreground/40" />
-                      <SelectValue placeholder="Selecione" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {team.map(p => (
-                        <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Prazo Final</Label>
-                  <div className="relative">
-                    <Input
-                      type="date"
-                      defaultValue={job.due_date ?? ""}
-                      onBlur={(e) => updateMut.mutate({ due_date: e.target.value || null })}
-                      className="h-10 bg-background/50 border-border pr-10"
-                    />
-                    <Clock className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-foreground/40 pointer-events-none" />
+              <div className="space-y-6">
+                {/* STATUS */}
+                <div className="space-y-3">
+                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Status</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { id: 'not_started', label: 'Nova Demanda', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/50', active: 'bg-zinc-500 text-white border-zinc-500' },
+                      { id: 'in_progress', label: 'Em Andamento', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50', active: 'bg-blue-500 text-white border-blue-500' },
+                      { id: 'review', label: 'Em Revisão', color: 'bg-amber-500/20 text-amber-400 border-amber-500/50', active: 'bg-amber-500 text-white border-amber-500' },
+                      { id: 'done', label: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50', active: 'bg-emerald-500 text-white border-emerald-500' },
+                      { id: 'paused', label: 'Pausado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/50', active: 'bg-orange-500 text-white border-orange-500' }
+                    ].map((s) => {
+                      const isActive = (job as any).status === s.id;
+                      return (
+                        <button
+                          key={s.id}
+                          onClick={() => updateMut.mutate({ status: s.id, done_at: s.id === 'done' ? new Date().toISOString() : null } as any)}
+                          className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                            isActive ? s.active : `${s.color} hover:bg-opacity-30`
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
-                <div className="space-y-2 col-span-2">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Equipe Envolvida</Label>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                  {/* PRIORIDADE */}
                   <div className="space-y-3">
-                    <Select 
-                      value="" 
-                      onValueChange={(v) => {
-                        const current = (job as any).team_involved || [];
-                        if (!current.find((m: any) => m.user_id === v)) {
-                          updateMut.mutate({ team_involved: [...current, { user_id: v, role: "Membro" }] } as any);
-                        }
-                      }}
+                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prioridade</Label>
+                    <div className="flex gap-2">
+                      {[
+                        { id: 'high', label: 'Alta', icon: '🔴', color: 'hover:border-red-500/50', active: 'bg-red-500/20 border-red-500 text-red-500' },
+                        { id: 'normal', label: 'Normal', icon: '🟡', color: 'hover:border-yellow-500/50', active: 'bg-yellow-500/20 border-yellow-500 text-yellow-500' },
+                        { id: 'low', label: 'Baixa', icon: '🟢', color: 'hover:border-green-500/50', active: 'bg-green-500/20 border-green-500 text-green-500' }
+                      ].map((p) => {
+                        const isActive = job.priority === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => updateMut.mutate({ priority: p.id })}
+                            className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-border text-[10px] font-bold uppercase tracking-wider transition-all ${
+                              isActive ? p.active : `bg-background/50 ${p.color}`
+                            }`}
+                          >
+                            <span>{p.icon}</span>
+                            <span>{p.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* PRAZO FINAL */}
+                  <div className="space-y-3">
+                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prazo Final</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="w-full flex items-center justify-between h-10 px-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all text-sm group">
+                          <span className={job.due_date ? "text-white" : "text-foreground/40"}>
+                            {job.due_date ? format(new Date(job.due_date + 'T12:00:00'), "dd 'de' MMMM, yyyy", { locale: ptBR }) : "Selecionar data"}
+                          </span>
+                          <Clock className="size-4 text-foreground/40 group-hover:text-primary transition-colors" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-surface border-border" align="start">
+                        <div className="p-3 bg-muted/50 border-b border-border">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Calendário de Entrega</span>
+                        </div>
+                        <Calendar
+                          mode="single"
+                          selected={job.due_date ? new Date(job.due_date + 'T12:00:00') : undefined}
+                          onSelect={(date) => updateMut.mutate({ due_date: date ? format(date, 'yyyy-MM-dd') : null })}
+                          initialFocus
+                          className="bg-surface text-white"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* CLIENTE */}
+                  <div className="space-y-3 col-span-2">
+                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Cliente</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button className="w-full flex items-center gap-3 h-12 px-4 rounded-xl border border-border bg-background/50 hover:border-primary/50 transition-all group">
+                          <div className="size-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0 uppercase">
+                            {clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"}
+                          </div>
+                          <div className="flex-1 text-left">
+                            <p className="text-xs font-bold text-white uppercase tracking-wider">
+                              {clients.find(c => c.id === (job as any).client_id)?.company || clients.find(c => c.id === (job as any).client_id)?.name || "Selecionar Cliente"}
+                            </p>
+                          </div>
+                          <ChevronDown className="size-4 text-foreground/40 group-hover:text-primary transition-colors" />
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[400px] p-0 bg-surface border-border" align="start">
+                        <Command className="bg-transparent">
+                          <CommandInput placeholder="Buscar cliente..." className="h-12 border-none focus:ring-0 bg-transparent text-white" />
+                          <CommandList className="max-h-[300px]">
+                            <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                            <CommandGroup>
+                              {clients.map((c) => (
+                                <CommandItem
+                                  key={c.id}
+                                  value={c.company || c.name}
+                                  onSelect={() => updateMut.mutate({ client_id: c.id } as any)}
+                                  className="flex items-center gap-3 p-3 hover:bg-primary/10 cursor-pointer aria-selected:bg-primary/10"
+                                >
+                                  <div className="size-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                                    {(c.company || c.name).substring(0, 2)}
+                                  </div>
+                                  <span className="text-sm font-medium text-white">{c.company || c.name}</span>
+                                  {(job as any).client_id === c.id && <Check className="size-4 text-primary ml-auto" />}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* PROJETO */}
+                  <div className="space-y-3 col-span-2">
+                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Projeto</Label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {projects
+                        .filter(p => !(job as any).client_id || p.client_id === (job as any).client_id)
+                        .map((p) => {
+                          const isSelected = (job as any).project_id === p.id;
+                          return (
+                            <button
+                              key={p.id}
+                              onClick={() => updateMut.mutate({ project_id: p.id } as any)}
+                              className={`p-3 rounded-xl border text-left transition-all ${
+                                isSelected 
+                                  ? "bg-primary/10 border-primary text-primary shadow-[0_0_15px_rgba(255,188,69,0.1)]" 
+                                  : "bg-background/50 border-border hover:border-primary/50 text-foreground/60"
+                              }`}
+                            >
+                              <p className="text-[10px] font-bold uppercase tracking-wider line-clamp-2 leading-tight">
+                                {p.name}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      {projects.filter(p => !(job as any).client_id || p.client_id === (job as any).client_id).length === 0 && (
+                        <p className="text-[10px] text-foreground/40 uppercase font-bold py-2 italic">Nenhum projeto disponível para este cliente</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* SERVIÇO */}
+                  <div className="space-y-3 col-span-2">
+                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Serviço Principal</Label>
+                    <Select
+                      value={(job as any).service_id || ""}
+                      onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
                     >
-                      <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue placeholder="Adicionar membros à equipe..." /></SelectTrigger>
-                      <SelectContent>
-                        {team.map((p: any) => (
-                          <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
+                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg">
+                        <SelectValue placeholder="Selecione o serviço" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-surface border-border">
+                        {services.map((s: any) => (
+                          <SelectItem key={s.id} value={s.id} className="text-xs">{s.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="flex flex-wrap gap-2">
-                      {((job as any).team_involved || []).map((member: any) => {
-                        const p = team.find((x: any) => x.id === member.user_id);
-                        return p ? (
-                          <div key={member.user_id} className="flex items-center gap-2 bg-muted/50 border border-border px-3 py-1.5 rounded-full text-xs transition-all hover:bg-muted">
-                            <span className="font-medium">{p.display_name || p.full_name}</span>
-                            <button onClick={() => {
+                  </div>
+
+                  {/* RESPONSÁVEL PRINCIPAL */}
+                  <div className="space-y-3 col-span-2">
+                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Responsável Principal</Label>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                      {team.map((p) => {
+                        const isSelected = (job as any).main_responsible_id === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => updateMut.mutate({ main_responsible_id: p.id } as any)}
+                            className="flex flex-col items-center gap-2 group"
+                          >
+                            <div className={`size-12 rounded-full border-2 transition-all p-0.5 ${
+                              isSelected ? "border-primary scale-110 shadow-[0_0_15px_rgba(255,188,69,0.3)]" : "border-transparent group-hover:border-primary/30"
+                            }`}>
+                              <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                                {p.avatar_url ? (
+                                  <img src={p.avatar_url} alt={p.display_name} className="size-full object-cover" />
+                                ) : (
+                                  <span className="text-xs font-bold text-foreground/40 uppercase">
+                                    {(p.display_name || p.full_name || "??").substring(0, 2)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <span className={`text-[9px] font-bold uppercase tracking-tighter text-center line-clamp-1 w-full ${isSelected ? "text-primary" : "text-foreground/40 group-hover:text-foreground/60"}`}>
+                              {p.display_name || p.full_name?.split(' ')[0]}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* EQUIPE ENVOLVIDA */}
+                  <div className="space-y-3 col-span-2">
+                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Equipe Envolvida</Label>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                      {team.map((p) => {
+                        const isSelected = ((job as any).team_involved || []).some((m: any) => m.user_id === p.id);
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => {
                               const current = (job as any).team_involved || [];
-                              updateMut.mutate({ team_involved: current.filter((m: any) => m.user_id !== member.user_id) } as any);
-                            }} className="hover:text-destructive transition-colors">
-                              <X className="size-3.5" />
-                            </button>
-                          </div>
-                        ) : null;
+                              if (isSelected) {
+                                updateMut.mutate({ team_involved: current.filter((m: any) => m.user_id !== p.id) } as any);
+                              } else {
+                                updateMut.mutate({ team_involved: [...current, { user_id: p.id, role: "Membro" }] } as any);
+                              }
+                            }}
+                            className={`flex flex-col items-center gap-2 group transition-opacity ${!isSelected && "opacity-40 hover:opacity-100"}`}
+                          >
+                            <div className={`size-12 rounded-full border-2 transition-all p-0.5 ${
+                              isSelected ? "border-primary scale-110 shadow-[0_0_15px_rgba(255,188,69,0.3)]" : "border-transparent group-hover:border-primary/30"
+                            }`}>
+                              <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                                {p.avatar_url ? (
+                                  <img src={p.avatar_url} alt={p.display_name} className="size-full object-cover" />
+                                ) : (
+                                  <span className="text-xs font-bold text-foreground/40 uppercase">
+                                    {(p.display_name || p.full_name || "??").substring(0, 2)}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <span className={`text-[9px] font-bold uppercase tracking-tighter text-center line-clamp-1 w-full ${isSelected ? "text-primary" : "text-foreground/40"}`}>
+                              {p.display_name || p.full_name?.split(' ')[0]}
+                            </span>
+                          </button>
+                        );
                       })}
                     </div>
                   </div>
                 </div>
               </div>
+
 
               <Accordion type="multiple" className="w-full space-y-4">
                 <AccordionItem value="execution" className="border border-border rounded-xl px-4 bg-muted/5 overflow-hidden">
