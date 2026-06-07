@@ -1159,7 +1159,9 @@ export type Database = {
           job_id: string
           mentions: Json
           metadata: Json | null
+          previous_versions: Json | null
           type: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -1170,7 +1172,9 @@ export type Database = {
           job_id: string
           mentions?: Json
           metadata?: Json | null
+          previous_versions?: Json | null
           type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -1181,7 +1185,9 @@ export type Database = {
           job_id?: string
           mentions?: Json
           metadata?: Json | null
+          previous_versions?: Json | null
           type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
