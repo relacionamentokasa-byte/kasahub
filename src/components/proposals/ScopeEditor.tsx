@@ -1,5 +1,9 @@
-import { useRef, useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { useEditor, EditorContent } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Underline from '@tiptap/extension-underline';
+import Link from '@tiptap/extension-link';
+import Placeholder from '@tiptap/extension-placeholder';
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,9 +25,13 @@ import {
   Heading2,
   FileText,
   Save,
-  Eye,
   Pencil,
   Loader2,
+  Underline as UnderlineIcon,
+  Link as LinkIcon,
+  ListOrdered,
+  Quote,
+  Heading3,
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -31,7 +39,20 @@ import {
   fetchScopeTemplates,
 } from "@/lib/scope-templates-api";
 import { toast } from "sonner";
-import { ScopeRenderer } from "./ScopeRenderer";
+import Showdown from 'showdown';
+import TurndownService from 'turndown';
+
+const converter = new Showdown.Converter({
+  simplifiedAutoLink: true,
+  strikethrough: true,
+  tables: true,
+  tasklists: true,
+});
+
+const turndownService = new TurndownService({
+  headingStyle: 'atx',
+  bulletListMarker: '-',
+});
 
 export function ScopeEditor({
   value,
@@ -40,8 +61,6 @@ export function ScopeEditor({
   value: string;
   onChange: (v: string) => void;
 }) {
-  const ref = useRef<HTMLTextAreaElement>(null);
-  const [tab, setTab] = useState<"edit" | "preview">("edit");
   const [saveOpen, setSaveOpen] = useState(false);
   const [tplName, setTplName] = useState("");
   const [tplCategory, setTplCategory] = useState("");
@@ -51,6 +70,41 @@ export function ScopeEditor({
     queryKey: ["scope-templates"],
     queryFn: fetchScopeTemplates,
   });
+
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [2, 3],
+        },
+      }),
+      Underline,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Placeholder.configure({
+        placeholder: 'Descreva o escopo dos serviços...',
+      }),
+    ],
+    content: converter.makeHtml(value),
+    onUpdate: ({ editor }) => {
+      const html = editor.getHTML();
+      const markdown = turndownService.turndown(html);
+      onChange(markdown);
+    },
+    editorProps: {
+      attributes: {
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[300px] px-4 py-3',
+      },
+    },
+  });
+
+  // Sync external changes (like loading template) back to editor
+  useEffect(() => {
+    if (editor && value !== turndownService.turndown(editor.getHTML())) {
+      editor.commands.setContent(converter.makeHtml(value));
+    }
+  }, [value, editor]);
 
   const saveTplMut = useMutation({
     mutationFn: () =>
@@ -69,66 +123,106 @@ export function ScopeEditor({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  function wrap(prefix: string, suffix = prefix) {
-    const ta = ref.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    const sel = value.slice(start, end) || "texto";
-    const next = value.slice(0, start) + prefix + sel + suffix + value.slice(end);
-    onChange(next);
-    requestAnimationFrame(() => {
-      ta.focus();
-      ta.setSelectionRange(start + prefix.length, start + prefix.length + sel.length);
-    });
-  }
-
-  function prefixLines(prefix: string) {
-    const ta = ref.current;
-    if (!ta) return;
-    const start = ta.selectionStart ?? 0;
-    const end = ta.selectionEnd ?? 0;
-    const before = value.slice(0, start);
-    const sel = value.slice(start, end) || "Item";
-    const after = value.slice(end);
-    const transformed = sel
-      .split("\n")
-      .map((l) => (l ? `${prefix}${l}` : l))
-      .join("\n");
-    onChange(before + transformed + after);
-  }
-
   function insertTemplate(content: string, replace: boolean) {
-    onChange(replace || !value.trim() ? content : `${value}\n\n${content}`);
+    const nextMarkdown = replace || !value.trim() ? content : `${value}\n\n${content}`;
+    onChange(nextMarkdown);
+    if (editor) {
+      editor.commands.setContent(converter.makeHtml(nextMarkdown));
+    }
   }
+
+  if (!editor) return null;
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap items-center gap-1">
-        <Button size="sm" variant="ghost" type="button" onClick={() => wrap("**")}>
+    <div className="space-y-2 border border-border rounded-md bg-background overflow-hidden">
+      <div className="flex flex-wrap items-center gap-1 p-1 bg-muted/30 border-b border-border">
+        <Button 
+          size="sm" 
+          variant={editor.isActive('bold') ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          className="h-8 w-8 p-0"
+        >
           <Bold className="size-3.5" />
         </Button>
-        <Button size="sm" variant="ghost" type="button" onClick={() => wrap("*")}>
+        <Button 
+          size="sm" 
+          variant={editor.isActive('italic') ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          className="h-8 w-8 p-0"
+        >
           <Italic className="size-3.5" />
         </Button>
-        <Button size="sm" variant="ghost" type="button" onClick={() => prefixLines("## ")}>
+        <Button 
+          size="sm" 
+          variant={editor.isActive('underline') ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          className="h-8 w-8 p-0"
+        >
+          <UnderlineIcon className="size-3.5" />
+        </Button>
+        <div className="mx-0.5 h-4 w-px bg-border" />
+        <Button 
+          size="sm" 
+          variant={editor.isActive('heading', { level: 2 }) ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          className="h-8 w-8 p-0"
+        >
           <Heading2 className="size-3.5" />
         </Button>
-        <Button size="sm" variant="ghost" type="button" onClick={() => prefixLines("- ")}>
+        <Button 
+          size="sm" 
+          variant={editor.isActive('heading', { level: 3 }) ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          className="h-8 w-8 p-0"
+        >
+          <Heading3 className="size-3.5" />
+        </Button>
+        <div className="mx-0.5 h-4 w-px bg-border" />
+        <Button 
+          size="sm" 
+          variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          className="h-8 w-8 p-0"
+        >
           <List className="size-3.5" />
         </Button>
+        <Button 
+          size="sm" 
+          variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          className="h-8 w-8 p-0"
+        >
+          <ListOrdered className="size-3.5" />
+        </Button>
+        <Button 
+          size="sm" 
+          variant={editor.isActive('blockquote') ? 'secondary' : 'ghost'} 
+          type="button" 
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          className="h-8 w-8 p-0"
+        >
+          <Quote className="size-3.5" />
+        </Button>
         <div className="mx-1 h-5 w-px bg-border" />
+        
         <Popover>
           <PopoverTrigger asChild>
-            <Button size="sm" variant="outline" type="button">
-              <FileText className="size-3.5" /> Carregar Modelo
+            <Button size="sm" variant="outline" type="button" className="h-8 text-[10px] uppercase font-bold tracking-tight px-2">
+              <FileText className="size-3 mr-1" /> Modelos
             </Button>
           </PopoverTrigger>
           <PopoverContent align="start" className="w-80 p-2">
             <div className="max-h-72 overflow-y-auto space-y-1">
               {templates.length === 0 && (
                 <p className="text-xs text-muted-foreground p-2">
-                  Nenhum modelo cadastrado. Crie um em Configurações.
+                  Nenhum modelo cadastrado.
                 </p>
               )}
               {templates.map((t) => (
@@ -162,53 +256,22 @@ export function ScopeEditor({
             </div>
           </PopoverContent>
         </Popover>
+
         <Button
           size="sm"
-          variant="outline"
+          variant="ghost"
           type="button"
           onClick={() => setSaveOpen(true)}
           disabled={!value.trim()}
+          className="h-8 text-[10px] uppercase font-bold tracking-tight px-2"
         >
-          <Save className="size-3.5" /> Salvar como Modelo
+          <Save className="size-3 mr-1" /> Salvar Modelo
         </Button>
-        <div className="ml-auto inline-flex rounded-md border border-border p-0.5">
-          <Button
-            size="sm"
-            variant={tab === "edit" ? "secondary" : "ghost"}
-            type="button"
-            onClick={() => setTab("edit")}
-          >
-            <Pencil className="size-3.5" /> Editar
-          </Button>
-          <Button
-            size="sm"
-            variant={tab === "preview" ? "secondary" : "ghost"}
-            type="button"
-            onClick={() => setTab("preview")}
-          >
-            <Eye className="size-3.5" /> Pré-visualizar
-          </Button>
-        </div>
       </div>
 
-      {tab === "edit" ? (
-        <Textarea
-          ref={ref}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          rows={14}
-          className="font-mono text-sm min-h-[280px]"
-          placeholder={`Escreva o escopo dos serviços. Suporta Markdown:\n\n## Título\n\nParágrafo livre.\n\n- Item de lista\n- Outro item\n\n**Negrito** e *itálico*`}
-        />
-      ) : (
-        <div className="min-h-[280px] rounded-md border border-border bg-background p-4">
-          {value.trim() ? (
-            <ScopeRenderer text={value} />
-          ) : (
-            <p className="text-sm text-muted-foreground">Nada para pré-visualizar.</p>
-          )}
-        </div>
-      )}
+      <div className="bg-background min-h-[300px] cursor-text" onClick={() => editor.chain().focus().run()}>
+        <EditorContent editor={editor} />
+      </div>
 
       <Dialog open={saveOpen} onOpenChange={setSaveOpen}>
         <DialogContent>
