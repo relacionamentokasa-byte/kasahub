@@ -13,11 +13,13 @@ export function ProfileImageUpload({
   onChange,
   label = "Foto de perfil",
   shape = "round",
+  aspect,
 }: {
   value?: string | null;
   onChange: (url: string | null) => void;
   label?: string;
   shape?: "round" | "rect";
+  aspect?: number;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -80,12 +82,16 @@ export function ProfileImageUpload({
     <div className="space-y-4">
       <div className="flex flex-col items-center gap-4">
         <div className="relative group">
-          <div className={`size-32 border-2 border-primary/20 bg-muted overflow-hidden ${shape === "round" ? "rounded-full" : "rounded-xl"}`}>
+          <div className={`size-32 border-2 border-primary/20 overflow-hidden ${shape === "round" ? "rounded-full bg-muted" : "rounded-xl bg-white/5"} relative`}>
+            {/* Background checkered pattern for transparency visibility */}
+            {shape === "rect" && (
+              <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'conic-gradient(#000 0.25turn, #fff 0.25turn 0.5turn, #000 0.5turn 0.75turn, #fff 0.75turn)', backgroundSize: '10px 10px' }} />
+            )}
             {value ? (
               <img
                 src={value}
                 alt="Preview"
-                className="w-full h-full object-cover"
+                className={`w-full h-full relative z-10 ${shape === "round" ? "object-cover" : "object-contain p-2"}`}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted-foreground">
@@ -152,7 +158,7 @@ export function ProfileImageUpload({
                 image={image}
                 crop={crop}
                 zoom={zoom}
-                aspect={shape === "round" ? 1 : 16 / 9}
+                aspect={aspect || (shape === "round" ? 1 : 16 / 9)}
                 cropShape={shape === "round" ? "round" : "rect"}
                 showGrid={false}
                 onCropChange={setCrop}
