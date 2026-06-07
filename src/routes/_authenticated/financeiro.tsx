@@ -23,6 +23,7 @@ import {
   MoreHorizontal,
   XCircle,
   Calendar,
+  Info,
 } from "lucide-react";
 
 import {
