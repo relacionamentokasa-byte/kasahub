@@ -324,7 +324,7 @@ function ServiceFormDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Escopo Padrão (Itens separados por linha)</Label>
+              <Label className="text-xs">Escopo Padrão (Etapas sugeridas para Jobs)</Label>
               <Textarea
                 rows={5}
                 value={form.default_scope.join("\n")}
