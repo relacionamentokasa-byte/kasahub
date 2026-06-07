@@ -157,6 +157,18 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
     },
   });
 
+  const deleteUserMut = useMutation({
+    mutationFn: deleteUser,
+    onSuccess: () => {
+      toast.success("Usuário excluído com sucesso");
+      qc.invalidateQueries({ queryKey: ["users"] });
+      setUserToDelete(null);
+    },
+    onError: (e: Error) => toast.error("Erro ao excluir usuário: " + e.message),
+  });
+
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+
   if (usersLoading || invitesLoading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
   const userLimit = agency?.user_limit || 10;
