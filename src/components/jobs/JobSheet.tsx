@@ -415,7 +415,7 @@ export function JobSheet({
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
       setComment("");
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      handleTyping(false);
+      await handleTyping(false);
       return { prev };
     },
     onSuccess: () => {
