@@ -86,7 +86,11 @@ export function JobSheet({
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
-  const { data: services = [] } = useQuery({ queryKey: ["services", "active"], queryFn: () => supabase.from("services").select("*").eq("is_active", true).then(res => res.data || []) });
+  const { data: servicesData = [] } = useQuery({ queryKey: ["services", "active"], queryFn: async () => {
+    const { data } = await supabase.from("services").select("*").eq("is_active", true);
+    return data || [];
+  }});
+  const services = servicesData as any[];
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
