@@ -260,10 +260,18 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
   
-  const client = await fetchClient(input.client_id);
+  const client = await fetchClient(input.client_id || project.client_id!);
   if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
 
-  const { data, error } = await supabase.from("jobs").insert(input).select().single();
+  // Herança automática de campos se não fornecidos
+  const finalInput = {
+    ...input,
+    client_id: input.client_id || project.client_id,
+    contract_id: input.contract_id || project.contract_id,
+    main_responsible_id: input.main_responsible_id || project.responsible_id || project.owner_id,
+  };
+
+  const { data, error } = await supabase.from("jobs").insert(finalInput).select().single();
 
   if (error) throw error;
 

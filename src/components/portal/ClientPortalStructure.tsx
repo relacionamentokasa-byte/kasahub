@@ -16,13 +16,17 @@ export function ClientPortalStructure() {
       if (data.user) {
         // Find if this user is a client
         const { data: portalUser } = await supabase
-          .from("portal_users")
+          .from("client_portal_users")
           .select("client_id")
-          .eq("user_id", data.user.id)
+          .eq("auth_user_id", data.user.id)
           .maybeSingle();
         
         if (portalUser) {
           setClientId(portalUser.client_id);
+        } else {
+          // Fallback to user metadata
+          const cid = data.user.user_metadata?.portal_client_id;
+          if (cid) setClientId(cid);
         }
       }
     }
