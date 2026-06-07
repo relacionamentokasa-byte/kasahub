@@ -155,10 +155,22 @@ export function JobSheet({
 
   const addItemMut = useMutation({
     mutationFn: (content: string) => addChecklistItem(job!.id, content),
+    onMutate: async (content) => {
+      const qk = ["job-checklist", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      const tempId = Math.random().toString(36).substring(7);
+      const newItem = { id: tempId, job_id: job!.id, content, done: false, order_index: (prev?.length || 0) + 1 };
+      qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newItem]);
+      setDraft("");
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
-      setDraft("");
     },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
+    }
   });
 
   const toggleItemMut = useMutation({
