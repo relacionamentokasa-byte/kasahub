@@ -185,29 +185,6 @@ export function NewJobDialog({
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Cliente</Label>
-              <Select value={form.client_id || undefined} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                <SelectTrigger className={!form.client_id ? "border-destructive" : ""}><SelectValue placeholder="Obrigatório" /></SelectTrigger>
-                <SelectContent>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Serviço</Label>
-              <Select value={form.service_id || undefined} onValueChange={(v) => setForm({ ...form, service_id: v })}>
-                <SelectTrigger className={!form.service_id ? "border-destructive" : ""}><SelectValue placeholder="Obrigatório" /></SelectTrigger>
-                <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
 
             <div className="space-y-1.5">
               <Label>Responsável Principal</Label>
