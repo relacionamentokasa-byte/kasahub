@@ -55,19 +55,35 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
     enabled: !!project,
   });
 
-  if (projectLoading) return <div className="p-10 text-foreground/40 flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Carregando…</div>;
+  if (projectLoading) return (
+    <div className="p-10 flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <Loader2 className="size-8 animate-spin text-primary" />
+      <p className="text-sm text-foreground/40 font-mono-kasa animate-pulse uppercase tracking-widest">Carregando detalhes do projeto...</p>
+    </div>
+  );
 
   if (projectError || !project) {
     return (
-      <div className="p-10 text-center space-y-4">
-        <AlertCircle className="size-10 text-destructive mx-auto" />
-        <h1 className="text-xl font-bold">Projeto não encontrado</h1>
-        <p className="text-foreground/60">O projeto solicitado não existe ou você não tem permissão para acessá-la.</p>
-        {!embedded && (
-          <Link to="/projetos">
-            <Button variant="outline">Voltar para projetos</Button>
-          </Link>
-        )}
+      <div className="p-10 text-center space-y-6 max-w-md mx-auto min-h-[400px] flex flex-col items-center justify-center">
+        <div className="size-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertCircle className="size-8 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-display font-bold">Projeto indisponível</h1>
+          <p className="text-foreground/60 text-sm leading-relaxed">
+            {projectError 
+              ? "Ocorreu um erro ao carregar os dados. Por favor, tente novamente." 
+              : "O projeto solicitado não existe ou você não tem permissão para acessá-lo."}
+          </p>
+        </div>
+        <div className="flex flex-col w-full gap-2">
+          <Button onClick={() => window.location.reload()} className="w-full">Tentar novamente</Button>
+          {!embedded && (
+            <Link to="/projetos">
+              <Button variant="outline" className="w-full">Voltar para projetos</Button>
+            </Link>
+          )}
+        </div>
       </div>
     );
   }
