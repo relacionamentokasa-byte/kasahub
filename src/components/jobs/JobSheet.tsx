@@ -420,9 +420,10 @@ export function JobSheet({
       toast.success("Comentário atualizado");
     },
     onError: (e: Error) => toast.error(e.message)
-
+  });
 
   const communicationTimeline = useMemo(() => {
+
     if (!job) return [];
     return [
       ...comments.map(c => ({ 
@@ -791,13 +792,13 @@ export function JobSheet({
                   const user = team.find(p => p.id === item.user_id);
                   const userName = item.is_system ? "Sistema" : (user?.display_name || user?.full_name || "Usuário");
                   
-                  return (
                   const isEditing = editingCommentId === item.commentId;
                   const hasVersions = item.previous_versions && item.previous_versions.length > 0;
                   const isShowingVersions = showVersionsId === item.commentId;
                   
                   return (
                     <div key={item.id} className="space-y-1 group/comment">
+
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2">
                           <span className="text-[11px] font-bold text-foreground/60">{userName}</span>
@@ -942,9 +943,8 @@ export function JobSheet({
                       )}
                     </div>
                   );
-
-                  );
                 })}
+
 
                 {communicationTimeline.length === 0 && (
                   <div className="text-center py-12 space-y-3 opacity-20">
