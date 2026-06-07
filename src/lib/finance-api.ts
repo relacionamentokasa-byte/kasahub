@@ -365,7 +365,31 @@ export function accountStats(account: BankAccount, txs: Transaction[]) {
   return { income, expense, balance: Number(account.initial_balance) + income - expense };
 }
 
-export async function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}) {
+export interface FinancialIndicators {
+  incomePaid: number;
+  expensePaid: number;
+  receivable: number;
+  payable: number;
+  profit: number;
+  receitasPrevistas: number;
+  receitasRecebidas: number;
+  despesasPagas: number;
+  parcelasFuturas: number;
+  mrr: number;
+  arr: number;
+  recurringIncome: number;
+  extraIncome: number;
+  ticketRecurrente: number;
+  ticketGeral: number;
+  monthIncome: number;
+  monthExpense: number;
+  monthResult: number;
+  extraThisMonth: number;
+  overdueCount: number;
+  overdueAmount: number;
+}
+
+export async function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}): Promise<FinancialIndicators> {
   const now = new Date();
   const from = opts.from ?? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const to = opts.to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
