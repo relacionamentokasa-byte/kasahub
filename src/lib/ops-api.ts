@@ -465,12 +465,12 @@ export async function deleteChecklistItem(id: string) {
   if (error) throw error;
 }
 
+export async function deleteJobComment(id: string) {
+  const { error } = await supabase.from("job_comments").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
-  const { data, error } = await supabase
-    .from("job_comments")
-    .select("*")
-    .eq("job_id", jobId)
-    .order("created_at", { ascending: true });
   if (error) throw error;
 
   // Gerar URLs assinadas para anexos em comentários
