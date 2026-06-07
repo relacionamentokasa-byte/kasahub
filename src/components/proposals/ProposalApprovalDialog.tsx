@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, ScrollText } from "lucide-react";
+import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, ScrollText, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProposal, fetchProposalItems, formatCurrency } from "@/lib/crm-api";
 import { approveProposal } from "@/lib/proposal-approval";
@@ -177,10 +177,12 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                     )}
                   </div>
                 ) : (
-                  <div className="mt-2 rounded-md border border-dashed border-destructive/30 bg-destructive/5 h-20 flex flex-col items-center justify-center text-center p-3">
-                    <span className="text-sm font-medium text-destructive">Aguardando Assinatura</span>
-                    <p className="text-[10px] text-foreground/60 mt-1">
-                      Esta proposta está travada. O cliente deve assinar pelo link público antes da aprovação interna.
+                  <div className="mt-2 rounded-md border border-dashed border-destructive bg-destructive/5 h-20 flex flex-col items-center justify-center text-center p-3">
+                    <span className="text-sm font-bold text-destructive flex items-center gap-1.5">
+                      <AlertCircle className="size-4" /> Assinatura Obrigatória
+                    </span>
+                    <p className="text-[10px] text-foreground/70 mt-1 font-medium">
+                      O bloqueio é definitivo. O cliente deve obrigatoriamente assinar pelo link público para liberar a conversão.
                     </p>
                   </div>
                 )}

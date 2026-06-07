@@ -209,8 +209,14 @@ export function ProposalEditorContent({
   const totals = useMemo(() => recalcProposalTotals(items), [items]);
 
   const saveMut = useMutation({
-    mutationFn: (overrides?: Partial<typeof form>) => {
+    mutationFn: async (overrides?: Partial<typeof form>) => {
       const f = { ...form, ...(overrides ?? {}) };
+      
+      // Bloqueio definitivo no front-end para evitar bypass
+      if ((f.status === "accepted" || f.status === "converted" || f.status === "signed") && !f.signature_client) {
+        throw new Error("Não é possível aprovar esta proposta manualmente sem a assinatura do cliente.");
+      }
+
       return updateProposal(proposalId, {
         title: f.title,
         client_id: f.client_id || null,
