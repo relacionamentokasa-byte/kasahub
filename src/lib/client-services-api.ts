@@ -86,6 +86,8 @@ export async function generateJobsForProject(
           title: t.name,
           stage_id: t.initial_stage_id ?? firstStageId,
           assignee_id: t.default_assignee_id ?? null,
+          main_responsible_id: t.default_assignee_id ?? null,
+          status: 'not_started',
           order_index: t.order_index,
           period: period || null,
           due_date:
