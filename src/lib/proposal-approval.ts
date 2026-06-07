@@ -286,7 +286,6 @@ export async function approveProposal(
       ? new Date(proposal.first_due_date)
       : safeBillingDay(new Date().getFullYear(), new Date().getMonth(), billingDay);
 
-
     // existing months for this contract to avoid dupes
     const { data: existingTx } = await sb
       .from("transactions")
@@ -295,6 +294,25 @@ export async function approveProposal(
     const existingMonths = new Set(
       (existingTx ?? []).map((t: { due_date: string }) => t.due_date.slice(0, 7)),
     );
+
+    // Auto-categorize based on proposal service_type or title
+    let categoryId = proposal.category_id;
+    if (!categoryId) {
+      const { data: categories } = await sb.from('financial_categories').select('id, name');
+      if (categories) {
+        // Simple mapping based on known service names or keywords
+        const serviceName = (proposal.service_type || proposal.title || "").toLowerCase();
+        let targetCat = 'Fee Mensal'; // Default for recurring
+        
+        if (serviceName.includes('tráfego') || serviceName.includes('ads')) targetCat = 'Tráfego Pago';
+        else if (serviceName.includes('social') || serviceName.includes('media')) targetCat = 'Social Media';
+        else if (serviceName.includes('conteúdo') || serviceName.includes('copy')) targetCat = 'Conteúdo';
+        else if (serviceName.includes('consultoria')) targetCat = 'Consultoria';
+        
+        const cat = categories.find(c => c.name === targetCat);
+        if (cat) categoryId = cat.id;
+      }
+    }
 
     const rows: Array<Record<string, unknown>> = [];
     for (let i = 0; i < months; i++) {
@@ -310,14 +328,12 @@ export async function approveProposal(
         is_recurring: true,
 
         account_id: proposal.account_id ?? null,
-        category_id: proposal.category_id ?? null,
+        category_id: categoryId ?? null,
         client_id: clientId,
         project_id: projectId,
         proposal_id: proposal.id,
         contract_id: contractId,
         owner_id: proposal.owner_id ?? null,
-
-
       });
     }
     if (rows.length) {
