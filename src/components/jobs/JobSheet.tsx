@@ -140,32 +140,12 @@ export function JobSheet({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] }))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] }))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const users: string[] = [];
-        Object.values(state).forEach((presences: any) => {
-          presences.forEach((p: any) => {
-            if (p.is_typing) users.push(p.user_name);
-          });
-        });
-        setTypingUsers([...new Set(users)]);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          const { data: { user } } = await supabase.auth.getUser();
-          const profile = team.find(p => p.id === user?.id);
-          await channel.track({
-            user_id: user?.id,
-            user_name: profile?.display_name || profile?.full_name || 'Usuário',
-            is_typing: false
-          });
-        }
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [job?.id, qc, team]);
+  }, [job?.id, qc]);
 
   const handleTyping = useCallback(async (isTyping: boolean) => {
     if (!job?.id) return;
