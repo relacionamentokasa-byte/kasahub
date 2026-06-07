@@ -18,7 +18,7 @@ export function ProposalTimeline({ proposalId }: { proposalId: string }) {
         <p className="text-xs text-foreground/40">Nenhum evento registrado ainda.</p>
       ) : (
         <ol className="relative border-l border-border ml-2 space-y-4">
-          {events.map((e) => {
+          {[...events].reverse().map((e) => {
             const meta = EVENT_LABELS[e.type] ?? { label: e.type, color: "text-foreground/70" };
             return (
               <li key={e.id} className="ml-4">
