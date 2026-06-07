@@ -72,11 +72,10 @@ export async function createTemplateJob(input: {
   default_duration_days?: number;
   default_assignee_id?: string | null;
   initial_stage_id?: string | null;
-  operational_template_id?: string | null;
 }) {
   const { data, error } = await supabase
     .from("service_job_templates")
-    .insert(input)
+    .insert(input as any)
     .select()
     .single();
   if (error) throw error;

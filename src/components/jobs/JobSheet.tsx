@@ -89,13 +89,7 @@ export function JobSheet({
     queryFn: () => fetchPartners("freelancer"),
   });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
-  const { data: opTemplates = [] } = useQuery({ 
-    queryKey: ["operational-templates"], 
-    queryFn: async () => {
-      const { data } = await supabase.from("operational_templates").select("*").order("name");
-      return data || [];
-    }
-  });
+  // opTemplates removed
   
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
@@ -310,21 +304,7 @@ export function JobSheet({
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] capitalize text-foreground/50">Template Operacional</Label>
-                  <Select
-                    value={(job as any).operational_template_id || "none"}
-                    onValueChange={(v) => updateMut.mutate({ operational_template_id: v === 'none' ? null : v } as any)}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
-                      {opTemplates.map(t => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Template Operacional Removed */}
 
                 <div className="space-y-1.5 col-span-2">
                   <Label className="text-[10px] capitalize text-foreground/50">Equipe Envolvida</Label>
@@ -339,14 +319,14 @@ export function JobSheet({
                   >
                     <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
                     <SelectContent>
-                      {team.map(p => (
+                      {team.map((p: any) => (
                         <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   <div className="flex flex-wrap gap-1 mt-2">
                     {((job as any).team_involved || []).map((member: any) => {
-                      const p = team.find(x => x.id === member.user_id);
+                      const p = team.find((x: any) => x.id === member.user_id);
                       return p ? (
                         <div key={member.user_id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
                           {p.display_name || p.full_name}

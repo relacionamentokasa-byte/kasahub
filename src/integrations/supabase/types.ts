@@ -1275,7 +1275,6 @@ export type Database = {
           last_activity_at: string | null
           last_feedback: string | null
           main_responsible_id: string | null
-          operational_template_id: string | null
           order_index: number
           period: string | null
           priority: string
@@ -1315,7 +1314,6 @@ export type Database = {
           last_activity_at?: string | null
           last_feedback?: string | null
           main_responsible_id?: string | null
-          operational_template_id?: string | null
           order_index?: number
           period?: string | null
           priority?: string
@@ -1355,7 +1353,6 @@ export type Database = {
           last_activity_at?: string | null
           last_feedback?: string | null
           main_responsible_id?: string | null
-          operational_template_id?: string | null
           order_index?: number
           period?: string | null
           priority?: string
@@ -1395,13 +1392,6 @@ export type Database = {
             columns: ["freelancer_id"]
             isOneToOne: false
             referencedRelation: "partners"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "jobs_operational_template_id_fkey"
-            columns: ["operational_template_id"]
-            isOneToOne: false
-            referencedRelation: "operational_templates"
             referencedColumns: ["id"]
           },
           {
@@ -1699,33 +1689,6 @@ export type Database = {
           title?: string
           type?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      operational_templates: {
-        Row: {
-          created_at: string | null
-          default_steps: Json | null
-          description: string | null
-          id: string
-          name: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          default_steps?: Json | null
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          default_steps?: Json | null
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2435,7 +2398,6 @@ export type Database = {
           id: string
           initial_stage_id: string | null
           name: string
-          operational_template_id: string | null
           order_index: number
           service_id: string
           updated_at: string
@@ -2448,7 +2410,6 @@ export type Database = {
           id?: string
           initial_stage_id?: string | null
           name: string
-          operational_template_id?: string | null
           order_index?: number
           service_id: string
           updated_at?: string
@@ -2461,7 +2422,6 @@ export type Database = {
           id?: string
           initial_stage_id?: string | null
           name?: string
-          operational_template_id?: string | null
           order_index?: number
           service_id?: string
           updated_at?: string
@@ -2472,13 +2432,6 @@ export type Database = {
             columns: ["initial_stage_id"]
             isOneToOne: false
             referencedRelation: "job_stages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_job_templates_operational_template_id_fkey"
-            columns: ["operational_template_id"]
-            isOneToOne: false
-            referencedRelation: "operational_templates"
             referencedColumns: ["id"]
           },
           {

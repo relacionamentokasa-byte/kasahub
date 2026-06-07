@@ -95,7 +95,7 @@ export function ServicesManager({ canEdit }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-lg font-semibold">Serviços e Templates Operacionais</p>
+          <p className="font-display text-lg font-semibold">Serviços e Jobs</p>
           <p className="text-xs text-foreground/50">
             Biblioteca central de serviços da agência e seus Jobs padrão.
           </p>
@@ -265,7 +265,7 @@ function ServiceFormDialog({
           <TabsList>
             <TabsTrigger value="general">Geral</TabsTrigger>
             <TabsTrigger value="template" disabled={!service}>
-              Template Operacional
+              Jobs Padrão
             </TabsTrigger>
           </TabsList>
 
@@ -371,13 +371,7 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
     queryKey: ["job-stages"],
     queryFn: fetchJobStages,
   });
-  const { data: opTemplates = [] } = useQuery({
-    queryKey: ["operational-templates"],
-    queryFn: async () => {
-      const { data } = await supabase.from("operational_templates").select("*").order("name");
-      return data || [];
-    },
-  });
+  // opTemplates removed
 
   const [newJobName, setNewJobName] = useState("");
 
@@ -436,7 +430,6 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
             key={j.id}
             job={j}
             stages={stages}
-            opTemplates={opTemplates}
             isFirst={idx === 0}
             isLast={idx === jobs.length - 1}
             onMove={(dir) => moveMut.mutate({ id: j.id, dir })}
@@ -465,7 +458,6 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
 function TemplateJobRow({
   job,
   stages,
-  opTemplates,
   isFirst,
   isLast,
   onMove,
@@ -473,7 +465,6 @@ function TemplateJobRow({
 }: {
   job: ServiceJobTemplate;
   stages: any[];
-  opTemplates: any[];
   isFirst: boolean;
   isLast: boolean;
   onMove: (dir: -1 | 1) => void;
@@ -485,7 +476,7 @@ function TemplateJobRow({
     name: job.name,
     default_duration_days: job.default_duration_days,
     initial_stage_id: job.initial_stage_id || "",
-    operational_template_id: (job as any).operational_template_id || "",
+    operational_template_id: "",
     custom_fields_schema: JSON.stringify(job.custom_fields_schema || [], null, 2),
   });
 
@@ -495,7 +486,7 @@ function TemplateJobRow({
         name: local.name,
         default_duration_days: local.default_duration_days,
         initial_stage_id: local.initial_stage_id || null,
-        operational_template_id: local.operational_template_id || null,
+        // operational_template_id: local.operational_template_id || null,
         custom_fields_schema: JSON.parse(local.custom_fields_schema || "[]"),
       }),
     onSuccess: () => {
@@ -585,20 +576,7 @@ function TemplateJobRow({
             ))}
           </select>
         </div>
-        <div className="flex items-center gap-1">
-          <select
-            className="h-8 rounded-md border border-input bg-background text-[10px] focus:outline-none focus:ring-1 focus:ring-ring"
-            value={local.operational_template_id}
-            onChange={(e) => setLocal({ ...local, operational_template_id: e.target.value })}
-          >
-            <option value="">Template Etapas</option>
-            {opTemplates.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Template Etapas Removed */}
         <div className="flex items-center gap-1">
           <Input
             type="number"

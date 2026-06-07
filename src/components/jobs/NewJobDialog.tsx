@@ -52,14 +52,7 @@ export function NewJobDialog({
     queryFn: () => fetchPartners("freelancer") 
   });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
-  const { data: opTemplates = [] } = useQuery({ 
-    queryKey: ["operational-templates"], 
-    queryFn: async () => {
-      const { data, error } = await supabase.from("operational_templates").select("*").order("name");
-      if (error) throw error;
-      return data;
-    }
-  });
+  // opTemplates removed
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -73,7 +66,7 @@ export function NewJobDialog({
     period: defaultPeriod ?? "",
     freelancer_id: "",
     main_responsible_id: "",
-    operational_template_id: "",
+    // operational_template_id: "", // Removed
     team_involved_ids: [] as string[],
   });
 
@@ -109,25 +102,13 @@ export function NewJobDialog({
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
         main_responsible_id: form.main_responsible_id || null,
-        operational_template_id: form.operational_template_id || null,
+        // operational_template_id: form.operational_template_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
       } as any).select().single();
       
       if (error) throw error;
 
-      // Apply Template Steps
-      if (form.operational_template_id) {
-        const template = opTemplates.find(t => t.id === form.operational_template_id);
-        if (template && Array.isArray(template.default_steps)) {
-          await supabase.from("job_checklist").insert(
-            (template.default_steps as string[]).map((content: string, idx: number) => ({
-              job_id: data.id,
-              content,
-              order_index: idx
-            }))
-          );
-        }
-      }
+      // Template Steps Logic Removed
 
       return data;
     },
@@ -148,7 +129,7 @@ export function NewJobDialog({
         period: defaultPeriod ?? "",
         freelancer_id: "",
         main_responsible_id: "",
-        operational_template_id: "",
+        // operational_template_id: "", // Removed
         team_involved_ids: [],
       });
     },
@@ -244,24 +225,14 @@ export function NewJobDialog({
               <Select value={form.main_responsible_id} onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  {team.map(p => (
+                  {team.map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Template Operacional</Label>
-              <Select value={form.operational_template_id} onValueChange={(v) => setForm({ ...form, operational_template_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                <SelectContent>
-                  {opTemplates.map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Template Operacional Removed */}
 
             <div className="space-y-1.5 col-span-2">
               <Label>Equipe Envolvida</Label>
@@ -271,7 +242,7 @@ export function NewJobDialog({
               >
                 <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
                 <SelectContent>
-                  {team.map(p => (
+                  {team.map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -279,7 +250,7 @@ export function NewJobDialog({
               {form.team_involved_ids.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {form.team_involved_ids.map(id => {
-                    const p = team.find(x => x.id === id);
+                    const p = team.find((x: any) => x.id === id);
                     return p ? (
                       <div key={id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
                         {p.display_name || p.full_name}
