@@ -327,12 +327,10 @@ export function JobSheet({
                   <Select
                     value={(job as any).status || "not_started"}
                     onValueChange={(v) => {
-                      updateMut.mutate({ status: v } as any);
-                      if (v === 'done') {
-                        updateMut.mutate({ done_at: new Date().toISOString() });
-                      } else {
-                        updateMut.mutate({ done_at: null });
-                      }
+                      updateMut.mutate({ 
+                        status: v,
+                        done_at: v === 'done' ? new Date().toISOString() : null
+                      } as any);
                     }}
                   >
                     <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue /></SelectTrigger>
