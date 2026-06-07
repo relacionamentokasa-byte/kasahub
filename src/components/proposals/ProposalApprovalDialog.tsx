@@ -56,9 +56,10 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const approveMut = useMutation({
     mutationFn: async () => {
       if (!proposalId) throw new Error("Proposta inválida");
-      if (!proposal?.signature_client && signature.trim().length < 2) {
-        throw new Error("Esta proposta não pode ser aprovada sem a assinatura do cliente.");
+      if (!proposal?.signature_client) {
+        throw new Error("Assinatura do cliente obrigatória.");
       }
+
       
       const { data: { user } } = await supabase.auth.getUser();
 
@@ -160,30 +161,31 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                 </div>
               </div>
               <div>
-                <Label htmlFor="client-signature" className="text-xs uppercase text-foreground/60">
-                  Assinatura do Cliente *
+                <Label className="text-xs uppercase text-foreground/60">
+                  Assinatura do Cliente
                 </Label>
                 {proposal.signature_client ? (
                   <div className="mt-2 rounded-md border border-border bg-green-500/5 h-20 flex flex-col items-center justify-center text-center p-2">
-                    <span className="text-sm font-medium text-green-600">Proposta Assinada</span>
-                    <span className="text-[10px] text-foreground/60">{proposal.signature_client}</span>
+                    <span className="text-sm font-medium text-green-600 flex items-center gap-1.5">
+                      <CheckCircle2 className="size-4" /> Proposta Assinada
+                    </span>
+                    <span className="text-[10px] text-foreground/60 mt-1">{proposal.signature_client}</span>
+                    {proposal.signed_at_client && (
+                      <span className="text-[8px] text-foreground/40 italic">
+                        em {new Date(proposal.signed_at_client).toLocaleString('pt-BR')}
+                      </span>
+                    )}
                   </div>
                 ) : (
-                  <>
-                    <Input
-                      id="client-signature"
-                      placeholder="Nome completo do responsável"
-                      value={signature}
-                      onChange={(e) => setSignature(e.target.value)}
-                      disabled={false}
-                      className="mt-2"
-                    />
-                    <p className="text-[10px] text-foreground/50 mt-1">
-                      Ao digitar o nome e clicar em Aprovar, você confirma que o cliente aceitou formalmente.
+                  <div className="mt-2 rounded-md border border-dashed border-destructive/30 bg-destructive/5 h-20 flex flex-col items-center justify-center text-center p-3">
+                    <span className="text-sm font-medium text-destructive">Aguardando Assinatura</span>
+                    <p className="text-[10px] text-foreground/60 mt-1">
+                      Esta proposta está travada. O cliente deve assinar pelo link público antes da aprovação interna.
                     </p>
-                  </>
+                  </div>
                 )}
               </div>
+
             </div>
 
 
@@ -199,7 +201,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
           </Button>
           <Button
             onClick={() => approveMut.mutate()}
-            disabled={approveMut.isPending || !proposal || (!proposal.signature_client && signature.trim().length < 2)}
+            disabled={approveMut.isPending || !proposal || !proposal.signature_client}
             className="bg-green-600 text-white hover:bg-green-700 gap-2"
           >
             {approveMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
