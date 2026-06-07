@@ -61,9 +61,14 @@ function ProjetosPage() {
   const { data: allJobs = [] } = useQuery({
     queryKey: ["all-jobs-stats"],
     queryFn: async () => {
-      const { data } = await supabase.from("jobs").select("id, project_id, done_at, stage_id");
+      const { data, error } = await supabase.from("jobs").select("id, project_id, done_at, stage_id");
+      if (error) {
+        console.error("Erro ao buscar jobs para estatísticas:", error);
+        return [];
+      }
       return data || [];
-    }
+    },
+    refetchOnWindowFocus: true,
   });
 
   const { data: stages = [] } = useQuery({ 
@@ -320,7 +325,9 @@ function ProjetosPage() {
                       return (
                         <div className="mt-5 space-y-2">
                           <div className="flex justify-between items-end">
-                            <span className="text-[10px] text-foreground/40 font-mono-kasa">{total} Jobs · {done} Concluídos</span>
+                            <span className="text-[10px] text-foreground/40 font-mono-kasa">
+                              {total} {total === 1 ? "Job" : "Jobs"} · {done} {done === 1 ? "Concluído" : "Concluídos"}
+                            </span>
                             <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
                           </div>
                           <div className="h-1.5 bg-background rounded-full overflow-hidden">
