@@ -1060,15 +1060,6 @@ export function JobSheet({
             </ScrollArea>
 
             <div className="p-6 pt-2 border-t border-border shrink-0">
-              {typingUsers.length > 0 && (
-                <div className="px-1 mb-2">
-                  <p className="text-[10px] text-primary font-medium animate-pulse">
-                    {typingUsers.length === 1 
-                      ? `${typingUsers[0]} está digitando...` 
-                      : `${typingUsers.join(', ')} estão digitando...`}
-                  </p>
-                </div>
-              )}
               
               <div className="relative z-[100]">
                 <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
