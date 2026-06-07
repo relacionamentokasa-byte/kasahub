@@ -54,11 +54,7 @@ export function NewJobDialog({
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: opTemplates = [] } = useQuery({ 
     queryKey: ["operational-templates"], 
-    queryFn: async () => {
-      const { data, error } = await supabase.from("operational_templates").select("*").order("name");
-      if (error) throw error;
-      return data;
-    }
+    queryFn: async () => []
   });
   const [form, setForm] = useState({
     title: "",
@@ -109,25 +105,13 @@ export function NewJobDialog({
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
         main_responsible_id: form.main_responsible_id || null,
-        operational_template_id: form.operational_template_id || null,
+        // operational_template_id: form.operational_template_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
       } as any).select().single();
       
       if (error) throw error;
 
-      // Apply Template Steps
-      if (form.operational_template_id) {
-        const template = opTemplates.find(t => t.id === form.operational_template_id);
-        if (template && Array.isArray(template.default_steps)) {
-          await supabase.from("job_checklist").insert(
-            (template.default_steps as string[]).map((content: string, idx: number) => ({
-              job_id: data.id,
-              content,
-              order_index: idx
-            }))
-          );
-        }
-      }
+      // Template Steps Logic Removed
 
       return data;
     },
@@ -251,17 +235,7 @@ export function NewJobDialog({
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Template Operacional</Label>
-              <Select value={form.operational_template_id} onValueChange={(v) => setForm({ ...form, operational_template_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                <SelectContent>
-                  {opTemplates.map(t => (
-                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Template Operacional Removed */}
 
             <div className="space-y-1.5 col-span-2">
               <Label>Equipe Envolvida</Label>

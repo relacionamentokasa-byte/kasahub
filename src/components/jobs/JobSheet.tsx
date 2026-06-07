@@ -91,10 +91,7 @@ export function JobSheet({
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: opTemplates = [] } = useQuery({ 
     queryKey: ["operational-templates"], 
-    queryFn: async () => {
-      const { data } = await supabase.from("operational_templates").select("*").order("name");
-      return data || [];
-    }
+    queryFn: async () => []
   });
   
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
@@ -310,21 +307,7 @@ export function JobSheet({
                   </Select>
                 </div>
 
-                <div className="space-y-1.5">
-                  <Label className="text-[10px] capitalize text-foreground/50">Template Operacional</Label>
-                  <Select
-                    value={(job as any).operational_template_id || "none"}
-                    onValueChange={(v) => updateMut.mutate({ operational_template_id: v === 'none' ? null : v } as any)}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
-                      {opTemplates.map(t => (
-                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                {/* Template Operacional Removed */}
 
                 <div className="space-y-1.5 col-span-2">
                   <Label className="text-[10px] capitalize text-foreground/50">Equipe Envolvida</Label>

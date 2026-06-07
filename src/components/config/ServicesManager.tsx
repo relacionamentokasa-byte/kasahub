@@ -373,10 +373,7 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
   });
   const { data: opTemplates = [] } = useQuery({
     queryKey: ["operational-templates"],
-    queryFn: async () => {
-      const { data } = await supabase.from("operational_templates").select("*").order("name");
-      return data || [];
-    },
+    queryFn: async () => [],
   });
 
   const [newJobName, setNewJobName] = useState("");
@@ -485,7 +482,7 @@ function TemplateJobRow({
     name: job.name,
     default_duration_days: job.default_duration_days,
     initial_stage_id: job.initial_stage_id || "",
-    operational_template_id: (job as any).operational_template_id || "",
+    operational_template_id: "",
     custom_fields_schema: JSON.stringify(job.custom_fields_schema || [], null, 2),
   });
 
@@ -495,7 +492,7 @@ function TemplateJobRow({
         name: local.name,
         default_duration_days: local.default_duration_days,
         initial_stage_id: local.initial_stage_id || null,
-        operational_template_id: local.operational_template_id || null,
+        // operational_template_id: local.operational_template_id || null,
         custom_fields_schema: JSON.parse(local.custom_fields_schema || "[]"),
       }),
     onSuccess: () => {
