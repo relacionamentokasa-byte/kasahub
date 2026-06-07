@@ -251,7 +251,6 @@ function ClientesPage() {
                   <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
                     <th className="px-4 py-3">Cliente</th>
                     <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Responsável</th>
                     <th className="px-4 py-3">Contrato</th>
                     <th className="px-4 py-3 text-right">Valor mensal</th>
                     <th className="px-4 py-3">Próx. vencimento</th>
