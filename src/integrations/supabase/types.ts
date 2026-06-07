@@ -1146,24 +1146,33 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_system: boolean | null
           job_id: string
           mentions: Json
+          metadata: Json | null
+          type: string | null
           user_id: string | null
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
+          is_system?: boolean | null
           job_id: string
           mentions?: Json
+          metadata?: Json | null
+          type?: string | null
           user_id?: string | null
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
+          is_system?: boolean | null
           job_id?: string
           mentions?: Json
+          metadata?: Json | null
+          type?: string | null
           user_id?: string | null
         }
         Relationships: [
