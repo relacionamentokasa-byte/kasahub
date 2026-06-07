@@ -363,6 +363,25 @@ export async function approveProposal(
         : new Date();
 
 
+      // Auto-categorize based on proposal service_type or title
+      let categoryId = proposal.category_id;
+      if (!categoryId) {
+        const { data: categories } = await sb.from('financial_categories').select('id, name');
+        if (categories) {
+          const serviceName = (proposal.service_type || proposal.title || "").toLowerCase();
+          let targetCat = 'Job Avulso'; // Default for one-time
+          
+          if (serviceName.includes('tráfego') || serviceName.includes('ads')) targetCat = 'Tráfego Pago';
+          else if (serviceName.includes('social') || serviceName.includes('media')) targetCat = 'Social Media';
+          else if (serviceName.includes('conteúdo') || serviceName.includes('copy')) targetCat = 'Conteúdo';
+          else if (serviceName.includes('consultoria')) targetCat = 'Consultoria';
+          else if (serviceName.includes('especial')) targetCat = 'Projeto Especial';
+          
+          const cat = categories.find(c => c.name === targetCat);
+          if (cat) categoryId = cat.id;
+        }
+      }
+
       const rows = Array.from({ length: installments }).map((_, i) => ({
         kind: "income",
         description: `${proposal.title} — Parcela ${i + 1}/${installments}`,
@@ -373,14 +392,12 @@ export async function approveProposal(
         installment_number: i + 1,
         installment_total: installments,
         account_id: proposal.account_id ?? null,
-        category_id: proposal.category_id ?? null,
+        category_id: categoryId ?? null,
         client_id: clientId,
         project_id: projectId,
         proposal_id: proposal.id,
         contract_id: contractId,
         owner_id: proposal.owner_id ?? null,
-
-
       }));
       const { error: txErr } = await sb.from("transactions").insert(rows);
       if (txErr) throw txErr;
