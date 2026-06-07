@@ -59,6 +59,8 @@ export function JobSheet({
   const open = !!job;
   const [draft, setDraft] = useState("");
   const [comment, setComment] = useState("");
+  const [title, setTitle] = useState(job?.title || "");
+  const [observations, setObservations] = useState((job as any)?.operational_observations || "");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -111,6 +113,13 @@ export function JobSheet({
       channels.forEach(c => supabase.removeChannel(c));
     };
   }, [job?.id, qc]);
+
+  useEffect(() => {
+    if (job) {
+      setTitle(job.title);
+      setObservations((job as any).operational_observations || "");
+    }
+  }, [job?.id]);
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
@@ -365,8 +374,9 @@ export function JobSheet({
           </div>
           <SheetTitle className="font-display text-2xl lg:text-3xl">
             <input
-              value={job.title}
-              onChange={(e) => updateMut.mutate({ title: e.target.value })}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onBlur={() => title !== job.title && updateMut.mutate({ title })}
               className="bg-transparent border-none outline-none w-full focus:ring-0 p-0 h-auto"
             />
           </SheetTitle>
@@ -615,8 +625,9 @@ export function JobSheet({
                 </div>
                 <Textarea
                   rows={6}
-                  value={(job as any).operational_observations ?? ""}
-                  onChange={(e) => updateMut.mutate({ operational_observations: e.target.value } as any)}
+                  value={observations}
+                  onChange={(e) => setObservations(e.target.value)}
+                  onBlur={() => observations !== (job as any).operational_observations && updateMut.mutate({ operational_observations: observations } as any)}
                   placeholder="Registros internos da equipe sobre a execução, intercorrências ou solicitações pontuais..."
                   className="bg-muted/5 text-sm leading-relaxed border-border min-h-[150px]"
                 />
