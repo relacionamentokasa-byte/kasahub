@@ -26,13 +26,14 @@ function ProjectDetail() {
 
 export function ProjectDetailContent({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
-  const { data: project } = useQuery({
+  const { data: project, isLoading: projectLoading, isError: projectError } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => fetchProject(projectId),
+    retry: 1,
   });
   const { data: client } = useQuery({
     queryKey: ["client", project?.client_id],
-    queryFn: () => fetchClient(project!.client_id!),
+    queryFn: () => fetchClient(project?.client_id as string),
     enabled: !!project?.client_id,
   });
   const { data: contract } = useQuery({
@@ -54,7 +55,22 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
     enabled: !!project,
   });
 
-  if (!project) return <div className="p-10 text-foreground/40">Carregando…</div>;
+  if (projectLoading) return <div className="p-10 text-foreground/40 flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Carregando…</div>;
+
+  if (projectError || !project) {
+    return (
+      <div className="p-10 text-center space-y-4">
+        <AlertCircle className="size-10 text-destructive mx-auto" />
+        <h1 className="text-xl font-bold">Projeto não encontrado</h1>
+        <p className="text-foreground/60">O projeto solicitado não existe ou você não tem permissão para acessá-la.</p>
+        {!embedded && (
+          <Link to="/projetos">
+            <Button variant="outline">Voltar para projetos</Button>
+          </Link>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-background/50">

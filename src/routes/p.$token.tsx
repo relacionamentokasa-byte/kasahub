@@ -176,9 +176,9 @@ function PublicProposalView() {
   }, [data]);
 
   const contractContent = useMemo(() => {
-    const rawContractContent = data?.proposal.contract_content;
-    if (!rawContractContent) return null;
+    if (!data?.proposal || !data?.proposal.contract_content) return null;
     const { proposal, agency } = data;
+    const rawContractContent = proposal.contract_content;
     return replaceContractVariables(rawContractContent, {
       client_name: proposal.client_name,
       client_legal_name: proposal.client_name,

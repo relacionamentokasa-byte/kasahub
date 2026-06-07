@@ -90,11 +90,12 @@ export function ProposalEditorContent({
   const qc = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: proposal } = useQuery({
+  const { data: proposal, isLoading: proposalLoading, isError: proposalError } = useQuery({
     queryKey: ["proposal", proposalId],
     queryFn: () => fetchProposal(proposalId),
+    retry: 1,
   });
-  const { data: items = [] } = useQuery({
+  const { data: items = [], isLoading: itemsLoading } = useQuery({
     queryKey: ["proposal", proposalId, "items"],
     queryFn: () => fetchProposalItems(proposalId),
   });
@@ -337,7 +338,18 @@ export function ProposalEditorContent({
     toast.success("Link copiado");
   }
 
-  if (!proposal) return <div className="p-10 text-foreground/60">Carregando…</div>;
+  if (proposalLoading) return <div className="p-10 text-foreground/60 flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Carregando…</div>;
+  
+  if (proposalError || !proposal) {
+    return (
+      <div className="p-10 text-center space-y-4">
+        <XCircle className="size-10 text-destructive mx-auto" />
+        <h1 className="text-xl font-bold">Proposta não encontrada</h1>
+        <p className="text-foreground/60">A proposta solicitada não existe ou você não tem permissão para acessá-la.</p>
+        <Button onClick={onBack} variant="outline">Voltar para a lista</Button>
+      </div>
+    );
+  }
 
   const containerCls = embedded ? "w-full" : "p-6 lg:p-10 max-w-6xl mx-auto w-full";
 
