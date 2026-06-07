@@ -67,9 +67,6 @@ export function JobsBoard({
   const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
   const queryKey = useMemo(() => JOBS_QUERY_KEY(filters), [filters]);
   const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
-  const [period, setPeriod] = useState<string>("all");
-  const filters = { projectId, clientId, serviceId, period };
-  const queryKey = ["jobs", filters];
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
