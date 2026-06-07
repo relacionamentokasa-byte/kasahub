@@ -436,18 +436,6 @@ export async function addJobComment(
   return data;
 }
 
-  if (content.includes('@')) {
-    await handleMentions(content, {
-      title: `Job: ${job?.title}`,
-      link: `/jobs`,
-      originType: 'jobs',
-      originId: jobId
-    });
-  }
-
-  return data;
-}
-
 export function priorityColor(p: string) {
   switch (p) {
     case "urgent":
