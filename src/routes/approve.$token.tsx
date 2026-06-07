@@ -8,7 +8,6 @@ import {
   FileText,
   ExternalLink,
   MessageSquare,
-  Info,
   FileUp,
   Eye,
 } from "lucide-react";
@@ -248,63 +247,6 @@ function ApprovalInner() {
               </div>
             </section>
 
-            {(job.briefing_objective || job.briefing_guidelines) && (
-              <section className="space-y-4">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <Info className="size-4 text-primary" /> Briefing da Tarefa
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {job.briefing_objective && (
-                    <div className="p-4 bg-muted/10 rounded-xl space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-foreground/40">
-                        Objetivo
-                      </p>
-                      <p className="text-sm">{job.briefing_objective}</p>
-                    </div>
-                  )}
-                  {job.briefing_guidelines && (
-                    <div className="p-4 bg-muted/10 rounded-xl space-y-1">
-                      <p className="text-[10px] uppercase font-bold text-foreground/40">
-                        Diretrizes
-                      </p>
-                      <p className="text-sm">{job.briefing_guidelines}</p>
-                    </div>
-                  )}
-                </div>
-              </section>
-            )}
-
-            {customFormEntries.length > 0 && (
-              <section className="space-y-4">
-                <h3 className="text-sm font-semibold flex items-center gap-2">
-                  <FileText className="size-4 text-primary" /> Dados da Entrega
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {customFormEntries.map(([key, val]) => (
-                    <div
-                      key={key}
-                      className="p-4 bg-primary/5 border border-primary/10 rounded-xl space-y-1"
-                    >
-                      <p className="text-[10px] uppercase font-bold text-primary/60">
-                        {key}
-                      </p>
-                      <p className="text-sm font-medium">
-                        {val == null || val === "" ? "-" : String(val)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            <section className="space-y-2 p-4 bg-muted/10 rounded-xl">
-              <h3 className="text-xs font-semibold text-foreground/50">
-                Descrição Adicional
-              </h3>
-              <p className="text-sm leading-relaxed">
-                {job.description || "Nenhuma informação adicional fornecida."}
-              </p>
-            </section>
 
             {!isResponded ? (
               <section className="space-y-6 pt-6 border-t border-border">
