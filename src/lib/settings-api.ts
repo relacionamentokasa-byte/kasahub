@@ -37,9 +37,7 @@ export interface AgencySettings {
   pwa_favicon_url: string | null;
 }
 
-const sb = supabase as unknown as {
-  from: (t: string) => ReturnType<typeof supabase.from>;
-};
+const sb = supabase;
 
 export async function fetchAgencySettings(): Promise<AgencySettings | null> {
   const { data, error } = await sb
