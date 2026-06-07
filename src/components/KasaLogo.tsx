@@ -47,7 +47,7 @@ export function KasaLogo({
           <div className="size-3.5 border-2 border-primary rotate-45" />
         )}
       </div>
-      {!collapsed && !iconOnly && variant !== 'login' && (
+      {!collapsed && !iconOnly && variant !== 'login' && variant !== 'sidebar' && (
         <span className="font-display text-lg font-bold tracking-tight whitespace-nowrap">
           {settings?.name ? (
             <>
