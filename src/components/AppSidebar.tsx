@@ -15,6 +15,7 @@ import {
   Settings,
   Handshake,
   CalendarRange,
+  Activity,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { ModuleId } from "@/lib/permissions-api";
@@ -63,6 +64,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Sistema",
     items: [
+      { title: "Diagnóstico", url: "/ceo", icon: Activity, module: "config" },
       { title: "Configurações", url: "/config", icon: Settings, module: "config" },
     ],
   },

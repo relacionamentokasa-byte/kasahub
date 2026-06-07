@@ -18,7 +18,32 @@ declare global {
   }
 }
 
-export function reportLovableError(error: unknown, context: Record<string, unknown> = {}) {
+import { supabase } from "@/integrations/supabase/client";
+
+export async function reportLovableError(error: unknown, context: Record<string, unknown> = {}) {
+  const message = error instanceof Error ? error.message : String(error);
+  const stack = error instanceof Error ? error.stack : undefined;
+  
+  console.error("[Lovable Error Reporting]:", { message, stack, context });
+
+  // Persistence in local database
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    // We don't wait for the insert to complete to not block the UI
+    supabase.from("error_logs").insert({
+      message,
+      stack,
+      page_url: typeof window !== "undefined" ? window.location.href : undefined,
+      context: context as any,
+      user_id: user?.id,
+    }).then(({ error: insertError }) => {
+      if (insertError) console.error("[Lovable Error Reporting] Failed to persist log:", insertError);
+    });
+  } catch (e) {
+    console.error("[Lovable Error Reporting] Auth check failed:", e);
+  }
+
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
     error,

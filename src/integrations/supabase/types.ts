@@ -879,6 +879,45 @@ export type Database = {
         }
         Relationships: []
       }
+      error_logs: {
+        Row: {
+          column_number: number | null
+          context: Json | null
+          created_at: string
+          file_path: string | null
+          id: string
+          line_number: number | null
+          message: string
+          page_url: string | null
+          stack: string | null
+          user_id: string | null
+        }
+        Insert: {
+          column_number?: number | null
+          context?: Json | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          line_number?: number | null
+          message: string
+          page_url?: string | null
+          stack?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          column_number?: number | null
+          context?: Json | null
+          created_at?: string
+          file_path?: string | null
+          id?: string
+          line_number?: number | null
+          message?: string
+          page_url?: string | null
+          stack?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       extra_demands: {
         Row: {
           approved_at: string | null
