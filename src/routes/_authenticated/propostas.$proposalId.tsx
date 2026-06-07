@@ -131,7 +131,7 @@ export function ProposalEditorContent({
     status: "draft",
     responsible_id: "",
     commercial_id: "",
-    responsible_id: "",
+
     contract_type: "recurring",
     service_type: "",
     service_ids: [] as string[],
@@ -179,7 +179,7 @@ export function ProposalEditorContent({
         status: proposal.status,
         responsible_id: p.responsible_id ?? "",
         commercial_id: p.commercial_id ?? "",
-        responsible_id: p.responsible_id ?? "",
+
         contract_type: p.contract_type ?? "recurring",
         service_type: p.service_type ?? "",
         service_ids: p.service_ids ?? [],
