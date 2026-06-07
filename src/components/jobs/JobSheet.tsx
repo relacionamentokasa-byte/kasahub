@@ -216,7 +216,17 @@ export function JobSheet({
 
   const delItemMut = useMutation({
     mutationFn: (id: string) => deleteChecklistItem(id),
+    onMutate: async (id) => {
+      const qk = ["job-checklist", job!.id];
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<any[]>(qk);
+      qc.setQueryData<any[]>(qk, (old) => (old ?? []).filter(it => it.id !== id));
+      return { prev };
+    },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] }),
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
+    }
   });
 
   const commentMut = useMutation({
