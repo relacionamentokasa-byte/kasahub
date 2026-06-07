@@ -465,6 +465,7 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
 function TemplateJobRow({
   job,
   stages,
+  opTemplates,
   isFirst,
   isLast,
   onMove,
