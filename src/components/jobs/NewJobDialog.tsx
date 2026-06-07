@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createJob, fetchClients, fetchProjects, type JobStage } from "@/lib/ops-api";
 import { fetchPartners } from "@/lib/partners-api";
 import { fetchProfiles } from "@/lib/profile-api";
+import { fetchServices } from "@/lib/services-api";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,7 @@ export function NewJobDialog({
   const qc = useQueryClient();
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: freelancers = [] } = useQuery({ 
     queryKey: ["partners", "freelancer"], 
     queryFn: () => fetchPartners("freelancer") 
@@ -201,32 +203,41 @@ export function NewJobDialog({
               <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
             </div>
 
-            {!defaultProjectId && (
-              <div className="space-y-1.5">
-                <Label>Projeto</Label>
-                <Select value={form.project_id || undefined} onValueChange={(v) => setForm({ ...form, project_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                  <SelectContent>
-                    {projects.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {!defaultClientId && (
-              <div className="space-y-1.5">
-                <Label>Cliente</Label>
-                <Select value={form.client_id || undefined} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                  <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
-                  <SelectContent>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="space-y-1.5">
+              <Label>Projeto</Label>
+              <Select value={form.project_id || undefined} onValueChange={(v) => setForm({ ...form, project_id: v })}>
+                <SelectTrigger className={!form.project_id ? "border-destructive" : ""}><SelectValue placeholder="Obrigatório" /></SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Cliente</Label>
+              <Select value={form.client_id || undefined} onValueChange={(v) => setForm({ ...form, client_id: v })}>
+                <SelectTrigger className={!form.client_id ? "border-destructive" : ""}><SelectValue placeholder="Obrigatório" /></SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Serviço</Label>
+              <Select value={form.service_id || undefined} onValueChange={(v) => setForm({ ...form, service_id: v })}>
+                <SelectTrigger className={!form.service_id ? "border-destructive" : ""}><SelectValue placeholder="Obrigatório" /></SelectTrigger>
+                <SelectContent>
+                  {services.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="space-y-1.5">
               <Label>Responsável Principal</Label>
@@ -311,7 +322,7 @@ export function NewJobDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.title}
+            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Criar
