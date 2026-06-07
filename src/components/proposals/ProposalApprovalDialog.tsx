@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, ScrollText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProposal, fetchProposalItems, formatCurrency } from "@/lib/crm-api";
@@ -22,6 +23,7 @@ interface Props {
 export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onApproved }: Props) {
   const qc = useQueryClient();
   const [signature, setSignature] = useState("");
+  const [isInternal, setIsInternal] = useState(false);
 
   const { data: proposal } = useQuery({
     queryKey: ["proposal", proposalId],
@@ -55,8 +57,17 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const approveMut = useMutation({
     mutationFn: async () => {
       if (!proposalId) throw new Error("Proposta inválida");
-      if (signature.trim().length < 2) throw new Error("Informe a assinatura do cliente");
-      return approveProposal(supabase, proposalId, { acceptedName: signature.trim() });
+      if (!isInternal && (!proposal?.signature_client && signature.trim().length < 2)) {
+        throw new Error("Esta proposta não pode ser aprovada sem a assinatura do cliente.");
+      }
+      
+      const { data: { user } } = await supabase.auth.getUser();
+
+      return approveProposal(supabase, proposalId, { 
+        acceptedName: isInternal ? null : (signature.trim() || proposal?.accepted_name),
+        internalApproval: isInternal,
+        internalApprovalBy: user?.id
+      });
     },
     onSuccess: () => {
       toast.success("Proposta aprovada e convertida em contrato, projeto, jobs e financeiro.");
@@ -140,12 +151,12 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
 
             <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-border">
               <div>
-                <Label className="text-xs uppercase text-foreground/60">Assinatura KASA</Label>
+                <Label className="text-xs uppercase text-foreground/60">Assinatura KASA HUB</Label>
                 <div className="mt-2 rounded-md border border-border bg-surface/40 h-20 flex items-center justify-center">
                   {agency?.agency_signature_url ? (
-                    <img src={agency.agency_signature_url} alt="Assinatura agência" className="max-h-16 object-contain" />
+                    <img src={agency.agency_signature_url} alt="Assinatura KASA HUB" className="max-h-16 object-contain" />
                   ) : (
-                    <span className="text-xs text-foreground/50 italic">{agency?.name ?? "Agência"}</span>
+                    <span className="text-xs text-foreground/50 italic">{agency?.name ?? "KASA HUB"}</span>
                   )}
                 </div>
               </div>
@@ -153,17 +164,43 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                 <Label htmlFor="client-signature" className="text-xs uppercase text-foreground/60">
                   Assinatura do Cliente *
                 </Label>
-                <Input
-                  id="client-signature"
-                  placeholder="Nome completo do responsável"
-                  value={signature}
-                  onChange={(e) => setSignature(e.target.value)}
-                  className="mt-2"
-                />
-                <p className="text-[10px] text-foreground/50 mt-1">
-                  Ao digitar o nome e clicar em Aprovar, o cliente aceita formalmente esta proposta.
-                </p>
+                {proposal.signature_client ? (
+                  <div className="mt-2 rounded-md border border-border bg-green-500/5 h-20 flex flex-col items-center justify-center text-center p-2">
+                    <span className="text-sm font-medium text-green-600">Proposta Assinada</span>
+                    <span className="text-[10px] text-foreground/60">{proposal.signature_client}</span>
+                  </div>
+                ) : (
+                  <>
+                    <Input
+                      id="client-signature"
+                      placeholder="Nome completo do responsável"
+                      value={signature}
+                      onChange={(e) => setSignature(e.target.value)}
+                      disabled={isInternal}
+                      className="mt-2"
+                    />
+                    <p className="text-[10px] text-foreground/50 mt-1">
+                      {isInternal 
+                        ? "Aprovação interna selecionada. Assinatura do cliente será ignorada." 
+                        : "Ao digitar o nome e clicar em Aprovar, você confirma que o cliente aceitou formalmente."}
+                    </p>
+                  </>
+                )}
               </div>
+            </div>
+
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="internal-approval" 
+                checked={isInternal} 
+                onCheckedChange={(checked) => setIsInternal(checked === true)}
+              />
+              <label
+                htmlFor="internal-approval"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Aprovação Interna (Administrador)
+              </label>
             </div>
 
             <Badge variant="outline" className="text-[10px]">
@@ -178,7 +215,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
           </Button>
           <Button
             onClick={() => approveMut.mutate()}
-            disabled={approveMut.isPending || !proposal || signature.trim().length < 2}
+            disabled={approveMut.isPending || !proposal || (!isInternal && !proposal.signature_client && signature.trim().length < 2)}
             className="bg-green-600 text-white hover:bg-green-700 gap-2"
           >
             {approveMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
