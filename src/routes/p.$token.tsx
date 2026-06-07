@@ -278,7 +278,7 @@ function PublicProposalView() {
   }
 
   const { proposal, agency, client } = data;
-  const accepted = proposal.status === "accepted";
+  const accepted = proposal.status === "accepted" || proposal.status === "signed" || proposal.status === "converted";
   const cancelled = proposal.status === "cancelled";
 
   if (cancelled) {
