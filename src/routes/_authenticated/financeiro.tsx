@@ -697,10 +697,6 @@ function FinanceiroPage() {
                             {overdue && <div className="text-[9px] font-bold text-rose-400 uppercase tracking-tighter mt-1">Vencido</div>}
                           </div>
 
-                          <div className="text-center">
-                            <Badge variant="outline" className={`text-[9px] uppercase tracking-wider h-4 px-1.5 ${origin.tone}`}>{origin.label}</Badge>
-                          </div>
-
                           <div className="flex items-center justify-end gap-2">
                             {t.status !== "paid" && (
                               <Button 
