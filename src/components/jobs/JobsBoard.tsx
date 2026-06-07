@@ -20,7 +20,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, AlertTriangle } from "lucide-react";
+import { Plus, Search, Trash2, AlertTriangle, Users } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import {
   fetchJobStages,
@@ -42,6 +42,7 @@ import { Input } from "@/components/ui/input";
 import { NewJobDialog } from "./NewJobDialog";
 import { JobSheet } from "./JobSheet";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 
 export function JobsBoard({
   projectId,
