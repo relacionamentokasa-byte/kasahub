@@ -37,11 +37,13 @@ import {
   type JobStage,
 } from "@/lib/ops-api";
 import { fetchPartners } from "@/lib/partners-api";
-import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink, User } from "lucide-react";
+import { fetchProfiles } from "@/lib/profile-api";
+import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { JOB_TYPES } from "@/lib/job-types";
 import { supabase } from "@/integrations/supabase/client";
 import { DynamicJobForm } from "./DynamicJobForm";
+import { Progress } from "@/components/ui/progress";
 
 
 export function JobSheet({
