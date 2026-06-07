@@ -305,6 +305,9 @@ function Column({
 function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[] }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
+  
+  const isOptimistic = job.id.startsWith('temp-');
+
   const delMut = useMutation({
     mutationFn: () => deleteJob(job.id),
     onMutate: async () => {
@@ -323,28 +326,30 @@ function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any
     },
   });
   return (
-    <div className={`relative group ${isDragging ? "opacity-30" : ""}`}>
+    <div className={`relative group ${isDragging ? "opacity-30" : ""} ${isOptimistic ? "opacity-60" : ""}`}>
       <div
         ref={setNodeRef}
-        {...listeners}
-        {...attributes}
-        onClick={onClick}
-        className="cursor-grab active:cursor-grabbing"
+        {...(isOptimistic ? {} : listeners)}
+        {...(isOptimistic ? {} : attributes)}
+        onClick={() => !isOptimistic && onClick()}
+        className={isOptimistic ? "cursor-wait" : "cursor-grab active:cursor-grabbing"}
       >
         <JobCardInner job={job} profiles={profiles} />
       </div>
-      <button
-        type="button"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
-        }}
-        className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-40 group-hover:opacity-100 hover:bg-destructive/10 transition"
-        aria-label="Excluir tarefa"
-      >
-        <Trash2 className="size-3.5" />
-      </button>
+      {!isOptimistic && (
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
+          }}
+          className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-40 group-hover:opacity-100 hover:bg-destructive/10 transition"
+          aria-label="Excluir tarefa"
+        >
+          <Trash2 className="size-3.5" />
+        </button>
+      )}
     </div>
   );
 }
