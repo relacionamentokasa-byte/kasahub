@@ -605,7 +605,7 @@ function FinanceiroPage() {
               </div>
               
               {/* Desktop Header */}
-              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(150px,1fr)_140px_160px_130px_145px_100px_90px] px-3 py-2 text-[10px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-3">
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1.2fr)_140px_180px_130px_145px_90px] px-3 py-2 text-[10px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-3">
                 <div className="flex items-center justify-center">
                   <Checkbox 
                     checked={rows.length > 0 && selectedIds.length === rows.length} 
