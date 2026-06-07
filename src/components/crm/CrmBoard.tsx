@@ -10,11 +10,12 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Plus, Trophy, Search, MessageCircle, Filter } from "lucide-react";
+import { Plus, Trophy, Search, MessageCircle, Filter, Trash2 } from "lucide-react";
 import {
   fetchStages,
   fetchLeads,
   moveLead,
+  deleteLead,
   formatCurrency,
   type Lead,
   type Stage,
@@ -235,15 +236,39 @@ function Column({
 
 function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: lead.id });
+  const qc = useQueryClient();
+  const delMut = useMutation({
+    mutationFn: () => deleteLead(lead.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "leads"] });
+      toast.success("Lead removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      onClick={onClick}
-      className={`cursor-grab active:cursor-grabbing ${isDragging ? "opacity-30" : ""}`}
-    >
-      <LeadCardInner lead={lead} />
+    <div className={`relative group ${isDragging ? "opacity-30" : ""}`}>
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        onClick={onClick}
+        className="cursor-grab active:cursor-grabbing"
+      >
+        <LeadCardInner lead={lead} />
+      </div>
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (confirm(`Remover lead "${lead.name}"?`)) delMut.mutate();
+        }}
+        className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition"
+        aria-label="Excluir lead"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
     </div>
   );
 }
