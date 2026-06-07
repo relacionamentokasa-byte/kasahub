@@ -127,6 +127,26 @@ export async function updateProject(
   return data;
 }
 
+export async function refreshProjectStats(projectId: string) {
+  const { data: jobs, error } = await supabase
+    .from("jobs")
+    .select("id, done_at, stage_id")
+    .eq("project_id", projectId);
+  
+  if (error) throw error;
+  
+  const { data: stages } = await supabase.from("job_stages").select("id, is_done");
+  const doneStageIds = new Set(stages?.filter(s => s.is_done).map(s => s.id) || []);
+  
+  const total = jobs.length;
+  const done = jobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
+  
+  await updateProject(projectId, {
+    total_jobs: total,
+    completed_jobs: done
+  });
+}
+
 export async function deleteProject(id: string) {
   const { error } = await supabase.from("projects").delete().eq("id", id);
   if (error) throw error;
