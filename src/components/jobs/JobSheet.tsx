@@ -941,7 +941,8 @@ export function JobSheet({
                       </div>
 
                       <div className={`text-sm p-3 rounded-2xl border transition-all ${
-                        item.type === 'attachment' ? 'bg-blue-50/5 border-blue-500/20 text-blue-100' : 
+                        item.type === 'attachment' ? 'bg-blue-50/5 border-blue-500/20 text-foreground' : 
+
                         isEditing ? 'bg-background border-primary ring-1 ring-primary/20' :
                         'bg-background border-border/50 text-foreground'
                       }`}>
