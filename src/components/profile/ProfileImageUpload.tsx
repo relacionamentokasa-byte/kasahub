@@ -152,7 +152,10 @@ export function ProfileImageUpload({
             <DialogTitle className="text-xl font-display font-bold">Ajustar Foto</DialogTitle>
           </DialogHeader>
           
-          <div className="relative h-[350px] w-full bg-black mt-4">
+          <div className="relative h-[350px] w-full bg-[#111] mt-4 overflow-hidden">
+            {/* Transparency grid for cropper */}
+            <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'conic-gradient(#fff 0.25turn, #000 0.25turn 0.5turn, #fff 0.5turn 0.75turn, #000 0.75turn)', backgroundSize: '20px 20px' }} />
+
             {image && (
               <Cropper
                 image={image}
