@@ -664,7 +664,30 @@ function FinanceiroPage() {
                           </div>
 
                           <div className="text-[11px] text-foreground/60 truncate">
-                            {catName(t.category_id)}
+                            <Select 
+                              value={t.category_id || ""} 
+                              onValueChange={(newCatId) => {
+                                if (t.contract_id) {
+                                  const cascade = window.confirm("Deseja aplicar esta alteração de categoria também aos próximos lançamentos deste contrato?");
+                                  updateTx.mutate({ id: t.id, patch: { category_id: newCatId }, cascade });
+                                } else {
+                                  updateTx.mutate({ id: t.id, patch: { category_id: newCatId } });
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-7 bg-transparent border-none hover:bg-foreground/5 transition-colors p-0 focus:ring-0 focus:ring-offset-0 text-[11px] justify-start group">
+                                <div className="truncate pr-2">
+                                  {catName(t.category_id)}
+                                </div>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((c) => (
+                                  <SelectItem key={c.id} value={c.id} className="text-[11px]">
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
 
                           <div className="text-[11px] font-semibold text-foreground/70 truncate">
@@ -759,7 +782,28 @@ function FinanceiroPage() {
                               {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40" />}
                             </div>
                             <div className="text-xs text-foreground/50 mt-1 flex flex-wrap items-center gap-2">
-                              <span className="bg-foreground/5 px-1.5 py-0.5 rounded border border-border/50">{catName(t.category_id)}</span>
+                              <Select 
+                                value={t.category_id || ""} 
+                                onValueChange={(newCatId) => {
+                                  if (t.contract_id) {
+                                    const cascade = window.confirm("Deseja aplicar esta alteração de categoria também aos próximos lançamentos deste contrato?");
+                                    updateTx.mutate({ id: t.id, patch: { category_id: newCatId }, cascade });
+                                  } else {
+                                    updateTx.mutate({ id: t.id, patch: { category_id: newCatId } });
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="h-6 bg-foreground/5 px-1.5 py-0 rounded border border-border/50 text-[10px] w-auto">
+                                  <div className="max-w-[120px] truncate">{catName(t.category_id)}</div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {categories.map((c) => (
+                                    <SelectItem key={c.id} value={c.id} className="text-[11px]">
+                                      {c.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                               <span className="text-foreground/20">•</span>
                               <span className="bg-foreground/5 px-1.5 py-0.5 rounded border border-border/50">{clientName(t.client_id)}</span>
                             </div>
