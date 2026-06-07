@@ -169,6 +169,9 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
               signed_metadata: {
                 ip,
                 user_agent: userAgent,
+                browser: `${uaResult.browser.name} ${uaResult.browser.version}`,
+                device: uaResult.device.type || "desktop",
+                os: `${uaResult.os.name} ${uaResult.os.version}`,
                 timestamp: new Date().toISOString(),
                 email: body.accepted_email,
                 role: body.accepted_role
