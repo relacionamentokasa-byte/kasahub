@@ -285,7 +285,7 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClick: () => void }) {
+function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[] }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   const delMut = useMutation({
