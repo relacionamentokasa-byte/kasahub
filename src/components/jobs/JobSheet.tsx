@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -45,13 +45,22 @@ import {
   fetchProjects,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AttachmentViewer } from "@/components/AttachmentViewer";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export function JobSheet({
   job,
@@ -71,6 +80,14 @@ export function JobSheet({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Realtime mentions and typing indicator
+  const [mentionSearch, setMentionSearch] = useState("");
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionCoords, setMentionCoords] = useState({ top: 0, left: 0 });
+  const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { data: checklist = [] } = useQuery({
     queryKey: ["job-checklist", job?.id],
@@ -108,19 +125,63 @@ export function JobSheet({
   useEffect(() => {
     if (!job?.id) return;
 
-    const channels = [
-      supabase.channel(`job-checklist-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] })),
-      supabase.channel(`job-comments-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] })),
-      supabase.channel(`job-history-${job.id}`).on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] })),
-      supabase.channel(`job-updates-${job.id}`).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
-    ];
-
-    channels.forEach(c => c.subscribe());
+    const channel = supabase.channel(`job-room-${job.id}`);
+    
+    channel
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] }))
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const users: string[] = [];
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((p: any) => {
+            if (p.is_typing) users.push(p.user_name);
+          });
+        });
+        setTypingUsers([...new Set(users)]);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          const { data: { user } } = await supabase.auth.getUser();
+          const profile = team.find(p => p.id === user?.id);
+          await channel.track({
+            user_id: user?.id,
+            user_name: profile?.display_name || profile?.full_name || 'Usuário',
+            is_typing: false
+          });
+        }
+      });
 
     return () => {
-      channels.forEach(c => supabase.removeChannel(c));
+      supabase.removeChannel(channel);
     };
-  }, [job?.id, qc]);
+  }, [job?.id, qc, team]);
+
+  const handleTyping = useCallback(async (isTyping: boolean) => {
+    if (!job?.id) return;
+    const channel = supabase.getChannels().find(c => c.topic === `realtime:job-room-${job.id}`);
+    if (channel) {
+      const { data: { user } } = await supabase.auth.getUser();
+      const profile = team.find(p => p.id === user?.id);
+      channel.track({
+        user_id: user?.id,
+        user_name: profile?.display_name || profile?.full_name || 'Usuário',
+        is_typing: isTyping
+      });
+    }
+  }, [job?.id, team]);
+
+  useEffect(() => {
+    if (comment.length > 0) {
+      handleTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 3000);
+    } else {
+      handleTyping(false);
+    }
+  }, [comment, handleTyping]);
 
   useEffect(() => {
     if (job) {
@@ -725,7 +786,13 @@ export function JobSheet({
                         {item.type === 'attachment' || item.file_url ? (
                           <div className="space-y-3">
                             {item.content && !item.content.startsWith('Anexou um arquivo:') && (
-                              <p className="whitespace-pre-wrap leading-relaxed text-xs">{item.content}</p>
+                              <p className="whitespace-pre-wrap leading-relaxed text-xs">
+                                {item.content.split(/(@\w+)/).map((part, i) => 
+                                  part.startsWith('@') ? (
+                                    <span key={i} className="text-primary font-bold">{part}</span>
+                                  ) : part
+                                )}
+                              </p>
                             )}
                             <div className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-xl border border-blue-500/10">
                               <div className="flex items-center gap-2 overflow-hidden">
@@ -761,7 +828,13 @@ export function JobSheet({
                             </div>
                           </div>
                         ) : (
-                          <p className="whitespace-pre-wrap leading-relaxed text-xs">{item.content}</p>
+                          <p className="whitespace-pre-wrap leading-relaxed text-xs">
+                            {item.content.split(/(@\w+)/).map((part, i) => 
+                              part.startsWith('@') ? (
+                                <span key={i} className="text-primary font-bold">{part}</span>
+                              ) : part
+                            )}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -778,55 +851,118 @@ export function JobSheet({
             </ScrollArea>
 
             <div className="p-6 pt-2 border-t border-border shrink-0">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (comment.trim()) {
-                    commentMut.mutate({ content: comment.trim() });
-                  }
-                }}
-              >
-                <div className="flex flex-col gap-2 p-3 bg-background border border-border rounded-xl focus-within:border-primary/50 transition-colors">
+              {typingUsers.length > 0 && (
+                <div className="px-1 mb-2">
+                  <p className="text-[10px] text-primary font-medium animate-pulse">
+                    {typingUsers.length === 1 
+                      ? `${typingUsers[0]} está digitando...` 
+                      : `${typingUsers.join(', ')} estão digitando...`}
+                  </p>
+                </div>
+              )}
+              
+              <div className="relative">
+                <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
+                  <PopoverTrigger asChild>
+                    <div className="absolute" style={{ top: mentionCoords.top, left: mentionCoords.left }} />
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[200px] bg-popover border-border" align="start">
+                    <Command className="bg-popover">
+                      <CommandList>
+                        <CommandEmpty>Nenhum membro encontrado</CommandEmpty>
+                        <CommandGroup heading="Mencionar equipe">
+                          {team.filter(p => {
+                            const name = (p.display_name || p.full_name || '').toLowerCase();
+                            return name.includes(mentionSearch.toLowerCase());
+                          }).map(p => (
+                            <CommandItem
+                              key={p.id}
+                              onSelect={() => {
+                                const lastAt = comment.lastIndexOf('@');
+                                const before = comment.substring(0, lastAt);
+                                const after = comment.substring(lastAt + mentionSearch.length + 1);
+                                const name = (p.display_name || p.full_name || '').replace(/\s/g, '');
+                                setComment(`${before}@${name} ${after}`);
+                                setMentionOpen(false);
+                                commentInputRef.current?.focus();
+                              }}
+                              className="cursor-pointer hover:bg-accent"
+                            >
+                              <User className="size-4 mr-2" />
+                              {p.display_name || p.full_name}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                <div className="flex gap-2 bg-background border border-border rounded-xl p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
                   <Textarea
-                    rows={2}
+                    ref={commentInputRef}
                     value={comment}
-                    onChange={(e) => setComment(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setComment(val);
+                      
+                      const lastAt = val.lastIndexOf('@');
+                      if (lastAt !== -1 && (lastAt === 0 || val[lastAt - 1] === ' ' || val[lastAt - 1] === '\n')) {
+                        const search = val.substring(lastAt + 1);
+                        if (!search.includes(' ')) {
+                          setMentionSearch(search);
+                          setMentionOpen(true);
+                          
+                          const textarea = e.target;
+                          const { selectionStart } = textarea;
+                          const textBefore = val.substring(0, selectionStart);
+                          const lines = textBefore.split('\n');
+                          const currentLine = lines.length;
+                          setMentionCoords({
+                            top: currentLine * 20 - 40,
+                            left: lines[lines.length - 1].length * 7
+                          });
+                        } else {
+                          setMentionOpen(false);
+                        }
+                      } else {
+                        setMentionOpen(false);
+                      }
+                    }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
+                      if (e.key === 'Enter' && !e.shiftKey && !mentionOpen) {
                         e.preventDefault();
-                        if (comment.trim() && !commentMut.isPending) {
+                        if (comment.trim()) {
                           commentMut.mutate({ content: comment.trim() });
                         }
                       }
                     }}
-                    placeholder="Escreva sua mensagem..."
-                    className="resize-none border-none bg-transparent focus-visible:ring-0 p-0 text-xs min-h-[50px] text-white"
+                    placeholder="Escreva uma mensagem..."
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white"
+                    rows={1}
                   />
-                  <div className="flex justify-between items-center mt-2">
-                    <div className="flex items-center gap-1">
-                      <Button 
-                        type="button" 
-                        variant="ghost" 
-                        size="icon" 
-                        className="size-7 text-foreground/40 hover:text-primary hover:bg-primary/10"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isUploading}
-                      >
-                        {isUploading ? <Loader2 className="size-3 animate-spin" /> : <Paperclip className="size-3" />}
-                      </Button>
-                    </div>
+                  <div className="flex flex-col justify-end gap-1">
                     <Button 
-                      type="submit" 
-                      size="sm" 
-                      className="h-8 gap-2 px-3 rounded-lg text-[11px] font-bold uppercase tracking-wider"
-                      disabled={!comment.trim() || commentMut.isPending}
+                      type="button"
+                      variant="ghost" 
+                      size="icon" 
+                      className="size-8 rounded-lg text-foreground/40 hover:text-primary hover:bg-primary/10"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
                     >
-                      {commentMut.isPending ? <Loader2 className="size-3 animate-spin" /> : <Send className="size-3" />}
-                      Enviar
+                      {isUploading ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
+                    </Button>
+                    <Button 
+                      onClick={() => comment.trim() && commentMut.mutate({ content: comment.trim() })}
+                      disabled={!comment.trim() || commentMut.isPending}
+                      size="icon" 
+                      className="size-8 rounded-lg shadow-lg shadow-primary/20"
+                    >
+                      {commentMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                     </Button>
                   </div>
                 </div>
-              </form>
+              </div>
               <input 
                 type="file" 
                 className="hidden" 
