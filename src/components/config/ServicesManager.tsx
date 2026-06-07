@@ -418,8 +418,8 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
   return (
     <div className="space-y-4">
       <p className="text-xs text-foreground/60">
-        Cadastre os jobs padrão deste serviço. Quando uma proposta for aprovada, esta
-        estrutura será usada para gerar automaticamente os jobs do projeto.
+        Cadastre os Jobs padrão deste serviço. Quando uma proposta for aprovada, esta
+        estrutura será usada para gerar automaticamente os Jobs do projeto.
       </p>
 
       <div className="space-y-2">
