@@ -1381,13 +1381,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "jobs_flow_job_id_fkey"
-            columns: ["flow_job_id"]
-            isOneToOne: false
-            referencedRelation: "operational_flow_jobs"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "jobs_freelancer_id_fkey"
             columns: ["freelancer_id"]
             isOneToOne: false
@@ -1692,128 +1685,6 @@ export type Database = {
         }
         Relationships: []
       }
-      operational_flow_checklists: {
-        Row: {
-          created_at: string
-          flow_job_id: string
-          id: string
-          item_text: string
-          order: number
-        }
-        Insert: {
-          created_at?: string
-          flow_job_id: string
-          id?: string
-          item_text: string
-          order?: number
-        }
-        Update: {
-          created_at?: string
-          flow_job_id?: string
-          id?: string
-          item_text?: string
-          order?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "operational_flow_checklists_flow_job_id_fkey"
-            columns: ["flow_job_id"]
-            isOneToOne: false
-            referencedRelation: "operational_flow_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      operational_flow_dependencies: {
-        Row: {
-          created_at: string
-          depends_on_job_id: string
-          flow_job_id: string
-          id: string
-        }
-        Insert: {
-          created_at?: string
-          depends_on_job_id: string
-          flow_job_id: string
-          id?: string
-        }
-        Update: {
-          created_at?: string
-          depends_on_job_id?: string
-          flow_job_id?: string
-          id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "operational_flow_dependencies_depends_on_job_id_fkey"
-            columns: ["depends_on_job_id"]
-            isOneToOne: false
-            referencedRelation: "operational_flow_jobs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "operational_flow_dependencies_flow_job_id_fkey"
-            columns: ["flow_job_id"]
-            isOneToOne: false
-            referencedRelation: "operational_flow_jobs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      operational_flow_jobs: {
-        Row: {
-          created_at: string
-          custom_fields_schema: Json | null
-          default_assignee_role_id: string | null
-          id: string
-          job_type: string | null
-          name: string
-          order: number
-          sla_days: number | null
-          stage_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          custom_fields_schema?: Json | null
-          default_assignee_role_id?: string | null
-          id?: string
-          job_type?: string | null
-          name: string
-          order?: number
-          sla_days?: number | null
-          stage_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          custom_fields_schema?: Json | null
-          default_assignee_role_id?: string | null
-          id?: string
-          job_type?: string | null
-          name?: string
-          order?: number
-          sla_days?: number | null
-          stage_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "operational_flow_jobs_default_assignee_role_id_fkey"
-            columns: ["default_assignee_role_id"]
-            isOneToOne: false
-            referencedRelation: "custom_roles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "operational_flow_jobs_stage_id_fkey"
-            columns: ["stage_id"]
-            isOneToOne: false
-            referencedRelation: "operational_flow_stages"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       operational_flow_stages: {
         Row: {
           created_at: string
@@ -1837,47 +1708,6 @@ export type Database = {
           id?: string
           name?: string
           order?: number
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "operational_flow_stages_flow_id_fkey"
-            columns: ["flow_id"]
-            isOneToOne: false
-            referencedRelation: "operational_flows"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      operational_flows: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          default_project_name: string | null
-          description: string | null
-          id: string
-          name: string
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          default_project_name?: string | null
-          description?: string | null
-          id?: string
-          name: string
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          default_project_name?: string | null
-          description?: string | null
-          id?: string
-          name?: string
-          status?: string
           updated_at?: string
         }
         Relationships: []
