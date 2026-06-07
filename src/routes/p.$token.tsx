@@ -58,6 +58,10 @@ type Proposal = {
   signed_metadata?: any | null;
   accepted_ip?: string | null;
   accepted_user_agent?: string | null;
+  contract_type: string;
+  contract_term: string | null;
+  first_due_date: string | null;
+  billing_day: number;
 };
 type Agency = {
   name: string;
