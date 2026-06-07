@@ -556,17 +556,33 @@ function FinanceiroPage() {
                               {t.description}
                               {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40" />}
                             </div>
-                            <div className="text-xs text-foreground/50 mt-1 flex items-center gap-2">
-                              <span>{catName(t.category_id)}</span>
-                              <span>•</span>
-                              <span>{clientName(t.client_id)}</span>
+                            <div className="text-xs text-foreground/50 mt-1 flex flex-wrap items-center gap-2">
+                              <span className="bg-foreground/5 px-1.5 py-0.5 rounded border border-border/50">{catName(t.category_id)}</span>
+                              <span className="text-foreground/20">•</span>
+                              <span className="bg-foreground/5 px-1.5 py-0.5 rounded border border-border/50">{clientName(t.client_id)}</span>
                             </div>
                           </div>
 
                           <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/40">
-                            <div className="flex flex-col">
-                              <span className="text-[10px] text-foreground/40 uppercase font-semibold">Vencimento</span>
-                              <span className="text-xs">{new Date(t.due_date + "T12:00:00").toLocaleDateString('pt-BR')}</span>
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-foreground/40 uppercase font-semibold flex items-center gap-1">
+                                <Calendar className="size-2.5" /> Vencimento
+                              </span>
+                              <input 
+                                type="date" 
+                                value={t.due_date} 
+                                onChange={(e) => {
+                                  const newDate = e.target.value;
+                                  if (!newDate) return;
+                                  if (t.contract_id) {
+                                    const cascade = window.confirm("Deseja aplicar esta alteração de data também aos próximos vencimentos deste contrato?");
+                                    updateTx.mutate({ id: t.id, patch: { due_date: newDate }, cascade });
+                                  } else {
+                                    updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
+                                  }
+                                }}
+                                className="bg-surface/50 border border-border/50 rounded-md py-1 px-2 text-xs w-full text-left cursor-pointer transition-all outline-none font-medium hover:border-primary/50"
+                              />
                             </div>
                             <div className="flex items-center gap-2">
                               {t.status !== "paid" && (
