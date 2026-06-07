@@ -9,6 +9,7 @@ import {
   fetchLeads,
   createProposal,
   deleteProposal,
+  restoreProposal,
   duplicateProposal,
   updateProposal,
   formatCurrency,
@@ -312,7 +313,7 @@ function ProposalsPage() {
   }
 
   const filteredProposals = useMemo(() => {
-    return proposals.filter((p) => {
+    return proposalsToDisplay.filter((p) => {
       // Status filter
       if (filterStatus !== "all" && p.status !== filterStatus) return false;
       
