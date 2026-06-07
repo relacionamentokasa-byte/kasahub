@@ -56,9 +56,10 @@ export function NewContractDialog({
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contracts"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
       toast.success("Contrato criado");
       onOpenChange(false);
-      setForm({ title: "", client_id: "", monthly_value: "", billing_day: "5", start_date: new Date().toISOString().slice(0, 10), notes: "" });
+      setForm({ title: "", client_id: "", monthly_value: "", billing_day: "5", start_date: new Date().toISOString().slice(0, 10), notes: "", installments_count: "0", auto_renew: true });
     },
     onError: (e: Error) => toast.error(e.message),
   });
