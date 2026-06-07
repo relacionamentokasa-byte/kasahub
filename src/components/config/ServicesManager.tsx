@@ -474,6 +474,7 @@ function TemplateJobRow({
     name: job.name,
     default_duration_days: job.default_duration_days,
     initial_stage_id: job.initial_stage_id || "",
+    custom_fields_schema: JSON.stringify(job.custom_fields_schema || [], null, 2),
   });
 
   const saveMut = useMutation({
