@@ -182,26 +182,38 @@ export function autoCategorize(description: string, originType?: string | null):
   const desc = (description || "").toLowerCase();
   const origin = (originType || "").toLowerCase();
 
-  // Contrato Recorrente -> Receita Recorrente
-  if (origin === 'contract' || origin === 'recurring' || desc.includes('contrato recorrente')) return 'Receita Recorrente';
+  // Mapeamento baseado nas novas categorias:
+  // Fee Mensal, Tráfego Pago, Social Media, Conteúdo, Consultoria, Job Avulso, Projeto Especial, Comissão, Despesa, Imposto / Taxa
+
+  // Fee Mensal
+  if (origin === 'contract' || origin === 'recurring' || desc.includes('fee mensal') || desc.includes('mensalidade')) return 'Fee Mensal';
   
-  // Design Sob Demanda -> Receita de Projeto
-  if (desc.includes('design sob demanda') || desc.includes('projeto')) return 'Receita de Projeto';
+  // Tráfego Pago
+  if (desc.includes('tráfego pago') || desc.includes('trafego pago') || desc.includes('google ads') || desc.includes('meta ads') || desc.includes('facebook ads')) return 'Tráfego Pago';
   
-  // DME -> Receita Extra
-  if (origin === 'dme' || desc.includes('dme') || desc.includes('demanda extra')) return 'Receita Extra';
-  
-  // Google Ads -> Investimento em Mídia
-  if (desc.includes('google ads') || desc.includes('googlead')) return 'Investimento em Mídia';
-  
-  // Meta Ads -> Investimento em Mídia
-  if (desc.includes('meta ads') || desc.includes('facebook ads') || desc.includes('instagram ads')) return 'Investimento em Mídia';
-  
-  // Freelancer -> Despesa Operacional
-  if (desc.includes('freelancer') || desc.includes('freela')) return 'Despesa Operacional';
-  
-  // Comissão -> Comissão Comercial
-  if (desc.includes('comissão') || desc.includes('comissao')) return 'Comissão Comercial';
+  // Social Media
+  if (desc.includes('social media') || desc.includes('instagram') || desc.includes('linkedin')) return 'Social Media';
+
+  // Conteúdo
+  if (desc.includes('conteúdo') || desc.includes('conteudo') || desc.includes('copywriting') || desc.includes('artigo')) return 'Conteúdo';
+
+  // Consultoria
+  if (desc.includes('consultoria') || desc.includes('mentoria') || desc.includes('advisor')) return 'Consultoria';
+
+  // Job Avulso
+  if (desc.includes('job avulso') || desc.includes('avulso') || desc.includes('design avulso')) return 'Job Avulso';
+
+  // Projeto Especial
+  if (desc.includes('projeto especial') || desc.includes('projeto')) return 'Projeto Especial';
+
+  // Comissão
+  if (desc.includes('comissão') || desc.includes('comissao')) return 'Comissão';
+
+  // Despesa
+  if (desc.includes('despesa') || desc.includes('custo') || desc.includes('freelancer')) return 'Despesa';
+
+  // Imposto / Taxa
+  if (desc.includes('imposto') || desc.includes('taxa') || desc.includes('nota fiscal') || desc.includes('nf-e')) return 'Imposto / Taxa';
 
   return null;
 }
