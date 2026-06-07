@@ -479,7 +479,7 @@ export function JobSheet({
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     onBlur={() => title !== job.title && updateMut.mutate({ title })}
-                    className="bg-transparent border-none outline-none w-full focus:ring-0 p-0 h-auto font-display text-white"
+                    className="bg-transparent border-none outline-none w-full focus:ring-0 p-0 h-auto font-display text-foreground"
                     placeholder="Título do job"
                   />
                 </SheetTitle>
@@ -546,7 +546,7 @@ export function JobSheet({
                     <Popover>
                       <PopoverTrigger asChild>
                         <button className="w-full flex items-center justify-between h-10 px-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all text-sm group">
-                          <span className={job.due_date ? "text-white" : "text-foreground/40"}>
+                          <span className={job.due_date ? "text-foreground" : "text-foreground/40"}>
                             {job.due_date ? format(new Date(job.due_date + 'T12:00:00'), "dd 'de' MMMM, yyyy", { locale: ptBR }) : "Selecionar data"}
                           </span>
                           <Clock className="size-4 text-foreground/40 group-hover:text-primary transition-colors" />
@@ -562,7 +562,7 @@ export function JobSheet({
                           onSelect={(date: Date | undefined) => updateMut.mutate({ due_date: date ? format(date, 'yyyy-MM-dd') : null })}
                           initialFocus
                           locale={ptBR}
-                          className="bg-surface text-white"
+                          className="bg-surface text-foreground"
                         />
                       </PopoverContent>
                     </Popover>
@@ -574,7 +574,7 @@ export function JobSheet({
                     <Popover>
                       <PopoverTrigger asChild>
                         <button className="w-full flex items-center gap-3 h-12 px-4 rounded-xl border border-border bg-background/50 hover:border-primary/50 transition-all group">
-                          <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 uppercase shadow-sm ${
+                          <div className={`size-8 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs shrink-0 uppercase shadow-sm ${
                             (clients.find(c => c.id === (job as any).client_id) as any)?.logo_url 
                             ? "" 
                             : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
@@ -587,7 +587,7 @@ export function JobSheet({
                           </div>
 
                           <div className="flex-1 text-left">
-                            <p className="text-xs font-bold text-white uppercase tracking-wider">
+                            <p className="text-xs font-bold text-foreground uppercase tracking-wider">
                               {clients.find(c => c.id === (job as any).client_id)?.company || clients.find(c => c.id === (job as any).client_id)?.name || "Selecionar Cliente"}
                             </p>
                           </div>
@@ -596,7 +596,7 @@ export function JobSheet({
                       </PopoverTrigger>
                       <PopoverContent className="w-[400px] p-0 bg-surface border-border" align="start">
                         <Command className="bg-transparent">
-                          <CommandInput placeholder="Buscar cliente..." className="h-12 border-none focus:ring-0 bg-transparent text-white" />
+                          <CommandInput placeholder="Buscar cliente..." className="h-12 border-none focus:ring-0 bg-transparent text-foreground" />
                           <CommandList className="max-h-[300px]">
                             <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
                             <CommandGroup>
@@ -607,7 +607,7 @@ export function JobSheet({
                                   onSelect={() => updateMut.mutate({ client_id: c.id } as any)}
                                   className="flex items-center gap-3 p-3 hover:bg-primary/10 cursor-pointer aria-selected:bg-primary/10"
                                 >
-                                   <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm ${
+                                   <div className={`size-8 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs uppercase shadow-sm ${
                                     (c as any).logo_url ? "" : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
                                    }`}>
                                     {(c as any).logo_url ? (
@@ -617,7 +617,7 @@ export function JobSheet({
                                     )}
                                    </div>
 
-                                   <span className="text-sm font-medium text-white">{c.company || c.name}</span>
+                                   <span className="text-sm font-medium text-foreground">{c.company || c.name}</span>
                                   {(job as any).client_id === c.id && <Check className="size-4 text-primary ml-auto" />}
                                 </CommandItem>
                               ))}
@@ -665,8 +665,8 @@ export function JobSheet({
                       value={(job as any).service_id || ""}
                       onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
                     >
-                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg text-white">
-                        <SelectValue placeholder="Selecione o serviço" className="text-white" />
+                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg text-foreground">
+                        <SelectValue placeholder="Selecione o serviço" className="text-foreground" />
                       </SelectTrigger>
                       <SelectContent className="bg-surface border-border">
                         {services.map((s: any) => (
@@ -1149,7 +1149,7 @@ export function JobSheet({
                       }
                     }}
                     placeholder="Escreva uma mensagem..."
-                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white placeholder:text-foreground/40 relative z-[120]"
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-foreground placeholder:text-foreground/40 relative z-[120]"
                     rows={1}
                   />
                   <div className="flex flex-col justify-end gap-1">
