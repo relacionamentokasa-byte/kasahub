@@ -313,11 +313,6 @@ function ServiceFormDialog({
                   ))}
                 </select>
               </div>
-              <div className="space-y-1.5 flex items-center h-full pt-6">
-                <span className="text-xs text-foreground/40 italic">
-                  O fluxo operacional é gerado via aba "Template Operacional"
-                </span>
-              </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs">Descrição</Label>
