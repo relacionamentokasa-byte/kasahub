@@ -94,19 +94,25 @@ export function JobSheet({
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
-      // Filtrar campos UUID vazios ("") para null
       const cleanPatch = Object.entries(patch).reduce((acc, [key, value]) => {
-        // Se for string vazia, converte para null
         acc[key] = value === "" ? null : value;
         return acc;
       }, {} as any);
-
-      console.log(`JobSheet: Updating job ${job!.id}`, cleanPatch);
       return updateJob(job!.id, cleanPatch);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["jobs"] }),
-    onError: (e: Error) => {
-      console.error("JobSheet: Error updating job", e);
+    onMutate: async (patch) => {
+      await qc.cancelQueries({ queryKey: ["jobs"] });
+      const prev = qc.getQueryData<Job[]>(["jobs"]);
+      qc.setQueryData<Job[]>(["jobs"], (old) =>
+        (old ?? []).map((j) => (j.id === job!.id ? { ...j, ...patch } : j)),
+      );
+      return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
       toast.error(e.message);
     }
   });
