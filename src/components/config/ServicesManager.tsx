@@ -332,32 +332,82 @@ function ServiceFormDialog({
           </TabsContent>
 
           <TabsContent value="checklist" className="space-y-4 pt-4">
-            <div className="space-y-3">
-              <Label className="text-xs">Itens do Checklist (um por linha)</Label>
-              <p className="text-[10px] text-muted-foreground">
-                Estes itens serão adicionados automaticamente ao checklist de cada novo Job criado com este serviço.
-              </p>
-              <Textarea
-                rows={10}
-                value={form.checklist_items.map((it: any) => it.text || it).join("\n")}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    checklist_items: e.target.value
-                      .split("\n")
-                      .map(text => ({ text, required: false })),
-                  })
-                }
-                placeholder="Ex:&#10;Criar arte&#10;Revisar texto&#10;Agendar post"
-              />
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">Itens do Checklist</Label>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Estes itens serão adicionados automaticamente ao checklist de cada novo Job criado com este serviço.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Novo item (Pressione Enter)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const val = e.currentTarget.value.trim();
+                      if (val) {
+                        setForm({
+                          ...form,
+                          checklist_items: [...form.checklist_items, { text: val, required: false }],
+                        });
+                        e.currentTarget.value = "";
+                      }
+                    }
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+                {form.checklist_items.length === 0 && (
+                  <div className="py-8 text-center border-2 border-dashed border-border rounded-xl">
+                    <p className="text-xs text-muted-foreground italic">Nenhum item adicionado ao checklist.</p>
+                  </div>
+                )}
+                {form.checklist_items.map((it: any, idx: number) => (
+                  <div key={idx} className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border border-border group animate-in fade-in slide-in-from-left-2">
+                    <div className="size-5 rounded border border-primary/30 flex items-center justify-center bg-background">
+                      <div className="size-2 rounded-sm bg-primary/20" />
+                    </div>
+                    <Input
+                      value={it.text || it}
+                      onChange={(e) => {
+                        const newItems = [...form.checklist_items];
+                        newItems[idx] = { ...it, text: e.target.value };
+                        setForm({ ...form, checklist_items: newItems });
+                      }}
+                      className="h-8 border-none bg-transparent shadow-none focus-visible:ring-0 p-0 text-sm"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-all"
+                      onClick={() => {
+                        const newItems = form.checklist_items.filter((_: any, i: number) => i !== idx);
+                        setForm({ ...form, checklist_items: newItems });
+                      }}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
+                <p className="text-[10px] text-muted-foreground italic bg-muted/20 p-2 rounded text-center">
+                  Dica: Você pode editar o texto dos itens diretamente na lista acima.
+                </p>
+              </div>
             </div>
-            <DialogFooter>
+            
+            <DialogFooter className="pt-4 border-t border-border mt-4">
               <Button variant="ghost" onClick={onClose}>
                 Cancelar
               </Button>
               <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
                 {saveMut.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
-                Salvar
+                Salvar Serviço
               </Button>
             </DialogFooter>
           </TabsContent>
