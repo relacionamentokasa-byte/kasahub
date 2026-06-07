@@ -389,7 +389,16 @@ export function JobSheet({
                       } as any);
                     }}
                   >
-                    <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 bg-background/50 border-border">
+                      {updateMut.isPending && updateMut.variables?.status ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="size-3 animate-spin" />
+                          <span>Atualizando...</span>
+                        </div>
+                      ) : (
+                        <SelectValue />
+                      )}
+                    </SelectTrigger>
                     <SelectContent>
                       {Object.entries(JOB_STATUS_LABELS).map(([val, { label }]) => (
                         <SelectItem key={val} value={val}>{label}</SelectItem>
@@ -404,7 +413,16 @@ export function JobSheet({
                     value={job.priority}
                     onValueChange={(v) => updateMut.mutate({ priority: v })}
                   >
-                    <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="h-10 bg-background/50 border-border">
+                      {updateMut.isPending && updateMut.variables?.priority ? (
+                        <div className="flex items-center gap-2">
+                          <Loader2 className="size-3 animate-spin" />
+                          <span>Atualizando...</span>
+                        </div>
+                      ) : (
+                        <SelectValue />
+                      )}
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="low">Baixa</SelectItem>
                       <SelectItem value="normal">Normal</SelectItem>
