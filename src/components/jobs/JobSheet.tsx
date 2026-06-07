@@ -474,7 +474,12 @@ export function JobSheet({
   const progressPercent = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+    <Sheet open={open} onOpenChange={(o) => {
+      if (!o) {
+        handleTyping(false);
+        onClose();
+      }
+    }}>
       <SheetContent key={job.id} className="bg-surface border-border w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col">
         <div className="flex flex-1 overflow-hidden">
           {/* Left Column: Details */}
