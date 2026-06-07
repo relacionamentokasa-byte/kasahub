@@ -1175,7 +1175,7 @@ export function JobSheet({
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey && !mentionOpen) {
                         e.preventDefault();
-                        if (comment.trim()) {
+                        if (comment.trim() && !commentMut.isPending) {
                           if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
                           handleTyping(false);
                           commentMut.mutate({ content: comment.trim() });
