@@ -173,9 +173,10 @@ export function JobSheet({
     const channel = supabase.getChannels().find(c => c.topic === `realtime:job-room-${job.id}`);
     if (channel) {
       const { data: { user } } = await supabase.auth.getUser();
-      const profile = team.find(p => p.id === user?.id);
+      if (!user) return;
+      const profile = team.find(p => p.id === user.id);
       channel.track({
-        user_id: user?.id,
+        user_id: user.id,
         user_name: profile?.display_name || profile?.full_name || 'Usuário',
         is_typing: isTyping
       });
@@ -186,12 +187,20 @@ export function JobSheet({
     if (comment.length > 0) {
       handleTyping(true);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 3000);
+      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 2000);
     } else {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       handleTyping(false);
     }
   }, [comment, handleTyping]);
+
+  // Clean up typing status when component unmounts
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      handleTyping(false);
+    };
+  }, [handleTyping]);
 
   useEffect(() => {
     if (job) {
@@ -406,7 +415,7 @@ export function JobSheet({
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
       setComment("");
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      handleTyping(false);
+      await handleTyping(false);
       return { prev };
     },
     onSuccess: () => {
@@ -466,7 +475,12 @@ export function JobSheet({
   const progressPercent = totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0;
 
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+    <Sheet open={open} onOpenChange={(o) => {
+      if (!o) {
+        handleTyping(false);
+        onClose();
+      }
+    }}>
       <SheetContent key={job.id} className="bg-surface border-border w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col">
         <div className="flex flex-1 overflow-hidden">
           {/* Left Column: Details */}
@@ -1162,6 +1176,8 @@ export function JobSheet({
                       if (e.key === 'Enter' && !e.shiftKey && !mentionOpen) {
                         e.preventDefault();
                         if (comment.trim()) {
+                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                          handleTyping(false);
                           commentMut.mutate({ content: comment.trim() });
                         }
                       }
@@ -1182,7 +1198,13 @@ export function JobSheet({
                       {isUploading ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
                     </Button>
                     <Button 
-                      onClick={() => comment.trim() && commentMut.mutate({ content: comment.trim() })}
+                      onClick={async () => {
+                        if (comment.trim()) {
+                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                          await handleTyping(false);
+                          commentMut.mutate({ content: comment.trim() });
+                        }
+                      }}
                       disabled={!comment.trim() || commentMut.isPending}
                       size="icon" 
                       className="size-8 rounded-lg shadow-lg shadow-primary/20"
