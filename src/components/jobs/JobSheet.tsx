@@ -1203,12 +1203,16 @@ export function JobSheet({
                       }
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey && !mentionOpen) {
-                        e.preventDefault();
-                        if (comment.trim() && !commentMut.isPending) {
-                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                          handleTyping(false);
-                          commentMut.mutate({ content: comment.trim() });
+                      if (e.key === 'Enter') {
+                        if (!e.shiftKey && !mentionOpen) {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (comment.trim() && !commentMut.isPending) {
+                            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+                            handleTyping(false);
+                            commentMut.mutate({ content: comment.trim() });
+                            commentInputRef.current?.focus();
+                          }
                         }
                       }
                     }}
@@ -1228,11 +1232,14 @@ export function JobSheet({
                       {isUploading ? <Loader2 className="size-4 animate-spin" /> : <Paperclip className="size-4" />}
                     </Button>
                     <Button 
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
                         if (comment.trim()) {
                           if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
                           await handleTyping(false);
                           commentMut.mutate({ content: comment.trim() });
+                          commentInputRef.current?.focus();
                         }
                       }}
                       disabled={!comment.trim() || commentMut.isPending}
