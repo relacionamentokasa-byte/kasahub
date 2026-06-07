@@ -1998,7 +1998,6 @@ export type Database = {
           deliverables: Json
           description: string | null
           id: string
-          job_template: string | null
           order_index: number
           proposal_id: string
           quantity: number
@@ -2011,7 +2010,6 @@ export type Database = {
           deliverables?: Json
           description?: string | null
           id?: string
-          job_template?: string | null
           order_index?: number
           proposal_id: string
           quantity?: number
@@ -2024,7 +2022,6 @@ export type Database = {
           deliverables?: Json
           description?: string | null
           id?: string
-          job_template?: string | null
           order_index?: number
           proposal_id?: string
           quantity?: number
@@ -2086,7 +2083,6 @@ export type Database = {
           monthly_investment: number
           notes: string | null
           one_time_investment: number
-          operational_id: string | null
           owner_id: string | null
           parent_id: string | null
           payment_kind: string
@@ -2157,7 +2153,6 @@ export type Database = {
           monthly_investment?: number
           notes?: string | null
           one_time_investment?: number
-          operational_id?: string | null
           owner_id?: string | null
           parent_id?: string | null
           payment_kind?: string
@@ -2228,7 +2223,6 @@ export type Database = {
           monthly_investment?: number
           notes?: string | null
           one_time_investment?: number
-          operational_id?: string | null
           owner_id?: string | null
           parent_id?: string | null
           payment_kind?: string
@@ -2356,92 +2350,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
-      }
-      service_job_checklist: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          order_index: number
-          template_job_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          order_index?: number
-          template_job_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          order_index?: number
-          template_job_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_job_checklist_template_job_id_fkey"
-            columns: ["template_job_id"]
-            isOneToOne: false
-            referencedRelation: "service_job_templates"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      service_job_templates: {
-        Row: {
-          created_at: string
-          custom_fields_schema: Json | null
-          default_assignee_id: string | null
-          default_duration_days: number
-          id: string
-          initial_stage_id: string | null
-          name: string
-          order_index: number
-          service_id: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          custom_fields_schema?: Json | null
-          default_assignee_id?: string | null
-          default_duration_days?: number
-          id?: string
-          initial_stage_id?: string | null
-          name: string
-          order_index?: number
-          service_id: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          custom_fields_schema?: Json | null
-          default_assignee_id?: string | null
-          default_duration_days?: number
-          id?: string
-          initial_stage_id?: string | null
-          name?: string
-          order_index?: number
-          service_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "service_job_templates_initial_stage_id_fkey"
-            columns: ["initial_stage_id"]
-            isOneToOne: false
-            referencedRelation: "job_stages"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_job_templates_service_id_fkey"
-            columns: ["service_id"]
-            isOneToOne: false
-            referencedRelation: "services"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       services: {
         Row: {

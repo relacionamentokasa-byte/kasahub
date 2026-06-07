@@ -32,7 +32,7 @@ export async function createProposalVersion(proposalId: string) {
       root_proposal_id: rootId,
       responsible_id: (original as any).responsible_id,
       commercial_id: (original as any).commercial_id,
-      operational_id: (original as any).operational_id,
+
       contract_type: (original as any).contract_type,
       service_type: (original as any).service_type,
       service_ids: (original as any).service_ids,

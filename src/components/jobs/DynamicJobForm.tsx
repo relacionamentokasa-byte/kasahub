@@ -20,28 +20,11 @@ export function DynamicJobForm({ jobType, flowJobId, data, onChange, readOnly }:
 
   useEffect(() => {
     async function loadSchema() {
-      if (!flowJobId) {
-        setSchema([]);
-        return;
-      }
-      setLoading(true);
-      try {
-        // Try to load from service_job_templates (linked to services)
-        const { data: tplData } = await supabase
-          .from('service_job_templates')
-          .select('custom_fields_schema')
-          .eq('id', flowJobId)
-          .maybeSingle() as any;
-        
-        const schemaData = tplData?.custom_fields_schema;
-        setSchema(Array.isArray(schemaData) ? schemaData : []);
-      } catch (err) {
-        console.error("Erro ao carregar esquema do formulário:", err);
-      } finally {
-        setLoading(false);
-      }
+      // Carregamento de esquema via templates desabilitado (limpeza operacional)
+      setSchema([]);
     }
     loadSchema();
+
   }, [flowJobId]);
 
   if (loading) return <div className="p-4 text-center text-[10px] text-foreground/40 animate-pulse">Carregando formulário...</div>;
