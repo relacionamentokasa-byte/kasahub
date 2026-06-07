@@ -815,7 +815,7 @@ export function JobSheet({
                     <div className="space-y-3">
                       <div className="flex items-center gap-2">
                         <AlertCircle className="size-4 text-primary" />
-                        <Label className="text-xs font-bold uppercase tracking-wider">Observações Operacionais</Label>
+                        <Label className="text-xs font-bold uppercase tracking-wider">Briefing</Label>
                       </div>
                       <Textarea
                         rows={4}
@@ -823,7 +823,7 @@ export function JobSheet({
                         onChange={(e) => setObservations(e.target.value)}
                         onBlur={() => observations !== (job as any).operational_observations && updateMut.mutate({ operational_observations: observations } as any)}
                         placeholder="Registros internos da equipe..."
-                        className="bg-background text-sm leading-relaxed border-border min-h-[100px]"
+                        className="bg-background text-sm leading-relaxed border-border min-h-[100px] text-white"
                       />
                     </div>
                   </AccordionContent>
