@@ -222,7 +222,8 @@ export async function approveProposal(
       .from("service_job_templates")
       .select(`
         *,
-        checklists:service_job_checklist(*)
+        checklists:service_job_checklist(*),
+        op_template:operational_templates(id, default_steps)
       `)
       .in("service_id", proposal.service_ids ?? [])
       .order("order_index");
