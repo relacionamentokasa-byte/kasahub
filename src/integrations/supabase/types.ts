@@ -74,6 +74,44 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_indicator_targets: {
+        Row: {
+          created_at: string
+          id: string
+          indicator_id: string
+          month: number | null
+          target_value: number
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          indicator_id: string
+          month?: number | null
+          target_value: number
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          indicator_id?: string
+          month?: number | null
+          target_value?: number
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_indicator_targets_indicator_id_fkey"
+            columns: ["indicator_id"]
+            isOneToOne: false
+            referencedRelation: "agency_indicators"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agency_indicators: {
         Row: {
           category: string
