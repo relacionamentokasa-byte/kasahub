@@ -159,7 +159,7 @@ export function JobsBoard({
           <div className="relative">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar tarefa…"
+              placeholder="Buscar Job…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9 h-10 w-64 bg-surface border-border"
