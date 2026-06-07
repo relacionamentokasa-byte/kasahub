@@ -282,11 +282,20 @@ function JobCard({ job, profiles, onClick }: { job: Job; profiles: any[]; onClic
   const qc = useQueryClient();
   const delMut = useMutation({
     mutationFn: () => deleteJob(job.id),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData<Job[]>(queryKey);
+      qc.setQueryData<Job[]>(queryKey, (old) => (old ?? []).filter((j) => j.id !== job.id));
+      return { prev };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job removido");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
+      toast.error(e.message);
+    },
   });
   return (
     <div className={`relative group ${isDragging ? "opacity-30" : ""}`}>
