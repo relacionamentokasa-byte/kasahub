@@ -101,7 +101,7 @@ function AuthPage() {
         <div className="absolute bottom-0 left-0 size-72 rounded-full bg-primary/10 blur-3xl" />
 
         <div className="relative">
-          <KasaLogo />
+          <KasaLogo variant="login" />
         </div>
 
         <div className="relative space-y-8">
