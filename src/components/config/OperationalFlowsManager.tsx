@@ -631,8 +631,11 @@ function JobRow({ job, roles, canEdit, onChanged, onEditSchema, flowJobs }: { jo
           <Button 
             size="icon" 
             variant="ghost" 
-            className="size-8 text-destructive opacity-0 group-hover:opacity-100"
-            onClick={() => confirm(`Excluir job "${job.name}"?`) && deleteJobMut.mutate()}
+            className="size-8 text-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+            title="Excluir Job"
+            onClick={() => {
+              if (confirm(`Excluir job "${job.name}"?`)) deleteJobMut.mutate();
+            }}
           >
             <Trash2 className="size-3.5" />
           </Button>
