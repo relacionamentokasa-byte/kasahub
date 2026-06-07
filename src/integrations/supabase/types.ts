@@ -136,9 +136,14 @@ export type Database = {
           default_currency: string
           document: string | null
           email: string | null
+          icon_system_url: string | null
           id: string
           integrations: Json
           legal_name: string | null
+          logo_login_url: string | null
+          logo_proposals_url: string | null
+          logo_reports_url: string | null
+          logo_sidebar_url: string | null
           logo_url: string | null
           name: string
           notify_email: boolean
@@ -153,6 +158,7 @@ export type Database = {
           pwa_name: string | null
           pwa_short_name: string | null
           pwa_theme_color: string | null
+          splash_screen_url: string | null
           timezone: string
           updated_at: string
           user_limit: number | null
@@ -168,9 +174,14 @@ export type Database = {
           default_currency?: string
           document?: string | null
           email?: string | null
+          icon_system_url?: string | null
           id?: string
           integrations?: Json
           legal_name?: string | null
+          logo_login_url?: string | null
+          logo_proposals_url?: string | null
+          logo_reports_url?: string | null
+          logo_sidebar_url?: string | null
           logo_url?: string | null
           name?: string
           notify_email?: boolean
@@ -185,6 +196,7 @@ export type Database = {
           pwa_name?: string | null
           pwa_short_name?: string | null
           pwa_theme_color?: string | null
+          splash_screen_url?: string | null
           timezone?: string
           updated_at?: string
           user_limit?: number | null
@@ -200,9 +212,14 @@ export type Database = {
           default_currency?: string
           document?: string | null
           email?: string | null
+          icon_system_url?: string | null
           id?: string
           integrations?: Json
           legal_name?: string | null
+          logo_login_url?: string | null
+          logo_proposals_url?: string | null
+          logo_reports_url?: string | null
+          logo_sidebar_url?: string | null
           logo_url?: string | null
           name?: string
           notify_email?: boolean
@@ -217,6 +234,7 @@ export type Database = {
           pwa_name?: string | null
           pwa_short_name?: string | null
           pwa_theme_color?: string | null
+          splash_screen_url?: string | null
           timezone?: string
           updated_at?: string
           user_limit?: number | null
