@@ -58,6 +58,7 @@ import {
   XCircle,
   Ban,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -90,11 +91,12 @@ export function ProposalEditorContent({
   const qc = useQueryClient();
   const navigate = useNavigate();
 
-  const { data: proposal } = useQuery({
+  const { data: proposal, isLoading: proposalLoading, isError: proposalError } = useQuery({
     queryKey: ["proposal", proposalId],
     queryFn: () => fetchProposal(proposalId),
+    retry: 1,
   });
-  const { data: items = [] } = useQuery({
+  const { data: items = [], isLoading: itemsLoading, isError: itemsError } = useQuery({
     queryKey: ["proposal", proposalId, "items"],
     queryFn: () => fetchProposalItems(proposalId),
   });
@@ -337,7 +339,34 @@ export function ProposalEditorContent({
     toast.success("Link copiado");
   }
 
-  if (!proposal) return <div className="p-10 text-foreground/60">Carregando…</div>;
+  if (proposalLoading || itemsLoading) return (
+    <div className="p-10 flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <Loader2 className="size-8 animate-spin text-primary" />
+      <p className="text-sm text-foreground/40 font-mono-kasa animate-pulse uppercase tracking-widest">Carregando detalhes da proposta...</p>
+    </div>
+  );
+  
+  if (proposalError || itemsError || !proposal) {
+    return (
+      <div className="p-10 text-center space-y-6 max-w-md mx-auto min-h-[400px] flex flex-col items-center justify-center">
+        <div className="size-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <XCircle className="size-8 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-display font-bold">Proposta indisponível</h1>
+          <p className="text-foreground/60 text-sm leading-relaxed">
+            {proposalError || itemsError 
+              ? "Ocorreu um erro ao carregar os dados. Por favor, tente novamente ou verifique sua conexão." 
+              : "A proposta solicitada não existe ou foi removida."}
+          </p>
+        </div>
+        <div className="flex flex-col w-full gap-2">
+          <Button onClick={() => window.location.reload()} className="w-full">Tentar novamente</Button>
+          <Button onClick={onBack} variant="outline" className="w-full">Voltar para a lista</Button>
+        </div>
+      </div>
+    );
+  }
 
   const containerCls = embedded ? "w-full" : "p-6 lg:p-10 max-w-6xl mx-auto w-full";
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { replaceContractVariables } from "@/lib/contracts-api";
-import { CheckCircle2, Printer, FileSignature, Loader2, Mail, Phone, Building2, User as UserIcon } from "lucide-react";
+import { CheckCircle2, Printer, FileSignature, Loader2, Mail, Phone, Building2, User as UserIcon, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -176,10 +176,10 @@ function PublicProposalView() {
   }, [data]);
 
   const contractContent = useMemo(() => {
-    const rawContractContent = data?.proposal.contract_content;
-    if (!rawContractContent) return null;
+    if (!data?.proposal || !data?.proposal.contract_content) return null;
     const { proposal, agency } = data;
-    return replaceContractVariables(rawContractContent, {
+    const rawContractContent = proposal.contract_content;
+    return replaceContractVariables(rawContractContent as string, {
       client_name: proposal.client_name,
       client_legal_name: proposal.client_name,
       client_document: agency?.document || "",
@@ -209,20 +209,32 @@ function PublicProposalView() {
   if (loading) {
     return (
       <div className="min-h-screen grid place-items-center bg-white text-slate-600">
-        <Loader2 className="size-6 animate-spin" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="size-8 animate-spin text-slate-300" />
+          <p className="text-xs uppercase tracking-widest font-bold opacity-40">Carregando Proposta...</p>
+        </div>
       </div>
     );
   }
   if (errorCode || !data) {
-    const msg =
-      errorCode === "not_found"
-        ? "Esta proposta não foi encontrada."
-        : "Não foi possível carregar esta proposta. Tente novamente em instantes.";
+    const isNotFound = errorCode === "not_found";
     return (
-      <div className="min-h-screen grid place-items-center bg-white text-slate-600 px-6 text-center">
-        <div>
-          <p className="text-lg font-semibold text-slate-900">Proposta indisponível</p>
-          <p className="text-sm mt-2">{msg}</p>
+      <div className="min-h-screen grid place-items-center bg-slate-50 text-slate-600 px-6 text-center">
+        <div className="max-w-md p-10 bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50">
+          <div className="size-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="size-8 text-slate-300" />
+          </div>
+          <h1 className="text-2xl font-display font-bold text-slate-900">Proposta indisponível</h1>
+          <p className="text-sm mt-3 text-slate-500 leading-relaxed">
+            {isNotFound 
+              ? "Esta proposta não foi encontrada ou o link expirou." 
+              : "Não foi possível carregar esta proposta no momento. Verifique sua conexão e tente novamente."}
+          </p>
+          {!isNotFound && (
+            <Button onClick={() => window.location.reload()} className="mt-8 h-12 px-8 rounded-full bg-slate-900 text-white hover:bg-slate-800">
+              Tentar novamente
+            </Button>
+          )}
         </div>
       </div>
     );

@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Calendar, Pencil, FileSignature, CheckCircle2, Clock, AlertCircle, LayoutDashboard, Kanban, FileText, History, DollarSign, Folder } from "lucide-react";
+import { ArrowLeft, Calendar, Pencil, FileSignature, CheckCircle2, Clock, AlertCircle, LayoutDashboard, Kanban, FileText, History, DollarSign, Folder, Loader2 } from "lucide-react";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProject, fetchClient, fetchJobs, fetchJobStages, fetchProjectStats } from "@/lib/ops-api";
@@ -26,13 +26,14 @@ function ProjectDetail() {
 
 export function ProjectDetailContent({ projectId, embedded = false }: { projectId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
-  const { data: project } = useQuery({
+  const { data: project, isLoading: projectLoading, isError: projectError } = useQuery({
     queryKey: ["project", projectId],
     queryFn: () => fetchProject(projectId),
+    retry: 1,
   });
   const { data: client } = useQuery({
     queryKey: ["client", project?.client_id],
-    queryFn: () => fetchClient(project!.client_id!),
+    queryFn: () => fetchClient(project?.client_id as string),
     enabled: !!project?.client_id,
   });
   const { data: contract } = useQuery({
@@ -54,7 +55,38 @@ export function ProjectDetailContent({ projectId, embedded = false }: { projectI
     enabled: !!project,
   });
 
-  if (!project) return <div className="p-10 text-foreground/40">Carregando…</div>;
+  if (projectLoading) return (
+    <div className="p-10 flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <Loader2 className="size-8 animate-spin text-primary" />
+      <p className="text-sm text-foreground/40 font-mono-kasa animate-pulse uppercase tracking-widest">Carregando detalhes do projeto...</p>
+    </div>
+  );
+
+  if (projectError || !project) {
+    return (
+      <div className="p-10 text-center space-y-6 max-w-md mx-auto min-h-[400px] flex flex-col items-center justify-center">
+        <div className="size-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <AlertCircle className="size-8 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-display font-bold">Projeto indisponível</h1>
+          <p className="text-foreground/60 text-sm leading-relaxed">
+            {projectError 
+              ? "Ocorreu um erro ao carregar os dados. Por favor, tente novamente." 
+              : "O projeto solicitado não existe ou você não tem permissão para acessá-lo."}
+          </p>
+        </div>
+        <div className="flex flex-col w-full gap-2">
+          <Button onClick={() => window.location.reload()} className="w-full">Tentar novamente</Button>
+          {!embedded && (
+            <Link to="/projetos">
+              <Button variant="outline" className="w-full">Voltar para projetos</Button>
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-background/50">
