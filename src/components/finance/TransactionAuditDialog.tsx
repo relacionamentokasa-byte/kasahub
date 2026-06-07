@@ -28,7 +28,8 @@ export function TransactionAuditDialog({
       if (!transaction?.created_by) return null;
       // Note: In Supabase users are in auth.users, but we might have a public.profiles
       // For now let's try to get from the system log or assume profile exists
-      const { data } = await supabase.from('profiles').select('name').eq('id', transaction.created_by).single();
+      // Just get data, handle absence of profiles safely
+      const { data } = await supabase.from('profiles').select('*').eq('id', transaction.created_by).single();
       return data;
     },
     enabled: !!transaction?.created_by,
@@ -88,7 +89,7 @@ export function TransactionAuditDialog({
                 <User className="size-4 text-foreground/40" />
               </div>
               <div>
-                <p className="font-medium">Responsável: {creator?.name || 'Sistema'}</p>
+                <p className="font-medium">Responsável: {(creator as any)?.name || (creator as any)?.full_name || 'Sistema'}</p>
                 <p className="text-xs text-foreground/50">Criado em: {new Date(transaction.created_at).toLocaleString('pt-BR')}</p>
               </div>
             </div>

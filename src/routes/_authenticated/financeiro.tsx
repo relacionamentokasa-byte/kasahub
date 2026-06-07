@@ -79,6 +79,7 @@ import {
   markPaid,
   bulkDeleteTransactions,
   bulkUpdateTransactions,
+  updateTransaction,
   terminateContract,
 } from "@/lib/finance-api";
 
@@ -91,6 +92,7 @@ import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
 import { DeleteTransactionCascadeDialog } from "@/components/finance/DeleteTransactionCascadeDialog";
 import { TerminateContractDialog } from "@/components/finance/TerminateContractDialog";
+import { TransactionAuditDialog } from "@/components/finance/TransactionAuditDialog";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
@@ -138,6 +140,7 @@ function FinanceiroPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
   const [terminateContractId, setTerminateContractId] = useState<string | null>(null);
+  const [auditTx, setAuditTx] = useState<Transaction | null>(null);
 
   function shiftMonth(delta: number) {
     const d = new Date(year, month + delta, 1);
@@ -477,6 +480,8 @@ function FinanceiroPage() {
                               </>
                             )}
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setAuditTx(t)}><Info className="size-4 mr-2" /> Detalhes e Auditoria</DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem className="text-rose-400" onClick={() => setDeleteTxId(t.id)}><Trash2 className="size-4 mr-2" /> Excluir Lançamento</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -635,6 +640,11 @@ function FinanceiroPage() {
         onConfirm={async (mode: "keep" | "cancel" | "delete") => terminateContractMutation.mutateAsync({ id: terminateContractId!, cleanup: mode })}
       />
 
+      <TransactionAuditDialog 
+        transaction={auditTx} 
+        open={!!auditTx} 
+        onOpenChange={(open) => !open && setAuditTx(null)} 
+      />
     </div>
   );
 }
