@@ -212,11 +212,15 @@ function ApprovalInner() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button variant="outline" size="sm" className="gap-2 h-9 px-3" asChild>
-                        <a href={att.file_url} target="_blank" rel="noreferrer">
-                          <ExternalLink className="size-4" /> Visualizar
-                        </a>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="gap-2 h-9 px-3" 
+                        onClick={() => setViewerConfig({ url: att.file_url, name: att.file_name })}
+                      >
+                        <Eye className="size-4" /> Visualizar
                       </Button>
+
                       <Button 
                         variant="outline" 
                         size="sm" 
