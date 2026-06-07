@@ -691,11 +691,16 @@ export function JobSheet({
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
-                                    <Button size="icon" variant="outline" title="Visualizar" className="size-8 hover:bg-blue-500 hover:text-white transition-colors" asChild>
-                                      <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="size-4" />
-                                      </a>
+                                    <Button 
+                                      size="icon" 
+                                      variant="outline" 
+                                      title="Visualizar" 
+                                      className="size-8 hover:bg-primary hover:text-white transition-colors"
+                                      onClick={() => setViewerConfig({ url: item.file_url!, name: item.metadata?.file_name || "Anexo" })}
+                                    >
+                                      <Eye className="size-4" />
                                     </Button>
+
                                     <Button 
                                       size="icon" 
                                       variant="outline" 
