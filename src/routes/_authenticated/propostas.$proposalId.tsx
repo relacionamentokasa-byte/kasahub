@@ -260,7 +260,12 @@ export function ProposalEditorContent({
   const approveMut = useMutation({
     mutationFn: async () => {
       await saveMut.mutateAsync(undefined);
-      return approveProposal(supabase, proposalId);
+      // Pass internal approval by current user
+      const { data: { user } } = await supabase.auth.getUser();
+      return approveProposal(supabase, proposalId, {
+        internalApproval: true,
+        internalApprovalBy: user?.id
+      });
     },
     onSuccess: (r) => {
       toast.success(`Proposta aprovada e convertida em contrato!`);

@@ -1259,6 +1259,7 @@ export type Database = {
           client_id: string | null
           created_at: string
           custom_fields: Json | null
+          custom_fields_schema: Json | null
           custom_form_data: Json | null
           description: string | null
           dme_id: string | null
@@ -1292,6 +1293,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           custom_fields?: Json | null
+          custom_fields_schema?: Json | null
           custom_form_data?: Json | null
           description?: string | null
           dme_id?: string | null
@@ -1325,6 +1327,7 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           custom_fields?: Json | null
+          custom_fields_schema?: Json | null
           custom_form_data?: Json | null
           description?: string | null
           dme_id?: string | null
@@ -2557,6 +2560,7 @@ export type Database = {
       service_job_templates: {
         Row: {
           created_at: string
+          custom_fields_schema: Json | null
           default_assignee_id: string | null
           default_duration_days: number
           id: string
@@ -2568,6 +2572,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_id?: string | null
           default_duration_days?: number
           id?: string
@@ -2579,6 +2584,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_id?: string | null
           default_duration_days?: number
           id?: string
