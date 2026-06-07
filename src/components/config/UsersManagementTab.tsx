@@ -248,20 +248,34 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                     <StatusBadge status={u.status} />
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Select 
-                      value={u.status} 
-                      onValueChange={(v) => statusMut.mutate({ userId: u.id, status: v })}
-                      disabled={!canEdit}
-                    >
-                      <SelectTrigger className="w-32 ml-auto h-8 text-[10px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Ativo</SelectItem>
-                        <SelectItem value="inactive">Inativo</SelectItem>
-                        <SelectItem value="suspended">Suspenso</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center justify-end gap-2">
+                      <Select 
+                        value={u.status} 
+                        onValueChange={(v) => statusMut.mutate({ userId: u.id, status: v })}
+                        disabled={!canEdit}
+                      >
+                        <SelectTrigger className="w-32 h-8 text-[10px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active">Ativo</SelectItem>
+                          <SelectItem value="inactive">Inativo</SelectItem>
+                          <SelectItem value="suspended">Suspenso</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {canEdit && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setUserToDelete(u.id)}
+                          className="text-foreground/40 hover:text-destructive h-8 w-8 p-0"
+                          title="Excluir usuário"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -269,6 +283,26 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
           </table>
         </div>
       </section>
+
+      <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O perfil do usuário será removido permanentemente do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => userToDelete && deleteUserMut.mutate(userToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUserMut.isPending ? "Excluindo..." : "Excluir permanentemente"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {invites.length > 0 && (
         <section className="rounded-xl border border-border bg-surface p-6">
