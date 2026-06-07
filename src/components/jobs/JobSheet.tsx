@@ -665,8 +665,8 @@ export function JobSheet({
                       value={(job as any).service_id || ""}
                       onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
                     >
-                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg">
-                        <SelectValue placeholder="Selecione o serviço" />
+                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg text-white">
+                        <SelectValue placeholder="Selecione o serviço" className="text-white" />
                       </SelectTrigger>
                       <SelectContent className="bg-surface border-border">
                         {services.map((s: any) => (
