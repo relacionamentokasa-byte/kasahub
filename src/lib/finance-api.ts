@@ -66,7 +66,7 @@ export async function fetchContracts(filters: { clientId?: string } = {}): Promi
   return data ?? [];
 }
 
-export async function createContract(input: Database["public"]["Tables"]["contracts"]["Insert"]) {
+export async function createContract(input: Database["public"]["Tables"]["contracts"]["Insert"] & { installments_count?: number, auto_renew?: boolean }) {
   if (!input.client_id) throw new Error("O contrato deve estar vinculado a um cliente.");
   if (!input.monthly_value || Number(input.monthly_value) <= 0) throw new Error("O contrato deve possuir um valor mensal.");
   
@@ -76,7 +76,11 @@ export async function createContract(input: Database["public"]["Tables"]["contra
   const { data: u } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("contracts")
-    .insert({ ...input, owner_id: u.user?.id ?? null })
+    .insert({ 
+      ...input, 
+      owner_id: u.user?.id ?? null,
+      status: 'active'
+    })
     .select()
     .single();
   if (error) throw error;
@@ -181,15 +185,22 @@ export async function createTransaction(
   if (!input.contract_id && !input.dme_id && !input.description) {
     throw new Error("Lançamentos manuais devem possuir uma descrição/origem.");
   }
+  
+  if (!input.origin_type) {
+    if (input.contract_id) input.origin_type = 'contract';
+    else if (input.dme_id) input.origin_type = 'dme';
+    else input.origin_type = 'manual';
+  }
 
   const { data: u } = await supabase.auth.getUser();
-  const owner_id = u.user?.id ?? null;
+  const user_id = u.user?.id ?? null;
+  const owner_id = user_id;
   const total = Math.max(1, installments ?? 1);
 
   if (total === 1) {
     const { data, error } = await supabase
       .from("transactions")
-      .insert({ ...input, owner_id })
+      .insert({ ...input, owner_id, created_by: user_id })
       .select()
       .single();
     if (error) throw error;
