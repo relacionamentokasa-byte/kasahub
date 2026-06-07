@@ -266,10 +266,11 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   // Herança automática de campos se não fornecidos
   const finalInput = {
     ...input,
-    client_id: input.client_id || project.client_id,
+    client_id: (input.client_id || project.client_id) as string,
+    project_id: input.project_id as string,
     contract_id: input.contract_id || project.contract_id,
     main_responsible_id: input.main_responsible_id || project.responsible_id || project.owner_id,
-  };
+  } as any;
 
   const { data, error } = await supabase.from("jobs").insert(finalInput).select().single();
 
