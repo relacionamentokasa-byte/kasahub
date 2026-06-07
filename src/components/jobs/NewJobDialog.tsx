@@ -99,7 +99,7 @@ export function NewJobDialog({
         const template = opTemplates.find(t => t.id === form.operational_template_id);
         if (template && Array.isArray(template.default_steps)) {
           await supabase.from("job_checklist").insert(
-            template.default_steps.map((content: string, idx: number) => ({
+            (template.default_steps as string[]).map((content: string, idx: number) => ({
               job_id: data.id,
               content,
               order_index: idx
