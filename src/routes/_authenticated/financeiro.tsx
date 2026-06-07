@@ -189,8 +189,19 @@ function FinanceiroPage() {
     mutationFn: ({ id, cascade }: { id: string; cascade?: boolean }) => deleteTransaction(id, cascade),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contract"] }); // Invalidate single contract if it was open
       setDeleteTxId(null);
       toast.success("Lançamento removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const updateTx = useMutation({
+    mutationFn: ({ id, patch, cascade }: { id: string; patch: any; cascade?: boolean }) => 
+      updateTransaction(id, patch, cascade),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Lançamento atualizado");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -379,7 +390,7 @@ function FinanceiroPage() {
                   <Checkbox checked={rows.length > 0 && selectedIds.length === rows.length} onCheckedChange={(checked) => setSelectedIds(checked ? rows.map(r => r.id) : [])} />
                   <span>Status</span>
                 </div>
-                <div className="col-span-3">Descrição</div>
+                <div className="col-span-3">Descrição / Origem</div>
                 <div className="col-span-2">Categoria</div>
                 <div className="col-span-2">Cliente</div>
                 <div className="col-span-1 text-right">Valor</div>
@@ -414,7 +425,10 @@ function FinanceiroPage() {
                           {t.description}
                           {(t.contract_id || t.proposal_id) && <LinkIcon className="size-3 text-foreground/40" />}
                         </div>
-                        <Badge variant="outline" className={`text-[9px] mt-1 ${origin.tone}`}>{origin.label}</Badge>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          <Badge variant="outline" className={`text-[9px] ${origin.tone}`}>{origin.label}</Badge>
+                          {t.origin_type && <Badge variant="outline" className="text-[9px] text-foreground/40 border-border capitalize">{t.origin_type}</Badge>}
+                        </div>
                       </div>
                       <div className="col-span-2 text-xs text-foreground/60 truncate">{catName(t.category_id)}</div>
                       <div className="col-span-2 text-xs text-foreground/60 truncate">
@@ -426,7 +440,20 @@ function FinanceiroPage() {
                         {t.kind === "income" ? "+" : "−"} {brl(Number(t.amount))}
                       </div>
                       <div className="col-span-1 text-xs text-foreground/60">
-                        {new Date(t.due_date).toLocaleDateString("pt-BR")}
+                        <input 
+                          type="date" 
+                          value={t.due_date} 
+                          onChange={(e) => {
+                            const newDate = e.target.value;
+                            if (t.contract_id) {
+                              const cascade = window.confirm("Deseja aplicar esta alteração de data também aos próximos vencimentos deste contrato?");
+                              updateTx.mutate({ id: t.id, patch: { due_date: newDate }, cascade });
+                            } else {
+                              updateTx.mutate({ id: t.id, patch: { due_date: newDate } });
+                            }
+                          }}
+                          className="bg-transparent border-none focus:ring-1 focus:ring-primary rounded p-0.5 text-xs w-full"
+                        />
                         {overdue && <div className="text-[10px] text-rose-400">Em atraso</div>}
                       </div>
                       <div className="col-span-2 flex items-center justify-end gap-2">
