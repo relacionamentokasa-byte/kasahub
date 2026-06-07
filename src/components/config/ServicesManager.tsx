@@ -472,6 +472,7 @@ function TemplateJobRow({
 }: {
   job: ServiceJobTemplate;
   stages: any[];
+  opTemplates: any[];
   isFirst: boolean;
   isLast: boolean;
   onMove: (dir: -1 | 1) => void;
