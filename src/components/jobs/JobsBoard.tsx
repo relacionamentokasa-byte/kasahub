@@ -99,7 +99,8 @@ export function JobsBoard({
   });
 
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [open, setOpen] = useState<Job | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const openJob = useMemo(() => jobs.find(j => j.id === openId) || null, [jobs, openId]);
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
 
@@ -216,7 +217,7 @@ export function JobsBoard({
                       key={j.id} 
                       job={j} 
                       profiles={profiles} 
-                      onClick={() => setOpen(j)}
+                      onClick={() => setOpenId(j.id)}
                       queryKey={queryKey}
                     />
                   ))}
@@ -236,7 +237,7 @@ export function JobsBoard({
         defaultClientId={clientId}
         defaultPeriod={period !== 'all' ? period : undefined}
       />
-      <JobSheet job={open} stages={stages} onClose={() => setOpen(null)} />
+      <JobSheet job={openJob} stages={stages} onClose={() => setOpenId(null)} />
     </div>
   );
 }
