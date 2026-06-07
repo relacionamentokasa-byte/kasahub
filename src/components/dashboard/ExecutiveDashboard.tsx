@@ -45,6 +45,14 @@ export function ExecutiveDashboard() {
   });
   const [range, setRange] = useState<FilterRange>('month');
   const [visibleSections, setVisibleSections] = useState<Record<string, boolean>>(() => {
+    if (typeof window === "undefined") return {
+      gestao: true,
+      operacao: true,
+      performance: true,
+      agenda: true,
+      clientes: true,
+      feed: true
+    };
     const saved = localStorage.getItem('dashboard-visibility');
     return saved ? JSON.parse(saved) : {
       gestao: true,
@@ -59,7 +67,9 @@ export function ExecutiveDashboard() {
   const toggleSection = (id: string) => {
     const next = { ...visibleSections, [id]: !visibleSections[id] };
     setVisibleSections(next);
-    localStorage.setItem('dashboard-visibility', JSON.stringify(next));
+    if (typeof window !== "undefined") {
+      localStorage.setItem('dashboard-visibility', JSON.stringify(next));
+    }
   };
 
   // Queries
