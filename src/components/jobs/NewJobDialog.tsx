@@ -67,6 +67,9 @@ export function NewJobDialog({
     client_id: defaultClientId ?? "",
     period: defaultPeriod ?? "",
     freelancer_id: "",
+    main_responsible_id: "",
+    operational_template_id: "",
+    team_involved_ids: [] as string[],
   });
 
 
