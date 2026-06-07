@@ -40,12 +40,14 @@ import {
   fetchProjects,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { AttachmentViewer } from "@/components/AttachmentViewer";
+
 
 export function JobSheet({
   job,
