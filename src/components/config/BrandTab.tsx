@@ -30,10 +30,10 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     key: "logo_sidebar_url",
     label: "Logo Menu Lateral",
     usage: "Sidebar Desktop e Sidebar Mobile",
-    recommendedSize: "400x120px",
+    recommendedSize: "512x512px (Quadrado)",
     formats: ["PNG Transparente", "SVG"],
     description: "Versão otimizada para o menu de navegação lateral.",
-    aspect: 400 / 120
+    aspect: 1
   },
   {
     key: "logo_login_url",
@@ -181,7 +181,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
                       value={form[asset.key] as string | null}
                       onChange={(url) => handleUpload(asset.key as string, url)}
                       label={asset.label}
-                      shape={asset.key === 'icon_system_url' || asset.key === 'pwa_favicon_url' || asset.key === 'pwa_icon_512_url' ? 'round' : 'rect'}
+                      shape={asset.key === 'icon_system_url' || asset.key === 'pwa_favicon_url' || asset.key === 'pwa_icon_512_url' || asset.key === 'logo_sidebar_url' ? 'round' : 'rect'}
                       aspect={asset.aspect}
                     />
                   </div>
@@ -242,7 +242,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
           <div className="p-6 rounded-lg bg-background/40 border border-border space-y-4">
             <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">Menu Lateral</p>
             <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-lg">
-              <div className="h-8 w-24 flex items-center justify-center border border-border/50 p-1 bg-background rounded">
+              <div className="size-10 flex items-center justify-center border border-border/50 p-1 bg-background rounded">
                 {form.logo_sidebar_url || form.logo_url ? (
                   <img src={(form.logo_sidebar_url || form.logo_url) as string} alt="Logo" className="max-h-full max-w-full object-contain" />
                 ) : (
