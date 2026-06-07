@@ -244,7 +244,6 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
               {projects.map((p) => {
                 const contract = (contracts as any[]).find(c => c.id === p.contract_id);
                 const pJobs = (allJobs as any[]).filter(j => j.project_id === p.id);
-                const sJobs = (allJobs as any[]).filter(j => j.service_id === p.service_id); // Exemplo de uso de serviço se aplicável
                 const total = pJobs.length;
                 const done = pJobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
                 const progress = total === 0 ? 0 : Math.round((done / total) * 100);
@@ -271,13 +270,28 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-end">
-                        <span className="text-[10px] text-foreground/40 font-mono-kasa">{total} Jobs · {done} OK</span>
-                        <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
+                    <div className="space-y-4">
+                      {/* Sub-lista de Jobs vinculados */}
+                      <div className="space-y-1">
+                        {pJobs.slice(0, 3).map(j => (
+                          <div key={j.id} className="flex items-center justify-between text-[9px] text-foreground/50 border-b border-border/30 pb-1">
+                            <span className="truncate pr-2">{j.title}</span>
+                            <span className={j.done_at ? "text-emerald-500" : "text-amber-500"}>
+                              {j.done_at ? "OK" : "Pendente"}
+                            </span>
+                          </div>
+                        ))}
+                        {pJobs.length > 3 && <div className="text-[8px] text-foreground/30 text-center pt-1">+ {pJobs.length - 3} jobs</div>}
                       </div>
-                      <div className="h-1 bg-background rounded-full overflow-hidden">
-                        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-end">
+                          <span className="text-[10px] text-foreground/40 font-mono-kasa">Progresso Geral</span>
+                          <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
+                        </div>
+                        <div className="h-1 bg-background rounded-full overflow-hidden">
+                          <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+                        </div>
                       </div>
                     </div>
                   </Link>
