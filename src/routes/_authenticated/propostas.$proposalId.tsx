@@ -582,26 +582,44 @@ export function ProposalEditorContent({
             <span className="text-primary text-[10px] capitalize">Investimento</span>
             <div className="grid gap-4 mt-4">
               {form.contract_type === "recurring" ? (
-                <>
-                  <F label="Investimento Mensal (R$)">
-                    <Input 
-                      type="number" 
-                      step="0.01"
-                      value={form.monthly_investment} 
-                      onChange={(e) => setForm({ ...form, monthly_investment: Number(e.target.value) })} 
-                      className="text-2xl font-bold text-primary"
-                    />
-                  </F>
+                <div className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <F label="Investimento Mensal (R$)">
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        value={form.monthly_investment} 
+                        onChange={(e) => setForm({ ...form, monthly_investment: Number(e.target.value) })} 
+                        className="text-2xl font-bold text-primary"
+                      />
+                    </F>
+                    <F label="Investimento Único / Setup (R$)">
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        value={form.one_time_investment} 
+                        onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })} 
+                        className="text-2xl font-bold"
+                        placeholder="Ex: Taxa de adesão"
+                      />
+                    </F>
+                  </div>
                   <div className="pt-4 border-t border-border text-sm space-y-2">
                     <div className="flex justify-between"><span>Prazo</span><span>{form.recurring_months} meses</span></div>
+                    {form.one_time_investment > 0 && (
+                      <div className="flex justify-between text-foreground/60 italic">
+                        <span>Setup / Único</span>
+                        <span>{formatCurrency(form.one_time_investment)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between font-bold text-lg pt-2 border-t border-border/50">
                       <span>Total do Contrato</span>
-                      <span>{formatCurrency(form.monthly_investment * form.recurring_months)}</span>
+                      <span>{formatCurrency((form.monthly_investment * form.recurring_months) + form.one_time_investment)}</span>
                     </div>
                   </div>
-                </>
+                </div>
               ) : (
-                <>
+                <div className="space-y-4">
                   <F label="Investimento Total (R$)">
                     <Input 
                       type="number" 
@@ -613,8 +631,12 @@ export function ProposalEditorContent({
                   </F>
                   <div className="pt-4 border-t border-border text-sm">
                     <div className="flex justify-between"><span>Parcelas</span><span>{form.installments}x de {formatCurrency(form.one_time_investment / (form.installments || 1))}</span></div>
+                    <div className="flex justify-between font-bold text-lg pt-2 border-t border-border/50">
+                      <span>Total da Proposta</span>
+                      <span>{formatCurrency(form.one_time_investment)}</span>
+                    </div>
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>
