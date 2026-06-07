@@ -45,6 +45,8 @@ import { JobSheet } from "./JobSheet";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 
+export const JOBS_QUERY_KEY = (filters: any) => ["jobs", filters];
+
 export function JobsBoard({
   projectId,
   clientId,
