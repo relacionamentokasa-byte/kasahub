@@ -303,7 +303,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
 
 
         <TabsContent value="jobs" className="flex-1 mt-0 min-h-0">
-          <JobsBoard clientId={clientId} title="Jobs do cliente" eyebrow="Cliente · Jobs" />
+          <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Cliente · Operação" />
         </TabsContent>
 
         <TabsContent value="finance" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0 space-y-6">
