@@ -52,6 +52,7 @@ type Proposal = {
 type Agency = {
   name: string;
   logo_url: string | null;
+  logo_proposals_url: string | null;
   brand_primary: string | null;
   email: string | null;
   phone: string | null;
