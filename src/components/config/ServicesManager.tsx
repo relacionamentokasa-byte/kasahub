@@ -94,9 +94,9 @@ export function ServicesManager({ canEdit }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-lg font-semibold">Serviços e Templates</p>
+          <p className="font-display text-lg font-semibold">Serviços e Templates Operacionais</p>
           <p className="text-xs text-foreground/50">
-            Biblioteca central de serviços da agência e seus jobs padrão.
+            Biblioteca central de serviços da agência e seus Jobs padrão.
           </p>
         </div>
         <Button onClick={() => setCreating(true)} disabled={!canEdit} className="gap-2">
