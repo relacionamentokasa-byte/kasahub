@@ -1,13 +1,17 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { 
   createIndicator, 
   updateIndicator, 
+  fetchIndicatorTargets,
+  saveIndicatorTarget,
+  deleteIndicatorTarget,
   type AgencyIndicator,
   type IndicatorCategory,
   type IndicatorType,
   type IndicatorPeriodicity,
-  type IndicatorDataSource
+  type IndicatorDataSource,
+  type AgencyIndicatorTarget
 } from "@/lib/performance-api";
 import {
   Dialog,
