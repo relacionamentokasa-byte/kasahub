@@ -45,34 +45,53 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  
   useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+    reportLovableError(error, { 
+      boundary: "tanstack_root_error_component",
+      componentStack: (error as any).componentStack,
+    });
   }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+      <div className="max-w-md w-full bg-surface border border-border p-8 rounded-2xl shadow-xl">
+        <div className="flex justify-center mb-6">
+          <div className="size-16 rounded-full bg-rose-500/10 flex items-center justify-center">
+            <AlertTriangle className="size-8 text-rose-500" />
+          </div>
+        </div>
+        
+        <h1 className="text-xl font-bold tracking-tight text-foreground text-center">
+          Ocorreu um erro ao carregar esta página
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+        <p className="mt-3 text-sm text-muted-foreground text-center leading-relaxed">
+          Encontramos um problema ao processar esta informação. Nossa equipe já foi notificada.
         </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+
+        <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/50">
+          <p className="text-[10px] font-mono uppercase tracking-wider text-foreground/40 mb-1">Detalhes técnicos:</p>
+          <p className="text-xs font-mono text-rose-500/80 break-words line-clamp-3">
+            {error.message || "Erro desconhecido"}
+          </p>
+        </div>
+
+        <div className="mt-8 flex flex-col gap-2">
           <button
             onClick={() => {
               router.invalidate();
               reset();
+              window.location.reload();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className="w-full inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
           >
-            Try again
+            Tentar Novamente
           </button>
           <a
             href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+            className="w-full inline-flex items-center justify-center rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium text-foreground transition-all hover:bg-muted active:scale-[0.98]"
           >
-            Go home
+            Voltar para o Início
           </a>
         </div>
       </div>
