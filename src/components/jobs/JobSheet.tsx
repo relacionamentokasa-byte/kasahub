@@ -985,7 +985,7 @@ export function JobSheet({
                                 <div className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-xl border border-blue-500/10">
                                   <div className="flex items-center gap-2 overflow-hidden">
                                     <FileText className="size-4 text-blue-400 shrink-0" />
-                                    <p className="font-bold text-blue-200 truncate text-[10px]">{item.metadata?.file_name || "Anexo"}</p>
+                                    <p className="font-bold text-foreground truncate text-[10px]">{item.metadata?.file_name || "Anexo"}</p>
                                   </div>
                                   <div className="flex items-center gap-1 shrink-0">
                                     <Button 
