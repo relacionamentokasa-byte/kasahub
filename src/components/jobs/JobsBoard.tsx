@@ -27,6 +27,7 @@ import {
   fetchJobs,
   moveJob,
   deleteJob,
+  deleteJobStage,
   priorityColor,
   priorityLabel,
   JOB_STATUS_LABELS,
@@ -216,22 +217,43 @@ function Column({
   onAdd: () => void;
   children: React.ReactNode;
 }) {
+  const qc = useQueryClient();
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
+  const delStageMut = useMutation({
+    mutationFn: () => deleteJobStage(stage.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-stages"] });
+      toast.success("Coluna removida");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <div className="w-[280px] sm:w-[300px] shrink-0 flex flex-col snap-center">
+    <div className="w-[280px] sm:w-[300px] shrink-0 flex flex-col snap-center group/col">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <span className="size-2 rounded-full" style={{ background: stage.color }} />
           <span className="font-display font-semibold text-sm tracking-tight">{stage.name}</span>
           <span className="text-[10px] text-foreground/40">{count}</span>
         </div>
-        <button
-          onClick={onAdd}
-          className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
-          aria-label={`Adicionar em ${stage.name}`}
-        >
-          <Plus className="size-3.5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => {
+              if (confirm(`Remover a coluna "${stage.name}"?`)) delStageMut.mutate();
+            }}
+            className="size-6 rounded-md hover:bg-destructive/10 grid place-items-center text-foreground/20 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
+            aria-label="Excluir coluna"
+          >
+            <Trash2 className="size-3" />
+          </button>
+          <button
+            onClick={onAdd}
+            className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
+            aria-label={`Adicionar em ${stage.name}`}
+          >
+            <Plus className="size-3.5" />
+          </button>
+        </div>
       </div>
       <div
         ref={setNodeRef}
