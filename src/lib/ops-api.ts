@@ -205,11 +205,13 @@ export async function fetchProjectStats(projectId: string) {
 
 // ---------- Jobs ----------
 export const JOB_STATUS_LABELS: Record<string, { label: string, color: string }> = {
-  not_started: { label: 'Nova Demanda', color: '#3B82F6' },
-  in_progress: { label: 'Em Execução', color: '#F59E0B' },
-  waiting_client: { label: 'Aguardando Cliente', color: '#8B5CF6' },
-  done: { label: 'Concluído', color: '#10B981' },
+  not_started: { label: 'Nova Demanda', color: '#71717a' },
+  in_progress: { label: 'Em Andamento', color: '#3b82f6' },
+  review: { label: 'Em Revisão', color: '#f59e0b' },
+  done: { label: 'Concluído', color: '#10b981' },
+  paused: { label: 'Pausado', color: '#f97316' },
 };
+
 
 export async function fetchJobHistory(jobId: string) {
   const { data, error } = await supabase
