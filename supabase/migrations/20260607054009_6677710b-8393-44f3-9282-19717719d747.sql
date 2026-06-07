@@ -1,0 +1,2 @@
+ALTER TABLE public.services ADD COLUMN checklist_items JSONB DEFAULT '[]'::jsonb;
+COMMENT ON COLUMN public.services.checklist_items IS 'Lista de itens de checklist padrão para este serviço (Ex: [{"text": "Item 1", "required": true}])';

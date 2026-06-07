@@ -17,6 +17,7 @@ export async function createService(input: {
   description?: string | null;
   is_active?: boolean;
   default_scope?: string[];
+  checklist_items?: any[];
 }) {
   const { data, error } = await supabase.from("services").insert(input).select().single();
   if (error) throw error;

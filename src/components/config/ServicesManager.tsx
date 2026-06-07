@@ -205,6 +205,7 @@ function ServiceFormDialog({
     description: service?.description ?? "",
     is_active: service?.is_active ?? true,
     default_scope: (service?.default_scope as string[]) ?? [],
+    checklist_items: (service as any)?.checklist_items ?? [],
     contract_template_id: (service as any)?.contract_template_id ?? "",
   });
 
@@ -221,6 +222,7 @@ function ServiceFormDialog({
         description: form.description.trim() || null,
         is_active: form.is_active,
         default_scope: form.default_scope,
+        checklist_items: form.checklist_items,
         contract_template_id: form.contract_template_id || null,
       } as any;
       if (!payload.name) throw new Error("Nome obrigatório");
@@ -246,6 +248,7 @@ function ServiceFormDialog({
         <Tabs defaultValue="general">
           <TabsList>
             <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="checklist">Checklist Padrão</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 pt-4">
@@ -315,6 +318,38 @@ function ServiceFormDialog({
                   })
                 }
                 placeholder="Item 1&#10;Item 2&#10;Item 3"
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="ghost" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
+                {saveMut.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
+                Salvar
+              </Button>
+            </DialogFooter>
+          </TabsContent>
+
+          <TabsContent value="checklist" className="space-y-4 pt-4">
+            <div className="space-y-3">
+              <Label className="text-xs">Itens do Checklist (um por linha)</Label>
+              <p className="text-[10px] text-muted-foreground">
+                Estes itens serão adicionados automaticamente ao checklist de cada novo Job criado com este serviço.
+              </p>
+              <Textarea
+                rows={10}
+                value={form.checklist_items.map((it: any) => it.text || it).join("\n")}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    checklist_items: e.target.value
+                      .split("\n")
+                      .filter((x) => x.trim())
+                      .map(text => ({ text, required: false })),
+                  })
+                }
+                placeholder="Ex:&#10;Criar arte&#10;Revisar texto&#10;Agendar post"
               />
             </div>
             <DialogFooter>
