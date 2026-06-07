@@ -250,6 +250,7 @@ export async function approveProposal(
             due_date: jobDueDate,
             labels: ["operational_template"],
             assignee_id: tpl.default_assignee_id || proposal.responsible_id || null,
+            custom_fields_schema: (tpl as any).custom_fields_schema || null,
           })
           .select()
           .single();
