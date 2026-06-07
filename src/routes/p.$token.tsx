@@ -257,88 +257,145 @@ function PublicProposalView() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900 print:bg-white">
-      <style>{`@media print { .no-print { display: none !important; } body { background: white !important; } }`}</style>
+    <div className="min-h-screen bg-slate-50 text-slate-900 print:bg-white font-sans">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700&display=swap');
+        
+        @media print {
+          .no-print { display: none !important; }
+          body { 
+            background: white !important; 
+            font-family: 'Onest', sans-serif !important;
+          }
+          .print-m-0 { margin: 0 !important; padding: 1.5cm !important; }
+          .page-break-before { page-break-before: always; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
 
-      <div className="no-print sticky top-0 z-10 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
-        <div className="text-sm font-semibold text-slate-700 truncate">
-          {agency?.name ?? "HUB"}
+        .font-onest { font-family: 'Onest', sans-serif; }
+        
+        /* Proposta hierarchy */
+        .proposal-title {
+          font-family: 'Onest', sans-serif !important;
+          font-weight: 700;
+          font-size: 28px;
+          line-height: 1.2;
+          color: #0C1618;
+        }
+        
+        .clause-title {
+          font-family: 'Onest', sans-serif !important;
+          font-weight: 600;
+          font-size: 18px;
+          margin-top: 2rem;
+          margin-bottom: 1rem;
+          color: #0C1618;
+        }
+        
+        .contract-text {
+          font-family: 'Onest', sans-serif !important;
+          font-weight: 400;
+          font-size: 16px;
+          line-height: 1.7;
+          color: #334155;
+        }
+
+        .contract-content p {
+          margin-bottom: 1.25rem;
+        }
+      `}</style>
+
+      <div className="no-print sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <div className="size-8 rounded-lg bg-[#0C1618] flex items-center justify-center">
+            <span className="text-[#FFBC45] font-bold text-xs">KH</span>
+          </div>
+          <div className="text-sm font-bold text-[#0C1618] tracking-tight">
+            KASA HUB
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="sm"
             onClick={() => window.print()}
-            className="gap-2"
+            className="gap-2 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-full px-4"
           >
-            <Printer className="size-4" /> Imprimir / PDF
+            <Printer className="size-4" /> Exportar PDF
           </Button>
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto bg-white shadow-sm print:shadow-none my-6 print:my-0">
+      <div className="max-w-4xl mx-auto bg-white shadow-2xl shadow-slate-200/50 print:shadow-none my-8 print:my-0 rounded-[2rem] overflow-hidden print:rounded-none">
         {/* Header */}
         <div
-          className="px-8 pt-10 pb-8 border-b-4"
-          style={{ borderColor: brand }}
+          className="px-10 pt-12 pb-10 border-b border-slate-100 relative"
         >
-          <div className="flex items-start justify-between gap-6 flex-wrap">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFBC45]/5 rounded-bl-[5rem] -z-0" />
+          
+          <div className="flex items-start justify-between gap-6 flex-wrap relative z-10">
             <div>
               {agency?.logo_proposals_url || agency?.logo_url ? (
                 <img
                   src={(agency.logo_proposals_url || agency.logo_url) as string}
                   alt={agency.name}
-                  className="h-12 object-contain mb-4"
+                  className="h-14 object-contain mb-6"
                 />
               ) : (
                 <div
-                  className="text-2xl font-bold mb-4"
-                  style={{ color: brand }}
+                  className="text-2xl font-bold mb-6 flex items-center gap-2"
+                  style={{ color: "#0C1618" }}
                 >
-                  {agency?.name ?? "Kasa Marketing"}
+                  <div className="size-10 rounded-xl bg-[#0C1618] flex items-center justify-center">
+                    <span className="text-[#FFBC45] font-bold text-base">KH</span>
+                  </div>
+                  <span>{agency?.name ?? "Kasa Marketing"}</span>
                 </div>
               )}
-              <div className="text-xs text-slate-500 leading-relaxed">
-                {agency?.document && <div>{agency.document}</div>}
-                {agency?.email && <div>{agency.email}</div>}
-                {agency?.phone && <div>{agency.phone}</div>}
-                {agency?.website && <div>{agency.website}</div>}
+              <div className="text-[13px] text-slate-500 space-y-1">
+                {agency?.document && <div className="flex items-center gap-2"><span className="opacity-50">•</span> {agency.document}</div>}
+                {agency?.email && <div className="flex items-center gap-2"><span className="opacity-50">•</span> {agency.email}</div>}
+                {agency?.phone && <div className="flex items-center gap-2"><span className="opacity-50">•</span> {agency.phone}</div>}
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[10px] uppercase tracking-widest text-slate-400">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-4">
+                <span className="size-1.5 rounded-full bg-[#FFBC45] animate-pulse" />
                 Proposta Comercial
-              </p>
-              <p className="text-xs text-slate-500 mt-1">
-                Emitida em {new Date().toLocaleDateString("pt-BR")}
+              </div>
+              <p className="text-sm text-slate-400">
+                Emitida em <span className="text-slate-600 font-medium">{new Date().toLocaleDateString("pt-BR")}</span>
               </p>
               {proposal.valid_until && (
-                <p className="text-xs text-slate-500">
-                  Válida até{" "}
-                  {new Date(proposal.valid_until).toLocaleDateString("pt-BR")}
+                <p className="text-sm text-slate-400 mt-0.5">
+                  Válida até <span className="text-slate-600 font-medium">{new Date(proposal.valid_until).toLocaleDateString("pt-BR")}</span>
                 </p>
               )}
-              <span
-                className="inline-block mt-3 text-[10px] px-2.5 py-1 rounded font-semibold uppercase tracking-wide"
-                style={{
-                  background: accepted ? "#dcfce7" : `${brand}22`,
-                  color: accepted ? "#166534" : "#7c5400",
-                }}
-              >
-                {accepted ? "Aprovada" : proposal.status}
-              </span>
+              <div className="mt-4">
+                <span
+                  className="inline-block text-[11px] px-4 py-1.5 rounded-full font-bold uppercase tracking-widest"
+                  style={{
+                    background: accepted ? "#dcfce7" : "#fffbeb",
+                    color: accepted ? "#166534" : "#b45309",
+                  }}
+                >
+                  {accepted ? "✓ Proposta Aprovada" : "Aguardando Aceite"}
+                </span>
+              </div>
             </div>
           </div>
 
-          <h1
-            className="mt-8 text-3xl font-bold leading-tight"
-            style={{ color: "#0f172a" }}
-          >
+          <h1 className="mt-12 proposal-title">
             {proposal.title}
           </h1>
-          <p className="text-sm text-slate-500 mt-2">
-            Preparada para <span className="font-semibold text-slate-700">{proposal.client_name}</span>
-          </p>
+          <div className="mt-4 flex items-center gap-3">
+            <div className="size-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs uppercase">
+              {proposal.client_name.substring(0, 2)}
+            </div>
+            <p className="text-sm text-slate-500">
+              Preparada para <span className="font-bold text-[#0C1618]">{proposal.client_name}</span>
+            </p>
+          </div>
         </div>
 
         {/* Dados do Cliente */}
