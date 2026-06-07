@@ -233,16 +233,15 @@ export function JobSheet({
   const toggleItemMut = useMutation({
     mutationFn: ({ id, done }: { id: string; done: boolean }) => toggleChecklistItem(id, done),
     onMutate: async ({ id, done }) => {
-      const qk = ["job-checklist", job!.id];
-      await qc.cancelQueries({ queryKey: qk });
-      const prev = qc.getQueryData<any[]>(qk);
-      qc.setQueryData<any[]>(qk, (old) =>
+      await qc.cancelQueries({ queryKey: ["job-checklist", job!.id] });
+      const prev = qc.getQueryData<any[]>(["job-checklist", job!.id]);
+      qc.setQueryData<any[]>(["job-checklist", job!.id], (old) =>
         (old ?? []).map((item) => (item.id === id ? { ...item, done } : item)),
       );
       
-      // Update job progress optimistically in the list
-      qc.setQueryData<Job[]>(["jobs"], (old) => {
-        if (!old) return old;
+      // Update job progress optimistically in all job queries
+      qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
+        if (!old || !Array.isArray(old)) return old;
         return old.map(j => {
           if (j.id === job!.id) {
             const currentChecklist = prev || [];
@@ -332,7 +331,7 @@ export function JobSheet({
   const communicationTimeline = useMemo(() => {
     return [
       ...comments.map(c => ({ 
-        id: c.id, 
+        id: `comment-${c.id}`, 
         type: (c as any).type || 'comment', 
         content: c.content, 
         user_id: c.user_id, 
@@ -342,7 +341,7 @@ export function JobSheet({
         file_url: (c as any).metadata?.file_url || undefined
       })),
       ...attachments.map(a => ({ 
-        id: a.id, 
+        id: `attach-${a.id}`, 
         type: 'attachment', 
         content: `Arquivo enviado: ${a.file_name}`, 
         user_id: a.user_id, 
