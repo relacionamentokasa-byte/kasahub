@@ -306,12 +306,26 @@ function FlowEditor({ flowId, canEdit }: { flowId: string, canEdit: boolean }) {
                 <h3 className="text-sm font-semibold">{stage.name}</h3>
                 <Badge variant="outline" className="text-[10px] ml-2">Etapa</Badge>
               </div>
-              <div className="flex items-center gap-2">
-                 <Button size="icon" variant="ghost" className="size-8" onClick={() => {
+              <div className="flex items-center gap-1">
+                 <Button size="icon" variant="ghost" className="size-8 text-foreground/40 hover:text-primary" title="Adicionar Job" onClick={() => {
                    const name = prompt("Nome do Job:");
                    if (name) addJobMut.mutate({ stageId: stage.id, name, order: stage.jobs?.length || 0 });
                  }}>
                    <Plus className="size-4" />
+                 </Button>
+                 
+                 <Button 
+                   size="icon" 
+                   variant="ghost" 
+                   className="size-8 text-foreground/40 hover:text-destructive" 
+                   title="Excluir Etapa"
+                   onClick={() => {
+                     if (confirm(`Deseja excluir a etapa "${stage.name}" e todos os seus jobs?`)) {
+                       deleteStageMut.mutate(stage.id);
+                     }
+                   }}
+                 >
+                   <Trash2 className="size-4" />
                  </Button>
               </div>
             </header>
