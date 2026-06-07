@@ -39,20 +39,33 @@ import {
   fetchScopeTemplates,
 } from "@/lib/scope-templates-api";
 import { toast } from "sonner";
-import Showdown from 'showdown';
-import TurndownService from 'turndown';
+// Move heavy/problematic libraries to dynamic imports or component scope to avoid SSR break
+let converter: any = null;
+let turndownService: any = null;
 
-const converter = new Showdown.Converter({
-  simplifiedAutoLink: true,
-  strikethrough: true,
-  tables: true,
-  tasklists: true,
-});
+async function getConverter() {
+  if (!converter) {
+    const Showdown = (await import('showdown')).default;
+    converter = new Showdown.Converter({
+      simplifiedAutoLink: true,
+      strikethrough: true,
+      tables: true,
+      tasklists: true,
+    });
+  }
+  return converter;
+}
 
-const turndownService = new TurndownService({
-  headingStyle: 'atx',
-  bulletListMarker: '-',
-});
+async function getTurndown() {
+  if (!turndownService) {
+    const TurndownService = (await import('turndown')).default;
+    turndownService = new TurndownService({
+      headingStyle: 'atx',
+      bulletListMarker: '-',
+    });
+  }
+  return turndownService;
+}
 
 export function ScopeEditor({
   value,
@@ -86,10 +99,11 @@ export function ScopeEditor({
         placeholder: 'Descreva o escopo dos serviços...',
       }),
     ],
-    content: converter.makeHtml(value),
-    onUpdate: ({ editor }) => {
+    content: "", // Initialize empty, then set content async
+    onUpdate: async ({ editor }) => {
       const html = editor.getHTML();
-      const markdown = turndownService.turndown(html);
+      const td = await getTurndown();
+      const markdown = td.turndown(html);
       onChange(markdown);
     },
     editorProps: {
@@ -99,11 +113,19 @@ export function ScopeEditor({
     },
   });
 
-  // Sync external changes (like loading template) back to editor
+  // Load initial content and sync external changes
   useEffect(() => {
-    if (editor && value !== turndownService.turndown(editor.getHTML())) {
-      editor.commands.setContent(converter.makeHtml(value));
+    async function sync() {
+      if (!editor) return;
+      const conv = await getConverter();
+      const td = await getTurndown();
+      
+      const currentHtml = editor.getHTML();
+      if (value !== td.turndown(currentHtml)) {
+        editor.commands.setContent(conv.makeHtml(value));
+      }
     }
+    sync();
   }, [value, editor]);
 
   const saveTplMut = useMutation({
@@ -123,11 +145,12 @@ export function ScopeEditor({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  function insertTemplate(content: string, replace: boolean) {
+  async function insertTemplate(content: string, replace: boolean) {
     const nextMarkdown = replace || !value.trim() ? content : `${value}\n\n${content}`;
     onChange(nextMarkdown);
     if (editor) {
-      editor.commands.setContent(converter.makeHtml(nextMarkdown));
+      const conv = await getConverter();
+      editor.commands.setContent(conv.makeHtml(nextMarkdown));
     }
   }
 
