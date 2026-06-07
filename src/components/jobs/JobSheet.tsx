@@ -186,12 +186,20 @@ export function JobSheet({
     if (comment.length > 0) {
       handleTyping(true);
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 3000);
+      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 2000);
     } else {
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       handleTyping(false);
     }
   }, [comment, handleTyping]);
+
+  // Clean up typing status when component unmounts
+  useEffect(() => {
+    return () => {
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      handleTyping(false);
+    };
+  }, [handleTyping]);
 
   useEffect(() => {
     if (job) {
