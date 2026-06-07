@@ -46,15 +46,28 @@ export async function approveExtraDemand(sb: SB, id: string) {
     .limit(1);
     
   if (!project?.id) throw new Error("Não foi possível encontrar um projeto vinculado a este contrato para gerar o job.");
+  if (!dme.contract_id) throw new Error("Esta DME não possui um contrato vinculado.");
+
+  // Forçar vinculação obrigatória (excluir qualquer dúvida de nulabilidade para o TS)
+  const contractId: string = dme.contract_id;
+  const clientId: string = dme.client_id;
+  const projectId: string = project.id;
+  const stageId: string | null = stages?.[0]?.id || null;
+
+  // Precisamos de um serviço genérico para DMEs se não houver um vinculado
+  // Para manter a integridade, buscamos o primeiro serviço ativo ou um fixo
+  const { data: service } = await sb.from("services").select("id").eq("is_active", true).limit(1).maybeSingle();
+  if (!service) throw new Error("Não há serviços cadastrados no sistema para vincular ao job da DME.");
 
   await sb.from("jobs").insert({
     title: `${dme.number_display}: ${dme.title}`,
     description: dme.description,
-    client_id: dme.client_id,
-    project_id: project.id,
-    contract_id: dme.contract_id,
+    client_id: clientId,
+    project_id: projectId,
+    contract_id: contractId,
+    service_id: service.id, // Vínculo obrigatório adicionado
     dme_id: dme.id,
-    stage_id: stages?.[0]?.id,
+    stage_id: stageId,
     priority: "normal",
     main_responsible_id: (project as any)?.owner_id || null,
   });

@@ -270,13 +270,28 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between items-end">
-                        <span className="text-[10px] text-foreground/40 font-mono-kasa">{total} Jobs · {done} OK</span>
-                        <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
+                    <div className="space-y-4">
+                      {/* Sub-lista de Jobs vinculados */}
+                      <div className="space-y-1">
+                        {pJobs.slice(0, 3).map(j => (
+                          <div key={j.id} className="flex items-center justify-between text-[9px] text-foreground/50 border-b border-border/30 pb-1">
+                            <span className="truncate pr-2">{j.title}</span>
+                            <span className={j.done_at ? "text-emerald-500" : "text-amber-500"}>
+                              {j.done_at ? "OK" : "Pendente"}
+                            </span>
+                          </div>
+                        ))}
+                        {pJobs.length > 3 && <div className="text-[8px] text-foreground/30 text-center pt-1">+ {pJobs.length - 3} jobs</div>}
                       </div>
-                      <div className="h-1 bg-background rounded-full overflow-hidden">
-                        <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-end">
+                          <span className="text-[10px] text-foreground/40 font-mono-kasa">Progresso Geral</span>
+                          <span className="text-[10px] font-bold text-primary font-mono-kasa">{progress}%</span>
+                        </div>
+                        <div className="h-1 bg-background rounded-full overflow-hidden">
+                          <div className="h-full bg-primary transition-all duration-500" style={{ width: `${progress}%` }} />
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -288,7 +303,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
 
 
         <TabsContent value="jobs" className="flex-1 mt-0 min-h-0">
-          <JobsBoard clientId={clientId} title="Jobs do cliente" eyebrow="Cliente · Jobs" />
+          <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Cliente · Operação" />
         </TabsContent>
 
         <TabsContent value="finance" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0 space-y-6">

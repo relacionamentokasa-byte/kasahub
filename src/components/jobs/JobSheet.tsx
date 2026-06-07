@@ -86,6 +86,11 @@ export function JobSheet({
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  const { data: servicesData = [] } = useQuery({ queryKey: ["services", "active"], queryFn: async () => {
+    const { data } = await supabase.from("services").select("*").eq("is_active", true);
+    return data || [];
+  }});
+  const services = servicesData as any[];
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
@@ -264,6 +269,21 @@ export function JobSheet({
                     <SelectContent>
                       {projects.map(p => (
                         <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-wider">Serviço</Label>
+                  <Select
+                    value={(job as any).service_id || ""}
+                    onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
+                  >
+                    <SelectTrigger className="h-10 bg-background/50 border-border"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      {services.map((s: any) => (
+                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>

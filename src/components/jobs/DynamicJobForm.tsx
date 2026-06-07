@@ -1,116 +1,57 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { supabase } from "@/integrations/supabase/client";
 
 interface DynamicFormProps {
-  jobType: string | null;
-  flowJobId?: string | null;
+  serviceId: string | null;
   data: any;
   onChange: (newData: any) => void;
   readOnly?: boolean;
 }
 
-export function DynamicJobForm({ jobType, flowJobId, data, onChange, readOnly }: DynamicFormProps) {
-  const [schema, setSchema] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+export function DynamicJobForm({ serviceId, data, onChange, readOnly }: DynamicFormProps) {
+  const { data: service } = useQuery({
+    queryKey: ["service-schema", serviceId],
+    queryFn: async () => {
+      if (!serviceId) return null;
+      const { data } = await supabase.from("services").select("default_scope").eq("id", serviceId).single();
+      return data;
+    },
+    enabled: !!serviceId
+  });
 
-  useEffect(() => {
-    async function loadSchema() {
-      // Carregamento de esquema via templates desabilitado (limpeza operacional)
-      setSchema([]);
-    }
-    loadSchema();
+  const schema = (service?.default_scope as string[]) || [];
 
-  }, [flowJobId]);
-
-  if (loading) return <div className="p-4 text-center text-[10px] text-foreground/40 animate-pulse">Carregando formulário...</div>;
-  if (!schema || schema.length === 0) {
+  if (!serviceId) {
     return (
       <div className="p-4 border border-dashed border-border rounded-lg text-center">
-        <p className="text-[10px] text-foreground/40 italic">Nenhum formulário dinâmico configurado para este tipo de job.</p>
+        <p className="text-[10px] text-foreground/40 italic">Selecione um serviço para visualizar o checklist padrão.</p>
       </div>
     );
   }
 
-  const handleChange = (key: string, value: any) => {
-    onChange({ ...data, [key]: value });
-  };
-
   return (
-    <div className="grid grid-cols-1 gap-4">
-      {schema.map((field, idx) => (
-        <div key={idx} className="space-y-1.5">
-          <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">
-            {field.label} {field.required && <span className="text-destructive">*</span>}
-          </Label>
-          
-          {field.type === 'textarea' ? (
-            <Textarea 
-              value={data[field.label] || ""} 
-              onChange={(e) => handleChange(field.label, e.target.value)}
-              disabled={readOnly}
-              className="min-h-[80px]"
-            />
-          ) : field.type === 'select' ? (
-            <Select 
-              value={data[field.label] || ""} 
-              onValueChange={(val) => handleChange(field.label, val)}
-              disabled={readOnly}
-            >
-              <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
-              <SelectContent>
-                {(field.options || "").split(',').map((opt: string) => (
-                  <SelectItem key={opt.trim()} value={opt.trim()}>{opt.trim()}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : field.type === 'number' ? (
-            <Input 
-              type="number"
-              value={data[field.label] || ""} 
-              onChange={(e) => handleChange(field.label, e.target.value)}
-              disabled={readOnly}
-            />
-          ) : field.type === 'date' ? (
-            <Input 
-              type="date"
-              value={data[field.label] || ""} 
-              onChange={(e) => handleChange(field.label, e.target.value)}
-              disabled={readOnly}
-            />
-          ) : field.type === 'time' ? (
-            <Input 
-              type="time"
-              value={data[field.label] || ""} 
-              onChange={(e) => handleChange(field.label, e.target.value)}
-              disabled={readOnly}
-            />
-          ) : field.type === 'currency' ? (
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-foreground/40">R$</span>
-              <Input 
-                className="pl-8"
-                type="number"
-                step="0.01"
-                value={data[field.label] || ""} 
-                onChange={(e) => handleChange(field.label, e.target.value)}
-                disabled={readOnly}
-              />
-            </div>
-          ) : (
-            <Input 
-              type="text"
-              value={data[field.label] || ""} 
-              onChange={(e) => handleChange(field.label, e.target.value)}
-              disabled={readOnly}
-            />
-          )}
-        </div>
-      ))}
+    <div className="space-y-4">
+      <div className="bg-muted/10 p-4 rounded-xl border border-border/50">
+        <Label className="text-[10px] font-bold uppercase tracking-wider text-foreground/40 mb-3 block">Checklist Sugerido do Serviço</Label>
+        {schema.length === 0 ? (
+          <p className="text-[10px] text-foreground/40 italic">Este serviço não possui itens de checklist padrão definidos.</p>
+        ) : (
+          <ul className="space-y-2">
+            {schema.map((item, idx) => (
+              <li key={idx} className="flex items-start gap-2 text-sm text-foreground/70">
+                <span className="size-1.5 rounded-full bg-primary/40 mt-1.5 shrink-0" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <p className="text-[10px] text-foreground/40 italic text-center">Os itens acima servem como base para a execução deste Job.</p>
     </div>
   );
 }

@@ -48,12 +48,14 @@ import { Progress } from "@/components/ui/progress";
 export function JobsBoard({
   projectId,
   clientId,
+  serviceId,
   title = "Tarefas",
   eyebrow = "Operação · Tarefas",
   showPeriodFilter = false,
 }: {
   projectId?: string;
   clientId?: string;
+  serviceId?: string;
   title?: string;
   eyebrow?: string;
   showPeriodFilter?: boolean;
@@ -61,7 +63,7 @@ export function JobsBoard({
   const qc = useQueryClient();
   const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
   const [period, setPeriod] = useState<string>("all");
-  const filters = { projectId, clientId, period };
+  const filters = { projectId, clientId, serviceId, period };
   const queryKey = ["jobs", filters];
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
@@ -87,7 +89,12 @@ export function JobsBoard({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return jobs;
-    return jobs.filter((j) => j.title.toLowerCase().includes(q));
+    return jobs.filter((j) => 
+      j.title.toLowerCase().includes(q) || 
+      (j as any).clients?.name?.toLowerCase().includes(q) ||
+      (j as any).clients?.company?.toLowerCase().includes(q) ||
+      (j as any).projects?.name?.toLowerCase().includes(q)
+    );
   }, [jobs, query]);
 
   const byStage = useMemo(() => {
@@ -160,10 +167,10 @@ export function JobsBoard({
           <div className="relative">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar Job…"
+              placeholder="Buscar Job por título, cliente ou projeto…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-10 w-64 bg-surface border-border"
+              className="pl-9 h-10 w-72 bg-surface border-border"
             />
           </div>
           <Button
