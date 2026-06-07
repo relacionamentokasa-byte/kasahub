@@ -455,12 +455,14 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
 
 function TemplateJobRow({
   job,
+  stages,
   isFirst,
   isLast,
   onMove,
   onChanged,
 }: {
   job: ServiceJobTemplate;
+  stages: any[];
   isFirst: boolean;
   isLast: boolean;
   onMove: (dir: -1 | 1) => void;
@@ -471,6 +473,7 @@ function TemplateJobRow({
   const [local, setLocal] = useState({
     name: job.name,
     default_duration_days: job.default_duration_days,
+    initial_stage_id: job.initial_stage_id || "",
   });
 
   const saveMut = useMutation({
@@ -478,6 +481,7 @@ function TemplateJobRow({
       updateTemplateJob(job.id, {
         name: local.name,
         default_duration_days: local.default_duration_days,
+        initial_stage_id: local.initial_stage_id || null,
       }),
     onSuccess: () => {
       toast.success("Job atualizado");
