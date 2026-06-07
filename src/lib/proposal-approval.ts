@@ -259,14 +259,31 @@ export async function approveProposal(
 
         if (!jobErr && job) {
           jobsCreated++;
-          if ((tpl as any).checklists?.length) {
-            await sb.from("job_checklist").insert(
-              (tpl as any).checklists.map((c: any) => ({
+          if ((tpl as any).checklists?.length || (tpl as any).op_template?.default_steps?.length) {
+            const items = [];
+            
+            // From service_job_checklist
+            if ((tpl as any).checklists) {
+              items.push(...(tpl as any).checklists.map((c: any) => ({
                 job_id: job.id,
                 content: c.content,
                 order_index: c.order_index
-              }))
-            );
+              })));
+            }
+            
+            // From op_template steps
+            if ((tpl as any).op_template?.default_steps) {
+              const startIdx = items.length;
+              items.push(...(tpl as any).op_template.default_steps.map((step: string, idx: number) => ({
+                job_id: job.id,
+                content: step,
+                order_index: startIdx + idx
+              })));
+            }
+
+            if (items.length > 0) {
+              await sb.from("job_checklist").insert(items);
+            }
           }
         }
       }
