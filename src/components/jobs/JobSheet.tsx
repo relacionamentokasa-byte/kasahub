@@ -807,7 +807,7 @@ export function JobSheet({
                             value={draft}
                             onChange={(e) => setDraft(e.target.value)}
                             placeholder="Adicionar nova etapa de execução…"
-                            className="h-10 bg-background border-border"
+                            className="h-10 bg-background border-border text-white"
                           />
                           <Button type="submit" size="icon" className="size-10 shrink-0">
                             <Plus className="size-5" />
