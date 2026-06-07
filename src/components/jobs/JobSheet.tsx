@@ -968,10 +968,10 @@ export function JobSheet({
                 </div>
               )}
               
-              <div className="relative">
+              <div className="relative z-[100]">
                 <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
                   <PopoverTrigger asChild>
-                    <div className="absolute" style={{ top: mentionCoords.top, left: mentionCoords.left }} />
+                    <div className="absolute pointer-events-none" style={{ top: mentionCoords.top, left: mentionCoords.left }} />
                   </PopoverTrigger>
                   <PopoverContent className="p-0 w-[200px] bg-popover border-border" align="start">
                     <Command className="bg-popover">
@@ -1005,7 +1005,7 @@ export function JobSheet({
                   </PopoverContent>
                 </Popover>
 
-                <div className="flex gap-2 bg-background border border-border rounded-xl p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <div className="flex gap-2 bg-background border border-border rounded-xl p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all relative z-[110]">
                   <Textarea
                     ref={commentInputRef}
                     value={comment}
@@ -1045,7 +1045,7 @@ export function JobSheet({
                       }
                     }}
                     placeholder="Escreva uma mensagem..."
-                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white"
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white relative z-[120]"
                     rows={1}
                   />
                   <div className="flex flex-col justify-end gap-1">
