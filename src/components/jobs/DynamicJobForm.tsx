@@ -26,25 +26,12 @@ export function DynamicJobForm({ jobType, flowJobId, data, onChange, readOnly }:
       }
       setLoading(true);
       try {
-        // First try to load from service_job_templates (new architecture)
-        let { data: tplData, error: tplError } = await supabase
+        // Try to load from service_job_templates (linked to services)
+        const { data: tplData } = await supabase
           .from('service_job_templates')
           .select('custom_fields_schema')
           .eq('id', flowJobId)
-          .maybeSingle();
-        
-        // If not found, fallback to operational_flow_jobs (legacy/transition)
-        if (!tplData || tplError) {
-          const { data: jobConfig, error: fallbackError } = await supabase
-            .from('operational_flow_jobs')
-            .select('custom_fields_schema')
-            .eq('id', flowJobId)
-            .single();
-          
-          if (!fallbackError) {
-            tplData = jobConfig;
-          }
-        }
+          .maybeSingle() as any;
         
         const schemaData = tplData?.custom_fields_schema;
         setSchema(Array.isArray(schemaData) ? schemaData : []);
