@@ -605,7 +605,7 @@ function FinanceiroPage() {
               </div>
               
               {/* Desktop Header */}
-              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(200px,1fr)_160px_180px_140px_140px_100px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
                 <div className="flex items-center justify-center">
                   <Checkbox 
                     checked={rows.length > 0 && selectedIds.length === rows.length} 
@@ -613,11 +613,12 @@ function FinanceiroPage() {
                   />
                 </div>
                 <div>Status</div>
-                <div>Descrição / Origem</div>
+                <div>Descrição</div>
                 <div>Categoria</div>
                 <div>Cliente</div>
                 <div className="text-right">Valor</div>
                 <div className="text-center">Vencimento</div>
+                <div>Origem</div>
                 <div className="text-right">Ações</div>
               </div>
 
