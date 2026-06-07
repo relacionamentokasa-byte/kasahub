@@ -370,7 +370,8 @@ export async function computeIndicators(txs: Transaction[], contracts: Contract[
   const from = opts.from ?? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const to = opts.to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-  // Performance: Try to use the optimized RPC if possible, otherwise fallback to local calculation
+  let summaryData: any = null;
+
   try {
     const { data: summary, error } = await supabase.rpc('get_finance_summary', { 
       p_from: from, 
@@ -378,40 +379,57 @@ export async function computeIndicators(txs: Transaction[], contracts: Contract[
     });
     
     if (!error && summary) {
-      const s = summary as any;
-      return {
-        receitasPrevistas: s.receitas_previstas,
-        receitasRecebidas: s.receitas_recebidas,
-        despesasPagas: s.despesas_pagas,
-        parcelasFuturas: s.parcelas_futuras,
-        overdueCount: s.atrasados_count,
-        overdueAmount: s.atrasados_amount,
-        incomePaid: s.receitas_recebidas,
-        expensePaid: s.despesas_pagas,
-        receivable: s.receitas_previstas,
-        payable: 0, // Not explicitly in RPC but can be derived if needed
-        profit: s.receitas_recebidas - s.despesas_pagas,
-        mrr: contracts.filter(c => c.status === 'active').reduce((acc, c) => acc + Number(c.monthly_value), 0),
-        arr: 0,
-        recurringIncome: 0,
-        extraIncome: 0,
-        ticketRecurrente: 0,
-        ticketGeral: 0,
-        monthIncome: s.receitas_recebidas + s.receitas_previstas,
-        monthExpense: s.despesas_pagas,
-        monthResult: (s.receitas_recebidas + s.receitas_previstas) - s.despesas_pagas,
-        extraThisMonth: 0,
-      };
+      summaryData = summary;
     }
   } catch (e) {
     console.error("RPC get_finance_summary failed, using local fallback", e);
   }
 
   const periodTx = txs.filter((t) => t.due_date >= from && t.due_date <= to);
-  const incomePaid = periodTx.filter((t) => t.kind === "income" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
-  const expensePaid = periodTx.filter((t) => t.kind === "expense" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
-  const receivable = periodTx.filter((t) => t.kind === "income" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
+  const incomePaid = summaryData ? summaryData.receitas_recebidas : periodTx.filter((t) => t.kind === "income" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
+  const expensePaid = summaryData ? summaryData.despesas_pagas : periodTx.filter((t) => t.kind === "expense" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);
+  const receivable = summaryData ? summaryData.receitas_previstas : periodTx.filter((t) => t.kind === "income" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
   const payable = periodTx.filter((t) => t.kind === "expense" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
+
+  const receitasPrevistas = receivable;
+  const receitasRecebidas = incomePaid;
+  const despesasPagas = expensePaid;
+  const parcelasFuturas = summaryData ? summaryData.parcelas_futuras : txs
+    .filter((t) => t.kind === "income" && t.status === "pending" && t.due_date > to)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const activeContracts = contracts.filter((c) => c.status === "active");
+  const mrr = activeContracts.reduce((s, c) => s + Number(c.monthly_value), 0);
+  const arr = mrr * 12;
+
+  const monthIncome = periodTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const monthExpense = periodTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
+
+  const extraIncomeTotal = periodTx
+    .filter((t: any) => t.kind === "income" && !t.contract_id && !t.is_recurring)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const dmeIncomeTotal = periodTx
+    .filter((t: any) => t.kind === "income" && t.dme_id)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const extraIncome = extraIncomeTotal + dmeIncomeTotal;
+
+  const recurringIncome = periodTx
+    .filter((t: any) => t.kind === "income" && (t.contract_id || t.is_recurring) && !t.dme_id)
+    .reduce((s, t) => s + Number(t.amount), 0);
+
+  const overdue = txs.filter(
+    (t) => t.status === "pending" && t.due_date < new Date().toISOString().slice(0, 10),
+  );
+
+  const recurringClients = new Set(activeContracts.map((c) => c.client_id).filter(Boolean));
+  const ticketRecurrente = recurringClients.size > 0 ? mrr / recurringClients.size : 0;
+  const allClientsBilled = new Set(
+    txs.filter((t) => t.kind === "income" && t.client_id).map((t) => t.client_id as string),
+  );
+  const totalIncome = txs.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
+  const ticketGeral = allClientsBilled.size > 0 ? totalIncome / allClientsBilled.size : 0;
 
   // Aliases requested by Financeiro redesign
   const receitasPrevistas = receivable;            // pending income in period
