@@ -88,12 +88,10 @@ export function JobSheet({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Realtime mentions and typing indicator
+  // Realtime mentions
   const [mentionSearch, setMentionSearch] = useState("");
   const [mentionOpen, setMentionOpen] = useState(false);
   const [mentionCoords, setMentionCoords] = useState({ top: 0, left: 0 });
-  const [typingUsers, setTypingUsers] = useState<string[]>([]);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [showVersionsId, setShowVersionsId] = useState<string | null>(null);
@@ -142,75 +140,13 @@ export function JobSheet({
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] }))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] }))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const users: string[] = [];
-        Object.values(state).forEach((presences: any) => {
-          presences.forEach((p: any) => {
-            if (p.is_typing) users.push(p.user_name);
-          });
-        });
-        setTypingUsers([...new Set(users)]);
-      })
-      .subscribe(async (status) => {
-        if (status === 'SUBSCRIBED') {
-          const { data: { user } } = await supabase.auth.getUser();
-          const profile = team.find(p => p.id === user?.id);
-          await channel.track({
-            user_id: user?.id,
-            user_name: profile?.display_name || profile?.full_name || 'Usuário',
-            is_typing: false
-          });
-        }
-      });
+      .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [job?.id, qc, team]);
+  }, [job?.id, qc]);
 
-  const handleTyping = useCallback(async (isTyping: boolean) => {
-    if (!job?.id) return;
-    
-    // Find the channel for this specific job room
-    const channel = supabase.getChannels().find(c => c.topic === `realtime:job-room-${job.id}`);
-    
-    if (channel) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      
-      const profile = team.find(p => p.id === user.id);
-      
-      try {
-        await channel.track({
-          user_id: user.id,
-          user_name: profile?.display_name || profile?.full_name || 'Usuário',
-          is_typing: isTyping
-        });
-      } catch (err) {
-        console.error("Error tracking presence:", err);
-      }
-    }
-  }, [job?.id, team]);
-
-  useEffect(() => {
-    if (comment.length > 0) {
-      handleTyping(true);
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => handleTyping(false), 2000);
-    } else {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      handleTyping(false);
-    }
-  }, [comment, handleTyping]);
-
-  // Clean up typing status when component unmounts
-  useEffect(() => {
-    return () => {
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      handleTyping(false);
-    };
-  }, [handleTyping]);
 
   useEffect(() => {
     if (job) {
@@ -424,8 +360,6 @@ export function JobSheet({
       
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
       setComment("");
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      await handleTyping(false);
       return { prev };
     },
     onSuccess: () => {
@@ -496,7 +430,6 @@ export function JobSheet({
   return (
     <Sheet open={open} onOpenChange={(o) => {
       if (!o) {
-        handleTyping(false);
         onClose();
       }
     }}>
@@ -1124,15 +1057,6 @@ export function JobSheet({
             </ScrollArea>
 
             <div className="p-6 pt-2 border-t border-border shrink-0">
-              {typingUsers.length > 0 && (
-                <div className="px-1 mb-2">
-                  <p className="text-[10px] text-primary font-medium animate-pulse">
-                    {typingUsers.length === 1 
-                      ? `${typingUsers[0]} está digitando...` 
-                      : `${typingUsers.join(', ')} estão digitando...`}
-                  </p>
-                </div>
-              )}
               
               <div className="relative z-[100]">
                 <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
@@ -1208,8 +1132,6 @@ export function JobSheet({
                           e.preventDefault();
                           e.stopPropagation();
                           if (comment.trim() && !commentMut.isPending) {
-                            if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                            handleTyping(false);
                             commentMut.mutate({ content: comment.trim() });
                             commentInputRef.current?.focus();
                           }
@@ -1236,8 +1158,6 @@ export function JobSheet({
                         e.preventDefault();
                         e.stopPropagation();
                         if (comment.trim()) {
-                          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-                          await handleTyping(false);
                           commentMut.mutate({ content: comment.trim() });
                           commentInputRef.current?.focus();
                         }
