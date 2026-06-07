@@ -140,9 +140,22 @@ export function OperationalFlowsManager({ canEdit }: Props) {
               <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Settings2 className="size-5 text-primary" />
               </div>
-              <Badge variant={flow.status === 'active' ? 'default' : 'secondary'}>
-                {flow.status === 'active' ? 'Ativo' : 'Arquivado'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="size-8 text-foreground/40 hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (confirm(`Excluir o fluxo "${flow.name}"?`)) delMut.mutate(flow.id);
+                  }}
+                >
+                  <Trash2 className="size-4" />
+                </Button>
+                <Badge variant={flow.status === 'active' ? 'default' : 'secondary'}>
+                  {flow.status === 'active' ? 'Ativo' : 'Arquivado'}
+                </Badge>
+              </div>
             </div>
             <h3 className="font-bold text-lg group-hover:text-primary transition-colors">{flow.name}</h3>
             <p className="text-xs text-foreground/50 mt-1 mb-4 line-clamp-2">{flow.description || "Sem descrição."}</p>
