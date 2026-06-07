@@ -1275,6 +1275,7 @@ export type Database = {
           last_activity_at: string | null
           last_feedback: string | null
           main_responsible_id: string | null
+          operational_observations: string | null
           order_index: number
           period: string | null
           priority: string
@@ -1314,6 +1315,7 @@ export type Database = {
           last_activity_at?: string | null
           last_feedback?: string | null
           main_responsible_id?: string | null
+          operational_observations?: string | null
           order_index?: number
           period?: string | null
           priority?: string
@@ -1353,6 +1355,7 @@ export type Database = {
           last_activity_at?: string | null
           last_feedback?: string | null
           main_responsible_id?: string | null
+          operational_observations?: string | null
           order_index?: number
           period?: string | null
           priority?: string
