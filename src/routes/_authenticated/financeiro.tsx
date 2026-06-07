@@ -664,7 +664,30 @@ function FinanceiroPage() {
                           </div>
 
                           <div className="text-[11px] text-foreground/60 truncate">
-                            {catName(t.category_id)}
+                            <Select 
+                              value={t.category_id || ""} 
+                              onValueChange={(newCatId) => {
+                                if (t.contract_id) {
+                                  const cascade = window.confirm("Deseja aplicar esta alteração de categoria também aos próximos lançamentos deste contrato?");
+                                  updateTx.mutate({ id: t.id, patch: { category_id: newCatId }, cascade });
+                                } else {
+                                  updateTx.mutate({ id: t.id, patch: { category_id: newCatId } });
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-7 bg-transparent border-none hover:bg-foreground/5 transition-colors p-0 focus:ring-0 focus:ring-offset-0 text-[11px] justify-start group">
+                                <div className="truncate pr-2">
+                                  {catName(t.category_id)}
+                                </div>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((c) => (
+                                  <SelectItem key={c.id} value={c.id} className="text-[11px]">
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
 
                           <div className="text-[11px] font-semibold text-foreground/70 truncate">
