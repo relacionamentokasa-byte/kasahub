@@ -809,7 +809,7 @@ export function JobSheet({
                             placeholder="Adicionar nova etapa de execução…"
                             className="h-10 bg-background border-border text-foreground placeholder:text-foreground/50"
                           />
-                          <Button type="submit" size="icon" className="size-10 shrink-0 text-white">
+                          <Button type="submit" size="icon" className="size-10 shrink-0 text-primary-foreground">
                             <Plus className="size-5" />
                           </Button>
                         </form>
