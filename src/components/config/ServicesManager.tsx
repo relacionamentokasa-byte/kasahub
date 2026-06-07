@@ -436,6 +436,7 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
             key={j.id}
             job={j}
             stages={stages}
+            opTemplates={opTemplates}
             isFirst={idx === 0}
             isLast={idx === jobs.length - 1}
             onMove={(dir) => moveMut.mutate({ id: j.id, dir })}
