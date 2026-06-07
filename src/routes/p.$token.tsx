@@ -631,57 +631,57 @@ function PublicProposalView() {
                 </div>
               </div>
 
-              <div className="no-print rounded-xl border border-slate-200 p-5 bg-white">
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-3">Contratante (Cliente)</p>
-                <div className="grid sm:grid-cols-2 gap-3">
+              <div className="no-print rounded-[2rem] border border-slate-200 p-8 bg-white shadow-lg shadow-slate-100">
+                <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-6">Contratante (Cliente)</p>
+                <div className="grid sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="text-xs text-slate-600">Nome completo *</label>
+                    <label className="text-xs font-bold text-slate-600 mb-2 block uppercase tracking-wider">Nome completo *</label>
                     <Input
                       value={signerName}
                       onChange={(e) => setSignerName(e.target.value)}
                       placeholder="Seu nome completo"
                       maxLength={200}
-                      className="mt-1.5 bg-white border-slate-300 text-slate-900"
+                      className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl transition-all"
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-slate-600">CPF *</label>
+                    <label className="text-xs font-bold text-slate-600 mb-2 block uppercase tracking-wider">CPF *</label>
                     <Input
                       value={signerCpf}
                       onChange={(e) => setSignerCpf(e.target.value)}
                       placeholder="000.000.000-00"
                       maxLength={20}
-                      className="mt-1.5 bg-white border-slate-300 text-slate-900"
+                      className="h-12 bg-slate-50 border-transparent focus:bg-white focus:border-[#FFBC45] text-slate-900 rounded-xl transition-all"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-slate-600 mt-4 block">Assinatura digital</label>
+                  <label className="text-xs font-bold text-slate-600 mt-6 mb-2 block uppercase tracking-wider">Assinatura digital</label>
                   <div
-                    className="mt-1.5 rounded-md border border-dashed border-slate-300 bg-slate-50 px-4 py-3 min-h-[56px] flex items-center font-serif italic text-slate-700 text-base"
+                    className="mt-1.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 px-6 py-4 min-h-[70px] flex items-center italic font-medium text-[#0C1618] text-xl text-center justify-center"
                   >
-                    {signerName || <span className="text-slate-400 not-italic text-xs">Sua assinatura aparecerá aqui ao digitar seu nome</span>}
+                    {signerName || <span className="text-slate-400 not-italic text-xs font-normal">Sua assinatura aparecerá aqui ao digitar seu nome</span>}
                   </div>
                 </div>
-                <label className="mt-4 flex items-start gap-2 text-xs text-slate-700 cursor-pointer">
+                <label className="mt-6 flex items-center gap-3 text-xs text-slate-600 cursor-pointer bg-slate-50 p-4 rounded-xl border border-slate-100 hover:border-[#FFBC45]/30 transition-all">
                   <Checkbox
                     checked={acceptTerms}
                     onCheckedChange={(v) => setAcceptTerms(v === true)}
-                    className="mt-0.5"
+                    className="size-5 rounded-md border-slate-300 data-[state=checked]:bg-green-500 data-[state=checked]:border-green-500"
                   />
-                  <span>Li e concordo com os termos desta proposta e contrato.</span>
+                  <span className="font-medium">Li e concordo integralmente com os termos desta proposta e contrato.</span>
                 </label>
                 <Button
                   onClick={sign}
                   disabled={signing}
-                  className="mt-4 w-full gap-2 text-white bg-green-600 hover:bg-green-700"
+                  className="mt-8 h-14 w-full gap-3 text-[#0C1618] bg-[#FFBC45] hover:bg-[#ffc864] font-bold text-sm uppercase tracking-widest rounded-xl shadow-lg shadow-[#FFBC45]/20 transition-all"
                 >
                   {signing ? (
-                    <Loader2 className="size-4 animate-spin" />
+                    <Loader2 className="size-5 animate-spin" />
                   ) : (
-                    <FileSignature className="size-4" />
+                    <FileSignature className="size-5" />
                   )}
-                  Aprovar e Assinar
+                  Aprovar e Assinar Proposta
                 </Button>
               </div>
             </div>
@@ -689,8 +689,16 @@ function PublicProposalView() {
         </div>
 
 
-        <div className="px-8 py-4 text-center text-[10px] text-slate-400 border-t border-slate-100">
-          {agency?.name ?? "Kasa Marketing"} · Documento gerado por KASA HUB
+        <div className="px-10 py-8 text-center bg-slate-50 border-t border-slate-100">
+          <div className="flex items-center justify-center gap-2 mb-2">
+            <div className="size-5 rounded bg-[#0C1618] flex items-center justify-center">
+              <span className="text-[#FFBC45] font-bold text-[8px]">KH</span>
+            </div>
+            <span className="text-[10px] font-bold text-[#0C1618] tracking-widest uppercase">KASA HUB</span>
+          </div>
+          <p className="text-[10px] text-slate-400 font-medium">
+            © {new Date().getFullYear()} {agency?.name ?? "Kasa Marketing"} · Documento gerado e autenticado por KASA HUB
+          </p>
         </div>
       </div>
     </div>
@@ -707,41 +715,45 @@ function ItemsTable({
   brand: string;
 }) {
   return (
-    <div>
-      <p className="text-sm font-semibold text-slate-700 mb-2" style={{ color: brand }}>
-        {title}
-      </p>
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="text-left text-[10px] uppercase tracking-wider text-slate-400 border-b border-slate-200">
-            <th className="py-2">Item</th>
-            <th className="py-2 text-right w-16">Qtd</th>
-            <th className="py-2 text-right w-32">Unitário</th>
-            <th className="py-2 text-right w-32">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody>
-          {items.map((it) => (
-            <tr key={it.id} className="border-b border-slate-100 align-top">
-              <td className="py-3 pr-2">
-                <div className="font-medium text-slate-800">{it.title}</div>
-                {it.description && (
-                  <div className="text-xs text-slate-500 mt-0.5">
-                    {it.description}
-                  </div>
-                )}
-              </td>
-              <td className="py-3 text-right text-slate-700">{Number(it.quantity)}</td>
-              <td className="py-3 text-right text-slate-700">
-                {formatCurrency(Number(it.unit_price))}
-              </td>
-              <td className="py-3 text-right text-slate-900 font-semibold">
-                {formatCurrency(Number(it.quantity) * Number(it.unit_price))}
-              </td>
+    <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
+      <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
+        <p className="text-xs font-bold text-[#0C1618] uppercase tracking-[0.2em]">
+          {title}
+        </p>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-left text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100 bg-slate-50/50">
+              <th className="px-6 py-3">Serviço / Item</th>
+              <th className="px-6 py-3 text-right w-16">Qtd</th>
+              <th className="px-6 py-3 text-right w-32">Investimento</th>
+              <th className="px-6 py-3 text-right w-32">Subtotal</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-slate-50">
+            {items.map((it) => (
+              <tr key={it.id} className="hover:bg-slate-50 transition-colors align-top">
+                <td className="px-6 py-4">
+                  <div className="font-bold text-[#0C1618] text-base">{it.title}</div>
+                  {it.description && (
+                    <div className="text-xs text-slate-500 mt-1 leading-relaxed">
+                      {it.description}
+                    </div>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-right text-slate-600 font-medium">{Number(it.quantity)}</td>
+                <td className="px-6 py-4 text-right text-slate-600 font-medium">
+                  {formatCurrency(Number(it.unit_price))}
+                </td>
+                <td className="px-6 py-4 text-right text-[#0C1618] font-bold">
+                  {formatCurrency(Number(it.quantity) * Number(it.unit_price))}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
@@ -759,13 +771,13 @@ function Stat({
 }) {
   return (
     <div
-      className="rounded-xl p-4 bg-white border"
-      style={{ borderColor: highlight ? brand : "#e2e8f0" }}
+      className="rounded-[1.5rem] p-6 bg-white border-2 transition-all hover:shadow-lg hover:shadow-slate-100"
+      style={{ borderColor: highlight ? brand : "#f1f5f9" }}
     >
-      <p className="text-[10px] uppercase tracking-widest text-slate-400">{label}</p>
+      <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400 mb-1">{label}</p>
       <p
-        className="text-2xl font-bold mt-1"
-        style={{ color: highlight ? brand : "#0f172a" }}
+        className="text-2xl font-bold tracking-tight"
+        style={{ color: highlight ? "#0C1618" : "#0C1618" }}
       >
         {value}
       </p>
@@ -783,11 +795,11 @@ function InfoLine({
   value: string | null | undefined;
 }) {
   return (
-    <div className="flex items-start gap-2">
-      <span className="text-slate-400 mt-0.5">{icon}</span>
+    <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-all">
+      <span className="text-[#FFBC45] mt-0.5">{icon}</span>
       <div className="min-w-0">
-        <p className="text-[10px] uppercase tracking-wider text-slate-400">{label}</p>
-        <p className="text-sm text-slate-800 truncate">{value || "—"}</p>
+        <p className="text-[10px] uppercase tracking-widest font-bold text-slate-400 mb-0.5">{label}</p>
+        <p className="text-sm text-[#0C1618] font-bold truncate">{value || "—"}</p>
       </div>
     </div>
   );
