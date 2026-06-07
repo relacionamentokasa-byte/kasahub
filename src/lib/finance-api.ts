@@ -389,25 +389,15 @@ export interface FinancialIndicators {
   overdueAmount: number;
 }
 
-export async function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}): Promise<FinancialIndicators> {
+export function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}): FinancialIndicators {
   const now = new Date();
   const from = opts.from ?? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const to = opts.to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
 
-  let summaryData: any = null;
-
-  try {
-    const { data: summary, error } = await supabase.rpc('get_finance_summary', { 
-      p_from: from, 
-      p_to: to 
-    });
-    
-    if (!error && summary) {
-      summaryData = summary;
-    }
-  } catch (e) {
-    console.error("RPC get_finance_summary failed, using local fallback", e);
-  }
+  // Performance: We skip the RPC here because we need it to be synchronous for current dashboard usage
+  // unless we refactor the callers to handle the promise. 
+  // For now, we'll keep the local calculation which is already optimized with filters.
+  const summaryData: any = null;
 
   const periodTx = txs.filter((t) => t.due_date >= from && t.due_date <= to);
   const incomePaid = summaryData ? summaryData.receitas_recebidas : periodTx.filter((t) => t.kind === "income" && t.status === "paid").reduce((s, t) => s + Number(t.amount), 0);

@@ -146,20 +146,7 @@ export function ExecutiveDashboard() {
     const periodDmes = dmes.filter(d => inRange(d.created_at));
 
     // Stats
-    const { data: indData = {
-      mrr: 0,
-      extraIncome: 0,
-      monthIncome: 0,
-      incomePaid: 0,
-      monthExpense: 0,
-      monthResult: 0,
-    } } = useQuery({
-      queryKey: ["financial_indicators", txs.length, contracts.length],
-      queryFn: () => computeIndicators(txs, contracts),
-      placeholderData: (prev) => prev,
-    });
-
-    const ind = indData;
+    const ind = computeIndicators(txs, contracts);
 
     const jobsInProgress = jobs.filter(j => !j.done_at).length;
     const jobsOverdue = jobs.filter(j => !j.done_at && j.due_date && j.due_date < new Date().toISOString().slice(0, 10)).length;

@@ -156,33 +156,10 @@ function FinanceiroPage() {
   const accName = (id: string | null | undefined) =>
     id ? accounts.find((a) => a.id === id)?.name || "—" : "—";
 
-  const { data: indicators = {
-    receitasPrevistas: 0,
-    receitasRecebidas: 0,
-    parcelasFuturas: 0,
-    despesasPagas: 0,
-    incomePaid: 0,
-    expensePaid: 0,
-    receivable: 0,
-    payable: 0,
-    profit: 0,
-    mrr: 0,
-    arr: 0,
-    recurringIncome: 0,
-    extraIncome: 0,
-    ticketRecurrente: 0,
-    ticketGeral: 0,
-    monthIncome: 0,
-    monthExpense: 0,
-    monthResult: 0,
-    extraThisMonth: 0,
-    overdueCount: 0,
-    overdueAmount: 0,
-  } } = useQuery({
-    queryKey: ["financial_indicators", period.from, period.to, txs.length],
-    queryFn: () => computeIndicators(txs, contracts, period),
-    placeholderData: (prev) => prev,
-  });
+  const indicators = useMemo(
+    () => computeIndicators(txs, contracts, period),
+    [txs, contracts, period],
+  );
   const consolidated = accounts.reduce((s, a) => s + accountBalance(a, txs), 0);
 
   const chartData = useMemo(() => cashflowByMonth(txs, 6), [txs]);
