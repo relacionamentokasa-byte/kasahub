@@ -56,6 +56,8 @@ type Proposal = {
   client_signed_email?: string | null;
   client_signature_data?: string | null;
   signed_metadata?: any | null;
+  accepted_ip?: string | null;
+  accepted_user_agent?: string | null;
 };
 type Agency = {
   name: string;
