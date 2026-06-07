@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 
 export const Route = createFileRoute("/approve/$token")({
+  ssr: false,
   head: () => ({ meta: [{ title: "Aprovação de Entrega · KASA HUB" }] }),
   component: PublicApprovalPage,
   errorComponent: ({ error, reset }) => (

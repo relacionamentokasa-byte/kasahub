@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dme/$token")({
+  ssr: false,
   component: PublicDmeView,
 });
 
