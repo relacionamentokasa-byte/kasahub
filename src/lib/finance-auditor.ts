@@ -14,7 +14,7 @@ export const logFinanceError = (error: any, action: string, context?: any) => {
 
 // Validação de Integridade: Verifica se os totais batem via RPC otimizado
 export const getFinancialSummary = async (from: string, to: string) => {
-  const { data, error } = await supabase.rpc('get_finance_summary', { 
+  const { data, error } = await supabase.rpc('get_finance_summary' as any, { 
     p_from: from, 
     p_to: to 
   });
