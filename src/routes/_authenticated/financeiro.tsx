@@ -230,10 +230,17 @@ function FinanceiroPage() {
       if (fClient !== "all" && (t.client_id ?? "") !== fClient) return false;
       if (fCategory !== "all" && (t.category_id ?? "") !== fCategory) return false;
       if (fAccount !== "all" && (t.account_id ?? "") !== fAccount) return false;
+      
+      const originLabel = t.contract_id ? "contract" : t.dme_id ? "dme" : t.proposal_id ? "proposal" : "manual";
+      if (fOrigin !== "all" && originLabel !== fOrigin) return false;
+      
+      const val = Number(t.amount);
+      if (val < fValueRange[0] || val > fValueRange[1]) return false;
+
       if (search && !t.description.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [txs, period, fKind, fStatus, fClient, fCategory, fAccount, search]);
+  }, [txs, period, fKind, fStatus, fClient, fCategory, fAccount, fOrigin, fValueRange, search]);
 
   const togglePaid = useMutation({
     mutationFn: ({ id, paid }: { id: string; paid: boolean }) => markPaid(id, paid),
