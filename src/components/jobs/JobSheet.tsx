@@ -1005,7 +1005,7 @@ export function JobSheet({
                   </PopoverContent>
                 </Popover>
 
-                <div className="flex gap-2 bg-background border border-border rounded-xl p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all">
+                <div className="flex gap-2 bg-background border border-border rounded-xl p-2 focus-within:ring-2 focus-within:ring-primary/20 transition-all relative z-[110]">
                   <Textarea
                     ref={commentInputRef}
                     value={comment}
@@ -1045,7 +1045,7 @@ export function JobSheet({
                       }
                     }}
                     placeholder="Escreva uma mensagem..."
-                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white"
+                    className="flex-1 bg-transparent border-none focus-visible:ring-0 min-h-[40px] max-h-[120px] py-2 resize-none text-xs text-white relative z-[120]"
                     rows={1}
                   />
                   <div className="flex flex-col justify-end gap-1">
