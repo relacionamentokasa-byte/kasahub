@@ -39,6 +39,7 @@ import {
   fetchJobAttachments,
   addJobAttachment,
   updateJobComment,
+  deleteJobComment,
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
@@ -46,7 +47,7 @@ import {
   fetchProjects,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash } from "lucide-react";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -442,6 +443,15 @@ export function JobSheet({
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
       setEditingCommentId(null);
       toast.success("Comentário atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message)
+  });
+
+  const deleteCommentMut = useMutation({
+    mutationFn: (id: string) => deleteJobComment(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
+      toast.success("Comentário excluído");
     },
     onError: (e: Error) => toast.error(e.message)
   });
@@ -961,6 +971,17 @@ export function JobSheet({
                                 className="text-foreground/40 hover:text-primary transition-colors"
                               >
                                 <Pencil className="size-3" />
+                              </button>
+                              <button 
+                                onClick={() => {
+                                  if (confirm("Deseja excluir este comentário?")) {
+                                    deleteCommentMut.mutate(item.commentId!);
+                                  }
+                                }}
+                                className="text-foreground/40 hover:text-red-500 transition-colors"
+                                title="Excluir comentário"
+                              >
+                                <Trash className="size-3" />
                               </button>
                               {hasVersions && (
                                 <button 
