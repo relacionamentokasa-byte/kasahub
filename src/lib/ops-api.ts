@@ -411,8 +411,12 @@ export async function updateJob(
 }
 
 export async function deleteJob(id: string) {
+  const { data: job } = await supabase.from("jobs").select("project_id").eq("id", id).single();
   const { error } = await supabase.from("jobs").delete().eq("id", id);
   if (error) throw error;
+  if (job?.project_id) {
+    await refreshProjectStats(job.project_id);
+  }
 }
 
 export async function moveJob(id: string, stageId: string, extras: { done_at?: string | null } = {}) {
