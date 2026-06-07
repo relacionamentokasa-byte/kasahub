@@ -619,22 +619,6 @@ export function ProposalEditorContent({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-border bg-surface p-5 text-xs text-foreground/60">
-            <p className="capitalize text-[10px] text-foreground/40 mb-2">
-              Link público
-            </p>
-            <Link
-              to="/propostas"
-              className="text-[11px] break-all text-primary hover:underline"
-              onClick={(e) => {
-                e.preventDefault();
-                copyShareLink();
-              }}
-            >
-              /p/{proposal.public_token}
-            </Link>
-            <p className="mt-2 text-[10px]">Contrato Jurídico integrado com assinatura digital.</p>
-          </div>
 
           <ProposalTimeline proposalId={proposalId} />
         </div>
