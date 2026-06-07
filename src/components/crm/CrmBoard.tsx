@@ -10,11 +10,13 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Plus, Trophy, Search, MessageCircle, Filter } from "lucide-react";
+import { Plus, Trophy, Search, MessageCircle, Filter, Trash2 } from "lucide-react";
 import {
   fetchStages,
   fetchLeads,
   moveLead,
+  deleteLead,
+  deleteLeadStage,
   formatCurrency,
   type Lead,
   type Stage,
@@ -197,9 +199,19 @@ function Column({
   onAdd: () => void;
   children: React.ReactNode;
 }) {
+  const qc = useQueryClient();
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
+  const delStageMut = useMutation({
+    mutationFn: () => deleteLeadStage(stage.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "stages"] });
+      toast.success("Coluna removida");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <div className="w-[300px] shrink-0 flex flex-col">
+    <div className="w-[300px] shrink-0 flex flex-col group/col">
       <div className="flex items-center justify-between mb-3 px-1">
         <div className="flex items-center gap-2">
           <span
@@ -210,13 +222,24 @@ function Column({
           {stage.is_won && <Trophy className="size-3.5 text-primary" />}
           <span className="text-[10px] text-foreground/40">{count}</span>
         </div>
-        <button
-          onClick={onAdd}
-          className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
-          aria-label={`Adicionar em ${stage.name}`}
-        >
-          <Plus className="size-3.5" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => {
+              if (confirm(`Remover a coluna "${stage.name}"?`)) delStageMut.mutate();
+            }}
+            className="size-6 rounded-md hover:bg-destructive/10 grid place-items-center text-foreground/20 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
+            aria-label="Excluir coluna"
+          >
+            <Trash2 className="size-3" />
+          </button>
+          <button
+            onClick={onAdd}
+            className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
+            aria-label={`Adicionar em ${stage.name}`}
+          >
+            <Plus className="size-3.5" />
+          </button>
+        </div>
       </div>
       <div className="text-[10px] text-foreground/40 mb-2 px-1 capitalize">
         {formatCurrency(total)}
@@ -235,15 +258,39 @@ function Column({
 
 function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: lead.id });
+  const qc = useQueryClient();
+  const delMut = useMutation({
+    mutationFn: () => deleteLead(lead.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "leads"] });
+      toast.success("Lead removido");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      onClick={onClick}
-      className={`cursor-grab active:cursor-grabbing ${isDragging ? "opacity-30" : ""}`}
-    >
-      <LeadCardInner lead={lead} />
+    <div className={`relative group ${isDragging ? "opacity-30" : ""}`}>
+      <div
+        ref={setNodeRef}
+        {...listeners}
+        {...attributes}
+        onClick={onClick}
+        className="cursor-grab active:cursor-grabbing"
+      >
+        <LeadCardInner lead={lead} />
+      </div>
+      <button
+        type="button"
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (confirm(`Remover lead "${lead.name}"?`)) delMut.mutate();
+        }}
+        className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition"
+        aria-label="Excluir lead"
+      >
+        <Trash2 className="size-3.5" />
+      </button>
     </div>
   );
 }
