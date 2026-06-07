@@ -900,20 +900,36 @@ export function JobSheet({
                   const userName = item.is_system ? "Sistema" : (user?.display_name || user?.full_name || "Usuário");
                   
                   const isEditing = editingCommentId === item.commentId;
+                  const profile = team.find(p => p.id === item.user_id);
+                  const userName = item.is_system ? "Sistema" : (profile?.display_name || profile?.full_name || "Usuário");
+                  const userAvatar = profile?.avatar_url;
+                  const userInitials = userName
+                    .split(' ')
+                    .map((n: string) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+
                   const hasVersions = item.previous_versions && item.previous_versions.length > 0;
                   const isShowingVersions = showVersionsId === item.commentId;
-
                   
                   return (
-                    <div key={item.id} className="space-y-1 group/comment">
+                    <div key={item.id} className="flex gap-3 group/comment">
+                      <Avatar className="size-8 shrink-0 border border-border/50">
+                        <AvatarImage src={userAvatar || undefined} />
+                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary font-bold">
+                          {userInitials}
+                        </AvatarFallback>
+                      </Avatar>
 
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-bold text-foreground/60">{userName}</span>
-                          {item.updated_at && (
-                            <span className="text-[8px] uppercase bg-muted px-1.5 py-0.5 rounded text-foreground/40 font-bold">Editado</span>
-                          )}
-                        </div>
+                      <div className="flex-1 space-y-1">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-bold text-foreground/60">{userName}</span>
+                            {item.updated_at && (
+                              <span className="text-[8px] uppercase bg-muted px-1.5 py-0.5 rounded text-foreground/40 font-bold">Editado</span>
+                            )}
+                          </div>
                         <div className="flex items-center gap-2">
                           {!item.is_system && item.type === 'comment' && item.user_id === job.main_responsible_id && ( // Simplificação para demo, o ideal é checar se é o autor
                             <div className="hidden group-hover/comment:flex items-center gap-1">
