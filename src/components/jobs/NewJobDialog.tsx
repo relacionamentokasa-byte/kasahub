@@ -149,17 +149,6 @@ export function NewJobDialog({
             <Label>Título</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
           </div>
-          <div className="space-y-1.5">
-            <Label>Tipo de Job</Label>
-            <Select value={form.job_type} onValueChange={(v) => setForm({ ...form, job_type: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {JOB_TYPES.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
 
           <div className="space-y-1.5">
 
