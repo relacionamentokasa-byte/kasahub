@@ -111,9 +111,12 @@ export function JobsBoard({
       await qc.cancelQueries({ queryKey });
       const prev = qc.getQueryData<Job[]>(queryKey);
       qc.setQueryData<Job[]>(queryKey, (old) =>
-        (old ?? []).map((j) => (j.id === id ? { ...j, stage_id: stage.id } : j)),
+        (old ?? []).map((j) => (j.id === id ? { ...j, stage_id: stage.id, done_at: stage.is_done ? new Date().toISOString() : j.done_at } : j)),
       );
       return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
