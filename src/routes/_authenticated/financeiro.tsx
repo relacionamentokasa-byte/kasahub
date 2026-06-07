@@ -391,7 +391,7 @@ function FinanceiroPage() {
               <div className="px-5 py-3 border-b border-border font-display font-semibold">Lançamentos de {monthLabelShort}</div>
               
               {/* Desktop Header */}
-              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(350px,1fr)_180px_200px_150px_150px_120px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
+              <div className="hidden lg:grid grid-cols-[40px_100px_minmax(300px,1fr)_160px_180px_140px_140px_100px] px-5 py-3 text-[11px] uppercase tracking-wide text-foreground/40 border-b border-border items-center gap-4">
                 <div className="flex items-center justify-center">
                   <Checkbox 
                     checked={rows.length > 0 && selectedIds.length === rows.length} 
