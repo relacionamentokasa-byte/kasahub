@@ -145,7 +145,7 @@ export function JobSheet({
       created_at: c.created_at, 
       is_system: (c as any).is_system,
       metadata: (c as any).metadata,
-      file_url: null as string | null
+      file_url: undefined as string | undefined
     })),
     ...attachments.map(a => ({ 
       id: a.id, 
@@ -155,7 +155,7 @@ export function JobSheet({
       created_at: a.created_at, 
       is_system: false,
       metadata: { file_name: a.file_name, file_url: a.file_url },
-      file_url: a.file_url
+      file_url: a.file_url || undefined
     }))
   ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
