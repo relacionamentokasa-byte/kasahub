@@ -74,8 +74,8 @@ export function NewJobDialog({
 
 
   const mut = useMutation({
-    mutationFn: () =>
-      createJob({
+    mutationFn: async () => {
+      const { data, error } = await supabase.from("jobs").insert({
         title: form.title,
         description: form.description || null,
         priority: form.priority,
@@ -86,7 +86,29 @@ export function NewJobDialog({
         stage_id: stage?.id ?? null,
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
-      } as any),
+        main_responsible_id: form.main_responsible_id || null,
+        operational_template_id: form.operational_template_id || null,
+        team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
+      } as any).select().single();
+      
+      if (error) throw error;
+
+      // Apply Template Steps
+      if (form.operational_template_id) {
+        const template = opTemplates.find(t => t.id === form.operational_template_id);
+        if (template && Array.isArray(template.default_steps)) {
+          await supabase.from("job_checklist").insert(
+            template.default_steps.map((content: string, idx: number) => ({
+              job_id: data.id,
+              content,
+              order_index: idx
+            }))
+          );
+        }
+      }
+
+      return data;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job criado");
@@ -101,6 +123,9 @@ export function NewJobDialog({
         client_id: defaultClientId ?? "",
         period: defaultPeriod ?? "",
         freelancer_id: "",
+        main_responsible_id: "",
+        operational_template_id: "",
+        team_involved_ids: [],
       });
     },
     onError: (e: Error) => toast.error(e.message),
