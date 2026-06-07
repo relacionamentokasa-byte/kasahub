@@ -15,6 +15,7 @@ import {
   Settings,
   Handshake,
   CalendarRange,
+  Activity,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { ModuleId } from "@/lib/permissions-api";
