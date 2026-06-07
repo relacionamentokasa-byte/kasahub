@@ -56,11 +56,13 @@ export async function approveProposal(
     throw new Error("Esta proposta não pode ser aprovada pois ainda não possui a assinatura digital do cliente. O cliente deve assinar através do link da proposta.");
   }
 
+  const { data: items, error: iErr } = await sb
     .from("proposal_items")
     .select("*")
     .eq("proposal_id", proposalId)
     .order("order_index", { ascending: true });
   if (iErr) throw iErr;
+
 
   // 2. Ensure client
   let clientId: string | null = proposal.client_id ?? null;
