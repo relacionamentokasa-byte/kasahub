@@ -13,7 +13,6 @@ import {
   Briefcase, 
   FileText, 
   User, 
-  GitBranch, 
   Target, 
   Pencil, 
   Users, 
