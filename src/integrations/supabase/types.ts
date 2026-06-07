@@ -1905,6 +1905,7 @@ export type Database = {
           briefing: string | null
           client_id: string | null
           color: string | null
+          completed_jobs: number
           contract_id: string | null
           cover_url: string | null
           created_at: string
@@ -1917,6 +1918,7 @@ export type Database = {
           responsible_id: string | null
           start_date: string | null
           status: string
+          total_jobs: number
           type: string | null
           updated_at: string
         }
@@ -1924,6 +1926,7 @@ export type Database = {
           briefing?: string | null
           client_id?: string | null
           color?: string | null
+          completed_jobs?: number
           contract_id?: string | null
           cover_url?: string | null
           created_at?: string
@@ -1936,6 +1939,7 @@ export type Database = {
           responsible_id?: string | null
           start_date?: string | null
           status?: string
+          total_jobs?: number
           type?: string | null
           updated_at?: string
         }
@@ -1943,6 +1947,7 @@ export type Database = {
           briefing?: string | null
           client_id?: string | null
           color?: string | null
+          completed_jobs?: number
           contract_id?: string | null
           cover_url?: string | null
           created_at?: string
@@ -1955,6 +1960,7 @@ export type Database = {
           responsible_id?: string | null
           start_date?: string | null
           status?: string
+          total_jobs?: number
           type?: string | null
           updated_at?: string
         }

@@ -318,9 +318,8 @@ function ProjetosPage() {
 
 
                     {(() => {
-                      const pJobs = allJobs.filter(j => j.project_id === p.id);
-                      const total = pJobs.length;
-                      const done = pJobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
+                      const total = p.total_jobs || 0;
+                      const done = p.completed_jobs || 0;
                       const progress = total === 0 ? 0 : Math.round((done / total) * 100);
                       return (
                         <div className="mt-5 space-y-2">

@@ -127,6 +127,26 @@ export async function updateProject(
   return data;
 }
 
+export async function refreshProjectStats(projectId: string) {
+  const { data: jobs, error } = await supabase
+    .from("jobs")
+    .select("id, done_at, stage_id")
+    .eq("project_id", projectId);
+  
+  if (error) throw error;
+  
+  const { data: stages } = await supabase.from("job_stages").select("id, is_done");
+  const doneStageIds = new Set(stages?.filter(s => s.is_done).map(s => s.id) || []);
+  
+  const total = jobs.length;
+  const done = jobs.filter(j => !!j.done_at || (j.stage_id && doneStageIds.has(j.stage_id))).length;
+  
+  await updateProject(projectId, {
+    total_jobs: total,
+    completed_jobs: done
+  });
+}
+
 export async function deleteProject(id: string) {
   const { error } = await supabase.from("projects").delete().eq("id", id);
   if (error) throw error;
@@ -348,6 +368,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   // Checklist padrão é inicializado via trigger no banco de dados (tr_initialize_job_checklist)
 
   await logAudit("create", "job", data.id, null, data);
+  await refreshProjectStats(data.project_id);
   return data;
 }
 
@@ -385,12 +406,17 @@ export async function updateJob(
   }
 
   await logAudit("update", "job", id, null, patch);
+  await refreshProjectStats(data.project_id);
   return data;
 }
 
 export async function deleteJob(id: string) {
+  const { data: job } = await supabase.from("jobs").select("project_id").eq("id", id).single();
   const { error } = await supabase.from("jobs").delete().eq("id", id);
   if (error) throw error;
+  if (job?.project_id) {
+    await refreshProjectStats(job.project_id);
+  }
 }
 
 export async function moveJob(id: string, stageId: string, extras: { done_at?: string | null } = {}) {
