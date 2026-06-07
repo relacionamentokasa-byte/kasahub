@@ -185,12 +185,10 @@ export async function fetchProjectStats(projectId: string) {
 
 // ---------- Jobs ----------
 export const JOB_STATUS_LABELS: Record<string, { label: string, color: string }> = {
-  not_started: { label: 'Não Iniciado', color: '#64748B' },
-  in_progress: { label: 'Em Andamento', color: '#3B82F6' },
-  review: { label: 'Em Aprovação', color: '#F59E0B' },
-  adjustments: { label: 'Aguardando Ajustes', color: '#EF4444' },
-  done: { label: 'Concluído', color: '#10B981' },
-  cancelled: { label: 'Cancelado', color: '#94A3B8' },
+  not_started: { label: '📥 Nova Demanda', color: '#3B82F6' },
+  in_progress: { label: '⚙️ Em Execução', color: '#F59E0B' },
+  waiting_client: { label: '👤 Aguardando Cliente', color: '#8B5CF6' },
+  done: { label: '🏁 Concluído', color: '#10B981' },
 };
 
 export async function fetchJobHistory(jobId: string) {

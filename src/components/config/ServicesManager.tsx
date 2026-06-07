@@ -94,9 +94,9 @@ export function ServicesManager({ canEdit }: Props) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <p className="font-display text-lg font-semibold">Serviços e Templates</p>
+          <p className="font-display text-lg font-semibold">Serviços e Templates Operacionais</p>
           <p className="text-xs text-foreground/50">
-            Biblioteca central de serviços da agência e seus jobs padrão.
+            Biblioteca central de serviços da agência e seus Jobs padrão.
           </p>
         </div>
         <Button onClick={() => setCreating(true)} disabled={!canEdit} className="gap-2">
@@ -316,7 +316,7 @@ function ServiceFormDialog({
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Descrição</Label>
+              <Label className="text-xs">Descrição do Serviço</Label>
               <Textarea
                 rows={3}
                 value={form.description}
@@ -324,7 +324,7 @@ function ServiceFormDialog({
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs">Escopo Padrão (Itens separados por linha)</Label>
+              <Label className="text-xs">Escopo Padrão (Etapas sugeridas para Jobs)</Label>
               <Textarea
                 rows={5}
                 value={form.default_scope.join("\n")}
@@ -418,8 +418,8 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
   return (
     <div className="space-y-4">
       <p className="text-xs text-foreground/60">
-        Cadastre os jobs padrão deste serviço. Quando uma proposta for aprovada, esta
-        estrutura será usada para gerar automaticamente os jobs do projeto.
+        Cadastre os Jobs padrão deste serviço. Quando uma proposta for aprovada, esta
+        estrutura será usada para gerar automaticamente os Jobs do projeto.
       </p>
 
       <div className="space-y-2">

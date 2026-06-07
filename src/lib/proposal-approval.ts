@@ -248,8 +248,9 @@ export async function approveProposal(
             status: 'not_started',
             order_index: tpl.order_index,
             due_date: jobDueDate,
+            main_responsible_id: tpl.default_assignee_id || proposal.responsible_id || null,
             labels: ["operational_template"],
-            assignee_id: tpl.default_assignee_id || proposal.responsible_id || null,
+            
             custom_fields_schema: (tpl as any).custom_fields_schema || null,
           })
           .select()

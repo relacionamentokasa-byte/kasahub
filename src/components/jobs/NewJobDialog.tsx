@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { createJob, fetchClients, fetchProjects, type JobStage } from "@/lib/ops-api";
 import { fetchPartners } from "@/lib/partners-api";
+import { fetchProfiles } from "@/lib/profile-api";
 import {
   Dialog,
   DialogContent,
@@ -9,6 +11,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -46,6 +49,15 @@ export function NewJobDialog({
     queryKey: ["partners", "freelancer"], 
     queryFn: () => fetchPartners("freelancer") 
   });
+  const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: opTemplates = [] } = useQuery({ 
+    queryKey: ["operational-templates"], 
+    queryFn: async () => {
+      const { data, error } = await supabase.from("operational_templates").select("*").order("name");
+      if (error) throw error;
+      return data;
+    }
+  });
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -56,12 +68,15 @@ export function NewJobDialog({
     client_id: defaultClientId ?? "",
     period: defaultPeriod ?? "",
     freelancer_id: "",
+    main_responsible_id: "",
+    operational_template_id: "",
+    team_involved_ids: [] as string[],
   });
 
 
   const mut = useMutation({
-    mutationFn: () =>
-      createJob({
+    mutationFn: async () => {
+      const { data, error } = await supabase.from("jobs").insert({
         title: form.title,
         description: form.description || null,
         priority: form.priority,
@@ -72,7 +87,29 @@ export function NewJobDialog({
         stage_id: stage?.id ?? null,
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
-      } as any),
+        main_responsible_id: form.main_responsible_id || null,
+        operational_template_id: form.operational_template_id || null,
+        team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
+      } as any).select().single();
+      
+      if (error) throw error;
+
+      // Apply Template Steps
+      if (form.operational_template_id) {
+        const template = opTemplates.find(t => t.id === form.operational_template_id);
+        if (template && Array.isArray(template.default_steps)) {
+          await supabase.from("job_checklist").insert(
+            (template.default_steps as string[]).map((content: string, idx: number) => ({
+              job_id: data.id,
+              content,
+              order_index: idx
+            }))
+          );
+        }
+      }
+
+      return data;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success("Job criado");
@@ -87,6 +124,9 @@ export function NewJobDialog({
         client_id: defaultClientId ?? "",
         period: defaultPeriod ?? "",
         freelancer_id: "",
+        main_responsible_id: "",
+        operational_template_id: "",
+        team_involved_ids: [],
       });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -139,6 +179,7 @@ export function NewJobDialog({
               <Label>Prazo</Label>
               <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
             </div>
+
             {!defaultProjectId && (
               <div className="space-y-1.5">
                 <Label>Projeto</Label>
@@ -165,6 +206,61 @@ export function NewJobDialog({
                 </Select>
               </div>
             )}
+
+            <div className="space-y-1.5">
+              <Label>Responsável Principal</Label>
+              <Select value={form.main_responsible_id} onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {team.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Template Operacional</Label>
+              <Select value={form.operational_template_id} onValueChange={(v) => setForm({ ...form, operational_template_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                <SelectContent>
+                  {opTemplates.map(t => (
+                    <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1.5 col-span-2">
+              <Label>Equipe Envolvida</Label>
+              <Select 
+                value={form.team_involved_ids[0] || ""} 
+                onValueChange={(v) => setForm(f => ({ ...f, team_involved_ids: Array.from(new Set([...f.team_involved_ids, v])) }))}
+              >
+                <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
+                <SelectContent>
+                  {team.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.team_involved_ids.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {form.team_involved_ids.map(id => {
+                    const p = team.find(x => x.id === id);
+                    return p ? (
+                      <div key={id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
+                        {p.display_name || p.full_name}
+                        <button onClick={() => setForm(f => ({ ...f, team_involved_ids: f.team_involved_ids.filter(x => x !== id) }))}>
+                          <X className="size-3" />
+                        </button>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </div>
+
             <div className="space-y-1.5 col-span-2">
               <Label>Atribuir a Freelancer (Opcional)</Label>
               <Select value={form.freelancer_id} onValueChange={(v) => setForm({ ...form, freelancer_id: v })}>

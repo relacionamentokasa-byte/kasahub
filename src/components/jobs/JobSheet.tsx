@@ -37,11 +37,13 @@ import {
   type JobStage,
 } from "@/lib/ops-api";
 import { fetchPartners } from "@/lib/partners-api";
-import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink, User } from "lucide-react";
+import { fetchProfiles } from "@/lib/profile-api";
+import { Trash2, Plus, Send, FileText, Info, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, Link as LinkIcon, ExternalLink, User, X } from "lucide-react";
 import { toast } from "sonner";
 import { JOB_TYPES } from "@/lib/job-types";
 import { supabase } from "@/integrations/supabase/client";
 import { DynamicJobForm } from "./DynamicJobForm";
+import { Progress } from "@/components/ui/progress";
 
 
 export function JobSheet({
@@ -82,6 +84,14 @@ export function JobSheet({
   const { data: freelancers = [] } = useQuery({
     queryKey: ["partners", "freelancer"],
     queryFn: () => fetchPartners("freelancer"),
+  });
+  const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: opTemplates = [] } = useQuery({ 
+    queryKey: ["operational-templates"], 
+    queryFn: async () => {
+      const { data } = await supabase.from("operational_templates").select("*").order("name");
+      return data || [];
+    }
   });
 
   const updateMut = useMutation({
@@ -151,7 +161,15 @@ export function JobSheet({
                   <Label className="text-[10px] capitalize text-foreground/50">Status</Label>
                   <Select
                     value={(job as any).status || "not_started"}
-                    onValueChange={(v) => updateMut.mutate({ status: v } as any)}
+                    onValueChange={(v) => {
+                      updateMut.mutate({ status: v } as any);
+                      // If moving to done, set done_at
+                      if (v === 'done') {
+                        updateMut.mutate({ done_at: new Date().toISOString() });
+                      } else {
+                        updateMut.mutate({ done_at: null });
+                      }
+                    }}
                   >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
@@ -176,7 +194,6 @@ export function JobSheet({
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-
                   <Label className="text-[10px] capitalize text-foreground/50">Prioridade</Label>
                   <Select
                     value={job.priority}
@@ -191,7 +208,7 @@ export function JobSheet({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="space-y-1.5 col-span-2">
+                <div className="space-y-1.5">
                   <Label className="text-[10px] capitalize text-foreground/50">Prazo</Label>
                   <Input
                     type="date"
@@ -199,6 +216,77 @@ export function JobSheet({
                     onBlur={(e) => updateMut.mutate({ due_date: e.target.value || null })}
                   />
                 </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Responsável Principal</Label>
+                  <Select
+                    value={(job as any).main_responsible_id || ""}
+                    onValueChange={(v) => updateMut.mutate({ main_responsible_id: v } as any)}
+                  >
+                    <SelectTrigger className="gap-2">
+                      <User className="size-3 text-foreground/40" />
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {team.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] capitalize text-foreground/50">Template Operacional</Label>
+                  <Select
+                    value={(job as any).operational_template_id || "none"}
+                    onValueChange={(v) => updateMut.mutate({ operational_template_id: v === 'none' ? null : v } as any)}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Opcional" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhum</SelectItem>
+                      {opTemplates.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="text-[10px] capitalize text-foreground/50">Equipe Envolvida</Label>
+                  <Select 
+                    value="" 
+                    onValueChange={(v) => {
+                      const current = (job as any).team_involved || [];
+                      if (!current.find((m: any) => m.user_id === v)) {
+                        updateMut.mutate({ team_involved: [...current, { user_id: v, role: "Membro" }] } as any);
+                      }
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
+                    <SelectContent>
+                      {team.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {((job as any).team_involved || []).map((member: any) => {
+                      const p = team.find(x => x.id === member.user_id);
+                      return p ? (
+                        <div key={member.user_id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
+                          {p.display_name || p.full_name}
+                          <button onClick={() => {
+                            const current = (job as any).team_involved || [];
+                            updateMut.mutate({ team_involved: current.filter((m: any) => m.user_id !== member.user_id) } as any);
+                          }}>
+                            <X className="size-3" />
+                          </button>
+                        </div>
+                      ) : null;
+                    })}
+                  </div>
+                </div>
+
                 <div className="space-y-1.5 col-span-2">
                   <Label className="text-[10px] capitalize text-foreground/50">Responsável / Freelancer</Label>
                   <Select
@@ -216,6 +304,10 @@ export function JobSheet({
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="text-[10px] capitalize text-foreground/50">Progresso do Job ({ (job as any).progress_percentage || 0 }%)</Label>
+                  <Progress value={(job as any).progress_percentage || 0} className="h-2" />
                 </div>
                 <div className="space-y-1.5 col-span-2">
                   <Label className="text-[10px] capitalize text-foreground/50">Descrição Geral</Label>
