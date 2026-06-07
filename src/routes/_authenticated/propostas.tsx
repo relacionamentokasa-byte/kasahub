@@ -9,6 +9,7 @@ import {
   fetchLeads,
   createProposal,
   deleteProposal,
+  restoreProposal,
   duplicateProposal,
   updateProposal,
   formatCurrency,
@@ -95,7 +96,11 @@ function ProposalsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const qc = useQueryClient();
   const sendEmailFn = useServerFn(sendEmail);
-  const { data: proposals = [] } = useQuery({ queryKey: ["proposals"], queryFn: fetchProposals });
+  const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "active"], queryFn: () => fetchProposals(false) });
+  const { data: trashedProposals = [] } = useQuery({ queryKey: ["proposals", "trashed"], queryFn: () => fetchProposals(true) });
+  const [showTrash, setShowTrash] = useState(false);
+  
+  const proposalsToDisplay = showTrash ? trashedProposals.filter(p => p.deleted_at !== null) : proposals;
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
   const { data: services = [] } = useQuery({
@@ -203,10 +208,18 @@ function ProposalsPage() {
 
 
   const delMut = useMutation({
-    mutationFn: (id: string) => deleteProposal(id),
+    mutationFn: ({ id, permanent }: { id: string; permanent?: boolean }) => deleteProposal(id, permanent),
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ["proposals"] });
+      toast.success(variables.permanent ? "Proposta excluída permanentemente" : "Proposta enviada para a lixeira");
+    },
+  });
+
+  const restoreMut = useMutation({
+    mutationFn: (id: string) => restoreProposal(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Proposta excluída");
+      toast.success("Proposta restaurada");
     },
   });
 
@@ -300,7 +313,7 @@ function ProposalsPage() {
   }
 
   const filteredProposals = useMemo(() => {
-    return proposals.filter((p) => {
+    return proposalsToDisplay.filter((p) => {
       // Status filter
       if (filterStatus !== "all" && p.status !== filterStatus) return false;
       
@@ -317,7 +330,7 @@ function ProposalsPage() {
 
       return true;
     });
-  }, [proposals, filterStatus, filterClient, search]);
+  }, [proposalsToDisplay, filterStatus, filterClient, search]);
 
   return (
 
@@ -326,14 +339,27 @@ function ProposalsPage() {
         <div>
           <span className="text-primary text-[10px] capitalize">Comercial · Propostas</span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            Propostas comerciais
+            {showTrash ? "Lixeira de propostas" : "Propostas comerciais"}
           </h1>
           <p className="text-foreground/60 mt-2 max-w-xl text-sm">
-            Construa propostas com destaque para o Investimento Mensal e envie por link
-            compartilhável.
+            {showTrash 
+              ? "Visualize e restaure propostas excluídas ou remova-as permanentemente."
+              : "Construa propostas com destaque para o Investimento Mensal e envie por link compartilhável."
+            }
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowTrash(!showTrash)}
+            className="rounded-full font-semibold h-10 px-5 gap-2"
+          >
+            {showTrash ? <ArrowUpRight className="size-4 rotate-180" /> : <Trash2 className="size-4" />}
+            {showTrash ? "Voltar para propostas" : "Ver lixeira"}
+          </Button>
+          {!showTrash && (
+            <Dialog open={open} onOpenChange={setOpen}>
+
           <DialogTrigger asChild>
             <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2">
               <Plus className="size-4" /> Nova proposta
@@ -706,10 +732,13 @@ function ProposalsPage() {
               </Button>
             </DialogFooter>
           </DialogContent>
-        </Dialog>
+            </Dialog>
+          )}
+        </div>
       </div>
 
-      <div className="space-y-6 mb-8">
+      {!showTrash && (
+        <div className="space-y-6 mb-8">
         {/* Search and simple client filter */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 relative">
@@ -755,7 +784,8 @@ function ProposalsPage() {
             </button>
           ))}
         </div>
-      </div>
+        </div>
+      )}
 
       {filteredProposals.length === 0 ? (
         <div className="rounded-2xl border border-border bg-surface p-16 text-center">
@@ -763,14 +793,20 @@ function ProposalsPage() {
             <FileText className="size-6 text-primary" />
           </div>
           <h2 className="font-display text-xl font-semibold mb-1">
-            {search || filterStatus !== "all" || filterClient !== "all" 
-              ? "Nenhuma proposta encontrada" 
-              : "Nenhuma proposta ainda"}
+            {showTrash 
+              ? "A lixeira está vazia"
+              : (search || filterStatus !== "all" || filterClient !== "all" 
+                ? "Nenhuma proposta encontrada" 
+                : "Nenhuma proposta ainda")
+            }
           </h2>
           <p className="text-foreground/60 text-sm">
-            {search || filterStatus !== "all" || filterClient !== "all" 
-              ? "Tente ajustar seus filtros de busca." 
-              : "Crie sua primeira proposta ou gere uma a partir de um lead no CRM."}
+            {showTrash
+              ? "As propostas que você excluir aparecerão aqui."
+              : (search || filterStatus !== "all" || filterClient !== "all" 
+                ? "Tente ajustar seus filtros de busca." 
+                : "Crie sua primeira proposta ou gere uma a partir de um lead no CRM.")
+            }
           </p>
         </div>
       ) : (
@@ -822,6 +858,7 @@ function ProposalsPage() {
                       <td className="px-5 py-3 text-right">
                         <ActionsMenu
                           proposal={p}
+                          isTrashed={showTrash}
                           onView={() => openView(p)}
                           onEdit={() => setSelectedId(p.id)}
                           onDuplicate={() => dupMut.mutate(p.id)}
@@ -831,8 +868,17 @@ function ProposalsPage() {
                           onEmail={() => openEmail(p)}
                           onReopen={() => statusMut.mutate({ id: p.id, status: "reopened" })}
                           onCancel={() => statusMut.mutate({ id: p.id, status: "cancelled" })}
+                          onRestore={() => restoreMut.mutate(p.id)}
                           onDelete={() => {
-                            if (confirm("Excluir proposta?")) delMut.mutate(p.id);
+                            if (showTrash) {
+                              if (confirm("Excluir permanentemente? Esta ação não pode ser desfeita.")) {
+                                delMut.mutate({ id: p.id, permanent: true });
+                              }
+                            } else {
+                              if (confirm("Mover para a lixeira?")) {
+                                delMut.mutate({ id: p.id, permanent: false });
+                              }
+                            }
                           }}
                         />
                       </td>
@@ -862,6 +908,7 @@ function ProposalsPage() {
                     </button>
                     <ActionsMenu
                       proposal={p}
+                      isTrashed={showTrash}
                       onView={() => openView(p)}
                       onEdit={() => setSelectedId(p.id)}
                       onDuplicate={() => dupMut.mutate(p.id)}
@@ -871,8 +918,17 @@ function ProposalsPage() {
                       onEmail={() => openEmail(p)}
                       onReopen={() => statusMut.mutate({ id: p.id, status: "reopened" })}
                       onCancel={() => statusMut.mutate({ id: p.id, status: "cancelled" })}
+                      onRestore={() => restoreMut.mutate(p.id)}
                       onDelete={() => {
-                        if (confirm("Excluir proposta?")) delMut.mutate(p.id);
+                        if (showTrash) {
+                          if (confirm("Excluir permanentemente? Esta ação não pode ser desfeita.")) {
+                            delMut.mutate({ id: p.id, permanent: true });
+                          }
+                        } else {
+                          if (confirm("Mover para a lixeira?")) {
+                            delMut.mutate({ id: p.id, permanent: false });
+                          }
+                        }
                       }}
                     />
                   </div>
@@ -951,6 +1007,7 @@ function ProposalsPage() {
 
 function ActionsMenu({
   proposal,
+  isTrashed,
   onView,
   onEdit,
   onDuplicate,
@@ -960,9 +1017,11 @@ function ActionsMenu({
   onEmail,
   onReopen,
   onCancel,
+  onRestore,
   onDelete,
 }: {
   proposal: Proposal;
+  isTrashed?: boolean;
   onView: () => void;
   onEdit: () => void;
   onDuplicate: () => void;
@@ -972,6 +1031,7 @@ function ActionsMenu({
   onEmail: () => void;
   onReopen: () => void;
   onCancel: () => void;
+  onRestore: () => void;
   onDelete: () => void;
 }) {
   return (
@@ -988,39 +1048,52 @@ function ActionsMenu({
         <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40">
           Proposta
         </DropdownMenuLabel>
-        <DropdownMenuItem onClick={onView}>
-          <Eye className="size-4" /> Visualizar
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onEdit}>
-          <Pencil className="size-4" /> Editar
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onDuplicate}>
-          <Copy className="size-4" /> Duplicar
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onPdf}>
-          <Printer className="size-4" /> Gerar PDF
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40">
-          Compartilhar
-        </DropdownMenuLabel>
-        <DropdownMenuItem onClick={onShare}>
-          <Share2 className="size-4" /> Copiar link
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onWhatsApp}>
-          <MessageCircle className="size-4" /> Enviar por WhatsApp
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={onEmail}>
-          <Mail className="size-4" /> Enviar por E-mail
-        </DropdownMenuItem>
-        {proposal.status === "draft" && (
+        {!isTrashed ? (
           <>
+            <DropdownMenuItem onClick={onView}>
+              <Eye className="size-4" /> Visualizar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="size-4" /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onDuplicate}>
+              <Copy className="size-4" /> Duplicar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onPdf}>
+              <Printer className="size-4" /> Gerar PDF
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-[10px] uppercase text-foreground/40">
+              Compartilhar
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={onShare}>
+              <Share2 className="size-4" /> Copiar link
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onWhatsApp}>
+              <MessageCircle className="size-4" /> Enviar por WhatsApp
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onEmail}>
+              <Mail className="size-4" /> Enviar por E-mail
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={onDelete}
               className="text-destructive focus:text-destructive"
             >
-              <Trash2 className="size-4" /> Excluir
+              <Trash2 className="size-4" /> Mover para lixeira
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuItem onClick={onRestore}>
+              <RotateCcw className="size-4" /> Restaurar Proposta
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={onDelete}
+              className="text-destructive focus:text-destructive font-bold"
+            >
+              <Trash2 className="size-4" /> Excluir permanentemente
             </DropdownMenuItem>
           </>
         )}

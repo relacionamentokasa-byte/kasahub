@@ -2082,6 +2082,7 @@ export type Database = {
           converted_at: string | null
           created_at: string
           currency: string
+          deleted_at: string | null
           first_due_date: string | null
           generated_contract_id: string | null
           generated_project_id: string | null
@@ -2152,6 +2153,7 @@ export type Database = {
           converted_at?: string | null
           created_at?: string
           currency?: string
+          deleted_at?: string | null
           first_due_date?: string | null
           generated_contract_id?: string | null
           generated_project_id?: string | null
@@ -2222,6 +2224,7 @@ export type Database = {
           converted_at?: string | null
           created_at?: string
           currency?: string
+          deleted_at?: string | null
           first_due_date?: string | null
           generated_contract_id?: string | null
           generated_project_id?: string | null

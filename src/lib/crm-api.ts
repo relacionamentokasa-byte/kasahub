@@ -131,11 +131,17 @@ export async function addActivity(leadId: string, type: string, content: string)
   return data;
 }
 
-export async function fetchProposals(): Promise<Proposal[]> {
-  const { data, error } = await supabase
+export async function fetchProposals(includeDeleted = false): Promise<Proposal[]> {
+  let query = supabase
     .from("proposals")
     .select("*")
     .order("created_at", { ascending: false });
+    
+  if (!includeDeleted) {
+    query = query.is("deleted_at", null);
+  }
+  
+  const { data, error } = await query;
   if (error) throw error;
   return data ?? [];
 }
@@ -227,8 +233,24 @@ export async function updateProposal(
   return data;
 }
 
-export async function deleteProposal(id: string) {
-  const { error } = await supabase.from("proposals").delete().eq("id", id);
+export async function deleteProposal(id: string, permanent = false) {
+  if (permanent) {
+    const { error } = await supabase.from("proposals").delete().eq("id", id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from("proposals")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) throw error;
+  }
+}
+
+export async function restoreProposal(id: string) {
+  const { error } = await supabase
+    .from("proposals")
+    .update({ deleted_at: null })
+    .eq("id", id);
   if (error) throw error;
 }
 
