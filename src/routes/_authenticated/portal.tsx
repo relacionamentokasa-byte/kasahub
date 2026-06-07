@@ -101,11 +101,11 @@ function ClientPortalView({
               {client.name[0]}
             </div>
           )}
-          <div>
+          <div className="min-w-0">
             <p className="text-[10px] font-mono-kasa capitalize" style={{ color: brandColor }}>
               Portal Kasa × Cliente
             </p>
-            <h1 className="font-display text-3xl lg:text-4xl mt-1">{client.name}</h1>
+            <h1 className="font-display text-3xl lg:text-4xl mt-1 truncate">{client.name}</h1>
           </div>
         </div>
       </div>
