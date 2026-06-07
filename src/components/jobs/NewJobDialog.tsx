@@ -228,10 +228,10 @@ export function NewJobDialog({
               {form.team_involved_ids.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {form.team_involved_ids.map(id => {
-                    const p = team.find((x: any) => x.id === id) || freelancers.find((x: any) => x.id === id);
-                    return p ? (
+                    const member = (team.find((x: any) => x.id === id) as any) || (freelancers.find((x: any) => x.id === id) as any);
+                    return member ? (
                       <div key={id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
-                        {p.display_name || p.full_name || p.name}
+                        {member.display_name || member.full_name || member.name}
                         <button onClick={() => setForm(f => ({ ...f, team_involved_ids: f.team_involved_ids.filter(x => x !== id) }))}>
                           <X className="size-3" />
                         </button>
