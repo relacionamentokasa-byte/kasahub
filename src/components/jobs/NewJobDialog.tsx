@@ -228,7 +228,7 @@ export function NewJobDialog({
               <Select value={form.main_responsible_id} onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
                 <SelectContent>
-                  {team.map(p => (
+                  {team.map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -245,7 +245,7 @@ export function NewJobDialog({
               >
                 <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
                 <SelectContent>
-                  {team.map(p => (
+                  {team.map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -253,7 +253,7 @@ export function NewJobDialog({
               {form.team_involved_ids.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {form.team_involved_ids.map(id => {
-                    const p = team.find(x => x.id === id);
+                    const p = team.find((x: any) => x.id === id);
                     return p ? (
                       <div key={id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
                         {p.display_name || p.full_name}
