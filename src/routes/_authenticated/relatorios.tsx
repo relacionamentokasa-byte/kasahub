@@ -122,13 +122,26 @@ function RelatoriosPage() {
           </TabsList>
 
           <TabsContent value="financial" className="mt-6 space-y-4">
-            <ReportHeader title="Financeiro" subtitle={`${txs.length} lançamentos`} onExport={exportFinancial} icon={<Wallet className="size-5" />} />
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <StatCard label="Receita mês" value={brl(ind.monthIncome)} />
-              <StatCard label="Despesa mês" value={brl(ind.monthExpense)} />
-              <StatCard label="Resultado" value={brl(ind.monthResult)} />
-              <StatCard label="MRR" value={brl(ind.mrr)} />
-            </div>
+            {(() => {
+              const { data: ind } = useQuery({
+                queryKey: ["financial_indicators", txs.length, contracts.length],
+                queryFn: () => computeIndicators(txs, contracts),
+              });
+              
+              if (!ind) return <div className="p-8 text-center text-foreground/40 italic">Carregando indicadores...</div>;
+
+              return (
+                <>
+                  <ReportHeader title="Financeiro" subtitle={`${txs.length} lançamentos`} onExport={exportFinancial} icon={<Wallet className="size-5" />} />
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <StatCard label="Receita mês" value={brl(ind.monthIncome)} />
+                    <StatCard label="Despesa mês" value={brl(ind.monthExpense)} />
+                    <StatCard label="Resultado" value={brl(ind.monthResult)} />
+                    <StatCard label="MRR" value={brl(ind.mrr)} />
+                  </div>
+                </>
+              );
+            })()}
           </TabsContent>
 
           <TabsContent value="commercial" className="mt-6 space-y-4">

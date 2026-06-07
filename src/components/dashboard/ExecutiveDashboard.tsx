@@ -157,18 +157,23 @@ export function ExecutiveDashboard() {
     const pendingApprovals = jobs.filter(j => j.status === 'review').length;
     const dmesInProduction = dmes.filter(d => d.status === 'approved').length;
 
+    const { data: ind = {
+      mrr: 0,
+      extraIncome: 0,
+      monthIncome: 0,
+      incomePaid: 0,
+      monthExpense: 0,
+      monthResult: 0,
+    } } = useQuery({
+      queryKey: ["financial_indicators", txs.length, contracts.length],
+      queryFn: () => computeIndicators(txs, contracts),
+      placeholderData: (prev) => prev,
+    });
+
     // Performance
     const month = new Date().getMonth() + 1;
     const year = new Date().getFullYear();
     const currentGoals = goals.filter(g => g.month === month || g.period === 'yearly');
-
-    const performanceMetrics = [
-      ...indicators.filter(i => i.status === 'active').map(i => {
-        let actual = 0;
-        const monthStr = new Date().toISOString().slice(0, 7);
-        
-        switch (i.data_source) {
-          case 'contracts_mrr': actual = ind.mrr; break;
           case 'contracts_count': actual = contracts.filter(c => c.status === 'active' && c.created_at?.startsWith(monthStr)).length; break;
           case 'proposals_accepted': actual = periodContracts.length; break; // simplistic fallback
           case 'jobs_done': actual = jobsCompleted; break;

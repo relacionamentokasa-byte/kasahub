@@ -8,6 +8,7 @@ import {
 
 } from "@/lib/finance-api";
 import { fetchClients, fetchProjects } from "@/lib/ops-api";
+import { type Transaction } from "@/lib/finance-api";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +34,12 @@ export function NewTransactionDialog({
   open,
   onOpenChange,
   defaultKind = "income",
+  onSuccess: onExternalSuccess,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   defaultKind?: "income" | "expense";
+  onSuccess?: () => void;
 }) {
   const qc = useQueryClient();
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
@@ -99,6 +102,7 @@ export function NewTransactionDialog({
       qc.invalidateQueries({ queryKey: ["transactions"] });
       qc.invalidateQueries({ queryKey: ["financial_indicators"] });
       toast.success("Lançamento criado");
+      if (onExternalSuccess) onExternalSuccess();
       onOpenChange(false);
       setForm({
         kind: defaultKind,
