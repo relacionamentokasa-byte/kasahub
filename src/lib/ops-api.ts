@@ -254,16 +254,17 @@ export async function fetchJobs(filters: { projectId?: string; clientId?: string
 
 export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"] & { period?: string | null, job_type?: string | null }) {
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
+  if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
+  if (!input.service_id) throw new Error("Um job deve estar vinculado a um serviço.");
   
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
   
-  if (project.client_id) {
-    const client = await fetchClient(project.client_id);
-    if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
-  }
+  const client = await fetchClient(input.client_id);
+  if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
 
   const { data, error } = await supabase.from("jobs").insert(input).select().single();
+
   if (error) throw error;
 
   // Criar evento na agenda se houver prazo

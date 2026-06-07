@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createJob, fetchClients, fetchProjects, type JobStage } from "@/lib/ops-api";
@@ -66,12 +66,29 @@ export function NewJobDialog({
     due_date: "",
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
+    contract_id: "",
+    service_id: "",
     period: defaultPeriod ?? "",
     freelancer_id: "",
     main_responsible_id: "",
     operational_template_id: "",
     team_involved_ids: [] as string[],
   });
+
+  // Herança Automática
+  useEffect(() => {
+    if (form.project_id) {
+      const p = projects.find(x => x.id === form.project_id);
+      if (p) {
+        setForm(f => ({
+          ...f,
+          client_id: p.client_id || f.client_id,
+          contract_id: p.contract_id || f.contract_id,
+          main_responsible_id: p.responsible_id || p.owner_id || f.main_responsible_id,
+        }));
+      }
+    }
+  }, [form.project_id, projects]);
 
 
   const mut = useMutation({
@@ -82,8 +99,10 @@ export function NewJobDialog({
         priority: form.priority,
         job_type: form.job_type,
         due_date: form.due_date || null,
-        project_id: form.project_id || null,
-        client_id: form.client_id || null,
+        project_id: form.project_id,
+        client_id: form.client_id,
+        contract_id: form.contract_id || null,
+        service_id: form.service_id,
         stage_id: stage?.id ?? null,
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
@@ -122,6 +141,8 @@ export function NewJobDialog({
         due_date: "",
         project_id: defaultProjectId ?? "",
         client_id: defaultClientId ?? "",
+        contract_id: "",
+        service_id: "",
         period: defaultPeriod ?? "",
         freelancer_id: "",
         main_responsible_id: "",
