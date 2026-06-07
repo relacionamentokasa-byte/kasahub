@@ -80,6 +80,43 @@ export async function deleteIndicator(id: string) {
   if (error) throw error;
 }
 
+export async function fetchIndicatorTargets(indicatorId: string) {
+  const { data, error } = await supabase
+    .from("agency_indicator_targets")
+    .select("*")
+    .eq("indicator_id", indicatorId)
+    .order("year", { ascending: false })
+    .order("month", { ascending: false });
+  if (error) throw error;
+  return data as AgencyIndicatorTarget[];
+}
+
+export async function saveIndicatorTarget(input: Partial<AgencyIndicatorTarget>) {
+  if (input.id) {
+    const { data, error } = await supabase
+      .from("agency_indicator_targets")
+      .update(input as any)
+      .eq("id", input.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AgencyIndicatorTarget;
+  } else {
+    const { data, error } = await supabase
+      .from("agency_indicator_targets")
+      .insert(input as any)
+      .select()
+      .single();
+    if (error) throw error;
+    return data as AgencyIndicatorTarget;
+  }
+}
+
+export async function deleteIndicatorTarget(id: string) {
+  const { error } = await supabase.from("agency_indicator_targets").delete().eq("id", id);
+  if (error) throw error;
+}
+
 // Legacy support for agency_goals table
 export interface AgencyGoal {
   id: string;
