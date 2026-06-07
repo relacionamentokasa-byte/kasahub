@@ -96,7 +96,7 @@ export function ProposalEditorContent({
     queryFn: () => fetchProposal(proposalId),
     retry: 1,
   });
-  const { data: items = [], isLoading: itemsLoading } = useQuery({
+  const { data: items = [], isLoading: itemsLoading, isError: itemsError } = useQuery({
     queryKey: ["proposal", proposalId, "items"],
     queryFn: () => fetchProposalItems(proposalId),
   });
@@ -339,15 +339,31 @@ export function ProposalEditorContent({
     toast.success("Link copiado");
   }
 
-  if (proposalLoading) return <div className="p-10 text-foreground/60 flex items-center gap-2"><Loader2 className="size-4 animate-spin" /> Carregando…</div>;
+  if (proposalLoading || itemsLoading) return (
+    <div className="p-10 flex flex-col items-center justify-center min-h-[400px] space-y-4">
+      <Loader2 className="size-8 animate-spin text-primary" />
+      <p className="text-sm text-foreground/40 font-mono-kasa animate-pulse uppercase tracking-widest">Carregando detalhes da proposta...</p>
+    </div>
+  );
   
-  if (proposalError || !proposal) {
+  if (proposalError || itemsError || !proposal) {
     return (
-      <div className="p-10 text-center space-y-4">
-        <XCircle className="size-10 text-destructive mx-auto" />
-        <h1 className="text-xl font-bold">Proposta não encontrada</h1>
-        <p className="text-foreground/60">A proposta solicitada não existe ou você não tem permissão para acessá-la.</p>
-        <Button onClick={onBack} variant="outline">Voltar para a lista</Button>
+      <div className="p-10 text-center space-y-6 max-w-md mx-auto min-h-[400px] flex flex-col items-center justify-center">
+        <div className="size-16 rounded-full bg-destructive/10 flex items-center justify-center">
+          <XCircle className="size-8 text-destructive" />
+        </div>
+        <div className="space-y-2">
+          <h1 className="text-2xl font-display font-bold">Proposta indisponível</h1>
+          <p className="text-foreground/60 text-sm leading-relaxed">
+            {proposalError || itemsError 
+              ? "Ocorreu um erro ao carregar os dados. Por favor, tente novamente ou verifique sua conexão." 
+              : "A proposta solicitada não existe ou foi removida."}
+          </p>
+        </div>
+        <div className="flex flex-col w-full gap-2">
+          <Button onClick={() => window.location.reload()} className="w-full">Tentar novamente</Button>
+          <Button onClick={onBack} variant="outline" className="w-full">Voltar para a lista</Button>
+        </div>
       </div>
     );
   }
