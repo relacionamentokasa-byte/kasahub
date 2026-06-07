@@ -249,11 +249,11 @@ function ClientesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
-                    <th className="px-4 py-3">Cliente</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Contrato</th>
-                    <th className="px-4 py-3 text-right">Valor mensal</th>
-                    <th className="px-4 py-3">Próx. vencimento</th>
+                    <th className="px-4 py-3 min-w-[200px]">Cliente</th>
+                    <th className="px-4 py-3 w-[100px]">Status</th>
+                    <th className="px-4 py-3 min-w-[220px]">Contrato</th>
+                    <th className="px-4 py-3 text-right w-[140px]">Valor mensal</th>
+                    <th className="px-4 py-3 w-[150px]">Próx. vencimento</th>
                     <th className="px-4 py-3 w-12"></th>
                   </tr>
                 </thead>
