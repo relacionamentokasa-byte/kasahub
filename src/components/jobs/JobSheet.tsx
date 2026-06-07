@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -165,6 +165,7 @@ export function JobSheet({
         .from('job-attachments')
         .getPublicUrl(filePath);
 
+      // Add to attachments table
       await addJobAttachment({
         job_id: job.id,
         file_name: file.name,
@@ -173,7 +174,8 @@ export function JobSheet({
         file_size: file.size
       });
 
-      await addJobComment(job.id, `Arquivo anexado: ${file.name}`, 'attachment', { 
+      // Add as a comment with file info
+      await addJobComment(job.id, `Anexou um arquivo: ${file.name}`, 'comment', { 
         file_name: file.name, 
         file_url: publicUrl 
       });
@@ -327,28 +329,30 @@ export function JobSheet({
   const progressPercent = (job as any).progress_percentage || (totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0);
 
   // Unificar timeline de comunicação
-  const communicationTimeline = [
-    ...comments.map(c => ({ 
-      id: c.id, 
-      type: (c as any).type || 'comment', 
-      content: c.content, 
-      user_id: c.user_id, 
-      created_at: c.created_at, 
-      is_system: (c as any).is_system,
-      metadata: (c as any).metadata,
-      file_url: undefined as string | undefined
-    })),
-    ...attachments.map(a => ({ 
-      id: a.id, 
-      type: 'attachment', 
-      content: `Arquivo enviado: ${a.file_name}`, 
-      user_id: a.user_id, 
-      created_at: a.created_at, 
-      is_system: false,
-      metadata: { file_name: a.file_name, file_url: a.file_url },
-      file_url: a.file_url || undefined
-    }))
-  ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  const communicationTimeline = useMemo(() => {
+    return [
+      ...comments.map(c => ({ 
+        id: c.id, 
+        type: (c as any).type || 'comment', 
+        content: c.content, 
+        user_id: c.user_id, 
+        created_at: c.created_at, 
+        is_system: (c as any).is_system,
+        metadata: (c as any).metadata,
+        file_url: (c as any).metadata?.file_url || undefined
+      })),
+      ...attachments.map(a => ({ 
+        id: a.id, 
+        type: 'attachment', 
+        content: `Arquivo enviado: ${a.file_name}`, 
+        user_id: a.user_id, 
+        created_at: a.created_at, 
+        is_system: false,
+        metadata: { file_name: a.file_name, file_url: a.file_url },
+        file_url: a.file_url || undefined
+      }))
+    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+  }, [comments, attachments]);
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
@@ -693,31 +697,27 @@ export function JobSheet({
                                   </div>
                                 </div>
                                 <div className="flex gap-2">
-                                  <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-green-600 hover:text-green-700 hover:bg-green-100" onClick={() => {
-                                    commentMut.mutate({ 
-                                      content: `Aprovação do arquivo: ${item.metadata?.file_name}`,
-                                      type: 'approval',
-                                      metadata: { related_file: item.id }
-                                    });
-                                  }}>
-                                    Aprovar
-                                  </Button>
-                                  <Button size="sm" variant="ghost" className="h-8 text-xs font-bold text-amber-600 hover:text-amber-700 hover:bg-amber-100" onClick={() => {
-                                    commentMut.mutate({ 
-                                      content: `Solicitação de ajuste para: ${item.metadata?.file_name}`,
-                                      type: 'adjustment',
-                                      metadata: { related_file: item.id }
-                                    });
-                                  }}>
-                                    Ajuste
-                                  </Button>
-                                  <Button size="icon" variant="outline" className="size-8" asChild>
+                                  <Button size="icon" variant="outline" className="size-8" asChild title="Visualizar anexo">
                                     <a href={item.file_url} target="_blank" rel="noreferrer"><ExternalLink className="size-4" /></a>
                                   </Button>
                                 </div>
                               </div>
                             ) : (
-                              <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
+                              <div className="space-y-3">
+                                <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
+                                {item.file_url && (
+                                  <div className="flex items-center gap-3 p-3 bg-muted/20 rounded-xl border border-border/50">
+                                    <FileText className="size-4 text-primary" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium truncate">{item.metadata?.file_name || "Anexo"}</p>
+                                    </div>
+                                    <Button size="icon" variant="ghost" className="size-7" asChild>
+                                      <a href={item.file_url} target="_blank" rel="noreferrer"><ExternalLink className="size-3.5" /></a>
+                                    </Button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                             )}
                           </div>
                         </div>
