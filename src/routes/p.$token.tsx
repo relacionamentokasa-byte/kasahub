@@ -580,23 +580,23 @@ function PublicProposalView() {
               )}
 
               <div className="pt-8 border-t border-slate-200/50">
-                <div className="flex justify-between items-end bg-[#0C1618] p-8 rounded-[2rem] text-white">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 bg-[#0C1618] p-8 rounded-[2rem] text-white">
                   <div>
                     <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Investimento Mensal</p>
                     <p className="text-4xl font-bold">
                       {formatCurrency(proposal.monthly_investment)}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="sm:text-right">
                     <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Valor Total do Contrato</p>
                     <p className="text-2xl font-bold opacity-80">
                       {formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}
                     </p>
-                  </div>
-                  <div className="text-right text-xs text-slate-400 font-medium">
-                    Pagamento via <span className="text-white">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
-                                   proposal.payment_method === 'pix' ? 'PIX' : 
-                                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</span>
+                    <div className="text-xs text-slate-400 font-medium mt-2">
+                      Pagamento via <span className="text-white">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
+                                     proposal.payment_method === 'pix' ? 'PIX' : 
+                                     proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</span>
+                    </div>
                   </div>
                 </div>
               </div>
