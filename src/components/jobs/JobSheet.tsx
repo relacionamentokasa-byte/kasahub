@@ -85,6 +85,14 @@ export function JobSheet({
     queryKey: ["partners", "freelancer"],
     queryFn: () => fetchPartners("freelancer"),
   });
+  const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: opTemplates = [] } = useQuery({ 
+    queryKey: ["operational-templates"], 
+    queryFn: async () => {
+      const { data } = await supabase.from("operational_templates").select("*").order("name");
+      return data || [];
+    }
+  });
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => updateJob(job!.id, patch),
