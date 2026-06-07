@@ -187,8 +187,9 @@ function PublicProposalView() {
       client_email: proposal.client_email || "",
       services_list: (proposal.scope || []).join(", "),
       monthly_value: formatCurrency(proposal.monthly_investment),
+      setup_value: formatCurrency(proposal.one_time_investment),
       total_value: formatCurrency(
-        proposal.monthly_investment * (proposal.recurring_months || 12),
+        (proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment,
       ),
       payment_method:
         proposal.payment_method === "credit_card"
@@ -399,7 +400,7 @@ function PublicProposalView() {
             Investimento
           </h2>
           
-          {grouped.monthly.length > 0 ? (
+          {proposal.monthly_investment > 0 ? (
             <div className="space-y-6">
               <div className="grid sm:grid-cols-2 gap-6">
                 <Stat 
@@ -414,12 +415,23 @@ function PublicProposalView() {
                   brand={brand} 
                 />
               </div>
+
+              {proposal.one_time_investment > 0 && (
+                <div className="pt-6 border-t border-slate-200/50">
+                   <Stat 
+                    label="Setup / Investimento Único" 
+                    value={formatCurrency(proposal.one_time_investment)} 
+                    brand={brand} 
+                  />
+                </div>
+              )}
+
               <div className="pt-6 border-t border-slate-200/50">
                 <div className="flex justify-between items-end">
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400">Investimento Total</p>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400">Investimento Total do Contrato</p>
                     <p className="text-3xl font-bold mt-1" style={{ color: brand }}>
-                      {formatCurrency(proposal.monthly_investment * (proposal.recurring_months || 12))}
+                      {formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}
                     </p>
                   </div>
                   <div className="text-right text-xs text-slate-500">

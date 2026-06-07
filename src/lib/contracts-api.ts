@@ -60,6 +60,7 @@ export function replaceContractVariables(
     client_phone?: string;
     services_list?: string;
     monthly_value?: string;
+    setup_value?: string;
     total_value?: string;
     payment_method?: string;
     contract_term?: string;
@@ -78,6 +79,7 @@ export function replaceContractVariables(
     "{{telefone}}": data.client_phone || "",
     "{{servicos}}": data.services_list || "",
     "{{valor_mensal}}": data.monthly_value || "",
+    "{{valor_setup}}": data.setup_value || "",
     "{{valor_total}}": data.total_value || "",
     "{{forma_pagamento}}": data.payment_method || "",
     "{{prazo}}": data.contract_term || "",
