@@ -538,14 +538,33 @@ function PublicProposalView() {
             <div className="space-y-8">
               <div className="grid sm:grid-cols-2 gap-6">
                 <Stat 
-                  label="Valor Mensal" 
-                  value={formatCurrency(proposal.monthly_investment)} 
-                  highlight 
+                  label="Tipo de Contrato" 
+                  value={proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'} 
                   brand="#FFBC45" 
                 />
                 <Stat 
-                  label="Prazo do Contrato" 
-                  value={`${proposal.recurring_months || 12} meses`} 
+                  label="Validade" 
+                  value={proposal.contract_term === "indeterminado" 
+                    ? "Prazo Indeterminado" 
+                    : proposal.contract_term === "monthly" 
+                      ? "Mensal"
+                      : proposal.contract_term?.includes("_months")
+                        ? `${proposal.contract_term.replace("_months", "")} meses`
+                        : `${proposal.recurring_months || 12} meses`
+                  } 
+                  brand="#FFBC45" 
+                />
+                <Stat 
+                  label="Início" 
+                  value={proposal.first_due_date 
+                    ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") 
+                    : "—"
+                  } 
+                  brand="#FFBC45" 
+                />
+                <Stat 
+                  label="Dia de Cobrança" 
+                  value={String(proposal.billing_day || proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—")} 
                   brand="#FFBC45" 
                 />
               </div>
