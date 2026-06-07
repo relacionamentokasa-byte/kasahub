@@ -575,9 +575,15 @@ export function JobSheet({
                       <PopoverTrigger asChild>
                         <button className="w-full flex items-center gap-3 h-12 px-4 rounded-xl border border-border bg-background/50 hover:border-primary/50 transition-all group">
                           <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 uppercase shadow-sm ${
-                            ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
+                            clients.find(c => c.id === (job as any).client_id)?.avatar_url 
+                            ? "" 
+                            : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
                           }`}>
-                            {clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"}
+                            {clients.find(c => c.id === (job as any).client_id)?.avatar_url ? (
+                              <img src={clients.find(c => c.id === (job as any).client_id)?.avatar_url} className="size-full rounded-full object-cover" />
+                            ) : (
+                              clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"
+                            )}
                           </div>
 
                           <div className="flex-1 text-left">
