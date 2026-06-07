@@ -365,7 +365,31 @@ export function accountStats(account: BankAccount, txs: Transaction[]) {
   return { income, expense, balance: Number(account.initial_balance) + income - expense };
 }
 
-export function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}) {
+export interface FinancialIndicators {
+  incomePaid: number;
+  expensePaid: number;
+  receivable: number;
+  payable: number;
+  profit: number;
+  receitasPrevistas: number;
+  receitasRecebidas: number;
+  despesasPagas: number;
+  parcelasFuturas: number;
+  mrr: number;
+  arr: number;
+  recurringIncome: number;
+  extraIncome: number;
+  ticketRecurrente: number;
+  ticketGeral: number;
+  monthIncome: number;
+  monthExpense: number;
+  monthResult: number;
+  extraThisMonth: number;
+  overdueCount: number;
+  overdueAmount: number;
+}
+
+export function computeIndicators(txs: Transaction[], contracts: Contract[], opts: { from?: string; to?: string } = {}): FinancialIndicators {
   const now = new Date();
   const from = opts.from ?? new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const to = opts.to ?? new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().slice(0, 10);
@@ -376,10 +400,6 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
   const receivable = periodTx.filter((t) => t.kind === "income" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
   const payable = periodTx.filter((t) => t.kind === "expense" && t.status === "pending").reduce((s, t) => s + Number(t.amount), 0);
 
-  // Aliases requested by Financeiro redesign
-  const receitasPrevistas = receivable;            // pending income in period
-  const receitasRecebidas = incomePaid;            // paid income in period
-  const despesasPagas = expensePaid;               // paid expense in period
   const parcelasFuturas = txs
     .filter((t) => t.kind === "income" && t.status === "pending" && t.due_date > to)
     .reduce((s, t) => s + Number(t.amount), 0);
@@ -388,7 +408,6 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
   const mrr = activeContracts.reduce((s, c) => s + Number(c.monthly_value), 0);
   const arr = mrr * 12;
 
-  // include month-window aliases for legacy callers
   const monthIncome = periodTx.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
   const monthExpense = periodTx.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
 
@@ -396,7 +415,6 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
     .filter((t: any) => t.kind === "income" && !t.contract_id && !t.is_recurring)
     .reduce((s, t) => s + Number(t.amount), 0);
 
-  // DME specific income
   const dmeIncomeTotal = periodTx
     .filter((t: any) => t.kind === "income" && t.dme_id)
     .reduce((s, t) => s + Number(t.amount), 0);
@@ -407,12 +425,10 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
     .filter((t: any) => t.kind === "income" && (t.contract_id || t.is_recurring) && !t.dme_id)
     .reduce((s, t) => s + Number(t.amount), 0);
 
-
   const overdue = txs.filter(
     (t) => t.status === "pending" && t.due_date < new Date().toISOString().slice(0, 10),
   );
 
-  // Ticket calculations (kept for backward compatibility with other pages)
   const recurringClients = new Set(activeContracts.map((c) => c.client_id).filter(Boolean));
   const ticketRecurrente = recurringClients.size > 0 ? mrr / recurringClients.size : 0;
   const allClientsBilled = new Set(
@@ -421,16 +437,15 @@ export function computeIndicators(txs: Transaction[], contracts: Contract[], opt
   const totalIncome = txs.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
   const ticketGeral = allClientsBilled.size > 0 ? totalIncome / allClientsBilled.size : 0;
 
-
   return {
     incomePaid,
     expensePaid,
     receivable,
     payable,
     profit: incomePaid - expensePaid,
-    receitasPrevistas,
-    receitasRecebidas,
-    despesasPagas,
+    receitasPrevistas: receivable,
+    receitasRecebidas: incomePaid,
+    despesasPagas: expensePaid,
     parcelasFuturas,
     mrr,
     arr,

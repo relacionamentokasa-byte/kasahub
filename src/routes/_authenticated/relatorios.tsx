@@ -39,7 +39,15 @@ function RelatoriosPage() {
   const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
   const { data: leadStages = [] } = useQuery({ queryKey: ["lead_stages"], queryFn: fetchLeadStages });
 
-  const ind = computeIndicators(txs, contracts);
+  const { data: ind = {
+    monthIncome: 0,
+    monthExpense: 0,
+    monthResult: 0,
+    mrr: 0,
+  } } = useQuery({
+    queryKey: ["financial_indicators", txs.length, contracts.length],
+    queryFn: () => computeIndicators(txs, contracts),
+  });
   const clientName = (id: string | null | undefined) => clients.find((c) => c.id === id)?.company || clients.find((c) => c.id === id)?.name || "—";
   const stageName = (id: string | null | undefined) => leadStages.find((s) => s.id === id)?.name || "—";
   const jobStage = (id: string | null | undefined) => jobStages.find((s) => s.id === id)?.name || "—";

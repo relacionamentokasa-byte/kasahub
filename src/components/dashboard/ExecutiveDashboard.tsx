@@ -146,10 +146,7 @@ export function ExecutiveDashboard() {
     const periodDmes = dmes.filter(d => inRange(d.created_at));
 
     // Stats
-    const ind = computeIndicators(txs, contracts, { 
-      from: start.toISOString().slice(0, 10), 
-      to: end.toISOString().slice(0, 10) 
-    });
+    const ind = computeIndicators(txs, contracts);
 
     const jobsInProgress = jobs.filter(j => !j.done_at).length;
     const jobsOverdue = jobs.filter(j => !j.done_at && j.due_date && j.due_date < new Date().toISOString().slice(0, 10)).length;

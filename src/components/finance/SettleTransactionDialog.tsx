@@ -45,12 +45,26 @@ export function SettleTransactionDialog({
 
   const mut = useMutation({
     mutationFn: () => settleTransaction(tx!.id, { paid_at: paidAt, account_id: accountId || null }),
+    onMutate: async () => {
+      await qc.cancelQueries({ queryKey: ["transactions"] });
+      const previous = qc.getQueryData<Transaction[]>(["transactions"]);
+      if (previous && tx) {
+        qc.setQueryData(["transactions"], previous.map(t => 
+          t.id === tx.id ? { ...t, status: 'paid', paid_at: paidAt, account_id: accountId || t.account_id } : t
+        ));
+      }
+      return { previous };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["financial_indicators"] });
       toast.success("Baixa registrada");
       onOpenChange(false);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _, context) => {
+      if (context?.previous) qc.setQueryData(["transactions"], context.previous);
+      toast.error(e.message);
+    },
   });
 
   if (!tx) return null;

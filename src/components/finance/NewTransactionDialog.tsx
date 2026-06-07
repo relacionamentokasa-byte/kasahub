@@ -8,6 +8,7 @@ import {
 
 } from "@/lib/finance-api";
 import { fetchClients, fetchProjects } from "@/lib/ops-api";
+import { type Transaction } from "@/lib/finance-api";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +34,12 @@ export function NewTransactionDialog({
   open,
   onOpenChange,
   defaultKind = "income",
+  onSuccess: onExternalSuccess,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   defaultKind?: "income" | "expense";
+  onSuccess?: () => void;
 }) {
   const qc = useQueryClient();
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
@@ -86,9 +89,20 @@ export function NewTransactionDialog({
         },
         form.installments,
       ),
+    onMutate: async () => {
+      // Optimistic update for transactions list
+      await qc.cancelQueries({ queryKey: ["transactions"] });
+      const previous = qc.getQueryData<Transaction[]>(["transactions"]);
+      
+      // Since createTransaction can return multiple rows (installments), 
+      // simple optimistic insertion is complex. We'll just invalidate on success.
+      return { previous };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["financial_indicators"] });
       toast.success("Lançamento criado");
+      if (onExternalSuccess) onExternalSuccess();
       onOpenChange(false);
       setForm({
         kind: defaultKind,
@@ -105,7 +119,6 @@ export function NewTransactionDialog({
         installments: 1,
       });
     },
-
     onError: (e: Error) => toast.error(e.message),
   });
 
