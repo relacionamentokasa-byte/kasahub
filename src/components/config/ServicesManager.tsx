@@ -248,6 +248,7 @@ function ServiceFormDialog({
         <Tabs defaultValue="general">
           <TabsList>
             <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="checklist">Checklist Padrão</TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4 pt-4">
