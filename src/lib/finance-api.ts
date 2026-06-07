@@ -257,8 +257,9 @@ export async function bulkInsertTransactions(rows: Database["public"]["Tables"][
 
 export async function updateTransaction(id: string, patch: Database["public"]["Tables"]["transactions"]["Update"], cascadeFuture: boolean = false) {
   const { data: existing } = await supabase.from('transactions').select('*').eq('id', id).single();
+  if (!existing) throw new Error("Lançamento não encontrado.");
   
-  if (existing?.status === 'paid' && patch.amount !== undefined && patch.amount !== existing.amount) {
+  if (existing.status === 'paid' && patch.amount !== undefined && patch.amount !== existing.amount) {
     throw new Error("Não é possível alterar o valor de um lançamento já pago.");
   }
 

@@ -38,6 +38,8 @@ export function NewContractDialog({
     billing_day: "5",
     start_date: new Date().toISOString().slice(0, 10),
     notes: "",
+    installments_count: "0",
+    auto_renew: true,
   });
 
   const mut = useMutation({
@@ -49,6 +51,8 @@ export function NewContractDialog({
         billing_day: Math.min(28, Math.max(1, Number(form.billing_day) || 5)),
         start_date: form.start_date,
         notes: form.notes || null,
+        installments_count: Number(form.installments_count) || 0,
+        auto_renew: form.auto_renew,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["contracts"] });
@@ -92,6 +96,20 @@ export function NewContractDialog({
           <div className="space-y-1.5 col-span-2">
             <Label>Início da vigência</Label>
             <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
+          </div>
+          <div className="space-y-1.5 col-span-2">
+            <Label>Quantidade de parcelas (0 para contínuo)</Label>
+            <Input type="number" min={0} value={form.installments_count} onChange={(e) => setForm({ ...form, installments_count: e.target.value })} />
+          </div>
+          <div className="flex items-center gap-2 col-span-2 py-2">
+            <input 
+              type="checkbox" 
+              id="auto_renew" 
+              checked={form.auto_renew} 
+              onChange={(e) => setForm({ ...form, auto_renew: e.target.checked })}
+              className="size-4 rounded border-border bg-surface text-primary"
+            />
+            <Label htmlFor="auto_renew" className="cursor-pointer">Renovação automática</Label>
           </div>
           <div className="space-y-1.5 col-span-2">
             <Label>Observações</Label>
