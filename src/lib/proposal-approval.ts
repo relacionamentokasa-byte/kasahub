@@ -244,7 +244,8 @@ export async function approveProposal(
             const customFields: Record<string, any> = {};
             if (flowJob.custom_fields_schema && Array.isArray(flowJob.custom_fields_schema)) {
               flowJob.custom_fields_schema.forEach((field: any) => {
-                customFields[field.name] = "";
+                const key = field.label || field.name || "field";
+                customFields[key] = "";
               });
             }
 

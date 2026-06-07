@@ -2638,6 +2638,39 @@ export type Database = {
           },
         ]
       }
+      system_errors_log: {
+        Row: {
+          column_name: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          query_text: string | null
+          table_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          column_name?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          query_text?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          column_name?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          query_text?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       team_invites: {
         Row: {
           accepted_at: string | null
