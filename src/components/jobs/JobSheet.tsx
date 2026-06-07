@@ -331,15 +331,9 @@ export function JobSheet({
     }
   });
 
-  if (!job) return null;
-
-  // Calcular progresso automaticamente
-  const totalStages = (job as any).total_steps || checklist.length;
-  const completedStages = (job as any).completed_steps || checklist.filter(c => c.done).length;
-  const progressPercent = (job as any).progress_percentage || (totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0);
-
-  // Unificar timeline de comunicação
+  // Unificar timeline de comunicação - moved up to avoid hook order violation
   const communicationTimeline = useMemo(() => {
+    if (!job) return [];
     return [
       ...comments.map(c => ({ 
         id: `comment-${c.id}`, 
@@ -362,7 +356,14 @@ export function JobSheet({
         file_url: a.file_url || undefined
       }))
     ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
-  }, [comments, attachments]);
+  }, [comments, attachments, job]);
+
+  if (!job) return null;
+
+  // Calcular progresso automaticamente
+  const totalStages = (job as any).total_steps || checklist.length;
+  const completedStages = (job as any).completed_steps || checklist.filter(c => c.done).length;
+  const progressPercent = (job as any).progress_percentage || (totalStages > 0 ? Math.round((completedStages / totalStages) * 100) : 0);
 
   return (
     <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
