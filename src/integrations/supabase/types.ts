@@ -2560,6 +2560,7 @@ export type Database = {
       service_job_templates: {
         Row: {
           created_at: string
+          custom_fields_schema: Json | null
           default_assignee_id: string | null
           default_duration_days: number
           id: string
@@ -2571,6 +2572,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_id?: string | null
           default_duration_days?: number
           id?: string
@@ -2582,6 +2584,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          custom_fields_schema?: Json | null
           default_assignee_id?: string | null
           default_duration_days?: number
           id?: string
