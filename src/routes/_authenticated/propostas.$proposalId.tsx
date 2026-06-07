@@ -34,7 +34,7 @@ import { ProposalTimeline } from "@/components/proposals/ProposalTimeline";
 import { ProposalApprovalDialog } from "@/components/proposals/ProposalApprovalDialog";
 import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import { ScopeEditor } from "@/components/proposals/ScopeEditor";
-import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates";
+// import { JOB_TEMPLATE_OPTIONS } from "@/lib/job-templates"; // removed
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -230,9 +230,9 @@ export function ProposalEditorContent({
         monthly_investment: f.monthly_investment,
         one_time_investment: f.one_time_investment,
         total: f.monthly_investment + f.one_time_investment,
-        responsible_id: f.operational_id || f.responsible_id || null,
+        responsible_id: f.responsible_id || null,
         commercial_id: f.commercial_id || null,
-        operational_id: f.operational_id || null,
+
         contract_type: f.contract_type,
         service_type: f.service_type || null,
         service_ids: f.service_ids,
