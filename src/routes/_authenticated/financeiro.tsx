@@ -96,6 +96,9 @@ import { toast } from "sonner";
 import { DeleteTransactionCascadeDialog } from "@/components/finance/DeleteTransactionCascadeDialog";
 import { TerminateContractDialog } from "@/components/finance/TerminateContractDialog";
 import { TransactionAuditDialog } from "@/components/finance/TransactionAuditDialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Slider } from "@/components/ui/slider";
 
 export const Route = createFileRoute("/_authenticated/financeiro")({
   head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
