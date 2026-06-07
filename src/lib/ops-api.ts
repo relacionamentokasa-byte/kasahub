@@ -185,10 +185,10 @@ export async function fetchProjectStats(projectId: string) {
 
 // ---------- Jobs ----------
 export const JOB_STATUS_LABELS: Record<string, { label: string, color: string }> = {
-  not_started: { label: '📥 Nova Demanda', color: '#3B82F6' },
-  in_progress: { label: '⚙️ Em Execução', color: '#F59E0B' },
-  waiting_client: { label: '👤 Aguardando Cliente', color: '#8B5CF6' },
-  done: { label: '🏁 Concluído', color: '#10B981' },
+  not_started: { label: 'Nova Demanda', color: '#3B82F6' },
+  in_progress: { label: 'Em Execução', color: '#F59E0B' },
+  waiting_client: { label: 'Aguardando Cliente', color: '#8B5CF6' },
+  done: { label: 'Concluído', color: '#10B981' },
 };
 
 export async function fetchJobHistory(jobId: string) {
@@ -405,20 +405,34 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
   return data ?? [];
 }
 
-export async function addJobComment(jobId: string, content: string) {
+export async function addJobComment(
+  jobId: string, 
+  content: string, 
+  type: string = 'comment', 
+  metadata: any = {}, 
+  isSystem: boolean = false
+) {
   const { data: u } = await supabase.auth.getUser();
-  const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
   const mentions = Array.from(content.matchAll(/@(\w+)/g)).map((m) => m[1]);
   const { data, error } = await supabase
     .from("job_comments")
-    .insert({ job_id: jobId, user_id: u.user?.id ?? null, content, mentions })
+    .insert({ 
+      job_id: jobId, 
+      user_id: u.user?.id ?? null, 
+      content, 
+      mentions,
+      type,
+      metadata,
+      is_system: isSystem
+    })
     .select()
     .single();
   if (error) throw error;
 
-  if (content.includes('@')) {
+  if (mentions.length > 0) {
+    const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
     await handleMentions(content, {
-      title: `Job: ${job?.title}`,
+      title: `Job: ${job?.title || 'Job'}`,
       link: `/jobs`,
       originType: 'jobs',
       originId: jobId

@@ -57,7 +57,6 @@ export function NewJobDialog({
     title: "",
     description: "",
     priority: "normal",
-    job_type: "post",
     due_date: "",
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
@@ -92,7 +91,6 @@ export function NewJobDialog({
         title: form.title,
         description: form.description || null,
         priority: form.priority,
-        job_type: form.job_type,
         due_date: form.due_date || null,
         project_id: form.project_id,
         client_id: form.client_id,
@@ -102,14 +100,10 @@ export function NewJobDialog({
         period: form.period || null,
         freelancer_id: form.freelancer_id || null,
         main_responsible_id: form.main_responsible_id || null,
-        // operational_template_id: form.operational_template_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
       } as any).select().single();
       
       if (error) throw error;
-
-      // Template Steps Logic Removed
-
       return data;
     },
     onSuccess: () => {
@@ -120,7 +114,6 @@ export function NewJobDialog({
         title: "",
         description: "",
         priority: "normal",
-        job_type: "post",
         due_date: "",
         project_id: defaultProjectId ?? "",
         client_id: defaultClientId ?? "",
@@ -129,7 +122,6 @@ export function NewJobDialog({
         period: defaultPeriod ?? "",
         freelancer_id: "",
         main_responsible_id: "",
-        // operational_template_id: "", // Removed
         team_involved_ids: [],
       });
     },
@@ -148,17 +140,6 @@ export function NewJobDialog({
           <div className="space-y-1.5">
             <Label>Título</Label>
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Tipo de Job</Label>
-            <Select value={form.job_type} onValueChange={(v) => setForm({ ...form, job_type: v })}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {JOB_TYPES.map(t => (
-                  <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <div className="space-y-1.5">
@@ -208,19 +189,7 @@ export function NewJobDialog({
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Serviço</Label>
-              <Select value={form.service_id || undefined} onValueChange={(v) => setForm({ ...form, service_id: v })}>
-                <SelectTrigger className={!form.service_id ? "border-destructive" : ""}><SelectValue placeholder="Obrigatório" /></SelectTrigger>
-                <SelectContent>
-                  {services.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 col-span-2">
               <Label>Responsável Principal</Label>
               <Select value={form.main_responsible_id} onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}>
                 <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
@@ -232,12 +201,10 @@ export function NewJobDialog({
               </Select>
             </div>
 
-            {/* Template Operacional Removed */}
-
             <div className="space-y-1.5 col-span-2">
               <Label>Equipe Envolvida</Label>
               <Select 
-                value={form.team_involved_ids[0] || ""} 
+                value="" 
                 onValueChange={(v) => setForm(f => ({ ...f, team_involved_ids: Array.from(new Set([...f.team_involved_ids, v])) }))}
               >
                 <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
@@ -245,15 +212,18 @@ export function NewJobDialog({
                   {team.map((p: any) => (
                     <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
                   ))}
+                  {freelancers.map((f: any) => (
+                    <SelectItem key={f.id} value={f.id}>{f.name} (Freelancer)</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {form.team_involved_ids.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {form.team_involved_ids.map(id => {
-                    const p = team.find((x: any) => x.id === id);
-                    return p ? (
+                    const member = (team.find((x: any) => x.id === id) as any) || (freelancers.find((x: any) => x.id === id) as any);
+                    return member ? (
                       <div key={id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
-                        {p.display_name || p.full_name}
+                        {member.display_name || member.full_name || member.name}
                         <button onClick={() => setForm(f => ({ ...f, team_involved_ids: f.team_involved_ids.filter(x => x !== id) }))}>
                           <X className="size-3" />
                         </button>
@@ -262,19 +232,6 @@ export function NewJobDialog({
                   })}
                 </div>
               )}
-            </div>
-
-            <div className="space-y-1.5 col-span-2">
-              <Label>Atribuir a Freelancer (Opcional)</Label>
-              <Select value={form.freelancer_id} onValueChange={(v) => setForm({ ...form, freelancer_id: v })}>
-                <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione um freelancer" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="internal">Usuário Interno</SelectItem>
-                  {freelancers.map(f => (
-                    <SelectItem key={f.id} value={f.id}>{f.name} ({f.specialty})</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
           </div>
           {form.project_id && (
@@ -293,7 +250,7 @@ export function NewJobDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id}
+            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
             Criar

@@ -1146,24 +1146,33 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_system: boolean | null
           job_id: string
           mentions: Json
+          metadata: Json | null
+          type: string | null
           user_id: string | null
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
+          is_system?: boolean | null
           job_id: string
           mentions?: Json
+          metadata?: Json | null
+          type?: string | null
           user_id?: string | null
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
+          is_system?: boolean | null
           job_id?: string
           mentions?: Json
+          metadata?: Json | null
+          type?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -1275,6 +1284,7 @@ export type Database = {
           last_activity_at: string | null
           last_feedback: string | null
           main_responsible_id: string | null
+          operational_observations: string | null
           order_index: number
           period: string | null
           priority: string
@@ -1314,6 +1324,7 @@ export type Database = {
           last_activity_at?: string | null
           last_feedback?: string | null
           main_responsible_id?: string | null
+          operational_observations?: string | null
           order_index?: number
           period?: string | null
           priority?: string
@@ -1353,6 +1364,7 @@ export type Database = {
           last_activity_at?: string | null
           last_feedback?: string | null
           main_responsible_id?: string | null
+          operational_observations?: string | null
           order_index?: number
           period?: string | null
           priority?: string
