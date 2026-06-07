@@ -77,6 +77,18 @@ function EquipePage() {
     },
   });
 
+  const delMember = useMutation({
+    mutationFn: deleteTeamMember,
+    onSuccess: () => {
+      toast.success("Membro removido da equipe");
+      qc.invalidateQueries({ queryKey: ["team"] });
+      setMemberToDelete(null);
+    },
+    onError: (e: Error) => toast.error("Erro ao remover membro: " + e.message),
+  });
+
+  const [memberToDelete, setMemberToDelete] = useState<string | null>(null);
+
   return (
     <div className="px-6 lg:px-10 py-8 space-y-8 max-w-7xl mx-auto">
       <header className="flex items-start justify-between gap-4 flex-wrap">
