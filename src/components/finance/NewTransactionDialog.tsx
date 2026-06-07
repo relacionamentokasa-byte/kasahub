@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createTransaction,
   fetchBankAccounts,
   fetchCategories,
   fetchContracts,
-
+  autoCategorize,
 } from "@/lib/finance-api";
 import { fetchClients, fetchProjects } from "@/lib/ops-api";
 import { type Transaction } from "@/lib/finance-api";
