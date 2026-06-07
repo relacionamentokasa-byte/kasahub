@@ -78,8 +78,8 @@ function PublicDmeView() {
       <div className="max-w-2xl w-full">
         {/* Header/Logo */}
         <div className="flex flex-col items-center mb-10 text-center">
-          {agency?.logo_url ? (
-            <img src={agency.logo_url} alt={agency.name} className="h-12 object-contain mb-6" />
+          {agency?.logo_proposals_url || agency?.logo_url ? (
+            <img src={agency.logo_proposals_url || agency.logo_url} alt={agency.name} className="h-12 object-contain mb-6" />
           ) : (
             <div className="text-2xl font-bold tracking-tighter mb-6">{agency?.name || "KASA ERP"}</div>
           )}
