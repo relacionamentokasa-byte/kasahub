@@ -70,6 +70,23 @@ export function JobsBoard({
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
+  useEffect(() => {
+    const channel = supabase
+      .channel('jobs-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'jobs' },
+        () => {
+          qc.invalidateQueries({ queryKey: ["jobs"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   const { data: availablePeriods = [] } = useQuery({
     queryKey: ["available-periods", projectId],
     queryFn: async () => {
