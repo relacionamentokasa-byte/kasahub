@@ -474,6 +474,8 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
   // Gerar URLs assinadas para anexos em comentários
   const dataWithUrls = await Promise.all((data || []).map(async (c) => {
     const metadata = (c as any).metadata;
+    let updatedComment = { ...c };
+    
     if (metadata?.file_url && metadata.file_url.includes('/job-attachments/')) {
       try {
         const urlParts = metadata.file_url.split('/job-attachments/');
@@ -482,19 +484,71 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
           .from('job-attachments')
           .createSignedUrl(path, 3600);
         
-        return {
-          ...c,
+        updatedComment = {
+          ...updatedComment,
           metadata: { ...metadata, file_url: signedData?.signedUrl || metadata.file_url }
         };
       } catch (e) {
-        return c;
+        console.warn("Erro ao gerar URL assinada para anexo em comentário", e);
       }
     }
-    return c;
+    
+    // Processar versões anteriores para URLs assinadas também se necessário
+    const previousVersions = (c as any).previous_versions;
+    if (Array.isArray(previousVersions) && previousVersions.length > 0) {
+      const updatedVersions = await Promise.all(previousVersions.map(async (v: any) => {
+        if (v.metadata?.file_url && v.metadata.file_url.includes('/job-attachments/')) {
+           try {
+            const urlParts = v.metadata.file_url.split('/job-attachments/');
+            const path = urlParts[1];
+            const { data: signedData } = await supabase.storage
+              .from('job-attachments')
+              .createSignedUrl(path, 3600);
+            return { ...v, metadata: { ...v.metadata, file_url: signedData?.signedUrl || v.metadata.file_url } };
+          } catch (e) { return v; }
+        }
+        return v;
+      }));
+      updatedComment = { ...updatedComment, previous_versions: updatedVersions } as any;
+    }
+    
+    return updatedComment;
   }));
 
-  return dataWithUrls ?? [];
+  return dataWithUrls;
 }
+
+export async function updateJobComment(commentId: string, content: string) {
+  const { data: existing } = await supabase
+    .from("job_comments")
+    .select("*")
+    .eq("id", commentId)
+    .single();
+
+  if (!existing) throw new Error("Comentário não encontrado");
+
+  const previousVersions = (existing as any).previous_versions || [];
+  const newVersion = {
+    content: existing.content,
+    updated_at: (existing as any).updated_at || existing.created_at,
+    metadata: (existing as any).metadata,
+  };
+
+  const { data, error } = await supabase
+    .from("job_comments")
+    .update({
+      content,
+      updated_at: new Date().toISOString(),
+      previous_versions: [...previousVersions, newVersion]
+    } as any)
+    .eq("id", commentId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 
 export async function addJobComment(
   jobId: string, 
