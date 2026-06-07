@@ -213,74 +213,55 @@ export async function approveProposal(
     }
   }
 
-  // 5. Jobs & Operational Flows
+  // 5. Jobs from Templates
   let jobsCreated = 0;
   if (proposal.auto_create_jobs !== false) {
-    const { data: services } = await sb
-      .from("services")
-      .select("id, operational_flow_id")
-      .in("id", proposal.service_ids ?? []);
+    const { data: jobTemplates, error: tplErr } = await sb
+      .from("service_job_templates")
+      .select(`
+        *,
+        checklists:service_job_checklist(*)
+      `)
+      .in("service_id", proposal.service_ids ?? [])
+      .order("order_index");
+    
+    if (tplErr) console.error("Error fetching templates", tplErr);
 
-    const flowIds = Array.from(new Set(services?.map(s => s.operational_flow_id).filter(Boolean)));
     const stagesList = await fetchJobStages();
     const firstStageId = stagesList[0]?.id ?? null;
 
-    if (flowIds.length > 0) {
-      for (const flowId of flowIds) {
-        const flowDetails = await fetchOperationalFlowDetails(flowId as string);
-        
-        // Create stages/jobs from flow
-        for (const stage of flowDetails) {
-          for (const flowJob of (stage as any).jobs || []) {
-            const dueDate = flowJob.sla_days 
-              ? ymd(addMonths(new Date(), 0)).replace(/-(\d+)$/, (_, day) => `-${Math.min(31, parseInt(day) + flowJob.sla_days)}`) // Simplified SLA calculation
-              : null;
+    if (jobTemplates && jobTemplates.length > 0) {
+      for (const tpl of jobTemplates) {
+        const jobDueDate = tpl.default_duration_days 
+          ? new Date(Date.now() + tpl.default_duration_days * 86400000).toISOString().slice(0, 10)
+          : null;
 
-            // Proper SLA calculation
-            const jobDueDate = flowJob.sla_days 
-              ? new Date(Date.now() + flowJob.sla_days * 86400000).toISOString().slice(0, 10)
-              : null;
+        const { data: job, error: jobErr } = await sb
+          .from("jobs")
+          .insert({
+            project_id: projectId,
+            client_id: clientId,
+            title: tpl.name,
+            stage_id: tpl.initial_stage_id || firstStageId,
+            status: 'not_started',
+            order_index: tpl.order_index,
+            due_date: jobDueDate,
+            labels: ["operational_template"],
+            assignee_id: tpl.default_assignee_id || proposal.responsible_id || null,
+          })
+          .select()
+          .single();
 
-            const customFields: Record<string, any> = {};
-            if (flowJob.custom_fields_schema && Array.isArray(flowJob.custom_fields_schema)) {
-              flowJob.custom_fields_schema.forEach((field: any) => {
-                const key = field.label || field.name || "field";
-                customFields[key] = "";
-              });
-            }
-
-            const { data: job, error: jobErr } = await sb
-              .from("jobs")
-              .insert({
-                project_id: projectId,
-                client_id: clientId,
-                title: flowJob.name,
-                stage_id: firstStageId,
-                status: 'not_started',
-                order_index: flowJob.order,
-                due_date: jobDueDate,
-                labels: ["operational_flow"],
-                job_type: flowJob.job_type || "post",
-                assignee_id: flowJob.default_assignee_role_id || proposal.responsible_id || null,
-                custom_fields: customFields,
-
-              })
-              .select()
-              .single();
-
-            if (!jobErr && job) {
-              jobsCreated++;
-              // Create checklists
-              if (flowJob.checklists?.length) {
-                await sb.from("job_checklist").insert(
-                  flowJob.checklists.map((c: any) => ({
-                    job_id: job.id,
-                    content: c.item_text,
-                    order_index: c.order
-                  }))
-                );
-              }
-            }
+        if (!jobErr && job) {
+          jobsCreated++;
+          if ((tpl as any).checklists?.length) {
+            await sb.from("job_checklist").insert(
+              (tpl as any).checklists.map((c: any) => ({
+                job_id: job.id,
+                content: c.content,
+                order_index: c.order_index
+              }))
+            );
           }
         }
       }
