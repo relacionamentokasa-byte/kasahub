@@ -98,8 +98,36 @@ export function NewJobDialog({
       const data = await createJob(payload as any);
       return data;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["jobs"] });
+    onMutate: async () => {
+      const filters = { 
+        projectId: defaultProjectId ?? form.project_id, 
+        clientId: defaultClientId ?? form.client_id, 
+        serviceId: form.service_id, 
+        period: defaultPeriod ?? form.period ?? 'all' 
+      };
+      const qk = JOBS_QUERY_KEY(filters);
+      await qc.cancelQueries({ queryKey: qk });
+      const prev = qc.getQueryData<Job[]>(qk);
+      
+      const tempJob = {
+        id: 'temp-' + Math.random().toString(36).substring(7),
+        title: form.title,
+        priority: form.priority,
+        stage_id: stage?.id ?? null,
+        project_id: form.project_id,
+        client_id: form.client_id,
+        created_at: new Date().toISOString(),
+        progress_percentage: 0,
+        completed_steps: 0,
+        total_steps: 0,
+        team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
+      };
+      
+      qc.setQueryData<Job[]>(qk, (old) => [tempJob as any, ...(old ?? [])]);
+      return { prev, qk };
+    },
+    onSuccess: (_, __, ctx) => {
+      qc.invalidateQueries({ queryKey: ctx?.qk || ["jobs"] });
       toast.success("Job criado");
       onOpenChange(false);
       setForm({
@@ -116,7 +144,10 @@ export function NewJobDialog({
         team_involved_ids: [],
       });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error, _, ctx) => {
+      if (ctx?.prev && ctx?.qk) qc.setQueryData(ctx.qk, ctx.prev);
+      toast.error(e.message);
+    },
   });
 
   return (
