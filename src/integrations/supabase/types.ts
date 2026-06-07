@@ -1268,7 +1268,6 @@ export type Database = {
           done_at: string | null
           due_date: string | null
           feedback_at: string | null
-          flow_job_id: string | null
           freelancer_id: string | null
           id: string
           job_type: string | null
@@ -1309,7 +1308,6 @@ export type Database = {
           done_at?: string | null
           due_date?: string | null
           feedback_at?: string | null
-          flow_job_id?: string | null
           freelancer_id?: string | null
           id?: string
           job_type?: string | null
@@ -1350,7 +1348,6 @@ export type Database = {
           done_at?: string | null
           due_date?: string | null
           feedback_at?: string | null
-          flow_job_id?: string | null
           freelancer_id?: string | null
           id?: string
           job_type?: string | null
@@ -1702,33 +1699,6 @@ export type Database = {
           title?: string
           type?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      operational_flow_stages: {
-        Row: {
-          created_at: string
-          flow_id: string
-          id: string
-          name: string
-          order: number
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          flow_id: string
-          id?: string
-          name: string
-          order?: number
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          flow_id?: string
-          id?: string
-          name?: string
-          order?: number
-          updated_at?: string
         }
         Relationships: []
       }
@@ -2465,6 +2435,7 @@ export type Database = {
           id: string
           initial_stage_id: string | null
           name: string
+          operational_template_id: string | null
           order_index: number
           service_id: string
           updated_at: string
@@ -2477,6 +2448,7 @@ export type Database = {
           id?: string
           initial_stage_id?: string | null
           name: string
+          operational_template_id?: string | null
           order_index?: number
           service_id: string
           updated_at?: string
@@ -2489,6 +2461,7 @@ export type Database = {
           id?: string
           initial_stage_id?: string | null
           name?: string
+          operational_template_id?: string | null
           order_index?: number
           service_id?: string
           updated_at?: string
@@ -2499,6 +2472,13 @@ export type Database = {
             columns: ["initial_stage_id"]
             isOneToOne: false
             referencedRelation: "job_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_job_templates_operational_template_id_fkey"
+            columns: ["operational_template_id"]
+            isOneToOne: false
+            referencedRelation: "operational_templates"
             referencedColumns: ["id"]
           },
           {
