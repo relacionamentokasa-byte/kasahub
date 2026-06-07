@@ -869,7 +869,8 @@ export function JobSheet({
                               <div className="space-y-3">
                                 {item.content && !item.content.startsWith('Anexou um arquivo:') && (
                                   <p className="whitespace-pre-wrap leading-relaxed text-xs">
-                                    {item.content.split(/(@\w+)/).map((part, i) => 
+                                  {item.content.split(/(@\w+)/).map((part: string, i: number) => 
+
                                       part.startsWith('@') ? (
                                         <span key={i} className="text-primary font-bold">{part}</span>
                                       ) : part
@@ -911,7 +912,7 @@ export function JobSheet({
                               </div>
                             ) : (
                               <p className="whitespace-pre-wrap leading-relaxed text-xs">
-                                {item.content.split(/(@\w+)/).map((part, i) => 
+                                {item.content.split(/(@\w+)/).map((part: string, i: number) => 
                                   part.startsWith('@') ? (
                                     <span key={i} className="text-primary font-bold">{part}</span>
                                   ) : part
