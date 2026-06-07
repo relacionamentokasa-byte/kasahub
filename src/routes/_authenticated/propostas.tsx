@@ -793,14 +793,20 @@ function ProposalsPage() {
             <FileText className="size-6 text-primary" />
           </div>
           <h2 className="font-display text-xl font-semibold mb-1">
-            {search || filterStatus !== "all" || filterClient !== "all" 
-              ? "Nenhuma proposta encontrada" 
-              : "Nenhuma proposta ainda"}
+            {showTrash 
+              ? "A lixeira está vazia"
+              : (search || filterStatus !== "all" || filterClient !== "all" 
+                ? "Nenhuma proposta encontrada" 
+                : "Nenhuma proposta ainda")
+            }
           </h2>
           <p className="text-foreground/60 text-sm">
-            {search || filterStatus !== "all" || filterClient !== "all" 
-              ? "Tente ajustar seus filtros de busca." 
-              : "Crie sua primeira proposta ou gere uma a partir de um lead no CRM."}
+            {showTrash
+              ? "As propostas que você excluir aparecerão aqui."
+              : (search || filterStatus !== "all" || filterClient !== "all" 
+                ? "Tente ajustar seus filtros de busca." 
+                : "Crie sua primeira proposta ou gere uma a partir de um lead no CRM.")
+            }
           </p>
         </div>
       ) : (
