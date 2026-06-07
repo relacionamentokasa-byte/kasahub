@@ -573,9 +573,12 @@ export function JobSheet({
                     <Popover>
                       <PopoverTrigger asChild>
                         <button className="w-full flex items-center gap-3 h-12 px-4 rounded-xl border border-border bg-background/50 hover:border-primary/50 transition-all group">
-                          <div className="size-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0 uppercase">
+                          <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0 uppercase shadow-sm ${
+                            ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
+                          }`}>
                             {clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"}
                           </div>
+
                           <div className="flex-1 text-left">
                             <p className="text-xs font-bold text-white uppercase tracking-wider">
                               {clients.find(c => c.id === (job as any).client_id)?.company || clients.find(c => c.id === (job as any).client_id)?.name || "Selecionar Cliente"}
@@ -597,9 +600,12 @@ export function JobSheet({
                                   onSelect={() => updateMut.mutate({ client_id: c.id } as any)}
                                   className="flex items-center gap-3 p-3 hover:bg-primary/10 cursor-pointer aria-selected:bg-primary/10"
                                 >
-                                  <div className="size-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-xs uppercase">
+                                  <div className={`size-8 rounded-full flex items-center justify-center text-white font-bold text-xs uppercase shadow-sm ${
+                                    ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
+                                  }`}>
                                     {(c.company || c.name).substring(0, 2)}
                                   </div>
+
                                   <span className="text-sm font-medium text-white">{c.company || c.name}</span>
                                   {(job as any).client_id === c.id && <Check className="size-4 text-primary ml-auto" />}
                                 </CommandItem>
