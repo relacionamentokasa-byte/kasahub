@@ -444,7 +444,30 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
     .eq("job_id", jobId)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return data ?? [];
+
+  // Gerar URLs assinadas para anexos em comentários
+  const dataWithUrls = await Promise.all((data || []).map(async (c) => {
+    const metadata = (c as any).metadata;
+    if (metadata?.file_url && metadata.file_url.includes('/job-attachments/')) {
+      try {
+        const urlParts = metadata.file_url.split('/job-attachments/');
+        const path = urlParts[1];
+        const { data: signedData } = await supabase.storage
+          .from('job-attachments')
+          .createSignedUrl(path, 3600);
+        
+        return {
+          ...c,
+          metadata: { ...metadata, file_url: signedData?.signedUrl || metadata.file_url }
+        };
+      } catch (e) {
+        return c;
+      }
+    }
+    return c;
+  }));
+
+  return dataWithUrls ?? [];
 }
 
 export async function addJobComment(
