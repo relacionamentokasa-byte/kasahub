@@ -170,16 +170,25 @@ export function JobSheet({
 
   const handleTyping = useCallback(async (isTyping: boolean) => {
     if (!job?.id) return;
+    
+    // Find the channel for this specific job room
     const channel = supabase.getChannels().find(c => c.topic === `realtime:job-room-${job.id}`);
+    
     if (channel) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      
       const profile = team.find(p => p.id === user.id);
-      channel.track({
-        user_id: user.id,
-        user_name: profile?.display_name || profile?.full_name || 'Usuário',
-        is_typing: isTyping
-      });
+      
+      try {
+        await channel.track({
+          user_id: user.id,
+          user_name: profile?.display_name || profile?.full_name || 'Usuário',
+          is_typing: isTyping
+        });
+      } catch (err) {
+        console.error("Error tracking presence:", err);
+      }
     }
   }, [job?.id, team]);
 
