@@ -29,7 +29,8 @@ import {
   type Service,
   type ServiceJobTemplate,
 } from "@/lib/services-api";
-import { fetchOperationalFlows } from "@/lib/operational-flows-api";
+import { fetchJobStages } from "@/lib/ops-api";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -219,7 +220,7 @@ function ServiceFormDialog({
     is_active: service?.is_active ?? true,
     default_scope: (service?.default_scope as string[]) ?? [],
     contract_template_id: (service as any)?.contract_template_id ?? "",
-    operational_flow_id: (service as any)?.operational_flow_id ?? "",
+    
   });
 
   const { data: templates = [] } = useQuery({
@@ -227,10 +228,6 @@ function ServiceFormDialog({
     queryFn: fetchContractTemplates,
   });
 
-  const { data: flows = [] } = useQuery({
-    queryKey: ["operational-flows"],
-    queryFn: fetchOperationalFlows,
-  });
 
   const saveMut = useMutation({
     mutationFn: async () => {
@@ -241,7 +238,7 @@ function ServiceFormDialog({
         is_active: form.is_active,
         default_scope: form.default_scope,
         contract_template_id: form.contract_template_id || null,
-        operational_flow_id: form.operational_flow_id || null,
+        
       } as any;
       if (!payload.name) throw new Error("Nome obrigatório");
       if (service) return updateService(service.id, payload);
@@ -302,7 +299,7 @@ function ServiceFormDialog({
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
+              <div className="space-y-1.5 col-span-2">
                 <Label className="text-xs">Template Contratual Padrão</Label>
                 <select
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
@@ -313,21 +310,6 @@ function ServiceFormDialog({
                   {templates.map((t) => (
                     <option key={t.id} value={t.id}>
                       {t.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Fluxo Operacional Padrão</Label>
-                <select
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                  value={form.operational_flow_id}
-                  onChange={(e) => setForm({ ...form, operational_flow_id: e.target.value })}
-                >
-                  <option value="">Sem fluxo padrão</option>
-                  {flows.map((f) => (
-                    <option key={f.id} value={f.id}>
-                      {f.name}
                     </option>
                   ))}
                 </select>
@@ -383,6 +365,10 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
   const { data: jobs = [], isLoading } = useQuery({
     queryKey: ["service-template", serviceId],
     queryFn: () => fetchServiceTemplate(serviceId),
+  });
+  const { data: stages = [] } = useQuery({
+    queryKey: ["job-stages"],
+    queryFn: fetchJobStages,
   });
 
   const [newJobName, setNewJobName] = useState("");
@@ -441,6 +427,7 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
           <TemplateJobRow
             key={j.id}
             job={j}
+            stages={stages}
             isFirst={idx === 0}
             isLast={idx === jobs.length - 1}
             onMove={(dir) => moveMut.mutate({ id: j.id, dir })}
@@ -468,12 +455,14 @@ function TemplateEditor({ serviceId }: { serviceId: string }) {
 
 function TemplateJobRow({
   job,
+  stages,
   isFirst,
   isLast,
   onMove,
   onChanged,
 }: {
   job: ServiceJobTemplate;
+  stages: any[];
   isFirst: boolean;
   isLast: boolean;
   onMove: (dir: -1 | 1) => void;
@@ -484,6 +473,7 @@ function TemplateJobRow({
   const [local, setLocal] = useState({
     name: job.name,
     default_duration_days: job.default_duration_days,
+    initial_stage_id: job.initial_stage_id || "",
   });
 
   const saveMut = useMutation({
@@ -491,6 +481,7 @@ function TemplateJobRow({
       updateTemplateJob(job.id, {
         name: local.name,
         default_duration_days: local.default_duration_days,
+        initial_stage_id: local.initial_stage_id || null,
       }),
     onSuccess: () => {
       toast.success("Job atualizado");
@@ -565,6 +556,20 @@ function TemplateJobRow({
           onChange={(e) => setLocal({ ...local, name: e.target.value })}
           className="flex-1 h-8"
         />
+        <div className="flex items-center gap-1">
+          <select
+            className="h-8 rounded-md border border-input bg-background text-[10px] focus:outline-none focus:ring-1 focus:ring-ring"
+            value={local.initial_stage_id}
+            onChange={(e) => setLocal({ ...local, initial_stage_id: e.target.value })}
+          >
+            <option value="">Estágio Inicial</option>
+            {stages.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </div>
         <div className="flex items-center gap-1">
           <Input
             type="number"
