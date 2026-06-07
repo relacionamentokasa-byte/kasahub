@@ -55,8 +55,29 @@ export const Route = createFileRoute("/api/public/approve/$token")({
             .order("created_at", { ascending: false }),
         ]);
 
+        // Gerar URLs assinadas para anexos se o bucket for privado
+        const attachmentsWithUrls = await Promise.all((attachments || []).map(async (att) => {
+          try {
+            const urlParts = att.file_url.split('/job-attachments/');
+            if (urlParts.length < 2) return att;
+            const path = urlParts[1];
+            
+            const { data } = await supabaseAdmin.storage
+              .from('job-attachments')
+              .createSignedUrl(path, 7200); // 2 horas
+              
+            return {
+              ...att,
+              file_url: data?.signedUrl || att.file_url
+            };
+          } catch (e) {
+            console.error("[public/approve] Error generating signed URL", e);
+            return att;
+          }
+        }));
+
         return Response.json(
-          { job: { ...job, client, project, attachments: attachments ?? [] } },
+          { job: { ...job, client, project, attachments: attachmentsWithUrls } },
           { headers: { "Cache-Control": "no-store" } },
         );
       },
