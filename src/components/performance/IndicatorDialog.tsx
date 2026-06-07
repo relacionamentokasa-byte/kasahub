@@ -46,6 +46,33 @@ export function IndicatorDialog({ open, onOpenChange, indicator }: Props) {
     status: "active"
   });
 
+  const [targets, setTargets] = useState<{month: number, value: number}[]>(
+    Array.from({ length: 12 }, (_, i) => ({ month: i + 1, value: 0 }))
+  );
+
+  const { data: existingTargets } = useQuery({
+    queryKey: ["indicator-targets", indicator?.id],
+    queryFn: () => fetchIndicatorTargets(indicator!.id),
+    enabled: !!indicator?.id
+  });
+
+  useEffect(() => {
+    if (existingTargets && existingTargets.length > 0) {
+      const currentYear = new Date().getFullYear();
+      const yearTargets = existingTargets.filter(t => t.year === currentYear);
+      
+      if (yearTargets.length > 0) {
+        const newTargets = [...targets];
+        yearTargets.forEach(t => {
+          if (t.month) {
+            newTargets[t.month - 1].value = Number(t.target_value);
+          }
+        });
+        setTargets(newTargets);
+      }
+    }
+  }, [existingTargets]);
+
   const mut = useMutation({
     mutationFn: (data: Partial<AgencyIndicator>) => {
       if (indicator?.id) return updateIndicator(indicator.id, data);
