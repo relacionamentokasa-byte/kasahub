@@ -618,7 +618,6 @@ function FinanceiroPage() {
                 <div>Cliente</div>
                 <div className="text-right">Valor</div>
                 <div className="text-center">Vencimento</div>
-                <div className="text-center">Origem</div>
                 <div className="text-right">Ações</div>
               </div>
 
