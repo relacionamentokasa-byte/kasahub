@@ -1259,7 +1259,6 @@ export type Database = {
           client_id: string | null
           created_at: string
           custom_fields: Json | null
-          custom_fields_schema: Json | null
           custom_form_data: Json | null
           description: string | null
           dme_id: string | null
@@ -1293,7 +1292,6 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           custom_fields?: Json | null
-          custom_fields_schema?: Json | null
           custom_form_data?: Json | null
           description?: string | null
           dme_id?: string | null
@@ -1327,7 +1325,6 @@ export type Database = {
           client_id?: string | null
           created_at?: string
           custom_fields?: Json | null
-          custom_fields_schema?: Json | null
           custom_form_data?: Json | null
           description?: string | null
           dme_id?: string | null
@@ -2640,6 +2637,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_errors_log: {
+        Row: {
+          column_name: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          query_text: string | null
+          table_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          column_name?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          query_text?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          column_name?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          query_text?: string | null
+          table_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       team_invites: {
         Row: {
