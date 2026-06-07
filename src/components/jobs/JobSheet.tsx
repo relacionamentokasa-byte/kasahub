@@ -972,6 +972,17 @@ export function JobSheet({
                               >
                                 <Pencil className="size-3" />
                               </button>
+                              <button 
+                                onClick={() => {
+                                  if (confirm("Deseja excluir este comentário?")) {
+                                    deleteCommentMut.mutate(item.commentId!);
+                                  }
+                                }}
+                                className="text-foreground/40 hover:text-red-500 transition-colors"
+                                title="Excluir comentário"
+                              >
+                                <Trash className="size-3" />
+                              </button>
                               {hasVersions && (
                                 <button 
                                   onClick={() => setShowVersionsId(isShowingVersions ? null : item.commentId!)}
