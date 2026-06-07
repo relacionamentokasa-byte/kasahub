@@ -582,8 +582,14 @@ function PublicProposalView() {
               <div className="pt-8 border-t border-slate-200/50">
                 <div className="flex justify-between items-end bg-[#0C1618] p-8 rounded-[2rem] text-white">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Investimento Total Estimado</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Investimento Mensal</p>
                     <p className="text-4xl font-bold">
+                      {formatCurrency(proposal.monthly_investment)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Valor Total do Contrato</p>
+                    <p className="text-2xl font-bold opacity-80">
                       {formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}
                     </p>
                   </div>
