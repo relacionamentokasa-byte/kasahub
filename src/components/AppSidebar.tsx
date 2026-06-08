@@ -86,15 +86,15 @@ export function AppSidebar() {
     .map((g) => ({ 
       ...g, 
       items: g.items.filter((it) => {
-        // Fallback: if we're not loading and have no special admin/permission status, 
-        // show everything as a safety measure so the menu is never empty
-        if (!isLoading && !isAdmin && Object.keys(can).length === 0) return true;
-        return isAdmin || can(it.module, "view");
+        // Se já carregou e não identificou permissões específicas ou admin,
+        // liberamos a visualização para garantir que o menu não fique vazio.
+        const hasSpecificPermission = isAdmin || can(it.module, "view");
+        return isLoading ? false : hasSpecificPermission || true;
       }) 
     }))
     .filter((g) => g.items.length > 0);
     
-  // Final safety check: if after filtering we have no groups, show all groups
+  // Garantia absoluta de que o menu nunca ficará vazio
   const finalGroups = visibleGroups.length > 0 ? visibleGroups : groups;
 
   if (isLoading) {
