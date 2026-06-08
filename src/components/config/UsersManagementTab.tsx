@@ -371,8 +371,8 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                           onClick={async () => {
                             const loadingToast = toast.loading("Reenviando e-mail...");
                             try {
-                              // Assumindo um papel padrão para reenvio ou buscando se disponível
-                              await sendInviteEmail(i.email, "operador");
+                              // Usando a nova função de reenvio que gera um novo token
+                              await resendInvite(i.email, "operador");
                               toast.success("E-mail reenviado com sucesso!", { id: loadingToast });
                             } catch (e: any) {
                               toast.error(e.message, { id: loadingToast });
