@@ -376,6 +376,12 @@ export function JobSheet({
       
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
       setComment("");
+      
+      // Auto-focus back to input
+      setTimeout(() => {
+        commentInputRef.current?.focus();
+      }, 0);
+      
       return { prev };
     },
     onSuccess: () => {
@@ -1149,7 +1155,8 @@ export function JobSheet({
                           e.stopPropagation();
                           if (comment.trim() && !commentMut.isPending) {
                             commentMut.mutate({ content: comment.trim() });
-                            commentInputRef.current?.focus();
+                            // The focus back is handled by the textarea auto-focus on re-render 
+                            // but let's be explicit if needed.
                           }
                         }
                       }
@@ -1173,9 +1180,8 @@ export function JobSheet({
                       onClick={async (e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        if (comment.trim()) {
+                        if (comment.trim() && !commentMut.isPending) {
                           commentMut.mutate({ content: comment.trim() });
-                          commentInputRef.current?.focus();
                         }
                       }}
                       disabled={!comment.trim() || commentMut.isPending}
