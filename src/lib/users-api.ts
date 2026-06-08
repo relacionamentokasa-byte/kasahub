@@ -54,7 +54,7 @@ export async function createInvite(invite: { email: string; full_name: string; r
     .insert({
       email: invite.email,
       full_name: invite.full_name,
-      custom_role_id: invite.role_id,
+      role_id: invite.role_id,
       inviter_id: user.id
     })
     .select()
