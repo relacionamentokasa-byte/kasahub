@@ -113,7 +113,14 @@ function EquipePage() {
             Gerencie membros, papéis e convites de acesso ao KASA HUB.
           </p>
         </div>
-        {isAdmin && <NewInviteDialog />}
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Button variant="outline" size="sm" onClick={handleResendTest} className="gap-2 border-primary/30 text-primary/80">
+              <Mail className="size-4" /> Testar Resend
+            </Button>
+          )}
+          {isAdmin && <NewInviteDialog />}
+        </div>
       </header>
 
       <section className="space-y-3">
