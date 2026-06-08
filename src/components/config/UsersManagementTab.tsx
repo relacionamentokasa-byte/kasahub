@@ -58,27 +58,36 @@ const APP_ROLES: AppRole[] = ["admin", "ceo", "gestor", "operador", "cliente"];
 function InviteUserDialog({ roles = [], disabled, limitReached }: { roles?: any[], disabled?: boolean, limitReached?: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ email: '', full_name: '', role_id: '', app_role: 'operador' as AppRole });
+  const [form, setForm] = useState({ email: '', full_name: '', role_id: '' });
 
   const mut = useMutation({
     mutationFn: async () => {
-      // Registrar convite no banco de dados (tabela legado do sistema anterior se necessário)
-      // Ou usar a nova tabela team_invites através do team-api
+      const selectedRole = roles.find(r => r.id === form.role_id);
+      // Mapeamento do nome do perfil para o AppRole esperado pelo sendInviteEmail
+      const appRoleMapping: Record<string, AppRole> = {
+        'Administrador': 'admin',
+        'Gestor': 'gestor',
+        'Equipe Interna': 'operador',
+        'Representante': 'gestor', // Ou um mapeamento apropriado
+        'Financeiro': 'operador'
+      };
+      
+      const appRole = selectedRole ? (appRoleMapping[selectedRole.name] || 'operador') : 'operador';
+
       await createInvite({ 
         email: form.email, 
         full_name: form.full_name, 
         role_id: form.role_id 
       });
       
-      // Enviar o e-mail usando o novo motor Resend
-      await sendInviteEmail(form.email, form.app_role);
+      await sendInviteEmail(form.email, appRole);
     },
     onSuccess: () => {
       toast.success("Convite enviado com sucesso");
       qc.invalidateQueries({ queryKey: ["invites"] });
       qc.invalidateQueries({ queryKey: ["team-invites"] });
       setOpen(false);
-      setForm({ email: '', full_name: '', role_id: '', app_role: 'operador' });
+      setForm({ email: '', full_name: '', role_id: '' });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -118,33 +127,18 @@ function InviteUserDialog({ roles = [], disabled, limitReached }: { roles?: any[
                 placeholder="email@empresa.com"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Perfil de Acesso</Label>
-                <Select value={form.role_id} onValueChange={v => setForm(prev => ({ ...prev, role_id: v }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {roles.map(r => (
-                      <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Papel do Sistema</Label>
-                <Select value={form.app_role} onValueChange={v => setForm(prev => ({ ...prev, app_role: v as AppRole }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {APP_ROLES.map(r => (
-                      <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Perfil de Acesso</Label>
+              <Select value={form.role_id} onValueChange={v => setForm(prev => ({ ...prev, role_id: v }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um perfil" />
+                </SelectTrigger>
+                <SelectContent>
+                  {roles.map(r => (
+                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
