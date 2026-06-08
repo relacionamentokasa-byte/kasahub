@@ -72,7 +72,7 @@ function ConfigPage() {
     retry: 1,
   });
 
-  const isAdmin = true; // Forçamos admin temporariamente para garantir acesso durante a transição
+  const isAdmin = userIsAdmin; // Usar o valor real do hook
   const canEdit = isAdmin || can("config", "edit");
   const displayData = settingsData || { id: "default", name: "Agência" };
 

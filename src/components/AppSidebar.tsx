@@ -90,7 +90,10 @@ export function AppSidebar() {
       ...g, 
       items: g.items.filter((it) => {
         if (isLoading) return false;
-        if (isError || isAdmin) return true;
+        // Se houver erro, mostramos o menu básico para não travar
+        if (isError) return true;
+        // Admin vê tudo
+        if (isAdmin) return true;
         return can(it.module, "view");
       }) 
     }))
