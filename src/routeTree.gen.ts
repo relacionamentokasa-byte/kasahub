@@ -23,7 +23,6 @@ import { Route as AuthenticatedParceirosRouteImport } from './routes/_authentica
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
-import { Route as AuthenticatedEquipeRouteImport } from './routes/_authenticated/equipe'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
@@ -111,11 +110,6 @@ const AuthenticatedIntegracoesRoute =
 const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedEquipeRoute = AuthenticatedEquipeRouteImport.update({
-  id: '/equipe',
-  path: '/equipe',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
@@ -223,7 +217,6 @@ export interface FileRoutesByFullPath {
   '/clientes': typeof AuthenticatedClientesRouteWithChildren
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
-  '/equipe': typeof AuthenticatedEquipeRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -256,7 +249,6 @@ export interface FileRoutesByTo {
   '/clientes': typeof AuthenticatedClientesRouteWithChildren
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
-  '/equipe': typeof AuthenticatedEquipeRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -292,7 +284,6 @@ export interface FileRoutesById {
   '/_authenticated/clientes': typeof AuthenticatedClientesRouteWithChildren
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
-  '/_authenticated/equipe': typeof AuthenticatedEquipeRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
@@ -329,7 +320,6 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/config'
     | '/crm'
-    | '/equipe'
     | '/financeiro'
     | '/integracoes'
     | '/jobs'
@@ -362,7 +352,6 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/config'
     | '/crm'
-    | '/equipe'
     | '/financeiro'
     | '/integracoes'
     | '/jobs'
@@ -397,7 +386,6 @@ export interface FileRouteTypes {
     | '/_authenticated/clientes'
     | '/_authenticated/config'
     | '/_authenticated/crm'
-    | '/_authenticated/equipe'
     | '/_authenticated/financeiro'
     | '/_authenticated/integracoes'
     | '/_authenticated/jobs'
@@ -539,13 +527,6 @@ declare module '@tanstack/react-router' {
       path: '/financeiro'
       fullPath: '/financeiro'
       preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/equipe': {
-      id: '/_authenticated/equipe'
-      path: '/equipe'
-      fullPath: '/equipe'
-      preLoaderRoute: typeof AuthenticatedEquipeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/crm': {
@@ -725,7 +706,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRouteWithChildren
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
-  AuthenticatedEquipeRoute: typeof AuthenticatedEquipeRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
@@ -744,7 +724,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientesRoute: AuthenticatedClientesRouteWithChildren,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
-  AuthenticatedEquipeRoute: AuthenticatedEquipeRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
