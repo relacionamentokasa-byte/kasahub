@@ -15,7 +15,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
-import { Route as AuthInviteRouteImport } from './routes/auth.invite'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
@@ -72,11 +71,6 @@ const DmeTokenRoute = DmeTokenRouteImport.update({
   id: '/dme/$token',
   path: '/dme/$token',
   getParentRoute: () => rootRouteImport,
-} as any)
-const AuthInviteRoute = AuthInviteRouteImport.update({
-  id: '/invite',
-  path: '/invite',
-  getParentRoute: () => AuthRoute,
 } as any)
 const ApproveTokenRoute = ApproveTokenRouteImport.update({
   id: '/approve/$token',
@@ -222,7 +216,7 @@ const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/convite': typeof ConviteRoute
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
@@ -239,7 +233,6 @@ export interface FileRoutesByFullPath {
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
-  '/auth/invite': typeof AuthInviteRoute
   '/dme/$token': typeof DmeTokenRoute
   '/p/$token': typeof PTokenRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
@@ -256,7 +249,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/convite': typeof ConviteRoute
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
@@ -273,7 +266,6 @@ export interface FileRoutesByTo {
   '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
-  '/auth/invite': typeof AuthInviteRoute
   '/dme/$token': typeof DmeTokenRoute
   '/p/$token': typeof PTokenRoute
   '/': typeof AuthenticatedIndexRoute
@@ -293,7 +285,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
-  '/auth': typeof AuthRouteWithChildren
+  '/auth': typeof AuthRoute
   '/convite': typeof ConviteRoute
   '/_authenticated/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
@@ -310,7 +302,6 @@ export interface FileRoutesById {
   '/_authenticated/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
-  '/auth/invite': typeof AuthInviteRoute
   '/dme/$token': typeof DmeTokenRoute
   '/p/$token': typeof PTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
@@ -348,7 +339,6 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/relatorios'
     | '/approve/$token'
-    | '/auth/invite'
     | '/dme/$token'
     | '/p/$token'
     | '/clientes/$clientId'
@@ -382,7 +372,6 @@ export interface FileRouteTypes {
     | '/propostas'
     | '/relatorios'
     | '/approve/$token'
-    | '/auth/invite'
     | '/dme/$token'
     | '/p/$token'
     | '/'
@@ -418,7 +407,6 @@ export interface FileRouteTypes {
     | '/_authenticated/propostas'
     | '/_authenticated/relatorios'
     | '/approve/$token'
-    | '/auth/invite'
     | '/dme/$token'
     | '/p/$token'
     | '/_authenticated/'
@@ -438,7 +426,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthRoute: typeof AuthRouteWithChildren
+  AuthRoute: typeof AuthRoute
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
@@ -497,13 +485,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/dme/$token'
       preLoaderRoute: typeof DmeTokenRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/auth/invite': {
-      id: '/auth/invite'
-      path: '/invite'
-      fullPath: '/auth/invite'
-      preLoaderRoute: typeof AuthInviteRouteImport
-      parentRoute: typeof AuthRoute
     }
     '/approve/$token': {
       id: '/approve/$token'
@@ -777,19 +758,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface AuthRouteChildren {
-  AuthInviteRoute: typeof AuthInviteRoute
-}
-
-const AuthRouteChildren: AuthRouteChildren = {
-  AuthInviteRoute: AuthInviteRoute,
-}
-
-const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthRoute: AuthRouteWithChildren,
+  AuthRoute: AuthRoute,
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
@@ -807,3 +778,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
