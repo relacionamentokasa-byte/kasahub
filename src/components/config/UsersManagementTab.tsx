@@ -267,7 +267,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary">
-                      {(u as any).custom_roles?.name || "Sem perfil"}
+                      {u.custom_roles?.name || "Sem perfil"}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-foreground/50 text-xs">
