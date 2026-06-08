@@ -85,15 +85,9 @@ export function AppSidebar() {
   const visibleGroups = groups
     .map((g) => ({ 
       ...g, 
-      items: g.items.filter((it) => {
-        const hasAccess = isAdmin || can(it.module, "view");
-        console.log(`Checking access for ${it.title}: isAdmin=${isAdmin}, canView=${can(it.module, "view")}, hasAccess=${hasAccess}`);
-        return hasAccess;
-      }) 
+      items: g.items.filter((it) => isAdmin || can(it.module, "view")) 
     }))
     .filter((g) => g.items.length > 0);
-
-  console.log("Visible Groups:", visibleGroups.length, visibleGroups.map(g => g.label));
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
