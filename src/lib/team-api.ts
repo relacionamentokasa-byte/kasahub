@@ -97,9 +97,9 @@ export async function sendInviteEmail(email: string, role: AppRole, fullName?: s
   // Como estamos disparando via Resend, precisamos garantir que o link seja o de convite do Supabase
   // ou que o Supabase envie o email. Mas o usuário pediu para usar Resend com template customizado.
   
-  // Para que o Supabase Auth funcione com link customizado e token, geralmente usa-se o email do próprio Supabase.
-  // No entanto, para usar Resend, vamos apontar para a nossa tela de /auth/invite.
-  const inviteUrl = `${window.location.origin}/auth/invite?email=${encodeURIComponent(email)}`;
+  // No fluxo real do Supabase, o convite Admin gera um token.
+  // Como o usuário pediu para usar Resend, vamos configurar o Supabase para redirecionar para nossa página de convite.
+  const inviteUrl = `${window.location.origin}/auth/invite`;
   
   await sendEmail({
     data: {
