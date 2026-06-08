@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Mail, Plus, Trash2, UsersRound } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Mail, Plus, Trash2, UsersRound, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -59,6 +60,17 @@ function EquipePage() {
   const { data: myRoles = [] } = useQuery({ queryKey: ["roles", "me"], queryFn: fetchCurrentUserRoles });
   const isAdmin = hasAnyRole(myRoles, ["admin"]);
 
+  // Test send email logic if requested
+  const handleResendTest = async () => {
+    try {
+      await createInvite("conteudokasa@gmail.com", "operador");
+      toast.success("Convite de teste enviado para conteudokasa@gmail.com");
+      qc.invalidateQueries({ queryKey: ["team-invites"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   const roleMut = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: AppRole }) =>
       setMemberRole(userId, role),
@@ -101,7 +113,14 @@ function EquipePage() {
             Gerencie membros, papéis e convites de acesso ao KASA HUB.
           </p>
         </div>
-        {isAdmin && <NewInviteDialog />}
+        <div className="flex gap-2">
+          {isAdmin && (
+            <Button variant="outline" size="sm" onClick={handleResendTest} className="gap-2 border-primary/30 text-primary/80">
+              <Mail className="size-4" /> Testar Resend
+            </Button>
+          )}
+          {isAdmin && <NewInviteDialog />}
+        </div>
       </header>
 
       <section className="space-y-3">
@@ -252,14 +271,30 @@ function EquipePage() {
                     <td className="px-4 py-3 text-foreground/70 capitalize">{i.status}</td>
                     <td className="px-4 py-3 text-right">
                       {isAdmin && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => delInvite.mutate(i.id)}
-                          className="text-foreground/60 hover:text-red-400"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              createInvite(i.email, i.role)
+                                .then(() => toast.success("Convite reenviado"))
+                                .catch((e) => toast.error(e.message));
+                            }}
+                            className="text-foreground/60 hover:text-primary h-8 w-8 p-0"
+                            title="Reenviar convite"
+                          >
+                            <RefreshCw className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => delInvite.mutate(i.id)}
+                            className="text-foreground/60 hover:text-red-400 h-8 w-8 p-0"
+                            title="Remover convite"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
                       )}
                     </td>
                   </tr>
