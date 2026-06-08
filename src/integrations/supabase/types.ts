@@ -2821,6 +2821,7 @@ export type Database = {
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
+      check_financial_notifications: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -2868,7 +2869,7 @@ export type Database = {
       notify_user: {
         Args: {
           p_category?: string
-          p_description: string
+          p_description?: string
           p_link?: string
           p_origin_id?: string
           p_origin_type?: string
@@ -2876,7 +2877,7 @@ export type Database = {
           p_type?: string
           p_user_id: string
         }
-        Returns: string
+        Returns: undefined
       }
       project_progress: { Args: { _project_id: string }; Returns: number }
       read_email_batch: {
