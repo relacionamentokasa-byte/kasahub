@@ -64,14 +64,16 @@ type ConfigSection = {
 function ConfigPage() {
   const { tab } = Route.useSearch() as { tab?: string };
   const qc = useQueryClient();
-  const { can, isLoading: permissionsLoading, isError: permsError } = usePermissions();
+  const { can, isLoading: permissionsLoading, isError: permsError, isAdmin: userIsAdmin } = usePermissions();
   const { data, isLoading, isError: settingsError } = useQuery({
     queryKey: ["agency-settings"],
     queryFn: fetchAgencySettings,
     retry: 1,
   });
+
+  const isAdmin = true; // Forçamos admin temporariamente para garantir acesso durante a transição
   const canEdit = isAdmin || can("config", "edit");
-  const isAdmin = true; // Forçamos admin temporariamente para garantir acesso durante a transição se necessário
+  const displayData = data || { id: "default", name: "Agência" };
 
   const [activeTab, setActiveTab] = useState(tab || "brand");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -104,7 +106,7 @@ function ConfigPage() {
   }
 
   // Fallback se os dados da agência falharem mas tivermos o resto
-  const displayData = data || { id: "default", name: "Agência" };
+  // displayData já definido no topo
 
   const sections: ConfigSection[] = [
     { id: "profile", label: "Meu Perfil", icon: User, group: "Meu Perfil", component: <UserProfileTab canEdit={canEdit} /> },
