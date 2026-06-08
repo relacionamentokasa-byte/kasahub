@@ -55,7 +55,7 @@ function StatusBadge({ status }: { status: string }) {
 
 const APP_ROLES: AppRole[] = ["admin", "ceo", "gestor", "operador", "cliente"];
 
-function InviteUserDialog({ roles, disabled, limitReached }: { roles: any[], disabled?: boolean, limitReached?: boolean }) {
+function InviteUserDialog({ roles = [], disabled, limitReached }: { roles?: any[], disabled?: boolean, limitReached?: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({ email: '', full_name: '', role_id: '', app_role: 'operador' as AppRole });
@@ -166,10 +166,15 @@ function InviteUserDialog({ roles, disabled, limitReached }: { roles: any[], dis
 
 export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
   const qc = useQueryClient();
-  const { data: users = [], isLoading: usersLoading } = useQuery({ queryKey: ["users"], queryFn: fetchUsers });
-  const { data: invites = [], isLoading: invitesLoading } = useQuery({ queryKey: ["invites"], queryFn: fetchInvites });
-  const { data: agency } = useQuery({ queryKey: ["agency-settings"], queryFn: fetchAgencySettings });
-  const { data: roles = [] } = useQuery({ queryKey: ["custom-roles"], queryFn: fetchCustomRoles });
+  const { data: usersData, isLoading: usersLoading } = useQuery({ queryKey: ["users"], queryFn: fetchUsers });
+  const { data: invitesData, isLoading: invitesLoading } = useQuery({ queryKey: ["invites"], queryFn: fetchInvites });
+  const { data: agencyData } = useQuery({ queryKey: ["agency-settings"], queryFn: fetchAgencySettings });
+  const { data: rolesData } = useQuery({ queryKey: ["custom-roles"], queryFn: fetchCustomRoles });
+
+  const users = usersData || [];
+  const invites = invitesData || [];
+  const roles = rolesData || [];
+  const agency = agencyData;
 
   const delInvite = useMutation({
     mutationFn: deleteInvite,
