@@ -80,7 +80,7 @@ function InviteUserDialog({ roles = [], disabled, limitReached }: { roles?: any[
         role_id: form.role_id 
       });
       
-      await sendInviteEmail(form.email, appRole);
+      await sendInviteEmail(form.email, appRole, form.full_name);
     },
     onSuccess: () => {
       toast.success("Convite enviado com sucesso");

@@ -92,8 +92,15 @@ export async function fetchInvites(): Promise<TeamInvite[]> {
   return (data ?? []) as unknown as TeamInvite[];
 }
 
-export async function sendInviteEmail(email: string, role: AppRole) {
-  const inviteUrl = `${window.location.origin}/auth/invite`;
+export async function sendInviteEmail(email: string, role: AppRole, fullName?: string) {
+  // O Supabase Auth lida com o token de convite quando usamos o método de convite do Admin.
+  // Como estamos disparando via Resend, precisamos garantir que o link seja o de convite do Supabase
+  // ou que o Supabase envie o email. Mas o usuário pediu para usar Resend com template customizado.
+  
+  // Para que o Supabase Auth funcione com link customizado e token, geralmente usa-se o email do próprio Supabase.
+  // No entanto, para usar Resend, vamos apontar para a nossa tela de /auth/invite.
+  const inviteUrl = `${window.location.origin}/auth/invite?email=${encodeURIComponent(email)}`;
+  
   await sendEmail({
     data: {
       to: email,
@@ -106,7 +113,7 @@ export async function sendInviteEmail(email: string, role: AppRole) {
             <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-top: 8px;">Inteligência ERP Operacional</p>
           </div>
           
-          <p style="font-size: 18px; line-height: 1.6; color: #ffffff; margin-bottom: 24px;">Olá!</p>
+          <p style="font-size: 18px; line-height: 1.6; color: #ffffff; margin-bottom: 24px;">Olá, ${fullName || 'Colaborador'}!</p>
           
           <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 32px;">
             Você foi convidado para acessar o <strong>Kasa Hub</strong>, a plataforma interna da <strong>Kasa Marketing & Consultoria</strong>.
@@ -118,7 +125,7 @@ export async function sendInviteEmail(email: string, role: AppRole) {
           </div>
           
           <div style="text-align: center; margin-bottom: 40px;">
-            <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 16px; display: inline-block; box-shadow: 0 10px 20px rgba(255, 188, 69, 0.2);">Aceitar Convite</a>
+            <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 16px; display: inline-block; box-shadow: 0 10px 20px rgba(255, 188, 69, 0.2);">Acessar o Kasa Hub</a>
           </div>
           
           <p style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 32px;">
@@ -138,7 +145,7 @@ export async function sendInviteEmail(email: string, role: AppRole) {
   });
 }
 
-export async function createInvite(email: string, role: AppRole) {
+export async function createInvite(email: string, role: AppRole, fullName?: string) {
   const { data: u } = await supabase.auth.getUser();
   const { error } = await sb
     .from("team_invites")
@@ -147,10 +154,9 @@ export async function createInvite(email: string, role: AppRole) {
 
   // Enviar convite via Resend
   try {
-    await sendInviteEmail(email, role);
+    await sendInviteEmail(email, role, fullName);
   } catch (e) {
     console.error("Erro ao enviar e-mail de convite:", e);
-    // Não travamos o processo se o e-mail falhar, o registro do convite já foi feito
   }
 }
 
