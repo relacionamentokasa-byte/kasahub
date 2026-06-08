@@ -285,10 +285,10 @@ function EquipePage() {
                                 toast.error(e.message, { id: loadingToast });
                               }
                             }}
-                            className="text-foreground/60 hover:text-primary h-8 w-8 p-0"
+                            className="text-primary hover:bg-primary/10 h-8 px-2 gap-1 text-[10px] border border-primary/20"
                             title="Reenviar convite"
                           >
-                            <RefreshCw className="size-4" />
+                            <RefreshCw className="size-3" /> Reenviar
                           </Button>
                           <Button
                             variant="ghost"
