@@ -252,14 +252,30 @@ function EquipePage() {
                     <td className="px-4 py-3 text-foreground/70 capitalize">{i.status}</td>
                     <td className="px-4 py-3 text-right">
                       {isAdmin && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => delInvite.mutate(i.id)}
-                          className="text-foreground/60 hover:text-red-400"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              createInvite(i.email, i.role)
+                                .then(() => toast.success("Convite reenviado"))
+                                .catch((e) => toast.error(e.message));
+                            }}
+                            className="text-foreground/60 hover:text-primary h-8 w-8 p-0"
+                            title="Reenviar convite"
+                          >
+                            <RefreshCw className="size-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => delInvite.mutate(i.id)}
+                            className="text-foreground/60 hover:text-red-400 h-8 w-8 p-0"
+                            title="Remover convite"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </div>
                       )}
                     </td>
                   </tr>
