@@ -97,6 +97,7 @@ export async function sendInviteEmail(email: string, role: AppRole) {
   await sendEmail({
     data: {
       to: email,
+      from: "KASA HUB <noreply@kasamkt.com.br>",
       subject: "Você foi convidado para o KASA HUB",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
