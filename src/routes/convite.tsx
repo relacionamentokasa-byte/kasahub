@@ -5,43 +5,66 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { KasaLogo } from "@/components/KasaLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
 
-export const Route = createFileRoute("/auth/invite")({
-  ssr: false,
-  head: () => ({ meta: [{ title: "Boas-vindas ao KASA HUB" }] }),
-  component: InvitePage,
+const conviteSearchSchema = z.object({
+  token: z.string().optional(),
 });
 
-function InvitePage() {
+export const Route = createFileRoute("/convite")({
+  ssr: false,
+  validateSearch: (search) => conviteSearchSchema.parse(search),
+  head: () => ({ meta: [{ title: "Boas-vindas ao KASA HUB" }] }),
+  component: ConvitePage,
+});
+
+function ConvitePage() {
   const navigate = useNavigate();
+  const { token } = Route.useSearch();
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [userName, setUserName] = useState("");
   const [isValidating, setIsValidating] = useState(true);
+  const [tokenError, setTokenError] = useState(false);
 
   useEffect(() => {
-    const validateInvite = async () => {
-      // Como o Supabase envia um email com link de confirmação,
-      // se o usuário clicar no nosso link customizado, ele ainda não está logado.
-      // Precisamos do fluxo de convite do Supabase.
-      
-      // Se não houver sessão, podemos tentar verificar se há um token na URL
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // Se não houver sessão, o convite pode não ter sido aceito via Supabase ainda.
-        // O ideal é que o link no email seja o link de confirmação do Supabase que redireciona para cá.
-        // Por agora, vamos apenas mostrar um erro se não houver usuário.
+    const validateToken = async () => {
+      // If no token in URL, check if there's already a session (e.g. from a standard Supabase link)
+      if (!token) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setFullName(session.user.user_metadata?.full_name || "");
+          setIsValidating(false);
+          return;
+        }
+        setTokenError(true);
         setIsValidating(false);
         return;
       }
-      
-      setUserName(session.user.user_metadata?.full_name || "");
-      setIsValidating(false);
+
+      try {
+        // Verify the token
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: 'invite',
+        });
+        
+        if (error) {
+          console.error("Token verification error:", error);
+          setTokenError(true);
+        } else if (data.user) {
+          setFullName(data.user.user_metadata?.full_name || "");
+        }
+      } catch (err) {
+        console.error("Unexpected error validating token:", err);
+        setTokenError(true);
+      } finally {
+        setIsValidating(false);
+      }
     };
-    validateInvite();
-  }, [navigate]);
+    validateToken();
+  }, [token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,14 +72,26 @@ function InvitePage() {
       toast.error("As senhas não coincidem.");
       return;
     }
+    
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ password });
+      // Update user password and name
+      const { error } = await supabase.auth.updateUser({ 
+        password,
+        data: { 
+          full_name: fullName,
+          display_name: fullName 
+        }
+      });
+      
       if (error) throw error;
-      toast.success("Senha definida com sucesso! Bem-vindo(a).");
+      
+      toast.success("Cadastro concluído com sucesso! Bem-vindo(a).");
+      
+      // Redirect to dashboard or home
       navigate({ to: "/", replace: true });
     } catch (err: any) {
-      toast.error(err.message || "Erro ao definir senha.");
+      toast.error(err.message || "Erro ao finalizar cadastro.");
     } finally {
       setLoading(false);
     }
@@ -70,6 +105,26 @@ function InvitePage() {
     );
   }
 
+  if (tokenError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0c1618] p-6 text-white font-sans text-center">
+        <KasaLogo variant="login" className="mb-8" />
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl max-w-md w-full">
+          <h2 className="text-xl font-bold text-[#ffbc45] mb-4">Convite Inválido</h2>
+          <p className="text-white/60 mb-6 text-sm">
+            Este link de convite é inválido ou já expirou. Por favor, entre em contato com o administrador.
+          </p>
+          <Button 
+            onClick={() => navigate({ to: "/auth" })}
+            className="w-full bg-[#ffbc45] text-[#0c1618] hover:bg-[#ffbc45]/90 rounded-xl font-bold"
+          >
+            Ir para Login
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0c1618] p-6 text-white font-sans">
       <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -77,10 +132,10 @@ function InvitePage() {
           <KasaLogo variant="login" />
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-display font-bold text-[#ffbc45]">
-              Olá, {userName}!
+              Bem-vindo ao KASA HUB
             </h1>
             <p className="text-white/60 text-sm">
-              Você foi convidado para o KASA HUB. Defina sua senha para começar.
+              Preencha seus dados para completar o acesso.
             </p>
           </div>
         </div>
@@ -89,7 +144,21 @@ function InvitePage() {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label className="text-[10px] uppercase font-bold tracking-widest text-[#ffbc45]">
-                Nova Senha
+                Nome Completo
+              </label>
+              <input
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                placeholder="Ex: João Silva"
+                className="w-full h-12 px-4 bg-white/5 border border-white/10 rounded-xl text-sm placeholder:text-white/20 outline-none focus:border-[#ffbc45]/60 focus:ring-2 focus:ring-[#ffbc45]/20 transition"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase font-bold tracking-widest text-[#ffbc45]">
+                Definir Senha
               </label>
               <input
                 type="password"
@@ -120,7 +189,7 @@ function InvitePage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-[#ffbc45] text-[#0c1618] hover:bg-[#ffbc45]/90 rounded-xl font-bold gap-2 text-sm shadow-lg shadow-[#ffbc45]/10"
+              className="w-full h-12 bg-[#ffbc45] text-[#0c1618] hover:bg-[#ffbc45]/90 rounded-xl font-bold gap-2 text-sm shadow-lg shadow-[#ffbc45]/10 mt-2"
             >
               {loading ? (
                 <Loader2 className="size-4 animate-spin" />
