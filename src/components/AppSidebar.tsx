@@ -60,7 +60,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     items: [
       { title: "Financeiro", url: "/financeiro", icon: Wallet, module: "financeiro" },
       { title: "Relatórios", url: "/relatorios", icon: BarChart3, module: "relatorios" },
-      { title: "Equipe", url: "/equipe", icon: UsersRound, module: "config" },
+      { title: "Usuários e Permissões", url: "/config?tab=users", icon: UsersRound, module: "config" },
     ],
   },
   {

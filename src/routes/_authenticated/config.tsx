@@ -106,7 +106,7 @@ function ConfigPage() {
     { id: "brand", label: "Identidade Visual", icon: Palette, group: "Agência", component: <BrandTab form={form} set={set} canEdit={canEdit} /> },
     { id: "signature", label: "Assinatura da Empresa", icon: Pencil, group: "Agência", component: <SignatureTab form={form} set={set} /> },
     
-    { id: "users", label: "Usuários", icon: Users, group: "Usuários e Permissões", component: <UsersManagementTab canEdit={canEdit} /> },
+    { id: "users", label: "Gestão de Usuários", icon: Users, group: "Usuários e Permissões", component: <UsersManagementTab canEdit={canEdit} /> },
     { id: "perms", label: "Perfis e Permissões", icon: Shield, group: "Usuários e Permissões", component: <PermissionsManager canEdit={canEdit} /> },
     
     { id: "services", label: "Serviços", icon: Briefcase, group: "Operação", component: <ServicesManager canEdit={canEdit} /> },
