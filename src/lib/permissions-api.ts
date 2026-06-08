@@ -124,11 +124,21 @@ export async function fetchMyPermissions(): Promise<PermissionMap> {
     // Buscamos as permissões em uma query separada
     const { data: roleData, error: roleError } = await supabase
       .from("custom_roles")
-      .select("permissions")
+      .select("name, permissions")
       .eq("id", data.custom_role_id)
       .maybeSingle();
 
     if (roleError || !roleData) return {};
+
+    // Administrador sempre tem tudo
+    if (roleData.name === 'Administrador') {
+      const allPerms: any = {};
+      MODULES.forEach(m => {
+        allPerms[m.id] = { view: true, create: true, edit: true, delete: true, export: true, approve: true };
+      });
+      return allPerms;
+    }
+
     return (roleData.permissions as unknown as PermissionMap) ?? {};
   } catch (e) {
     console.error("Error fetching permissions:", e);
