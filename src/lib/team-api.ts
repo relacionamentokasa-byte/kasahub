@@ -59,7 +59,6 @@ export async function fetchTeamMembers(): Promise<TeamMember[]> {
 }
 
 export async function setMemberRole(userId: string, role: AppRole) {
-  // Replace all roles for the user with this one
   const { error: delErr } = await supabase
     .from("user_roles")
     .delete()
@@ -95,6 +94,14 @@ export async function fetchInvites(): Promise<TeamInvite[]> {
   if (error) throw error;
   return (data ?? []) as unknown as TeamInvite[];
 }
+
+export const ROLE_LABEL: Record<AppRole, string> = {
+  admin: "Admin",
+  ceo: "CEO",
+  gestor: "Gestor",
+  operador: "Operador",
+  cliente: "Cliente",
+};
 
 export async function sendInviteEmail(email: string, role: AppRole, token: string, fullName?: string) {
   const inviteUrl = `https://kasa-opus.lovable.app/convite?token=${token}`;
@@ -135,7 +142,6 @@ export async function sendInviteEmail(email: string, role: AppRole, token: strin
     </div>
   `;
 
-  // Se estivermos no servidor, usamos sendEmailInternal diretamente
   if (typeof window === "undefined") {
     return sendEmailInternal({
       to: email,
@@ -144,7 +150,6 @@ export async function sendInviteEmail(email: string, role: AppRole, token: strin
     });
   }
 
-  // Se estivermos no cliente, usamos a server function
   return sendEmail({
     data: {
       to: email,
@@ -155,15 +160,14 @@ export async function sendInviteEmail(email: string, role: AppRole, token: strin
   });
 }
 
-// Server function to generate invite link and handle admin tasks
 export const createInviteServer = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .input(z.object({
+  .inputValidator((input) => z.object({
     email: z.string().email(),
-    role: z.string(), // AppRole
+    role: z.string(),
     fullName: z.string().optional(),
     invitedBy: z.string().uuid(),
-  }))
+  }).parse(input))
   .handler(async ({ data }) => {
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -176,7 +180,6 @@ export const createInviteServer = createServerFn({ method: "POST" })
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
-    // 1. Generate Link
     const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
       type: "invite",
       email: data.email,
@@ -186,19 +189,13 @@ export const createInviteServer = createServerFn({ method: "POST" })
       }
     });
 
-    if (linkError) {
-      // Se o usuário já existe, ainda queremos poder enviar o email se solicitado,
-      // mas o generateLink falha. Vamos tentar reenviar ou apenas falhar graciosamente.
-      throw linkError;
-    }
+    if (linkError) throw linkError;
 
-    // Extract token from the action link
     const inviteUrl = new URL(linkData.properties.action_link);
     const token = inviteUrl.searchParams.get("token");
 
     if (!token) throw new Error("Could not generate invitation token");
 
-    // 2. Register in team_invites table
     const { error: dbError } = await adminClient
       .from("team_invites")
       .insert({ 
@@ -210,12 +207,49 @@ export const createInviteServer = createServerFn({ method: "POST" })
     
     if (dbError) console.error("Error inserting invite to DB:", dbError);
 
-    // 3. Send custom email
     try {
       await sendInviteEmail(data.email, data.role as AppRole, token, data.fullName);
     } catch (e) {
       console.error("Error sending custom email:", e);
     }
+
+    return { success: true };
+  });
+
+export const resendInviteServer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    email: z.string().email(),
+    role: z.string(),
+  }).parse(input))
+  .handler(async ({ data }) => {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase environment variables not configured on server");
+    }
+
+    const adminClient = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: "invite",
+      email: data.email,
+      options: {
+        redirectTo: "https://kasa-opus.lovable.app/convite"
+      }
+    });
+
+    if (linkError) throw linkError;
+
+    const inviteUrl = new URL(linkData.properties.action_link);
+    const token = inviteUrl.searchParams.get("token");
+
+    if (!token) throw new Error("Could not generate invitation token");
+
+    await sendInviteEmail(data.email, data.role as AppRole, token);
 
     return { success: true };
   });
@@ -234,6 +268,12 @@ export async function createInvite(email: string, role: AppRole, fullName?: stri
   });
 }
 
+export async function resendInvite(email: string, role: AppRole) {
+  return resendInviteServer({
+    data: { email, role }
+  });
+}
+
 export async function deleteInvite(id: string) {
   const { error } = await sb.from("team_invites").delete().eq("id", id);
   if (error) throw error;
@@ -243,14 +283,6 @@ export async function deleteTeamMember(userId: string) {
   const { error } = await supabase.from("profiles").delete().eq("id", userId);
   if (error) throw error;
 }
-
-export const ROLE_LABEL: Record<AppRole, string> = {
-  admin: "Admin",
-  ceo: "CEO",
-  gestor: "Gestor",
-  operador: "Operador",
-  cliente: "Cliente",
-};
 
 export const ROLE_COLOR: Record<AppRole, string> = {
   admin: "bg-red-500/15 text-red-300 border-red-500/30",
