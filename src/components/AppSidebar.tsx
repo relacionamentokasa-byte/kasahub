@@ -77,14 +77,30 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const { can, isAdmin } = usePermissions();
+  const { can, isAdmin, isLoading } = usePermissions();
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
 
   const visibleGroups = groups
-    .map((g) => ({ ...g, items: g.items.filter((it) => isAdmin || can(it.module, "view")) }))
+    .map((g) => ({ 
+      ...g, 
+      items: g.items.filter((it) => isAdmin || can(it.module, "view")) 
+    }))
     .filter((g) => g.items.length > 0);
+
+  if (isLoading) {
+    return (
+      <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+        <SidebarHeader className="h-20 flex justify-center px-4 mb-4">
+          <KasaLogo collapsed={collapsed} variant="sidebar" />
+        </SidebarHeader>
+        <SidebarContent className="px-2 gap-2 flex items-center justify-center">
+          <div className="size-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        </SidebarContent>
+      </Sidebar>
+    );
+  }
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
