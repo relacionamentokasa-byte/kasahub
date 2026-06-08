@@ -117,7 +117,7 @@ function EquipePage() {
         <div className="flex gap-2">
           {isAdmin && (
             <Button variant="outline" size="sm" onClick={handleResendTest} className="gap-2 border-primary/30 text-primary/80">
-              <Mail className="size-4" /> Testar Resend
+              <Mail className="size-4" /> Testar Resend (conteudokasa@gmail.com)
             </Button>
           )}
           {isAdmin && <NewInviteDialog />}
