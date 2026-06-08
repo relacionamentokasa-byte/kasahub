@@ -112,7 +112,7 @@ export async function fetchMyPermissions(): Promise<PermissionMap> {
   if (!userData.user) return {};
   const { data, error } = await supabase
     .from("profiles")
-    .select("custom_role_id, custom_roles(permissions)")
+    .select("custom_role_id, custom_roles!custom_role_id(permissions)")
     .eq("id", userData.user.id)
     .maybeSingle();
   if (error) return {};
