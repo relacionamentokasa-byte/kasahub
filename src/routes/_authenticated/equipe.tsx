@@ -28,6 +28,7 @@ import {
   fetchInvites,
   setMemberRole,
   createInvite,
+  sendInviteEmail,
   deleteInvite,
   deleteTeamMember,
   ROLE_LABEL,
@@ -64,9 +65,8 @@ function EquipePage() {
   const handleResendTest = async () => {
     const loadingToast = toast.loading("Enviando convite de teste...");
     try {
-      await createInvite("conteudokasa@gmail.com", "operador");
+      await sendInviteEmail("conteudokasa@gmail.com", "operador");
       toast.success("Convite de teste enviado para conteudokasa@gmail.com", { id: loadingToast });
-      qc.invalidateQueries({ queryKey: ["team-invites"] });
     } catch (e: any) {
       toast.error(e.message, { id: loadingToast });
     }
@@ -276,10 +276,14 @@ function EquipePage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => {
-                              createInvite(i.email, i.role)
-                                .then(() => toast.success("Convite reenviado"))
-                                .catch((e) => toast.error(e.message));
+                            onClick={async () => {
+                              const loadingToast = toast.loading("Reenviando convite...");
+                              try {
+                                await sendInviteEmail(i.email, i.role);
+                                toast.success("Convite reenviado", { id: loadingToast });
+                              } catch (e: any) {
+                                toast.error(e.message, { id: loadingToast });
+                              }
                             }}
                             className="text-foreground/60 hover:text-primary h-8 w-8 p-0"
                             title="Reenviar convite"
