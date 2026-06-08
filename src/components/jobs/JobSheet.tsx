@@ -48,6 +48,7 @@ import {
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash } from "lucide-react";
+import { handleMentions } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -337,8 +338,23 @@ export function JobSheet({
   });
 
   const commentMut = useMutation({
-    mutationFn: ({ content, type, metadata, isSystem }: { content: string; type?: string; metadata?: any; isSystem?: boolean }) => 
-      addJobComment(job!.id, content, type, metadata, isSystem),
+    mutationFn: async ({ content, type, metadata, isSystem }: { content: string; type?: string; metadata?: any; isSystem?: boolean }) => {
+      const result = await addJobComment(job!.id, content, type, metadata, isSystem);
+      
+      // Handle mentions manually for instant notification if not a system comment
+      if (!isSystem && content.includes('@')) {
+        const jobTitle = job!.title;
+        const jobLink = `/jobs?jobId=${job!.id}`;
+        await handleMentions(content, {
+          title: jobTitle,
+          link: jobLink,
+          originType: 'job',
+          originId: job!.id
+        });
+      }
+      
+      return result;
+    },
     onMutate: async ({ content, type, isSystem }) => {
       const qk = ["job-comments", job!.id];
       await qc.cancelQueries({ queryKey: qk });
