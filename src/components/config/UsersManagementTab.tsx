@@ -21,8 +21,7 @@ import {
 import { fetchUsers, fetchInvites, createInvite, deleteInvite, updateUserStatus, deleteUser } from "@/lib/users-api";
 import { fetchAgencySettings } from "@/lib/settings-api";
 import { fetchCustomRoles } from "@/lib/permissions-api";
-import { sendInviteEmail } from "@/lib/team-api";
-import { ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
+import { sendInviteEmail, ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
 
 function UserKPIBox({ title, value, sub }: { title: string; value: string; sub?: string }) {
   return (
