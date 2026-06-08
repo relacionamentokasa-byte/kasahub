@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
-import { sendEmail } from "./email.functions";
+import { sendEmail, sendEmailInternal } from "./email.functions";
 import type { Database } from "@/integrations/supabase/types";
+import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -92,87 +96,142 @@ export async function fetchInvites(): Promise<TeamInvite[]> {
   return (data ?? []) as unknown as TeamInvite[];
 }
 
-export async function sendInviteEmail(email: string, role: AppRole, fullName?: string) {
-  // O Supabase Auth lida com o token de convite quando usamos o método de convite do Admin.
-  // Como estamos disparando via Resend, precisamos garantir que o link seja o de convite do Supabase
-  // ou que o Supabase envie o email. Mas o usuário pediu para usar Resend com template customizado.
+export async function sendInviteEmail(email: string, role: AppRole, token: string, fullName?: string) {
+  const inviteUrl = `https://kasa-opus.lovable.app/convite?token=${token}`;
   
-  // No fluxo real do Supabase, o convite Admin gera um token.
-  // Como o usuário pediu para usar Resend, vamos configurar o Supabase para redirecionar para nossa página de convite.
-  const inviteUrl = `${window.location.origin}/auth/invite`;
-  
-  await sendEmail({
+  const html = `
+    <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #0c1618; border-radius: 16px; color: #ffffff;">
+      <div style="text-align: center; margin-bottom: 40px;">
+        <h1 style="color: #ffbc45; font-size: 28px; font-weight: 800; letter-spacing: -0.025em; margin: 0;">KASA HUB</h1>
+        <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-top: 8px;">Inteligência ERP Operacional</p>
+      </div>
+      
+      <p style="font-size: 18px; line-height: 1.6; color: #ffffff; margin-bottom: 24px;">Olá, ${fullName || 'Colaborador'}!</p>
+      
+      <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 32px;">
+        Você foi convidado para acessar o <strong>Kasa Hub</strong>, a plataforma interna da <strong>Kasa Marketing & Consultoria</strong>.
+      </p>
+      
+      <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 32px; text-align: center;">
+        <p style="font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; margin: 0 0 8px 0;">Perfil de Acesso Atribuído</p>
+        <p style="font-size: 20px; color: #ffbc45; font-weight: bold; margin: 0;">${ROLE_LABEL[role]}</p>
+      </div>
+      
+      <div style="text-align: center; margin-bottom: 40px;">
+        <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 16px; display: inline-block; box-shadow: 0 10px 20px rgba(255, 188, 69, 0.2);">Acessar o Kasa Hub</a>
+      </div>
+      
+      <p style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 32px;">
+        Se o botão acima não funcionar, copie e cole o link no seu navegador:<br>
+        <span style="color: #ffbc45; font-family: monospace; font-size: 11px; word-break: break-all;">${inviteUrl}</span>
+      </p>
+      
+      <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 32px;">
+      
+      <p style="font-size: 12px; line-height: 1.6; color: rgba(255,255,255,0.3); text-align: center; margin: 0;">
+        Este convite foi enviado pela equipe Kasa.<br>
+        Se você não esperava este e-mail, pode ignorá-lo.
+      </p>
+    </div>
+  `;
+
+  // Se estivermos no servidor, usamos sendEmailInternal diretamente
+  if (typeof window === "undefined") {
+    return sendEmailInternal({
+      to: email,
+      subject: "Você foi convidado para o KASA HUB",
+      html,
+    });
+  }
+
+  // Se estivermos no cliente, usamos a server function
+  return sendEmail({
     data: {
       to: email,
       from: "KASA HUB <noreply@kasamkt.com.br>",
       subject: "Você foi convidado para o KASA HUB",
-      html: `
-        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #0c1618; border-radius: 16px; color: #ffffff;">
-          <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="color: #ffbc45; font-size: 28px; font-weight: 800; letter-spacing: -0.025em; margin: 0;">KASA HUB</h1>
-            <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-top: 8px;">Inteligência ERP Operacional</p>
-          </div>
-          
-          <p style="font-size: 18px; line-height: 1.6; color: #ffffff; margin-bottom: 24px;">Olá, ${fullName || 'Colaborador'}!</p>
-          
-          <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 32px;">
-            Você foi convidado para acessar o <strong>Kasa Hub</strong>, a plataforma interna da <strong>Kasa Marketing & Consultoria</strong>.
-          </p>
-          
-          <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 32px; text-align: center;">
-            <p style="font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; margin: 0 0 8px 0;">Perfil de Acesso Atribuído</p>
-            <p style="font-size: 20px; color: #ffbc45; font-weight: bold; margin: 0;">${ROLE_LABEL[role]}</p>
-          </div>
-          
-          <div style="text-align: center; margin-bottom: 40px;">
-            <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 16px; display: inline-block; box-shadow: 0 10px 20px rgba(255, 188, 69, 0.2);">Acessar o Kasa Hub</a>
-          </div>
-          
-          <p style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 32px;">
-            Se o botão acima não funcionar, copie e cole o link no seu navegador:<br>
-            <span style="color: #ffbc45; font-family: monospace;">${inviteUrl}</span>
-          </p>
-          
-          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 32px;">
-          
-          <p style="font-size: 12px; line-height: 1.6; color: rgba(255,255,255,0.3); text-align: center; margin: 0;">
-            Este convite foi enviado pela equipe Kasa.<br>
-            Se você não esperava este e-mail, pode ignorá-lo.
-          </p>
-        </div>
-      `,
+      html,
     }
   });
 }
 
-export async function createInvite(email: string, role: AppRole, fullName?: string) {
-  // 1. Criar o usuário no Supabase Auth via Admin API (invite)
-  // O Supabase enviará o e-mail padrão se não desativarmos, mas o usuário quer o Resend.
-  // O ideal seria usar o invite do Supabase que gera o token.
-  const { data, error: authError } = await supabase.auth.admin.inviteUserByEmail(email, {
-    data: { full_name: fullName, display_name: fullName },
-    redirectTo: `${window.location.origin}/auth/invite`
+// Server function to generate invite link and handle admin tasks
+export const createInviteServer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .input(z.object({
+    email: z.string().email(),
+    role: z.string(), // AppRole
+    fullName: z.string().optional(),
+    invitedBy: z.string().uuid(),
+  }))
+  .handler(async ({ data }) => {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase environment variables not configured on server");
+    }
+
+    const adminClient = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // 1. Generate Link
+    const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+      type: "invite",
+      email: data.email,
+      options: {
+        data: { full_name: data.fullName, display_name: data.fullName },
+        redirectTo: "https://kasa-opus.lovable.app/convite"
+      }
+    });
+
+    if (linkError) {
+      // Se o usuário já existe, ainda queremos poder enviar o email se solicitado,
+      // mas o generateLink falha. Vamos tentar reenviar ou apenas falhar graciosamente.
+      throw linkError;
+    }
+
+    // Extract token from the action link
+    const inviteUrl = new URL(linkData.properties.action_link);
+    const token = inviteUrl.searchParams.get("token");
+
+    if (!token) throw new Error("Could not generate invitation token");
+
+    // 2. Register in team_invites table
+    const { error: dbError } = await adminClient
+      .from("team_invites")
+      .insert({ 
+        email: data.email, 
+        role: data.role as AppRole, 
+        invited_by: data.invitedBy, 
+        status: "pending" 
+      });
+    
+    if (dbError) console.error("Error inserting invite to DB:", dbError);
+
+    // 3. Send custom email
+    try {
+      await sendInviteEmail(data.email, data.role as AppRole, token, data.fullName);
+    } catch (e) {
+      console.error("Error sending custom email:", e);
+    }
+
+    return { success: true };
   });
 
-  if (authError) {
-    // Se o erro for que o usuário já existe, podemos ignorar ou tratar
-    if (!authError.message.includes("already registered")) {
-      throw authError;
-    }
-  }
-
+export async function createInvite(email: string, role: AppRole, fullName?: string) {
   const { data: u } = await supabase.auth.getUser();
-  const { error } = await sb
-    .from("team_invites")
-    .insert({ email, role, invited_by: u.user?.id, status: "pending" } as never);
-  if (error) throw error;
+  if (!u.user) throw new Error("User not authenticated");
 
-  // Enviar convite via Resend customizado
-  try {
-    await sendInviteEmail(email, role, fullName);
-  } catch (e) {
-    console.error("Erro ao enviar e-mail de convite:", e);
-  }
+  return createInviteServer({
+    data: {
+      email,
+      role,
+      fullName,
+      invitedBy: u.user.id
+    }
+  });
 }
 
 export async function deleteInvite(id: string) {
