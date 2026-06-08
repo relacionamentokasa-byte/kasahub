@@ -93,7 +93,7 @@ export async function fetchInvites(): Promise<TeamInvite[]> {
 }
 
 export async function sendInviteEmail(email: string, role: AppRole) {
-  const inviteUrl = `${window.location.origin}/auth`;
+  const inviteUrl = `${window.location.origin}/auth/invite`;
   await sendEmail({
     data: {
       to: email,
