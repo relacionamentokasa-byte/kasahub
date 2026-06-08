@@ -97,9 +97,9 @@ export async function sendInviteEmail(email: string, role: AppRole, fullName?: s
   // Como estamos disparando via Resend, precisamos garantir que o link seja o de convite do Supabase
   // ou que o Supabase envie o email. Mas o usuário pediu para usar Resend com template customizado.
   
-  // Para que o Supabase Auth funcione com link customizado e token, geralmente usa-se o email do próprio Supabase.
-  // No entanto, para usar Resend, vamos apontar para a nossa tela de /auth/invite.
-  const inviteUrl = `${window.location.origin}/auth/invite?email=${encodeURIComponent(email)}`;
+  // No fluxo real do Supabase, o convite Admin gera um token.
+  // Como o usuário pediu para usar Resend, vamos configurar o Supabase para redirecionar para nossa página de convite.
+  const inviteUrl = `${window.location.origin}/auth/invite`;
   
   await sendEmail({
     data: {
@@ -146,13 +146,28 @@ export async function sendInviteEmail(email: string, role: AppRole, fullName?: s
 }
 
 export async function createInvite(email: string, role: AppRole, fullName?: string) {
+  // 1. Criar o usuário no Supabase Auth via Admin API (invite)
+  // O Supabase enviará o e-mail padrão se não desativarmos, mas o usuário quer o Resend.
+  // O ideal seria usar o invite do Supabase que gera o token.
+  const { data, error: authError } = await supabase.auth.admin.inviteUserByEmail(email, {
+    data: { full_name: fullName, display_name: fullName },
+    redirectTo: `${window.location.origin}/auth/invite`
+  });
+
+  if (authError) {
+    // Se o erro for que o usuário já existe, podemos ignorar ou tratar
+    if (!authError.message.includes("already registered")) {
+      throw authError;
+    }
+  }
+
   const { data: u } = await supabase.auth.getUser();
   const { error } = await sb
     .from("team_invites")
     .insert({ email, role, invited_by: u.user?.id, status: "pending" } as never);
   if (error) throw error;
 
-  // Enviar convite via Resend
+  // Enviar convite via Resend customizado
   try {
     await sendInviteEmail(email, role, fullName);
   } catch (e) {
