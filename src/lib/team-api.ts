@@ -174,12 +174,6 @@ export async function createInvite(email: string, role: AppRole, fullName?: stri
     console.error("Erro ao enviar e-mail de convite:", e);
   }
 }
-  try {
-    await sendInviteEmail(email, role, fullName);
-  } catch (e) {
-    console.error("Erro ao enviar e-mail de convite:", e);
-  }
-}
 
 export async function deleteInvite(id: string) {
   const { error } = await sb.from("team_invites").delete().eq("id", id);
