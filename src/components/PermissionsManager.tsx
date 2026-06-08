@@ -107,17 +107,28 @@ export function PermissionsManager({ canEdit }: { canEdit: boolean }) {
               </div>
             );
           })}
+          {roles.length === 0 && <p className="text-sm text-foreground/50 py-6 text-center col-span-full">Nenhum perfil de acesso encontrado.</p>}
         </div>
       </section>
 
       <section className="rounded-xl border border-border bg-surface p-6">
-        <header className="mb-5">
-          <h2 className="font-display text-lg font-semibold flex items-center gap-2">
-            <UserCog className="size-4 text-primary" /> Atribuição de perfis
-          </h2>
-          <p className="text-xs text-foreground/50">
-            Selecione o perfil de cada colaborador. As permissões são carregadas automaticamente.
-          </p>
+        <header className="mb-5 flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-semibold flex items-center gap-2">
+              <UserCog className="size-4 text-primary" /> Atribuição de perfis
+            </h2>
+            <p className="text-xs text-foreground/50">
+              Selecione o perfil de cada colaborador. As permissões são carregadas automaticamente.
+            </p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="gap-2 h-8 text-[10px] font-mono-kasa"
+            onClick={() => qc.invalidateQueries({ queryKey: ["profiles-with-roles"] })}
+          >
+            Atualizar Lista
+          </Button>
         </header>
 
         <div className="space-y-2">
