@@ -1,7 +1,7 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Trash2, UserPlus, ShieldAlert } from "lucide-react";
+import { Loader2, Trash2, UserPlus, ShieldAlert, RefreshCw, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,8 @@ import {
 import { fetchUsers, fetchInvites, createInvite, deleteInvite, updateUserStatus, deleteUser } from "@/lib/users-api";
 import { fetchAgencySettings } from "@/lib/settings-api";
 import { fetchCustomRoles } from "@/lib/permissions-api";
+import { sendInviteEmail } from "@/lib/team-api";
+import { ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
 
 function UserKPIBox({ title, value, sub }: { title: string; value: string; sub?: string }) {
   return (
@@ -52,18 +54,32 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+const APP_ROLES: AppRole[] = ["admin", "ceo", "gestor", "operador", "cliente"];
+
 function InviteUserDialog({ roles, disabled, limitReached }: { roles: any[], disabled?: boolean, limitReached?: boolean }) {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ email: '', full_name: '', role_id: '' });
+  const [form, setForm] = useState({ email: '', full_name: '', role_id: '', app_role: 'operador' as AppRole });
 
   const mut = useMutation({
-    mutationFn: () => createInvite(form),
+    mutationFn: async () => {
+      // Registrar convite no banco de dados (tabela legado do sistema anterior se necessário)
+      // Ou usar a nova tabela team_invites através do team-api
+      await createInvite({ 
+        email: form.email, 
+        full_name: form.full_name, 
+        role_id: form.role_id 
+      });
+      
+      // Enviar o e-mail usando o novo motor Resend
+      await sendInviteEmail(form.email, form.app_role);
+    },
     onSuccess: () => {
       toast.success("Convite enviado com sucesso");
       qc.invalidateQueries({ queryKey: ["invites"] });
+      qc.invalidateQueries({ queryKey: ["team-invites"] });
       setOpen(false);
-      setForm({ email: '', full_name: '', role_id: '' });
+      setForm({ email: '', full_name: '', role_id: '', app_role: 'operador' });
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -72,17 +88,17 @@ function InviteUserDialog({ roles, disabled, limitReached }: { roles: any[], dis
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="gap-2" disabled={disabled}>
-          <UserPlus className="size-4" /> Convidar Usuário
+          <UserPlus className="size-4" /> Convidar Membro
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Novo convite de usuário</DialogTitle>
+          <DialogTitle>Convidar novo membro</DialogTitle>
         </DialogHeader>
         {limitReached ? (
           <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-300 flex items-start gap-3">
             <ShieldAlert className="size-5 shrink-0" />
-            <p className="text-sm">O limite de usuários do seu plano foi atingido. Remova um usuário ou faça upgrade para continuar.</p>
+            <p className="text-sm">O limite de usuários do seu plano foi atingido.</p>
           </div>
         ) : (
           <div className="space-y-4 py-4">
@@ -103,18 +119,33 @@ function InviteUserDialog({ roles, disabled, limitReached }: { roles: any[], dis
                 placeholder="email@empresa.com"
               />
             </div>
-            <div className="space-y-2">
-              <Label>Perfil de Acesso</Label>
-              <Select value={form.role_id} onValueChange={v => setForm(prev => ({ ...prev, role_id: v }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um perfil" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roles.map(r => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Perfil de Acesso</Label>
+                <Select value={form.role_id} onValueChange={v => setForm(prev => ({ ...prev, role_id: v }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map(r => (
+                      <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Papel do Sistema</Label>
+                <Select value={form.app_role} onValueChange={v => setForm(prev => ({ ...prev, app_role: v as AppRole }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {APP_ROLES.map(r => (
+                      <SelectItem key={r} value={r}>{ROLE_LABEL[r]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
         )}
@@ -125,7 +156,7 @@ function InviteUserDialog({ roles, disabled, limitReached }: { roles: any[], dis
               onClick={() => mut.mutate()} 
               disabled={!form.email || !form.full_name || !form.role_id || mut.isPending}
             >
-              Enviar Convite
+              {mut.isPending ? "Enviando..." : "Enviar Convite"}
             </Button>
           )}
         </DialogFooter>
@@ -188,7 +219,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
       <section className="rounded-xl border border-border bg-surface p-6">
         <header className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="font-display text-lg font-semibold">Usuários da plataforma</h2>
+            <h2 className="font-display text-lg font-semibold">Membros da equipe</h2>
             <p className="text-xs text-foreground/50">Gerencie quem tem acesso e quais as permissões de cada um.</p>
           </div>
           {canEdit && (
@@ -204,9 +235,9 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
           <table className="w-full text-sm">
             <thead className="bg-background/40 text-[10px] font-mono-kasa capitalize text-foreground/40">
               <tr>
-                <th className="text-left px-4 py-3">Usuário</th>
+                <th className="text-left px-4 py-3">Membro</th>
                 <th className="text-left px-4 py-3">Cargo / Depto</th>
-                <th className="text-left px-4 py-3">Perfil</th>
+                <th className="text-left px-4 py-3">Perfil de Acesso</th>
                 <th className="text-left px-4 py-3">Último Acesso</th>
                 <th className="text-left px-4 py-3">Status</th>
                 <th className="text-right px-4 py-3">Ações</th>
@@ -306,14 +337,16 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
 
       {invites.length > 0 && (
         <section className="rounded-xl border border-border bg-surface p-6">
-          <h2 className="font-display text-lg font-semibold mb-4">Convites Enviados</h2>
+          <h2 className="font-display text-lg font-semibold mb-4 text-amber-500 flex items-center gap-2">
+            <Mail className="size-5" /> Convites Enviados (Pendentes)
+          </h2>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-background/40 text-[10px] font-mono-kasa capitalize text-foreground/40">
                 <tr>
                   <th className="text-left px-4 py-3">E-mail</th>
                   <th className="text-left px-4 py-3">Nome</th>
-                  <th className="text-left px-4 py-3">Expira em</th>
+                  <th className="text-left px-4 py-3">Data de Expiração</th>
                   <th className="text-right px-4 py-3">Ações</th>
                 </tr>
               </thead>
@@ -326,9 +359,28 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       {new Date(i.expires_at).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <Button variant="ghost" size="sm" onClick={() => delInvite.mutate(i.id)}>
-                        <Trash2 className="size-4 text-destructive" />
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 gap-2 text-[10px] font-mono-kasa"
+                          onClick={async () => {
+                            const loadingToast = toast.loading("Reenviando e-mail...");
+                            try {
+                              // Assumindo um papel padrão para reenvio ou buscando se disponível
+                              await sendInviteEmail(i.email, "operador");
+                              toast.success("E-mail reenviado com sucesso!", { id: loadingToast });
+                            } catch (e: any) {
+                              toast.error(e.message, { id: loadingToast });
+                            }
+                          }}
+                        >
+                          <RefreshCw className="size-3" /> Reenviar
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => delInvite.mutate(i.id)}>
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
