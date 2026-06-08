@@ -20,11 +20,11 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-type Mode = "signin" | "signup";
+type Mode = "signin";
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -47,22 +47,9 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: { full_name: fullName, display_name: fullName },
-          },
-        });
-        if (error) throw error;
-        toast.success("Conta criada. Bem-vindo ao KASA HUB.");
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        toast.success("Acesso liberado.");
-      }
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast.success("Acesso liberado.");
       navigate({ to: "/", replace: true });
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Falha na autenticação";
@@ -148,55 +135,18 @@ function AuthPage() {
 
         <div className="space-y-2 mb-8">
           <span className="text-primary text-[10px] font-mono-kasa capitalize font-semibold">
-            {mode === "signin" ? "Acesso restrito" : "Nova conta"}
+            Acesso restrito
           </span>
           <h2 className="font-display text-3xl font-bold tracking-tight">
-            {mode === "signin" ? "Entrar no KASA HUB" : "Criar conta no KASA HUB"}
+            Entrar no KASA HUB
           </h2>
           <p className="text-foreground/60 text-sm">
-            {mode === "signin"
-              ? "Use o e-mail corporativo cadastrado pela administração."
-              : "Crie sua conta para acessar a operação da Kasa."}
+            Use o e-mail corporativo cadastrado pela administração.
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleGoogle}
-          disabled={oauthLoading || loading}
-          className="w-full h-11 rounded-lg border-border hover:bg-surface gap-3 text-sm font-medium"
-        >
-          {oauthLoading ? (
-            <Loader2 className="size-4 animate-spin" />
-          ) : (
-            <GoogleIcon className="size-4" />
-          )}
-          Continuar com Google
-        </Button>
-
-        <div className="my-6 flex items-center gap-3 text-[10px] font-mono-kasa capitalize text-foreground/30">
-          <span className="h-px flex-1 bg-border" />
-          ou
-          <span className="h-px flex-1 bg-border" />
-        </div>
-
+        {/* Login social removido para focar em acesso restrito e convite */}
         <form className="space-y-5" onSubmit={handleEmailSubmit}>
-          {mode === "signup" && (
-            <div className="space-y-2">
-              <label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">
-                Nome completo
-              </label>
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Seu nome"
-                className="w-full h-11 px-4 bg-surface border border-border rounded-lg text-sm placeholder:text-foreground/30 outline-none focus:border-primary/60 focus:ring-2 focus:ring-primary/20 transition"
-              />
-            </div>
-          )}
           <div className="space-y-2">
             <label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">
               E-mail
@@ -234,37 +184,15 @@ function AuthPage() {
               <Loader2 className="size-4 animate-spin" />
             ) : (
               <>
-                {mode === "signin" ? "Entrar no sistema" : "Criar conta"}
+                Entrar no sistema
                 <ArrowRight className="size-4" />
               </>
             )}
           </Button>
         </form>
 
-        <div className="mt-8 pt-6 border-t border-border text-center text-sm text-foreground/60">
-          {mode === "signin" ? (
-            <>
-              Ainda não tem conta?{" "}
-              <button
-                type="button"
-                onClick={() => setMode("signup")}
-                className="text-primary hover:underline font-medium"
-              >
-                Criar conta
-              </button>
-            </>
-          ) : (
-            <>
-              Já tem conta?{" "}
-              <button
-                type="button"
-                onClick={() => setMode("signin")}
-                className="text-primary hover:underline font-medium"
-              >
-                Entrar
-              </button>
-            </>
-          )}
+        <div className="mt-8 pt-6 border-t border-border text-center text-[10px] font-mono-kasa uppercase text-foreground/40 tracking-widest">
+          Kasa Marketing Consultoria · ERP Operacional
         </div>
       </div>
     </div>
