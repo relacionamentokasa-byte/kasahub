@@ -52,7 +52,9 @@ export async function createInvite(invite: { email: string; full_name: string; r
   const { data, error } = await supabase
     .from("user_invites")
     .insert({
-      ...invite,
+      email: invite.email,
+      full_name: invite.full_name,
+      custom_role_id: invite.role_id,
       inviter_id: user.id
     })
     .select()

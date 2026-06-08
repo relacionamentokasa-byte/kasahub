@@ -96,6 +96,10 @@ export type ProfileWithRole = {
   full_name: string | null;
   avatar_url: string | null;
   custom_role_id: string | null;
+  custom_roles?: {
+    name: string;
+    permissions: PermissionMap;
+  };
 };
 
 export async function fetchProfilesWithRoles(): Promise<ProfileWithRole[]> {
