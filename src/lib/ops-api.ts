@@ -584,8 +584,8 @@ export async function addJobComment(
   if (mentions.length > 0) {
     const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
     await handleMentions(content, {
-      title: `Job: ${job?.title || 'Job'}`,
-      link: `/jobs`,
+      title: job?.title || 'Job',
+      link: `/jobs?jobId=${jobId}`,
       originType: 'jobs',
       originId: jobId
     });
