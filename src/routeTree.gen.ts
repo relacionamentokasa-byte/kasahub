@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ConviteRouteImport } from './routes/convite'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
@@ -43,6 +44,11 @@ import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/pub
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
 
+const ConviteRoute = ConviteRouteImport.update({
+  id: '/convite',
+  path: '/convite',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -217,6 +223,7 @@ const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRouteWithChildren
+  '/convite': typeof ConviteRoute
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/ceo': typeof AuthenticatedCeoRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRouteWithChildren
+  '/convite': typeof ConviteRoute
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/ceo': typeof AuthenticatedCeoRoute
@@ -286,6 +294,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
+  '/convite': typeof ConviteRoute
   '/_authenticated/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/ceo': typeof AuthenticatedCeoRoute
@@ -323,6 +332,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/convite'
     | '/aprovacoes'
     | '/calendario'
     | '/ceo'
@@ -356,6 +366,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/convite'
     | '/aprovacoes'
     | '/calendario'
     | '/ceo'
@@ -391,6 +402,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_authenticated'
     | '/auth'
+    | '/convite'
     | '/_authenticated/aprovacoes'
     | '/_authenticated/calendario'
     | '/_authenticated/ceo'
@@ -427,6 +439,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
+  ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
   PTokenRoute: typeof PTokenRoute
@@ -443,6 +456,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/convite': {
+      id: '/convite'
+      path: '/convite'
+      fullPath: '/convite'
+      preLoaderRoute: typeof ConviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -770,6 +790,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
+  ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
   PTokenRoute: PTokenRoute,
@@ -786,13 +807,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
