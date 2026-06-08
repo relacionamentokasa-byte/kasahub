@@ -60,6 +60,17 @@ function EquipePage() {
   const { data: myRoles = [] } = useQuery({ queryKey: ["roles", "me"], queryFn: fetchCurrentUserRoles });
   const isAdmin = hasAnyRole(myRoles, ["admin"]);
 
+  // Test send email logic if requested
+  const handleResendTest = async () => {
+    try {
+      await createInvite("conteudokasa@gmail.com", "operador");
+      toast.success("Convite de teste enviado para conteudokasa@gmail.com");
+      qc.invalidateQueries({ queryKey: ["team-invites"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  };
+
   const roleMut = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: AppRole }) =>
       setMemberRole(userId, role),
