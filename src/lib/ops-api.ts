@@ -566,20 +566,27 @@ export async function addJobComment(
 ) {
   const { data: u } = await supabase.auth.getUser();
   const mentions = Array.from(content.matchAll(/@(\w+)/g)).map((m) => m[1]);
+  
+  const payload: any = { 
+    job_id: jobId, 
+    user_id: u.user?.id ?? null, 
+    content, 
+    mentions,
+    type,
+    metadata,
+    is_system: isSystem
+  };
+
   const { data, error } = await supabase
     .from("job_comments")
-    .insert({ 
-      job_id: jobId, 
-      user_id: u.user?.id ?? null, 
-      content, 
-      mentions,
-      type,
-      metadata,
-      is_system: isSystem
-    })
+    .insert(payload)
     .select()
     .single();
-  if (error) throw error;
+    
+  if (error) {
+    console.error("Error adding job comment:", error);
+    throw error;
+  }
 
   if (mentions.length > 0) {
     const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
