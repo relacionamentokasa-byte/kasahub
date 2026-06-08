@@ -100,18 +100,38 @@ export async function sendInviteEmail(email: string, role: AppRole) {
       from: "KASA HUB <noreply@kasamkt.com.br>",
       subject: "Você foi convidado para o KASA HUB",
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h1 style="color: #0c1618;">KASA HUB</h1>
-          <p style="font-size: 16px; color: #333;">Olá!</p>
-          <p style="font-size: 16px; color: #333;">Você foi convidado para participar da equipe no <strong>KASA HUB</strong> como <strong>${ROLE_LABEL[role]}</strong>.</p>
-          <p style="font-size: 16px; color: #333;">Clique no botão abaixo para criar sua conta e começar a usar o sistema:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Aceitar Convite</a>
+        <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; background-color: #0c1618; border-radius: 16px; color: #ffffff;">
+          <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="color: #ffbc45; font-size: 28px; font-weight: 800; letter-spacing: -0.025em; margin: 0;">KASA HUB</h1>
+            <p style="color: rgba(255,255,255,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: bold; margin-top: 8px;">Inteligência ERP Operacional</p>
           </div>
-          <p style="font-size: 14px; color: #777;">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
-          <p style="font-size: 14px; color: #777;">${inviteUrl}</p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-          <p style="font-size: 12px; color: #999; text-align: center;">Kasa Marketing Consultoria</p>
+          
+          <p style="font-size: 18px; line-height: 1.6; color: #ffffff; margin-bottom: 24px;">Olá!</p>
+          
+          <p style="font-size: 16px; line-height: 1.6; color: rgba(255,255,255,0.8); margin-bottom: 32px;">
+            Você foi convidado para acessar o <strong>Kasa Hub</strong>, a plataforma interna da <strong>Kasa Marketing & Consultoria</strong>.
+          </p>
+          
+          <div style="background-color: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; margin-bottom: 32px; text-align: center;">
+            <p style="font-size: 12px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.05em; font-weight: bold; margin: 0 0 8px 0;">Perfil de Acesso Atribuído</p>
+            <p style="font-size: 20px; color: #ffbc45; font-weight: bold; margin: 0;">${ROLE_LABEL[role]}</p>
+          </div>
+          
+          <div style="text-align: center; margin-bottom: 40px;">
+            <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 800; font-size: 16px; display: inline-block; box-shadow: 0 10px 20px rgba(255, 188, 69, 0.2);">Aceitar Convite</a>
+          </div>
+          
+          <p style="font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.4); text-align: center; margin-bottom: 32px;">
+            Se o botão acima não funcionar, copie e cole o link no seu navegador:<br>
+            <span style="color: #ffbc45; font-family: monospace;">${inviteUrl}</span>
+          </p>
+          
+          <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin-bottom: 32px;">
+          
+          <p style="font-size: 12px; line-height: 1.6; color: rgba(255,255,255,0.3); text-align: center; margin: 0;">
+            Este convite foi enviado pela equipe Kasa.<br>
+            Se você não esperava este e-mail, pode ignorá-lo.
+          </p>
         </div>
       `,
     }
