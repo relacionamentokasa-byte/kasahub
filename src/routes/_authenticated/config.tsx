@@ -23,6 +23,7 @@ import {
   Menu,
   Smartphone
 } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
 
 import { PermissionsManager } from "@/components/PermissionsManager";
@@ -234,7 +235,9 @@ function ConfigPage() {
           )}
 
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {currentSection.component}
+            <ErrorBoundary>
+              {currentSection.component}
+            </ErrorBoundary>
           </div>
         </div>
       </main>
