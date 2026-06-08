@@ -28,7 +28,7 @@ export interface UserInvite {
 export async function fetchUsers(): Promise<UserProfile[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("*, custom_roles(name, permissions)")
+    .select("*, custom_roles:custom_role_id(name, permissions)")
     .order("display_name", { ascending: true });
 
   if (error) throw error;
@@ -52,7 +52,9 @@ export async function createInvite(invite: { email: string; full_name: string; r
   const { data, error } = await supabase
     .from("user_invites")
     .insert({
-      ...invite,
+      email: invite.email,
+      full_name: invite.full_name,
+      role_id: invite.role_id,
       inviter_id: user.id
     })
     .select()

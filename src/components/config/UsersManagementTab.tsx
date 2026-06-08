@@ -1,5 +1,5 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Trash2, UserPlus, ShieldAlert, RefreshCw, Mail } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -198,6 +198,12 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
 
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
+  const handleDeleteConfirm = useCallback(() => {
+    if (userToDelete) {
+      deleteUserMut.mutate(userToDelete);
+    }
+  }, [userToDelete, deleteUserMut]);
+
   if (usersLoading || invitesLoading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>;
 
   const userLimit = agency?.user_limit || 10;
@@ -267,7 +273,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary">
-                      {(u as any).custom_roles?.name || "Sem perfil"}
+                      {u.custom_roles?.name || "Sem perfil"}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-foreground/50 text-xs">
@@ -324,7 +330,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={() => userToDelete && deleteUserMut.mutate(userToDelete)}
+              onClick={handleDeleteConfirm}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteUserMut.isPending ? "Excluindo..." : "Excluir permanentemente"}
