@@ -112,6 +112,7 @@ export async function fetchMyPermissions(): Promise<PermissionMap> {
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return {};
     
+    // Simplificamos ao máximo para evitar join que pode falhar
     const { data, error } = await supabase
       .from("profiles")
       .select("custom_role_id")
@@ -120,14 +121,15 @@ export async function fetchMyPermissions(): Promise<PermissionMap> {
       
     if (error || !data?.custom_role_id) return {};
 
+    // Buscamos as permissões em uma query separada
     const { data: roleData, error: roleError } = await supabase
       .from("custom_roles")
       .select("permissions")
       .eq("id", data.custom_role_id)
       .maybeSingle();
 
-    if (roleError) return {};
-    return (roleData?.permissions as unknown as PermissionMap) ?? {};
+    if (roleError || !roleData) return {};
+    return (roleData.permissions as unknown as PermissionMap) ?? {};
   } catch (e) {
     console.error("Error fetching permissions:", e);
     return {};

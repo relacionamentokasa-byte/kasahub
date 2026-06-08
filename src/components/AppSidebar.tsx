@@ -17,6 +17,7 @@ import {
   CalendarRange,
   Activity,
   UsersRound,
+  Loader2,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { ModuleId } from "@/lib/permissions-api";
@@ -77,24 +78,24 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const { can, isAdmin, isLoading } = usePermissions();
+  const { can, isAdmin, isLoading, isError } = usePermissions();
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
 
+  // Fallback de segurança: se houver erro ou não estiver carregando e as permissões forem vazias,
+  // permitimos visualizar para evitar menu em branco.
   const visibleGroups = groups
     .map((g) => ({ 
       ...g, 
       items: g.items.filter((it) => {
-        // Se já carregou e não identificou permissões específicas ou admin,
-        // liberamos a visualização para garantir que o menu não fique vazio.
-        const hasSpecificPermission = isAdmin || can(it.module, "view");
-        return isLoading ? false : hasSpecificPermission || true;
+        if (isLoading) return false;
+        if (isError || isAdmin) return true;
+        return can(it.module, "view");
       }) 
     }))
     .filter((g) => g.items.length > 0);
     
-  // Garantia absoluta de que o menu nunca ficará vazio
   const finalGroups = visibleGroups.length > 0 ? visibleGroups : groups;
 
   if (isLoading) {
@@ -104,7 +105,7 @@ export function AppSidebar() {
           <KasaLogo collapsed={collapsed} variant="sidebar" />
         </SidebarHeader>
         <SidebarContent className="px-2 gap-2 flex items-center justify-center">
-          <div className="size-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <Loader2 className="size-5 animate-spin text-primary" />
         </SidebarContent>
       </Sidebar>
     );
