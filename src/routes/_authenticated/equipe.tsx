@@ -62,12 +62,13 @@ function EquipePage() {
 
   // Test send email logic if requested
   const handleResendTest = async () => {
+    const loadingToast = toast.loading("Enviando convite de teste...");
     try {
       await createInvite("conteudokasa@gmail.com", "operador");
-      toast.success("Convite de teste enviado para conteudokasa@gmail.com");
+      toast.success("Convite de teste enviado para conteudokasa@gmail.com", { id: loadingToast });
       qc.invalidateQueries({ queryKey: ["team-invites"] });
     } catch (e: any) {
-      toast.error(e.message);
+      toast.error(e.message, { id: loadingToast });
     }
   };
 
