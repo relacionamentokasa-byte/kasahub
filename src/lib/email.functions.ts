@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const FROM_DEFAULT = "KASA HUB <onboarding@resend.dev>";
+const FROM_DEFAULT = "KASA HUB <noreply@kasamkt.com.br>";
 
 const SendEmailInput = z.object({
   to: z.string().email().max(320),

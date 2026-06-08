@@ -95,25 +95,24 @@ export async function fetchInvites(): Promise<TeamInvite[]> {
 export async function sendInviteEmail(email: string, role: AppRole) {
   const inviteUrl = `${window.location.origin}/auth`;
   await sendEmail({
-    data: {
-      to: email,
-      subject: "Você foi convidado para o KASA HUB",
-      html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-          <h1 style="color: #0c1618;">KASA HUB</h1>
-          <p style="font-size: 16px; color: #333;">Olá!</p>
-          <p style="font-size: 16px; color: #333;">Você foi convidado para participar da equipe no <strong>KASA HUB</strong> como <strong>${ROLE_LABEL[role]}</strong>.</p>
-          <p style="font-size: 16px; color: #333;">Clique no botão abaixo para criar sua conta e começar a usar o sistema:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Aceitar Convite</a>
-          </div>
-          <p style="font-size: 14px; color: #777;">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
-          <p style="font-size: 14px; color: #777;">${inviteUrl}</p>
-          <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-          <p style="font-size: 12px; color: #999; text-align: center;">Kasa Marketing Consultoria</p>
+    to: email,
+    from: "KASA HUB <noreply@kasamkt.com.br>",
+    subject: "Você foi convidado para o KASA HUB",
+    html: `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h1 style="color: #0c1618;">KASA HUB</h1>
+        <p style="font-size: 16px; color: #333;">Olá!</p>
+        <p style="font-size: 16px; color: #333;">Você foi convidado para participar da equipe no <strong>KASA HUB</strong> como <strong>${ROLE_LABEL[role]}</strong>.</p>
+        <p style="font-size: 16px; color: #333;">Clique no botão abaixo para criar sua conta e começar a usar o sistema:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${inviteUrl}" style="background-color: #ffbc45; color: #0c1618; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Aceitar Convite</a>
         </div>
-      `,
-    }
+        <p style="font-size: 14px; color: #777;">Se o botão não funcionar, copie e cole o link abaixo no seu navegador:</p>
+        <p style="font-size: 14px; color: #777;">${inviteUrl}</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">Kasa Marketing Consultoria</p>
+      </div>
+    `,
   });
 }
 
