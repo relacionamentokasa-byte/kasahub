@@ -21,7 +21,7 @@ import {
 import { fetchUsers, fetchInvites, createInvite, deleteInvite, updateUserStatus, deleteUser } from "@/lib/users-api";
 import { fetchAgencySettings } from "@/lib/settings-api";
 import { fetchCustomRoles } from "@/lib/permissions-api";
-import { resendInvite, ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
+import { createInvite as createTeamInvite, resendInvite, ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
 
 function UserKPIBox({ title, value, sub }: { title: string; value: string; sub?: string }) {
   return (
@@ -73,14 +73,14 @@ function InviteUserDialog({ roles = [], disabled, limitReached }: { roles?: any[
       };
       
       const appRole = selectedRole ? (appRoleMapping[selectedRole.name] || 'operador') : 'operador';
-
-      await createInvite({ 
-        email: form.email, 
-        full_name: form.full_name, 
-        role_id: form.role_id 
-      });
       
-      await sendInviteEmail(form.email, appRole, form.full_name);
+      // A nova função createInvite do team-api lida com a criação no banco 
+      // e o envio do e-mail personalizado com token em uma única operação segura no servidor.
+      await createTeamInvite(
+        form.email, 
+        form.role_id, 
+        form.full_name
+      );
     },
     onSuccess: () => {
       toast.success("Convite enviado com sucesso");
