@@ -355,9 +355,9 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   }
   
   const { data: userData } = await supabase.auth.getUser();
-  if (data.assignee_id && data.assignee_id !== userData.user?.id) {
+  if (data.responsible_id && data.responsible_id !== userData.user?.id) {
     await supabase.rpc('notify_user', {
-      p_user_id: data.assignee_id,
+      p_user_id: data.responsible_id,
       p_title: "Novo Job Atribuído",
       p_description: `Você foi designado para: ${data.title}`,
       p_category: 'job',
@@ -391,9 +391,9 @@ export async function updateJob(
   if (error) throw error;
   
   const { data: userData } = await supabase.auth.getUser();
-  if (patch.assignee_id && patch.assignee_id !== userData.user?.id) {
+  if (patch.responsible_id && patch.responsible_id !== userData.user?.id) {
     await supabase.rpc('notify_user', {
-      p_user_id: patch.assignee_id,
+      p_user_id: patch.responsible_id,
       p_title: "Responsabilidade de Job",
       p_description: `Você agora é responsável por: ${data.title}`,
       p_category: 'job',
@@ -584,8 +584,8 @@ export async function addJobComment(
   if (mentions.length > 0) {
     const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
     await handleMentions(content, {
-      title: `Job: ${job?.title || 'Job'}`,
-      link: `/jobs`,
+      title: job?.title || 'Job',
+      link: `/jobs?jobId=${jobId}`,
       originType: 'jobs',
       originId: jobId
     });
