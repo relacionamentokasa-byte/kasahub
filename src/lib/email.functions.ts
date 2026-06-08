@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const FROM_DEFAULT = "KASA HUB <onboarding@resend.dev>";
 
@@ -12,35 +11,50 @@ const SendEmailInput = z.object({
   reply_to: z.string().email().max(320).optional(),
 });
 
+/**
+ * Internal helper to send email via Resend connector.
+ * This skips the auth middleware so it can be called from server-side logic
+ * during the migration phase or from public endpoints if needed.
+ */
+export async function sendEmailInternal(data: z.infer<typeof SendEmailInput>) {
+  const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  
+  if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
+    throw new Error("Integração Resend não configurada");
+  }
+  
+  const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${LOVABLE_API_KEY}`,
+      "X-Connection-Api-Key": RESEND_API_KEY,
+    },
+    body: JSON.stringify({
+      from: data.from ?? FROM_DEFAULT,
+      to: [data.to],
+      subject: data.subject,
+      html: data.html,
+      reply_to: data.reply_to,
+    }),
+  });
+  
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error(
+      `Resend ${res.status}: ${(body as { message?: string })?.message ?? "erro desconhecido"}`,
+    );
+  }
+  return { id: (body as { id?: string }).id ?? null };
+}
+
+// Client-callable server function with auth middleware
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 export const sendEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => SendEmailInput.parse(input))
   .handler(async ({ data }) => {
-    const LOVABLE_API_KEY = process.env.LOVABLE_API_KEY;
-    const RESEND_API_KEY = process.env.RESEND_API_KEY;
-    if (!LOVABLE_API_KEY || !RESEND_API_KEY) {
-      throw new Error("Integração Resend não configurada");
-    }
-    const res = await fetch("https://connector-gateway.lovable.dev/resend/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "X-Connection-Api-Key": RESEND_API_KEY,
-      },
-      body: JSON.stringify({
-        from: data.from ?? FROM_DEFAULT,
-        to: [data.to],
-        subject: data.subject,
-        html: data.html,
-        reply_to: data.reply_to,
-      }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      throw new Error(
-        `Resend ${res.status}: ${(body as { message?: string })?.message ?? "erro desconhecido"}`,
-      );
-    }
-    return { id: (body as { id?: string }).id ?? null };
+    return sendEmailInternal(data);
   });
