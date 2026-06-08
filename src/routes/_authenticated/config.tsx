@@ -23,6 +23,7 @@ import {
   Menu,
   Smartphone
 } from "lucide-react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
 
 import { PermissionsManager } from "@/components/PermissionsManager";
@@ -65,7 +66,7 @@ function ConfigPage() {
   const { tab } = Route.useSearch() as { tab?: string };
   const qc = useQueryClient();
   const { can, isLoading: permissionsLoading, isError: permsError, isAdmin: userIsAdmin } = usePermissions();
-  const { data, isLoading, isError: settingsError } = useQuery({
+  const { data: settingsData, isLoading: settingsLoading, isError: settingsError } = useQuery({
     queryKey: ["agency-settings"],
     queryFn: fetchAgencySettings,
     retry: 1,
@@ -73,15 +74,17 @@ function ConfigPage() {
 
   const isAdmin = true; // Forçamos admin temporariamente para garantir acesso durante a transição
   const canEdit = isAdmin || can("config", "edit");
-  const displayData = data || { id: "default", name: "Agência" };
+  const displayData = settingsData || { id: "default", name: "Agência" };
 
   const [activeTab, setActiveTab] = useState(tab || "brand");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   const [form, setForm] = useState<Partial<AgencySettings>>({});
+
   useEffect(() => {
-    if (displayData) setForm(displayData);
-  }, [displayData]);
+    if (settingsData) {
+      setForm(settingsData);
+    }
+  }, [settingsData]);
 
   const mut = useMutation({
     mutationFn: () => updateAgencySettings(displayData.id, form),
@@ -96,7 +99,7 @@ function ConfigPage() {
     setForm((prev) => ({ ...prev, [k]: v }));
 
   // Se houver erro persistente, tentamos renderizar com dados mínimos ou aviso
-  if (isLoading || permissionsLoading) {
+  if (settingsLoading || permissionsLoading) {
     return (
       <div className="p-12 flex items-center justify-center min-h-[50vh]">
         <Loader2 className="size-6 animate-spin text-primary" />
@@ -232,7 +235,9 @@ function ConfigPage() {
           )}
 
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-            {currentSection.component}
+            <ErrorBoundary>
+              {currentSection.component}
+            </ErrorBoundary>
           </div>
         </div>
       </main>
