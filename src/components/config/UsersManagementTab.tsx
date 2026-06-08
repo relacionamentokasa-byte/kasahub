@@ -372,7 +372,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                             const loadingToast = toast.loading("Reenviando e-mail...");
                             try {
                               // Usando a nova função de reenvio que gera um novo token
-                              await resendInvite(i.email, "operador");
+                              await resendInvite(i.email, i.role_id, i.full_name);
                               toast.success("E-mail reenviado com sucesso!", { id: loadingToast });
                             } catch (e: any) {
                               toast.error(e.message, { id: loadingToast });
