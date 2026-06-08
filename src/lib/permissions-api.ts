@@ -108,16 +108,30 @@ export async function fetchProfilesWithRoles(): Promise<ProfileWithRole[]> {
 }
 
 export async function fetchMyPermissions(): Promise<PermissionMap> {
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return {};
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("custom_role_id, custom_roles!custom_role_id(permissions)")
-    .eq("id", userData.user.id)
-    .maybeSingle();
-  if (error) return {};
-  const perms = (data as { custom_roles?: { permissions?: PermissionMap } } | null)?.custom_roles?.permissions;
-  return perms ?? {};
+  try {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) return {};
+    
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("custom_role_id")
+      .eq("id", userData.user.id)
+      .maybeSingle();
+      
+    if (error || !data?.custom_role_id) return {};
+
+    const { data: roleData, error: roleError } = await supabase
+      .from("custom_roles")
+      .select("permissions")
+      .eq("id", data.custom_role_id)
+      .maybeSingle();
+
+    if (roleError) return {};
+    return (roleData?.permissions as unknown as PermissionMap) ?? {};
+  } catch (e) {
+    console.error("Error fetching permissions:", e);
+    return {};
+  }
 }
 
 export function canAccess(perms: PermissionMap, module: ModuleId, action: ActionId = "view"): boolean {

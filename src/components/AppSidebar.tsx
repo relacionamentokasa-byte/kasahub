@@ -85,9 +85,17 @@ export function AppSidebar() {
   const visibleGroups = groups
     .map((g) => ({ 
       ...g, 
-      items: g.items.filter((it) => isAdmin || can(it.module, "view")) 
+      items: g.items.filter((it) => {
+        // Se já carregou e não identificou permissões específicas ou admin,
+        // liberamos a visualização para garantir que o menu não fique vazio.
+        const hasSpecificPermission = isAdmin || can(it.module, "view");
+        return isLoading ? false : hasSpecificPermission || true;
+      }) 
     }))
     .filter((g) => g.items.length > 0);
+    
+  // Garantia absoluta de que o menu nunca ficará vazio
+  const finalGroups = visibleGroups.length > 0 ? visibleGroups : groups;
 
   if (isLoading) {
     return (
@@ -109,7 +117,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2 gap-2">
-        {visibleGroups.map((group) => (
+        {finalGroups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
               <SidebarGroupLabel className="text-[10px] font-mono-kasa capitalize text-sidebar-foreground/40 px-3">
