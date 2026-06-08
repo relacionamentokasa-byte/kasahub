@@ -29,7 +29,6 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
-  const [oauthLoading, setOauthLoading] = useState(false);
 
   // Já está logado? Redirecionar para o painel.
   useEffect(() => {
@@ -63,19 +62,6 @@ function AuthPage() {
     }
   };
 
-  const handleGoogle = async () => {
-    setOauthLoading(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      toast.error("Falha ao entrar com Google.");
-      setOauthLoading(false);
-      return;
-    }
-    if (result.redirected) return;
-    navigate({ to: "/", replace: true });
-  };
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-background text-foreground">
@@ -177,7 +163,7 @@ function AuthPage() {
 
           <Button
             type="submit"
-            disabled={loading || oauthLoading}
+            disabled={loading}
             className="w-full h-11 bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-semibold gap-2 text-sm"
           >
             {loading ? (
@@ -199,13 +185,3 @@ function AuthPage() {
   );
 }
 
-function GoogleIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
-      <path
-        fill="#EA4335"
-        d="M12 10.2v3.9h5.5c-.24 1.4-1.7 4.1-5.5 4.1-3.3 0-6-2.7-6-6.1s2.7-6.1 6-6.1c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.7 3.5 14.6 2.6 12 2.6 6.8 2.6 2.6 6.8 2.6 12s4.2 9.4 9.4 9.4c5.4 0 9-3.8 9-9.2 0-.6-.06-1.1-.15-1.6H12z"
-      />
-    </svg>
-  );
-}
