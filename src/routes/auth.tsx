@@ -159,7 +159,7 @@ function AuthPage() {
         </div>
 
         {/* Login social removido para focar em acesso restrito e convite */}
-        <div className="space-y-5" onSubmit={handleEmailSubmit}>
+        <form className="space-y-5" onSubmit={handleEmailSubmit}>
           {mode === "signup" && (
             <div className="space-y-2">
               <label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">
