@@ -77,7 +77,14 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const currentPath = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
-  const { can, isAdmin } = usePermissions();
+  const { can, isAdmin, perms } = usePermissions();
+  
+  // Debug permissions
+  console.log("AppSidebar Permissions Check:", {
+    isAdmin,
+    permsKeys: Object.keys(perms || {}),
+    visibleModules: groups.flatMap(g => g.items.map(it => it.module)).filter(m => can(m, "view"))
+  });
 
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
