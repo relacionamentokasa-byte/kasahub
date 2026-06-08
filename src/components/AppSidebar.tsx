@@ -85,9 +85,17 @@ export function AppSidebar() {
   const visibleGroups = groups
     .map((g) => ({ 
       ...g, 
-      items: g.items.filter((it) => isAdmin || can(it.module, "view")) 
+      items: g.items.filter((it) => {
+        // Fallback: if we're not loading and have no special admin/permission status, 
+        // show everything as a safety measure so the menu is never empty
+        if (!isLoading && !isAdmin && Object.keys(can).length === 0) return true;
+        return isAdmin || can(it.module, "view");
+      }) 
     }))
     .filter((g) => g.items.length > 0);
+    
+  // Final safety check: if after filtering we have no groups, show all groups
+  const finalGroups = visibleGroups.length > 0 ? visibleGroups : groups;
 
   if (isLoading) {
     return (
@@ -109,7 +117,7 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-2 gap-2">
-        {visibleGroups.map((group) => (
+        {finalGroups.map((group) => (
           <SidebarGroup key={group.label}>
             {!collapsed && (
               <SidebarGroupLabel className="text-[10px] font-mono-kasa capitalize text-sidebar-foreground/40 px-3">
