@@ -102,6 +102,7 @@ function PublicProposalView() {
     items: Item[];
     agency: Agency;
     client: Client;
+    lead: Lead;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
