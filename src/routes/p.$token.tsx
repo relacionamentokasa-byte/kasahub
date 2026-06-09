@@ -591,7 +591,7 @@ function PublicProposalView() {
         </div>
 
         {/* Footer */}
-        <div className="bg-white p-8 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="bg-white p-8 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 font-sans">
            <div className="flex items-center gap-2">
              <div className="size-1.5 rounded-full bg-[#ffbc45]" />
              <p className="text-[10px] text-slate-400 font-medium">© {new Date().getFullYear()} {agency?.name} · Todos os direitos reservados</p>
