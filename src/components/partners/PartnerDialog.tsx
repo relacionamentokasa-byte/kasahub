@@ -183,8 +183,10 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
                   </Button>
                 )}
               </div>
-              <p className="text-[10px] uppercase font-mono-kasa text-foreground/40 font-bold tracking-wider">Foto do Representante</p>
-            </div>
+               <p className="text-[10px] uppercase font-mono-kasa text-foreground/40 font-bold tracking-wider">
+                 Foto do {typeLabel(type)}
+               </p>
+             </div>
 
             <div className="grid grid-cols-2 gap-4">
 
