@@ -86,6 +86,7 @@ function InviteUserDialog({ roles = [], disabled, limitReached }: { roles?: any[
       toast.success("Convite enviado com sucesso");
       qc.invalidateQueries({ queryKey: ["invites"] });
       qc.invalidateQueries({ queryKey: ["team-invites"] });
+      qc.invalidateQueries({ queryKey: ["users"] }); // Atualiza a contagem de limites e a lista de usuários (caso o convite crie um perfil pendente)
       setOpen(false);
       setForm({ email: '', full_name: '', role_id: '' });
     },
