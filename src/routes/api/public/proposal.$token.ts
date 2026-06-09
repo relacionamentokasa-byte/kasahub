@@ -103,6 +103,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
               items: items ?? [],
               agency: agency ?? null,
               client: client ?? null,
+              lead: lead ?? null,
             }),
             {
               status: 200,
