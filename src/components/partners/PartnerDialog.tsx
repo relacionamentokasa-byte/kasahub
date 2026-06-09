@@ -143,8 +143,8 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
           <TabsContent value="basic" className="space-y-4">
             <div className="flex flex-col items-center gap-4 mb-6">
               <div className="relative group">
-                <Avatar className="size-24 border-2 border-primary/20 bg-background shadow-lg">
-                  <AvatarImage src={form.photo_url || ""} />
+                <Avatar className="size-24 border-2 border-primary/20 bg-background shadow-lg overflow-hidden">
+                  <AvatarImage src={form.photo_url || ""} className="object-cover w-full h-full" />
                   <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary uppercase">
                     {form.name ? form.name.substring(0, 2) : "P"}
                   </AvatarFallback>
