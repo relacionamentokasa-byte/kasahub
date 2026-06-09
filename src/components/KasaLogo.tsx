@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
-import { fetchAgencySettings } from "@/lib/settings-api";
+import { useEffect, useState, useCallback } from "react";
+import { fetchAgencySettings, SETTINGS_UPDATE_EVENT } from "@/lib/settings-api";
 
 interface KasaLogoProps {
   collapsed?: boolean;
@@ -20,26 +20,33 @@ export function KasaLogo({
     black: "/logo-black.png",
     yellow: "/logo-yellow.png",
     sidebar: null as string | null,
+    login: null as string | null,
   });
 
-  useEffect(() => {
-    const loadLogos = async () => {
-      try {
-        const settings = await fetchAgencySettings();
-        if (settings) {
-          setLogoUrls({
-            white: settings.logo_white_url || "/logo-white.png",
-            black: settings.logo_black_url || "/logo-black.png",
-            yellow: settings.logo_yellow_url || "/logo-yellow.png",
-            sidebar: settings.logo_sidebar_url || null,
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao carregar logos:", error);
+  const loadLogos = useCallback(async () => {
+    try {
+      const settings = await fetchAgencySettings();
+      if (settings) {
+        setLogoUrls({
+          white: settings.logo_white_url || "/logo-white.png",
+          black: settings.logo_black_url || "/logo-black.png",
+          yellow: settings.logo_yellow_url || "/logo-yellow.png",
+          sidebar: settings.logo_sidebar_url || null,
+          login: settings.logo_login_url || null,
+        });
       }
-    };
-    loadLogos();
+    } catch (error) {
+      console.error("Erro ao carregar logos:", error);
+    }
   }, []);
+
+  useEffect(() => {
+    loadLogos();
+    
+    // Escuta atualizações globais de configurações
+    window.addEventListener(SETTINGS_UPDATE_EVENT, loadLogos);
+    return () => window.removeEventListener(SETTINGS_UPDATE_EVENT, loadLogos);
+  }, [loadLogos]);
 
   // Mapeamento de variante de UI para variante de cor da logo
   const getLogoVariant = (): "white" | "black" | "yellow" => {
@@ -59,11 +66,22 @@ export function KasaLogo({
   };
 
   const logoVariant = getLogoVariant();
-  // Se for variante sidebar e houver uma logo específica, usa ela. Caso contrário, usa a variante mapeada.
-  const logoUrl = (variant === "sidebar" && logoUrls.sidebar) ? logoUrls.sidebar : logoUrls[logoVariant];
+  
+  // Lógica de prioridade de URL baseada na variante
+  let logoUrl = logoUrls[logoVariant];
+  
+  if (variant === "sidebar" && logoUrls.sidebar) {
+    logoUrl = logoUrls.sidebar;
+  } else if (variant === "login" && logoUrls.login) {
+    logoUrl = logoUrls.login;
+  } else if (variant === "login" && logoUrls.white) {
+    logoUrl = logoUrls.white;
+  } else if (variant === "loading" && logoUrls.yellow) {
+    logoUrl = logoUrls.yellow;
+  }
 
   return (
-    <div className={cn("flex items-center justify-center transition-all duration-300", className)}>
+    <div className={cn("flex items-center justify-center transition-all duration-300 bg-transparent", className)}>
       <div
         className={cn(
           "flex items-center justify-center shrink-0",

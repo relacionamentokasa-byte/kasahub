@@ -67,17 +67,17 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
     setValidating(key);
     set(key as any, url);
     
-    // Simula validação
-    setTimeout(() => {
-      setValidating(null);
-    }, 1500);
-
     // Se subir uma das logos principais, pode atualizar as antigas como fallback se estiverem vazias
     if (key === 'logo_white_url') {
       if (!form.logo_url) set('logo_url', url);
       if (!form.logo_sidebar_url) set('logo_sidebar_url', url);
       if (!form.logo_login_url) set('logo_login_url', url);
     }
+
+    // Simula validação e força atualização visual
+    setTimeout(() => {
+      setValidating(null);
+    }, 1000);
   };
 
   return (

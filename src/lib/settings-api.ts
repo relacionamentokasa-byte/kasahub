@@ -40,6 +40,13 @@ export interface AgencySettings {
   pwa_favicon_url: string | null;
 }
 
+// Evento customizado para notificar mudanças nas configurações (como logos)
+export const SETTINGS_UPDATE_EVENT = "kasa-settings-updated";
+
+export function notifySettingsUpdate() {
+  window.dispatchEvent(new CustomEvent(SETTINGS_UPDATE_EVENT));
+}
+
 export async function fetchAgencySettings(): Promise<AgencySettings | null> {
   const { data, error } = await supabase
     .from("agency_settings")
@@ -54,4 +61,5 @@ export async function fetchAgencySettings(): Promise<AgencySettings | null> {
 export async function updateAgencySettings(id: string, patch: Partial<AgencySettings>) {
   const { error } = await supabase.from("agency_settings").update(patch as any).eq("id", id);
   if (error) throw error;
+  notifySettingsUpdate();
 }
