@@ -8,7 +8,6 @@ import {
   brl
 } from "@/lib/finance-api";
 import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
-import { fetchAgencyGoals, fetchIndicators } from "@/lib/performance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { GestaoSection } from "./GestaoSection";
 import { OperacaoSection } from "./OperacaoSection";
@@ -80,11 +79,11 @@ export function ExecutiveDashboard() {
   const { data: jobStages = [] } = useQuery({ queryKey: ["job_stages"], queryFn: fetchJobStages });
   const { data: goals = [] } = useQuery({ 
     queryKey: ["agency-goals", new Date().getFullYear()], 
-    queryFn: () => fetchAgencyGoals(new Date().getFullYear()) 
-  });
-  const { data: indicators = [] } = useQuery({
-    queryKey: ["agency-indicators"],
-    queryFn: fetchIndicators
+    queryFn: async () => {
+      const { data, error } = await supabase.from('agency_goals').select('*').eq('year', new Date().getFullYear());
+      if (error) throw error;
+      return data || [];
+    }
   });
   const { data: dmes = [] } = useQuery({
     queryKey: ["extra-demands"],
@@ -160,46 +159,22 @@ export function ExecutiveDashboard() {
     const currentGoals = goals.filter(g => g.month === month || g.period === 'yearly');
 
     const performanceMetrics = [
-      ...indicators.filter(i => i.status === 'active').map(i => {
-        let actual = 0;
-        const monthStr = new Date().toISOString().slice(0, 7);
-        
-        switch (i.data_source) {
-          case 'contracts_mrr': actual = ind.mrr; break;
-          case 'contracts_count': actual = contracts.filter(c => c.status === 'active' && c.created_at?.startsWith(monthStr)).length; break;
-          case 'proposals_accepted': actual = periodContracts.length; break; // simplistic fallback
-          case 'jobs_done': actual = jobsCompleted; break;
-          case 'clients_active': actual = clients.filter(c => c.status === 'active').length; break;
-          case 'clients_new': actual = clients.filter(c => c.created_at?.startsWith(monthStr)).length; break;
-          case 'extra_income': actual = ind.extraIncome; break;
-        }
-
-        return {
-          label: i.name,
-          target: i.target_value,
-          actual,
-          isCurrency: i.type === 'monetary'
-        };
-      }),
-      // Fallback fallback if no indicators defined yet
-      ...(indicators.length === 0 ? [
-        { 
-          label: "Receita", 
-          target: currentGoals.find(g => g.type === 'revenue')?.target_value || 0, 
-          actual: ind.monthIncome, 
-          isCurrency: true 
-        },
-        { 
-          label: "Contratos", 
-          target: currentGoals.find(g => g.type === 'contracts')?.target_value || 0, 
-          actual: periodContracts.length 
-        },
-        { 
-          label: "Jobs", 
-          target: currentGoals.find(g => g.type === 'jobs')?.target_value || 0, 
-          actual: jobsCompleted 
-        },
-      ] : [])
+      { 
+        label: "Receita", 
+        target: goals.find((g: any) => g.type === 'revenue' && g.month === month)?.target_value || 0, 
+        actual: ind.monthIncome, 
+        isCurrency: true 
+      },
+      { 
+        label: "Contratos", 
+        target: goals.find((g: any) => g.type === 'contracts' && g.month === month)?.target_value || 0, 
+        actual: periodContracts.length 
+      },
+      { 
+        label: "Jobs", 
+        target: goals.find((g: any) => g.type === 'jobs' && g.month === month)?.target_value || 0, 
+        actual: jobsCompleted 
+      },
     ];
 
     // Agenda
