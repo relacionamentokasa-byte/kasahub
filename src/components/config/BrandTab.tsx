@@ -106,7 +106,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
                       onChange={(url) => set(asset.key, url)}
                       disabled={!canEdit}
                       className="w-full h-[180px]"
-                      shape="square"
+                      shape="rect"
                       bucket="logos"
                     />
                     {!form[asset.key] && (
