@@ -176,21 +176,10 @@ function AuthListener() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const [faviconUrl, setFaviconUrl] = useState("/logo-yellow.png");
+  const faviconUrl = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
 
   useEffect(() => {
     registerPWA();
-    
-    const loadFavicon = async () => {
-      const settings = await fetchAgencySettings();
-      if (settings?.logo_yellow_url) {
-        setFaviconUrl(settings.logo_yellow_url);
-      }
-    };
-    loadFavicon();
-    
-    window.addEventListener('brand-settings-updated', loadFavicon);
-    return () => window.removeEventListener('brand-settings-updated', loadFavicon);
   }, []);
 
   useEffect(() => {
