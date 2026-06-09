@@ -264,7 +264,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       </div>
                       <div>
                         <p className="font-medium">{u.display_name || u.full_name || "Sem nome"}</p>
-                        <p className="text-[10px] text-foreground/40">{u.id}</p>
+                        <p className="text-[10px] text-foreground/40">{u.email}</p>
                       </div>
                     </div>
                   </td>
@@ -322,17 +322,28 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                                   <Label>Perfil de Acesso</Label>
                                   <Select 
                                     defaultValue={u.custom_role_id || ""} 
-                                    onValueChange={(v) => {
+                                    onValueChange={async (v) => {
                                       const roleId = v === "none" ? null : v;
-                                      const promise = assignProfileRole(u.id, roleId);
-                                      toast.promise(promise, {
-                                        loading: "Atualizando perfil...",
-                                        success: () => {
-                                          qc.invalidateQueries({ queryKey: ["users"] });
-                                          return "Perfil atualizado com sucesso";
-                                        },
-                                        error: (err) => "Erro ao atualizar perfil: " + err.message,
-                                      });
+                                      
+                                      // Buscar o nome da role para atualizar localmente ou via query invalidation
+                                      const selectedRole = roles.find(r => r.id === roleId);
+                                      const roleName = selectedRole ? selectedRole.name : null;
+
+                                      try {
+                                        toast.loading("Atualizando perfil...");
+                                        await assignProfileRole(u.id, roleId);
+                                        
+                                        // Além do custom_role_id no profile, precisamos garantir que o user_roles
+                                        // seja atualizado para refletir o nível de acesso real (admin, gestor, etc)
+                                        // O backend de assignProfileRole deve lidar com isso, mas garantimos a atualização da UI.
+                                        
+                                        qc.invalidateQueries({ queryKey: ["users"] });
+                                        toast.dismiss();
+                                        toast.success("Perfil atualizado com sucesso");
+                                      } catch (err: any) {
+                                        toast.dismiss();
+                                        toast.error("Erro ao atualizar perfil: " + err.message);
+                                      }
                                     }}
                                   >
                                     <SelectTrigger>
