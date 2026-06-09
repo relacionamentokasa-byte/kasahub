@@ -124,7 +124,7 @@ function ClientesPage() {
             <p className="text-sm">Nenhum cliente cadastrado ainda.</p>
           </div>
         ) : view === "cards" ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20 md:pb-0">
+          <div className="responsive-grid pb-20 md:pb-0">
             {filtered.map((c) => {
               const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
               const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);

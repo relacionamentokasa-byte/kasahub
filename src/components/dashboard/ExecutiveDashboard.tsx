@@ -346,10 +346,10 @@ export function ExecutiveDashboard() {
   const isOps = roles.some((r: any) => r === 'operador') || isManager;
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6 sm:space-y-10">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h2 className="font-display text-xl lg:text-2xl font-bold">Resumo Geral</h2>
+          <h2 className="font-display text-xl sm:text-2xl font-bold">Resumo Geral</h2>
           <p className="text-xs lg:text-sm text-foreground/50 truncate">Vitalidade da agência.</p>
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
@@ -431,7 +431,7 @@ export function ExecutiveDashboard() {
         <AgendaSection items={agendaItems} />
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {visibleSections.clientes && <ClientesSection clients={clientRanking} />}
         {visibleSections.feed && <FeedSection events={feedEvents} />}
       </div>

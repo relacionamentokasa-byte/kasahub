@@ -70,10 +70,10 @@ export function AppTopbar() {
     <header className="h-16 border-b border-border flex items-center justify-between px-3 md:px-4 lg:px-8 shrink-0 bg-background/80 backdrop-blur-md sticky top-0 z-20">
       <div className="flex items-center gap-3 flex-1">
         <SidebarTrigger className="text-foreground/60 hover:text-foreground h-11 w-11 md:hidden" />
-        <SidebarTrigger className="text-foreground/60 hover:text-foreground hidden md:flex" />
+        <SidebarTrigger className="text-foreground/60 hover:text-foreground hidden sm:flex" />
 
 
-        <div className="hidden md:flex items-center gap-3 bg-surface/60 border border-border px-4 h-9 rounded-full w-full max-w-md">
+        <div className="hidden lg:flex items-center gap-3 bg-surface/60 border border-border px-4 h-9 rounded-full w-full max-w-md">
           <Search className="size-4 text-foreground/40" />
           <input
             type="text"
