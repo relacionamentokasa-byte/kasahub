@@ -18,6 +18,7 @@ import {
   Activity,
   UsersRound,
   Loader2,
+  Newspaper,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { ModuleId } from "@/lib/permissions-api";
@@ -39,9 +40,15 @@ import { KasaLogo } from "./KasaLogo";
 type SidebarItem = { title: string; url: string; icon: typeof LayoutDashboard; module: ModuleId };
 const groups: { label: string; items: SidebarItem[] }[] = [
   {
+    label: "Geral",
+    items: [
+      { title: "Central de Notícias", url: "/noticias", icon: Newspaper, module: "dashboard" },
+      { title: "Painel", url: "/dashboard", icon: LayoutDashboard, module: "dashboard" },
+    ],
+  },
+  {
     label: "Comercial",
     items: [
-      { title: "Painel", url: "/", icon: LayoutDashboard, module: "dashboard" },
       { title: "CRM", url: "/crm", icon: KanbanSquare, module: "crm" },
       { title: "Propostas", url: "/propostas", icon: FileText, module: "propostas" },
     ],
