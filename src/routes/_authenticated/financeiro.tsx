@@ -169,8 +169,6 @@ function FinanceiroPage() {
   const [openTx, setOpenTx] = useState<false | "income" | "expense" | "transfer" | "adjustment">(false);
   const [openAcc, setOpenAcc] = useState(false);
   const [openImport, setOpenImport] = useState(false);
-  const [openAcc, setOpenAcc] = useState(false);
-  const [openImport, setOpenImport] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
