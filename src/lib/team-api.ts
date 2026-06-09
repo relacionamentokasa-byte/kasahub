@@ -269,8 +269,3 @@ export const deleteUserServer = createServerFn({ method: "POST" })
 export async function deleteUser(userId: string) {
   return deleteUserServer({ data: { userId } });
 }
-
-export async function createInvite(email: string, roleId: string | null, fullName?: string) {
-...
-
-
