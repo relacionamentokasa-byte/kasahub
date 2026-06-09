@@ -234,14 +234,23 @@ export async function fetchJobAttachments(jobId: string) {
   // Gerar URLs assinadas para o ambiente interno (bucket privado)
   const dataWithUrls = await Promise.all((data || []).map(async (att) => {
     try {
+      // Sanitização básica da URL para evitar path traversal ou injeção
       const urlParts = att.file_url.split('/job-attachments/');
       if (urlParts.length < 2) return att;
-      const path = urlParts[1];
       
-      const { data: signedData } = await supabase.storage
+      const path = urlParts[1];
+      // Impedir tentativa de acessar outros diretórios
+      if (path.includes('..') || path.startsWith('/')) {
+        console.warn("Possível tentativa de path traversal detectada:", path);
+        return att;
+      }
+      
+      const { data: signedData, error: signError } = await supabase.storage
         .from('job-attachments')
         .createSignedUrl(path, 3600);
         
+      if (signError) throw signError;
+
       return {
         ...att,
         file_url: signedData?.signedUrl || att.file_url
@@ -335,6 +344,9 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
 
   if (error) {
     console.error("createJob: Supabase error", error);
+    // Erro de foreign key ou violação de RLS são comuns aqui
+    if (error.code === '23503') throw new Error("Erro de vínculo: Verifique se o Cliente, Projeto e Serviço existem.");
+    if (error.code === '42501') throw new Error("Permissão negada para criar este job.");
     throw error;
   }
 
