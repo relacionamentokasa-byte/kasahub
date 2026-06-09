@@ -58,7 +58,7 @@ export function OnboardingWizard() {
 
   const saveProfile = async () => {
     if (!userId) return;
-    if (!fullName.trim()) {
+    if (!fullName) {
       toast.error("Diga seu nome para continuar.");
       return;
     }
@@ -79,7 +79,7 @@ export function OnboardingWizard() {
 
   const saveAgency = async () => {
     if (!agencyId) return dismiss();
-    if (!agencyName.trim()) {
+    if (!agencyName) {
       toast.error("Informe o nome da agência.");
       return;
     }
