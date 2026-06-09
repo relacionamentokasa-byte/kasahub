@@ -492,9 +492,11 @@ function FinanceiroPage() {
                           <Select value={fKind} onValueChange={setFKind}>
                             <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="all">Todos Tipos</SelectItem>
-                              <SelectItem value="income">Receitas</SelectItem>
-                              <SelectItem value="expense">Despesas</SelectItem>
+                               <SelectItem value="all">Todos Tipos</SelectItem>
+                               <SelectItem value="income">Receitas</SelectItem>
+                               <SelectItem value="expense">Despesas</SelectItem>
+                               <SelectItem value="transfer">Transferências</SelectItem>
+                               <SelectItem value="adjustment">Ajustes de Saldo</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
