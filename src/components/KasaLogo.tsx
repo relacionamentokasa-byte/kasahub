@@ -48,7 +48,7 @@ export function KasaLogo({
         className={cn(
           "flex items-center justify-center shrink-0",
           variant === "login" || variant === "black" || variant === "white" ? "h-12 w-auto" : 
-          variant === "sidebar" ? (collapsed ? "size-8" : "size-16") : 
+          variant === "sidebar" ? (collapsed ? "h-6 w-auto" : "h-12 w-auto") : 
           variant === "loading" ? "h-24 w-auto" : 
           "h-10 w-auto"
         )}
