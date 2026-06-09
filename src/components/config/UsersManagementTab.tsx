@@ -322,10 +322,11 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
       <AlertDialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza que deseja remover este usuário do sistema?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O perfil do usuário será removido permanentemente do sistema.
+              Esta ação removerá permanentemente o acesso deste usuário e todos os seus dados de perfil.
             </AlertDialogDescription>
+
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>

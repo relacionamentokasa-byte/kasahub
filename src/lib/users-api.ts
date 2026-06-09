@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { type ProfileWithRole } from "./permissions-api";
+import { deleteUser as deleteUserFromAuth } from "./team-api";
+
 
 export type UserStatus = "active" | "inactive" | "suspended" | "pending_invite";
 
@@ -70,9 +72,10 @@ export async function deleteInvite(id: string) {
 }
 
 export async function deleteUser(userId: string) {
-  const { error } = await supabase.from("profiles").delete().eq("id", userId);
-  if (error) throw error;
+  // Chamamos a função do servidor que remove tanto do Auth quanto do Profile (via cascade)
+  return deleteUserFromAuth(userId);
 }
+
 
 export async function updateUserStatus(userId: string, status: UserStatus) {
   const { error } = await supabase
