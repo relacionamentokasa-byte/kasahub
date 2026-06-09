@@ -451,22 +451,18 @@ function PublicProposalView() {
 
         {/* Contract */}
         {contractContent && (
-          <div className="px-10 py-16 border-b border-slate-100 bg-white page-break-before">
-            <div className="text-center mb-12">
-              <div className="inline-block px-4 py-1 rounded-full bg-slate-100 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-4">
+          <div className="bg-white p-8 md:p-12 rounded-3xl shadow-sm mb-8 page-break-before">
+             <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffbc45] mb-8">
                 Documento Jurídico
-              </div>
-              <h2 className="text-2xl font-bold text-[#0C1618]">
-                Contrato de Prestação de Serviços
-              </h2>
-            </div>
+                <div className="w-12 h-0.5 bg-[#ffbc45] mt-2"></div>
+             </h2>
+             <h3 className="text-xl font-bold text-[#0c1618] mb-8 text-center">Contrato de Prestação de Serviços</h3>
             
-            <div className="contract-text contract-content max-w-none px-4 sm:px-10 text-justify">
+            <div className="text-sm leading-relaxed text-[#0c1618] text-justify space-y-4">
               {contractContent.split('\n').map((line, i) => {
-                // Heuristic for clause titles: starts with number and is short or uppercase
                 const isClauseTitle = /^\d+\.\s+[A-Z\s]+$/.test(line.trim());
                 if (isClauseTitle) {
-                  return <div key={i} className="clause-title">{line}</div>;
+                  return <div key={i} className="font-display font-bold text-lg mt-8 mb-4 text-[#0c1618]">{line}</div>;
                 }
                 return <p key={i}>{line}</p>;
               })}
