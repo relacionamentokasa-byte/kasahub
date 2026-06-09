@@ -47,6 +47,16 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     description: "Versão amarela (cor primária) usada para carregamento e ícones.",
     aspect: 1,
     previewBg: "light"
+  },
+  {
+    key: "logo_sidebar_url",
+    label: "Logo Menu Lateral",
+    usage: "Exibida no topo do menu lateral — use a versão branca ou amarela",
+    recommendedSize: "120x120px (Quadrado)",
+    formats: ["PNG Transparente", "SVG"],
+    description: "Versão específica para o menu lateral. Idealmente com fundo transparente.",
+    aspect: 1,
+    previewBg: "dark"
   }
 ];
 
@@ -170,8 +180,8 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
             <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-white/40">Menu Lateral</p>
             <div className="flex items-center gap-4 bg-white/5 p-4 rounded-lg">
               <div className="h-10 w-auto flex items-center justify-center">
-                {form.logo_white_url ? (
-                  <img src={form.logo_white_url as string} alt="Logo Branca" className="max-h-full max-w-full object-contain" />
+                {form.logo_sidebar_url || form.logo_white_url ? (
+                  <img src={(form.logo_sidebar_url || form.logo_white_url) as string} alt="Logo Sidebar" className="max-h-full max-w-full object-contain" />
                 ) : (
                   <div className="size-6 border-2 border-white/20 rotate-45" />
                 )}
