@@ -121,9 +121,9 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="h-16 flex justify-center items-center px-4 mt-2">
+      <div className="h-16 flex justify-center items-center px-4 mt-4 mb-2">
         <KasaLogo collapsed={collapsed} variant="sidebar" iconOnly={collapsed} />
-      </SidebarHeader>
+      </div>
 
       <SidebarContent className="px-2 gap-2">
         {finalGroups.map((group) => (
