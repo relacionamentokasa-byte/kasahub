@@ -125,8 +125,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Funnel+Display:wght@300;400;500;600;700;800&family=Onest:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" },
       { rel: "manifest", href: "/api/public/manifest" },
-      { rel: "icon", href: "/logo-yellow.png", type: "image/png" },
-      { rel: "apple-touch-icon", href: "/logo-yellow.png" },
+      { rel: "icon", href: "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -176,21 +176,10 @@ function AuthListener() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-  const [faviconUrl, setFaviconUrl] = useState("/logo-yellow.png");
+  const faviconUrl = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
 
   useEffect(() => {
     registerPWA();
-    
-    const loadFavicon = async () => {
-      const settings = await fetchAgencySettings();
-      if (settings?.logo_yellow_url) {
-        setFaviconUrl(settings.logo_yellow_url);
-      }
-    };
-    loadFavicon();
-    
-    window.addEventListener('brand-settings-updated', loadFavicon);
-    return () => window.removeEventListener('brand-settings-updated', loadFavicon);
   }, []);
 
   useEffect(() => {

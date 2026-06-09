@@ -15,57 +15,32 @@ export function KasaLogo({
   className = "",
   iconOnly = false,
 }: KasaLogoProps) {
-  const [logoUrls, setLogoUrls] = useState({
-    white: "/logo-white.png",
-    black: "/logo-black.png",
-    yellow: "/logo-yellow.png",
-    sidebar: null as string | null,
-  });
+  // URLs fixas no Supabase Storage
+  const FIXED_LOGOS = {
+    white: "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-white.png",
+    yellow: "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png",
+  };
 
-  useEffect(() => {
-    const loadLogos = async () => {
-      try {
-        const settings = await fetchAgencySettings();
-        if (settings) {
-          setLogoUrls({
-            white: settings.logo_white_url || "/logo-white.png",
-            black: settings.logo_black_url || "/logo-black.png",
-            yellow: settings.logo_yellow_url || "/logo-yellow.png",
-            sidebar: settings.logo_sidebar_url || null,
-          });
-        }
-      } catch (error) {
-        console.error("Erro ao carregar logos:", error);
-      }
-    };
-    loadLogos();
-    
-    // Adiciona listener para atualizações de configurações de marca se necessário
-    const handleSettingsUpdate = () => loadLogos();
-    window.addEventListener('brand-settings-updated', handleSettingsUpdate);
-    return () => window.removeEventListener('brand-settings-updated', handleSettingsUpdate);
-  }, []);
-
-  // Mapeamento de variante de UI para variante de cor da logo
-  const getLogoVariant = (): "white" | "black" | "yellow" => {
+  // Mapeamento de variante de UI para URL da logo
+  const getLogoUrl = () => {
     switch (variant) {
       case "sidebar":
       case "login":
       case "white":
-        return "white";
+        return FIXED_LOGOS.white;
       case "loading":
       case "yellow":
-        return "yellow";
+        return FIXED_LOGOS.yellow;
       case "black":
-        return "black";
+        // Fallback para preta se necessário, mas usuário pediu branca/amarela fixas
+        return FIXED_LOGOS.white;
       default:
-        return "white";
+        return FIXED_LOGOS.white;
     }
   };
 
-  const logoVariant = getLogoVariant();
-  // Se for variante sidebar e houver uma logo específica, usa ela. Caso contrário, usa a variante mapeada.
-  const logoUrl = (variant === "sidebar" && logoUrls.sidebar) ? logoUrls.sidebar : logoUrls[logoVariant];
+  const logoUrl = getLogoUrl();
+  const isYellow = variant === "loading" || variant === "yellow";
 
   return (
     <div className={cn("flex items-center justify-center transition-all duration-300", className)}>
@@ -83,15 +58,14 @@ export function KasaLogo({
           alt="Kasa Hub"
           className="h-full w-auto object-contain"
           onError={(e) => {
-            // Fallback elegante enquanto as imagens não existem
+            // Fallback elegante
             e.currentTarget.style.display = "none";
             const parent = e.currentTarget.parentElement;
             if (parent) {
               const fallback = document.createElement("div");
               fallback.className = cn(
                 "size-8 border-2 rotate-45",
-                logoVariant === "white" ? "border-white" : 
-                logoVariant === "yellow" ? "border-primary" : "border-black"
+                isYellow ? "border-primary" : "border-white"
               );
               parent.appendChild(fallback);
             }
@@ -101,7 +75,7 @@ export function KasaLogo({
       {!collapsed && !iconOnly && !["login", "sidebar", "loading"].includes(variant) && (
         <span className={cn(
           "font-display text-lg font-bold tracking-tight whitespace-nowrap ml-3",
-          logoVariant === "white" ? "text-white" : "text-foreground"
+          isYellow ? "text-foreground" : "text-white"
         )}>
           KASA <span className="text-primary">HUB</span>
         </span>

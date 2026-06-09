@@ -15,8 +15,8 @@ export const Route = createFileRoute("/api/public/manifest")({
           .maybeSingle();
 
         const a = (data ?? {}) as Record<string, string | null>;
-        const icon512 = a.pwa_icon_512_url || "/icon-512.png";
-        const icon192 = a.pwa_icon_192_url || icon512;
+        const icon512 = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+        const icon192 = icon512;
 
         const manifest = {
           name: a.pwa_name || a.name || "KASA HUB",
