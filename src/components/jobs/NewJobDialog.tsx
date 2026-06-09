@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DynamicJobForm } from "./DynamicJobForm";
-import { X } from "lucide-react";
+import { X, AlertCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -244,8 +244,19 @@ export function NewJobDialog({
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Prazo</Label>
-                  <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
+                  <Label className={!form.due_date ? "text-red-500" : ""}>Prazo</Label>
+                  <Input 
+                    type="date" 
+                    value={form.due_date} 
+                    onChange={(e) => setForm({ ...form, due_date: e.target.value })} 
+                    className={!form.due_date ? "border-red-500 focus-visible:ring-red-500" : ""}
+                  />
+                  {!form.due_date && (
+                    <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
+                      <AlertCircle className="size-3" />
+                      Prazo final é obrigatório
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5 col-span-2">
@@ -304,7 +315,7 @@ export function NewJobDialog({
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id}
+            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id || !form.due_date}
             className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[100px]"
           >
             {mut.isPending ? "Criando..." : "Criar Job"}

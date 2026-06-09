@@ -308,6 +308,7 @@ export async function fetchJobs(filters: { projectId?: string; clientId?: string
 }
 
 export async function createJob(input: Database["public"]["Tables"]["jobs"]["Insert"] & { period?: string | null, job_type?: string | null }) {
+  if (!input.due_date) throw new Error("Prazo final é obrigatório");
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
   if (!input.service_id) throw new Error("Um job deve estar vinculado a um serviço.");
@@ -391,6 +392,7 @@ export async function updateJob(
   id: string,
   patch: Database["public"]["Tables"]["jobs"]["Update"],
 ) {
+  if (patch.due_date === null) throw new Error("Prazo final é obrigatório");
   // Checklist validation on completion
   if (patch.status === 'done' || patch.done_at) {
     const checklist = await fetchChecklist(id);

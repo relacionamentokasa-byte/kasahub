@@ -481,7 +481,7 @@ export function JobSheet({
                 {/* STATUS */}
                 <div className="space-y-3">
                   <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Status</Label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:gap-2">
                     {[
                       { id: 'not_started', label: 'Nova Demanda', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/50', active: 'bg-zinc-500 text-white border-zinc-500' },
                       { id: 'in_progress', label: 'Em Andamento', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50', active: 'bg-blue-500 text-white border-blue-500' },
@@ -494,7 +494,7 @@ export function JobSheet({
                         <button
                           key={s.id}
                           onClick={() => updateMut.mutate({ status: s.id, done_at: s.id === 'done' ? new Date().toISOString() : null } as any)}
-                          className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-all ${
+                          className={`px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border transition-all whitespace-nowrap shrink-0 ${
                             isActive ? s.active : `${s.color} hover:bg-opacity-30`
                           }`}
                         >
@@ -509,7 +509,7 @@ export function JobSheet({
                   {/* PRIORIDADE */}
                   <div className="space-y-3">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prioridade</Label>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:gap-2">
                       {[
                         { id: 'high', label: 'Alta', icon: '🔴', color: 'hover:border-red-500/50', active: 'bg-red-500/20 border-red-500 text-red-500' },
                         { id: 'normal', label: 'Normal', icon: '🟡', color: 'hover:border-yellow-500/50', active: 'bg-yellow-500/20 border-yellow-500 text-yellow-500' },
@@ -520,7 +520,7 @@ export function JobSheet({
                           <button
                             key={p.id}
                             onClick={() => updateMut.mutate({ priority: p.id })}
-                            className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-border text-[10px] font-bold uppercase tracking-wider transition-all ${
+                            className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 sm:gap-2 h-9 sm:h-10 rounded-lg border border-border text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${
                               isActive ? p.active : `bg-background/50 ${p.color}`
                             }`}
                           >
@@ -537,11 +537,11 @@ export function JobSheet({
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prazo Final</Label>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <button className="w-full flex items-center justify-between h-10 px-4 rounded-lg border border-border bg-background/50 hover:border-primary/50 transition-all text-sm group">
-                          <span className={job.due_date ? "text-foreground" : "text-foreground/40"}>
-                            {job.due_date ? format(new Date(job.due_date + 'T12:00:00'), "dd 'de' MMMM, yyyy", { locale: ptBR }) : "Selecionar data"}
+                        <button className={`w-full flex items-center justify-between h-10 px-4 rounded-lg border transition-all text-sm group ${!job.due_date ? "border-red-500/50 bg-red-500/5" : "border-border bg-background/50 hover:border-primary/50"}`}>
+                          <span className={job.due_date ? "text-foreground" : "text-red-400"}>
+                            {job.due_date ? format(new Date(job.due_date + 'T12:00:00'), "dd 'de' MMMM, yyyy", { locale: ptBR }) : "Prazo obrigatório"}
                           </span>
-                          <Clock className="size-4 text-foreground/40 group-hover:text-primary transition-colors" />
+                          <Clock className={`size-4 transition-colors ${!job.due_date ? "text-red-400" : "text-foreground/40 group-hover:text-primary"}`} />
                         </button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 bg-surface border-border" align="start">
@@ -558,6 +558,12 @@ export function JobSheet({
                         />
                       </PopoverContent>
                     </Popover>
+                    {!job.due_date && (
+                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-1">
+                        <AlertCircle className="size-3" />
+                        Prazo final é obrigatório
+                      </p>
+                    )}
                   </div>
 
                   {/* CLIENTE */}
