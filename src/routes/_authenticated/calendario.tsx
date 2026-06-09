@@ -10,6 +10,7 @@ import {
   Check,
   CalendarDays
 } from "lucide-react";
+import { useCalendarRealtime } from "@/hooks/use-calendar-realtime";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { CalendarMonth } from "@/components/calendar/CalendarMonth";
@@ -53,6 +54,9 @@ function CalendarPage() {
   const [newOpen, setNewOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+
+  // Ativa o Realtime para o calendário
+  useCalendarRealtime();
 
   
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
@@ -120,14 +124,21 @@ function CalendarPage() {
           </Tabs>
         </div>
 
-        <div className="flex items-center gap-3 text-[10px] font-mono-kasa text-foreground/40 uppercase">
-          <div className="flex items-center gap-1.5">
-            <div className="size-2 rounded-full bg-primary" />
-            <span>Sistema</span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full animate-pulse">
+            <div className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
+            <span className="text-[9px] font-mono-kasa font-bold text-emerald-500 uppercase tracking-tighter">Realtime On</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="size-2 rounded-full bg-sky-400" />
-            <span>Google</span>
+
+          <div className="flex items-center gap-3 text-[10px] font-mono-kasa text-foreground/40 uppercase">
+            <div className="flex items-center gap-1.5">
+              <div className="size-2 rounded-full bg-primary" />
+              <span>Sistema</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="size-2 rounded-full bg-sky-400" />
+              <span>Google</span>
+            </div>
           </div>
         </div>
       </div>
