@@ -839,7 +839,7 @@ function ProposalsPage() {
                     >
                       <td className="px-5 py-3">
                         <span className="text-[11px] font-bold text-primary font-mono-kasa tracking-tighter">
-                          {(p as any).number_display}
+                          {(p as any).number_display || "S/N"}
                         </span>
                       </td>
                       <td className="px-5 py-3">
@@ -916,7 +916,7 @@ function ProposalsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] font-bold text-primary font-mono-kasa tracking-tighter">
-                          {(p as any).number_display}
+                          {(p as any).number_display || "S/N"}
                         </span>
                       </div>
                       <button
