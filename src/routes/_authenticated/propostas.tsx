@@ -819,7 +819,6 @@ function ProposalsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
-                  <th className="px-5 py-3 w-20">Nº</th>
                   <th className="px-5 py-3">Proposta</th>
                   <th className="px-5 py-3">Cliente</th>
                   <th className="px-5 py-3 text-right">Investimento</th>
@@ -837,11 +836,6 @@ function ProposalsPage() {
                       key={p.id}
                       className="border-b border-border last:border-0 hover:bg-surface-elevated transition"
                     >
-                      <td className="px-5 py-3">
-                        <span className="text-[11px] font-bold text-primary font-mono-kasa tracking-tighter">
-                          {(p as any).number_display || "S/N"}
-                        </span>
-                      </td>
                       <td className="px-5 py-3">
                         <button
                           onClick={() => setSelectedId(p.id)}
@@ -914,11 +908,6 @@ function ProposalsPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold text-primary font-mono-kasa tracking-tighter">
-                          {(p as any).number_display || "S/N"}
-                        </span>
-                      </div>
                       <button
                         onClick={() => setSelectedId(p.id)}
                         className="font-semibold hover:text-primary text-left"
