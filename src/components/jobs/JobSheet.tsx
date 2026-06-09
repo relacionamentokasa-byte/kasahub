@@ -504,7 +504,7 @@ export function JobSheet({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
                   {/* PRIORIDADE */}
                   <div className="space-y-3">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prioridade</Label>
