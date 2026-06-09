@@ -455,10 +455,10 @@ export function JobSheet({
         onClose();
       }
     }}>
-      <SheetContent key={job.id} className="bg-surface border-border w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col">
-        <div className="flex flex-1 overflow-hidden">
+      <SheetContent key={job.id} className="bg-surface border-border w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col h-[100dvh] sm:h-auto">
+        <div className="flex flex-col sm:flex-row flex-1 overflow-hidden">
           {/* Left Column: Details */}
-          <div className="flex-1 flex flex-col border-r border-border overflow-y-auto">
+          <div className="flex-1 flex flex-col border-r border-border overflow-y-auto order-2 sm:order-1">
             <div className="p-6 space-y-8 pb-12">
               <SheetHeader className="space-y-4">
                 <div className="flex items-center gap-2 text-primary">

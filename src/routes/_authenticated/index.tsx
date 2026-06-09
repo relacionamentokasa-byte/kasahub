@@ -24,7 +24,7 @@ function DashboardPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-[1600px] mx-auto animate-reveal">
-      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-border pb-6 lg:pb-8">
+      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-border pb-6 lg:pb-8">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa capitalize font-medium">
             KASA HUB · Inteligência Operacional
@@ -34,15 +34,15 @@ function DashboardPage() {
           </h1>
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Bem-vindo de volta. Veja o que precisa de sua atenção.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <Link to="/propostas">
-            <Button variant="outline" className="rounded-full font-semibold h-10 px-6">
-              Ver Propostas
+        <div className="grid grid-cols-2 sm:flex items-center gap-3">
+          <Link to="/propostas" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full rounded-full font-semibold h-11 px-6">
+              Propostas
             </Button>
           </Link>
-          <Link to="/jobs">
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold gap-2 h-10 px-6">
-              <Plus className="size-4" /> Nova Tarefa
+          <Link to="/jobs" className="w-full sm:w-auto">
+            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold gap-2 h-11 px-6">
+              <Plus className="size-4 shrink-0" /> Job
             </Button>
           </Link>
         </div>
