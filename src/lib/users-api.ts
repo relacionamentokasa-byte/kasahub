@@ -29,7 +29,7 @@ export interface UserInvite {
 
 export async function fetchUsers(): Promise<UserProfile[]> {
   const { data, error } = await supabase
-    .from("profiles")
+    .from("profiles_with_email")
     .select(`
       *,
       custom_roles:custom_role_id (
