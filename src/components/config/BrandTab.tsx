@@ -109,65 +109,13 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
         </div>
 
         <div className="space-y-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            {BRANDING_ASSETS.map((asset) => (
-              <div key={asset.key} className="space-y-4 p-5 rounded-xl border border-border/50 bg-muted/5 flex flex-col h-full">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-bold tracking-tight">{asset.label}</h4>
-                    <p className="text-[10px] text-foreground/40 leading-relaxed">
-                      {asset.description}
-                    </p>
-                  </div>
-                  <div className={cn(
-                    "px-2 py-0.5 rounded text-[8px] font-mono-kasa border uppercase tracking-wider",
-                    form[asset.key] ? "bg-green-500/10 border-green-500/20 text-green-500" : "bg-orange-500/10 border-orange-500/20 text-orange-500"
-                  )}>
-                    {form[asset.key] ? "OK" : "Subir"}
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-6 flex-1">
-                  <div className={cn(
-                    "w-full h-40 shrink-0 rounded-xl overflow-hidden border border-border/20 flex items-center justify-center relative",
-                    asset.previewBg === 'dark' ? "bg-[#0c1618]" : "bg-white"
-                  )}>
-                    <ProfileImageUpload
-                      value={form[asset.key] as string | null}
-                      onChange={(url) => handleUpload(asset.key as string, url)}
-                      label={asset.label}
-                      shape="rect"
-                      aspect={asset.aspect}
-                    />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-[10px] text-foreground/60">
-                        <Info className="size-3 text-primary" />
-                        <span className="font-semibold uppercase tracking-wider">Onde utilizar:</span>
-                      </div>
-                      <p className="text-[10px] text-foreground/50 pl-5">{asset.usage}</p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-[10px] text-foreground/60">
-                        <ImageIcon className="size-3 text-primary" />
-                        <span className="font-semibold uppercase tracking-wider">Tamanho:</span>
-                      </div>
-                      <p className="text-[10px] text-foreground/50 pl-5">{asset.recommendedSize}</p>
-                    </div>
-
-                    {validating === asset.key && (
-                      <div className="flex items-center gap-2 pl-5 pt-2 animate-pulse">
-                        <div className="size-1.5 rounded-full bg-primary" />
-                        <span className="text-[9px] text-primary font-medium">Processando...</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <div className="p-8 border border-dashed border-border rounded-xl text-center bg-muted/5">
+            <Info className="size-8 text-primary mx-auto mb-3 opacity-50" />
+            <h4 className="text-base font-semibold mb-1">Identidade Visual Fixa</h4>
+            <p className="text-sm text-foreground/50 max-w-md mx-auto">
+              As logos do sistema estão configuradas com arquivos fixos para garantir a consistência visual. 
+              A alteração via painel está temporariamente desabilitada.
+            </p>
           </div>
         </div>
       </div>
