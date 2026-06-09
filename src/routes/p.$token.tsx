@@ -449,12 +449,12 @@ function PublicProposalView() {
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Tipo</p>
-                    <p className="text-sm font-bold">{proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Tipo</p>
+                    <p className="text-sm font-bold font-sans">{proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'}</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Validade</p>
-                    <p className="text-sm font-bold">{
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Validade</p>
+                    <p className="text-sm font-bold font-sans">{
                       proposal.contract_term === "indeterminado" 
                         ? "Prazo Indeterminado" 
                         : proposal.contract_term === "monthly" 
@@ -465,12 +465,12 @@ function PublicProposalView() {
                     }</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Início</p>
-                    <p className="text-sm font-bold">{proposal.first_due_date ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") : '—'}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Início</p>
+                    <p className="text-sm font-bold font-sans">{proposal.first_due_date ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") : '—'}</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Dia de Cobrança</p>
-                    <p className="text-sm font-bold">{String(proposal.billing_day || proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—")}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Dia de Cobrança</p>
+                    <p className="text-sm font-bold font-sans">{String(proposal.billing_day || proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—")}</p>
                 </div>
             </div>
         </div>
