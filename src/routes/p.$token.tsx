@@ -436,7 +436,15 @@ function PublicProposalView() {
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400">Validade</p>
-                    <p className="text-sm font-bold">{proposal.contract_term || '—'}</p>
+                    <p className="text-sm font-bold">{
+                      proposal.contract_term === "indeterminado" 
+                        ? "Prazo Indeterminado" 
+                        : proposal.contract_term === "monthly" 
+                          ? "Mensal"
+                          : proposal.contract_term?.includes("_months")
+                            ? `${proposal.contract_term.replace("_months", "")} meses`
+                            : `${proposal.recurring_months || 12} meses`
+                    }</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400">Início</p>
@@ -444,7 +452,7 @@ function PublicProposalView() {
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400">Dia de Cobrança</p>
-                    <p className="text-sm font-bold">{proposal.billing_day || '—'}</p>
+                    <p className="text-sm font-bold">{String(proposal.billing_day || proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—")}</p>
                 </div>
             </div>
         </div>
