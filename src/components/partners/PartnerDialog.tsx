@@ -139,7 +139,55 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4">
+            <div className="flex flex-col items-center gap-4 mb-6">
+              <div className="relative group">
+                <Avatar className="size-24 border-2 border-primary/20 bg-background shadow-lg">
+                  <AvatarImage src={form.photo_url || ""} />
+                  <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary uppercase">
+                    {form.name ? form.name.substring(0, 2) : "P"}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <Camera className="size-6 text-white" />
+                </div>
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleUpload}
+                />
+                
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  className="absolute -bottom-2 -right-2 size-8 p-0 rounded-full bg-surface"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+                </Button>
+
+                {form.photo_url && (
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-2 size-6 p-0 rounded-full"
+                    onClick={() => setForm(prev => ({ ...prev, photo_url: null }))}
+                  >
+                    <X className="size-3" />
+                  </Button>
+                )}
+              </div>
+              <p className="text-[10px] uppercase font-mono-kasa text-foreground/40 font-bold tracking-wider">Foto do Representante</p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
+
               <div className="space-y-1.5">
                 <Label>Nome Completo</Label>
                 <Input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="bg-background" />
