@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Search,
   Trash2,
+  Edit2,
   CheckCircle2,
   Circle,
   Upload,
@@ -122,6 +123,7 @@ function FinanceiroPage() {
   const qc = useQueryClient();
   const { data: txs = [] } = useQuery({ queryKey: ["transactions"], queryFn: () => fetchTransactions() });
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
+  const [editingAcc, setEditingAcc] = useState<any>(null);
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
@@ -959,7 +961,15 @@ function FinanceiroPage() {
                     <div key={a.id} className="bg-surface border border-border rounded-2xl p-5 relative overflow-hidden">
                       <div className="absolute inset-x-0 top-0 h-1" style={{ background: a.color ?? "#FFBC45" }} />
                       <div className="flex items-center gap-3">
-                        <div className="size-10 rounded-xl grid place-items-center" style={{ background: `${a.color}22`, color: a.color ?? "#FFBC45" }}><Landmark className="size-5" /></div>
+                        <div className="size-10 rounded-xl overflow-hidden bg-background border border-border/50 p-1 grid place-items-center">
+                          {a.bank_logo_url ? (
+                            <img src={a.bank_logo_url} alt={a.bank || ""} className="size-full object-contain" />
+                          ) : (
+                            <div className="size-full rounded-lg grid place-items-center" style={{ background: `${a.color}22`, color: a.color ?? "#FFBC45" }}>
+                              <Landmark className="size-5" />
+                            </div>
+                          )}
+                        </div>
                         <div className="min-w-0 flex-1">
                           <div className="font-display font-semibold truncate">{a.name}</div>
                           <div className="text-xs text-foreground/50 truncate">{[a.bank, a.agency && `Ag. ${a.agency}`, a.account_number && `CC ${a.account_number}`].filter(Boolean).join(" · ") || a.account_type}</div>
@@ -977,7 +987,18 @@ function FinanceiroPage() {
                           <div className="text-rose-400 font-semibold">{brl(stats.expense)}</div>
                         </div>
                       </div>
-                      <button onClick={() => delAcc.mutate(a.id)} className="mt-4 text-xs text-foreground/40 hover:text-rose-400 flex items-center gap-1"><Trash2 className="size-3" /> Remover</button>
+                      <div className="mt-4 flex items-center justify-between">
+                        <button onClick={() => delAcc.mutate(a.id)} className="text-xs text-foreground/40 hover:text-rose-400 flex items-center gap-1"><Trash2 className="size-3" /> Remover</button>
+                        <button 
+                          onClick={() => {
+                            setEditingAcc(a);
+                            setOpenAcc(true);
+                          }} 
+                          className="text-xs text-foreground/40 hover:text-primary flex items-center gap-1"
+                        >
+                          <Edit2 className="size-3" /> Editar
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -988,7 +1009,14 @@ function FinanceiroPage() {
       </div>
 
       <NewTransactionDialog open={openTx !== false} onOpenChange={(o) => setOpenTx(o ? (openTx || "income") : false)} defaultKind={openTx || "income"} />
-      <NewBankAccountDialog open={openAcc} onOpenChange={setOpenAcc} />
+      <NewBankAccountDialog 
+        open={openAcc} 
+        onOpenChange={(o) => {
+          setOpenAcc(o);
+          if (!o) setEditingAcc(null);
+        }} 
+        bankAccount={editingAcc}
+      />
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
       
