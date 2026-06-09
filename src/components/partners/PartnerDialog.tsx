@@ -104,7 +104,9 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
         .from('partners-photos')
         .getPublicUrl(filePath);
 
-      setForm(prev => ({ ...prev, photo_url: publicUrl }));
+      // Add a cache-busting timestamp to the URL
+      const timestampedUrl = `${publicUrl}?t=${new Date().getTime()}`;
+      setForm(prev => ({ ...prev, photo_url: timestampedUrl }));
       toast.success("Foto enviada com sucesso");
     } catch (error: any) {
       toast.error("Erro ao enviar foto: " + error.message);
