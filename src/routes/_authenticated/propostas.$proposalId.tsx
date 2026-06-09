@@ -623,7 +623,7 @@ export function ProposalEditorContent({
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-2xl border border-primary/40 bg-primary/5 p-6 sticky top-6">
+          <div className="rounded-2xl border border-primary/40 bg-primary/5 p-6">
             <span className="text-primary text-[10px] capitalize">Investimento</span>
             <div className="grid gap-4 mt-4">
               {form.contract_type === "recurring" ? (
