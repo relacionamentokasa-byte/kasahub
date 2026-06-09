@@ -323,7 +323,8 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                                   <Select 
                                     defaultValue={u.custom_role_id || ""} 
                                     onValueChange={(v) => {
-                                      const promise = assignProfileRole(u.id, v || null);
+                                      const roleId = v === "none" ? null : v;
+                                      const promise = assignProfileRole(u.id, roleId);
                                       toast.promise(promise, {
                                         loading: "Atualizando perfil...",
                                         success: () => {
