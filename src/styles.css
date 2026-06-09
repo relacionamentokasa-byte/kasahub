@@ -166,19 +166,19 @@
 
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); letter-spacing: -0.01em; }
 }
-210: 
-211: @layer components {
-212:   .responsive-grid {
-213:     @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
-214:   }
-215:   
-216:   .section-padding {
-217:     @apply p-4 sm:p-6 lg:p-8;
-218:   }
-219: }
 
 @utility font-display { font-family: var(--font-display); }
 @utility font-mono-kasa { font-family: var(--font-mono); }
+
+@utility responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: 1rem;
+  @media (min-width: 640px) { gap: 1.5rem; }
+  @media (min-width: 768px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 1024px) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @media (min-width: 1280px) { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 
 /* Pattern institucional Kasa — arquivo oficial */
 @utility kasa-pattern {
