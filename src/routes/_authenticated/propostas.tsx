@@ -78,15 +78,16 @@ export const Route = createFileRoute("/_authenticated/propostas")({
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
   draft: { label: "Rascunho", cls: "bg-foreground/10 text-foreground/70" },
   sent: { label: "Enviada", cls: "bg-blue-500/15 text-blue-300" },
-  viewed: { label: "Visualizada", cls: "bg-amber-500/15 text-amber-300" },
-  waiting_signature: { label: "Aguardando Assinatura", cls: "bg-purple-500/15 text-purple-300" },
-  signed: { label: "Assinada", cls: "bg-indigo-500/15 text-indigo-300" },
-  accepted: { label: "Aprovada", cls: "bg-green-500/15 text-green-300" },
+  waiting_signature: { label: "Aguardando Assinatura", cls: "bg-amber-500/15 text-amber-300" },
+  signed: { label: "Assinada", cls: "bg-indigo-500/15 text-indigo-300" }, // Mantendo signed como "Assinada" que precede Aprovação se necessário, mas na lista pedida ele não aparece explicitamente entre Enviada e Aguardando Assinatura. O pedido pede: Rascunho, Enviada, Aguardando Assinatura, Aprovada, Convertida, Rejeitada.
+  accepted: { label: "Aprovada", cls: "bg-primary/20 text-primary font-bold border border-primary/20" },
   converted: { label: "Convertida", cls: "bg-emerald-500/15 text-emerald-300" },
-  rejected: { label: "Recusada", cls: "bg-red-500/15 text-red-300" },
-  cancelled: { label: "Cancelada", cls: "bg-red-500/15 text-red-300" },
-  removed: { label: "Removida", cls: "bg-gray-500/15 text-gray-300" },
+  rejected: { label: "Rejeitada", cls: "bg-red-500/15 text-red-300" },
+  cancelled: { label: "Rejeitada", cls: "bg-red-500/15 text-red-300" }, // Mapeando cancelled para Rejeitada para unificar
 };
+
+const STATUS_ORDER = ["draft", "sent", "waiting_signature", "accepted", "converted", "cancelled"];
+
 
 function publicUrl(token: string) {
   return `${window.location.origin}/p/${token}`;
