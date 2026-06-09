@@ -30,11 +30,22 @@ export interface UserInvite {
 export async function fetchUsers(): Promise<UserProfile[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select("*, custom_roles:custom_role_id(name, permissions)")
+    .select(`
+      *,
+      custom_roles:custom_role_id (
+        id,
+        name,
+        permissions
+      )
+    `)
     .order("display_name", { ascending: true });
 
-  if (error) throw error;
-  return data as unknown as UserProfile[];
+  if (error) {
+    console.error("Error fetching users:", error);
+    throw error;
+  }
+  
+  return (data || []) as unknown as UserProfile[];
 }
 
 export async function fetchInvites(): Promise<UserInvite[]> {
