@@ -599,38 +599,42 @@ function ItemsTable({
   brand: string;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white">
-      <div className="px-6 py-4 bg-slate-50 border-b border-slate-100">
-        <p className="text-xs font-bold text-[#0C1618] uppercase tracking-[0.2em]">
+    <div className="overflow-hidden rounded-2xl border border-[#ece8e0] bg-white">
+      <div className="px-6 py-4 bg-[#f9f7f3] border-b border-[#ece8e0]">
+        <p className="text-[10px] font-bold text-[#0c1618] uppercase tracking-[0.2em] flex items-center gap-2">
+          <div className="w-1 h-4 bg-[#ffbc45]" />
           {title}
         </p>
       </div>
       <div className="overflow-x-auto items-table">
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100 bg-slate-50/50">
-              <th className="px-6 py-3">Serviço / Item</th>
-              <th className="px-6 py-3 text-right w-16">Qtd</th>
-              <th className="px-6 py-3 text-right w-32">Investimento</th>
-              <th className="px-6 py-3 text-right w-32">Subtotal</th>
+            <tr className="text-left text-[9px] uppercase tracking-widest text-slate-400 border-b border-[#ece8e0] bg-[#f9f7f3]/50">
+              <th className="px-6 py-3 font-bold">Serviço / Item</th>
+              <th className="px-6 py-3 text-right w-16 font-bold">Qtd</th>
+              <th className="px-6 py-3 text-right w-32 font-bold">Investimento</th>
+              <th className="px-6 py-3 text-right w-32 font-bold">Subtotal</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-50">
+          <tbody className="divide-y divide-[#ece8e0]">
             {items.map((it) => (
-              <tr key={it.id} className="hover:bg-slate-50 transition-colors align-top">
+              <tr key={it.id} className="hover:bg-[#f9f7f3]/50 transition-colors align-top">
                 <td className="px-6 py-4">
-                  <div className="font-bold text-[#0C1618] text-base">{it.title}</div>
+                  <div className="font-bold text-[#0c1618] text-sm flex items-start gap-2">
+                    <span className="text-[#ffbc45] mt-0.5">·</span>
+                    {it.title}
+                  </div>
                   {it.description && (
-                    <div className="text-xs text-slate-500 mt-1 leading-relaxed">
+                    <div className="text-[11px] text-slate-500 mt-1 leading-relaxed ml-3">
                       {it.description}
                     </div>
                   )}
                 </td>
-                <td className="px-6 py-4 text-right text-slate-600 font-medium">{Number(it.quantity)}</td>
-                <td className="px-6 py-4 text-right text-slate-600 font-medium">
+                <td className="px-6 py-4 text-right text-slate-600 text-xs">{Number(it.quantity)}</td>
+                <td className="px-6 py-4 text-right text-slate-600 text-xs">
                   {formatCurrency(Number(it.unit_price))}
                 </td>
-                <td className="px-6 py-4 text-right text-[#0C1618] font-bold">
+                <td className="px-6 py-4 text-right text-[#0c1618] font-bold text-xs">
                   {formatCurrency(Number(it.quantity) * Number(it.unit_price))}
                 </td>
               </tr>
