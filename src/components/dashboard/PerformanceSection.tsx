@@ -1,5 +1,6 @@
-import { Target } from "lucide-react";
+import { Target, ArrowRight } from "lucide-react";
 import { brl } from "@/lib/finance-api";
+import { Link } from "@tanstack/react-router";
 
 interface GoalMetric {
   label: string;
@@ -15,9 +16,15 @@ interface PerformanceSectionProps {
 export function PerformanceSection({ metrics }: PerformanceSectionProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
-        <Target className="size-4" /> Metas e Performance
-      </h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
+          <Target className="size-4" /> Metas e Performance
+        </h3>
+        <Link to="/metas" className="text-[10px] font-bold uppercase text-primary hover:underline flex items-center gap-1">
+          Ver módulo completo <ArrowRight className="size-3" />
+        </Link>
+      </div>
+      
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {metrics.map((m, i) => {
           const pct = m.target > 0 ? (m.actual / m.target) * 100 : 0;
