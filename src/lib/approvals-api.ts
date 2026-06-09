@@ -303,7 +303,6 @@ export async function updateCalendarEvent(id: string, patch: Partial<CalendarEve
 }
 
 export async function deleteCalendarEvent(id: string) {
-
   // Buscar o evento antes de deletar para obter o google_event_id
   const { data: event } = await sb.from("calendar_events").select("google_event_id").eq("id", id).single();
   
