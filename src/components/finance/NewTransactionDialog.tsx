@@ -38,7 +38,7 @@ export function NewTransactionDialog({
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  defaultKind?: "income" | "expense";
+  defaultKind?: "income" | "expense" | "transfer" | "adjustment";
   onSuccess?: () => void;
 }) {
   const qc = useQueryClient();
@@ -50,7 +50,7 @@ export function NewTransactionDialog({
 
 
   const [form, setForm] = useState({
-    kind: defaultKind as "income" | "expense",
+    kind: defaultKind as "income" | "expense" | "transfer" | "adjustment",
     description: "",
     amount: "",
     due_date: new Date().toISOString().slice(0, 10),
@@ -61,7 +61,7 @@ export function NewTransactionDialog({
     project_id: "",
     notes: "",
     paid: false,
-    installments: 1,
+    to_account_id: "",
   });
 
   useEffect(() => {
@@ -97,6 +97,7 @@ export function NewTransactionDialog({
           notes: form.notes || null,
           status: form.paid ? "paid" : "pending",
           paid_at: form.paid ? form.due_date : null,
+          to_account_id: form.kind === "transfer" ? form.to_account_id : null,
         },
         form.installments,
       ),
@@ -128,6 +129,7 @@ export function NewTransactionDialog({
         notes: "",
         paid: false,
         installments: 1,
+        to_account_id: "",
       });
     },
     onError: (e: Error) => toast.error(e.message),
@@ -140,20 +142,34 @@ export function NewTransactionDialog({
           <DialogTitle className="font-display text-xl">Novo lançamento</DialogTitle>
         </DialogHeader>
 
-        <div className="flex gap-2 mb-2">
+        <div className="flex flex-wrap gap-2 mb-2">
           <button
             type="button"
             onClick={() => setForm({ ...form, kind: "income", category_id: "" })}
-            className={`flex-1 h-10 rounded-lg border text-sm font-semibold transition ${form.kind === "income" ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300" : "border-border text-foreground/60 hover:border-foreground/30"}`}
+            className={`flex-1 h-10 rounded-lg border text-[13px] font-semibold transition ${form.kind === "income" ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300" : "border-border text-foreground/60 hover:border-foreground/30"}`}
           >
             Receita
           </button>
           <button
             type="button"
             onClick={() => setForm({ ...form, kind: "expense", category_id: "" })}
-            className={`flex-1 h-10 rounded-lg border text-sm font-semibold transition ${form.kind === "expense" ? "bg-rose-500/15 border-rose-500/40 text-rose-300" : "border-border text-foreground/60 hover:border-foreground/30"}`}
+            className={`flex-1 h-10 rounded-lg border text-[13px] font-semibold transition ${form.kind === "expense" ? "bg-rose-500/15 border-rose-500/40 text-rose-300" : "border-border text-foreground/60 hover:border-foreground/30"}`}
           >
             Despesa
+          </button>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, kind: "transfer", category_id: "" })}
+            className={`flex-1 h-10 rounded-lg border text-[13px] font-semibold transition ${form.kind === "transfer" ? "bg-blue-500/15 border-blue-500/40 text-blue-300" : "border-border text-foreground/60 hover:border-foreground/30"}`}
+          >
+            Transferência
+          </button>
+          <button
+            type="button"
+            onClick={() => setForm({ ...form, kind: "adjustment", category_id: "" })}
+            className={`flex-1 h-10 rounded-lg border text-[13px] font-semibold transition ${form.kind === "adjustment" ? "bg-purple-500/15 border-purple-500/40 text-purple-300" : "border-border text-foreground/60 hover:border-foreground/30"}`}
+          >
+            Ajuste
           </button>
         </div>
 
@@ -171,7 +187,7 @@ export function NewTransactionDialog({
             <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
           </div>
           <div className="space-y-1.5">
-            <Label>Conta bancária</Label>
+            <Label>{form.kind === "transfer" ? "Conta de origem" : "Conta bancária"}</Label>
             <Select value={form.account_id} onValueChange={(v) => setForm({ ...form, account_id: v })}>
               <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
               <SelectContent>
@@ -181,6 +197,19 @@ export function NewTransactionDialog({
               </SelectContent>
             </Select>
           </div>
+          {form.kind === "transfer" && (
+            <div className="space-y-1.5">
+              <Label>Conta de destino</Label>
+              <Select value={form.to_account_id} onValueChange={(v) => setForm({ ...form, to_account_id: v })}>
+                <SelectTrigger><SelectValue placeholder="Selecione…" /></SelectTrigger>
+                <SelectContent>
+                  {accounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id} disabled={a.id === form.account_id}>{a.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="space-y-1.5">
             <Label>Categoria</Label>
             <Select value={form.category_id} onValueChange={(v) => setForm({ ...form, category_id: v })}>

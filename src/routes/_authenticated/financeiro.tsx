@@ -166,7 +166,7 @@ function FinanceiroPage() {
     setFValueRange([0, 100000]);
   }
 
-  const [openTx, setOpenTx] = useState<false | "income" | "expense">(false);
+  const [openTx, setOpenTx] = useState<false | "income" | "expense" | "transfer" | "adjustment">(false);
   const [openAcc, setOpenAcc] = useState(false);
   const [openImport, setOpenImport] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
