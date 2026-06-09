@@ -489,10 +489,23 @@ export function ProposalEditorContent({
                       const l = leads.find(x => x.id === v);
                       setForm({ ...form, lead_id: v, client_name: l?.company || l?.name || "", client_email: l?.email || "" });
                     }}>
-                      <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="cursor-pointer">
+                        <SelectValue>
+                          {form.lead_id ? (
+                            (() => {
+                              const l = leads.find(x => x.id === form.lead_id);
+                              return l ? `${l.name}${l.company ? ` - ${l.company}` : ""}` : "Lead avulso";
+                            })()
+                          ) : "Lead avulso"}
+                        </SelectValue>
+                      </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="__free__" className="cursor-pointer">Lead avulso</SelectItem>
-                        {leads.map(l => <SelectItem key={l.id} value={l.id} className="cursor-pointer">{l.company || l.name}</SelectItem>)}
+                        {leads.map(l => (
+                          <SelectItem key={l.id} value={l.id} className="cursor-pointer">
+                            {l.name}{l.company ? ` - ${l.company}` : ""}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   )}
