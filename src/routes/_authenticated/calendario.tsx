@@ -10,6 +10,7 @@ import {
   Check,
   CalendarDays
 } from "lucide-react";
+import { useCalendarRealtime } from "@/hooks/use-calendar-realtime";
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { CalendarMonth } from "@/components/calendar/CalendarMonth";
@@ -55,7 +56,6 @@ function CalendarPage() {
   const [detailOpen, setDetailOpen] = useState(false);
 
   // Ativa o Realtime para o calendário
-  import { useCalendarRealtime } from "@/hooks/use-calendar-realtime";
   useCalendarRealtime();
 
   
