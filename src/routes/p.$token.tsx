@@ -378,28 +378,28 @@ function PublicProposalView() {
                <UserIcon className="size-5 text-[#ffbc45]" />
                <div>
                   <p className="text-[10px] uppercase font-bold text-slate-400">Nome</p>
-                  <p className="font-bold">{client?.name || proposal.client_name}</p>
+                  <p className="font-bold font-sans">{client?.name || proposal.client_name}</p>
                </div>
             </div>
             <div className="bg-[#f9f7f3] border border-[#ece8e0] p-4 rounded-xl flex items-center gap-3">
                <Building2 className="size-5 text-[#ffbc45]" />
                <div>
                   <p className="text-[10px] uppercase font-bold text-slate-400">Empresa</p>
-                  <p className="font-bold">{client?.company || '—'}</p>
+                  <p className="font-bold font-sans">{client?.company || '—'}</p>
                </div>
             </div>
             <div className="bg-[#f9f7f3] border border-[#ece8e0] p-4 rounded-xl flex items-center gap-3">
                <Phone className="size-5 text-[#ffbc45]" />
                <div>
                   <p className="text-[10px] uppercase font-bold text-slate-400">Telefone</p>
-                  <p className="font-bold">{client?.phone || '—'}</p>
+                  <p className="font-bold font-sans">{client?.phone || '—'}</p>
                </div>
             </div>
             <div className="bg-[#f9f7f3] border border-[#ece8e0] p-4 rounded-xl flex items-center gap-3">
                <Mail className="size-5 text-[#ffbc45]" />
                <div>
                   <p className="text-[10px] uppercase font-bold text-slate-400">E-mail</p>
-                  <p className="font-bold">{client?.email || proposal.client_email || '—'}</p>
+                  <p className="font-bold font-sans">{client?.email || proposal.client_email || '—'}</p>
                </div>
             </div>
           </div>
