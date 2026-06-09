@@ -116,7 +116,7 @@ function AuthPage() {
       {/* Lado do formulário */}
       <div className="flex flex-col justify-center p-8 lg:p-16 max-w-xl mx-auto w-full">
         <div className="lg:hidden mb-12 flex justify-center">
-          <KasaLogo variant="black" />
+          <KasaLogo variant="login" />
         </div>
 
         <div className="space-y-2 mb-8">
