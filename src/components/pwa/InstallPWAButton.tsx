@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import { toast } from "sonner";
 
 type BIPEvent = Event & {
   prompt: () => Promise<void>;
@@ -66,6 +67,7 @@ export function InstallPWAButton() {
       variant="outline"
       className="gap-2"
       onClick={async () => {
+        if (!evt) return;
         try {
           await evt.prompt();
           await evt.userChoice;
