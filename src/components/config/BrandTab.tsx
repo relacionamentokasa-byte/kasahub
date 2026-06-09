@@ -64,23 +64,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
   const [validating, setValidating] = useState<string | null>(null);
 
   const handleUpload = (key: string, url: string | null) => {
-    setValidating(key);
-    set(key as any, url);
-    
-    // Simula validação
-    setTimeout(() => {
-      setValidating(null);
-    }, 1500);
-
-    // Se subir uma das logos principais, pode atualizar as antigas como fallback se estiverem vazias
-    if (key === 'logo_white_url') {
-      if (!form.logo_url) set('logo_url', url);
-      if (!form.logo_sidebar_url) set('logo_sidebar_url', url);
-      if (!form.logo_login_url) set('logo_login_url', url);
-    }
-    
-    // Dispara evento global para atualizar as logos em tempo real
-    window.dispatchEvent(new CustomEvent('brand-settings-updated'));
+    // Desabilitado conforme solicitação do usuário
   };
 
   return (
@@ -119,6 +103,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
           </div>
         </div>
       </div>
+
 
       <div className="rounded-xl border border-border bg-surface p-6">
         <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
