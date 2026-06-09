@@ -26,9 +26,9 @@ export function PartnerSheet({ partner, onClose }: Props) {
       <SheetContent className="bg-surface border-border w-full sm:max-w-xl overflow-y-auto">
         <SheetHeader>
           <div className="flex items-center gap-4 mb-2">
-            <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden">
+            <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden relative">
               {partner.photo_url ? (
-                <img src={partner.photo_url} alt={partner.name} className="size-full object-cover" />
+                <img src={partner.photo_url} alt={partner.name} className="absolute inset-0 size-full object-cover" />
               ) : (
                 <span className="text-2xl font-bold text-primary">{partner.name[0]}</span>
               )}
