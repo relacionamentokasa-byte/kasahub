@@ -455,7 +455,7 @@ export function JobSheet({
         onClose();
       }
     }}>
-      <SheetContent key={job.id} className="bg-surface border-border w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col h-[100dvh] sm:h-auto">
+      <SheetContent key={job.id} className="bg-surface border-border w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col h-[100dvh] sm:h-auto [&>button]:hidden sm:[&>button]:inline-flex">
         <div className="flex flex-col sm:flex-row flex-1 overflow-hidden">
           {/* Left Column: Details */}
           <div className="flex-1 flex flex-col border-r border-border overflow-y-auto order-2 sm:order-1">
