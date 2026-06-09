@@ -9,11 +9,17 @@ import { FloatingActions } from "@/components/FloatingActions";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
       throw redirect({ to: "/auth" });
     }
+    
+    // Redirecionar para /noticias se for a raiz e não houver outra instrução
+    if (location.pathname === "/" || location.pathname === "/_authenticated" || location.pathname === "/_authenticated/") {
+      throw redirect({ to: "/noticias" });
+    }
+    
     return { user: data.user };
   },
   component: ShellLayout,
