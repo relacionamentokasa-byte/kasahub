@@ -1,35 +1,47 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export async function fetchMyProfile() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Não autenticado");
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Usuário não autenticado ou sessão expirada");
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  if (error) throw error;
-  return { ...data, email: user.email };
+    if (error) throw error;
+    if (!data) throw new Error("Perfil não encontrado no sistema");
+    
+    return { ...data, email: user.email };
+  } catch (error) {
+    console.error("fetchMyProfile error:", error);
+    throw error;
+  }
 }
 
 export async function updateMyProfile(patch: any) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Não autenticado");
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) throw new Error("Usuário não autenticado");
 
-  // Remove campos que não pertencem à tabela profiles
-  const { email, ...validPatch } = patch;
+    // Remove campos sensíveis que não devem ser alterados pelo client
+    const { email, id, created_at, updated_at, ...validPatch } = patch;
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .update(validPatch)
-    .eq("id", user.id)
-    .select()
-    .single();
+    const { data, error } = await supabase
+      .from("profiles")
+      .update(validPatch)
+      .eq("id", user.id)
+      .select()
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error("updateMyProfile error:", error);
+    throw error;
+  }
 }
 
 export async function fetchProfiles() {
