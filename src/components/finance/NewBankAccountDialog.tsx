@@ -78,7 +78,7 @@ export function NewBankAccountDialog({
   }, [open, bankAccount]);
 
   const mut = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const payload = {
         name: form.name,
         bank: form.bank || null,
@@ -90,9 +90,9 @@ export function NewBankAccountDialog({
         bank_logo_url: form.bank_logo_url || null,
       };
       if (bankAccount?.id) {
-        return supabase.from("bank_accounts").update(payload as any).eq("id", bankAccount.id).then(({ error }) => {
-          if (error) throw error;
-        });
+        const { data, error } = await supabase.from("bank_accounts").update(payload as any).eq("id", bankAccount.id).select().single();
+        if (error) throw error;
+        return data as any;
       }
       return createBankAccount(payload as any);
     },
