@@ -323,8 +323,12 @@ function PublicProposalView() {
         <div className="h-1 bg-[#ffbc45] w-full" />
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-3">
-             <div className="size-10 bg-[#0c1618] flex items-center justify-center rounded-lg">
-                <span className="text-[#ffbc45] font-bold text-xs">ka/sə</span>
+             <div className="size-10 bg-[#0c1618] flex items-center justify-center rounded-lg overflow-hidden p-1.5">
+                {agency?.logo_proposals_url || agency?.logo_url ? (
+                  <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
+                ) : (
+                  <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
+                )}
              </div>
              <span className="text-lg font-bold">KASA <span className="text-[#ffbc45]">HUB</span></span>
            </div>
