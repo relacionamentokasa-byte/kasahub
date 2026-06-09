@@ -427,7 +427,12 @@ export function ProposalEditorContent({
         <div className="lg:col-span-2 space-y-4">
           <div className="rounded-2xl border border-border bg-surface p-6">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-primary text-[10px] capitalize font-semibold tracking-wider">Cabeçalho</span>
+              <div className="flex items-center gap-3">
+                <span className="text-primary text-[10px] capitalize font-semibold tracking-wider">Cabeçalho</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary font-mono-kasa tracking-tighter">
+                  {(proposal as any).number_display}
+                </span>
+              </div>
               {proposal.version && (
                 <div className="bg-primary/10 text-primary text-[10px] px-2 py-0.5 rounded-full font-bold">
                   VERSÃO V{proposal.version}

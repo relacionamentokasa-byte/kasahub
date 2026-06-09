@@ -2221,6 +2221,7 @@ export type Database = {
           lead_id: string | null
           monthly_investment: number
           notes: string | null
+          number_display: string | null
           one_time_investment: number
           owner_id: string | null
           parent_id: string | null
@@ -2292,6 +2293,7 @@ export type Database = {
           lead_id?: string | null
           monthly_investment?: number
           notes?: string | null
+          number_display?: string | null
           one_time_investment?: number
           owner_id?: string | null
           parent_id?: string | null
@@ -2363,6 +2365,7 @@ export type Database = {
           lead_id?: string | null
           monthly_investment?: number
           notes?: string | null
+          number_display?: string | null
           one_time_investment?: number
           owner_id?: string | null
           parent_id?: string | null
