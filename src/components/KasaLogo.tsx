@@ -39,6 +39,11 @@ export function KasaLogo({
       }
     };
     loadLogos();
+    
+    // Adiciona listener para atualizações de configurações de marca se necessário
+    const handleSettingsUpdate = () => loadLogos();
+    window.addEventListener('brand-settings-updated', handleSettingsUpdate);
+    return () => window.removeEventListener('brand-settings-updated', handleSettingsUpdate);
   }, []);
 
   // Mapeamento de variante de UI para variante de cor da logo
