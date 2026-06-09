@@ -267,17 +267,25 @@ export function ExecutiveDashboard() {
     }
 
     // Info: Goals below 70%
-    performanceMetrics.forEach(m => {
-      const pct = m.target > 0 ? (m.actual / m.target) * 100 : 0;
-      if (pct < 70 && m.target > 0) {
-        alerts.push({ 
-          type: 'info', 
-          message: `Meta de ${m.label} abaixo do esperado`, 
-          detail: `${Math.round(pct)}% atingido até o momento.`,
-          icon: Info
-        });
-      }
-    });
+    const monthPct = performanceMetrics.monthGoal > 0 ? (performanceMetrics.monthActual / performanceMetrics.monthGoal) * 100 : 0;
+    if (monthPct < 70 && performanceMetrics.monthGoal > 0) {
+      alerts.push({ 
+        type: 'info', 
+        message: `Meta Mensal abaixo do esperado`, 
+        detail: `${Math.round(monthPct)}% atingido até o momento.`,
+        icon: Info
+      });
+    }
+
+    const yearPct = performanceMetrics.yearGoal > 0 ? (performanceMetrics.yearActual / performanceMetrics.yearGoal) * 100 : 0;
+    if (yearPct < 70 && performanceMetrics.yearGoal > 0) {
+      alerts.push({ 
+        type: 'info', 
+        message: `Meta Anual abaixo do esperado`, 
+        detail: `${Math.round(yearPct)}% atingido até o momento.`,
+        icon: Info
+      });
+    }
 
     // Warning: Overdue Payments
     const overdueIncome = txs.filter(t => t.kind === 'income' && t.status === 'pending' && t.due_date && t.due_date < todayIso);
