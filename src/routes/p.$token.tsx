@@ -464,9 +464,11 @@ function PublicProposalView() {
             Dados do Contratante
           </h2>
           <div className="grid sm:grid-cols-2 gap-3 text-sm text-slate-700">
-            <InfoLine icon={<UserIcon className="size-4" />} label="Nome" value={client?.name || proposal.client_name} />
-            <InfoLine icon={<Building2 className="size-4" />} label="Empresa" value={client?.company} />
-            <InfoLine icon={<Phone className="size-4" />} label="Telefone" value={client?.phone} />
+            <InfoLine icon={<UserIcon className="size-4" />} label="Nome" value={client?.name || proposal.client_name || "—"} />
+            <InfoLine icon={<Building2 className="size-4" />} label="Empresa" value={client?.company || "—"} />
+            <InfoLine icon={<Phone className="size-4" />} label="Telefone" value={client?.phone || "—"} />
+            <InfoLine icon={<Mail className="size-4" />} label="E-mail" value={client?.email || proposal.client_email || "—"} />
+          </div>
             <InfoLine icon={<Mail className="size-4" />} label="E-mail" value={client?.email || proposal.client_email} />
           </div>
         </div>
