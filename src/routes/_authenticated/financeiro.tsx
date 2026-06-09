@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Search,
   Trash2,
+  Edit2,
   CheckCircle2,
   Circle,
   Upload,
@@ -986,7 +987,18 @@ function FinanceiroPage() {
                           <div className="text-rose-400 font-semibold">{brl(stats.expense)}</div>
                         </div>
                       </div>
-                      <button onClick={() => delAcc.mutate(a.id)} className="mt-4 text-xs text-foreground/40 hover:text-rose-400 flex items-center gap-1"><Trash2 className="size-3" /> Remover</button>
+                      <div className="mt-4 flex items-center justify-between">
+                        <button onClick={() => delAcc.mutate(a.id)} className="text-xs text-foreground/40 hover:text-rose-400 flex items-center gap-1"><Trash2 className="size-3" /> Remover</button>
+                        <button 
+                          onClick={() => {
+                            setEditingAcc(a);
+                            setOpenAcc(true);
+                          }} 
+                          className="text-xs text-foreground/40 hover:text-primary flex items-center gap-1"
+                        >
+                          <Edit2 className="size-3" /> Editar
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
