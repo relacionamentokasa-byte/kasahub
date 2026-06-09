@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Outlet, useMatches } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, ArrowUpDown, FileSignature, DollarSign, Clock, User } from "lucide-react";
+import { Plus, Search, Users, Trash2, LayoutGrid, List as ListIcon, FileSignature, DollarSign, Clock, ChevronRight } from "lucide-react";
 import { fetchClients, fetchJobs, fetchExtraDemands, fetchProjects } from "@/lib/ops-api";
 import { fetchContracts, fetchTransactions, brl } from "@/lib/finance-api";
 import { fetchProfiles } from "@/lib/profile-api";
@@ -11,9 +11,6 @@ import { NewClientDialog } from "@/components/clients/NewClientDialog";
 import { ClientDetailSheet } from "@/components/clients/ClientDetailSheet";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-
-
-type SortKey = "name" | "status" | "created_at";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes — KASA HUB" }] }),
@@ -30,6 +27,7 @@ function ClientesPage() {
   const { data: allJobs = [] } = useQuery({ queryKey: ["jobs"], queryFn: () => fetchJobs() });
   const { data: allDmes = [] } = useQuery({ queryKey: ["extra-demands"], queryFn: () => fetchExtraDemands() });
   const { data: allProjects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
+  
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [view, setView] = useState<"cards" | "list">(() => {
@@ -37,7 +35,6 @@ function ClientesPage() {
     return (localStorage.getItem("clientes:view") as "cards" | "list") || "cards";
   });
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [sortBy, setSortBy] = useState<SortKey>("name");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -45,7 +42,6 @@ function ClientesPage() {
     setView(v);
     if (typeof window !== "undefined") localStorage.setItem("clientes:view", v);
   }
-
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -58,40 +54,35 @@ function ClientesPage() {
         (c.email ?? "").toLowerCase().includes(q)
       );
     });
-    list = [...list].sort((a, b) => {
-      if (sortBy === "name") return (a.company || a.name).localeCompare(b.company || b.name);
-      if (sortBy === "status") return (a.status ?? "").localeCompare(b.status ?? "");
-      return (b.created_at ?? "").localeCompare(a.created_at ?? "");
-    });
-    return list;
-  }, [clients, query, statusFilter, sortBy]);
+    return list.sort((a, b) => (a.company || a.name).localeCompare(b.company || b.name));
+  }, [clients, query, statusFilter]);
 
   if (isClientDetail) return <Outlet />;
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
+      <div className="px-4 sm:px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <span className="text-primary text-[10px] capitalize">
+          <span className="text-primary text-[10px] uppercase font-bold tracking-wider">
             Operação · Clientes
           </span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            Painel do Cliente 360°
+            Painel 360°
           </h1>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none min-w-[120px]">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar cliente…"
+              placeholder="Buscar…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-10 w-56 bg-surface border-border"
+              className="pl-9 h-11 sm:h-10 w-full sm:w-48 bg-surface border-border"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-10 w-[130px] bg-surface border-border text-xs">
-              <SelectValue />
+            <SelectTrigger className="h-11 sm:h-10 flex-1 sm:w-[130px] bg-surface border-border text-xs">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos status</SelectItem>
@@ -100,22 +91,11 @@ function ClientesPage() {
               <SelectItem value="prospect">Prospect</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="h-10 w-[150px] bg-surface border-border text-xs gap-1">
-              <ArrowUpDown className="size-3.5" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Nome (A-Z)</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="created_at">Mais recentes</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="inline-flex rounded-md border border-border bg-surface overflow-hidden h-10">
+          
+          <div className="hidden sm:flex rounded-md border border-border bg-surface overflow-hidden h-10">
             <button
               type="button"
               onClick={() => changeView("cards")}
-              aria-label="Visualização em cards"
               className={`px-3 grid place-items-center transition ${view === "cards" ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:text-foreground"}`}
             >
               <LayoutGrid className="size-4" />
@@ -123,7 +103,6 @@ function ClientesPage() {
             <button
               type="button"
               onClick={() => changeView("list")}
-              aria-label="Visualização em lista"
               className={`px-3 grid place-items-center transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:text-foreground"}`}
             >
               <ListIcon className="size-4" />
@@ -131,16 +110,14 @@ function ClientesPage() {
           </div>
           <Button
             onClick={() => setOpen(true)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
+            className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
-            <Plus className="size-4" /> Novo cliente
+            <Plus className="size-4 shrink-0" /> Novo
           </Button>
         </div>
       </div>
 
-
-
-      <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
+      <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-10 pb-10">
         {filtered.length === 0 ? (
           <div className="border border-dashed border-border/60 rounded-2xl p-12 text-center text-foreground/50">
             <Users className="size-8 mx-auto mb-3 text-foreground/30" />
@@ -197,7 +174,7 @@ function ClientesPage() {
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-xs text-foreground/60">
                         <FileSignature className="size-3.5 text-primary/60" />
-                        <span className="truncate">{contractLabel} {clientContracts.length > 1 && `+${clientContracts.length - 1}`}</span>
+                        <span className="truncate">{contractLabel}</span>
                       </div>
                       
                       <div className="flex items-center justify-between">
@@ -244,7 +221,6 @@ function ClientesPage() {
           </div>
         ) : (
           <div className="rounded-2xl border border-border bg-surface overflow-hidden">
-            {/* Desktop list */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -261,15 +237,8 @@ function ClientesPage() {
                   {filtered.map((c) => {
                     const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
                     const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
-                    
                     const mainContract = clientContracts[0];
-                    const contractLabel = clientContracts.length > 1 
-                      ? `${mainContract.title} +${clientContracts.length - 1}`
-                      : mainContract?.title || "Nenhum contrato";
-
-                    const responsibleId = (c as any).responsible_id || mainContract?.owner_id || c.owner_id;
-                    const responsible = profiles.find(p => p.id === responsibleId);
-                    const responsibleName = responsible?.display_name || responsible?.full_name || "Ariel Matos";
+                    const contractLabel = mainContract?.title || "Nenhum contrato";
 
                     const nextTransaction = transactions
                       .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
@@ -308,7 +277,6 @@ function ClientesPage() {
                             {c.status === "active" ? "Ativo" : c.status}
                           </span>
                         </td>
-                        
                         <td className="px-4 py-3 text-foreground/60 text-xs">{contractLabel}</td>
                         <td className="px-4 py-3 text-right text-xs font-mono-kasa font-bold">
                           {monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}
@@ -331,77 +299,29 @@ function ClientesPage() {
               </table>
             </div>
 
-            {/* Mobile list */}
-            <ul className="md:hidden divide-y divide-border">
-              {filtered.map((c) => {
-                const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");
-                const monthlyValue = clientContracts.reduce((acc, ct) => acc + Number(ct.monthly_value || 0), 0);
-                const mainContract = clientContracts[0];
-                const contractLabel = mainContract?.title || "Nenhum contrato";
-
-                const nextTransaction = transactions
-                  .filter(t => t.client_id === c.id && t.status === "pending" && t.kind === "income" && t.due_date >= new Date().toISOString().slice(0, 10))
-                  .sort((a, b) => a.due_date.localeCompare(b.due_date))[0];
-                
-                const nextDueDate = nextTransaction?.due_date 
-                  ? new Date(nextTransaction.due_date).toLocaleDateString("pt-BR")
-                  : "Não definido";
-
-                return (
-                  <li key={c.id} className="relative">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedId(c.id)}
-                      className="flex flex-col gap-3 p-4 pr-12 text-left w-full"
+            <div className="md:hidden divide-y divide-border">
+              {filtered.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedId(c.id)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-muted/10"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="size-10 rounded-lg grid place-items-center font-display font-bold text-xs shrink-0"
+                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="size-10 rounded-lg grid place-items-center font-display font-bold text-sm overflow-hidden shrink-0"
-                          style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
-                        >
-                          {c.logo_url ? (
-                            <img src={c.logo_url} alt="" className="size-full object-cover" />
-                          ) : (
-                            (c.company || c.name).charAt(0).toUpperCase()
-                          )}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="font-semibold truncate">{c.company || c.name}</div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className={`text-[10px] capitalize px-1.5 py-0.5 rounded font-bold ${c.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
-                              {c.status === "active" ? "Ativo" : c.status}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 mt-1">
-                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/50">
-                          <FileSignature className="size-3" />
-                          <span className="truncate">{contractLabel} {clientContracts.length > 1 && `+${clientContracts.length - 1}`}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/50 justify-end">
-                          <DollarSign className="size-3 text-emerald-500/60" />
-                          <span className="font-mono-kasa font-bold">{monthlyValue > 0 ? brl(monthlyValue) : "R$ 0,00"}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 text-[10px] text-foreground/40">
-                          <Clock className="size-3" />
-                          <span>{nextDueDate}</span>
-                        </div>
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteId(c.id)}
-                      className="absolute top-4 right-3 p-2 rounded-md text-destructive opacity-60 transition"
-                      aria-label="Excluir cliente"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+                      {c.logo_url ? <img src={c.logo_url} className="size-full object-cover rounded-lg" /> : (c.company || c.name).charAt(0)}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold truncate max-w-[180px]">{c.company || c.name}</p>
+                      <p className="text-[10px] text-foreground/40 font-bold uppercase">{c.status}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-4 text-foreground/20" />
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>

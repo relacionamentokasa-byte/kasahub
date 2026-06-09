@@ -347,19 +347,19 @@ export function ExecutiveDashboard() {
 
   return (
     <div className="space-y-10">
-      <header className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex-1 min-w-[200px]">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1 min-w-0">
           <h2 className="font-display text-xl lg:text-2xl font-bold">Resumo Geral</h2>
           <p className="text-xs lg:text-sm text-foreground/50 truncate">Vitalidade da agência.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="icon" className="h-9 w-9">
+              <Button variant="outline" size="icon" className="h-10 w-10 sm:h-9 sm:w-9 shrink-0">
                 <Settings2 className="size-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-56">
+            <PopoverContent className="w-56" align="end">
               <div className="space-y-4">
                 <h4 className="font-medium leading-none">Personalizar Visão</h4>
                 <div className="grid gap-4">
@@ -385,10 +385,12 @@ export function ExecutiveDashboard() {
             </PopoverContent>
           </Popover>
 
-          <Filter className="size-4 text-foreground/40 ml-2" />
           <Select value={range} onValueChange={(v: any) => setRange(v)}>
-            <SelectTrigger className="w-[160px] h-9">
-              <SelectValue />
+            <SelectTrigger className="flex-1 sm:w-[160px] h-10 sm:h-9">
+              <div className="flex items-center gap-2">
+                <Filter className="size-3.5 text-foreground/40 shrink-0" />
+                <SelectValue />
+              </div>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="today">Hoje</SelectItem>

@@ -347,26 +347,26 @@ function FinanceiroPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
+      <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-xl lg:text-3xl font-bold tracking-tight">
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight">
             Financeiro
           </h1>
-          <p className="text-sm text-foreground/60 mt-1">Controle de receitas e despesas</p>
+          <p className="text-sm text-foreground/60 mt-1">Gestão de caixa</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <Button
             onClick={() => setOpenImport(true)}
             variant="outline"
-            className="border-border rounded-full h-10 px-4 gap-2"
+            className="flex-1 sm:flex-none border-border rounded-full h-11 sm:h-10 px-4 gap-2"
           >
-            <Upload className="size-4" /> Importar
+            <Upload className="size-4 shrink-0" /> Importar
           </Button>
           <Button
             onClick={() => setOpenTx("income")}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
+            className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
-            <Plus className="size-4" /> Nova Transação
+            <Plus className="size-4 shrink-0" /> Nova
           </Button>
         </div>
       </div>

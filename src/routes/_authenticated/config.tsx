@@ -148,11 +148,11 @@ function ConfigPage() {
   }, {} as Record<string, ConfigSection[]>);
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-5rem)]">
+    <div className="flex flex-col lg:flex-row min-h-[calc(100vh-4rem)]">
       {/* Sidebar Mobile Toggle */}
-      <div className="lg:hidden p-4 border-b border-border bg-background flex items-center justify-between sticky top-0 z-20">
+      <div className="lg:hidden px-4 h-14 border-b border-border bg-background flex items-center justify-between sticky top-0 z-20">
         <h1 className="font-display font-bold text-lg">Configurações</h1>
-        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+        <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="h-11 w-11">
           <Menu className="size-5" />
         </Button>
       </div>
@@ -206,7 +206,7 @@ function ConfigPage() {
       </aside>
 
       {/* Content Area */}
-      <main className="flex-1 p-6 lg:p-10 bg-background/50">
+      <main className="flex-1 p-4 sm:p-6 lg:p-10 bg-background/50">
         <div className="max-w-4xl mx-auto space-y-8">
           <header className="flex items-start justify-between gap-4 flex-wrap pb-6 border-b border-border/50">
             <div>
@@ -219,7 +219,7 @@ function ConfigPage() {
               <Button
                 onClick={() => mut.mutate()}
                 disabled={!canEdit || mut.isPending}
-                className="gap-2 shadow-lg shadow-primary/20"
+                className="gap-2 shadow-lg shadow-primary/20 h-11 w-full sm:w-auto"
               >
                 {mut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
                 Salvar alterações

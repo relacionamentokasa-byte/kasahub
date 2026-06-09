@@ -60,8 +60,8 @@ export function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
 
   return (
     <div className="rounded-xl border border-border bg-surface p-6">
-      <div className="flex flex-col md:flex-row gap-8">
-        <div className="w-full md:w-1/3 space-y-6">
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="w-full lg:w-1/3 space-y-6">
           <div className="space-y-4">
             <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60 font-semibold">Foto de perfil</Label>
             <ProfileImageUpload
@@ -77,8 +77,8 @@ export function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
           {/* Removido duplicidade da logo aqui, pois agora está em Identidade Visual */}
         </div>
 
-        <div className="flex-1 space-y-4">
-          <Grid>
+        <div className="flex-1 space-y-4 w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Field label="Nome completo">
               <Input 
                 value={form.full_name ?? ""} 
@@ -110,7 +110,7 @@ export function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
                 onChange={(e) => setForm({ ...form, department: e.target.value })} 
               />
             </Field>
-          </Grid>
+          </div>
           
           <div className="pt-4 border-t border-border mt-4">
             <Button 
