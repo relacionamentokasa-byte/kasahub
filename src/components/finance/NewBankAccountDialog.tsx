@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createBankAccount } from "@/lib/finance-api";
 import {
@@ -40,9 +40,11 @@ const BR_BANKS = [
 export function NewBankAccountDialog({
   open,
   onOpenChange,
+  bankAccount,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  bankAccount?: any;
 }) {
   const qc = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -58,9 +60,26 @@ export function NewBankAccountDialog({
     bank_logo_url: "",
   });
 
+  useEffect(() => {
+    if (open && bankAccount) {
+      setForm({
+        name: bankAccount.name || "",
+        bank: bankAccount.bank || "",
+        agency: bankAccount.agency || "",
+        account_number: bankAccount.account_number || "",
+        account_type: bankAccount.account_type || "checking",
+        initial_balance: String(bankAccount.initial_balance || "0"),
+        color: bankAccount.color || "#FFBC45",
+        bank_logo_url: bankAccount.bank_logo_url || "",
+      });
+    } else if (open && !bankAccount) {
+      setForm({ name: "", bank: "", agency: "", account_number: "", account_type: "checking", initial_balance: "0", color: "#FFBC45", bank_logo_url: "" });
+    }
+  }, [open, bankAccount]);
+
   const mut = useMutation({
-    mutationFn: () =>
-      createBankAccount({
+    mutationFn: () => {
+      const payload = {
         name: form.name,
         bank: form.bank || null,
         agency: form.agency || null,
@@ -69,10 +88,15 @@ export function NewBankAccountDialog({
         initial_balance: Number(form.initial_balance) || 0,
         color: form.color,
         bank_logo_url: form.bank_logo_url || null,
-      } as any),
+      };
+      if (bankAccount?.id) {
+        return supabase.from("bank_accounts").update(payload as any).eq("id", bankAccount.id);
+      }
+      return createBankAccount(payload as any);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["bank_accounts"] });
-      toast.success("Conta criada");
+      toast.success(bankAccount ? "Conta atualizada" : "Conta criada");
       onOpenChange(false);
       setForm({ name: "", bank: "", agency: "", account_number: "", account_type: "checking", initial_balance: "0", color: "#FFBC45", bank_logo_url: "" });
     },
@@ -103,7 +127,7 @@ export function NewBankAccountDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-surface border-border max-w-lg overflow-y-auto max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">Nova conta bancária</DialogTitle>
+          <DialogTitle className="font-display text-xl">{bankAccount ? "Editar conta bancária" : "Nova conta bancária"}</DialogTitle>
         </DialogHeader>
         
         <div className="flex flex-col items-center gap-4 py-4">
@@ -140,9 +164,14 @@ export function NewBankAccountDialog({
           <div className="space-y-1.5 col-span-2">
             <Label>Instituição Bancária</Label>
             <Select 
+              value={BR_BANKS.some(b => b.name === form.bank) ? form.bank : (form.bank ? "Outro" : "")}
               onValueChange={(v) => {
-                const bank = BR_BANKS.find(b => b.name === v);
-                setForm(p => ({ ...p, bank: v, bank_logo_url: bank?.logo || p.bank_logo_url }));
+                if (v === "Outro") {
+                   setForm(p => ({ ...p, bank: "Outro" }));
+                } else {
+                  const bank = BR_BANKS.find(b => b.name === v);
+                  setForm(p => ({ ...p, bank: v, bank_logo_url: bank?.logo || p.bank_logo_url }));
+                }
               }}
             >
               <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione o banco" /></SelectTrigger>
@@ -152,6 +181,16 @@ export function NewBankAccountDialog({
               </SelectContent>
             </Select>
           </div>
+          {form.bank === "Outro" && (
+            <div className="space-y-1.5 col-span-2">
+              <Label>Nome do Banco</Label>
+              <Input 
+                value={form.bank === "Outro" ? "" : form.bank} 
+                onChange={(e) => setForm({ ...form, bank: e.target.value })} 
+                placeholder="Digite o nome do banco" 
+              />
+            </div>
+          )}
           <div className="space-y-1.5 col-span-2">
             <Label>Nome da conta (Exibição)</Label>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex.: Conta Principal" />
