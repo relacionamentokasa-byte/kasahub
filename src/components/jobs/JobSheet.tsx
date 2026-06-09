@@ -509,7 +509,7 @@ export function JobSheet({
                   {/* PRIORIDADE */}
                   <div className="space-y-3">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prioridade</Label>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:gap-2">
                       {[
                         { id: 'high', label: 'Alta', icon: '🔴', color: 'hover:border-red-500/50', active: 'bg-red-500/20 border-red-500 text-red-500' },
                         { id: 'normal', label: 'Normal', icon: '🟡', color: 'hover:border-yellow-500/50', active: 'bg-yellow-500/20 border-yellow-500 text-yellow-500' },
@@ -520,7 +520,7 @@ export function JobSheet({
                           <button
                             key={p.id}
                             onClick={() => updateMut.mutate({ priority: p.id })}
-                            className={`flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-border text-[10px] font-bold uppercase tracking-wider transition-all ${
+                            className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 sm:gap-2 h-9 sm:h-10 rounded-lg border border-border text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${
                               isActive ? p.active : `bg-background/50 ${p.color}`
                             }`}
                           >
