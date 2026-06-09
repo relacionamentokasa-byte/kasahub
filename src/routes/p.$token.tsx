@@ -386,7 +386,13 @@ function PublicProposalView() {
            </div>
            <h1 className="font-display text-2xl sm:text-4xl font-bold mb-6 text-[#0c1618] relative z-10 break-words">{proposal.title}</h1>
            <div className="flex items-center gap-3 relative z-10">
-             <div className="size-10 rounded-full bg-[#f9f7f3] border border-[#ece8e0] flex items-center justify-center font-bold text-[#ffbc45] font-sans shadow-sm shrink-0">{proposal.client_name.substring(0, 2).toUpperCase()}</div>
+             <div className="size-10 rounded-full bg-[#f9f7f3] border border-[#ece8e0] flex items-center justify-center font-bold text-[#ffbc45] font-sans shadow-sm shrink-0 overflow-hidden">
+               {client?.logo_url ? (
+                 <img src={client.logo_url} className="w-full h-full object-cover" alt="Client Logo" />
+               ) : (
+                 proposal.client_name.substring(0, 2).toUpperCase()
+               )}
+             </div>
              <p className="text-sm text-slate-600 font-sans tracking-tight leading-snug">Preparada para <span className="font-bold text-[#0c1618]">{proposal.client_name}</span></p>
            </div>
         </div>
