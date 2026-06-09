@@ -4,7 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 export type BankAccount = Database["public"]["Tables"]["bank_accounts"]["Row"];
 export type FinancialCategory = Database["public"]["Tables"]["financial_categories"]["Row"];
 export type Contract = Database["public"]["Tables"]["contracts"]["Row"];
-export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
+export type Transaction = Database["public"]["Tables"]["transactions"]["Row"] & { to_account_id?: string | null };
 
 
 
@@ -405,16 +405,53 @@ export function brl(v: number) {
 }
 
 export function accountBalance(account: BankAccount, txs: Transaction[]) {
-  const paid = txs.filter((t) => t.account_id === account.id && t.status === "paid");
-  const delta = paid.reduce((s, t) => s + (t.kind === "income" ? Number(t.amount) : -Number(t.amount)), 0);
+  const accountId = account.id;
+  const delta = txs
+    .filter((t) => t.status === "paid")
+    .reduce((s, t) => {
+      let d = 0;
+      // Normal income/expense
+      if (t.account_id === accountId) {
+        if (t.kind === "income") d += Number(t.amount);
+        else if (t.kind === "expense") d -= Number(t.amount);
+        else if (t.kind === "transfer") d -= Number(t.amount); // Output side
+        else if (t.kind === "adjustment") d += Number(t.amount); // Positive or negative adjustment
+      }
+      // Transfer destination
+      if (t.kind === "transfer" && t.to_account_id === accountId) {
+        d += Number(t.amount);
+      }
+      return s + d;
+    }, 0);
   return Number(account.initial_balance) + delta;
 }
 
 export function accountStats(account: BankAccount, txs: Transaction[]) {
-  const own = txs.filter((t) => t.account_id === account.id && t.status === "paid");
-  const income = own.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
-  const expense = own.filter((t) => t.kind === "expense").reduce((s, t) => s + Number(t.amount), 0);
-  return { income, expense, balance: Number(account.initial_balance) + income - expense };
+  const accountId = account.id;
+  const paid = txs.filter((t) => t.status === "paid");
+  let income = 0;
+  let expense = 0;
+  let balance = Number(account.initial_balance);
+
+  for (const t of paid) {
+    if (t.account_id === accountId) {
+      if (t.kind === "income") {
+        income += Number(t.amount);
+        balance += Number(t.amount);
+      } else if (t.kind === "expense") {
+        expense += Number(t.amount);
+        balance -= Number(t.amount);
+      } else if (t.kind === "transfer") {
+        balance -= Number(t.amount);
+      } else if (t.kind === "adjustment") {
+        balance += Number(t.amount);
+      }
+    }
+    if (t.kind === "transfer" && t.to_account_id === accountId) {
+      balance += Number(t.amount);
+    }
+  }
+  return { income, expense, balance };
 }
 
 export interface FinancialIndicators {

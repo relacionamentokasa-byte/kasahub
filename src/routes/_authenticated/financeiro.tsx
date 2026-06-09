@@ -166,7 +166,7 @@ function FinanceiroPage() {
     setFValueRange([0, 100000]);
   }
 
-  const [openTx, setOpenTx] = useState<false | "income" | "expense">(false);
+  const [openTx, setOpenTx] = useState<false | "income" | "expense" | "transfer" | "adjustment">(false);
   const [openAcc, setOpenAcc] = useState(false);
   const [openImport, setOpenImport] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
@@ -492,9 +492,11 @@ function FinanceiroPage() {
                           <Select value={fKind} onValueChange={setFKind}>
                             <SelectTrigger className="h-10 rounded-lg"><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="all">Todos Tipos</SelectItem>
-                              <SelectItem value="income">Receitas</SelectItem>
-                              <SelectItem value="expense">Despesas</SelectItem>
+                               <SelectItem value="all">Todos Tipos</SelectItem>
+                               <SelectItem value="income">Receitas</SelectItem>
+                               <SelectItem value="expense">Despesas</SelectItem>
+                               <SelectItem value="transfer">Transferências</SelectItem>
+                               <SelectItem value="adjustment">Ajustes de Saldo</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -696,8 +698,13 @@ function FinanceiroPage() {
                             {clientName(t.client_id)}
                           </div>
 
-                          <div className={`text-sm font-bold text-right ${t.kind === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {brl(t.amount)}
+                          <div className={`text-sm font-bold text-right ${
+                            t.kind === 'income' ? 'text-emerald-400' : 
+                            t.kind === 'expense' ? 'text-rose-400' : 
+                            t.kind === 'transfer' ? 'text-blue-400' : 
+                            'text-purple-400'
+                          }`}>
+                            {t.kind === 'transfer' ? `↔ ${brl(t.amount)}` : brl(t.amount)}
                           </div>
 
                           <div className="flex flex-col items-center justify-center">
@@ -773,8 +780,13 @@ function FinanceiroPage() {
                                 </Badge>
                               )}
                             </div>
-                            <div className={`font-display font-bold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                              {brl(Number(t.amount))}
+                            <div className={`font-display font-bold ${
+                              t.kind === "income" ? "text-emerald-400" : 
+                              t.kind === "expense" ? "text-rose-400" : 
+                              t.kind === "transfer" ? "text-blue-400" : 
+                              "text-purple-400"
+                            }`}>
+                              {t.kind === 'transfer' ? `↔ ${brl(Number(t.amount))}` : brl(Number(t.amount))}
                             </div>
                           </div>
 
