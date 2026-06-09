@@ -86,6 +86,7 @@ type Client = {
 } | null;
 type Lead = {
   name: string | null;
+  company: string | null;
 } | null;
 
 
@@ -228,7 +229,7 @@ function PublicProposalView() {
     const rawContractContent = proposal.contract_content;
     return replaceContractVariables(rawContractContent as string, {
       client_name: lead?.name || client?.name || proposal.client_name,
-      client_legal_name: client?.company || proposal.client_name,
+      client_legal_name: lead?.company || client?.company || proposal.client_name,
       client_document: agency?.document || "",
       client_address: agency?.address || "",
       client_email: proposal.client_email || "",
@@ -439,7 +440,7 @@ function PublicProposalView() {
                <Building2 className="size-5 text-[#ffbc45] shrink-0" />
                <div className="min-w-0">
                   <p className="text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Empresa</p>
-                  <p className="font-bold font-sans truncate">{client?.company || '—'}</p>
+                  <p className="font-bold font-sans truncate">{lead?.company || client?.company || '—'}</p>
                </div>
             </div>
             <div className="bg-[#f9f7f3] border border-[#ece8e0] p-3 sm:p-4 rounded-xl flex items-center gap-3">
