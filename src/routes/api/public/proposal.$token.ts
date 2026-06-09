@@ -56,7 +56,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             }
           }
 
-          const [{ data: items }, { data: agency }, { data: client }, { data: lead }] = await Promise.all([
+          const [{ data: items }, { data: agency }, { data: client }] = await Promise.all([
             supabaseAdmin
               .from("proposal_items")
               .select("*")
@@ -77,13 +77,6 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
                   .eq("id", proposal.client_id)
                   .maybeSingle()
               : Promise.resolve({ data: null }),
-            proposal.lead_id
-              ? supabaseAdmin
-                  .from("leads")
-                  .select("name, company, email, phone")
-                  .eq("id", proposal.lead_id)
-                  .maybeSingle()
-              : Promise.resolve({ data: null }),
           ]);
 
           // Auto-mark as viewed
@@ -102,7 +95,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
               proposal,
               items: items ?? [],
               agency: agency ?? null,
-              client: client ?? lead ?? null,
+              client: client ?? null,
             }),
             {
               status: 200,

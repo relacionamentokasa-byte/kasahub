@@ -104,8 +104,8 @@ export function AppSidebar() {
   if (isLoading) {
     return (
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-        <SidebarHeader className="h-20 flex justify-center items-center px-4 mb-4 bg-transparent border-none">
-          <KasaLogo collapsed={collapsed} variant="sidebar" className="bg-transparent" />
+        <SidebarHeader className="h-20 flex justify-center items-center px-4 mb-4">
+          <KasaLogo collapsed={collapsed} variant="sidebar" />
         </SidebarHeader>
         <SidebarContent className="px-2 gap-2 flex items-center justify-center">
           <Loader2 className="size-5 animate-spin text-primary" />
@@ -116,8 +116,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
-      <SidebarHeader className="h-20 flex justify-center items-center px-4 mb-4 bg-transparent border-none">
-        <KasaLogo collapsed={collapsed} variant="sidebar" className="bg-transparent" />
+      <SidebarHeader className="h-20 flex justify-center items-center px-4 mb-4">
+        <KasaLogo collapsed={collapsed} variant="sidebar" />
       </SidebarHeader>
 
       <SidebarContent className="px-2 gap-2">
