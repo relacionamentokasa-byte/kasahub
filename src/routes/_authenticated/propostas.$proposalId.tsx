@@ -430,7 +430,7 @@ export function ProposalEditorContent({
               <div className="flex items-center gap-3">
                 <span className="text-primary text-[10px] capitalize font-semibold tracking-wider">Cabeçalho</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary font-mono-kasa tracking-tighter">
-                  {(proposal as any).number_display}
+                  {(proposal as any).number_display || "S/N"}
                 </span>
               </div>
               {proposal.version && (
