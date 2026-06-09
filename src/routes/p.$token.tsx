@@ -356,7 +356,7 @@ function PublicProposalView() {
            <div className="absolute inset-y-0 right-0 w-1/3 bg-[#ffbc45]/6 -rotate-12 transform origin-top-right hidden sm:block" />
            
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
-              <div className="flex flex-col items-start gap-1">
+              <div className="flex flex-col items-start gap-2">
                  <div className="size-10 sm:size-12 bg-[#0c1618] flex items-center justify-center rounded-xl overflow-hidden p-2 shrink-0">
                     {agency?.logo_proposals_url || agency?.logo_url ? (
                       <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
@@ -364,7 +364,18 @@ function PublicProposalView() {
                       <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
                     )}
                  </div>
-                 <span className="text-[10px] sm:text-[11px] font-bold font-sans text-slate-500 uppercase tracking-tight leading-none">Kasa Marketing & Consultoria</span>
+                 <div className="flex flex-col items-start">
+                    <span className="text-[11px] sm:text-[12px] font-bold font-sans text-slate-800 uppercase tracking-tight leading-none mb-1">Kasa Marketing & Consultoria</span>
+                    <div className="flex flex-wrap items-center gap-x-2 text-[10px] sm:text-[11px] text-slate-400 font-sans leading-none">
+                       <span>CNPJ: 51.920.226/0001-41</span>
+                       <span className="text-slate-300">·</span>
+                       <span>relacionamentokasa@gmail.com</span>
+                       <span className="text-slate-300">·</span>
+                       <span>(62) 99463-0772</span>
+                       <span className="text-slate-300">·</span>
+                       <span>@kasamkt</span>
+                    </div>
+                 </div>
               </div>
 
               <div className="flex flex-col items-start md:items-end gap-2 w-full sm:w-auto">
