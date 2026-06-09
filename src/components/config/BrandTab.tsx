@@ -180,8 +180,8 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
             <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-white/40">Menu Lateral</p>
             <div className="flex items-center gap-4 bg-white/5 p-4 rounded-lg">
               <div className="h-10 w-auto flex items-center justify-center">
-                {form.logo_white_url ? (
-                  <img src={form.logo_white_url as string} alt="Logo Branca" className="max-h-full max-w-full object-contain" />
+                {form.logo_sidebar_url || form.logo_white_url ? (
+                  <img src={(form.logo_sidebar_url || form.logo_white_url) as string} alt="Logo Sidebar" className="max-h-full max-w-full object-contain" />
                 ) : (
                   <div className="size-6 border-2 border-white/20 rotate-45" />
                 )}
