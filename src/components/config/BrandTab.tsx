@@ -102,10 +102,9 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
                     asset.previewBg === "dark" ? "bg-[#0c1618]" : "bg-muted/10 shadow-inner"
                   )}>
                     <ProfileImageUpload
-                      url={form[asset.key] as string || null}
+                      value={form[asset.key] as string || null}
                       onChange={(url) => set(asset.key, url)}
                       disabled={!canEdit}
-                      className="w-full h-[180px]"
                       shape="rect"
                       bucket="logos"
                     />
