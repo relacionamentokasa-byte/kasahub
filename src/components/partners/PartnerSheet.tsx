@@ -7,7 +7,11 @@ import {
 import { type Partner } from "@/lib/partners-api";
 import { PartnerStats } from "./PartnerStats";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, MapPin, Globe, CreditCard } from "lucide-react";
+import { Phone, Mail, MapPin, Globe, CreditCard, Calculator, List } from "lucide-react";
+import { CommissionCalculator } from "./CommissionCalculator";
+import { CommissionHistory } from "./CommissionHistory";
+import { Separator } from "@/components/ui/separator";
+
 
 interface Props {
   partner: Partner | null;
