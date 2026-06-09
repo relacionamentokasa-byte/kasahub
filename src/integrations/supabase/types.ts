@@ -1222,6 +1222,7 @@ export type Database = {
           id: string
           job_id: string
           order_index: number
+          responsible_id: string | null
         }
         Insert: {
           content: string
@@ -1230,6 +1231,7 @@ export type Database = {
           id?: string
           job_id: string
           order_index?: number
+          responsible_id?: string | null
         }
         Update: {
           content?: string
@@ -1238,6 +1240,7 @@ export type Database = {
           id?: string
           job_id?: string
           order_index?: number
+          responsible_id?: string | null
         }
         Relationships: [
           {
@@ -1245,6 +1248,20 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_checklist_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_checklist_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_email"
             referencedColumns: ["id"]
           },
         ]
