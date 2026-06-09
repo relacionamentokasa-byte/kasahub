@@ -176,10 +176,34 @@ function AuthListener() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const [faviconUrl, setFaviconUrl] = useState("/logo-yellow.png");
 
   useEffect(() => {
     registerPWA();
+    
+    const loadFavicon = async () => {
+      const settings = await fetchAgencySettings();
+      if (settings?.logo_yellow_url) {
+        setFaviconUrl(settings.logo_yellow_url);
+      }
+    };
+    loadFavicon();
+    
+    window.addEventListener('brand-settings-updated', loadFavicon);
+    return () => window.removeEventListener('brand-settings-updated', loadFavicon);
   }, []);
+
+  useEffect(() => {
+    // Atualiza o favicon dinamicamente no head
+    const link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (link) {
+      link.href = faviconUrl;
+    }
+    const appleLink = document.querySelector("link[rel='apple-touch-icon']") as HTMLLinkElement;
+    if (appleLink) {
+      appleLink.href = faviconUrl;
+    }
+  }, [faviconUrl]);
 
   return (
     <QueryClientProvider client={queryClient}>
