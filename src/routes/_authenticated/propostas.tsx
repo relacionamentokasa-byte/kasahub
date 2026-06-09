@@ -912,6 +912,9 @@ function ProposalsPage() {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-mono opacity-40">{p.number_display}</span>
+                      </div>
                       <button
                         onClick={() => setSelectedId(p.id)}
                         className="font-semibold hover:text-primary text-left"
