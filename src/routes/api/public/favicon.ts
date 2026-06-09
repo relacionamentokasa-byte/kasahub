@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/public/favicon")({
           .limit(1)
           .maybeSingle();
 
-        const faviconUrl = data?.pwa_favicon_url || "/icon-512.png";
+        const faviconUrl = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
         
         return Response.redirect(faviconUrl, 302);
       },
