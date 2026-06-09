@@ -79,7 +79,42 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A foto deve ter no máximo 2MB");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `partners/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('partners-photos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('partners-photos')
+        .getPublicUrl(filePath);
+
+      setForm(prev => ({ ...prev, photo_url: publicUrl }));
+      toast.success("Foto enviada com sucesso");
+    } catch (error: any) {
+      toast.error("Erro ao enviar foto: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = () => {
+
     if (!form.name) {
       toast.error("O nome é obrigatório");
       return;
