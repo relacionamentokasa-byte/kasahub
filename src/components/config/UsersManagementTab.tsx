@@ -301,15 +301,64 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       </Select>
                       
                       {canEdit && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setUserToDelete(u.id)}
-                          className="text-foreground/40 hover:text-destructive h-8 w-8 p-0"
-                          title="Excluir usuário"
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        <>
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-foreground/40 hover:text-primary h-8 w-8 p-0"
+                                title="Editar perfil"
+                              >
+                                <ShieldAlert className="size-4" />
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                              <DialogHeader>
+                                <DialogTitle>Alterar Perfil de Acesso</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4 py-4">
+                                <div className="space-y-2">
+                                  <Label>Perfil de Acesso</Label>
+                                  <Select 
+                                    defaultValue={u.custom_role_id || ""} 
+                                    onValueChange={(v) => {
+                                      const promise = assignProfileRole(u.id, v || null);
+                                      toast.promise(promise, {
+                                        loading: "Atualizando perfil...",
+                                        success: () => {
+                                          qc.invalidateQueries({ queryKey: ["users"] });
+                                          return "Perfil atualizado com sucesso";
+                                        },
+                                        error: (err) => "Erro ao atualizar perfil: " + err.message,
+                                      });
+                                    }}
+                                  >
+                                    <SelectTrigger>
+                                      <SelectValue placeholder="Selecione um perfil" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="none">Sem perfil</SelectItem>
+                                      {roles.map(r => (
+                                        <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            onClick={() => setUserToDelete(u.id)}
+                            className="text-foreground/40 hover:text-destructive h-8 w-8 p-0"
+                            title="Excluir usuário"
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </>
                       )}
                     </div>
                   </td>
