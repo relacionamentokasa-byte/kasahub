@@ -29,7 +29,6 @@ import { ServicesManager } from "@/components/config/ServicesManager";
 import { PermissionsManager } from "@/components/PermissionsManager";
 import { ContractTemplatesManager } from "@/components/config/ContractTemplatesManager";
 import { ScopeTemplatesManager } from "@/components/config/ScopeTemplatesManager";
-import { IndicatorsManager } from "@/components/performance/IndicatorsManager";
 import { UserProfileTab } from "@/components/config/UserProfileTab";
 import { UsersManagementTab } from "@/components/config/UsersManagementTab";
 import { NotificationPreferencesTab } from "@/components/config/NotificationPreferencesTab";
@@ -125,8 +124,6 @@ function ConfigPage() {
     { id: "contracts", label: "Templates de Contratos", icon: FileText, group: "Operação", component: <ContractTemplatesManager canEdit={canEdit} /> },
     { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Operação", component: <ScopeTemplatesManager canEdit={canEdit} /> },
     
-    { id: "indicators", label: "Indicadores e Metas", icon: Target, group: "Performance", component: <IndicatorsManager /> },
-    
     { id: "notif", label: "Notificações", icon: Bell, group: "Comunicação", component: <NotificationPreferencesTab /> },
     { id: "whatsapp", label: "WhatsApp", icon: MessageSquare, group: "Comunicação", component: <IntegrationsTab form={form} /> },
     
@@ -215,7 +212,7 @@ function ConfigPage() {
               </span>
               <h2 className="font-display text-3xl font-bold mt-1">{currentSection.label}</h2>
             </div>
-            {activeTab !== "licensing" && activeTab !== "perms" && activeTab !== "users" && activeTab !== "services" && activeTab !== "contracts" && activeTab !== "scope-templates" && activeTab !== "indicators" && (
+            {activeTab !== "licensing" && activeTab !== "perms" && activeTab !== "users" && activeTab !== "services" && activeTab !== "contracts" && activeTab !== "scope-templates" && (
               <Button
                 onClick={() => mut.mutate()}
                 disabled={!canEdit || mut.isPending}
