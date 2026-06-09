@@ -560,7 +560,7 @@ export function JobSheet({
                   </div>
 
                   {/* CLIENTE */}
-                  <div className="space-y-3 col-span-2">
+                   <div className="space-y-3 col-span-1 sm:col-span-2">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Cliente</Label>
                     <Popover>
                       <PopoverTrigger asChild>
@@ -585,7 +585,7 @@ export function JobSheet({
                           <ChevronDown className="size-4 text-foreground/40 group-hover:text-primary transition-colors" />
                         </button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-[400px] p-0 bg-surface border-border" align="start">
+                      <PopoverContent className="w-[300px] sm:w-[400px] p-0 bg-surface border-border" align="start">
                         <Command className="bg-transparent">
                           <CommandInput placeholder="Buscar cliente..." className="h-12 border-none focus:ring-0 bg-transparent text-foreground" />
                           <CommandList className="max-h-[300px]">
@@ -620,7 +620,7 @@ export function JobSheet({
                   </div>
 
                   {/* PROJETO */}
-                  <div className="space-y-3 col-span-2">
+                   <div className="space-y-3 col-span-1 sm:col-span-2">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Projeto</Label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {projects
@@ -650,7 +650,7 @@ export function JobSheet({
                   </div>
 
                   {/* SERVIÇO */}
-                  <div className="space-y-3 col-span-2">
+                   <div className="space-y-3 col-span-1 sm:col-span-2">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Serviço Principal</Label>
                     <Select
                       value={(job as any).service_id || ""}
@@ -668,7 +668,7 @@ export function JobSheet({
                   </div>
 
                   {/* RESPONSÁVEL PRINCIPAL */}
-                  <div className="space-y-3 col-span-2">
+                   <div className="space-y-3 col-span-1 sm:col-span-2">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Responsável Principal</Label>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                       {team.map((p) => {
@@ -703,7 +703,7 @@ export function JobSheet({
                   </div>
 
                   {/* EQUIPE ENVOLVIDA */}
-                  <div className="space-y-3 col-span-2">
+                  <div className="space-y-3 col-span-1 sm:col-span-2">
                     <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Equipe Envolvida</Label>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                       {team.map((p) => {
