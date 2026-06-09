@@ -5,8 +5,9 @@ import { cn } from "@/lib/utils";
 const Textarea = React.forwardRef<HTMLTextAreaElement, React.ComponentProps<"textarea">>(
   ({ className, onChange, ...props }, ref) => {
     const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-      const sanitizedValue = sanitizeInput(e.target.value);
-      if (sanitizedValue !== e.target.value) {
+      const value = e.target.value;
+      const sanitizedValue = sanitizeInput(value);
+      if (sanitizedValue !== value) {
         e.target.value = sanitizedValue;
       }
       onChange?.(e);

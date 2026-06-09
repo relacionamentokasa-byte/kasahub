@@ -7,10 +7,10 @@ import { UAParser } from "ua-parser-js";
 const TokenSchema = z.string().min(8).max(200);
 
 const SignSchema = z.object({
-  accepted_name: z.string().trim().min(2).max(200),
-  accepted_cpf: z.string().trim().min(11).max(20),
-  accepted_role: z.string().trim().min(2).max(100),
-  accepted_email: z.string().trim().email(),
+  accepted_name: z.string().min(2).max(200),
+  accepted_cpf: z.string().min(11).max(20),
+  accepted_role: z.string().min(2).max(100),
+  accepted_email: z.string().email(),
   signature_data: z.string().min(100), // Base64 image
   accepted_terms: z.literal(true),
   accepted_representation: z.literal(true),

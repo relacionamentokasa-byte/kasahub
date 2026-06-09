@@ -6,8 +6,9 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
   ({ className, type, onChange, ...props }, ref) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (type !== 'password' && type !== 'file' && type !== 'color' && type !== 'date' && type !== 'datetime-local') {
-        const sanitizedValue = sanitizeInput(e.target.value);
-        if (sanitizedValue !== e.target.value) {
+        const value = e.target.value;
+        const sanitizedValue = sanitizeInput(value);
+        if (sanitizedValue !== value) {
           e.target.value = sanitizedValue;
         }
       }

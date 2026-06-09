@@ -146,19 +146,19 @@ function PublicProposalView() {
   const brand = data?.agency?.brand_primary ?? "#FFBC45";
 
   async function sign() {
-    if (!signerName.trim() || signerName.trim().length < 2) {
+    if (!signerName || signerName.length < 2) {
       toast.error("Informe seu nome completo");
       return;
     }
-    if (!signerCpf.trim() || signerCpf.replace(/\D/g, "").length < 11) {
+    if (!signerCpf || signerCpf.replace(/\D/g, "").length < 11) {
       toast.error("Informe um CPF válido");
       return;
     }
-    if (!signerRole.trim()) {
+    if (!signerRole) {
       toast.error("Informe seu cargo");
       return;
     }
-    if (!signerEmail.trim() || !signerEmail.includes("@")) {
+    if (!signerEmail || !signerEmail.includes("@")) {
       toast.error("Informe um e-mail válido");
       return;
     }
@@ -183,10 +183,10 @@ function PublicProposalView() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          accepted_name: signerName.trim(),
-          accepted_cpf: signerCpf.trim(),
-          accepted_role: signerRole.trim(),
-          accepted_email: signerEmail.trim(),
+          accepted_name: signerName,
+          accepted_cpf: signerCpf,
+          accepted_role: signerRole,
+          accepted_email: signerEmail,
           signature_data: signatureData,
           accepted_terms: true,
           accepted_representation: true,
