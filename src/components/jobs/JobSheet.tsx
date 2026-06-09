@@ -229,10 +229,9 @@ export function JobSheet({
         file_size: file.size
       });
 
-      await addJobComment(job.id, `Anexou um arquivo: ${file.name}`, 'comment', { 
-        file_name: file.name, 
-        file_url: publicUrl 
-      });
+      // Removido addJobComment manual aqui pois o addJobAttachment já deve disparar a criação 
+      // do comentário via trigger no banco ou se for necessário ser manual, deve ser centralizado.
+      // Atualmente parece que o addJobAttachment e addJobComment estão criando o mesmo "evento" visual.
 
       qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
       qc.invalidateQueries({ queryKey: ["job-comments", job.id] });
@@ -412,6 +411,15 @@ export function JobSheet({
     },
     onError: (e: Error) => toast.error(e.message)
   });
+
+  const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
+  }, []);
+
+  const isAdmin = currentUser?.user_metadata?.role === 'admin' || currentUser?.email === 'admin@ops.com'; // Placeholder check
 
   const communicationTimeline = useMemo(() => {
 
