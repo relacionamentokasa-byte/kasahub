@@ -21,6 +21,8 @@ import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useAudioNotifications } from "@/hooks/use-audio-notifications";
 import { registerPWA } from "@/lib/pwa-register";
 
+const CookieConsent = lazy(() => import("@/components/CookieConsent").then(m => ({ default: m.CookieConsent })));
+
 
 function NotFoundComponent() {
   return (
