@@ -819,6 +819,7 @@ function ProposalsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
+                  <th className="px-5 py-3 w-20">Nº</th>
                   <th className="px-5 py-3">Proposta</th>
                   <th className="px-5 py-3">Cliente</th>
                   <th className="px-5 py-3 text-right">Investimento</th>
@@ -836,6 +837,9 @@ function ProposalsPage() {
                       key={p.id}
                       className="border-b border-border last:border-0 hover:bg-surface-elevated transition"
                     >
+                      <td className="px-5 py-3 font-mono text-xs opacity-40">
+                        {p.number_display}
+                      </td>
                       <td className="px-5 py-3">
                         <button
                           onClick={() => setSelectedId(p.id)}
