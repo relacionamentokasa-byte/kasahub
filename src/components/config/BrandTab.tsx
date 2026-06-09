@@ -78,6 +78,9 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
       if (!form.logo_sidebar_url) set('logo_sidebar_url', url);
       if (!form.logo_login_url) set('logo_login_url', url);
     }
+    
+    // Dispara evento global para atualizar as logos em tempo real
+    window.dispatchEvent(new CustomEvent('brand-settings-updated'));
   };
 
   return (
