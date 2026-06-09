@@ -437,14 +437,14 @@ function PublicProposalView() {
                 <div className="w-12 h-0.5 bg-[#ffbc45] mt-2"></div>
             </h2>
             <div className="flex flex-col md:flex-row items-center gap-8 mb-12">
-                <div className="flex-1">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400">Investimento Mensal</p>
-                    <p className="text-5xl font-bold text-[#ffbc45]">{formatCurrency(proposal.monthly_investment)}</p>
+                <div className="flex-1 w-full">
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Investimento Mensal</p>
+                    <p className="text-5xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.monthly_investment)}</p>
                 </div>
                 <div className="hidden md:block w-px h-16 bg-white/20"></div>
-                <div className="flex-1 md:text-right">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400">Valor Total</p>
-                    <p className="text-3xl font-bold">{formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}</p>
+                <div className="flex-1 w-full md:text-right">
+                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Valor Total</p>
+                    <p className="text-3xl font-bold text-white font-display">{formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}</p>
                 </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
