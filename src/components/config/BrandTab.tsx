@@ -47,6 +47,16 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     description: "Versão amarela (cor primária) usada para carregamento e ícones.",
     aspect: 1,
     previewBg: "light"
+  },
+  {
+    key: "logo_sidebar_url",
+    label: "Logo Menu Lateral",
+    usage: "Exibida no topo do menu lateral — use a versão branca ou amarela",
+    recommendedSize: "120x120px (Quadrado)",
+    formats: ["PNG Transparente", "SVG"],
+    description: "Versão específica para o menu lateral. Idealmente com fundo transparente.",
+    aspect: 1,
+    previewBg: "dark"
   }
 ];
 

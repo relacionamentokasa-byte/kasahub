@@ -19,6 +19,7 @@ export function KasaLogo({
     white: "/logo-white.png",
     black: "/logo-black.png",
     yellow: "/logo-yellow.png",
+    sidebar: null as string | null,
   });
 
   useEffect(() => {
@@ -30,6 +31,7 @@ export function KasaLogo({
             white: settings.logo_white_url || "/logo-white.png",
             black: settings.logo_black_url || "/logo-black.png",
             yellow: settings.logo_yellow_url || "/logo-yellow.png",
+            sidebar: settings.logo_sidebar_url || null,
           });
         }
       } catch (error) {
@@ -57,7 +59,8 @@ export function KasaLogo({
   };
 
   const logoVariant = getLogoVariant();
-  const logoUrl = logoUrls[logoVariant];
+  // Se for variante sidebar e houver uma logo específica, usa ela. Caso contrário, usa a variante mapeada.
+  const logoUrl = (variant === "sidebar" && logoUrls.sidebar) ? logoUrls.sidebar : logoUrls[logoVariant];
 
   return (
     <div className={cn("flex items-center justify-center transition-all duration-300", className)}>
