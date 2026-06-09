@@ -82,6 +82,10 @@ type Client = {
   email: string | null;
   phone: string | null;
   document: string | null;
+  logo_url?: string | null;
+} | null;
+type Lead = {
+  name: string | null;
 } | null;
 
 
