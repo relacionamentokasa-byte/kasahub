@@ -30,6 +30,8 @@ interface Props {
 
 export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
   const qc = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState<Partial<Partner>>({
     type,
     name: "",
@@ -42,6 +44,7 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
     bank_info: "",
     status: "active",
     observations: "",
+    photo_url: null,
     // Specific
     commission_type: "percentage",
     commission_value: 0,
@@ -53,6 +56,7 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
     responsible_name: "",
     partnership_type: "",
   });
+
 
   useEffect(() => {
     if (partner) {
