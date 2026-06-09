@@ -154,28 +154,41 @@ export function ExecutiveDashboard() {
     const dmesInProduction = dmes.filter(d => d.status === 'approved').length;
 
     // Performance
-    const month = new Date().getMonth() + 1;
-    const year = new Date().getFullYear();
-    const currentGoals = goals.filter(g => g.month === month || g.period === 'yearly');
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
 
-    const performanceMetrics = [
-      { 
-        label: "Receita", 
-        target: goals.find((g: any) => g.type === 'revenue' && g.month === month)?.target_value || 0, 
-        actual: ind.monthIncome, 
-        isCurrency: true 
-      },
-      { 
-        label: "Contratos", 
-        target: goals.find((g: any) => g.type === 'contracts' && g.month === month)?.target_value || 0, 
-        actual: periodContracts.length 
-      },
-      { 
-        label: "Jobs", 
-        target: goals.find((g: any) => g.type === 'jobs' && g.month === month)?.target_value || 0, 
-        actual: jobsCompleted 
-      },
-    ];
+    const monthlyRealized = txs
+      .filter(t => {
+        const date = t.paid_at || t.due_date;
+        if (!date || t.kind !== 'income' || t.status !== 'paid') return false;
+        const d = new Date(date);
+        return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+      })
+      .reduce((acc, t) => acc + Number(t.amount), 0);
+
+    const yearlyRealized = txs
+      .filter(t => {
+        const date = t.paid_at || t.due_date;
+        if (!date || t.kind !== 'income' || t.status !== 'paid') return false;
+        const d = new Date(date);
+        return d.getFullYear() === currentYear;
+      })
+      .reduce((acc, t) => acc + Number(t.amount), 0);
+
+    const monthGoal = goals.find(g => g.month === currentMonth && g.period === 'monthly')?.target_value || 0;
+    const yearGoal = goals.find(g => g.period === 'yearly')?.target_value || 0;
+
+    const elapsedMonths = Math.max(1, currentMonth);
+    const avgMonthly = yearlyRealized / elapsedMonths;
+    const projection = avgMonthly * 12;
+
+    const performanceMetrics = {
+      monthGoal: Number(monthGoal),
+      monthActual: monthlyRealized,
+      yearGoal: Number(yearGoal),
+      yearActual: yearlyRealized,
+      projection
+    };
 
     // Agenda
     const todayIso = new Date().toISOString().slice(0, 10);
@@ -399,7 +412,7 @@ export function ExecutiveDashboard() {
       )}
 
       {isManager && visibleSections.performance && (
-        <PerformanceSection metrics={initialPerformanceMetrics} />
+        <PerformanceSection {...initialPerformanceMetrics} />
       )}
 
       {visibleSections.agenda && (
