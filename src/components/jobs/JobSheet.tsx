@@ -770,24 +770,65 @@ export function JobSheet({
                       <Progress value={progressPercent} className="h-2.5 bg-muted" />
                       
                       <div className="space-y-2 mt-4">
-                        {checklist.map((item) => (
-                          <div key={item.id} className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all">
-                            <Checkbox
-                              checked={item.done}
-                              onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: !!v })}
-                              className="size-5"
-                            />
-                            <span className={`flex-1 text-sm ${item.done ? "line-through text-foreground/40" : "font-medium text-foreground"}`}>
-                              {item.content}
-                            </span>
-                            <button
-                              onClick={() => delItemMut.mutate(item.id)}
-                              className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all"
-                            >
-                              <Trash2 className="size-4" />
-                            </button>
-                          </div>
-                        ))}
+                        {checklist.map((item) => {
+                          const resp = team.find(p => p.id === (item as any).responsible_id);
+                          return (
+                            <div key={item.id} className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all">
+                              <Checkbox
+                                checked={item.done}
+                                onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: !!v })}
+                                className="size-5"
+                              />
+                              <span className={`flex-1 text-sm ${item.done ? "line-through text-foreground/40" : "font-medium text-foreground"}`}>
+                                {item.content}
+                              </span>
+                              
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={(item as any).responsible_id || "none"}
+                                  onValueChange={(v) => {
+                                    updateChecklistItem(item.id, { responsible_id: v === "none" ? null : v } as any)
+                                      .then(() => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }));
+                                  }}
+                                >
+                                  <SelectTrigger className="h-7 border-none bg-transparent hover:bg-white/5 p-0 w-auto gap-1 focus:ring-0">
+                                    <div className="flex items-center gap-1.5 px-2">
+                                      <Avatar className="size-5">
+                                        {resp?.avatar_url ? (
+                                          <AvatarImage src={resp.avatar_url} />
+                                        ) : null}
+                                        <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
+                                          {resp ? (resp.display_name || resp.full_name || "?").charAt(0).toUpperCase() : <User className="size-3" />}
+                                        </AvatarFallback>
+                                      </Avatar>
+                                    </div>
+                                  </SelectTrigger>
+                                  <SelectContent align="end">
+                                    <SelectItem value="none" className="text-xs">Sem responsável</SelectItem>
+                                    {team.map((p: any) => (
+                                      <SelectItem key={p.id} value={p.id} className="text-xs">
+                                        <div className="flex items-center gap-2">
+                                          <Avatar className="size-4">
+                                            {p.avatar_url && <AvatarImage src={p.avatar_url} />}
+                                            <AvatarFallback className="text-[6px]">{ (p.display_name || p.full_name || "?").charAt(0) }</AvatarFallback>
+                                          </Avatar>
+                                          {p.display_name || p.full_name}
+                                        </div>
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+
+                                <button
+                                  onClick={() => delItemMut.mutate(item.id)}
+                                  className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all"
+                                >
+                                  <Trash2 className="size-4" />
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();
@@ -876,7 +917,7 @@ export function JobSheet({
           </div>
 
           {/* Right Column: Communication */}
-          <div className="w-[400px] flex flex-col bg-muted/5">
+          <div className="w-[400px] flex flex-col bg-muted/5 order-2 sm:order-2 h-full sm:h-auto overflow-hidden">
             <div className="p-6 border-b border-border flex items-center gap-2 shrink-0">
               <MessageSquare className="size-4 text-primary" />
               <h3 className="text-sm font-bold uppercase tracking-wider">Comunicação</h3>
