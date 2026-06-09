@@ -103,8 +103,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
                   )}>
                     <ProfileImageUpload
                       value={form[asset.key] as string || null}
-                      onChange={(url) => !canEdit ? null : set(asset.key, url)}
-                      disabled={!canEdit}
+                      onChange={(url) => set(asset.key, url)}
                       shape="rect"
                       bucket="logos"
                     />
