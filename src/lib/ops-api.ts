@@ -15,7 +15,8 @@ export async function fetchClients(): Promise<Client[]> {
   const { data, error } = await supabase
     .from("clients")
     .select("*")
-    .order("created_at", { ascending: false });
+    .order("company", { ascending: true })
+    .order("name", { ascending: true });
   if (error) throw error;
   return data ?? [];
 }
@@ -468,8 +469,22 @@ export async function addChecklistItem(jobId: string, content: string) {
 }
 
 export async function toggleChecklistItem(id: string, done: boolean) {
-  const { error } = await supabase.from("job_checklist").update({ done }).eq("id", id);
+  const { error } = await supabase.from("job_checklist").update({ 
+    done,
+    updated_at: new Date().toISOString()
+  }).eq("id", id);
   if (error) throw error;
+}
+
+export async function updateChecklistItem(id: string, patch: Partial<JobChecklist>) {
+  const { data, error } = await supabase
+    .from("job_checklist")
+    .update(patch)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 export async function deleteChecklistItem(id: string) {
