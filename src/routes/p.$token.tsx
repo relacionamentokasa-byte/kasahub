@@ -306,156 +306,61 @@ function PublicProposalView() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 print:bg-white font-sans">
+    <div className="min-h-screen bg-[#f5f3ef] text-[#0c1618] font-sans">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Funnel+Display:wght@400;600;700&family=Onest:wght@400;500;600;700&display=swap');
         
+        .font-display { font-family: 'Funnel Display', sans-serif; }
+        .font-sans { font-family: 'Onest', sans-serif; }
+
         @media print {
           .no-print { display: none !important; }
-          body { 
-            background: white !important; 
-            font-family: 'Onest', sans-serif !important;
-          }
-          .print-m-0 { margin: 0 !important; padding: 1.5cm !important; }
-          .page-break-before { page-break-before: always; }
-          .page-break-inside-avoid { page-break-inside: avoid; }
-          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        }
-
-        .font-onest { font-family: 'Onest', sans-serif; }
-        
-        /* Proposta hierarchy */
-        .proposal-title {
-          font-family: 'Onest', sans-serif !important;
-          font-weight: 700;
-          font-size: 28px;
-          line-height: 1.2;
-          color: #0C1618;
-        }
-        
-        .clause-title {
-          font-family: 'Onest', sans-serif !important;
-          font-weight: 600;
-          font-size: 18px;
-          margin-top: 2rem;
-          margin-bottom: 1rem;
-          color: #0C1618;
-        }
-        
-        .contract-text {
-          font-family: 'Onest', sans-serif !important;
-          font-weight: 400;
-          font-size: 16px;
-          line-height: 1.7;
-          color: #334155;
-        }
-
-        .contract-content p {
-          margin-bottom: 1.25rem;
-        }
-
-        .items-table tr {
-          page-break-inside: avoid;
-        }
-
-        /* Prevent empty gaps at page breaks */
-        .content-section {
-          page-break-inside: avoid;
-          break-inside: avoid;
         }
       `}</style>
 
-      <div className="no-print sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <div className="size-8 rounded-lg bg-[#0C1618] flex items-center justify-center">
-            <span className="text-[#FFBC45] font-bold text-xs">KH</span>
-          </div>
-          <div className="text-sm font-bold text-[#0C1618] tracking-tight">
-            KASA HUB
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.print()}
-            className="gap-2 border-slate-200 hover:bg-slate-50 text-slate-600 rounded-full px-4"
-          >
-            <Printer className="size-4" /> Exportar PDF
-          </Button>
+      {/* Sticky Header */}
+      <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200">
+        <div className="h-1 bg-[#ffbc45] w-full" />
+        <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+             <div className="size-10 bg-[#0c1618] flex items-center justify-center rounded-lg">
+                <span className="text-[#ffbc45] font-bold text-xs">ka/sə</span>
+             </div>
+             <span className="text-lg font-bold">KASA <span className=\"text-[#ffbc45]\">HUB</span></span>
+           </div>
+           <Button
+             variant="outline"
+             size="sm"
+             onClick={() => window.print()}
+             className="gap-2 rounded-full px-4 border-slate-200"
+           >
+             <Printer className="size-4" /> Exportar PDF
+           </Button>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto bg-white shadow-2xl shadow-slate-200/50 print:shadow-none my-8 print:my-0 rounded-[2rem] overflow-hidden print:rounded-none">
-        {/* Header */}
-        <div
-          className="px-10 pt-12 pb-10 border-b border-slate-100 relative"
-        >
-          <div className="absolute top-0 right-0 w-32 h-32 bg-[#FFBC45]/5 rounded-bl-[5rem] -z-0" />
-          
-          <div className="flex items-start justify-between gap-6 flex-wrap relative z-10">
-            <div>
-              {agency?.logo_proposals_url || agency?.logo_url ? (
-                <img
-                  src={(agency.logo_proposals_url || agency.logo_url) as string}
-                  alt={agency.name}
-                  className="h-14 object-contain mb-6"
-                />
-              ) : (
-                <div
-                  className="text-2xl font-bold mb-6 flex items-center gap-2"
-                  style={{ color: "#0C1618" }}
-                >
-                  <div className="size-10 rounded-xl bg-[#0C1618] flex items-center justify-center">
-                    <span className="text-[#FFBC45] font-bold text-base">KH</span>
-                  </div>
-                  <span>{agency?.name ?? "Kasa Marketing"}</span>
-                </div>
-              )}
-              <div className="text-[13px] text-slate-500 space-y-1">
-                {agency?.document && <div className="flex items-center gap-2"><span className="opacity-50">•</span> {agency.document}</div>}
-                {agency?.email && <div className="flex items-center gap-2"><span className="opacity-50">•</span> {agency.email}</div>}
-                {agency?.phone && <div className="flex items-center gap-2"><span className="opacity-50">•</span> {agency.phone}</div>}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-4">
-                <span className="size-1.5 rounded-full bg-[#FFBC45] animate-pulse" />
-                Proposta Comercial
-              </div>
-              <p className="text-sm text-slate-400">
-                Emitida em <span className="text-slate-600 font-medium">{new Date().toLocaleDateString("pt-BR")}</span>
-              </p>
-              {proposal.valid_until && (
-                <p className="text-sm text-slate-400 mt-0.5">
-                  Válida até <span className="text-slate-600 font-medium">{new Date(proposal.valid_until).toLocaleDateString("pt-BR")}</span>
-                </p>
-              )}
-              <div className="mt-4">
-                <span
-                  className="inline-block text-[11px] px-4 py-1.5 rounded-full font-bold uppercase tracking-widest"
-                  style={{
-                    background: accepted ? "#dcfce7" : "#fffbeb",
-                    color: accepted ? "#166534" : "#b45309",
-                  }}
-                >
-                  {accepted ? "✓ Proposta Aprovada" : "Aguardando Aceite"}
-                </span>
-              </div>
-            </div>
-          </div>
+      <div className="max-w-4xl mx-auto py-12 px-6">
+        {/* Hero Section */}
+        <div className="bg-white p-8 md:p-12 rounded-3xl shadow-sm relative overflow-hidden mb-8">
+           <div className=\"absolute inset-y-0 right-0 w-1/3 bg-[#ffbc45]/6 -rotate-12 transform origin-top-right\" />
+           
+           <div className=\"flex justify-end gap-2 mb-8 relative z-10\">
+             <div className=\"px-3 py-1 bg-yellow-50 border border-[#ffbc45] text-[#b45309] text-[10px] font-bold uppercase tracking-widest rounded-full\">Proposta Comercial</div>
+             <div className={`px-3 py-1 border text-[10px] font-bold uppercase tracking-widest rounded-full ${accepted ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
+                {accepted ? "Proposta Aprovada" : "Aguardando Assinatura"}
+             </div>
+           </div>
 
-          <h1 className="mt-12 proposal-title">
-            {proposal.title}
-          </h1>
-          <div className="mt-4 flex items-center gap-3">
-            <div className="size-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs uppercase">
-              {proposal.client_name.substring(0, 2)}
-            </div>
-            <p className="text-sm text-slate-500">
-              Preparada para <span className="font-bold text-[#0C1618]">{proposal.client_name}</span>
-            </p>
-          </div>
+           <div className=\"text-right text-xs text-slate-500 mb-6 relative z-10\">
+             <p>Emitida em {new Date().toLocaleDateString("pt-BR")}</p>
+             {proposal.valid_until && <p>Validade: {new Date(proposal.valid_until).toLocaleDateString("pt-BR")}</p>}
+           </div>
+
+           <h1 className=\"font-display text-4xl font-bold mb-6 text-[#0c1618] relative z-10\">{proposal.title}</h1>
+           <div className=\"flex items-center gap-3 relative z-10\">
+             <div className=\"size-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600\">{proposal.client_name.substring(0, 2)}</div>
+             <p className=\"text-sm text-slate-600\">Preparada para <span className=\"font-bold text-[#0c1618]\">{proposal.client_name}</span></p>
+           </div>
         </div>
 
         {/* Dados do Cliente */}
