@@ -16,7 +16,7 @@ export function GestaoSection({ stats }: GestaoSectionProps) {
       <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
         <TrendingUp className="size-4" /> Gestão
       </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <DashboardKPI 
           icon={Briefcase} 
           label="Receita Contratada" 
