@@ -469,8 +469,6 @@ function PublicProposalView() {
             <InfoLine icon={<Phone className="size-4" />} label="Telefone" value={client?.phone || "—"} />
             <InfoLine icon={<Mail className="size-4" />} label="E-mail" value={client?.email || proposal.client_email || "—"} />
           </div>
-            <InfoLine icon={<Mail className="size-4" />} label="E-mail" value={client?.email || proposal.client_email} />
-          </div>
         </div>
         
         
