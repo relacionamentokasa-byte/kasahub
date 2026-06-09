@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { fetchUsers, fetchInvites, createInvite, deleteInvite, updateUserStatus, deleteUser } from "@/lib/users-api";
 import { fetchAgencySettings } from "@/lib/settings-api";
-import { fetchCustomRoles } from "@/lib/permissions-api";
+import { fetchCustomRoles, assignProfileRole } from "@/lib/permissions-api";
 import { createInvite as createTeamInvite, resendInvite, ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
 
 function UserKPIBox({ title, value, sub }: { title: string; value: string; sub?: string }) {
