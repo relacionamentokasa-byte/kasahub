@@ -472,7 +472,7 @@ export async function toggleChecklistItem(id: string, done: boolean) {
   const { error } = await supabase.from("job_checklist").update({ 
     done,
     updated_at: new Date().toISOString()
-  }).eq("id", id);
+  } as any).eq("id", id);
   if (error) throw error;
 }
 
