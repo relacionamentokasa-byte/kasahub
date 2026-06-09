@@ -67,6 +67,7 @@ export function replaceContractVariables(
     start_date?: string;
     due_day?: string;
     installments?: string;
+    proposal_number?: string;
   }
 ) {
   let result = content;
@@ -86,6 +87,7 @@ export function replaceContractVariables(
     "{{data_inicio}}": data.start_date || "",
     "{{dia_vencimento}}": data.due_day || "",
     "{{parcelas}}": data.installments || "",
+    "{{numero_proposta}}": data.proposal_number || "",
   };
 
   Object.entries(vars).forEach(([key, value]) => {

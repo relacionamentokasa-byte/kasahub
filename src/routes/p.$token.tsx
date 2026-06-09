@@ -62,6 +62,7 @@ type Proposal = {
   contract_term: string | null;
   first_due_date: string | null;
   billing_day: number;
+  number_display?: string | null;
 };
 type Agency = {
   name: string;
@@ -253,6 +254,7 @@ function PublicProposalView() {
         : new Date().toLocaleDateString("pt-BR"),
       due_day: String(proposal.billing_day || 5),
       installments: String(proposal.installments || 1),
+      proposal_number: proposal.number_display || "",
     });
   }, [data]);
 
@@ -374,6 +376,9 @@ function PublicProposalView() {
               </div>
            </div>
 
+           <div className="flex items-center gap-3 mb-2">
+             <span className="text-[10px] font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500">{proposal.number_display}</span>
+           </div>
            <h1 className="font-display text-2xl sm:text-4xl font-bold mb-6 text-[#0c1618] relative z-10 break-words">{proposal.title}</h1>
            <div className="flex items-center gap-3 relative z-10">
              <div className="size-10 rounded-full bg-[#f9f7f3] border border-[#ece8e0] flex items-center justify-center font-bold text-[#ffbc45] font-sans shadow-sm shrink-0">{proposal.client_name.substring(0, 2).toUpperCase()}</div>

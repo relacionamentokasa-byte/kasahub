@@ -2909,6 +2909,7 @@ export type Database = {
         }
         Returns: string
       }
+      format_proposal_number: { Args: { n: number }; Returns: string }
       get_finance_summary: {
         Args: { p_from: string; p_to: string }
         Returns: Json

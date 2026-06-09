@@ -437,8 +437,15 @@ export function ProposalEditorContent({
               )}
             </div>
             <div className="grid gap-4 mt-3">
+              <div className="grid md:grid-cols-12 gap-4">
+                <div className="md:col-span-2">
+                  <F label="Nº"><Input value={proposal.number_display || ""} readOnly className="bg-foreground/5 font-mono" /></F>
+                </div>
+                <div className="md:col-span-10">
+                  <F label="Título"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></F>
+                </div>
+              </div>
               <div className="grid md:grid-cols-2 gap-4">
-                <F label="Título"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></F>
                 <F label="Status">
                   <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                     <SelectTrigger className="cursor-pointer font-bold text-primary"><SelectValue /></SelectTrigger>
