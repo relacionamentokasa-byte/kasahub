@@ -63,7 +63,54 @@ export function PartnerStats({ partner }: Props) {
           </>
         )}
       </div>
+
+      {partner.type === 'representative' && commissions.length > 0 && (
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
+            <Calendar className="size-4" /> Detalhamento de Indicações
+          </h3>
+          <div className="space-y-3">
+            {commissions.map((c: any) => {
+              const contractValue = c.contracts?.monthly_value || 0;
+              const commissionPercent = contractValue > 0 ? (c.amount / contractValue) * 100 : 0;
+              // Extract month from notes "Mês X do contrato"
+              const monthMatch = c.notes?.match(/Mês (\d+)/);
+              const monthText = monthMatch ? `Mês ${monthMatch[1]}` : "N/A";
+
+              return (
+                <div key={c.id} className="p-4 rounded-xl border border-border bg-background hover:border-primary/30 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 className="font-bold text-sm">{c.clients?.name || "Cliente não identificado"}</h4>
+                      <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase">Valor Mensal: {brl(contractValue)}</p>
+                    </div>
+                    <Badge variant={c.status === 'paid' ? 'default' : 'outline'} className={c.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500 border-none' : 'text-amber-500 border-amber-500/20'}>
+                      {c.status === 'paid' ? 'Pago' : 'Pendente'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="bg-surface/50 p-2 rounded-lg border border-border/50">
+                      <p className="text-[8px] uppercase font-mono-kasa text-foreground/30 mb-0.5">Mês do Contrato</p>
+                      <p className="text-xs font-bold">{monthText}</p>
+                    </div>
+                    <div className="bg-surface/50 p-2 rounded-lg border border-border/50">
+                      <p className="text-[8px] uppercase font-mono-kasa text-foreground/30 mb-0.5">Comissão (%)</p>
+                      <p className="text-xs font-bold">{commissionPercent.toFixed(0)}%</p>
+                    </div>
+                    <div className="bg-surface/50 p-2 rounded-lg border border-border/50">
+                      <p className="text-[8px] uppercase font-mono-kasa text-foreground/30 mb-0.5">Valor Comissão</p>
+                      <p className="text-xs font-bold text-primary">{brl(c.amount)}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
     </div>
+
   );
 }
 
