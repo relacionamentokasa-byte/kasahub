@@ -20,9 +20,17 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { CheckCircle2, Clock, Filter, List } from "lucide-react";
+import { CheckCircle2, Clock, Filter, List, Download, FileText, FileSpreadsheet } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Props {
   partnerId: string;
@@ -91,6 +99,93 @@ export function CommissionHistory({ partnerId }: Props) {
     { value: "12", label: "Dezembro" },
   ];
 
+  const currentMonthLabel = months.find(m => m.value === month)?.label || "";
+
+  const exportToCSV = () => {
+    if (commissions.length === 0) {
+      toast.error("Não há dados para exportar");
+      return;
+    }
+
+    const headers = ["Cliente", "Valor Contrato", "Mês", "Percentual", "Comissão", "Status", "Data de Vencimento"];
+    const rows = commissions.map((c: any) => {
+      const contractValue = c.contracts?.monthly_value || 0;
+      const commissionPercent = contractValue > 0 ? (c.amount / contractValue) * 100 : 0;
+      const monthMatch = c.notes?.match(/Mês (\d+)/);
+      const monthText = monthMatch ? monthMatch[1] : "-";
+      
+      return [
+        c.clients?.name || "",
+        contractValue.toString(),
+        monthText,
+        `${commissionPercent.toFixed(0)}%`,
+        c.amount.toString(),
+        c.status === 'paid' ? 'Pago' : 'Pendente',
+        c.due_date
+      ];
+    });
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `comissoes_${currentMonthLabel.toLowerCase()}_${year}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("CSV exportado com sucesso");
+  };
+
+  const exportToPDF = () => {
+    if (commissions.length === 0) {
+      toast.error("Não há dados para exportar");
+      return;
+    }
+
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(12, 22, 24); // #0c1618
+    doc.text(`Relatório de Comissões - ${currentMonthLabel} / ${year}`, 14, 20);
+    
+    doc.setFontSize(12);
+    doc.text(`Total no Mês: ${brl(totalMonthly)}`, 14, 30);
+    
+    const tableHeaders = [["Cliente", "Contrato", "Mês", "%", "Comissão", "Status"]];
+    const tableData = commissions.map((c: any) => {
+      const contractValue = c.contracts?.monthly_value || 0;
+      const commissionPercent = contractValue > 0 ? (c.amount / contractValue) * 100 : 0;
+      const monthMatch = c.notes?.match(/Mês (\d+)/);
+      
+      return [
+        c.clients?.name || "",
+        brl(contractValue),
+        monthMatch ? `Mês ${monthMatch[1]}` : "-",
+        `${commissionPercent.toFixed(0)}%`,
+        brl(c.amount),
+        c.status === 'paid' ? 'Pago' : 'Pendente'
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 40,
+      head: tableHeaders,
+      body: tableData,
+      headStyles: { fillColor: [255, 188, 69] }, // #ffbc45
+      alternateRowStyles: { fillColor: [240, 240, 240] },
+    });
+
+    doc.save(`comissoes_${currentMonthLabel.toLowerCase()}_${year}.pdf`);
+    toast.success("PDF exportado com sucesso");
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -117,6 +212,25 @@ export function CommissionHistory({ partnerId }: Props) {
               {years.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2">
+                <Download className="size-4" />
+                <span>Exportar</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-surface border-border">
+              <DropdownMenuItem onClick={exportToPDF} className="gap-2 cursor-pointer">
+                <FileText className="size-4" />
+                <span>PDF (.pdf)</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportToCSV} className="gap-2 cursor-pointer">
+                <FileSpreadsheet className="size-4" />
+                <span>CSV (.csv)</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
