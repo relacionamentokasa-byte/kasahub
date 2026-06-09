@@ -839,7 +839,7 @@ function ProposalsPage() {
                     >
                       <td className="px-5 py-3">
                         <span className="text-[11px] font-bold text-primary font-mono-kasa tracking-tighter">
-                          {(p as any).number_display}
+                          {(p as any).number_display || "S/N"}
                         </span>
                       </td>
                       <td className="px-5 py-3">
@@ -854,14 +854,14 @@ function ProposalsPage() {
                       <td className="px-5 py-3 text-foreground/70">{p.client_name}</td>
                       <td className="px-5 py-3 text-right text-primary">
                         {p.contract_type === 'recurring' 
-                          ? formatCurrency(Number(p.monthly_investment)) 
-                          : formatCurrency(Number(p.one_time_investment))}
+                          ? formatCurrency(Number(p.monthly_investment || 0)) 
+                          : formatCurrency(Number(p.one_time_investment || 0))}
                         <span className="text-[10px] block opacity-40 uppercase font-bold">
                           {p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}
                         </span>
                       </td>
                       <td className="px-5 py-3 text-right">
-                        {formatCurrency(Number(p.total))}
+                        {formatCurrency(Number(p.total || 0))}
                       </td>
                       <td className="px-5 py-3">
                         <span className={`text-[10px] capitalize px-2 py-1 rounded ${s.cls}`}>
@@ -916,7 +916,7 @@ function ProposalsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] font-bold text-primary font-mono-kasa tracking-tighter">
-                          {(p as any).number_display}
+                          {(p as any).number_display || "S/N"}
                         </span>
                       </div>
                       <button
