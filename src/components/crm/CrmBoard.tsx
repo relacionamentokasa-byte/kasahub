@@ -108,26 +108,26 @@ export function CrmBoard() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
+      <div className="px-4 sm:px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <span className="text-primary text-[10px] capitalize">
             Comercial · CRM
           </span>
-          <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight mt-1">
+          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
             Funil comercial
           </h1>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none min-w-[120px]">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               placeholder="Buscar lead, empresa, e-mail…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-10 w-56 bg-surface border-border"
+              className="pl-9 h-11 sm:h-10 w-full sm:w-56 bg-surface border-border"
             />
           </div>
-          <div className="flex items-center gap-2 bg-surface border border-border px-3 h-10 rounded-lg">
+          <div className="flex-1 sm:flex-none flex items-center gap-2 bg-surface border border-border px-3 h-11 sm:h-10 rounded-lg">
             <Filter className="size-3.5 text-foreground/40" />
             <select
               value={whatsappFilter}
@@ -141,14 +141,14 @@ export function CrmBoard() {
           </div>
           <Button
             onClick={() => setNewLeadStage(stages[0] ?? null)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
+            className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
             <Plus className="size-4" /> Novo lead
           </Button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto px-6 lg:px-10 pb-10">
+      <div className="flex-1 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-10">
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <div className="flex gap-4 min-w-max h-full">
             {stages.map((stage) => {

@@ -67,13 +67,13 @@ export function AppTopbar() {
     .toUpperCase();
 
   return (
-    <header className="h-16 border-b border-border flex items-center justify-between px-4 lg:px-8 shrink-0 bg-background/80 backdrop-blur-md sticky top-0 z-20">
+    <header className="h-16 border-b border-border flex items-center justify-between px-3 md:px-4 lg:px-8 shrink-0 bg-background/80 backdrop-blur-md sticky top-0 z-20">
       <div className="flex items-center gap-3 flex-1">
         <SidebarTrigger className="text-foreground/60 hover:text-foreground h-11 w-11 md:hidden" />
-        <SidebarTrigger className="text-foreground/60 hover:text-foreground hidden md:flex" />
+        <SidebarTrigger className="text-foreground/60 hover:text-foreground hidden sm:flex" />
 
 
-        <div className="hidden md:flex items-center gap-3 bg-surface/60 border border-border px-4 h-9 rounded-full w-full max-w-md">
+        <div className="hidden lg:flex items-center gap-3 bg-surface/60 border border-border px-4 h-9 rounded-full w-full max-w-md">
           <Search className="size-4 text-foreground/40" />
           <input
             type="text"
@@ -111,14 +111,14 @@ export function AppTopbar() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-3 pl-2 lg:pl-4 lg:border-l border-border outline-none">
+            <button className="flex items-center gap-2 md:gap-3 pl-1 md:pl-2 lg:pl-4 lg:border-l border-border outline-none group">
               <div className="hidden lg:block text-right">
                 <p className="text-xs font-semibold leading-tight">{name}</p>
                 <p className="text-[10px] text-foreground/40 leading-tight">
                   {profile?.email ?? "Kasa Marketing"}
                 </p>
               </div>
-              <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center overflow-hidden">
+              <div className="size-8 md:size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center overflow-hidden transition-transform group-active:scale-95">
                 {profile?.avatar_url ? (
                   // eslint-disable-next-line jsx-a11y/alt-text
                   <img src={profile.avatar_url} className="size-full object-cover" />
