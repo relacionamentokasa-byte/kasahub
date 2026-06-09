@@ -541,23 +541,23 @@ function PublicProposalView() {
             </div>
           ) : (
             <div className="space-y-6">
-               <div className="no-print bg-slate-50/50 rounded-2xl p-8 border border-slate-100">
+               <div className="no-print bg-slate-50/50 rounded-2xl p-8 border border-slate-100 font-sans">
                   <div className="grid sm:grid-cols-2 gap-6 mb-6">
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Nome completo</label>
-                      <Input value={signerName} onChange={(e) => setSignerName(e.target.value)} placeholder="Seu nome" className="bg-white" />
+                      <Input value={signerName} onChange={(e) => setSignerName(e.target.value)} placeholder="Seu nome" className="bg-white rounded-xl" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">CPF</label>
-                      <Input value={signerCpf} onChange={(e) => setSignerCpf(e.target.value)} placeholder="000.000.000-00" className="bg-white" />
+                      <Input value={signerCpf} onChange={(e) => setSignerCpf(e.target.value)} placeholder="000.000.000-00" className="bg-white rounded-xl" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cargo</label>
-                      <Input value={signerRole} onChange={(e) => setSignerRole(e.target.value)} placeholder="Ex: Diretor" className="bg-white" />
+                      <Input value={signerRole} onChange={(e) => setSignerRole(e.target.value)} placeholder="Ex: Diretor" className="bg-white rounded-xl" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">E-mail</label>
-                      <Input value={signerEmail} onChange={(e) => setSignerEmail(e.target.value)} placeholder="email@empresa.com" className="bg-white" />
+                      <Input value={signerEmail} onChange={(e) => setSignerEmail(e.target.value)} placeholder="email@empresa.com" className="bg-white rounded-xl" />
                     </div>
                   </div>
 
@@ -582,7 +582,7 @@ function PublicProposalView() {
                     </label>
                   </div>
 
-                  <Button onClick={sign} disabled={signing} className="w-full h-12 bg-[#ffbc45] hover:bg-[#ffc864] text-[#0c1618] font-bold uppercase tracking-widest rounded-xl transition-all">
+                  <Button onClick={sign} disabled={signing} className="w-full h-14 bg-[#ffbc45] hover:bg-[#ffc864] text-[#0c1618] font-bold uppercase tracking-widest rounded-2xl transition-all shadow-lg shadow-[#ffbc45]/20">
                     {signing ? <Loader2 className="animate-spin" /> : "Aprovar e Assinar Proposta"}
                   </Button>
                </div>
