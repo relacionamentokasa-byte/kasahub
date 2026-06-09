@@ -11,6 +11,8 @@ import { PartnerDialog } from "./PartnerDialog";
 import { PartnerSheet } from "./PartnerSheet";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/hooks/use-permissions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 interface Props {
   type: PartnerType;
