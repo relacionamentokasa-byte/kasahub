@@ -178,11 +178,14 @@ export type Database = {
           id: string
           integrations: Json
           legal_name: string | null
+          logo_black_url: string | null
           logo_login_url: string | null
           logo_proposals_url: string | null
           logo_reports_url: string | null
           logo_sidebar_url: string | null
           logo_url: string | null
+          logo_white_url: string | null
+          logo_yellow_url: string | null
           name: string
           notify_email: boolean
           notify_whatsapp: boolean
@@ -216,11 +219,14 @@ export type Database = {
           id?: string
           integrations?: Json
           legal_name?: string | null
+          logo_black_url?: string | null
           logo_login_url?: string | null
           logo_proposals_url?: string | null
           logo_reports_url?: string | null
           logo_sidebar_url?: string | null
           logo_url?: string | null
+          logo_white_url?: string | null
+          logo_yellow_url?: string | null
           name?: string
           notify_email?: boolean
           notify_whatsapp?: boolean
@@ -254,11 +260,14 @@ export type Database = {
           id?: string
           integrations?: Json
           legal_name?: string | null
+          logo_black_url?: string | null
           logo_login_url?: string | null
           logo_proposals_url?: string | null
           logo_reports_url?: string | null
           logo_sidebar_url?: string | null
           logo_url?: string | null
+          logo_white_url?: string | null
+          logo_yellow_url?: string | null
           name?: string
           notify_email?: boolean
           notify_whatsapp?: boolean
