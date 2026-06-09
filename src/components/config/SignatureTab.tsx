@@ -20,6 +20,8 @@ export function SignatureTab({ form, set }: { form: Partial<AgencySettings>, set
             label="Assinatura"
             shape="rect"
             aspect={3/1}
+            bucket="signatures"
+            folder="company"
           />
           <p className="text-[10px] text-foreground/40 text-center">
             Proporção ideal: 3:1 (ex: 300x100px). Aceita PNG transparente ou JPG.
