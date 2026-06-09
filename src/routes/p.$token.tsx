@@ -229,7 +229,7 @@ function PublicProposalView() {
     const rawContractContent = proposal.contract_content;
     return replaceContractVariables(rawContractContent as string, {
       client_name: lead?.name || client?.name || proposal.client_name,
-      client_legal_name: client?.company || proposal.client_name,
+      client_legal_name: lead?.company || client?.company || proposal.client_name,
       client_document: agency?.document || "",
       client_address: agency?.address || "",
       client_email: proposal.client_email || "",
