@@ -1,4 +1,6 @@
 import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { fetchAgencySettings } from "@/lib/settings-api";
 
 interface KasaLogoProps {
   collapsed?: boolean;
@@ -7,21 +9,38 @@ interface KasaLogoProps {
   iconOnly?: boolean;
 }
 
-// URLs para as logos (o usuário fará o upload quando solicitado)
-const LOGO_URLS = {
-  white: "/logo-white.png",
-  black: "/logo-black.png",
-  yellow: "/logo-yellow.png",
-};
-
 export function KasaLogo({
   collapsed = false,
   variant = "white",
   className = "",
   iconOnly = false,
 }: KasaLogoProps) {
+  const [logoUrls, setLogoUrls] = useState({
+    white: "/logo-white.png",
+    black: "/logo-black.png",
+    yellow: "/logo-yellow.png",
+  });
+
+  useEffect(() => {
+    const loadLogos = async () => {
+      try {
+        const settings = await fetchAgencySettings();
+        if (settings) {
+          setLogoUrls({
+            white: settings.logo_white_url || "/logo-white.png",
+            black: settings.logo_black_url || "/logo-black.png",
+            yellow: settings.logo_yellow_url || "/logo-yellow.png",
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao carregar logos:", error);
+      }
+    };
+    loadLogos();
+  }, []);
+
   // Mapeamento de variante de UI para variante de cor da logo
-  const getLogoVariant = (): keyof typeof LOGO_URLS => {
+  const getLogoVariant = (): "white" | "black" | "yellow" => {
     switch (variant) {
       case "sidebar":
       case "login":
@@ -38,7 +57,7 @@ export function KasaLogo({
   };
 
   const logoVariant = getLogoVariant();
-  const logoUrl = LOGO_URLS[logoVariant];
+  const logoUrl = logoUrls[logoVariant];
 
   return (
     <div className={cn("flex items-center justify-center transition-all duration-300", className)}>

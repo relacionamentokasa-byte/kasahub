@@ -10,6 +10,9 @@ export interface AgencySettings {
   website: string | null;
   address: string | null;
   logo_url: string | null;
+  logo_white_url: string | null;
+  logo_black_url: string | null;
+  logo_yellow_url: string | null;
   logo_sidebar_url: string | null;
   logo_login_url: string | null;
   icon_system_url: string | null;
