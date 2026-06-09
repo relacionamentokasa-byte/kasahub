@@ -19,6 +19,9 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    define: {
+      'process.env.VITE_NEWS_API_KEY': JSON.stringify(process.env.NEWS_API_KEY),
+    },
     resolve: {
       alias: {
         "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),

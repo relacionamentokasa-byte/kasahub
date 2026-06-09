@@ -33,17 +33,23 @@ const NEWS_API_URL = "https://newsapi.org/v2/everything";
 
 export async function fetchNews(): Promise<{ articles: NewsArticle[], lastUpdate: string }> {
   try {
-    const { data: secrets } = await supabase
-      .from("agency_settings")
-      .select("integrations")
-      .limit(1)
-      .maybeSingle();
-
-    const apiKey = (secrets?.integrations as any)?.news_api_key;
+    // Primeiro tenta pegar do env (setado via secrets tool)
+    let apiKey = import.meta.env.VITE_NEWS_API_KEY || (window as any).process?.env?.VITE_NEWS_API_KEY;
     
-    // Se não tiver chave, usamos um mock para não quebrar a tela conforme solicitado (fallback)
+    // Se não estiver no env, tenta buscar das configurações da agência como fallback
     if (!apiKey) {
-      console.warn("NewsAPI key not found in agency_settings. Returning mock data.");
+      const { data: secrets } = await supabase
+        .from("agency_settings")
+        .select("integrations")
+        .limit(1)
+        .maybeSingle();
+
+      apiKey = (secrets?.integrations as any)?.news_api_key;
+    }
+    
+    // Se ainda não tiver chave, usamos um mock para não quebrar a tela conforme solicitado (fallback)
+    if (!apiKey) {
+      console.warn("NewsAPI key not found. Returning mock data.");
       return getMockNews();
     }
 
