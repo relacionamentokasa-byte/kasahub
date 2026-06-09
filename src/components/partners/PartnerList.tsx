@@ -11,6 +11,8 @@ import { PartnerDialog } from "./PartnerDialog";
 import { PartnerSheet } from "./PartnerSheet";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/hooks/use-permissions";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
 
 interface Props {
   type: PartnerType;
@@ -84,13 +86,13 @@ export function PartnerList({ type }: Props) {
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex gap-4">
-                <div className="size-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 border border-primary/20 overflow-hidden">
-                  {p.photo_url ? (
-                    <img src={p.photo_url} alt={p.name} className="size-full object-cover" />
-                  ) : (
-                    <span className="text-lg font-bold text-primary">{p.name[0]}</span>
-                  )}
-                </div>
+                <Avatar className="size-12 border border-primary/20 bg-primary/5">
+                  <AvatarImage src={p.photo_url || ""} className="object-cover" />
+                  <AvatarFallback className="text-lg font-bold text-primary bg-primary/10 uppercase">
+                    {p.name.substring(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+
                 <div>
                   <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors">{p.name}</h3>
                   <p className="text-xs text-foreground/40 font-medium">

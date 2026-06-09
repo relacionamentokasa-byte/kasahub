@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createPartner, updatePartner, type Partner, type PartnerType } from "@/lib/partners-api";
 import {
@@ -15,6 +15,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Camera, Loader2, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+
 
 interface Props {
   open: boolean;
@@ -25,6 +30,8 @@ interface Props {
 
 export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
   const qc = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState<Partial<Partner>>({
     type,
     name: "",
@@ -37,6 +44,7 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
     bank_info: "",
     status: "active",
     observations: "",
+    photo_url: null,
     // Specific
     commission_type: "percentage",
     commission_value: 0,
@@ -48,6 +56,7 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
     responsible_name: "",
     partnership_type: "",
   });
+
 
   useEffect(() => {
     if (partner) {
@@ -70,7 +79,42 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A foto deve ter no máximo 2MB");
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `partners/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('partners-photos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('partners-photos')
+        .getPublicUrl(filePath);
+
+      setForm(prev => ({ ...prev, photo_url: publicUrl }));
+      toast.success("Foto enviada com sucesso");
+    } catch (error: any) {
+      toast.error("Erro ao enviar foto: " + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = () => {
+
     if (!form.name) {
       toast.error("O nome é obrigatório");
       return;
@@ -95,7 +139,55 @@ export function PartnerDialog({ open, onOpenChange, partner, type }: Props) {
           </TabsList>
 
           <TabsContent value="basic" className="space-y-4">
+            <div className="flex flex-col items-center gap-4 mb-6">
+              <div className="relative group">
+                <Avatar className="size-24 border-2 border-primary/20 bg-background shadow-lg">
+                  <AvatarImage src={form.photo_url || ""} />
+                  <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary uppercase">
+                    {form.name ? form.name.substring(0, 2) : "P"}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                  <Camera className="size-6 text-white" />
+                </div>
+                
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  className="hidden" 
+                  accept="image/*"
+                  onChange={handleUpload}
+                />
+                
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  variant="outline" 
+                  className="absolute -bottom-2 -right-2 size-8 p-0 rounded-full bg-surface"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
+                </Button>
+
+                {form.photo_url && (
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="destructive" 
+                    className="absolute -top-2 -right-2 size-6 p-0 rounded-full"
+                    onClick={() => setForm(prev => ({ ...prev, photo_url: null }))}
+                  >
+                    <X className="size-3" />
+                  </Button>
+                )}
+              </div>
+              <p className="text-[10px] uppercase font-mono-kasa text-foreground/40 font-bold tracking-wider">Foto do Representante</p>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
+
               <div className="space-y-1.5">
                 <Label>Nome Completo</Label>
                 <Input value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="bg-background" />
