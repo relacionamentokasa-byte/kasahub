@@ -362,15 +362,9 @@ function PublicProposalView() {
            
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
               <div className="flex flex-col items-start gap-2">
-                 <div className="size-10 sm:size-12 bg-[#0c1618] flex items-center justify-center rounded-xl overflow-hidden p-2 shrink-0">
-                    {agency?.logo_proposals_url || agency?.logo_url ? (
-                      <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
-                    ) : (
-                      <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
-                    )}
-                 </div>
                  <div className="flex flex-col items-start">
                     <span className="text-[11px] sm:text-[12px] font-bold font-sans text-slate-800 uppercase tracking-tight leading-none mb-1">Kasa Marketing & Consultoria</span>
+
                     <div className="flex flex-wrap items-center gap-x-2 text-[10px] sm:text-[11px] text-slate-400 font-sans leading-none">
                        <span>CNPJ: 51.920.226/0001-41</span>
                        <span className="text-slate-300">·</span>
