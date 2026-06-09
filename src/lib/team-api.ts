@@ -230,5 +230,47 @@ export async function resendInvite(email: string, roleId: string | null, fullNam
   });
 }
 
-// Added back dummy AppRole if needed for types, but using string in labels
+export const deleteUserServer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    userId: z.string().uuid(),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase environment variables not configured on server");
+    }
+
+    const adminClient = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // Verify if current user is admin
+    const { data: currentUserRoles } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin");
+
+    if (!currentUserRoles || currentUserRoles.length === 0) {
+      throw new Error("Apenas administradores podem excluir usuários");
+    }
+
+    // Delete user from Auth (Cascade will handle profiles)
+    const { error } = await adminClient.auth.admin.deleteUser(data.userId);
+
+    if (error) throw error;
+
+    return { success: true };
+  });
+
+export async function deleteUser(userId: string) {
+  return deleteUserServer({ data: { userId } });
+}
+
+export async function createInvite(email: string, roleId: string | null, fullName?: string) {
+...
+
 
