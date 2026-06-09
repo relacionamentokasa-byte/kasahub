@@ -2688,6 +2688,7 @@ export type Database = {
           project_id: string | null
           proposal_id: string | null
           status: string
+          to_account_id: string | null
           updated_at: string
         }
         Insert: {
@@ -2715,6 +2716,7 @@ export type Database = {
           project_id?: string | null
           proposal_id?: string | null
           status?: string
+          to_account_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -2742,6 +2744,7 @@ export type Database = {
           project_id?: string | null
           proposal_id?: string | null
           status?: string
+          to_account_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -2785,6 +2788,13 @@ export type Database = {
             columns: ["proposal_id"]
             isOneToOne: false
             referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_to_account_id_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
         ]
