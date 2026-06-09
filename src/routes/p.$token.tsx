@@ -505,37 +505,37 @@ function PublicProposalView() {
 
           {accepted ? (
             <div className="grid md:grid-cols-2 gap-6">
-              <div className={`p-6 rounded-2xl border-2 bg-white relative overflow-hidden ${proposal.signed_at_client ? 'border-[#a0d8bc]' : 'border-slate-100'}`}>
+              <div className={`p-6 rounded-2xl border-2 bg-white relative overflow-hidden font-sans ${proposal.signed_at_client ? 'border-[#a0d8bc]' : 'border-slate-100'}`}>
                 {proposal.signed_at_client && <div className="absolute top-0 left-0 right-0 h-1 bg-[#1d9e75]" />}
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-[10px] uppercase font-bold text-slate-400">Contratante (Cliente)</p>
                   {proposal.signed_at_client && <CheckCircle2 className="size-5 text-[#1d9e75]" />}
                 </div>
-                <p className="font-bold text-lg mb-4">{proposal.accepted_name}</p>
+                <p className="font-bold text-lg mb-4 text-[#0c1618]">{proposal.accepted_name}</p>
                 <div className="border-t border-slate-100 pt-4 flex flex-col items-center justify-center min-h-[100px]">
                    {proposal.client_signature_data ? (
                      <img src={proposal.client_signature_data} alt="Assinatura" className="max-h-20 object-contain grayscale" />
                    ) : (
                      <p className="italic text-slate-300">Assinado digitalmente</p>
                    )}
-                   <p className="text-[9px] text-slate-400 mt-4 uppercase">Stamp: {proposal.accepted_at ? new Date(proposal.accepted_at).toLocaleString("pt-BR") : '—'}</p>
+                   <p className="text-[9px] text-slate-400 mt-4 uppercase tracking-tighter">Stamp: {proposal.accepted_at ? new Date(proposal.accepted_at).toLocaleString("pt-BR") : '—'}</p>
                 </div>
               </div>
 
-              <div className={`p-6 rounded-2xl border-2 bg-white relative overflow-hidden ${proposal.signed_at_agency ? 'border-[#a0d8bc]' : 'border-slate-100'}`}>
+              <div className={`p-6 rounded-2xl border-2 bg-white relative overflow-hidden font-sans ${proposal.signed_at_agency ? 'border-[#a0d8bc]' : 'border-slate-100'}`}>
                 {proposal.signed_at_agency && <div className="absolute top-0 left-0 right-0 h-1 bg-[#1d9e75]" />}
                 <div className="flex items-center justify-between mb-4">
                   <p className="text-[10px] uppercase font-bold text-slate-400">Contratada (Agência)</p>
                   {proposal.signed_at_agency && <CheckCircle2 className="size-5 text-[#1d9e75]" />}
                 </div>
-                <p className="font-bold text-lg mb-4">{agency?.name}</p>
+                <p className="font-bold text-lg mb-4 text-[#0c1618]">{agency?.name}</p>
                 <div className="border-t border-slate-100 pt-4 flex flex-col items-center justify-center min-h-[100px]">
                    {agency?.agency_signature_url ? (
                      <img src={agency.agency_signature_url} alt="Assinatura" className="max-h-20 object-contain grayscale" />
                    ) : (
                      <p className="italic text-slate-300">Assinado digitalmente</p>
                    )}
-                   <p className="text-[9px] text-slate-400 mt-4 uppercase">Stamp: {proposal.signed_at_agency ? new Date(proposal.signed_at_agency).toLocaleString("pt-BR") : '—'}</p>
+                   <p className="text-[9px] text-slate-400 mt-4 uppercase tracking-tighter">Stamp: {proposal.signed_at_agency ? new Date(proposal.signed_at_agency).toLocaleString("pt-BR") : '—'}</p>
                 </div>
               </div>
             </div>
