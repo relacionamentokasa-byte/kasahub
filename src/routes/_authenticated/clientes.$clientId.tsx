@@ -154,19 +154,19 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
             <span className="text-primary text-[10px] capitalize">
               Cliente · 360°
             </span>
-            <h1 className="font-display text-3xl lg:text-4xl font-bold tracking-tight">
+            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
               {client.company || client.name}
             </h1>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-xs text-foreground/50">
-              <span className={`inline-flex items-center gap-1.5 capitalize text-[10px] px-2 py-0.5 rounded ${client.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-xs text-foreground/50">
+              <span className={`inline-flex items-center gap-1.5 capitalize text-[10px] px-2 py-1 rounded min-h-[24px] ${client.status === "active" ? "bg-emerald-500/15 text-emerald-400" : "bg-muted text-muted-foreground"}`}>
                 ● {client.status === "active" ? "Ativo" : client.status}
               </span>
-              {client.email && <span className="inline-flex items-center gap-1.5"><Mail className="size-3" />{client.email}</span>}
-              {client.phone && <span className="inline-flex items-center gap-1.5"><Phone className="size-3" />{client.phone}</span>}
-              {client.document && <span className="inline-flex items-center gap-1.5"><Building2 className="size-3" />{client.document}</span>}
+              {client.email && <span className="inline-flex items-center gap-1.5 min-h-[24px]"><Mail className="size-3" />{client.email}</span>}
+              {client.phone && <span className="inline-flex items-center gap-1.5 min-h-[24px]"><Phone className="size-3" />{client.phone}</span>}
+              {client.document && <span className="inline-flex items-center gap-1.5 min-h-[24px]"><Building2 className="size-3" />{client.document}</span>}
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0">
+          <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="shrink-0 h-10 px-4">
             <Pencil className="size-4 mr-1.5" /> Editar
           </Button>
         </div>
@@ -182,8 +182,8 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
       </div>
 
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-        <div className="px-6 lg:px-10 border-b border-border overflow-x-auto">
-          <TabsList className="bg-transparent border-0 h-auto p-0 gap-1">
+        <div className="px-6 lg:px-10 border-b border-border">
+          <TabsList className="bg-transparent border-0 h-auto p-0 gap-1 overflow-x-auto justify-start sm:justify-start">
             {[
               ["overview", "Resumo"],
               ["contracts", "Contratos"],

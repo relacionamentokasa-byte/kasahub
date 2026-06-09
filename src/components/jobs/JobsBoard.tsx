@@ -162,19 +162,19 @@ export function JobsBoard({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
+      <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <span className="text-primary text-[10px] capitalize">
+          <span className="text-primary text-[10px] uppercase font-bold tracking-wider">
             Operação · Jobs
           </span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
             Jobs
           </h1>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
           {showPeriodFilter && (
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-40 h-10 bg-surface border-border">
+              <SelectTrigger className="w-full sm:w-40 h-11 sm:h-10 bg-surface border-border">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
@@ -188,20 +188,20 @@ export function JobsBoard({
               </SelectContent>
             </Select>
           )}
-          <div className="relative">
+          <div className="relative flex-1 sm:flex-none">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar Job por título, cliente ou projeto…"
+              placeholder="Buscar Job…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-10 w-72 bg-surface border-border"
+              className="pl-9 h-11 sm:h-10 w-full sm:w-64 bg-surface border-border"
             />
           </div>
           <Button
             onClick={() => setNewStage(stages[0] ?? null)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
-            <Plus className="size-4" /> Novo Job
+            <Plus className="size-4 shrink-0" /> Novo
           </Button>
         </div>
       </div>
