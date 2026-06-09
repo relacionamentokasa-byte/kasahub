@@ -254,6 +254,7 @@ function PublicProposalView() {
         : new Date().toLocaleDateString("pt-BR"),
       due_day: String(proposal.billing_day || 5),
       installments: String(proposal.installments || 1),
+      proposal_number: proposal.number_display || "",
     });
   }, [data]);
 
