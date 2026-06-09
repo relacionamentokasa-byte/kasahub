@@ -88,7 +88,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
       <div className="rounded-xl border border-border bg-surface p-6">
         <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
           <span className="size-1.5 rounded-full bg-primary" />
-          Identidade Visual
+          Cores da Agência
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
