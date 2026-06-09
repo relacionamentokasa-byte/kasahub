@@ -86,8 +86,8 @@ export function PartnerList({ type }: Props) {
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex gap-4">
-                <Avatar className="size-12 border border-primary/20 bg-primary/5 overflow-hidden">
-                  <AvatarImage src={p.photo_url || ""} className="object-cover w-full h-full" />
+                <Avatar className="size-12 border border-primary/20 bg-primary/5 rounded-full overflow-hidden">
+                  <AvatarImage src={p.photo_url || ""} className="aspect-square object-cover w-full h-full" />
                   <AvatarFallback className="text-lg font-bold text-primary bg-primary/10 uppercase">
                     {p.name.substring(0, 2)}
                   </AvatarFallback>
