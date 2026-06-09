@@ -80,7 +80,7 @@ export function ProfileImageUpload({
     <div className="space-y-4">
       <div className="flex flex-col items-center gap-4">
         <div className="relative group">
-          <div className={`size-32 border-2 border-primary/20 overflow-hidden ${shape === "round" ? "rounded-full bg-muted" : "rounded-xl bg-white/5"} relative`}>
+          <div className={`border-2 border-primary/20 overflow-hidden ${shape === "round" ? "size-32 rounded-full bg-muted" : "w-[300px] h-[100px] rounded-lg bg-white/5 border-dashed"} relative`}>
             {/* Background checkered pattern for transparency visibility */}
             {shape === "rect" && (
               <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'conic-gradient(#000 0.25turn, #fff 0.25turn 0.5turn, #000 0.5turn 0.75turn, #fff 0.75turn)', backgroundSize: '10px 10px' }} />

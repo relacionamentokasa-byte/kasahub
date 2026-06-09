@@ -180,9 +180,9 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
             <div className="grid sm:grid-cols-2 gap-4 pt-2 border-t border-border">
               <div>
                 <Label className="text-xs uppercase text-foreground/60">Assinatura KASA HUB</Label>
-                <div className="mt-2 rounded-md border border-border bg-surface/40 h-20 flex items-center justify-center">
+                <div className="mt-2 rounded-md border border-border bg-surface/40 w-full h-20 flex items-center justify-center p-2">
                   {agency?.agency_signature_url ? (
-                    <img src={agency.agency_signature_url} alt="Assinatura KASA HUB" className="max-h-16 object-contain" />
+                    <img src={agency.agency_signature_url} alt="Assinatura KASA HUB" className="w-full h-full object-contain" />
                   ) : (
                     <span className="text-xs text-foreground/50 italic">{agency?.name ?? "KASA HUB"}</span>
                   )}
