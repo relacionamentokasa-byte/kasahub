@@ -363,178 +363,90 @@ function PublicProposalView() {
            </div>
         </div>
 
-        {/* Dados do Cliente */}
-        <div className="px-8 py-6 border-b border-slate-100">
-          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+        {/* Dados do Contratante */}
+        <div className="bg-white p-8 rounded-3xl shadow-sm mb-8">
+          <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffbc45] mb-6">
             Dados do Contratante
+            <div className="w-12 h-0.5 bg-[#ffbc45] mt-2"></div>
           </h2>
-          <div className="grid sm:grid-cols-2 gap-3 text-sm text-slate-700">
-            <InfoLine icon={<UserIcon className="size-4" />} label="Nome" value={client?.name || proposal.client_name} />
-            <InfoLine icon={<Building2 className="size-4" />} label="Empresa" value={client?.company} />
-            <InfoLine icon={<Phone className="size-4" />} label="Telefone" value={client?.phone} />
-            <InfoLine icon={<Mail className="size-4" />} label="E-mail" value={client?.email || proposal.client_email} />
+          <div className="grid md:grid-cols-2 gap-4 text-sm text-[#0c1618]">
+            <div className="bg-[#f9f7f3] border border-[#ece8e0] p-4 rounded-xl flex items-center gap-3">
+               <UserIcon className=\"size-5 text-[#ffbc45]\" />
+               <div>
+                  <p className=\"text-[10px] uppercase font-bold text-slate-400\">Nome</p>
+                  <p className=\"font-bold\">{client?.name || proposal.client_name}</p>
+               </div>
+            </div>
+            <div className=\"bg-[#f9f7f3] border border-[#ece8e0] p-4 rounded-xl flex items-center gap-3\">
+               <Building2 className=\"size-5 text-[#ffbc45]\" />
+               <div>
+                  <p className=\"text-[10px] uppercase font-bold text-slate-400\">Empresa</p>
+                  <p className=\"font-bold\">{client?.company || '—'}</p>
+               </div>
+            </div>
+            <div className=\"bg-[#f9f7f3] border border-[#ece8e0] p-4 rounded-xl flex items-center gap-3\">
+               <Phone className=\"size-5 text-[#ffbc45]\" />
+               <div>
+                  <p className=\"text-[10px] uppercase font-bold text-slate-400\">Telefone</p>
+                  <p className=\"font-bold\">{client?.phone || '—'}</p>
+               </div>
+            </div>
+            <div className=\"bg-[#f9f7f3] border border-[#ece8e0] p-4 rounded-xl flex items-center gap-3\">
+               <Mail className=\"size-5 text-[#ffbc45]\" />
+               <div>
+                  <p className=\"text-[10px] uppercase font-bold text-slate-400\">E-mail</p>
+                  <p className=\"font-bold\">{client?.email || proposal.client_email || '—'}</p>
+               </div>
+            </div>
           </div>
         </div>
-        
-        
-        {/* Scope */}
-        {((proposal.scope_text && proposal.scope_text.trim().length > 0) ||
-          (Array.isArray(proposal.scope) && proposal.scope.length > 0)) && (
-          <div className="px-8 py-6 border-b border-slate-100 content-section">
-            <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
-              O que será entregue (Escopo)
-            </h2>
-            <ScopeRenderer text={proposal.scope_text} fallback={proposal.scope} className="text-slate-700" />
-          </div>
-        )}
 
-        {/* Intro */}
-        {proposal.intro && (
-          <div className="px-8 py-6 border-b border-slate-100 content-section">
-            <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-2">
-              Apresentação
-            </h2>
-            <p className="text-sm leading-relaxed whitespace-pre-wrap text-slate-700">
-              {proposal.intro}
-            </p>
-          </div>
-        )}
-
-        {/* Services */}
-        <div className="px-8 py-6 border-b border-slate-100">
-          <h2 className="text-xs uppercase tracking-widest text-slate-400 mb-4">
+        {/* Escopo & Serviços */}
+        <div className=\"bg-white p-8 rounded-3xl shadow-sm mb-8\">
+           <h2 className=\"text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffbc45] mb-6\">
             Escopo & Serviços
-          </h2>
-          {grouped.monthly.length > 0 && (
-            <ItemsTable
-              title="Serviços recorrentes (mensal)"
-              items={grouped.monthly}
-              brand={brand}
-            />
-          )}
-          {grouped.one_time.length > 0 && (
-            <div className="mt-6">
-              <ItemsTable
-                title="Serviços pontuais"
-                items={grouped.one_time}
-                brand={brand}
-              />
-            </div>
-          )}
-          {data.items.length === 0 && (
-            <p className="text-sm text-slate-400">Nenhum item cadastrado.</p>
-          )}
+            <div className=\"w-12 h-0.5 bg-[#ffbc45] mt-2\"></div>
+           </h2>
+           <div className=\"bg-[#f9f7f3] p-6 rounded-2xl\">
+              <ScopeRenderer text={proposal.scope_text} fallback={proposal.scope} className=\"text-slate-700\" />
+           </div>
         </div>
 
-        {/* Investment Details */}
-        <div
-          className="px-10 py-12 border-b border-slate-100 bg-[#0C1618]/[0.02]"
-        >
-          <div className="flex items-center gap-3 mb-8">
-            <div className="size-8 rounded-lg bg-[#FFBC45] flex items-center justify-center">
-              <span className="text-[#0C1618] font-bold text-xs">$</span>
-            </div>
-            <h2 className="text-xs uppercase tracking-[0.2em] font-bold text-slate-400">
-              Investimento
+        {/* Investimento */}
+        <div className=\"bg-[#0c1618] p-8 md:p-12 rounded-3xl text-white mb-8\">
+            <h2 className=\"text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffbc45] mb-8\">
+                Investimento
+                <div className=\"w-12 h-0.5 bg-[#ffbc45] mt-2\"></div>
             </h2>
-          </div>
-          
-          {proposal.monthly_investment > 0 ? (
-            <div className="space-y-8">
-              <div className="grid sm:grid-cols-2 gap-6">
-                <Stat 
-                  label="Tipo de Contrato" 
-                  value={proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'} 
-                  brand="#FFBC45" 
-                />
-                <Stat 
-                  label="Validade" 
-                  value={proposal.contract_term === "indeterminado" 
-                    ? "Prazo Indeterminado" 
-                    : proposal.contract_term === "monthly" 
-                      ? "Mensal"
-                      : proposal.contract_term?.includes("_months")
-                        ? `${proposal.contract_term.replace("_months", "")} meses`
-                        : `${proposal.recurring_months || 12} meses`
-                  } 
-                  brand="#FFBC45" 
-                />
-                <Stat 
-                  label="Início" 
-                  value={proposal.first_due_date 
-                    ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") 
-                    : "—"
-                  } 
-                  brand="#FFBC45" 
-                />
-                <Stat 
-                  label="Dia de Cobrança" 
-                  value={String(proposal.billing_day || proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—")} 
-                  brand="#FFBC45" 
-                />
-              </div>
-
-              {proposal.one_time_investment > 0 && (
-                <div className="pt-8 border-t border-slate-200/50">
-                   <Stat 
-                    label="Setup / Investimento Único" 
-                    value={formatCurrency(proposal.one_time_investment)} 
-                    brand="#FFBC45" 
-                  />
+            <div className=\"flex flex-col md:flex-row items-center gap-8 mb-12\">
+                <div className=\"flex-1\">
+                    <p className=\"text-[10px] uppercase tracking-widest text-slate-400\">Investimento Mensal</p>
+                    <p className=\"text-5xl font-bold text-[#ffbc45]\">{formatCurrency(proposal.monthly_investment)}</p>
                 </div>
-              )}
-
-              <div className="pt-8 border-t border-slate-200/50">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 bg-[#0C1618] p-8 rounded-[2rem] text-white">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Investimento Mensal</p>
-                    <p className="text-4xl font-bold">
-                      {formatCurrency(proposal.monthly_investment)}
-                    </p>
-                  </div>
-                  <div className="sm:text-right">
-                    <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-2">Valor Total do Contrato</p>
-                    <p className="text-2xl font-bold opacity-80">
-                      {formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}
-                    </p>
-                    <div className="text-xs text-slate-400 font-medium mt-2">
-                      Pagamento via <span className="text-white">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
-                                     proposal.payment_method === 'pix' ? 'PIX' : 
-                                     proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</span>
-                    </div>
-                  </div>
+                <div className=\"hidden md:block w-px h-16 bg-white/20\"></div>
+                <div className=\"flex-1 md:text-right\">
+                    <p className=\"text-[10px] uppercase tracking-widest text-slate-400\">Valor Total</p>
+                    <p className=\"text-3xl font-bold\">{formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}</p>
                 </div>
-              </div>
             </div>
-          ) : (
-            <div className="space-y-8">
-              <div className="grid sm:grid-cols-2 gap-6">
-                <Stat 
-                  label="Valor do Projeto" 
-                  value={formatCurrency(proposal.one_time_investment)} 
-                  highlight 
-                  brand="#FFBC45" 
-                />
-                <Stat 
-                  label="Parcelamento" 
-                  value={`${proposal.installments || 1}x de ${formatCurrency(proposal.one_time_investment / (proposal.installments || 1))}`} 
-                  brand="#FFBC45" 
-                />
-              </div>
-              <div className="pt-8 border-t border-slate-200/50 flex justify-between items-center bg-[#0C1618] p-8 rounded-[2rem] text-white">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-1">Forma de Pagamento</p>
-                  <p className="text-xl font-bold">{proposal.payment_method === 'credit_card' ? 'Cartão de Crédito' : 
-                                   proposal.payment_method === 'pix' ? 'PIX' : 
-                                   proposal.payment_method === 'transfer' ? 'Transferência' : 'Boleto'}</p>
+            <div className=\"grid grid-cols-2 md:grid-cols-4 gap-4\">
+                <div className=\"bg-white/5 p-4 rounded-xl\">
+                    <p className=\"text-[9px] uppercase tracking-widest text-slate-400\">Tipo</p>
+                    <p className=\"text-sm font-bold\">{proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#FFBC45] mb-1">Valor Total</p>
-                  <p className="text-3xl font-bold">{formatCurrency(proposal.one_time_investment)}</p>
+                <div className=\"bg-white/5 p-4 rounded-xl\">
+                    <p className=\"text-[9px] uppercase tracking-widest text-slate-400\">Validade</p>
+                    <p className=\"text-sm font-bold\">{proposal.contract_term || '—'}</p>
                 </div>
-              </div>
+                <div className=\"bg-white/5 p-4 rounded-xl\">
+                    <p className=\"text-[9px] uppercase tracking-widest text-slate-400\">Início</p>
+                    <p className=\"text-sm font-bold\">{proposal.first_due_date ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") : '—'}</p>
+                </div>
+                <div className=\"bg-white/5 p-4 rounded-xl\">
+                    <p className=\"text-[9px] uppercase tracking-widest text-slate-400\">Dia de Cobrança</p>
+                    <p className=\"text-sm font-bold\">{proposal.billing_day || '—'}</p>
+                </div>
             </div>
-          )}
         </div>
 
         {/* Contract */}
