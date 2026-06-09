@@ -28,8 +28,8 @@ export function SignatureTab({ form, set }: { form: Partial<AgencySettings>, set
         {form.agency_signature_url && (
           <div className="space-y-2">
             <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">Visualização</Label>
-            <div className="p-6 rounded-lg bg-white border border-border flex items-center justify-center min-h-[160px]">
-              <img src={form.agency_signature_url} alt="Assinatura" className="max-h-32 object-contain" />
+            <div className="p-4 rounded-lg bg-white border border-border flex items-center justify-center min-h-[120px]">
+              <img src={form.agency_signature_url} alt="Assinatura" className="w-full max-w-[300px] h-[100px] object-contain" />
             </div>
           </div>
         )}
