@@ -13,15 +13,15 @@ const env = loadEnv(process.env.NODE_ENV || 'development', process.cwd(), "");
 Object.assign(process.env, env);
 
 export default defineConfig({
-  define: {
-    'process.env.VITE_NEWS_API_KEY': JSON.stringify(process.env.NEWS_API_KEY),
-  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
     server: { entry: "server" },
   },
   vite: {
+    define: {
+      'process.env.VITE_NEWS_API_KEY': JSON.stringify(process.env.NEWS_API_KEY),
+    },
     resolve: {
       alias: {
         "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
