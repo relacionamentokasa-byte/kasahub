@@ -193,7 +193,7 @@ export function NewBankAccountDialog({
             disabled={mut.isPending || !form.name}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
-            Criar conta
+            {bankAccount ? "Salvar alterações" : "Criar conta"}
           </Button>
         </DialogFooter>
       </DialogContent>

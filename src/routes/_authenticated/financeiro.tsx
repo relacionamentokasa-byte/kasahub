@@ -122,6 +122,7 @@ function FinanceiroPage() {
   const qc = useQueryClient();
   const { data: txs = [] } = useQuery({ queryKey: ["transactions"], queryFn: () => fetchTransactions() });
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
+  const [editingAcc, setEditingAcc] = useState<any>(null);
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
@@ -996,7 +997,14 @@ function FinanceiroPage() {
       </div>
 
       <NewTransactionDialog open={openTx !== false} onOpenChange={(o) => setOpenTx(o ? (openTx || "income") : false)} defaultKind={openTx || "income"} />
-      <NewBankAccountDialog open={openAcc} onOpenChange={setOpenAcc} />
+      <NewBankAccountDialog 
+        open={openAcc} 
+        onOpenChange={(o) => {
+          setOpenAcc(o);
+          if (!o) setEditingAcc(null);
+        }} 
+        bankAccount={editingAcc}
+      />
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
       
