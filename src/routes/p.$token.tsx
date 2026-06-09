@@ -608,11 +608,11 @@ function PublicProposalView() {
 
         {/* Footer */}
         <div className="bg-white p-8 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 font-sans">
-           <div className="flex items-center gap-2">
-             <div className="size-1.5 rounded-full bg-[#ffbc45]" />
-             <p className="text-[10px] text-slate-400 font-medium">© {new Date().getFullYear()} {agency?.name} · Todos os direitos reservados</p>
-           </div>
-           <p className="text-[10px] text-[#ffbc45] font-bold uppercase tracking-widest">www.kasahub.com.br</p>
+            <div className="flex items-center gap-2">
+              <div className="size-1.5 rounded-full bg-[#ffbc45]" />
+              <p className="text-[10px] text-slate-400 font-medium">© 2026 Kasa Marketing & Consultoria · Todos os direitos reservados</p>
+            </div>
+            <p className="text-[10px] text-[#ffbc45] font-bold uppercase tracking-widest">@kasamkt</p>
         </div>
       </div>
     </div>
