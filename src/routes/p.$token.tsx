@@ -330,6 +330,13 @@ function PublicProposalView() {
         <div className="h-1 bg-[#ffbc45] w-full" />
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-3">
+              {agency?.logo_proposals_url && (
+                <img 
+                  src={agency.logo_proposals_url} 
+                  alt={agency.name} 
+                  className="h-8 w-auto object-contain"
+                />
+              )}
               <div className="flex flex-col items-start">
                  <span className="text-[11px] font-bold font-sans text-slate-800 uppercase tracking-tight leading-none mb-0.5">Kasa Marketing & Consultoria</span>
 
