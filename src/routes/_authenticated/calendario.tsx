@@ -13,6 +13,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { CalendarMonth } from "@/components/calendar/CalendarMonth";
+import { CalendarWeek } from "@/components/calendar/CalendarWeek";
+import { CalendarDay } from "@/components/calendar/CalendarDay";
+import { CalendarList } from "@/components/calendar/CalendarList";
 import { NewEventDialog } from "@/components/calendar/NewEventDialog";
 import { EventDetailDialog } from "@/components/calendar/EventDetailDialog";
 import { type CalendarEvent } from "@/lib/approvals-api";
@@ -130,15 +133,46 @@ function CalendarPage() {
       </div>
 
       <div className="bg-surface rounded-2xl border border-border p-1 lg:p-4 overflow-hidden">
-        <CalendarMonth 
-          clientId={clientId === "all" ? undefined : clientId} 
-          filter={filter}
-          onSelectEvent={(e) => {
-            setSelectedEvent(e);
-            setDetailOpen(true);
-          }}
-        />
-
+        {view === "month" && (
+          <CalendarMonth 
+            clientId={clientId === "all" ? undefined : clientId} 
+            filter={filter}
+            onSelectEvent={(e) => {
+              setSelectedEvent(e);
+              setDetailOpen(true);
+            }}
+          />
+        )}
+        {view === "week" && (
+          <CalendarWeek 
+            clientId={clientId === "all" ? undefined : clientId} 
+            filter={filter}
+            onSelectEvent={(e) => {
+              setSelectedEvent(e);
+              setDetailOpen(true);
+            }}
+          />
+        )}
+        {view === "day" && (
+          <CalendarDay 
+            clientId={clientId === "all" ? undefined : clientId} 
+            filter={filter}
+            onSelectEvent={(e) => {
+              setSelectedEvent(e);
+              setDetailOpen(true);
+            }}
+          />
+        )}
+        {view === "list" && (
+          <CalendarList 
+            clientId={clientId === "all" ? undefined : clientId} 
+            filter={filter}
+            onSelectEvent={(e) => {
+              setSelectedEvent(e);
+              setDetailOpen(true);
+            }}
+          />
+        )}
       </div>
 
       <NewEventDialog open={newOpen} onOpenChange={setNewOpen} />
