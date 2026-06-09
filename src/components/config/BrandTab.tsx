@@ -91,7 +91,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
           Identidade Visual
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
           <div className="space-y-1.5">
             <Label className="text-[10px] font-mono-kasa capitalize text-foreground/60">Cor Primária</Label>
             <div className="flex gap-2">
@@ -109,7 +109,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
         </div>
 
         <div className="space-y-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {BRANDING_ASSETS.map((asset) => (
               <div key={asset.key} className="space-y-4 p-5 rounded-xl border border-border/50 bg-muted/5 flex flex-col h-full">
                 <div className="flex items-start justify-between gap-4">
@@ -178,7 +178,7 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
           Preview em Tempo Real
         </h3>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="p-5 rounded-xl bg-[#0c1618] border border-white/5 space-y-4">
             <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-white/40">Menu Lateral</p>
             <div className="flex items-center gap-4 bg-white/5 p-4 rounded-lg">
