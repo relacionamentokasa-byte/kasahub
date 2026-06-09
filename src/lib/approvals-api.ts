@@ -63,11 +63,7 @@ export interface CalendarEvent {
 }
 
 // loosely-typed supabase client for tables not in generated types yet
-const sb = supabase as unknown as {
-  from: (t: string) => ReturnType<typeof supabase.from>;
-  storage: typeof supabase.storage;
-  auth: typeof supabase.auth;
-};
+const sb = supabase as any;
 
 // ---------- Approvals ----------
 

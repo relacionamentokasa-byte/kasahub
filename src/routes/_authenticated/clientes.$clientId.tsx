@@ -48,7 +48,7 @@ function ClientDetail() {
 
 export function ClientDetailContent({ clientId, embedded = false }: { clientId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
-  const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
+  const sb = supabase as any;
 
   const { data: client } = useQuery({ queryKey: ["client", clientId], queryFn: () => fetchClient(clientId) });
   const { data: projects = [] } = useQuery({
@@ -763,7 +763,7 @@ type PortalUser = {
 
 function PortalUsers({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
-  const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
+  const sb = supabase as any;
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["portal-users", clientId],
     queryFn: async () => {
@@ -962,7 +962,7 @@ function ResetPasswordDialog({ user, onClose }: { user: PortalUser | null; onClo
 }
 
 function PortalContent({ clientId }: { clientId: string }) {
-  const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
+  const sb = supabase as any;
   const { data: counts } = useQuery({
     queryKey: ["portal-counts", clientId],
     queryFn: async () => {
