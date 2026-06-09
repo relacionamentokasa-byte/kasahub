@@ -19,6 +19,16 @@ interface BrandingAsset {
 
 const BRANDING_ASSETS: BrandingAsset[] = [
   {
+    key: "logo_proposals_url",
+    label: "Logo da Proposta Pública",
+    usage: "Exibida no topo da proposta comercial pública enviada aos clientes",
+    recommendedSize: "1200x400px (Horizontal)",
+    formats: ["PNG Transparente", "SVG", "JPG"],
+    description: "Esta logo aparecerá no cabeçalho das suas propostas comerciais.",
+    aspect: 1,
+    previewBg: "light"
+  },
+  {
     key: "logo_white_url",
     label: "Logo Branca",
     usage: "Menu lateral (fundo escuro), Tela de login, Email de convite",
@@ -47,16 +57,6 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     description: "Versão amarela (cor primária) usada para carregamento e ícones.",
     aspect: 1,
     previewBg: "light"
-  },
-  {
-    key: "logo_sidebar_url",
-    label: "Logo Menu Lateral",
-    usage: "Exibida no topo do menu lateral — use a versão branca ou amarela",
-    recommendedSize: "120x120px (Quadrado)",
-    formats: ["PNG Transparente", "SVG"],
-    description: "Versão específica para o menu lateral. Idealmente com fundo transparente.",
-    aspect: 1,
-    previewBg: "dark"
   }
 ];
 
@@ -93,37 +93,66 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
         </div>
 
         <div className="space-y-10">
-          <div className="p-8 border border-dashed border-border rounded-xl text-center bg-muted/5">
-            <Info className="size-8 text-primary mx-auto mb-3 opacity-50" />
-            <h4 className="text-base font-semibold mb-1">Identidade Visual Fixa</h4>
-            <p className="text-sm text-foreground/50 max-w-md mx-auto">
-              As logos do sistema estão configuradas com arquivos fixos para garantir a consistência visual. 
-              A alteração via painel está temporariamente desabilitada.
-            </p>
-          </div>
-        </div>
-      </div>
+          <div className="grid grid-cols-1 gap-8">
+            {BRANDING_ASSETS.map((asset) => (
+              <div key={asset.key} className="flex flex-col lg:flex-row gap-8 items-start animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="w-full lg:w-[350px] shrink-0">
+                  <div className={cn(
+                    "relative group rounded-2xl border-2 border-dashed border-border overflow-hidden transition-all hover:border-primary/50",
+                    asset.previewBg === "dark" ? "bg-[#0c1618]" : "bg-muted/10 shadow-inner"
+                  )}>
+                    <ProfileImageUpload
+                      value={form[asset.key] as string || null}
+                      onChange={(url) => set(asset.key, url)}
+                      shape="rect"
+                      bucket="logos"
+                    />
+                    {!form[asset.key] && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none opacity-40">
+                        <ImageIcon className="size-8 mb-2" />
+                        <span className="text-[10px] font-mono-kasa uppercase tracking-widest">Aguardando Logo</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
 
+                <div className="flex-1 space-y-4 pt-2">
+                  <div>
+                    <h4 className="text-lg font-bold flex items-center gap-2">
+                      {asset.label}
+                      {form[asset.key] ? (
+                        <CheckCircle2 className="size-4 text-green-500" />
+                      ) : (
+                        <AlertCircle className="size-4 text-amber-500 opacity-50" />
+                      )}
+                    </h4>
+                    <p className="text-sm text-foreground/60 leading-relaxed mt-1">{asset.description}</p>
+                  </div>
 
-      <div className="rounded-xl border border-border bg-surface p-6">
-        <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
-          <span className="size-1.5 rounded-full bg-primary" />
-          Preview Logos Atuais (Fixas)
-        </h3>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="p-5 rounded-xl bg-[#0c1618] border border-white/5 space-y-4">
-            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-white/40">Menu Lateral / Login</p>
-            <div className="flex items-center justify-center bg-white/5 p-8 rounded-lg min-h-[120px]">
-              <img src="https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-white.png" alt="Logo Branca" className="max-h-16 w-auto object-contain" />
-            </div>
-          </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8">
+                    <div>
+                      <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40 mb-1">Onde é usada</p>
+                      <p className="text-xs font-medium text-foreground/70">{asset.usage}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40 mb-1">Recomendação</p>
+                      <p className="text-xs font-medium text-foreground/70">{asset.recommendedSize}</p>
+                    </div>
+                  </div>
 
-          <div className="p-5 rounded-xl bg-muted/10 border border-border space-y-4">
-            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">Splash / Loading / Favicon</p>
-            <div className="flex flex-col items-center justify-center gap-4 bg-background p-8 rounded-lg border border-border/50 shadow-inner min-h-[120px]">
-              <img src="https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png" alt="Logo Amarela" className="size-16 object-contain" />
-            </div>
+                  <div className="pt-2">
+                     <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40 mb-2">URL Direta (Opcional)</p>
+                     <Input 
+                        value={form[asset.key] as string || ""} 
+                        onChange={(e) => set(asset.key, e.target.value)}
+                        placeholder="https://..."
+                        className="h-9 text-xs font-mono"
+                        disabled={!canEdit}
+                     />
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

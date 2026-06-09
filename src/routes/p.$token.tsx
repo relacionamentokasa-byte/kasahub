@@ -330,6 +330,13 @@ function PublicProposalView() {
         <div className="h-1 bg-[#ffbc45] w-full" />
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-3">
+              {agency?.logo_proposals_url && (
+                <img 
+                  src={agency.logo_proposals_url} 
+                  alt={agency.name} 
+                  className="h-8 w-auto object-contain"
+                />
+              )}
               <div className="flex flex-col items-start">
                  <span className="text-[11px] font-bold font-sans text-slate-800 uppercase tracking-tight leading-none mb-0.5">Kasa Marketing & Consultoria</span>
 
@@ -362,7 +369,14 @@ function PublicProposalView() {
            
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
               <div className="flex flex-col items-start gap-2">
-                 <div className="flex flex-col items-start">
+               <div className="flex flex-col items-start">
+                  {agency?.logo_proposals_url && (
+                    <img 
+                      src={agency.logo_proposals_url} 
+                      alt={agency.name} 
+                      className="h-10 sm:h-12 w-auto object-contain mb-4"
+                    />
+                  )}
                     <span className="text-[11px] sm:text-[12px] font-bold font-sans text-slate-800 uppercase tracking-tight leading-none mb-1">Kasa Marketing & Consultoria</span>
 
                     <div className="flex flex-wrap items-center gap-x-2 text-[10px] sm:text-[11px] text-slate-400 font-sans leading-none">
