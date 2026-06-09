@@ -25,7 +25,7 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     recommendedSize: "1200x400px (Horizontal)",
     formats: ["PNG Transparente", "SVG"],
     description: "Versão branca ideal para aplicações sobre fundos escuros (#0c1618).",
-    aspect: 3,
+    aspect: 1,
     previewBg: "dark"
   },
   {
@@ -35,7 +35,7 @@ const BRANDING_ASSETS: BrandingAsset[] = [
     recommendedSize: "1200x400px (Horizontal)",
     formats: ["PNG Transparente", "SVG"],
     description: "Versão preta ideal para aplicações sobre fundos claros.",
-    aspect: 3,
+    aspect: 1,
     previewBg: "light"
   },
   {
