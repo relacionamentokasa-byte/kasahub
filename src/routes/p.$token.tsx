@@ -82,6 +82,10 @@ type Client = {
   email: string | null;
   phone: string | null;
   document: string | null;
+  logo_url?: string | null;
+} | null;
+type Lead = {
+  name: string | null;
 } | null;
 
 
@@ -98,6 +102,7 @@ function PublicProposalView() {
     items: Item[];
     agency: Agency;
     client: Client;
+    lead: Lead;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
@@ -222,8 +227,8 @@ function PublicProposalView() {
     const { proposal, agency } = data;
     const rawContractContent = proposal.contract_content;
     return replaceContractVariables(rawContractContent as string, {
-      client_name: proposal.client_name,
-      client_legal_name: proposal.client_name,
+      client_name: lead?.name || client?.name || proposal.client_name,
+      client_legal_name: client?.company || proposal.client_name,
       client_document: agency?.document || "",
       client_address: agency?.address || "",
       client_email: proposal.client_email || "",
@@ -292,7 +297,7 @@ function PublicProposalView() {
     );
   }
 
-  const { proposal, agency, client } = data;
+  const { proposal, agency, client, lead } = data;
   const accepted = proposal.status === "accepted" || proposal.status === "signed" || proposal.status === "converted";
   const cancelled = proposal.status === "cancelled";
 
@@ -324,7 +329,7 @@ function PublicProposalView() {
       <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200">
         <div className="h-1 bg-[#ffbc45] w-full" />
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-           <div className="flex items-center gap-3">
+           <div className="flex flex-col items-start gap-1">
              <div className="size-10 bg-[#0c1618] flex items-center justify-center rounded-lg overflow-hidden p-1.5 shrink-0">
                 {agency?.logo_proposals_url || agency?.logo_url ? (
                   <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
@@ -332,7 +337,7 @@ function PublicProposalView() {
                   <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
                 )}
              </div>
-             <span className="text-lg font-bold font-sans">KASA <span className="text-[#ffbc45]">HUB</span></span>
+             <span className="text-[10px] font-bold font-sans text-slate-500 uppercase tracking-tight leading-none">Kasa Marketing & Consultoria</span>
            </div>
            <Button
              variant="outline"
@@ -351,7 +356,7 @@ function PublicProposalView() {
            <div className="absolute inset-y-0 right-0 w-1/3 bg-[#ffbc45]/6 -rotate-12 transform origin-top-right hidden sm:block" />
            
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col items-start gap-1">
                  <div className="size-10 sm:size-12 bg-[#0c1618] flex items-center justify-center rounded-xl overflow-hidden p-2 shrink-0">
                     {agency?.logo_proposals_url || agency?.logo_url ? (
                       <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
@@ -359,7 +364,7 @@ function PublicProposalView() {
                       <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
                     )}
                  </div>
-                 <span className="text-lg sm:text-xl font-bold font-sans">KASA <span className="text-[#ffbc45]">HUB</span></span>
+                 <span className="text-[10px] sm:text-[11px] font-bold font-sans text-slate-500 uppercase tracking-tight leading-none">Kasa Marketing & Consultoria</span>
               </div>
 
               <div className="flex flex-col items-start md:items-end gap-2 w-full sm:w-auto">
@@ -381,7 +386,13 @@ function PublicProposalView() {
            </div>
            <h1 className="font-display text-2xl sm:text-4xl font-bold mb-6 text-[#0c1618] relative z-10 break-words">{proposal.title}</h1>
            <div className="flex items-center gap-3 relative z-10">
-             <div className="size-10 rounded-full bg-[#f9f7f3] border border-[#ece8e0] flex items-center justify-center font-bold text-[#ffbc45] font-sans shadow-sm shrink-0">{proposal.client_name.substring(0, 2).toUpperCase()}</div>
+             <div className="size-10 rounded-full bg-[#f9f7f3] border border-[#ece8e0] flex items-center justify-center font-bold text-[#ffbc45] font-sans shadow-sm shrink-0 overflow-hidden">
+               {client?.logo_url ? (
+                 <img src={client.logo_url} className="w-full h-full object-cover" alt="Client Logo" />
+               ) : (
+                 proposal.client_name.substring(0, 2).toUpperCase()
+               )}
+             </div>
              <p className="text-sm text-slate-600 font-sans tracking-tight leading-snug">Preparada para <span className="font-bold text-[#0c1618]">{proposal.client_name}</span></p>
            </div>
         </div>
@@ -397,7 +408,7 @@ function PublicProposalView() {
                <UserIcon className="size-5 text-[#ffbc45] shrink-0" />
                <div className="min-w-0">
                   <p className="text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Nome</p>
-                  <p className="font-bold font-sans truncate">{client?.name || proposal.client_name}</p>
+                  <p className="font-bold font-sans truncate">{lead?.name || client?.name || "—"}</p>
                </div>
             </div>
             <div className="bg-[#f9f7f3] border border-[#ece8e0] p-3 sm:p-4 rounded-xl flex items-center gap-3">
@@ -597,11 +608,11 @@ function PublicProposalView() {
 
         {/* Footer */}
         <div className="bg-white p-8 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 font-sans">
-           <div className="flex items-center gap-2">
-             <div className="size-1.5 rounded-full bg-[#ffbc45]" />
-             <p className="text-[10px] text-slate-400 font-medium">© {new Date().getFullYear()} {agency?.name} · Todos os direitos reservados</p>
-           </div>
-           <p className="text-[10px] text-[#ffbc45] font-bold uppercase tracking-widest">www.kasahub.com.br</p>
+            <div className="flex items-center gap-2">
+              <div className="size-1.5 rounded-full bg-[#ffbc45]" />
+              <p className="text-[10px] text-slate-400 font-medium">© 2026 Kasa Marketing & Consultoria · Todos os direitos reservados</p>
+            </div>
+            <p className="text-[10px] text-[#ffbc45] font-bold uppercase tracking-widest">@kasamkt</p>
         </div>
       </div>
     </div>
