@@ -336,6 +336,19 @@ function ClientesPage() {
                     </div>
                     <div className="text-left">
                       <p className="text-sm font-semibold truncate max-w-[180px]">{c.company || c.name}</p>
+                      <p className="text-[10px] text-foreground/40 font-bold uppercase">{c.status}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-4 text-foreground/20" />
+                </button>
+              ))}
+            </div>
+                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                    >
+                      {c.logo_url ? <img src={c.logo_url} className="size-full object-cover rounded-lg" /> : (c.company || c.name).charAt(0)}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold truncate max-w-[180px]">{c.company || c.name}</p>
                       <p className="text-[10px] text-foreground/40">{c.status}</p>
                     </div>
                   </div>
