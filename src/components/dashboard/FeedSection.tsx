@@ -28,15 +28,15 @@ export function FeedSection({ events }: FeedSectionProps) {
         <div className="absolute left-8 top-8 bottom-8 w-px bg-border" />
         <div className="space-y-8 relative">
           {sortedEvents.map((ev) => (
-            <div key={ev.id} className="flex gap-6 relative">
+            <div key={ev.id} className="flex gap-4 sm:gap-6 relative">
               <div className="size-4 rounded-full bg-surface border-2 border-primary mt-1 shrink-0 z-10" />
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
+              <div className="space-y-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="text-[10px] font-bold font-mono-kasa text-primary">
                     {format(ev.time, "HH:mm")}
                   </span>
                   <span className="text-xs font-semibold">{ev.user}</span>
-                  <span className="text-[10px] text-foreground/40 uppercase tracking-wider">
+                  <span className="text-[9px] sm:text-[10px] text-foreground/40 uppercase tracking-wider">
                     {format(ev.time, "dd 'de' MMMM", { locale: ptBR })}
                   </span>
                 </div>

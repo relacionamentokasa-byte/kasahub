@@ -23,13 +23,13 @@ export function ClientesSection({ clients }: ClientesSectionProps) {
       </h3>
       <div className="bg-surface border border-border rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left">
+          <table className="w-full text-left min-w-[500px] sm:min-w-full">
             <thead>
               <tr className="border-b border-border bg-muted/20">
-                <th className="px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40">Cliente</th>
-                <th className="px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Contratado</th>
-                <th className="px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Extra</th>
-                <th className="px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Total Faturado</th>
+                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40">Cliente</th>
+                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Contratado</th>
+                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Extra</th>
+                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Total Faturado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
