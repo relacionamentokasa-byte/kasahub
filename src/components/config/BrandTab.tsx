@@ -108,75 +108,21 @@ export function BrandTab({ form, set, canEdit }: { form: Partial<AgencySettings>
       <div className="rounded-xl border border-border bg-surface p-6">
         <h3 className="text-sm font-semibold mb-6 flex items-center gap-2">
           <span className="size-1.5 rounded-full bg-primary" />
-          Preview em Tempo Real
+          Preview Logos Atuais (Fixas)
         </h3>
         
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="p-5 rounded-xl bg-[#0c1618] border border-white/5 space-y-4">
-            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-white/40">Menu Lateral</p>
-            <div className="flex items-center gap-4 bg-white/5 p-4 rounded-lg">
-              <div className="h-10 w-auto flex items-center justify-center">
-                {form.logo_sidebar_url || form.logo_white_url ? (
-                  <img src={(form.logo_sidebar_url || form.logo_white_url) as string} alt="Logo Sidebar" className="max-h-full max-w-full object-contain" />
-                ) : (
-                  <div className="size-6 border-2 border-white/20 rotate-45" />
-                )}
-              </div>
-              <div className="flex-1 space-y-1.5">
-                <div className="h-1.5 w-16 bg-white/10 rounded" />
-                <div className="h-1.5 w-12 bg-white/5 rounded" />
-              </div>
-            </div>
-          </div>
-
-          <div className="p-5 rounded-xl bg-[#0c1618] border border-white/5 space-y-4">
-            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-white/40">Tela de Login</p>
-            <div className="flex flex-col items-center gap-3 bg-white/5 p-4 rounded-lg">
-              <div className="h-12 w-auto flex items-center justify-center">
-                {form.logo_white_url ? (
-                  <img src={form.logo_white_url as string} alt="Logo Branca" className="max-h-full max-w-full object-contain" />
-                ) : (
-                  <div className="size-6 border-2 border-white/20 rotate-45" />
-                )}
-              </div>
-              <div className="w-full space-y-1.5 pt-2">
-                <div className="h-2 w-full bg-white/10 rounded" />
-                <div className="h-2 w-full bg-white/10 rounded" />
-              </div>
-            </div>
-          </div>
-
-          <div className="p-5 rounded-xl bg-white border border-black/5 space-y-4">
-            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-black/40">Relatórios</p>
-            <div className="bg-black/5 p-4 rounded-lg">
-              <div className="h-8 w-auto flex items-center justify-center mb-3">
-                {form.logo_black_url ? (
-                  <img src={form.logo_black_url as string} alt="Logo Preta" className="max-h-full max-w-full object-contain" />
-                ) : (
-                  <div className="size-6 border-2 border-black/20 rotate-45" />
-                )}
-              </div>
-              <div className="space-y-1">
-                <div className="h-1 w-full bg-black/10 rounded" />
-                <div className="h-1 w-full bg-black/10 rounded" />
-                <div className="h-1 w-2/3 bg-black/10 rounded" />
-              </div>
+            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-white/40">Menu Lateral / Login</p>
+            <div className="flex items-center justify-center bg-white/5 p-8 rounded-lg min-h-[120px]">
+              <img src="https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-white.png" alt="Logo Branca" className="max-h-16 w-auto object-contain" />
             </div>
           </div>
 
           <div className="p-5 rounded-xl bg-muted/10 border border-border space-y-4">
-            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">Splash / Loading</p>
-            <div className="flex flex-col items-center justify-center gap-4 aspect-video bg-background p-4 rounded-lg border border-border/50 shadow-inner">
-              <div className="animate-bounce">
-                {form.logo_yellow_url ? (
-                  <img src={form.logo_yellow_url as string} alt="Logo Amarela" className="size-12 object-contain" />
-                ) : (
-                  <div className="size-8 border-2 border-primary rotate-45" />
-                )}
-              </div>
-              <div className="w-24 h-1 bg-muted rounded-full overflow-hidden">
-                <div className="w-1/2 h-full bg-primary animate-[shimmer_2s_infinite]" />
-              </div>
+            <p className="text-[10px] font-mono-kasa uppercase tracking-widest text-foreground/40">Splash / Loading / Favicon</p>
+            <div className="flex flex-col items-center justify-center gap-4 bg-background p-8 rounded-lg border border-border/50 shadow-inner min-h-[120px]">
+              <img src="https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png" alt="Logo Amarela" className="size-16 object-contain" />
             </div>
           </div>
         </div>
