@@ -18,9 +18,11 @@ export function SignatureTab({ form, set }: { form: Partial<AgencySettings>, set
             value={form.agency_signature_url}
             onChange={(url) => set("agency_signature_url", url)}
             label="Assinatura"
+            shape="rect"
+            aspect={3/1}
           />
           <p className="text-[10px] text-foreground/40 text-center">
-            Recomendado: PNG transparente ou JPG
+            Proporção ideal: 3:1 (ex: 300x100px). Aceita PNG transparente ou JPG.
           </p>
         </div>
         {form.agency_signature_url && (
