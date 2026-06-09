@@ -329,7 +329,7 @@ function PublicProposalView() {
       <div className="no-print sticky top-0 z-50 bg-white border-b border-slate-200">
         <div className="h-1 bg-[#ffbc45] w-full" />
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
-           <div className="flex items-center gap-3">
+           <div className="flex flex-col items-start gap-1">
              <div className="size-10 bg-[#0c1618] flex items-center justify-center rounded-lg overflow-hidden p-1.5 shrink-0">
                 {agency?.logo_proposals_url || agency?.logo_url ? (
                   <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
@@ -337,7 +337,7 @@ function PublicProposalView() {
                   <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
                 )}
              </div>
-             <span className="text-lg font-bold font-sans">KASA <span className="text-[#ffbc45]">HUB</span></span>
+             <span className="text-[10px] font-bold font-sans text-slate-500 uppercase tracking-tight leading-none">Kasa Marketing & Consultoria</span>
            </div>
            <Button
              variant="outline"
