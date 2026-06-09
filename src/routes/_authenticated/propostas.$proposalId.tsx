@@ -435,7 +435,22 @@ export function ProposalEditorContent({
               )}
             </div>
             <div className="grid gap-4 mt-3">
-              <F label="Título"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></F>
+              <div className="grid md:grid-cols-2 gap-4">
+                <F label="Título"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></F>
+                <F label="Status">
+                  <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
+                    <SelectTrigger className="cursor-pointer font-bold text-primary"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="draft" className="cursor-pointer">Rascunho</SelectItem>
+                      <SelectItem value="sent" className="cursor-pointer">Enviada</SelectItem>
+                      <SelectItem value="waiting_signature" className="cursor-pointer">Aguardando Assinatura</SelectItem>
+                      <SelectItem value="accepted" className="cursor-pointer">Aprovada</SelectItem>
+                      <SelectItem value="converted" className="cursor-pointer">Convertida</SelectItem>
+                      <SelectItem value="cancelled" className="cursor-pointer">Rejeitada</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </F>
+              </div>
               <div className="grid md:grid-cols-2 gap-4">
                 <F label="Tipo de Destinatário">
                   <Select value={form.target_kind} onValueChange={(v: any) => setForm({ ...form, target_kind: v, client_id: "", lead_id: "" })}>
