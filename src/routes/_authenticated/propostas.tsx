@@ -739,52 +739,53 @@ function ProposalsPage() {
       </div>
 
       {!showTrash && (
-        <div className="space-y-6 mb-8">
-        {/* Search and simple client filter */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2 relative">
-            <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
-            <Input 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome da proposta ou cliente..." 
-              className="pl-9 bg-surface border-border"
-            />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-surface border border-border p-2 rounded-xl">
+          <div className="flex flex-wrap gap-1">
+            {[
+              { id: "all", label: "Todas" },
+              { id: "draft", label: "Rascunho" },
+              { id: "sent", label: "Enviada" },
+              { id: "waiting_signature", label: "Aguardando Assinatura" },
+              { id: "accepted", label: "Aprovada" },
+              { id: "converted", label: "Convertida" },
+              { id: "cancelled", label: "Rejeitada" },
+            ].map((chip) => (
+              <button
+                key={chip.id}
+                onClick={() => setFilterStatus(chip.id)}
+                className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
+                  filterStatus === chip.id 
+                    ? "bg-primary text-primary-foreground shadow-sm" 
+                    : "text-foreground/50 hover:bg-foreground/5 hover:text-foreground"
+                }`}
+              >
+                {chip.label}
+              </button>
+            ))}
           </div>
-          <Select value={filterClient} onValueChange={setFilterClient}>
-            <SelectTrigger className="bg-surface border-border">
-              <SelectValue placeholder="Filtrar por cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os clientes</SelectItem>
-              {clients.map((c) => (
-                <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
-        {/* Status Chips */}
-        <div className="flex flex-wrap gap-2">
-          {[
-            { id: "all", label: "Todas" },
-            { id: "waiting_signature", label: "Aguardando Assinatura" },
-            { id: "accepted", label: "Aprovadas" },
-            { id: "rejected", label: "Rejeitadas" },
-          ].map((chip) => (
-            <button
-              key={chip.id}
-              onClick={() => setFilterStatus(chip.id)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition ${
-                filterStatus === chip.id 
-                  ? "bg-primary text-primary-foreground shadow-sm ring-1 ring-primary/20" 
-                  : "bg-surface border border-border text-foreground/60 hover:border-primary/50"
-              }`}
-            >
-              {chip.label}
-            </button>
-          ))}
-        </div>
+          <div className="flex items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
+              <Input 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar..." 
+                className="pl-9 h-9 text-xs bg-background/50 border-border focus:bg-background"
+              />
+            </div>
+            <Select value={filterClient} onValueChange={setFilterClient}>
+              <SelectTrigger className="h-9 text-xs bg-background/50 border-border md:w-48">
+                <SelectValue placeholder="Cliente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os clientes</SelectItem>
+                {clients.map((c) => (
+                  <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
 
