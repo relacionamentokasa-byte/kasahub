@@ -821,7 +821,7 @@ function ProposalsPage() {
                 <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
                   <th className="px-5 py-3">Proposta</th>
                   <th className="px-5 py-3">Cliente</th>
-                  <th className="px-5 py-3 text-right">Mensal</th>
+                  <th className="px-5 py-3 text-right">Investimento</th>
                   <th className="px-5 py-3 text-right">Total</th>
                   <th className="px-5 py-3">Status</th>
                   <th className="px-5 py-3 w-16" />
@@ -847,7 +847,12 @@ function ProposalsPage() {
                       </td>
                       <td className="px-5 py-3 text-foreground/70">{p.client_name}</td>
                       <td className="px-5 py-3 text-right text-primary">
-                        {formatCurrency(Number(p.monthly_investment))}
+                        {p.contract_type === 'recurring' 
+                          ? formatCurrency(Number(p.monthly_investment)) 
+                          : formatCurrency(Number(p.one_time_investment))}
+                        <span className="text-[10px] block opacity-40 uppercase font-bold">
+                          {p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}
+                        </span>
                       </td>
                       <td className="px-5 py-3 text-right">
                         {formatCurrency(Number(p.total))}
@@ -940,9 +945,11 @@ function ProposalsPage() {
                       {s.label}
                     </span>
                     <div className="text-right">
-                      <p className="text-[10px] text-foreground/40">Mensal</p>
+                      <p className="text-[10px] text-foreground/40">{p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}</p>
                       <p className="text-sm font-semibold text-primary">
-                        {formatCurrency(Number(p.monthly_investment))}
+                        {p.contract_type === 'recurring' 
+                          ? formatCurrency(Number(p.monthly_investment)) 
+                          : formatCurrency(Number(p.one_time_investment))}
                       </p>
                     </div>
                   </div>
