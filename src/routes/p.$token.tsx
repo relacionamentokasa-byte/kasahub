@@ -62,6 +62,7 @@ type Proposal = {
   contract_term: string | null;
   first_due_date: string | null;
   billing_day: number;
+  number_display?: string | null;
 };
 type Agency = {
   name: string;
