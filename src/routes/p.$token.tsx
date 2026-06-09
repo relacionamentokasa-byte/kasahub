@@ -434,17 +434,17 @@ function PublicProposalView() {
                     <p className="text-[9px] uppercase tracking-widest text-slate-400">Tipo</p>
                     <p className="text-sm font-bold">{proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'}</p>
                 </div>
-                <div className=\"bg-white/5 p-4 rounded-xl\">
-                    <p className=\"text-[9px] uppercase tracking-widest text-slate-400\">Validade</p>
-                    <p className=\"text-sm font-bold\">{proposal.contract_term || '—'}</p>
+                <div className="bg-white/5 p-4 rounded-xl">
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Validade</p>
+                    <p className="text-sm font-bold">{proposal.contract_term || '—'}</p>
                 </div>
-                <div className=\"bg-white/5 p-4 rounded-xl\">
-                    <p className=\"text-[9px] uppercase tracking-widest text-slate-400\">Início</p>
-                    <p className=\"text-sm font-bold\">{proposal.first_due_date ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") : '—'}</p>
+                <div className="bg-white/5 p-4 rounded-xl">
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Início</p>
+                    <p className="text-sm font-bold">{proposal.first_due_date ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") : '—'}</p>
                 </div>
-                <div className=\"bg-white/5 p-4 rounded-xl\">
-                    <p className=\"text-[9px] uppercase tracking-widest text-slate-400\">Dia de Cobrança</p>
-                    <p className=\"text-sm font-bold\">{proposal.billing_day || '—'}</p>
+                <div className="bg-white/5 p-4 rounded-xl">
+                    <p className="text-[9px] uppercase tracking-widest text-slate-400">Dia de Cobrança</p>
+                    <p className="text-sm font-bold">{proposal.billing_day || '—'}</p>
                 </div>
             </div>
         </div>
