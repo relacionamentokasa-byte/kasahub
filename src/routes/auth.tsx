@@ -73,7 +73,7 @@ function AuthPage() {
         <div className="absolute bottom-0 left-0 size-72 rounded-full bg-primary/10 blur-3xl" />
 
         <div className="relative flex justify-center lg:justify-start">
-          <KasaLogo variant="login" />
+          <KasaLogo variant="black" />
         </div>
 
         <div className="relative space-y-8">
@@ -116,7 +116,7 @@ function AuthPage() {
       {/* Lado do formulário */}
       <div className="flex flex-col justify-center p-8 lg:p-16 max-w-xl mx-auto w-full">
         <div className="lg:hidden mb-12 flex justify-center">
-          <KasaLogo variant="login" />
+          <KasaLogo variant="black" />
         </div>
 
         <div className="space-y-2 mb-8">
