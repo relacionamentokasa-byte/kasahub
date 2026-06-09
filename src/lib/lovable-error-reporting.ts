@@ -28,20 +28,27 @@ export async function reportLovableError(error: unknown, context: Record<string,
 
   // Persistence in local database
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    const user_id = session?.user?.id;
+
     // We don't wait for the insert to complete to not block the UI
     supabase.from("error_logs").insert({
       message,
       stack,
-      page_url: typeof window !== "undefined" ? window.location.href : undefined,
-      context: context as any,
-      user_id: user?.id,
+      page_url: typeof window !== "undefined" ? window.location.href : "SSR",
+      context: { 
+        ...context,
+        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : "Unknown",
+        timestamp: new Date().toISOString()
+      } as any,
+      user_id,
     }).then(({ error: insertError }) => {
-      if (insertError) console.error("[Lovable Error Reporting] Failed to persist log:", insertError);
+      if (insertError) {
+        console.warn("[Lovable Error Reporting] Database logging failed:", insertError.message);
+      }
     });
   } catch (e) {
-    console.error("[Lovable Error Reporting] Auth check failed:", e);
+    console.error("[Lovable Error Reporting] Logging flow failed:", e);
   }
 
   if (typeof window === "undefined") return;
