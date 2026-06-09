@@ -60,13 +60,11 @@ export function ProfileImageUpload({
       
       if (upErr) throw upErr;
 
-      const { data, error: signErr } = await supabase.storage
+      const { data: { publicUrl } } = supabase.storage
         .from("public-assets")
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+        .getPublicUrl(path);
       
-      if (signErr) throw signErr;
-      
-      onChange(data.signedUrl);
+      onChange(publicUrl);
       setShowCropper(false);
       setImage(null);
       toast.success("Foto atualizada");
