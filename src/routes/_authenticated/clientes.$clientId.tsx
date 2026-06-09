@@ -763,7 +763,7 @@ type PortalUser = {
 
 function PortalUsers({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
-  const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
+  const sb = supabase as any;
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["portal-users", clientId],
     queryFn: async () => {
@@ -962,7 +962,7 @@ function ResetPasswordDialog({ user, onClose }: { user: PortalUser | null; onClo
 }
 
 function PortalContent({ clientId }: { clientId: string }) {
-  const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
+  const sb = supabase as any;
   const { data: counts } = useQuery({
     queryKey: ["portal-counts", clientId],
     queryFn: async () => {
