@@ -14,12 +14,16 @@ export function ProfileImageUpload({
   label = "Foto de perfil",
   shape = "round",
   aspect,
+  bucket = "public-assets",
+  folder = "avatars",
 }: {
   value?: string | null;
   onChange: (url: string | null) => void;
   label?: string;
   shape?: "round" | "rect";
   aspect?: number;
+  bucket?: string;
+  folder?: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -53,15 +57,15 @@ export function ProfileImageUpload({
       const croppedBlob = await getCroppedImg(image, croppedAreaPixels);
       const file = new File([croppedBlob], "avatar.webp", { type: "image/webp" });
       
-      const path = `avatars/${crypto.randomUUID()}.webp`;
+      const path = `${folder}/${crypto.randomUUID()}.webp`;
       const { error: upErr } = await supabase.storage
-        .from("public-assets")
+        .from(bucket)
         .upload(path, file, { upsert: false, contentType: "image/webp" });
       
       if (upErr) throw upErr;
 
       const { data: { publicUrl } } = supabase.storage
-        .from("public-assets")
+        .from(bucket)
         .getPublicUrl(path);
       
       onChange(publicUrl);
