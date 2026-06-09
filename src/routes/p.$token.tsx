@@ -326,7 +326,7 @@ function PublicProposalView() {
              <div className="size-10 bg-[#0c1618] flex items-center justify-center rounded-lg">
                 <span className="text-[#ffbc45] font-bold text-xs">ka/sə</span>
              </div>
-             <span className="text-lg font-bold">KASA <span className=\"text-[#ffbc45]\">HUB</span></span>
+             <span className="text-lg font-bold">KASA <span className="text-[#ffbc45]">HUB</span></span>
            </div>
            <Button
              variant="outline"
@@ -342,24 +342,24 @@ function PublicProposalView() {
       <div className="max-w-4xl mx-auto py-12 px-6">
         {/* Hero Section */}
         <div className="bg-white p-8 md:p-12 rounded-3xl shadow-sm relative overflow-hidden mb-8">
-           <div className=\"absolute inset-y-0 right-0 w-1/3 bg-[#ffbc45]/6 -rotate-12 transform origin-top-right\" />
+           <div className="absolute inset-y-0 right-0 w-1/3 bg-[#ffbc45]/6 -rotate-12 transform origin-top-right" />
            
-           <div className=\"flex justify-end gap-2 mb-8 relative z-10\">
-             <div className=\"px-3 py-1 bg-yellow-50 border border-[#ffbc45] text-[#b45309] text-[10px] font-bold uppercase tracking-widest rounded-full\">Proposta Comercial</div>
+           <div className="flex justify-end gap-2 mb-8 relative z-10">
+             <div className="px-3 py-1 bg-yellow-50 border border-[#ffbc45] text-[#b45309] text-[10px] font-bold uppercase tracking-widest rounded-full">Proposta Comercial</div>
              <div className={`px-3 py-1 border text-[10px] font-bold uppercase tracking-widest rounded-full ${accepted ? 'bg-green-50 border-green-200 text-green-700' : 'bg-slate-50 border-slate-200 text-slate-700'}`}>
                 {accepted ? "Proposta Aprovada" : "Aguardando Assinatura"}
              </div>
            </div>
 
-           <div className=\"text-right text-xs text-slate-500 mb-6 relative z-10\">
+           <div className="text-right text-xs text-slate-500 mb-6 relative z-10">
              <p>Emitida em {new Date().toLocaleDateString("pt-BR")}</p>
              {proposal.valid_until && <p>Validade: {new Date(proposal.valid_until).toLocaleDateString("pt-BR")}</p>}
            </div>
 
-           <h1 className=\"font-display text-4xl font-bold mb-6 text-[#0c1618] relative z-10\">{proposal.title}</h1>
-           <div className=\"flex items-center gap-3 relative z-10\">
-             <div className=\"size-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600\">{proposal.client_name.substring(0, 2)}</div>
-             <p className=\"text-sm text-slate-600\">Preparada para <span className=\"font-bold text-[#0c1618]\">{proposal.client_name}</span></p>
+           <h1 className="font-display text-4xl font-bold mb-6 text-[#0c1618] relative z-10">{proposal.title}</h1>
+           <div className="flex items-center gap-3 relative z-10">
+             <div className="size-10 rounded-full bg-slate-100 flex items-center justify-center font-bold text-slate-600">{proposal.client_name.substring(0, 2)}</div>
+             <p className="text-sm text-slate-600">Preparada para <span className="font-bold text-[#0c1618]">{proposal.client_name}</span></p>
            </div>
         </div>
 
