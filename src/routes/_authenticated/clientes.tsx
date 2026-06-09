@@ -320,6 +320,30 @@ function ClientesPage() {
             </div>
 
             {/* Mobile list */}
+            <div className="md:hidden divide-y divide-border">
+              {filtered.map((c) => (
+                <button
+                  key={c.id}
+                  onClick={() => setSelectedId(c.id)}
+                  className="w-full p-4 flex items-center justify-between hover:bg-muted/10"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="size-10 rounded-lg grid place-items-center font-display font-bold text-xs shrink-0"
+                      style={{ background: `${c.brand_primary}22`, color: c.brand_primary ?? "#FFBC45" }}
+                    >
+                      {c.logo_url ? <img src={c.logo_url} className="size-full object-cover rounded-lg" /> : (c.company || c.name).charAt(0)}
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold truncate max-w-[180px]">{c.company || c.name}</p>
+                      <p className="text-[10px] text-foreground/40">{c.status}</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="size-4 text-foreground/20" />
+                </button>
+              ))}
+            </div>
+          </div>
             <ul className="md:hidden divide-y divide-border">
               {filtered.map((c) => {
                 const clientContracts = contracts.filter((ct) => ct.client_id === c.id && ct.status === "active");

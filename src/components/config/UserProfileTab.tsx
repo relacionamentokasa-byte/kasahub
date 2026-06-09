@@ -110,7 +110,7 @@ export function UserProfileTab({ canEdit }: { canEdit?: boolean }) {
                 onChange={(e) => setForm({ ...form, department: e.target.value })} 
               />
             </Field>
-          </Grid>
+          </div>
           
           <div className="pt-4 border-t border-border mt-4">
             <Button 
