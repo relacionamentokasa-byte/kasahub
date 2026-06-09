@@ -7,7 +7,11 @@ import {
 import { type Partner } from "@/lib/partners-api";
 import { PartnerStats } from "./PartnerStats";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, MapPin, Globe, CreditCard } from "lucide-react";
+import { Phone, Mail, MapPin, Globe, CreditCard, Calculator, List } from "lucide-react";
+import { CommissionCalculator } from "./CommissionCalculator";
+import { CommissionHistory } from "./CommissionHistory";
+import { Separator } from "@/components/ui/separator";
+
 
 interface Props {
   partner: Partner | null;
@@ -41,10 +45,25 @@ export function PartnerSheet({ partner, onClose }: Props) {
         <div className="mt-8 space-y-8">
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
-              <Globe className="size-4" /> Desempenho e Indicadores
+              <Globe className="size-4" /> Resumo de Indicadores
             </h3>
             <PartnerStats partner={partner} />
           </section>
+
+          {partner.type === 'representative' && (
+            <>
+              <Separator className="bg-border/50" />
+              <section className="space-y-6">
+                <CommissionCalculator />
+              </section>
+
+              <Separator className="bg-border/50" />
+              <section className="space-y-6">
+                <CommissionHistory partnerId={partner.id} />
+              </section>
+            </>
+          )}
+
 
           <section className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
