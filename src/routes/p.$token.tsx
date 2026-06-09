@@ -440,7 +440,7 @@ function PublicProposalView() {
                <Building2 className="size-5 text-[#ffbc45] shrink-0" />
                <div className="min-w-0">
                   <p className="text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Empresa</p>
-                  <p className="font-bold font-sans truncate">{client?.company || '—'}</p>
+                  <p className="font-bold font-sans truncate">{lead?.company || client?.company || '—'}</p>
                </div>
             </div>
             <div className="bg-[#f9f7f3] border border-[#ece8e0] p-3 sm:p-4 rounded-xl flex items-center gap-3">
