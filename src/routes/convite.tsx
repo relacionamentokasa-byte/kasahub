@@ -108,7 +108,7 @@ function ConvitePage() {
   if (tokenError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#0c1618] p-6 text-white font-sans text-center">
-        <KasaLogo variant="login" className="mb-8" />
+        <KasaLogo variant="white" className="mb-8 h-16" />
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8 backdrop-blur-xl max-w-md w-full">
           <h2 className="text-xl font-bold text-[#ffbc45] mb-4">Convite Inválido</h2>
           <p className="text-white/60 mb-6 text-sm">
@@ -129,7 +129,7 @@ function ConvitePage() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#0c1618] p-6 text-white font-sans">
       <div className="w-full max-w-md space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="flex flex-col items-center space-y-6">
-          <KasaLogo variant="login" />
+          <KasaLogo variant="white" className="h-16" />
           <div className="text-center space-y-2">
             <h1 className="text-3xl font-display font-bold text-[#ffbc45]">
               Bem-vindo ao KASA HUB

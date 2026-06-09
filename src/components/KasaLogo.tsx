@@ -1,61 +1,82 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchAgencySettings } from "@/lib/settings-api";
 import { cn } from "@/lib/utils";
 
 interface KasaLogoProps {
   collapsed?: boolean;
-  variant?: 'primary' | 'sidebar' | 'login' | 'system' | 'proposals' | 'reports';
+  variant?: "white" | "black" | "yellow" | "sidebar" | "login" | "loading";
   className?: string;
   iconOnly?: boolean;
 }
 
-export function KasaLogo({ 
-  collapsed = false, 
-  variant = 'primary', 
-  className = "",
-  iconOnly = false
-}: KasaLogoProps) {
-  const { data: settings } = useQuery({
-    queryKey: ["agency-settings"],
-    queryFn: fetchAgencySettings,
-    staleTime: 1000 * 60 * 5, // 5 minutos
-  });
+// URLs para as logos (o usuário fará o upload quando solicitado)
+const LOGO_URLS = {
+  white: "/logo-white.png",
+  black: "/logo-black.png",
+  yellow: "/logo-yellow.png",
+};
 
-  const getLogoUrl = () => {
+export function KasaLogo({
+  collapsed = false,
+  variant = "white",
+  className = "",
+  iconOnly = false,
+}: KasaLogoProps) {
+  // Mapeamento de variante de UI para variante de cor da logo
+  const getLogoVariant = (): keyof typeof LOGO_URLS => {
     switch (variant) {
-      case 'sidebar': return settings?.logo_sidebar_url || settings?.logo_url;
-      case 'login': return settings?.logo_login_url || settings?.logo_url;
-      case 'system': return settings?.icon_system_url || settings?.logo_url;
-      case 'proposals': return settings?.logo_proposals_url || settings?.logo_url;
-      case 'reports': return settings?.logo_reports_url || settings?.logo_url;
-      default: return settings?.logo_url;
+      case "sidebar":
+      case "login":
+      case "white":
+        return "white";
+      case "loading":
+      case "yellow":
+        return "yellow";
+      case "black":
+        return "black";
+      default:
+        return "white";
     }
   };
 
-  const logoUrl = getLogoUrl();
+  const logoVariant = getLogoVariant();
+  const logoUrl = LOGO_URLS[logoVariant];
 
   return (
-    <div className={`flex items-center gap-3 px-1 ${className}`}>
-      <div className={cn(
-        "bg-white flex items-center justify-center shrink-0 shadow-[0_0_20px_-4px] shadow-primary/20 overflow-hidden border border-border",
-        variant === 'login' ? "h-16 w-48 rounded-xl p-3" : 
-        variant === 'sidebar' ? "size-12 rounded-lg p-2" : "size-10 rounded-md p-1.5"
-      )}>
-        {logoUrl ? (
-          <img src={logoUrl} alt="Logo" className="size-full object-contain" />
-        ) : (
-          <div className="size-3.5 border-2 border-primary rotate-45" />
+    <div className={cn("flex items-center justify-center transition-all duration-300", className)}>
+      <div
+        className={cn(
+          "flex items-center justify-center shrink-0",
+          variant === "login" ? "h-20 w-auto" : 
+          variant === "sidebar" ? (collapsed ? "size-10" : "h-14 w-auto") : 
+          variant === "loading" ? "h-24 w-auto" : 
+          "h-10 w-auto"
         )}
+      >
+        <img
+          src={logoUrl}
+          alt="Kasa Hub"
+          className="h-full w-auto object-contain"
+          onError={(e) => {
+            // Fallback elegante enquanto as imagens não existem
+            e.currentTarget.style.display = "none";
+            const parent = e.currentTarget.parentElement;
+            if (parent) {
+              const fallback = document.createElement("div");
+              fallback.className = cn(
+                "size-8 border-2 rotate-45",
+                logoVariant === "white" ? "border-white" : 
+                logoVariant === "yellow" ? "border-primary" : "border-black"
+              );
+              parent.appendChild(fallback);
+            }
+          }}
+        />
       </div>
-      {!collapsed && !iconOnly && variant !== 'login' && variant !== 'sidebar' && (
-        <span className="font-display text-lg font-bold tracking-tight whitespace-nowrap">
-          {settings?.name ? (
-            <>
-              {settings.name.split(" ").slice(0, -1).join(" ")} <span className="text-primary">{settings.name.split(" ").slice(-1)}</span>
-            </>
-          ) : (
-            <>KASA <span className="text-primary">HUB</span></>
-          )}
+      {!collapsed && !iconOnly && !["login", "sidebar", "loading"].includes(variant) && (
+        <span className={cn(
+          "font-display text-lg font-bold tracking-tight whitespace-nowrap ml-3",
+          logoVariant === "white" ? "text-white" : "text-foreground"
+        )}>
+          KASA <span className="text-primary">HUB</span>
         </span>
       )}
     </div>
