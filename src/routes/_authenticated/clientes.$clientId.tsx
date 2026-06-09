@@ -48,7 +48,7 @@ function ClientDetail() {
 
 export function ClientDetailContent({ clientId, embedded = false }: { clientId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
-  const sb = supabase as unknown as { from: (t: string) => ReturnType<typeof supabase.from> };
+  const sb = supabase as any;
 
   const { data: client } = useQuery({ queryKey: ["client", clientId], queryFn: () => fetchClient(clientId) });
   const { data: projects = [] } = useQuery({
