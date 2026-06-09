@@ -972,28 +972,32 @@ export function JobSheet({
                             )}
                           </div>
                         <div className="flex items-center gap-2">
-                          {!item.is_system && item.type === 'comment' && item.user_id === job.main_responsible_id && ( // Simplificação para demo, o ideal é checar se é o autor
+                          {!item.is_system && !isEditing && (
                             <div className="hidden group-hover/comment:flex items-center gap-1">
-                              <button 
-                                onClick={() => {
-                                  setEditingCommentId(item.commentId!);
-                                  setEditValue(item.content);
-                                }}
-                                className="text-foreground/40 hover:text-primary transition-colors"
-                              >
-                                <Pencil className="size-3" />
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  if (confirm("Deseja excluir este comentário?")) {
-                                    deleteCommentMut.mutate(item.commentId!);
-                                  }
-                                }}
-                                className="text-foreground/40 hover:text-red-500 transition-colors"
-                                title="Excluir comentário"
-                              >
-                                <Trash className="size-3" />
-                              </button>
+                              {item.user_id === currentUser?.id && (
+                                <button 
+                                  onClick={() => {
+                                    setEditingCommentId(item.commentId!);
+                                    setEditValue(item.content);
+                                  }}
+                                  className="text-foreground/40 hover:text-primary transition-colors"
+                                >
+                                  <Pencil className="size-3" />
+                                </button>
+                              )}
+                              {(item.user_id === currentUser?.id || isAdmin) && (
+                                <button 
+                                  onClick={() => {
+                                    if (confirm("Deseja excluir este comentário?")) {
+                                      deleteCommentMut.mutate(item.commentId!);
+                                    }
+                                  }}
+                                  className="text-foreground/40 hover:text-red-500 transition-colors"
+                                  title="Excluir comentário"
+                                >
+                                  <Trash className="size-3" />
+                                </button>
+                              )}
                               {hasVersions && (
                                 <button 
                                   onClick={() => setShowVersionsId(isShowingVersions ? null : item.commentId!)}
