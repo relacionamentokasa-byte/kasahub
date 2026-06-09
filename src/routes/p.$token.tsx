@@ -330,15 +330,9 @@ function PublicProposalView() {
         <div className="h-1 bg-[#ffbc45] w-full" />
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
            <div className="flex items-center gap-3">
-              <div className="size-10 bg-[#0c1618] flex items-center justify-center rounded-lg overflow-hidden p-1.5 shrink-0">
-                 {agency?.logo_proposals_url || agency?.logo_url ? (
-                   <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
-                 ) : (
-                   <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
-                 )}
-              </div>
               <div className="flex flex-col items-start">
                  <span className="text-[11px] font-bold font-sans text-slate-800 uppercase tracking-tight leading-none mb-0.5">Kasa Marketing & Consultoria</span>
+
                  <div className="flex flex-wrap items-center gap-x-1.5 text-[9px] text-slate-400 font-sans leading-none">
                     <span>CNPJ: 51.920.226/0001-41</span>
                     <span className="text-slate-300">·</span>
@@ -368,15 +362,9 @@ function PublicProposalView() {
            
            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 relative z-10">
               <div className="flex flex-col items-start gap-2">
-                 <div className="size-10 sm:size-12 bg-[#0c1618] flex items-center justify-center rounded-xl overflow-hidden p-2 shrink-0">
-                    {agency?.logo_proposals_url || agency?.logo_url ? (
-                      <img src={(agency.logo_proposals_url || agency.logo_url) as string} className="w-full h-full object-contain" alt="Logo" />
-                    ) : (
-                      <span className="text-[#ffbc45] font-bold text-[10px]">ka/sə</span>
-                    )}
-                 </div>
                  <div className="flex flex-col items-start">
                     <span className="text-[11px] sm:text-[12px] font-bold font-sans text-slate-800 uppercase tracking-tight leading-none mb-1">Kasa Marketing & Consultoria</span>
+
                     <div className="flex flex-wrap items-center gap-x-2 text-[10px] sm:text-[11px] text-slate-400 font-sans leading-none">
                        <span>CNPJ: 51.920.226/0001-41</span>
                        <span className="text-slate-300">·</span>
