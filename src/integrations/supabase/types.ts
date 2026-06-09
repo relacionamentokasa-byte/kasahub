@@ -2098,6 +2098,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "projects_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles_with_email"
+            referencedColumns: ["id"]
+          },
         ]
       }
       proposal_events: {
@@ -2832,7 +2839,36 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      profiles_with_email: {
+        Row: {
+          agency_logo_url: string | null
+          avatar_url: string | null
+          created_at: string | null
+          custom_role_id: string | null
+          department: string | null
+          display_name: string | null
+          email: string | null
+          full_name: string | null
+          google_calendar_connected: boolean | null
+          google_calendar_id: string | null
+          google_refresh_token: string | null
+          id: string | null
+          job_title: string | null
+          last_access: string | null
+          phone: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
