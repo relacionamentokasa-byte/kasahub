@@ -9,7 +9,7 @@ import {
   ClientOnly,
 } from "@tanstack/react-router";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode, Suspense, lazy } from "react";
 import { fetchAgencySettings } from "@/lib/settings-api";
 import { Toaster } from "sonner";
 import { AlertTriangle } from "lucide-react";
@@ -20,6 +20,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useAudioNotifications } from "@/hooks/use-audio-notifications";
 import { registerPWA } from "@/lib/pwa-register";
+
+const CookieConsent = lazy(() => import("@/components/CookieConsent").then(m => ({ default: m.CookieConsent })));
 
 
 function NotFoundComponent() {
@@ -202,6 +204,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
 
         <Outlet />
+        <Suspense fallback={null}><CookieConsent /></Suspense>
         <ThemedToaster />
       </ThemeProvider>
     </QueryClientProvider>
