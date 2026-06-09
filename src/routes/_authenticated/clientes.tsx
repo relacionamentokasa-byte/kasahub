@@ -70,28 +70,28 @@ function ClientesPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4 flex items-end justify-between gap-4 flex-wrap">
+      <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <span className="text-primary text-[10px] capitalize">
+          <span className="text-primary text-[10px] uppercase font-bold tracking-wider">
             Operação · Clientes
           </span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            Painel do Cliente 360°
+            Painel 360°
           </h1>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="relative flex-1 sm:flex-none min-w-[120px]">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar cliente…"
+              placeholder="Buscar…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-10 w-56 bg-surface border-border"
+              className="pl-9 h-11 sm:h-10 w-full sm:w-48 bg-surface border-border"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="h-10 w-[130px] bg-surface border-border text-xs">
-              <SelectValue />
+            <SelectTrigger className="h-11 sm:h-10 flex-1 sm:w-[130px] bg-surface border-border text-xs">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos status</SelectItem>
@@ -100,22 +100,11 @@ function ClientesPage() {
               <SelectItem value="prospect">Prospect</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-            <SelectTrigger className="h-10 w-[150px] bg-surface border-border text-xs gap-1">
-              <ArrowUpDown className="size-3.5" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Nome (A-Z)</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="created_at">Mais recentes</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="inline-flex rounded-md border border-border bg-surface overflow-hidden h-10">
+          
+          <div className="hidden sm:flex rounded-md border border-border bg-surface overflow-hidden h-10">
             <button
               type="button"
               onClick={() => changeView("cards")}
-              aria-label="Visualização em cards"
               className={`px-3 grid place-items-center transition ${view === "cards" ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:text-foreground"}`}
             >
               <LayoutGrid className="size-4" />
@@ -123,7 +112,6 @@ function ClientesPage() {
             <button
               type="button"
               onClick={() => changeView("list")}
-              aria-label="Visualização em lista"
               className={`px-3 grid place-items-center transition ${view === "list" ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:text-foreground"}`}
             >
               <ListIcon className="size-4" />
@@ -131,9 +119,9 @@ function ClientesPage() {
           </div>
           <Button
             onClick={() => setOpen(true)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2"
+            className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
-            <Plus className="size-4" /> Novo cliente
+            <Plus className="size-4 shrink-0" /> Novo
           </Button>
         </div>
       </div>

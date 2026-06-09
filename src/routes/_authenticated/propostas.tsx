@@ -336,11 +336,11 @@ function ProposalsPage() {
   return (
 
     <div className="p-4 lg:p-10 max-w-7xl mx-auto w-full pb-20 md:pb-10">
-      <div className="flex items-end justify-between gap-4 flex-wrap mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <span className="text-primary text-[10px] capitalize">Comercial · Propostas</span>
+          <span className="text-primary text-[10px] uppercase font-bold tracking-wider">Comercial · Propostas</span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            {showTrash ? "Lixeira de propostas" : "Propostas comerciais"}
+            {showTrash ? "Lixeira" : "Propostas"}
           </h1>
           <p className="text-foreground/60 mt-2 max-w-xl text-sm">
             {showTrash 
@@ -349,21 +349,21 @@ function ProposalsPage() {
             }
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button 
             variant="outline" 
             onClick={() => setShowTrash(!showTrash)}
-            className="rounded-full font-semibold h-10 px-5 gap-2"
+            className="flex-1 sm:flex-none rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
             {showTrash ? <ArrowUpRight className="size-4 rotate-180" /> : <Trash2 className="size-4" />}
-            {showTrash ? "Voltar para propostas" : "Ver lixeira"}
+            {showTrash ? "Voltar" : "Lixeira"}
           </Button>
           {!showTrash && (
             <Dialog open={open} onOpenChange={setOpen}>
 
           <DialogTrigger asChild>
-            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-10 px-5 gap-2">
-              <Plus className="size-4" /> Nova proposta
+            <Button className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2">
+              <Plus className="size-4 shrink-0" /> Nova
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-surface border-border p-0 gap-0 w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] grid grid-rows-[auto_1fr_auto] overflow-hidden">
