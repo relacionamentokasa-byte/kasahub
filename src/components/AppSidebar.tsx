@@ -43,7 +43,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     label: "Geral",
     items: [
       { title: "Central de Notícias", url: "/noticias", icon: Newspaper, module: "dashboard" },
-      { title: "Painel", url: "/", icon: LayoutDashboard, module: "dashboard" },
+      { title: "Painel", url: "/dashboard", icon: LayoutDashboard, module: "dashboard" },
     ],
   },
   {
