@@ -696,8 +696,13 @@ function FinanceiroPage() {
                             {clientName(t.client_id)}
                           </div>
 
-                          <div className={`text-sm font-bold text-right ${t.kind === 'income' ? 'text-emerald-400' : 'text-rose-400'}`}>
-                            {brl(t.amount)}
+                          <div className={`text-sm font-bold text-right ${
+                            t.kind === 'income' ? 'text-emerald-400' : 
+                            t.kind === 'expense' ? 'text-rose-400' : 
+                            t.kind === 'transfer' ? 'text-blue-400' : 
+                            'text-purple-400'
+                          }`}>
+                            {t.kind === 'transfer' ? `↔ ${brl(t.amount)}` : brl(t.amount)}
                           </div>
 
                           <div className="flex flex-col items-center justify-center">
@@ -773,8 +778,13 @@ function FinanceiroPage() {
                                 </Badge>
                               )}
                             </div>
-                            <div className={`font-display font-bold ${t.kind === "income" ? "text-emerald-400" : "text-rose-400"}`}>
-                              {brl(Number(t.amount))}
+                            <div className={`font-display font-bold ${
+                              t.kind === "income" ? "text-emerald-400" : 
+                              t.kind === "expense" ? "text-rose-400" : 
+                              t.kind === "transfer" ? "text-blue-400" : 
+                              "text-purple-400"
+                            }`}>
+                              {t.kind === 'transfer' ? `↔ ${brl(Number(t.amount))}` : brl(Number(t.amount))}
                             </div>
                           </div>
 

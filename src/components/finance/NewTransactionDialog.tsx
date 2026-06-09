@@ -61,6 +61,7 @@ export function NewTransactionDialog({
     project_id: "",
     notes: "",
     paid: false,
+    installments: 1,
     to_account_id: "",
   });
 
