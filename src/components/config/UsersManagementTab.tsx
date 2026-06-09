@@ -1,3 +1,4 @@
+import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
@@ -172,7 +173,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
       if (emails) {
         return users.map(u => ({
           ...u,
-          email: emails.find(e => e.id === u.id)?.email
+          email: (emails as any[]).find(e => e.id === u.id)?.email
         }));
       }
       return users;
