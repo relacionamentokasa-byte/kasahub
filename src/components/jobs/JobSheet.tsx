@@ -403,17 +403,7 @@ export function JobSheet({
     mutationFn: async ({ content, type, metadata, isSystem }: { content: string; type?: string; metadata?: any; isSystem?: boolean }) => {
       const result = await addJobComment(job!.id, content, type, metadata, isSystem);
       
-      // Handle mentions manually for instant notification if not a system comment
-      if (!isSystem && content.includes('@')) {
-        const jobTitle = job!.title;
-        const jobLink = `/jobs?jobId=${job!.id}`;
-        await handleMentions(content, {
-          title: jobTitle,
-          link: jobLink,
-          originType: 'job',
-          originId: job!.id
-        });
-      }
+      // Notificações e menções são processadas centralizadamente no ops-api.ts
       
       return result;
     },
