@@ -118,7 +118,7 @@ export function ProposalEditorContent({
     queryFn: () => fetchPartners("representative"),
   });
 
-  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [form, setForm] = useState({
     title: "",
     client_id: "",
@@ -165,7 +165,7 @@ export function ProposalEditorContent({
 
 
   useEffect(() => {
-    if (proposal && !isEditing) {
+    if (proposal && !hasLoaded) {
       const p = proposal as any;
       setForm({
         title: proposal.title,
@@ -203,8 +203,9 @@ export function ProposalEditorContent({
         signature_agency: p.signature_agency ?? "",
         notes: p.notes ?? "",
       });
+      setHasLoaded(true);
     }
-  }, [proposal]);
+  }, [proposal, hasLoaded]);
 
   const totals = useMemo(() => recalcProposalTotals(items), [items]);
 
@@ -255,9 +256,15 @@ export function ProposalEditorContent({
         notes: f.notes || null,
       } as any);
     },
-    onSuccess: (_d, vars) => {
+    onSuccess: (updatedProposal, vars) => {
+      // Update local form status if changed in mutation variables
       if (vars?.status) setForm((p) => ({ ...p, status: vars.status! }));
-      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+      
+      // Update cache directly with returned data to avoid "reversion" during refetch
+      if (updatedProposal) {
+        qc.setQueryData(["proposal", proposalId], updatedProposal);
+      }
+      
       qc.invalidateQueries({ queryKey: ["proposals"] });
       recordProposalEvent(proposalId, vars?.status === "sent" ? "sent" : "edited").catch(() => {});
       toast.success("Proposta salva");
