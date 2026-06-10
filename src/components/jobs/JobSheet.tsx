@@ -379,22 +379,6 @@ export function JobSheet({
 
   const isAdmin = currentUser?.user_metadata?.role === 'admin' || currentUser?.email === 'admin@ops.com'; // Placeholder check
 
-  const communicationTimeline = useMemo(() => {
-    if (!job) return [];
-    return [
-      ...attachments.map(a => ({ 
-        id: `attach-${a.id}`, 
-        type: 'attachment', 
-        content: `Arquivo enviado: ${a.file_name}`, 
-        user_id: a.user_id, 
-        created_at: a.created_at || new Date().toISOString(), 
-        is_system: false,
-        metadata: { file_name: a.file_name, file_url: a.file_url },
-        file_url: a.file_url || undefined
-      }))
-    ].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
-
-  }, [attachments, job]);
 
   if (!job) return null;
 
@@ -978,8 +962,8 @@ export function JobSheet({
         </div>
         <AttachmentViewer
           url={viewerConfig?.url || ""}
-          name={viewerConfig?.name || ""}
-          open={!!viewerConfig}
+          fileName={viewerConfig?.name || ""}
+          isOpen={!!viewerConfig}
           onClose={() => setViewerConfig(null)}
         />
       </SheetContent>
