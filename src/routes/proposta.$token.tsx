@@ -471,7 +471,7 @@ function PublicProposalView() {
             Escopo & Serviços
             <div className="w-12 h-0.5 bg-[#ffbc45] mt-2"></div>
            </h2>
-           <div className="bg-[#f9f7f3] p-6 rounded-2xl">
+           <div className="bg-[#f9f7f3] p-6 rounded-2xl whitespace-pre-line">
               <ScopeRenderer text={proposal.scope_text} fallback={proposal.scope} className="text-slate-700" />
            </div>
         </div>

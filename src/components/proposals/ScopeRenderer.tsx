@@ -22,7 +22,7 @@ export function ScopeRenderer({
 
   return (
     <div
-      className={`prose prose-sm max-w-none 
+      className={`prose prose-sm max-w-none whitespace-pre-line
         prose-headings:mt-6 prose-headings:mb-4 
         prose-p:mb-[12px] prose-p:mt-0
         prose-strong:block prose-strong:mt-[16px] prose-strong:mb-[4px] first:prose-strong:mt-0
