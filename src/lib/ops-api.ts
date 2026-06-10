@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { approveExtraDemand as approveExtraDemandShared } from "./dme-approval";
-import { handleMentions } from "./notifications-api";
+import { handleMentions, notify } from "./notifications-api";
 
 export type Client = Database["public"]["Tables"]["clients"]["Row"];
 export type Project = Database["public"]["Tables"]["projects"]["Row"];
@@ -370,15 +370,18 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   
   const { data: userData } = await supabase.auth.getUser();
   if (data.assignee_id && data.assignee_id !== userData.user?.id) {
-    await supabase.rpc('notify_user', {
-      p_user_id: data.assignee_id,
-      p_title: "Novo Job Atribuído",
-      p_description: `Você foi designado para: ${data.title}`,
-      p_category: 'job',
-      p_origin_type: 'jobs',
-      p_origin_id: data.id,
-      p_link: '/jobs'
-    } as any);
+    const { data: profiles } = await supabase.from('profiles').select('display_name, full_name').eq('id', userData.user?.id || '').maybeSingle();
+    const authorName = profiles?.display_name || profiles?.full_name || 'Alguém';
+
+    await notify({
+      userId: data.assignee_id,
+      title: "Novo Job Atribuído",
+      description: `${authorName} designou você como responsável do job ${data.title}`,
+      category: 'job',
+      originType: 'jobs',
+      originId: data.id,
+      link: `/jobs?jobId=${data.id}`
+    });
   }
   
   // Checklist padrão é inicializado via trigger no banco de dados (tr_initialize_job_checklist)
@@ -411,20 +414,20 @@ export async function updateJob(
   const { data: userData } = await supabase.auth.getUser();
   const currentUserId = userData.user?.id;
 
+  const { data: profiles } = await supabase.from('profiles').select('display_name, full_name').eq('id', currentUserId || '').maybeSingle();
+  const authorName = profiles?.display_name || profiles?.full_name || 'Alguém';
+
   // Notificação de atribuição
   if (patch.assignee_id && patch.assignee_id !== originalJob?.assignee_id && patch.assignee_id !== currentUserId) {
-    const { data: profiles } = await supabase.from('profiles').select('display_name, full_name').eq('id', currentUserId || '').maybeSingle();
-    const authorName = profiles?.display_name || profiles?.full_name || 'Alguém';
-
-    await supabase.rpc('notify_user', {
-      p_user_id: patch.assignee_id,
-      p_title: "Novo Job Atribuído",
-      p_description: `${authorName} atribuiu você ao job: ${data.title}`,
-      p_category: 'job',
-      p_origin_type: 'jobs',
-      p_origin_id: data.id,
-      p_link: `/jobs?jobId=${data.id}`
-    } as any);
+    await notify({
+      userId: patch.assignee_id,
+      title: "Novo Job Atribuído",
+      description: `${authorName} designou você como responsável do job ${data.title}`,
+      category: 'job',
+      originType: 'jobs',
+      originId: data.id,
+      link: `/jobs?jobId=${data.id}`
+    });
   }
 
   // Notificação de mudança de status para a equipe
@@ -434,15 +437,15 @@ export async function updateJob(
     
     for (const userId of teamInvolved) {
       if (userId === currentUserId) continue;
-      await supabase.rpc('notify_user', {
-        p_user_id: userId,
-        p_title: `Status alterado: ${data.title}`,
-        p_description: `O job agora está em: ${statusLabel}`,
-        p_category: 'job',
-        p_origin_type: 'jobs',
-        p_origin_id: data.id,
-        p_link: `/jobs?jobId=${data.id}`
-      } as any);
+      await notify({
+        userId: userId,
+        title: `Status alterado: ${data.title}`,
+        description: `O job ${data.title} foi atualizado para ${statusLabel}`,
+        category: 'job',
+        originType: 'jobs',
+        originId: data.id,
+        link: `/jobs?jobId=${data.id}`
+      });
     }
   }
 
@@ -722,14 +725,41 @@ export async function addJobComment(
     throw error;
   }
 
-  if (mentions.length > 0) {
-    const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
-    await handleMentions(content, {
-      title: job?.title || 'Job',
-      link: `/jobs?jobId=${jobId}`,
-      originType: 'jobs',
-      originId: jobId
-    });
+  if (!isSystem) {
+    const { data: job } = await supabase.from('jobs').select('title, team_involved').eq('id', jobId).single();
+    const teamInvolved = (job as any)?.team_involved || [];
+    const jobTitle = job?.title || 'Job';
+
+    // 1. Handle Mentions
+    if (mentions.length > 0) {
+      await handleMentions(content, {
+        title: jobTitle,
+        link: `/jobs?jobId=${jobId}`,
+        originType: 'jobs',
+        originId: jobId
+      });
+    }
+
+    // 2. Notify Team Members (excluding author and mentions already handled)
+    const { data: currentProfile } = await supabase.from('profiles').select('display_name, full_name').eq('id', u.user?.id || '').maybeSingle();
+    const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
+
+    for (const userId of teamInvolved) {
+      if (userId === u.user?.id) continue;
+      // We don't want to double notify if they were mentioned, but handleMentions already checks profile match.
+      // To be safe and meet the requirement "notificar todos os membros da equipe", we send a generic comment notification.
+      // If they were mentioned, they might get two, but usually system "mention" has higher priority.
+      
+      await notify({
+        userId,
+        title: `Novo comentário: ${jobTitle}`,
+        description: `${authorName} comentou no job ${jobTitle}`,
+        category: 'comment',
+        originType: 'jobs',
+        originId: jobId,
+        link: `/jobs?jobId=${jobId}`
+      });
+    }
   }
 
   return data;

@@ -1,59 +1,72 @@
+
 import { supabase } from "@/integrations/supabase/client";
+import { notify } from "./notifications-api";
+import { brl } from "./finance-api";
 
+/**
+ * Checks for overdue and upcoming transactions and notifies administrators.
+ * This should be called from a background process or a scheduled task.
+ * For this implementation, we provide it as a function that can be triggered.
+ */
 export async function checkDailyNotifications() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-
-  const today = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
   
-  // 1. Jobs vencendo hoje
-  const { data: jobs } = await supabase
-    .from('jobs')
-    .select('id, title, assignee_id')
-    .eq('due_date', today)
-    .is('done_at', null);
+  const in3Days = new Date();
+  in3Days.setDate(now.getDate() + 3);
+  const in3DaysStr = in3Days.toISOString().slice(0, 10);
 
-  if (jobs) {
-    for (const job of jobs) {
-      if (job.assignee_id) {
-        await supabase.rpc('notify_user', {
-          p_user_id: job.assignee_id,
-          p_title: "Job vence hoje",
-          p_description: `Entrega pendente: ${job.title}`,
-          p_category: 'job',
-          p_origin_type: 'jobs',
-          p_origin_id: job.id,
-          p_link: '/jobs'
-        } as any);
-      }
-    }
-  }
-
-  // 2. Cobranças vencendo hoje
-  const { data: txs } = await supabase
+  // 1. Get upcoming in 3 days
+  const { data: upcoming } = await supabase
     .from('transactions')
-    .select('id, description, amount')
-    .eq('due_date', today)
-    .eq('kind', 'income')
-    .eq('status', 'pending');
+    .select('*')
+    .eq('status', 'pending')
+    .eq('due_date', in3DaysStr);
 
-  if (txs) {
-    // Notificar administradores? 
-    // Para simplificar, vamos assumir que o owner_id da transação deve ser notificado
-    const { data: admins } = await supabase.from('user_roles').select('user_id').in('role', ['admin', 'ceo', 'gestor']);
-    
-    if (admins) {
-      for (const tx of txs) {
-        for (const admin of admins) {
-          await supabase.rpc('notify_user', {
-            p_user_id: admin.user_id,
-            p_title: "Cobrança vence hoje",
-            p_description: `Valor: R$ ${tx.amount} - ${tx.description}`,
-            p_category: 'finance',
-            p_origin_type: 'transactions',
-            p_origin_id: tx.id,
-            p_link: '/financeiro'
-          } as any);
+  // 2. Get overdue (exactly 1 day overdue to avoid spamming every day, or implement a last_notified logic)
+  // For simplicity here, we'll notify for those due yesterday.
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  
+  const { data: overdue } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('status', 'pending')
+    .eq('due_date', yesterdayStr);
+
+  if ((upcoming && upcoming.length > 0) || (overdue && overdue.length > 0)) {
+    const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
+    const adminIds = adminRoles?.map(r => r.user_id).filter(Boolean) || [];
+
+    if (adminIds.length > 0) {
+      // Upcoming
+      for (const tx of (upcoming || [])) {
+        for (const adminId of adminIds) {
+          await notify({
+            userId: adminId!,
+            title: "Lançamento Vencendo",
+            description: `Lançamento ${tx.description} vence em 3 dias`,
+            category: 'finance',
+            originType: 'transactions',
+            originId: tx.id,
+            link: '/financeiro'
+          });
+        }
+      }
+
+      // Overdue
+      for (const tx of (overdue || [])) {
+        for (const adminId of adminIds) {
+          await notify({
+            userId: adminId!,
+            title: "Lançamento Vencido",
+            description: `Lançamento ${tx.description} está vencido`,
+            category: 'finance',
+            originType: 'transactions',
+            originId: tx.id,
+            link: '/financeiro'
+          });
         }
       }
     }

@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { notify } from "./notifications-api";
 import type { Database } from "@/integrations/supabase/types";
 
 export type BankAccount = Database["public"]["Tables"]["bank_accounts"]["Row"];
@@ -382,10 +383,30 @@ export async function bulkUpdateTransactions(ids: string[], patch: Database["pub
 
 export async function markPaid(id: string, paid: boolean) {
 
-  return updateTransaction(id, {
+  const result = await updateTransaction(id, {
     status: paid ? "paid" : "pending",
     paid_at: paid ? new Date().toISOString().slice(0, 10) : null,
   });
+
+  if (paid) {
+    // Notify administrators
+    const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
+    if (adminRoles) {
+      for (const roleObj of adminRoles) {
+        await notify({
+          userId: roleObj.user_id!,
+          title: "Pagamento Confirmado",
+          description: `Lançamento ${result.description} de ${brl(Number(result.amount))} foi marcado como pago`,
+          category: 'finance',
+          originType: 'transactions',
+          originId: result.id,
+          link: '/financeiro'
+        });
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function settleTransaction(
