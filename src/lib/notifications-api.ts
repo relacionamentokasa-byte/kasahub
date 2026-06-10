@@ -78,6 +78,7 @@ export async function notify(input: {
     author_avatar: profile?.avatar_url
   };
 
+  console.log("Enviando notificação para:", input.userId, "Categoria:", input.category);
   const { error } = await supabase.rpc("notify_user", {
     p_user_id: input.userId,
     p_title: input.title,
@@ -88,8 +89,11 @@ export async function notify(input: {
     p_origin_type: input.originType || null,
     p_origin_id: input.originId || null,
     p_metadata: metadata
-  } as any);
-  if (error) throw error;
+  });
+  if (error) {
+    console.error("Erro ao chamar rpc.notify_user:", error);
+    throw error;
+  }
 }
 
 export async function handleMentions(text: string, context: { 
@@ -104,12 +108,20 @@ export async function handleMentions(text: string, context: {
 
   const names = matches.map(m => m.substring(1));
   
-  const { data: profiles } = await supabase
+  const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id, display_name, full_name")
     .or(`display_name.in.(${names.join(",")}),full_name.in.(${names.join(",")})`);
 
-  if (!profiles || profiles.length === 0) return;
+  if (profileError) {
+    console.error("Erro ao buscar perfis para menções:", profileError);
+    return;
+  }
+
+  if (!profiles || profiles.length === 0) {
+    console.log("Nenhum perfil correspondente encontrado para menções:", names);
+    return;
+  }
 
   const { data: userData } = await supabase.auth.getUser();
   const currentUserId = userData.user?.id || '';
