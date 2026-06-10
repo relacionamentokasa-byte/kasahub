@@ -31,6 +31,7 @@ import {
   addJobComment,
   deleteChecklistItem,
   deleteJob,
+  duplicateJob,
   fetchChecklist,
   fetchJobComments,
   toggleChecklistItem,
