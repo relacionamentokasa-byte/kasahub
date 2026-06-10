@@ -470,27 +470,6 @@ export function JobsBoard({
     </div>
   );
 
-  function onDragStart(e: DragStartEvent) {
-    setActiveId(String(e.active.id));
-  }
-  function onDragEnd(e: DragEndEvent) {
-    setActiveId(null);
-    const overId = e.over?.id ? String(e.over.id) : null;
-    if (!overId) return;
-    const stage = stages.find((s) => s.id === overId);
-    const job = jobs.find((j) => j.id === e.active.id);
-    if (!stage || !job || job.stage_id === overId) return;
-    moveMut.mutate({ id: String(e.active.id), stage });
-  }
-
-  const activeJob = activeId ? jobs.find((j) => j.id === activeId) : null;
-
-  const byStage = useMemo(() => {
-    const m = new Map<string, Job[]>();
-    for (const s of stages) m.set(s.id, []);
-    for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
-    return m;
-  }, [stages, filtered]);
 }
 
 
