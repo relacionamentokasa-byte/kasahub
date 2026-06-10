@@ -213,78 +213,56 @@ export function ProposalEditorContent({
 
   const saveMut = useMutation({
     mutationFn: async (overrides?: Partial<typeof form>) => {
-      const f = { ...form, ...(overrides ?? {}) };
-      console.log("[ProposalEditor] Saving proposal. Scope text in form state:", f.scope_text);
+      // Collect current values from form state
+      const currentForm = { ...form, ...(overrides ?? {}) };
       
-      // Bloqueio definitivo no front-end para evitar bypass
-      if ((f.status === "accepted" || f.status === "converted" || f.status === "signed") && !f.signature_client) {
+      console.log("[ProposalEditor] Executing new save function. Current state:", currentForm);
+      
+      // Validation for approval status
+      if ((currentForm.status === "accepted" || currentForm.status === "converted" || currentForm.status === "signed") && !currentForm.signature_client) {
         throw new Error("Não é possível aprovar esta proposta manualmente sem a assinatura do cliente.");
       }
 
-      const payload: any = {
-        title: f.title,
-        client_name: f.client_name,
-        status: f.status,
-        monthly_investment: f.monthly_investment,
-        one_time_investment: f.one_time_investment,
-        total: f.monthly_investment + f.one_time_investment,
-        contract_type: f.contract_type,
-        payment_kind: f.payment_kind,
-        installments: f.installments,
-        billing_day: f.billing_day,
-        auto_create_jobs: f.auto_create_jobs,
-        recurring_months: f.recurring_months,
-        scope: f.scope,
-        scope_text: f.scope_text,
-        payment_method: f.payment_method,
-      };
+      // Build payload ensuring no null/undefined values for key fields
+      // We only include fields that are present in the form state
+      const payload: any = {};
+      
+      const fields = [
+        'title', 'client_id', 'lead_id', 'target_kind', 'client_name', 'client_email',
+        'intro', 'valid_until', 'status', 'responsible_id', 'commercial_id',
+        'contract_type', 'service_type', 'service_ids', 'briefing', 'payment_kind',
+        'installments', 'first_due_date', 'billing_day', 'account_id', 'category_id',
+        'auto_create_jobs', 'recurring_months', 'scope', 'scope_text', 'payment_method',
+        'monthly_investment', 'one_time_investment', 'contract_template_id',
+        'contract_content', 'signature_client', 'signature_agency', 'notes'
+      ];
 
-      if (f.client_id) payload.client_id = f.client_id;
-      if (f.lead_id) payload.lead_id = f.lead_id;
-      if (f.target_kind) payload.target_kind = f.target_kind;
-      if (f.client_email) payload.client_email = f.client_email;
-      if (f.intro) payload.intro = f.intro;
-      if (f.valid_until) payload.valid_until = f.valid_until;
-      if (f.responsible_id) payload.responsible_id = f.responsible_id;
-      if (f.commercial_id) payload.commercial_id = f.commercial_id;
-      if (f.service_type) payload.service_type = f.service_type;
-      if (f.service_ids) payload.service_ids = f.service_ids;
-      if (f.briefing) payload.briefing = f.briefing;
-      if (f.first_due_date) payload.first_due_date = f.first_due_date;
-      if (f.account_id) payload.account_id = f.account_id;
-      if (f.category_id) payload.category_id = f.category_id;
-      if (f.contract_template_id) payload.contract_template_id = f.contract_template_id;
-      if (f.contract_content) payload.contract_content = f.contract_content;
-      if (f.signature_client) payload.signature_client = f.signature_client;
-      if (f.signature_agency) payload.signature_agency = f.signature_agency;
-      if (f.notes) payload.notes = f.notes;
+      fields.forEach(field => {
+        const value = (currentForm as any)[field];
+        // Only include if not null and not undefined
+        if (value !== null && value !== undefined) {
+          payload[field] = value;
+        }
+      });
+
+      // Recalculate totals for consistency
+      payload.total = (Number(currentForm.monthly_investment) || 0) + (Number(currentForm.one_time_investment) || 0);
 
       return updateProposal(proposalId, payload);
     },
     onSuccess: (updatedProposal, vars) => {
-      // Update local form with all changes from the successful save
-      if (updatedProposal) {
-        const p = updatedProposal as any;
-        setForm((prev) => ({
-          ...prev,
-          ...p,
-          // Ensure nested/numeric fields are handled consistently with the initial load
-          monthly_investment: Number(p.monthly_investment || 0),
-          one_time_investment: Number(p.one_time_investment || 0),
-          recurring_months: Number(p.recurring_months || 12),
-          billing_day: Number(p.billing_day || 5),
-          installments: Number(p.installments || 1),
-        }));
-        
-        // Update cache directly with returned data to avoid "reversion" during refetch
-        qc.setQueryData(["proposal", proposalId], updatedProposal);
-      }
-      
+      // Important: We keep the data on screen by NOT resetting the form to initial state
+      // Instead, we just show the success toast
+      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
+      
       recordProposalEvent(proposalId, vars?.status === "sent" ? "sent" : "edited").catch(() => {});
-      toast.success("Proposta salva");
+      toast.success("Proposta salva com sucesso!");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      console.error("[ProposalEditor] Error saving:", e);
+      toast.error(e.message || "Erro ao salvar proposta");
+    },
   });
 
 
@@ -398,7 +376,7 @@ export function ProposalEditorContent({
           </button>
         ) : <span />}
         <div className="flex items-center gap-2 flex-wrap">
-          <Button onClick={() => saveMut.mutate(undefined)} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
+          <Button onClick={() => saveMut.mutate({})} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
           <Button variant="outline" onClick={copyShareLink} className="gap-2"><Copy className="size-4" /> Copiar link do cliente</Button>
           {proposal.status === "draft" && (
             <Button
