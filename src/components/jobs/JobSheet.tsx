@@ -264,6 +264,16 @@ export function JobSheet({
     },
   });
 
+  const dupMut = useMutation({
+    mutationFn: () => duplicateJob(job!.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job duplicado");
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const addItemMut = useMutation({
     mutationFn: (content: string) => addChecklistItem(job!.id, content),
     onMutate: async (content) => {
