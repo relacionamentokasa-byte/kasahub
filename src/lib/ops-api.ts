@@ -516,39 +516,45 @@ export async function addChecklistItem(jobId: string, content: string) {
 }
 
 export async function toggleChecklistItem(id: string, done: boolean) {
-  const { data: item, error: fetchError } = await supabase
-    .from("job_checklist")
-    .select("job_id")
-    .eq("id", id)
-    .single();
-    
-  if (fetchError) throw fetchError;
-
+  // Simple Supabase update as requested
   const { error: updateError } = await supabase
-    .from("job_checklist")
-    .update({ 
-      done,
-      updated_at: new Date().toISOString()
-    } as any)
-    .eq("id", id);
+    .from('job_checklist')
+    .update({ done })
+    .eq('id', id);
   
   if (updateError) {
-    console.error("Erro no Supabase ao atualizar job_checklist:", updateError);
+    console.error("ERRO COMPLETO DO SUPABASE AO ATUALIZAR CHECKLIST:", updateError);
     throw updateError;
   }
 
-  // Recalculate job progress
-  if (item?.job_id) {
-    const checklist = await fetchChecklist(item.job_id);
-    const total = checklist.length;
-    const completed = checklist.filter(it => it.done).length;
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  // Fetch job_id to recalculate progress
+  const { data: item } = await supabase
+    .from('job_checklist')
+    .select('job_id')
+    .eq('id', id)
+    .single();
 
-    await supabase.from("jobs").update({
-      completed_steps: completed,
-      total_steps: total,
-      progress_percentage: percentage
-    } as any).eq("id", item.job_id);
+  if (item?.job_id) {
+    // Recalcular porcentagem de progresso da tarefa
+    const { data: items } = await supabase
+      .from('job_checklist')
+      .select('done')
+      .eq('job_id', item.job_id);
+
+    if (items) {
+      const totalCount = items.length;
+      const completedCount = items.filter(it => it.done).length;
+      const progressPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+      await supabase
+        .from('jobs')
+        .update({
+          completed_steps: completedCount,
+          total_steps: totalCount,
+          progress_percentage: progressPercentage
+        } as any)
+        .eq('id', item.job_id);
+    }
   }
 }
 
