@@ -28,19 +28,15 @@ import {
 } from "@/components/ui/accordion";
 import {
   addChecklistItem,
-  addJobComment,
   deleteChecklistItem,
   deleteJob,
   duplicateJob,
   fetchChecklist,
-  fetchJobComments,
   toggleChecklistItem,
   updateJob,
   fetchJobHistory,
   fetchJobAttachments,
   addJobAttachment,
-  updateJobComment,
-  deleteJobComment,
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
@@ -82,22 +78,11 @@ export function JobSheet({
   const qc = useQueryClient();
   const open = !!job;
   const [draft, setDraft] = useState("");
-  const [comment, setComment] = useState("");
   const [title, setTitle] = useState(job?.title || "");
   const [observations, setObservations] = useState((job as any)?.operational_observations || "");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
-
-  // Realtime mentions
-  const [mentionSearch, setMentionSearch] = useState("");
-  const [mentionOpen, setMentionOpen] = useState(false);
-  const [mentionCoords, setMentionCoords] = useState({ top: 0, left: 0 });
-  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState("");
-  const [showVersionsId, setShowVersionsId] = useState<string | null>(null);
 
 
   const { data: checklist = [] } = useQuery({
@@ -106,11 +91,6 @@ export function JobSheet({
     enabled: !!job,
   });
 
-  const { data: comments = [] } = useQuery({
-    queryKey: ["job-comments", job?.id],
-    queryFn: () => fetchJobComments(job!.id),
-    enabled: !!job,
-  });
 
   const { data: history = [] } = useQuery({
     queryKey: ["job-history", job?.id],
@@ -140,7 +120,7 @@ export function JobSheet({
     
     channel
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_comentarios', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] }))
+      
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] }))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
       .subscribe();
@@ -158,15 +138,6 @@ export function JobSheet({
     }
   }, [job?.id]);
 
-  // Scroll to bottom when comments change
-  useEffect(() => {
-    if (scrollAreaRef.current) {
-      const scrollElement = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (scrollElement) {
-        scrollElement.scrollTop = scrollElement.scrollHeight;
-      }
-    }
-  }, [comments, attachments]);
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Job>) => {
@@ -267,7 +238,6 @@ export function JobSheet({
       // Atualmente parece que o addJobAttachment e addJobComment estão criando o mesmo "evento" visual.
 
       qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
-      qc.invalidateQueries({ queryKey: ["job-comments", job.id] });
       toast.success("Arquivo enviado com sucesso!");
     } catch (error: any) {
       toast.error("Erro no upload: " + error.message);
