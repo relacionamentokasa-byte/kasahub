@@ -563,7 +563,7 @@ function PublicProposalView() {
         )}
 
         {/* Aceite & Assinatura Digital */}
-        {(proposal.contract_template_id || !proposal.contract_template_id) && (
+        {true && (
           <div className="bg-white p-8 rounded-3xl shadow-sm mb-8">
             <h2 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#ffbc45] mb-8">
               Aceite & Assinatura Digital
