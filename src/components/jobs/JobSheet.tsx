@@ -323,7 +323,10 @@ export function JobSheet({
         } as any)
         .eq("id", job!.id);
 
-      if (jobError) throw jobError;
+      if (jobError) {
+        console.error("Erro detalhado do Supabase ao atualizar progresso do job:", jobError);
+        throw jobError;
+      }
       
       return { id, done, completed, total, progress };
     },
