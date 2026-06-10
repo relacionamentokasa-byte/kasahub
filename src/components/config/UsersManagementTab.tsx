@@ -230,41 +230,6 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
   const { isAdmin } = usePermissions();
   const [isSendingTest, setIsSendingTest] = useState(false);
 
-  const handleSendTestNotification = async () => {
-    setIsSendingTest(true);
-    try {
-      const { data: profiles, error } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('status', 'active');
-
-      if (error) throw error;
-      if (!profiles || profiles.length === 0) {
-        toast.error("Nenhum usuário ativo encontrado.");
-        return;
-      }
-
-      const message = "🎉 Sistema de notificações ativo! Bem-vindo ao Kasa Hub.";
-      
-      const promises = profiles.map(profile => 
-        criarNotificacao(
-          profile.id,
-          "Teste de Notificação",
-          message,
-          "general"
-        )
-      );
-
-
-      await Promise.all(promises);
-      toast.success(`Notificação de teste enviada para ${profiles.length} usuários!`);
-    } catch (error: any) {
-      console.error("Erro ao enviar notificações de teste:", error);
-      toast.error("Erro ao enviar notificações: " + error.message);
-    } finally {
-      setIsSendingTest(false);
-    }
-  };
   const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
 
   const togglePasswordVisibility = (userId: string) => {
@@ -364,17 +329,6 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
             <p className="text-xs text-foreground/50">Gerencie quem tem acesso e quais as permissões de cada um.</p>
           </div>
           <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Button 
-                variant="outline" 
-                className="gap-2 border-primary/20 hover:bg-primary/5 text-primary"
-                onClick={handleSendTestNotification}
-                disabled={isSendingTest}
-              >
-                <Send className={cn("size-4", isSendingTest && "animate-pulse")} />
-                {isSendingTest ? "Enviando..." : "Enviar Notificação de Teste"}
-              </Button>
-            )}
             {canEdit && (
               <InviteUserDialog 
                 roles={roles} 
