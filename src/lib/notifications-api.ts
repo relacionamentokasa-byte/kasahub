@@ -82,14 +82,14 @@ export async function notify(input: {
   const { error } = await supabase.rpc("notify_user", {
     p_user_id: input.userId,
     p_title: input.title,
-    p_description: input.description || null,
-    p_type: input.type || "info",
-    p_category: input.category || "general",
-    p_link: input.link || null,
-    p_origin_type: input.originType || null,
-    p_origin_id: input.originId || null,
+    p_description: input.description ?? null,
+    p_type: input.type ?? "info",
+    p_category: input.category ?? "general",
+    p_link: input.link ?? null,
+    p_origin_type: input.originType ?? null,
+    p_origin_id: input.originId ?? null,
     p_metadata: metadata
-  });
+  } as any);
   if (error) {
     console.error("Erro ao chamar rpc.notify_user:", error);
     throw error;
