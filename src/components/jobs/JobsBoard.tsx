@@ -328,6 +328,15 @@ function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any
       toast.error(e.message);
     },
   });
+  const dupMut = useMutation({
+    mutationFn: () => duplicateJob(job.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job duplicado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className={`relative group ${isDragging ? "opacity-30" : ""} ${isOptimistic ? "opacity-60" : ""}`}>
       <div
@@ -340,18 +349,33 @@ function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any
         <JobCardInner job={job} profiles={profiles} />
       </div>
       {!isOptimistic && (
-        <button
-          type="button"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
-          }}
-          className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-40 group-hover:opacity-100 hover:bg-destructive/10 transition"
-          aria-label="Excluir tarefa"
-        >
-          <Trash2 className="size-3.5" />
-        </button>
+        <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              dupMut.mutate();
+            }}
+            disabled={dupMut.isPending}
+            className="p-1.5 rounded-md text-primary hover:bg-primary/10 transition-colors"
+            title="Duplicar tarefa"
+          >
+            <Copy className="size-3.5" />
+          </button>
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
+            }}
+            className="p-1.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+            title="Excluir tarefa"
+          >
+            <Trash2 className="size-3.5" />
+          </button>
+        </div>
       )}
     </div>
   );
