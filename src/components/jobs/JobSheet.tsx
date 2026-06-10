@@ -50,7 +50,7 @@ import {
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash, Copy } from "lucide-react";
-import { handleMentions } from "@/lib/notifications-api";
+import { handleMentions, notify } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -414,8 +414,27 @@ export function JobSheet({
       
       return { prev };
     },
-    onSuccess: () => {
+    onSuccess: (data: any, variables) => {
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
+      
+      // Notify team members about new comment
+      if (!variables.isSystem) {
+        const teamInvolved = (job as any).team_involved || [];
+        teamInvolved.forEach((userId: string) => {
+          // Skip the author of the comment and mentions (already handled in mutationFn)
+          if (userId === currentUser?.id) return;
+          
+          notify({
+            userId,
+            title: `Novo comentário: ${job!.title}`,
+            description: variables.content.substring(0, 100) + (variables.content.length > 100 ? '...' : ''),
+            category: "comment",
+            link: `/jobs?jobId=${job!.id}`,
+            originType: "job",
+            originId: job!.id
+          }).catch(console.error);
+        });
+      }
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
