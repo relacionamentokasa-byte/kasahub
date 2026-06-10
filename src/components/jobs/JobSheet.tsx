@@ -463,7 +463,7 @@ export function JobSheet({
             description: variables.content.substring(0, 100) + (variables.content.length > 100 ? '...' : ''),
             category: "comment",
             link: `/jobs?jobId=${job!.id}`,
-            originType: "job",
+            originType: "jobs",
             originId: job!.id
           }).catch(console.error);
         });
