@@ -2950,19 +2950,34 @@ export type Database = {
         }
         Returns: number
       }
-      notify_user: {
-        Args: {
-          p_category?: string
-          p_description?: string
-          p_link?: string
-          p_origin_id?: string
-          p_origin_type?: string
-          p_title: string
-          p_type?: string
-          p_user_id: string
-        }
-        Returns: undefined
-      }
+      notify_user:
+        | {
+            Args: {
+              p_category?: string
+              p_description?: string
+              p_link?: string
+              p_origin_id?: string
+              p_origin_type?: string
+              p_title: string
+              p_type?: string
+              p_user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_category?: string
+              p_description?: string
+              p_link?: string
+              p_metadata?: Json
+              p_origin_id?: string
+              p_origin_type?: string
+              p_title: string
+              p_type?: string
+              p_user_id: string
+            }
+            Returns: undefined
+          }
       project_progress: { Args: { _project_id: string }; Returns: number }
       read_email_batch: {
         Args: { batch_size: number; queue_name: string; vt: number }

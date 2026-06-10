@@ -65,6 +65,14 @@ export async function notify(input: {
   originType?: string;
   originId?: string;
 }) {
+  const { data: u } = await supabase.auth.getUser();
+  const { data: profile } = await supabase.from('profiles').select('display_name, full_name, avatar_url').eq('id', u.user?.id || '').maybeSingle();
+  
+  const metadata = {
+    author_name: profile?.display_name || profile?.full_name || 'Alguém',
+    author_avatar: profile?.avatar_url
+  };
+
   const { error } = await supabase.rpc("notify_user", {
     p_user_id: input.userId,
     p_title: input.title,
@@ -73,7 +81,8 @@ export async function notify(input: {
     p_category: input.category || "general",
     p_link: input.link || null,
     p_origin_type: input.originType || null,
-    p_origin_id: input.originId || null
+    p_origin_id: input.originId || null,
+    p_metadata: metadata
   } as any);
   if (error) throw error;
 }

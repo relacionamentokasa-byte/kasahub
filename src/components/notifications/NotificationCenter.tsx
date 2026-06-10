@@ -227,8 +227,18 @@ function NotificationList({
               <span className="absolute left-1 top-1/2 -translate-y-1/2 size-1.5 bg-primary rounded-full" />
             )}
             <div className="flex gap-3">
-              <div className="size-8 rounded-full bg-surface border border-border flex items-center justify-center shrink-0">
-                <IconForCategory category={n.category} type={n.type} />
+              <div className="shrink-0">
+                {n.metadata?.author_avatar ? (
+                  <img 
+                    src={n.metadata.author_avatar} 
+                    alt={n.metadata.author_name || 'Autor'} 
+                    className="size-8 rounded-full border border-border object-cover"
+                  />
+                ) : (
+                  <div className="size-8 rounded-full bg-surface border border-border flex items-center justify-center">
+                    <IconForCategory category={n.category} type={n.type} />
+                  </div>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-0.5">
