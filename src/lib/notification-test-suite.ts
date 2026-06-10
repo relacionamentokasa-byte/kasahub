@@ -9,7 +9,7 @@ export async function runFullNotificationTest() {
     return;
   }
 
-  const results = [];
+  const results: { name: string, status: 'success' | 'failure', error?: string }[] = [];
   const addResult = (name: string, status: 'success' | 'failure', error?: string) => {
     results.push({ name, status, error });
     console.log(`[NotificationTest] ${name}: ${status}${error ? ' - ' + error : ''}`);
