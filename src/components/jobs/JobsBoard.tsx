@@ -147,9 +147,13 @@ export function JobsBoard({
     if (teamFilter.length > 0) {
       result = result.filter((j) => {
         const teamInvolved = (j as any).team_involved || [];
-        return teamFilter.some(userId => teamInvolved.includes(userId));
+        // Verifica se qualquer um dos membros filtrados está na equipe envolvida (armazenada como array de objetos ou strings)
+        return teamFilter.some(userId => 
+          teamInvolved.some((m: any) => (m.user_id || m) === userId)
+        );
       });
     }
+
 
     // Filtro por Cliente
     if (clientFilterId !== "all") {
