@@ -20,7 +20,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, AlertTriangle, Users, Copy } from "lucide-react";
+import { Plus, Search, Trash2, AlertTriangle, Users, Copy, X } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import {
   fetchJobStages,
@@ -31,6 +31,7 @@ import {
   deleteJobStage,
   priorityColor,
   priorityLabel,
+  fetchClients,
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
@@ -65,11 +66,16 @@ export function JobsBoard({
 }) {
   const qc = useQueryClient();
   const [period, setPeriod] = useState<string>("all");
+  const [responsibleId, setResponsibleId] = useState<string>("all");
+  const [clientFilterId, setClientFilterId] = useState<string>("all");
+
   const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
   const queryKey = useMemo(() => JOBS_QUERY_KEY(filters), [filters]);
+  
   const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients-filter"], queryFn: fetchClients });
 
   useEffect(() => {
     const channel = supabase
@@ -109,15 +115,45 @@ export function JobsBoard({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const filtered = useMemo(() => {
+    let result = jobs;
+    
+    // Filtro por texto
     const q = query.trim().toLowerCase();
-    if (!q) return jobs;
-    return jobs.filter((j) => 
-      j.title.toLowerCase().includes(q) || 
-      (j as any).clients?.name?.toLowerCase().includes(q) ||
-      (j as any).clients?.company?.toLowerCase().includes(q) ||
-      (j as any).projects?.name?.toLowerCase().includes(q)
-    );
-  }, [jobs, query]);
+    if (q) {
+      result = result.filter((j) => 
+        j.title.toLowerCase().includes(q) || 
+        (j as any).clients?.name?.toLowerCase().includes(q) ||
+        (j as any).clients?.company?.toLowerCase().includes(q) ||
+        (j as any).projects?.name?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filtro por Responsável
+    if (responsibleId !== "all") {
+      result = result.filter((j) => {
+        const mainRespId = (j as any).main_responsible_id || j.assignee_id;
+        const teamInvolved = (j as any).team_involved || [];
+        const isTeamMember = teamInvolved.some((m: any) => m.user_id === responsibleId);
+        return mainRespId === responsibleId || isTeamMember;
+      });
+    }
+
+    // Filtro por Cliente
+    if (clientFilterId !== "all") {
+      result = result.filter((j) => j.client_id === clientFilterId);
+    }
+
+    return result;
+  }, [jobs, query, responsibleId, clientFilterId]);
+
+  const clearFilters = () => {
+    setQuery("");
+    setResponsibleId("all");
+    setClientFilterId("all");
+    setPeriod("all");
+  };
+
+  const hasActiveFilters = query !== "" || responsibleId !== "all" || clientFilterId !== "all" || period !== "all";
 
   const byStage = useMemo(() => {
     const m = new Map<string, Job[]>();
@@ -172,10 +208,10 @@ export function JobsBoard({
             Jobs
           </h1>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
           {showPeriodFilter && (
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-full sm:w-40 h-11 sm:h-10 bg-surface border-border">
+              <SelectTrigger className="w-full sm:w-40 h-9 bg-surface border-border shrink-0">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
@@ -189,18 +225,61 @@ export function JobsBoard({
               </SelectContent>
             </Select>
           )}
+
+          <Select value={responsibleId} onValueChange={setResponsibleId}>
+            <SelectTrigger className="w-full sm:w-44 h-9 bg-surface border-border shrink-0">
+              <SelectValue placeholder="Responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Responsáveis</SelectItem>
+              {profiles.map(p => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.display_name || p.full_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={clientFilterId} onValueChange={setClientFilterId}>
+            <SelectTrigger className="w-full sm:w-44 h-9 bg-surface border-border shrink-0">
+              <SelectValue placeholder="Cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Clientes</SelectItem>
+              {clients.map(c => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.company || c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <div className="relative flex-1 sm:flex-none">
-            <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="size-3.5 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               placeholder="Buscar Job…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-11 sm:h-10 w-full sm:w-64 bg-surface border-border"
+              className="pl-9 h-9 w-full sm:w-48 bg-surface border-border"
             />
           </div>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-9 px-3 text-foreground/50 hover:text-foreground shrink-0"
+              title="Limpar filtros"
+            >
+              <X className="size-4" />
+              <span className="sm:hidden ml-2">Limpar</span>
+            </Button>
+          )}
+
           <Button
             onClick={() => setNewStage(stages[0] ?? null)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-9 px-5 gap-2 shrink-0"
           >
             <Plus className="size-4 shrink-0" /> Novo
           </Button>
