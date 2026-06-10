@@ -480,21 +480,39 @@ function PublicProposalView() {
                 Investimento
                 <div className="w-12 h-0.5 bg-[#ffbc45] mt-2"></div>
             </h2>
-            <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8 mb-8 sm:mb-12">
-                <div className="flex-1 w-full text-center md:text-left">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Investimento Mensal</p>
-                    <p className="text-4xl sm:text-5xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.monthly_investment)}</p>
-                </div>
-                <div className="hidden md:block w-px h-16 bg-white/20"></div>
-                <div className="flex-1 w-full text-center md:text-right">
+            
+            {proposal.contract_type === 'avulso' ? (
+              <div className="flex flex-col items-center md:items-start mb-8 sm:mb-12">
+                <div className="w-full text-center md:text-left mb-2">
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Valor Total</p>
-                    <p className="text-2xl sm:text-3xl font-bold text-white font-display">{formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}</p>
+                    <p className="text-5xl sm:text-6xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.total || proposal.one_time_investment)}</p>
                 </div>
-            </div>
+                {proposal.installments && proposal.installments > 1 && (
+                  <div className="w-full text-center md:text-left">
+                    <p className="text-lg sm:text-xl font-medium text-slate-400 font-sans">
+                      {proposal.installments}x de {formatCurrency((proposal.total || proposal.one_time_investment) / proposal.installments)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8 mb-8 sm:mb-12">
+                  <div className="flex-1 w-full text-center md:text-left">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Investimento Mensal</p>
+                      <p className="text-4xl sm:text-5xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.monthly_investment)}</p>
+                  </div>
+                  <div className="hidden md:block w-px h-16 bg-white/20"></div>
+                  <div className="flex-1 w-full text-center md:text-right">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Valor Total</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white font-display">{formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}</p>
+                  </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Tipo</p>
-                    <p className="text-sm font-bold font-sans">{proposal.contract_type === 'recurring' ? 'Recorrente' : 'Avulso'}</p>
+                    <p className="text-sm font-bold font-sans capitalize">{proposal.contract_type === 'recurring' ? 'Recorrente' : proposal.contract_type}</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Validade</p>
@@ -514,7 +532,7 @@ function PublicProposalView() {
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Dia de Cobrança</p>
-                    <p className="text-sm font-bold font-sans">{String(proposal.billing_day || proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—")}</p>
+                    <p className="text-sm font-bold font-sans">{String(proposal.billing_day || (proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—"))}</p>
                 </div>
             </div>
         </div>
