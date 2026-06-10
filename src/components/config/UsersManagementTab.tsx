@@ -175,20 +175,24 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
     queryKey: ["users"], 
     queryFn: async () => {
       const users = await fetchUsers();
+      // O campo plain_password já vem na query fetchUsers() agora que adicionamos na tabela profiles
+      // Mas para garantir o email que vem da view auth.users via profiles_with_email (se existir)
       const { data: emails } = await supabase.from('profiles_with_email').select('id, email, plain_password');
+      
       if (emails) {
         return users.map(u => {
           const extra = (emails as any[]).find(e => e.id === u.id);
           return {
             ...u,
-            email: extra?.email,
-            plain_password: extra?.plain_password
+            email: extra?.email || u.email,
+            // Priorizamos o plain_password que vier do profiles_with_email se o profiles falhar,
+            // mas u.plain_password já deve conter o valor correto.
+            plain_password: extra?.plain_password || u.plain_password
           };
         });
       }
       return users;
     } 
-
   });
   const { data: invitesData, isLoading: invitesLoading } = useQuery({ queryKey: ["invites"], queryFn: fetchInvites });
   const { data: agencyData } = useQuery({ queryKey: ["agency-settings"], queryFn: fetchAgencySettings });
@@ -293,18 +297,21 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       <div>
                         <p className="font-medium">{u.display_name || u.full_name || "Sem nome"}</p>
                         <p className="text-[10px] text-foreground/40">{u.email}</p>
-                        {u.plain_password && (
+                        {u.plain_password ? (
                           <div className="flex items-center gap-2 mt-1">
                             <p className="text-[10px] font-mono text-primary/70">
                               {visiblePasswords[u.id] ? u.plain_password : "••••••••"}
                             </p>
                             <button
                               onClick={() => togglePasswordVisibility(u.id)}
-                              className="text-foreground/40 hover:text-primary transition-colors"
+                              className="text-foreground/40 hover:text-primary transition-colors p-1"
+                              title={visiblePasswords[u.id] ? "Ocultar senha" : "Ver senha"}
                             >
                               {visiblePasswords[u.id] ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
                             </button>
                           </div>
+                        ) : (
+                          <p className="text-[9px] text-foreground/20 italic mt-1">Senha não disponível</p>
                         )}
                       </div>
                     </div>
