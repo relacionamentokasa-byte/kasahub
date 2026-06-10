@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createProject, fetchClients } from "@/lib/ops-api";
@@ -40,6 +41,22 @@ export function NewProjectDialog({
   onCreated?: (id: string) => void;
 }) {
   const qc = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('projects-realtime-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'projects' },
+        () => qc.invalidateQueries({ queryKey: ["projects"] })
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "all"], queryFn: () => fetchProposals() });

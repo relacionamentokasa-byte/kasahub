@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createTransaction,
@@ -42,6 +44,26 @@ export function NewTransactionDialog({
   onSuccess?: () => void;
 }) {
   const qc = useQueryClient();
+  
+  // Realtime sync para a lista de transações
+  useEffect(() => {
+    const channel = supabase
+      .channel('finance-transactions-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'transactions' },
+        () => {
+          qc.invalidateQueries({ queryKey: ["transactions"] });
+          qc.invalidateQueries({ queryKey: ["financial_indicators"] });
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   const { data: accounts = [] } = useQuery({ queryKey: ["bank_accounts"], queryFn: fetchBankAccounts });
   const { data: categories = [] } = useQuery({ queryKey: ["financial_categories"], queryFn: fetchCategories });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });

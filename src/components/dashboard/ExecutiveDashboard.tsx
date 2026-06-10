@@ -1,7 +1,8 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { 
   fetchTransactions, 
+
   fetchContracts, 
   computeIndicators, 
   fetchBankAccounts,
@@ -33,6 +34,25 @@ type FilterRange = 'today' | 'week' | 'month' | 'quarter' | 'year';
 
 export function ExecutiveDashboard() {
   const { can, isAdmin } = usePermissions();
+  const qc = useQueryClient();
+
+  // Adicionar sincronização em tempo real para o dashboard executivo
+  useEffect(() => {
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => qc.invalidateQueries({ queryKey: ["transactions"] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'jobs' }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contracts' }, () => qc.invalidateQueries({ queryKey: ["contracts"] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'clients' }, () => qc.invalidateQueries({ queryKey: ["clients"] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => qc.invalidateQueries({ queryKey: ["projects"] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notificacoes' }, () => qc.invalidateQueries({ queryKey: ["notificacoes"] }))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   const { data: roles = [] } = useQuery({ 
     queryKey: ["roles", "me"], 
     queryFn: async () => {

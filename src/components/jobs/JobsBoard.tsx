@@ -91,8 +91,18 @@ export function JobsBoard({
         'postgres_changes',
         { event: '*', schema: 'public', table: 'jobs' },
         (payload) => {
-          console.log("Mudança em tempo real detectada:", payload);
+          console.log("Mudança em tempo real detectada em jobs:", payload);
           qc.invalidateQueries({ queryKey: ["jobs"] });
+          // Se for mudança de etapa, atualizar também as etapas (pode ter triggers de automação)
+          qc.invalidateQueries({ queryKey: ["job-stages"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'job_checklist' },
+        (payload) => {
+          console.log("Mudança em tempo real detectada em checklist:", payload);
+          qc.invalidateQueries({ queryKey: ["jobs"] }); // Refetch jobs para atualizar progresso visual
         }
       )
       .subscribe();
