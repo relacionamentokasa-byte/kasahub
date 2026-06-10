@@ -864,8 +864,9 @@ export function JobSheet({
                               />
                               <div className="flex-1 min-w-0">
 
-                                <input
+                                 <input
                                   defaultValue={item.content}
+                                  onClick={(e) => e.stopPropagation()}
                                   onBlur={(e) => {
                                     const newContent = e.target.value.trim();
                                     if (newContent && newContent !== item.content) {
