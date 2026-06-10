@@ -208,10 +208,10 @@ export function JobsBoard({
             Jobs
           </h1>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
           {showPeriodFilter && (
             <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-full sm:w-40 h-11 sm:h-10 bg-surface border-border">
+              <SelectTrigger className="w-full sm:w-40 h-9 bg-surface border-border shrink-0">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
@@ -225,18 +225,61 @@ export function JobsBoard({
               </SelectContent>
             </Select>
           )}
+
+          <Select value={responsibleId} onValueChange={setResponsibleId}>
+            <SelectTrigger className="w-full sm:w-44 h-9 bg-surface border-border shrink-0">
+              <SelectValue placeholder="Responsável" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Responsáveis</SelectItem>
+              {profiles.map(p => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.display_name || p.full_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={clientFilterId} onValueChange={setClientFilterId}>
+            <SelectTrigger className="w-full sm:w-44 h-9 bg-surface border-border shrink-0">
+              <SelectValue placeholder="Cliente" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os Clientes</SelectItem>
+              {clients.map(c => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.company || c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <div className="relative flex-1 sm:flex-none">
-            <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="size-3.5 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
               placeholder="Buscar Job…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-11 sm:h-10 w-full sm:w-64 bg-surface border-border"
+              className="pl-9 h-9 w-full sm:w-48 bg-surface border-border"
             />
           </div>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFilters}
+              className="h-9 px-3 text-foreground/50 hover:text-foreground shrink-0"
+              title="Limpar filtros"
+            >
+              <X className="size-4" />
+              <span className="sm:hidden ml-2">Limpar</span>
+            </Button>
+          )}
+
           <Button
             onClick={() => setNewStage(stages[0] ?? null)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-9 px-5 gap-2 shrink-0"
           >
             <Plus className="size-4 shrink-0" /> Novo
           </Button>
