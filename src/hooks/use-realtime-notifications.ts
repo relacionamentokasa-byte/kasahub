@@ -103,6 +103,9 @@ export function useRealtimeNotifications() {
           toast(newNotif.titulo, {
             description: newNotif.mensagem,
             duration: 5000,
+            icon: React.createElement("div", { className: "size-8 rounded-full bg-primary/10 flex items-center justify-center" }, 
+              React.createElement(IconForCategory, { tipo: newNotif.tipo })
+            ),
             action: newNotif.link ? {
               label: "Ver",
               onClick: () => navigate({ to: newNotif.link as any })
