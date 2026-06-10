@@ -390,11 +390,11 @@ export async function markPaid(id: string, paid: boolean) {
 
   if (paid) {
     // Notify administrators
-    const { data: admins } = await supabase.from('profiles').select('id').eq('role', 'admin');
-    if (admins) {
-      for (const admin of admins) {
+    const { data: adminRoles } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
+    if (adminRoles) {
+      for (const roleObj of adminRoles) {
         await notify({
-          userId: admin.id,
+          userId: roleObj.user_id!,
           title: "Pagamento Confirmado",
           description: `Lançamento ${result.description} de ${brl(Number(result.amount))} foi marcado como pago`,
           category: 'finance',
