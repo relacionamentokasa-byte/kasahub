@@ -481,7 +481,7 @@ function PublicProposalView() {
                 <div className="w-12 h-0.5 bg-[#ffbc45] mt-2"></div>
             </h2>
             
-            {proposal.contract_type === 'avulso' ? (
+            { (proposal.contract_type === 'avulso' || proposal.contract_type === 'one_time') ? (
               <div className="flex flex-col items-center md:items-start mb-8 sm:mb-12">
                 <div className="w-full text-center md:text-left mb-2">
                     <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Valor Total</p>
@@ -512,7 +512,9 @@ function PublicProposalView() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Tipo</p>
-                    <p className="text-sm font-bold font-sans capitalize">{proposal.contract_type === 'recurring' ? 'Recorrente' : proposal.contract_type}</p>
+                    <p className="text-sm font-bold font-sans capitalize">
+                      {proposal.contract_type === 'recurring' ? 'Recorrente' : (proposal.contract_type === 'one_time' || proposal.contract_type === 'avulso') ? 'Avulso' : proposal.contract_type}
+                    </p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Validade</p>
