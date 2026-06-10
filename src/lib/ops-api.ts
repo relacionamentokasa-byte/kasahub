@@ -440,6 +440,51 @@ export async function moveJob(id: string, stageId: string, extras: { done_at?: s
   return updateJob(id, { stage_id: stageId, ...extras });
 }
 
+export async function duplicateJob(id: string) {
+  // 1. Fetch original job
+  const { data: original, error: fetchErr } = await supabase
+    .from("jobs")
+    .select("*")
+    .eq("id", id)
+    .single();
+  
+  if (fetchErr) throw fetchErr;
+
+  // 2. Prepare new job data (exclude internal fields)
+  const { id: _oldId, created_at, updated_at, done_at, ...jobData } = original;
+  void _oldId; void created_at; void updated_at; void done_at;
+
+  const { data: newJob, error: insertErr } = await supabase
+    .from("jobs")
+    .insert({
+      ...jobData,
+      title: `${original.title} (cópia)`,
+      status: 'not_started', // Reset status for the copy
+    })
+    .select()
+    .single();
+
+  if (insertErr) throw insertErr;
+
+  // 3. Duplicate Checklist Items
+  const checklist = await fetchChecklist(id);
+  if (checklist.length > 0) {
+    const newItems = checklist.map(({ id: _i, created_at: _c, updated_at: _u, job_id: _j, ...item }) => ({
+      ...item,
+      job_id: newJob.id
+    }));
+    await supabase.from("job_checklist").insert(newItems);
+  }
+
+  // 4. Update project stats
+  if (newJob.project_id) {
+    await refreshProjectStats(newJob.project_id);
+  }
+
+  return newJob;
+}
+
+
 export async function deleteJobStage(id: string) {
   // Check if stage has jobs
   const { count } = await supabase.from("jobs").select("id", { count: "exact", head: true }).eq("stage_id", id);
