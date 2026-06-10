@@ -178,10 +178,6 @@ export function NewJobDialog({
             <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex: Criação de Logo" />
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Descrição / Instruções</Label>
-            <Textarea rows={3} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detalhe o que precisa ser feito..." />
-          </div>
 
           <Tabs defaultValue="vinc" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-muted/20">
