@@ -221,43 +221,45 @@ export function ProposalEditorContent({
         throw new Error("Não é possível aprovar esta proposta manualmente sem a assinatura do cliente.");
       }
 
-      return updateProposal(proposalId, {
+      const payload: any = {
         title: f.title,
-        client_id: f.client_id || null,
-        lead_id: f.lead_id || null,
-        target_kind: f.target_kind,
         client_name: f.client_name,
-        client_email: f.client_email || null,
-        intro: f.intro || null,
-        valid_until: f.valid_until || null,
         status: f.status,
         monthly_investment: f.monthly_investment,
         one_time_investment: f.one_time_investment,
         total: f.monthly_investment + f.one_time_investment,
-        responsible_id: f.responsible_id || null,
-        commercial_id: f.commercial_id || null,
-
         contract_type: f.contract_type,
-        service_type: f.service_type || null,
-        service_ids: f.service_ids,
-        briefing: f.briefing || null,
         payment_kind: f.payment_kind,
         installments: f.installments,
-        first_due_date: f.first_due_date || null,
         billing_day: f.billing_day,
-        account_id: f.account_id || null,
-        category_id: f.category_id || null,
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
         scope: f.scope,
         scope_text: f.scope_text,
         payment_method: f.payment_method,
-        contract_template_id: f.contract_template_id || null,
-        contract_content: f.contract_content || null,
-        signature_client: f.signature_client || null,
-        signature_agency: f.signature_agency || null,
-        notes: f.notes || null,
-      } as any);
+      };
+
+      if (f.client_id) payload.client_id = f.client_id;
+      if (f.lead_id) payload.lead_id = f.lead_id;
+      if (f.target_kind) payload.target_kind = f.target_kind;
+      if (f.client_email) payload.client_email = f.client_email;
+      if (f.intro) payload.intro = f.intro;
+      if (f.valid_until) payload.valid_until = f.valid_until;
+      if (f.responsible_id) payload.responsible_id = f.responsible_id;
+      if (f.commercial_id) payload.commercial_id = f.commercial_id;
+      if (f.service_type) payload.service_type = f.service_type;
+      if (f.service_ids) payload.service_ids = f.service_ids;
+      if (f.briefing) payload.briefing = f.briefing;
+      if (f.first_due_date) payload.first_due_date = f.first_due_date;
+      if (f.account_id) payload.account_id = f.account_id;
+      if (f.category_id) payload.category_id = f.category_id;
+      if (f.contract_template_id) payload.contract_template_id = f.contract_template_id;
+      if (f.contract_content) payload.contract_content = f.contract_content;
+      if (f.signature_client) payload.signature_client = f.signature_client;
+      if (f.signature_agency) payload.signature_agency = f.signature_agency;
+      if (f.notes) payload.notes = f.notes;
+
+      return updateProposal(proposalId, payload);
     },
     onSuccess: (updatedProposal, vars) => {
       // Update local form with all changes from the successful save
