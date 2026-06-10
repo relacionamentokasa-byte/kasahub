@@ -20,13 +20,14 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, AlertTriangle, Users } from "lucide-react";
+import { Plus, Search, Trash2, AlertTriangle, Users, Copy } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import {
   fetchJobStages,
   fetchJobs,
   moveJob,
   deleteJob,
+  duplicateJob,
   deleteJobStage,
   priorityColor,
   priorityLabel,
