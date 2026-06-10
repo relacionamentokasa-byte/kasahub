@@ -41,39 +41,8 @@ export function NotificationCenter() {
     queryFn: fetchNotifications,
   });
 
-  useEffect(() => {
-    let channel: any;
-
-    const setupSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      channel = supabase
-        .channel(`notificacoes-${user.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "notificacoes",
-            filter: `user_id=eq.${user.id}`,
-          },
-          () => {
-            qc.invalidateQueries({ queryKey: ["notificacoes"] });
-            // Som de notificação pode ser chamado aqui se desejado
-          }
-        )
-        .subscribe();
-    };
-
-    setupSubscription();
-
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [qc]);
+  // A subscrição em tempo real agora é gerenciada globalmente no useRealtimeNotifications
+  // para evitar duplicidade de toasts e sons.
 
   const unreadCount = notifications.filter(n => !n.lido).length;
 

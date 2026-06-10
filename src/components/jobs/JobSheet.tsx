@@ -50,7 +50,7 @@ import {
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash, Copy } from "lucide-react";
-import { handleMentions, enviarNotificacao } from "@/lib/notifications-api";
+import { handleMentions, enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -200,17 +200,17 @@ export function JobSheet({
       if (variables.status && job && variables.status !== job.status) {
         const teamInvolved = (job as any).team_involved || [];
         const statusLabel = JOB_STATUS_LABELS[variables.status as keyof typeof JOB_STATUS_LABELS]?.label || variables.status;
+        const recipients = teamInvolved.filter((id: string) => id !== currentUser?.id);
         
-        teamInvolved.forEach((userId: string) => {
-          if (userId === currentUser?.id) return;
-          enviarNotificacao(
-            userId,
+        if (recipients.length > 0) {
+          enviarNotificacaoMultipla(
+            recipients,
             `Status alterado: ${job.title}`,
             `O status do job foi alterado para: ${statusLabel}`,
             "job",
             `/jobs?jobId=${job.id}`
           ).catch(console.error);
-        });
+        }
       }
 
       // Notify if assignee changes
@@ -448,20 +448,21 @@ export function JobSheet({
       
       // Notify team members about new comment
       if (!variables.isSystem) {
-        const teamInvolved = (job as any).team_involved || [];
-        teamInvolved.forEach((userId: string) => {
-          // Skip the author of the comment and mentions (mentions are handled via handleMentions)
-          if (userId === currentUser?.id) return;
-          if (variables.content.includes('@')) return; // Simple avoidance of double notification if user is mentioned
-          
-          enviarNotificacao(
-            userId,
+        const teamInvolved = ((job as any).team_involved || []) as string[];
+        const recipients = teamInvolved.filter((userId: string) => 
+          userId !== currentUser?.id && 
+          !variables.content.includes('@')
+        );
+
+        if (recipients.length > 0) {
+          enviarNotificacaoMultipla(
+            recipients,
             `Novo comentário: ${job!.title}`,
             variables.content.substring(0, 100) + (variables.content.length > 100 ? '...' : ''),
             "comment",
             `/jobs?jobId=${job!.id}`
           ).catch(console.error);
-        });
+        }
       }
     },
     onError: (_e, _v, ctx) => {
