@@ -20,7 +20,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, AlertTriangle, Users, Copy } from "lucide-react";
+import { Plus, Search, Trash2, AlertTriangle, Users, Copy, X } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import {
   fetchJobStages,
@@ -31,6 +31,7 @@ import {
   deleteJobStage,
   priorityColor,
   priorityLabel,
+  fetchClients,
   JOB_STATUS_LABELS,
   type Job,
   type JobStage,
@@ -65,11 +66,16 @@ export function JobsBoard({
 }) {
   const qc = useQueryClient();
   const [period, setPeriod] = useState<string>("all");
+  const [responsibleId, setResponsibleId] = useState<string>("all");
+  const [clientFilterId, setClientFilterId] = useState<string>("all");
+
   const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
   const queryKey = useMemo(() => JOBS_QUERY_KEY(filters), [filters]);
+  
   const { data: stages = [] } = useQuery({ queryKey: ["job-stages"], queryFn: fetchJobStages });
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients-filter"], queryFn: fetchClients });
 
   useEffect(() => {
     const channel = supabase
@@ -109,15 +115,45 @@ export function JobsBoard({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const filtered = useMemo(() => {
+    let result = jobs;
+    
+    // Filtro por texto
     const q = query.trim().toLowerCase();
-    if (!q) return jobs;
-    return jobs.filter((j) => 
-      j.title.toLowerCase().includes(q) || 
-      (j as any).clients?.name?.toLowerCase().includes(q) ||
-      (j as any).clients?.company?.toLowerCase().includes(q) ||
-      (j as any).projects?.name?.toLowerCase().includes(q)
-    );
-  }, [jobs, query]);
+    if (q) {
+      result = result.filter((j) => 
+        j.title.toLowerCase().includes(q) || 
+        (j as any).clients?.name?.toLowerCase().includes(q) ||
+        (j as any).clients?.company?.toLowerCase().includes(q) ||
+        (j as any).projects?.name?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filtro por Responsável
+    if (responsibleId !== "all") {
+      result = result.filter((j) => {
+        const mainRespId = (j as any).main_responsible_id || j.assignee_id;
+        const teamInvolved = (j as any).team_involved || [];
+        const isTeamMember = teamInvolved.some((m: any) => m.user_id === responsibleId);
+        return mainRespId === responsibleId || isTeamMember;
+      });
+    }
+
+    // Filtro por Cliente
+    if (clientFilterId !== "all") {
+      result = result.filter((j) => j.client_id === clientFilterId);
+    }
+
+    return result;
+  }, [jobs, query, responsibleId, clientFilterId]);
+
+  const clearFilters = () => {
+    setQuery("");
+    setResponsibleId("all");
+    setClientFilterId("all");
+    setPeriod("all");
+  };
+
+  const hasActiveFilters = query !== "" || responsibleId !== "all" || clientFilterId !== "all" || period !== "all";
 
   const byStage = useMemo(() => {
     const m = new Map<string, Job[]>();
