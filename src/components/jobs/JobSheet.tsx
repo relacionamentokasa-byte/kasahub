@@ -50,7 +50,7 @@ import {
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash, Copy } from "lucide-react";
-import { handleMentions, enviarNotificacao } from "@/lib/notifications-api";
+import { handleMentions, enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
