@@ -448,20 +448,21 @@ export function JobSheet({
       
       // Notify team members about new comment
       if (!variables.isSystem) {
-        const teamInvolved = (job as any).team_involved || [];
-        teamInvolved.forEach((userId: string) => {
-          // Skip the author of the comment and mentions (mentions are handled via handleMentions)
-          if (userId === currentUser?.id) return;
-          if (variables.content.includes('@')) return; // Simple avoidance of double notification if user is mentioned
-          
-          enviarNotificacao(
-            userId,
+        const teamInvolved = ((job as any).team_involved || []) as string[];
+        const recipients = teamInvolved.filter((userId: string) => 
+          userId !== currentUser?.id && 
+          !variables.content.includes('@')
+        );
+
+        if (recipients.length > 0) {
+          enviarNotificacaoMultipla(
+            recipients,
             `Novo comentário: ${job!.title}`,
             variables.content.substring(0, 100) + (variables.content.length > 100 ? '...' : ''),
             "comment",
             `/jobs?jobId=${job!.id}`
           ).catch(console.error);
-        });
+        }
       }
     },
     onError: (_e, _v, ctx) => {
