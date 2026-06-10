@@ -9,9 +9,17 @@ import { FloatingActions } from "@/components/FloatingActions";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  beforeLoad: async () => {
+  beforeLoad: async ({ location }) => {
+    console.log("[Auth Guard] Path:", location.pathname);
+    // Explicitly allow public routes if for some reason they hit this layout
+    const publicPrefixes = ["/p/", "/approve/", "/dme/", "/auth", "/api/public/", "/lovable/"];
+    if (publicPrefixes.some(prefix => location.pathname.startsWith(prefix))) {
+      return;
+    }
+
     const { data, error } = await supabase.auth.getUser();
     if (error || !data.user) {
+      console.log("[Auth Guard] No user, redirecting to /auth");
       throw redirect({ to: "/auth" });
     }
     return { user: data.user };
