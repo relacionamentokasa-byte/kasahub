@@ -237,10 +237,23 @@ export function ProposalEditorContent({
         'contract_content', 'signature_client', 'signature_agency', 'notes'
       ];
 
+      const uuidFields = [
+        'client_id', 'lead_id', 'responsible_id', 'commercial_id', 
+        'account_id', 'category_id', 'contract_template_id', 'owner_id',
+        'parent_id', 'root_proposal_id', 'generated_contract_id', 'generated_project_id',
+        'cancelled_by', 'internal_approval_by'
+      ];
+
       fields.forEach(field => {
-        const value = (currentForm as any)[field];
-        // Only include if not null and not undefined
-        if (value !== null && value !== undefined) {
+        let value = (currentForm as any)[field];
+        
+        // Sanitize UUID fields: convert empty strings to null
+        if (uuidFields.includes(field) && value === "") {
+          value = null;
+        }
+
+        // Only include if not undefined
+        if (value !== undefined) {
           payload[field] = value;
         }
       });

@@ -166,6 +166,22 @@ export async function fetchProposalItems(proposalId: string): Promise<ProposalIt
   return data ?? [];
 }
 
+export function sanitizeProposalUUIDs<T extends object>(input: T): T {
+  const uuidFields = [
+    'client_id', 'lead_id', 'responsible_id', 'commercial_id', 
+    'account_id', 'category_id', 'contract_template_id', 'owner_id',
+    'parent_id', 'root_proposal_id', 'generated_contract_id', 'generated_project_id',
+    'cancelled_by', 'internal_approval_by'
+  ];
+  const result = { ...input } as any;
+  for (const field of uuidFields) {
+    if (result[field] === "") {
+      result[field] = null;
+    }
+  }
+  return result;
+}
+
 export async function createProposal(input: {
   title: string;
   client_name: string;
@@ -193,15 +209,17 @@ export async function createProposal(input: {
   contract_template_id?: string | null;
   contract_content?: string | null;
 }) {
-  if (input.client_id) {
-    const { data: client } = await supabase.from('clients').select('status').eq('id', input.client_id).single();
+  const sanitizedInput = sanitizeProposalUUIDs(input);
+  
+  if (sanitizedInput.client_id) {
+    const { data: client } = await supabase.from('clients').select('status').eq('id', sanitizedInput.client_id).single();
     if (client?.status === 'inactive') throw new Error("Não é possível criar propostas para clientes inativos.");
   }
 
   const { data: userData } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("proposals")
-    .insert({ ...input, owner_id: userData.user?.id ?? null } as any)
+    .insert({ ...sanitizedInput, owner_id: userData.user?.id ?? null } as any)
     .select()
     .single();
   if (error) throw error;
@@ -223,9 +241,11 @@ export async function updateProposal(
   id: string,
   patch: Partial<Database["public"]["Tables"]["proposals"]["Update"]>,
 ) {
+  const sanitizedPatch = sanitizeProposalUUIDs(patch);
+  
   const { data, error } = await supabase
     .from("proposals")
-    .update(patch)
+    .update(sanitizedPatch)
     .eq("id", id)
     .select()
     .single();
