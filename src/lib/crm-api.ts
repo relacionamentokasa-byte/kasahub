@@ -166,19 +166,35 @@ export async function fetchProposalItems(proposalId: string): Promise<ProposalIt
   return data ?? [];
 }
 
-export function sanitizeProposalUUIDs<T extends object>(input: T): T {
+export function sanitizeProposalPayload<T extends object>(input: T): T {
   const uuidFields = [
     'client_id', 'lead_id', 'responsible_id', 'commercial_id', 
     'account_id', 'category_id', 'contract_template_id', 'owner_id',
     'parent_id', 'root_proposal_id', 'generated_contract_id', 'generated_project_id',
     'cancelled_by', 'internal_approval_by'
   ];
+
+  const dateFields = [
+    'valid_until', 'first_due_date', 'sent_at', 'accepted_at', 
+    'converted_at', 'signed_at', 'cancelled_at', 'deleted_at'
+  ];
+
   const result = { ...input } as any;
+  
+  // Sanitize UUID fields: convert empty strings to null
   for (const field of uuidFields) {
     if (result[field] === "") {
       result[field] = null;
     }
   }
+
+  // Sanitize Date fields: convert empty strings to null to avoid Postgres "invalid input syntax for type date"
+  for (const field of dateFields) {
+    if (result[field] === "") {
+      result[field] = null;
+    }
+  }
+
   return result;
 }
 
@@ -209,7 +225,7 @@ export async function createProposal(input: {
   contract_template_id?: string | null;
   contract_content?: string | null;
 }) {
-  const sanitizedInput = sanitizeProposalUUIDs(input);
+  const sanitizedInput = sanitizeProposalPayload(input);
   
   if (sanitizedInput.client_id) {
     const { data: client } = await supabase.from('clients').select('status').eq('id', sanitizedInput.client_id).single();
@@ -241,7 +257,7 @@ export async function updateProposal(
   id: string,
   patch: Partial<Database["public"]["Tables"]["proposals"]["Update"]>,
 ) {
-  const sanitizedPatch = sanitizeProposalUUIDs(patch);
+  const sanitizedPatch = sanitizeProposalPayload(patch);
   
   const { data, error } = await supabase
     .from("proposals")
