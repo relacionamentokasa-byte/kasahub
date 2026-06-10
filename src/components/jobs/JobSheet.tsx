@@ -296,58 +296,60 @@ export function JobSheet({
 
   const toggleItemMut = useMutation({
     mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
-      // Use the centralized API function for consistency
-      try {
-        await toggleChecklistItem(id, done);
-        return { id, done };
-      } catch (error: any) {
-        console.error("ERRO COMPLETO DO SUPABASE AO ATUALIZAR CHECKLIST:", error);
-        console.error("Dados tentados - id:", id, "done:", done);
-        throw error;
-      }
+      // Use simple toggle function from ops-api
+      await toggleChecklistItem(id, done);
+      return { id, done };
     },
     onMutate: async ({ id, done }) => {
-      // Cancel queries to avoid overwriting optimistic updates
+      // Step 1: Cancel any outgoing refetches
       await qc.cancelQueries({ queryKey: ["job-checklist", job!.id] });
       await qc.cancelQueries({ queryKey: ["jobs"] });
 
+      // Step 2: Snapshot the previous value
       const prevChecklist = qc.getQueryData<any[]>(["job-checklist", job!.id]);
       const prevJobs = qc.getQueryData<any[]>(["jobs"]);
 
-      // OPTIMISTIC UPDATE: Checklist
+      // Step 3: Optimistically update to the new value
       qc.setQueryData<any[]>(["job-checklist", job!.id], (old) =>
         (old ?? []).map((item) => (item.id === id ? { ...item, done } : item))
       );
-      
-      // OPTIMISTIC UPDATE: Jobs progress (for Kanban and Sheet UI)
+
+      // Recalculate progress for UI feedback
       const currentItems = (prevChecklist || []).map(it => it.id === id ? { ...it, done } : it);
-      const total = currentItems.length;
-      const completed = currentItems.filter(it => it.done).length;
-      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+      const totalCount = currentItems.length;
+      const completedCount = currentItems.filter(it => it.done).length;
+      const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
       qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
         if (!old || !Array.isArray(old)) return old;
         return old.map(j => (j.id === job!.id ? { 
           ...j, 
-          completed_steps: completed, 
-          total_steps: total, 
+          completed_steps: completedCount, 
+          total_steps: totalCount, 
           progress_percentage: progress 
         } : j));
       });
 
+      // Return context with snapshots
       return { prevChecklist, prevJobs };
     },
+    onError: (err, _variables, context) => {
+      // Step 4: Revert to previous state if mutation fails
+      if (context?.prevChecklist) {
+        qc.setQueryData(["job-checklist", job!.id], context.prevChecklist);
+      }
+      if (context?.prevJobs) {
+        qc.setQueryData(["jobs"], context.prevJobs);
+      }
+      
+      console.error("ERRO COMPLETO DO SUPABASE AO ATUALIZAR CHECKLIST:", err);
+      toast.error("Falha ao atualizar checklist");
+    },
     onSettled: () => {
-      // Re-fetch to ensure sync with server, but UI was already updated
+      // Step 5: Always refetch after error or success to keep server in sync
       qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
     },
-    onError: (err, _v, ctx) => {
-      if (ctx?.prevChecklist) qc.setQueryData(["job-checklist", job!.id], ctx.prevChecklist);
-      if (ctx?.prevJobs) qc.setQueryData(["jobs"], ctx.prevJobs);
-      toast.error("Falha ao sincronizar alteração");
-      console.error("Mutation error:", err);
-    }
   });
 
   const delItemMut = useMutation({
