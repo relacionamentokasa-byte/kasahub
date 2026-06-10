@@ -195,7 +195,50 @@ export function JobsBoard({
     );
   };
 
+  const moveMut = useMutation({
+    mutationFn: ({ id, stage }: { id: string; stage: JobStage }) =>
+      moveJob(id, stage.id, { done_at: stage.is_done ? new Date().toISOString() : null }),
+    onMutate: async ({ id, stage }) => {
+      await qc.cancelQueries({ queryKey });
+      const prev = qc.getQueryData<Job[]>(queryKey);
+      qc.setQueryData<Job[]>(queryKey, (old) =>
+        (old ?? []).map((j) => (j.id === id ? { ...j, stage_id: stage.id, done_at: stage.is_done ? new Date().toISOString() : j.done_at } : j)),
+      );
+      return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+    },
+    onError: (_e, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(queryKey, ctx.prev);
+      toast.error("Não foi possível mover a tarefa");
+    },
+  });
+
+  const activeJob = activeId ? jobs.find((j) => j.id === activeId) : null;
+
+  const byStage = useMemo(() => {
+    const m = new Map<string, Job[]>();
+    for (const s of stages) m.set(s.id, []);
+    for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
+    return m;
+  }, [stages, filtered]);
+
+  function onDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+  }
+  function onDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    const overId = e.over?.id ? String(e.over.id) : null;
+    if (!overId) return;
+    const stage = stages.find((s) => s.id === overId);
+    const job = jobs.find((j) => j.id === e.active.id);
+    if (!stage || !job || job.stage_id === overId) return;
+    moveMut.mutate({ id: String(e.active.id), stage });
+  }
+
   return (
+
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
