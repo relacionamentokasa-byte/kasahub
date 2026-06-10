@@ -1,34 +1,29 @@
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import remarkBreaks from "remark-breaks";
-
 export function ScopeRenderer({
   text,
   fallback,
   className = "",
 }: {
-  text?: string | null;
+  text?: string | string[] | null;
   fallback?: string[] | null;
   className?: string;
 }) {
-  const content =
-    (text && text.length > 0)
-      ? text
-      : (fallback && fallback.length > 0)
-        ? fallback.map((i) => `- ${i}`).join("\n")
-        : "";
+  const items = Array.isArray(text) 
+    ? text 
+    : (typeof text === 'string' && text.length > 0)
+      ? text.split('\n').map(line => line.replace(/^[-\s*]+/, '').trim()).filter(Boolean)
+      : fallback || [];
 
-  if (!content) return null;
+  if (items.length === 0) return null;
 
   return (
-    <div
-      className={`prose prose-sm max-w-none
-        prose-headings:mt-6 prose-headings:mb-4 
-        prose-p:mb-[12px] prose-p:mt-0
-        prose-strong:block prose-strong:mt-[16px] prose-strong:mb-[4px] first:prose-strong:mt-0
-        ${className}`}
-    >
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{content}</ReactMarkdown>
+    <div className={`space-y-2 ${className}`}>
+      <ul className="list-disc list-inside space-y-2">
+        {items.map((item, idx) => (
+          <li key={idx} className="text-foreground/80 leading-relaxed">
+            {item}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

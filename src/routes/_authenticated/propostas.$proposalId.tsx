@@ -145,7 +145,7 @@ export function ProposalEditorContent({
     auto_create_jobs: true,
     recurring_months: 12,
     scope: [] as string[],
-    scope_text: "",
+    scope_text: [] as string[],
     payment_method: "boleto",
     monthly_investment: 0,
     one_time_investment: 0,
@@ -194,7 +194,7 @@ export function ProposalEditorContent({
         auto_create_jobs: p.auto_create_jobs ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
         scope: p.scope ?? [],
-        scope_text: p.scope_text ?? (Array.isArray(p.scope) && p.scope.length > 0 ? (p.scope as string[]).map((i: string) => `- ${i}`).join("\n") : ""),
+        scope_text: Array.isArray(p.scope_text) ? p.scope_text : (typeof p.scope_text === 'string' ? p.scope_text.split('\n').map((s: string) => s.replace(/^[-\s*]+/, '').trim()).filter(Boolean) : []),
         payment_method: p.payment_method ?? "boleto",
         monthly_investment: Number(proposal.monthly_investment || 0),
         one_time_investment: Number(proposal.one_time_investment || 0),
@@ -250,7 +250,7 @@ export function ProposalEditorContent({
         auto_create_jobs: f.auto_create_jobs,
         recurring_months: f.recurring_months,
         scope: f.scope,
-        scope_text: f.scope_text || null,
+        scope_text: f.scope_text,
         payment_method: f.payment_method,
         contract_template_id: f.contract_template_id || null,
         contract_content: f.contract_content || null,
@@ -590,7 +590,7 @@ export function ProposalEditorContent({
               <div>
                 <span className="text-primary text-[10px] capitalize">Escopo dos Serviços</span>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Texto livre com Markdown. Use modelos prontos ou salve seus próprios.
+                  Adicione os itens e entregáveis do projeto.
                 </p>
               </div>
             </div>
