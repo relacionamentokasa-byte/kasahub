@@ -1941,6 +1941,7 @@ export type Database = {
           job_title: string | null
           last_access: string | null
           phone: string | null
+          plain_password: string | null
           status: string | null
           updated_at: string
         }
@@ -1959,6 +1960,7 @@ export type Database = {
           job_title?: string | null
           last_access?: string | null
           phone?: string | null
+          plain_password?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -1977,6 +1979,7 @@ export type Database = {
           job_title?: string | null
           last_access?: string | null
           phone?: string | null
+          plain_password?: string | null
           status?: string | null
           updated_at?: string
         }
@@ -2883,6 +2886,7 @@ export type Database = {
           job_title: string | null
           last_access: string | null
           phone: string | null
+          plain_password: string | null
           status: string | null
           updated_at: string | null
         }
