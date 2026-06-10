@@ -317,7 +317,7 @@ export function JobSheet({
           completed_steps: completed,
           total_steps: total,
           progress_percentage: progress
-        })
+        } as any)
         .eq("id", job!.id);
 
       if (jobError) throw jobError;
