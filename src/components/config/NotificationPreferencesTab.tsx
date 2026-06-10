@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { runFullNotificationTest } from "@/lib/notification-test-suite";
+import { criarNotificacao } from "@/lib/notifications-api";
+
 
 function ToggleRow({
   title,
@@ -183,18 +185,13 @@ export function NotificationPreferencesTab() {
 
       toast.promise(
         async () => {
-          const { error } = await supabase.rpc("notify_user", {
-            p_user_id: currentUser.id,
-            p_title: "Teste de Notificação",
-            p_description: "Esta é uma notificação de teste enviada para verificar se o sistema está funcionando corretamente.",
-            p_category: "general",
-            p_type: "info",
-            p_metadata: {
-              author_name: "Sistema KASA",
-              test: true
-            }
-          });
-          if (error) throw error;
+          await criarNotificacao(
+            currentUser.id,
+            "Teste de Notificação",
+            "Esta é uma notificação de teste enviada para verificar se o sistema está funcionando corretamente.",
+            "info"
+          );
+
         },
         {
           loading: 'Enviando teste...',

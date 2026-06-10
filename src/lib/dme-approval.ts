@@ -103,15 +103,14 @@ export async function approveExtraDemand(sb: SB, id: string) {
   }
 
   const { data: userData } = await sb.auth.getUser();
-  await sb.rpc('notify_user', {
-    p_user_id: (project as any)?.owner_id || userData.user?.id,
-    p_title: "DME Aprovada",
-    p_description: `A demanda ${dme.number_display} foi aprovada e gerou um Job.`,
-    p_category: 'approval',
-    p_origin_type: 'extra_demands',
-    p_origin_id: dme.id,
-    p_link: '/jobs'
-  } as any);
+  await sb.from('notificacoes').insert({
+    user_id: (project as any)?.owner_id || userData.user?.id,
+    titulo: "DME Aprovada",
+    mensagem: `A demanda ${dme.number_display} foi aprovada e gerou um Job.`,
+    tipo: 'approval',
+    link: '/jobs'
+  });
+
 
   if (dme.description?.includes('@')) {
     await handleMentions(dme.description, {

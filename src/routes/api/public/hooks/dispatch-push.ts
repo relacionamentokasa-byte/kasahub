@@ -34,8 +34,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
         // Load notification; only dispatch if created in last 5 minutes
         // to prevent arbitrary replay against guessed UUIDs.
         const { data: notif, error: notifErr } = await supabaseAdmin
-          .from("notifications")
-          .select("id, user_id, title, description, link, category, created_at")
+          .from("notificacoes")
+          .select("id, user_id, titulo, mensagem, link, created_at")
+
           .eq("id", parsed.notification_id)
           .single();
 
@@ -78,8 +79,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
         webpush.setVapidDetails(subject, publicKey, privateKey);
 
         const payload = JSON.stringify({
-          title: notif.title || "KASA HUB",
-          body: notif.description || "",
+          title: notif.titulo || "KASA HUB",
+          body: notif.mensagem || "",
+
           url: notif.link || "/",
           tag: `notif-${notif.id}`,
         });
