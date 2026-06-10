@@ -214,6 +214,7 @@ export function ProposalEditorContent({
   const saveMut = useMutation({
     mutationFn: async (overrides?: Partial<typeof form>) => {
       const f = { ...form, ...(overrides ?? {}) };
+      console.log("[ProposalEditor] Saving proposal. Scope text in form state:", f.scope_text);
       
       // Bloqueio definitivo no front-end para evitar bypass
       if ((f.status === "accepted" || f.status === "converted" || f.status === "signed") && !f.signature_client) {

@@ -104,6 +104,7 @@ export function ScopeEditor({
       const html = editor.getHTML();
       const td = await getTurndown();
       const markdown = td.turndown(html);
+      console.log("[ScopeEditor] Markdown update:", markdown);
       onChange(markdown);
     },
     editorProps: {
@@ -121,7 +122,11 @@ export function ScopeEditor({
       const td = await getTurndown();
       
       const currentHtml = editor.getHTML();
-      if (value !== td.turndown(currentHtml)) {
+      const currentMarkdown = td.turndown(currentHtml);
+      
+      // Only sync if the editor is NOT focused, to avoid overwriting user's typing
+      if (!editor.isFocused && value !== currentMarkdown) {
+        console.log("[ScopeEditor] Syncing value from props (external change)");
         editor.commands.setContent(conv.makeHtml(value));
       }
     }
