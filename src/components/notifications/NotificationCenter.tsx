@@ -14,7 +14,9 @@ import {
   AlertCircle,
   AlertTriangle,
   Info,
-  Clock
+  Clock,
+  Briefcase,
+  AtSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -240,8 +242,9 @@ function NotificationList({
 function IconForCategory({ tipo }: { tipo: string }) {
   if (tipo === 'critical') return <AlertCircle className="size-3.5 text-rose-500" />;
   if (tipo === 'alert') return <AlertTriangle className="size-3.5 text-amber-500" />;
-  if (tipo === 'mention') return <span className="text-[10px] font-bold text-sky-500">@</span>;
+  if (tipo === 'mention' || tipo === 'at') return <AtSign className="size-3.5 text-sky-500" />;
   if (tipo === 'finance') return <span className="text-[10px] font-bold text-rose-500">$</span>;
+  if (tipo === 'job') return <Briefcase className="size-3.5 text-primary" />;
   
   return <Info className="size-3.5 text-primary" />;
 }
