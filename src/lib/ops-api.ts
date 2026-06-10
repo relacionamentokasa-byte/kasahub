@@ -469,10 +469,10 @@ export async function duplicateJob(id: string) {
   // 3. Duplicate Checklist Items
   const checklist = await fetchChecklist(id);
   if (checklist.length > 0) {
-    const newItems = checklist.map(({ id: _i, created_at: _c, updated_at: _u, job_id: _j, ...item }) => ({
-      ...item,
-      job_id: newJob.id
-    }));
+    const newItems = checklist.map((item) => {
+      const { id: _i, created_at: _c, job_id: _j, ...rest } = item as any;
+      return { ...rest, job_id: newJob.id };
+    });
     await supabase.from("job_checklist").insert(newItems);
   }
 
