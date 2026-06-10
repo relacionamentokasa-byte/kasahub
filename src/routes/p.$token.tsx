@@ -457,7 +457,7 @@ function PublicProposalView() {
                <Mail className="size-5 text-[#ffbc45] shrink-0" />
                <div className="min-w-0">
                   <p className="text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">E-mail</p>
-                  <p className="font-bold font-sans truncate">{client?.email || proposal.client_email || '—'}</p>
+                  <p className="font-bold font-sans truncate">{lead?.email || client?.email || proposal.client_email || '—'}</p>
                </div>
             </div>
           </div>
