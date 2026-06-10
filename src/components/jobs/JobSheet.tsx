@@ -302,7 +302,10 @@ export function JobSheet({
         .update({ done, updated_at: new Date().toISOString() } as any)
         .eq("id", id);
       
-      if (checklistError) throw checklistError;
+      if (checklistError) {
+        console.error("Erro detalhado do Supabase ao atualizar checklist:", checklistError);
+        throw checklistError;
+      }
 
       // 2. Fetch current status to recalculate progress
       const currentItems = checklist.map(it => it.id === id ? { ...it, done } : it);
