@@ -111,7 +111,7 @@ export async function handleMentions(text: string, context: {
   const { data: profiles, error: profileError } = await supabase
     .from("profiles")
     .select("id, display_name, full_name")
-    .or(`display_name.in.(${names.join(",")}),full_name.in.(${names.join(",")})`);
+    .or(`display_name.ilike.any.{${names.join(",")}},full_name.ilike.any.{${names.join(",")}}`);
 
   if (profileError) {
     console.error("Erro ao buscar perfis para menções:", profileError);

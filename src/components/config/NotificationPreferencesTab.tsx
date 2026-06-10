@@ -2,6 +2,7 @@ import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, Bell, Shield, Info } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
@@ -174,17 +175,56 @@ export function NotificationPreferencesTab() {
     }
   ];
 
+  async function sendTestNotification() {
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) return;
+
+      toast.promise(
+        supabase.rpc("notify_user", {
+          p_user_id: currentUser.id,
+          p_title: "Teste de Notificação",
+          p_description: "Esta é uma notificação de teste enviada para verificar se o sistema está funcionando corretamente.",
+          p_category: "general",
+          p_type: "info",
+          p_metadata: {
+            author_name: "Sistema KASA",
+            test: true
+          }
+        }),
+        {
+          loading: 'Enviando teste...',
+          success: 'Notificação de teste enviada! Verifique o sininho no topo.',
+          error: 'Falha ao enviar teste.'
+        }
+      );
+    } catch (error) {
+      console.error("Erro ao enviar teste:", error);
+      toast.error("Erro ao enviar notificação de teste");
+    }
+  }
+
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="bg-surface border border-border rounded-2xl p-8 shadow-sm">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="p-3 rounded-xl bg-primary/10 text-primary">
-            <Bell className="size-6" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary/10 text-primary">
+              <Bell className="size-6" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold tracking-tight">Notificações da Plataforma</h3>
+              <p className="text-sm text-foreground/50">Gerencie como e quando você deseja ser notificado no sistema.</p>
+            </div>
           </div>
-          <div>
-            <h3 className="text-xl font-bold tracking-tight">Notificações da Plataforma</h3>
-            <p className="text-sm text-foreground/50">Gerencie como e quando você deseja ser notificado no sistema.</p>
-          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="font-bold text-[10px] uppercase tracking-wider gap-2"
+            onClick={sendTestNotification}
+          >
+            Enviar Teste
+          </Button>
         </div>
 
         <div className="space-y-2">
