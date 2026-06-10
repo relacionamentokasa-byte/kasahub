@@ -296,22 +296,30 @@ export function JobSheet({
 
   const toggleItemMut = useMutation({
     mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
+      console.log(`Iniciando atualização do item ${id} para done=${done}`);
+      
       // 1. Update checklist item immediately
-      const { error: checklistError } = await supabase
+      const { data: updatedItem, error: checklistError } = await supabase
         .from("job_checklist")
         .update({ done, updated_at: new Date().toISOString() } as any)
-        .eq("id", id);
+        .eq("id", id)
+        .select()
+        .single();
       
       if (checklistError) {
         console.error("Erro detalhado do Supabase ao atualizar checklist:", checklistError);
-        throw checklistError;
+        throw new Error(`Erro ao atualizar item: ${checklistError.message} (Código: ${checklistError.code})`);
       }
+
+      console.log("Item atualizado com sucesso:", updatedItem);
 
       // 2. Fetch current status to recalculate progress
       const currentItems = checklist.map(it => it.id === id ? { ...it, done } : it);
       const total = currentItems.length;
       const completed = currentItems.filter(it => it.done).length;
       const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      console.log(`Recalculando progresso: ${completed}/${total} (${progress}%)`);
 
       // 3. Update the job record
       const { error: jobError } = await supabase
@@ -325,7 +333,8 @@ export function JobSheet({
 
       if (jobError) {
         console.error("Erro detalhado do Supabase ao atualizar progresso do job:", jobError);
-        throw jobError;
+        // Não lançamos erro aqui para não travar a UI se o item do checklist foi atualizado,
+        // mas o progresso falhou (embora idealmente ambos funcionem)
       }
       
       return { id, done, completed, total, progress };
