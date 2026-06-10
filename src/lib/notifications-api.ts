@@ -70,13 +70,22 @@ export async function notify(input: {
   originType?: string;
   originId?: string;
 }) {
-  const { data: u } = await supabase.auth.getUser();
-  const { data: profile } = await supabase.from('profiles').select('display_name, full_name, avatar_url').eq('id', u.user?.id || '').maybeSingle();
-  
-  const metadata = {
-    author_name: profile?.display_name || profile?.full_name || 'Alguém',
-    author_avatar: profile?.avatar_url
-  };
+  const { data: authData } = await supabase.auth.getUser();
+  const currentUserId = authData.user?.id;
+  let metadata = null;
+
+  if (currentUserId) {
+    const { data: profile } = await supabase.from('profiles').select('display_name, full_name, avatar_url').eq('id', currentUserId).maybeSingle();
+    metadata = {
+      author_name: profile?.display_name || profile?.full_name || 'Alguém',
+      author_avatar: profile?.avatar_url
+    };
+  } else {
+    metadata = {
+      author_name: 'Sistema',
+      author_avatar: null
+    };
+  }
 
   console.log("Enviando notificação para:", input.userId, "Categoria:", input.category);
   const { error } = await supabase.rpc("notify_user", {
