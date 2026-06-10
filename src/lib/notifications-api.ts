@@ -132,15 +132,17 @@ export async function handleMentions(text: string, context: {
 
   const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
 
-  for (const profile of profiles) {
-    if (profile.id === currentUserId) continue;
-    
-    await enviarNotificacao(
-      profile.id,
-      `${authorName} mencionou você`,
-      `Mencionou você no job: ${context.title}`,
-      "mention",
-      context.link
+  const notificationPromises = profiles
+    .filter(profile => profile.id !== currentUserId)
+    .map(profile => 
+      enviarNotificacao(
+        profile.id,
+        `${authorName} mencionou você`,
+        `Mencionou você no job: ${context.title}`,
+        "mention",
+        context.link
+      )
     );
-  }
+
+  await Promise.all(notificationPromises);
 }
