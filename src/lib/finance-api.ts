@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { notify } from "./notifications-api";
 import type { Database } from "@/integrations/supabase/types";
 
 export type BankAccount = Database["public"]["Tables"]["bank_accounts"]["Row"];
