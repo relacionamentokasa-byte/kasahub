@@ -59,6 +59,7 @@ export const notify = async (input: {
   type?: string;
   category?: string;
   link?: string;
+  [key: string]: any; // Permite propriedades extras para compatibilidade
 }) => {
   return criarNotificacao(
     input.userId,
@@ -68,6 +69,7 @@ export const notify = async (input: {
     input.link
   );
 };
+
 
 export async function marcarComoLida(id: string) {
   const { error } = await supabase
