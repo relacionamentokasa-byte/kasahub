@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { useCurrentUser } from "@/hooks/use-current-user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -81,8 +80,6 @@ export function JobSheet({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
-  const { user: currentUser } = useCurrentUser();
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'master';
   const open = !!job;
   const [draft, setDraft] = useState("");
   const [comment, setComment] = useState("");
@@ -576,11 +573,11 @@ export function JobSheet({
                   <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Status</Label>
                   <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:gap-2">
                     {[
-                      { id: 'not_started', label: 'Nova Demanda', color: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/50', active: 'bg-zinc-500 text-white border-zinc-500' },
-                      { id: 'in_progress', label: 'Em Andamento', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50', active: 'bg-blue-500 text-white border-blue-500' },
-                      { id: 'review', label: 'Em Revisão', color: 'bg-amber-500/20 text-amber-400 border-amber-500/50', active: 'bg-amber-500 text-white border-amber-500' },
-                      { id: 'done', label: 'Concluído', color: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50', active: 'bg-emerald-500 text-white border-emerald-500' },
-                      { id: 'paused', label: 'Pausado', color: 'bg-orange-500/20 text-orange-400 border-orange-500/50', active: 'bg-orange-500 text-white border-orange-500' }
+                      { id: 'not_started', label: 'Nova Demanda', color: 'bg-[#374151]/20 text-[#374151] border-[#374151]/50', active: 'bg-[#374151] text-white border-[#374151]' },
+                      { id: 'in_progress', label: 'Em Andamento', color: 'bg-[#3b82f6]/20 text-[#3b82f6] border-[#3b82f6]/50', active: 'bg-[#3b82f6] text-white border-[#3b82f6]' },
+                      { id: 'review', label: 'Em Revisão', color: 'bg-[#ffbc45]/20 text-[#ffbc45] border-[#ffbc45]/50', active: 'bg-[#ffbc45] text-white border-[#ffbc45]' },
+                      { id: 'done', label: 'Concluído', color: 'bg-[#22c55e]/20 text-[#22c55e] border-[#22c55e]/50', active: 'bg-[#22c55e] text-white border-[#22c55e]' },
+                      { id: 'paused', label: 'Pausado', color: 'bg-[#f97316]/20 text-[#f97316] border-[#f97316]/50', active: 'bg-[#f97316] text-white border-[#f97316]' }
                     ].map((s) => {
                       const isActive = (job as any).status === s.id;
                       return (
