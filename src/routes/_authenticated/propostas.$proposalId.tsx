@@ -331,7 +331,7 @@ export function ProposalEditorContent({
 
   function copyShareLink() {
     if (!proposal) return;
-    const url = `${window.location.origin}/p/${proposal.public_token}`;
+    const url = `${window.location.origin}/proposta/${proposal.public_token}`;
     navigator.clipboard.writeText(url);
     toast.success("Link copiado");
   }

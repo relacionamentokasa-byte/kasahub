@@ -90,7 +90,7 @@ const STATUS_ORDER = ["draft", "sent", "waiting_signature", "accepted", "convert
 
 
 function publicUrl(token: string) {
-  return `${window.location.origin}/p/${token}`;
+  return `${window.location.origin}/proposta/${token}`;
 }
 
 function ProposalsPage() {

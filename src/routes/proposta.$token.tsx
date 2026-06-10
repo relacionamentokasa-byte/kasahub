@@ -123,7 +123,7 @@ function PublicProposalView() {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch(`/api/public/proposal/${token}`);
+      const res = await fetch(`/api/public/proposta/${token}`);
       if (res.status === 404) {
         setErrorCode("not_found");
         return;
@@ -190,7 +190,7 @@ function PublicProposalView() {
 
     setSigning(true);
     try {
-      const res = await fetch(`/api/public/proposal/${token}`, {
+      const res = await fetch(`/api/public/proposta/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
