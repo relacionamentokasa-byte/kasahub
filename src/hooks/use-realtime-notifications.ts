@@ -3,6 +3,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { 
+  Bell, 
+  CheckCheck, 
+  Inbox,
+  AlertCircle,
+  AlertTriangle,
+  Info,
+  Clock,
+  Briefcase,
+  AtSign
+} from "lucide-react";
+import React from "react";
 
 const NOTIFICATION_SOUND_URL = "https://lovable-pre-project.lovable.app/lovable-uploads/notification-chime.mp3";
 
