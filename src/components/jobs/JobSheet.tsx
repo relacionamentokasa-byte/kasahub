@@ -805,10 +805,11 @@ export function JobSheet({
                             <div key={item.id} className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all">
                               <Checkbox
                                 checked={item.done}
-                                onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: !!v })}
-                                className="size-5"
+                                onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: v === true })}
+                                className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300"
                               />
                               <div className="flex-1">
+
                                 <input
                                   defaultValue={item.content}
                                   onBlur={(e) => {
