@@ -80,7 +80,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
             proposal.lead_id
               ? supabaseAdmin
                   .from("leads")
-                  .select("name, company, phone")
+                  .select("name, company, phone, email")
                   .eq("id", proposal.lead_id)
                   .maybeSingle()
               : Promise.resolve({ data: null }),
