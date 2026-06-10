@@ -842,13 +842,27 @@ export function JobSheet({
                         {checklist.map((item) => {
                           const resp = team.find(p => p.id === (item as any).responsible_id);
                           return (
-                            <div key={item.id} className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all">
+                            <div 
+                              key={item.id} 
+                              className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all cursor-pointer"
+                              onClick={(e) => {
+                                // Only trigger if not clicking on the select or delete button
+                                if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="combobox"]')) {
+                                  toggleItemMut.mutate({ id: item.id, done: !item.done });
+                                }
+                              }}
+                            >
                               <Checkbox
                                 checked={item.done}
-                                onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: v === true })}
-                                className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300"
+                                onCheckedChange={(v) => {
+                                  // This will be handled by the div click for better hit area, 
+                                  // but keep it for accessibility/keyboard
+                                  toggleItemMut.mutate({ id: item.id, done: v === true });
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300 shrink-0"
                               />
-                              <div className="flex-1">
+                              <div className="flex-1 min-w-0">
 
                                 <input
                                   defaultValue={item.content}
