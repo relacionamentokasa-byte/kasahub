@@ -15,6 +15,11 @@ export interface Notification {
   origin_id: string | null;
   is_read: boolean;
   is_archived: boolean;
+  metadata: {
+    author_name?: string;
+    author_avatar?: string;
+    [key: string]: any;
+  } | null;
   created_at: string;
 }
 
