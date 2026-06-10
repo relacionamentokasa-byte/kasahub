@@ -89,6 +89,7 @@ type Lead = {
   name: string | null;
   company: string | null;
   phone: string | null;
+  email: string | null;
 } | null;
 
 
