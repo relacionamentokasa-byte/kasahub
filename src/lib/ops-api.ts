@@ -711,7 +711,7 @@ export async function addJobComment(
   
   const payload: any = { 
     job_id: jobId, 
-    user_id: u.user?.id || null, 
+    user_id: u.user?.id, 
     mensagem: content, 
     mentions,
     type,
