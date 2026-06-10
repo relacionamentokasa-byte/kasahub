@@ -167,7 +167,8 @@ export function ProposalEditorContent({
   useEffect(() => {
     if (proposal && !hasLoaded) {
       const p = proposal as any;
-      setForm({
+      setForm((prev) => ({
+        ...prev,
         title: proposal.title,
         client_id: p.client_id ?? "",
         lead_id: p.lead_id ?? "",
@@ -202,10 +203,11 @@ export function ProposalEditorContent({
         signature_client: p.signature_client ?? "",
         signature_agency: p.signature_agency ?? "",
         notes: p.notes ?? "",
-      });
+      }));
       setHasLoaded(true);
     }
   }, [proposal, hasLoaded]);
+
 
   const totals = useMemo(() => recalcProposalTotals(items), [items]);
 
@@ -257,11 +259,21 @@ export function ProposalEditorContent({
       } as any);
     },
     onSuccess: (updatedProposal, vars) => {
-      // Update local form status if changed in mutation variables
-      if (vars?.status) setForm((p) => ({ ...p, status: vars.status! }));
-      
-      // Update cache directly with returned data to avoid "reversion" during refetch
+      // Update local form with all changes from the successful save
       if (updatedProposal) {
+        const p = updatedProposal as any;
+        setForm((prev) => ({
+          ...prev,
+          ...p,
+          // Ensure nested/numeric fields are handled consistently with the initial load
+          monthly_investment: Number(p.monthly_investment || 0),
+          one_time_investment: Number(p.one_time_investment || 0),
+          recurring_months: Number(p.recurring_months || 12),
+          billing_day: Number(p.billing_day || 5),
+          installments: Number(p.installments || 1),
+        }));
+        
+        // Update cache directly with returned data to avoid "reversion" during refetch
         qc.setQueryData(["proposal", proposalId], updatedProposal);
       }
       
