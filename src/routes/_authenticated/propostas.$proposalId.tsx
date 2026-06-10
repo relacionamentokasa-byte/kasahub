@@ -167,7 +167,8 @@ export function ProposalEditorContent({
   useEffect(() => {
     if (proposal && !hasLoaded) {
       const p = proposal as any;
-      setForm({
+      setForm((prev) => ({
+        ...prev,
         title: proposal.title,
         client_id: p.client_id ?? "",
         lead_id: p.lead_id ?? "",
@@ -202,10 +203,11 @@ export function ProposalEditorContent({
         signature_client: p.signature_client ?? "",
         signature_agency: p.signature_agency ?? "",
         notes: p.notes ?? "",
-      });
+      }));
       setHasLoaded(true);
     }
   }, [proposal, hasLoaded]);
+
 
   const totals = useMemo(() => recalcProposalTotals(items), [items]);
 
