@@ -1266,6 +1266,38 @@ export type Database = {
           },
         ]
       }
+      job_comentarios: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string
+          mensagem: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id: string
+          mensagem: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          mensagem?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_comentarios_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_comments: {
         Row: {
           content: string
