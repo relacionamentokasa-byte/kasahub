@@ -30,6 +30,7 @@ import {
   duplicateJob,
   deleteJobStage,
   priorityColor,
+  priorityLabel,
   fetchClients,
   JOB_STATUS_LABELS,
   type Job,
@@ -43,10 +44,12 @@ import { Input } from "@/components/ui/input";
 import { NewJobDialog } from "./NewJobDialog";
 import { JobSheet } from "./JobSheet";
 import { toast } from "sonner";
+import { Progress } from "@/components/ui/progress";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+
 
 export const JOBS_QUERY_KEY = (filters: any) => ["jobs", filters];
 
