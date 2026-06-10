@@ -369,79 +369,6 @@ export function JobSheet({
     }
   });
 
-  const commentMut = useMutation({
-    mutationFn: async ({ content, type, metadata, isSystem }: { content: string; type?: string; metadata?: any; isSystem?: boolean }) => {
-      const result = await addJobComment(job!.id, content, type, metadata, isSystem);
-      
-      // Notificações e menções são processadas centralizadamente no ops-api.ts
-      
-      return result;
-    },
-    onMutate: async ({ content, type, metadata, isSystem }) => {
-      const qk = ["job-comments", job!.id];
-      await qc.cancelQueries({ queryKey: qk });
-      const prev = qc.getQueryData<any[]>(qk);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const tempId = Math.random().toString(36).substring(7);
-      const newComment = {
-        id: tempId,
-        job_id: job!.id,
-        user_id: user?.id,
-        mensagem: content,
-        type: type || 'comment',
-        is_system: isSystem || false,
-        created_at: new Date().toISOString(),
-        mentions: [],
-        metadata: metadata || {},
-        profiles: {
-          display_name: currentUser?.user_metadata?.display_name || currentUser?.email,
-          avatar_url: currentUser?.user_metadata?.avatar_url
-        }
-      };
-      
-      qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
-      setComment("");
-      
-      // Auto-focus back to input
-      setTimeout(() => {
-        commentInputRef.current?.focus();
-      }, 0);
-      
-      return { prev };
-    },
-    onSuccess: (data: any, variables) => {
-      qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
-      qc.refetchQueries({ queryKey: ["job-comments", job!.id] });
-      
-      // Notificações já são disparadas pela função addJobComment no ops-api.ts
-      // para evitar duplicidade, removemos a lógica daqui.
-    },
-    onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
-      toast.error("Erro ao enviar mensagem");
-    }
-  });
-
-  const updateCommentMut = useMutation({
-    mutationFn: ({ id, content }: { id: string, content: string }) => updateJobComment(id, content),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
-      setEditingCommentId(null);
-      toast.success("Comentário atualizado");
-    },
-    onError: (e: Error) => toast.error(e.message)
-  });
-
-  const deleteCommentMut = useMutation({
-    mutationFn: (id: string) => deleteJobComment(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
-      toast.success("Comentário excluído");
-    },
-    onError: (e: Error) => toast.error(e.message)
-  });
 
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -453,23 +380,8 @@ export function JobSheet({
   const isAdmin = currentUser?.user_metadata?.role === 'admin' || currentUser?.email === 'admin@ops.com'; // Placeholder check
 
   const communicationTimeline = useMemo(() => {
-
     if (!job) return [];
     return [
-      ...comments.map(c => ({ 
-        id: `comment-${c.id}`, 
-        commentId: c.id,
-        type: (c as any).type || 'comment', 
-        content: (c as any).mensagem || "", 
-        user_id: c.user_id, 
-        created_at: c.created_at || new Date().toISOString(), 
-        updated_at: (c as any).updated_at,
-        previous_versions: (c as any).previous_versions || [],
-        is_system: (c as any).is_system,
-        metadata: (c as any).metadata,
-        file_url: (c as any).metadata?.file_url || undefined
-      })),
-
       ...attachments.map(a => ({ 
         id: `attach-${a.id}`, 
         type: 'attachment', 
@@ -482,7 +394,7 @@ export function JobSheet({
       }))
     ].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
 
-  }, [comments, attachments, job]);
+  }, [attachments, job]);
 
   if (!job) return null;
 
