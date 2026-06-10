@@ -417,7 +417,7 @@ export function JobSheet({
       
       return result;
     },
-    onMutate: async ({ content, type, isSystem }) => {
+    onMutate: async ({ content, type, metadata, isSystem }) => {
       const qk = ["job-comments", job!.id];
       await qc.cancelQueries({ queryKey: qk });
       const prev = qc.getQueryData<any[]>(qk);
