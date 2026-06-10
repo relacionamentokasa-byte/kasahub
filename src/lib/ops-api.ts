@@ -713,14 +713,13 @@ export async function addJobComment(
 
 export function priorityColor(p: string) {
   switch (p) {
-    case "urgent":
-      return "#EF4444";
     case "high":
-      return "#F59E0B";
+    case "urgent":
+      return "#ef4444"; // Vermelho
     case "low":
-      return "#64748B";
+      return "#22c55e"; // Verde
     default:
-      return "#FFBC45";
+      return "#ffbc45"; // Amarelo (Normal)
   }
 }
 
