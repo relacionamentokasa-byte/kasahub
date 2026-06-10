@@ -610,8 +610,8 @@ export async function deleteJobComment(id: string) {
 
 export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
   const { data, error } = await supabase
-    .from("job_comments")
-    .select("*")
+    .from("job_comentarios")
+    .select("*, profiles:user_id(display_name, full_name, avatar_url)")
     .eq("job_id", jobId)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -660,12 +660,12 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
     return updatedComment;
   }));
 
-  return dataWithUrls;
+  return dataWithUrls as JobComment[];
 }
 
 export async function updateJobComment(commentId: string, content: string) {
   const { data: existing } = await supabase
-    .from("job_comments")
+    .from("job_comentarios")
     .select("*")
     .eq("id", commentId)
     .single();
@@ -674,15 +674,15 @@ export async function updateJobComment(commentId: string, content: string) {
 
   const previousVersions = (existing as any).previous_versions || [];
   const newVersion = {
-    content: existing.content,
+    mensagem: (existing as any).mensagem,
     updated_at: (existing as any).updated_at || existing.created_at,
     metadata: (existing as any).metadata,
   };
 
   const { data, error } = await supabase
-    .from("job_comments")
+    .from("job_comentarios")
     .update({
-      content,
+      mensagem: content,
       updated_at: new Date().toISOString(),
       previous_versions: [...previousVersions, newVersion]
     } as any)
@@ -693,6 +693,7 @@ export async function updateJobComment(commentId: string, content: string) {
   if (error) throw error;
   return data;
 }
+
 
 
 export async function addJobComment(
