@@ -49,7 +49,7 @@ export function useAudioNotifications() {
   };
 
   useEffect(() => {
-    if (!user?.id || !prefs?.sound_enabled) return;
+    if (!user?.id) return;
 
     // Real-time listener for new notifications
     const channel = supabase
@@ -62,23 +62,29 @@ export function useAudioNotifications() {
           table: 'notificacoes',
           filter: `user_id=eq.${user.id}`
         },
-
         (payload) => {
           const newNotif = payload.new;
           if (newNotif.id === lastProcessedId.current) return;
           lastProcessedId.current = newNotif.id;
 
-          // Check category specific sound prefs
-          let shouldPlay = true;
-          const category = newNotif.category;
+          // Sound is enabled by default unless explicitly disabled in prefs
+          const soundEnabled = prefs ? prefs.sound_enabled !== false : true;
+          
+          if (soundEnabled) {
+            // Check category specific sound prefs
+            let shouldPlay = true;
+            const tipo = newNotif.tipo;
 
-          if (category === 'mention' && prefs.sound_mentions === false) shouldPlay = false;
-          if (category === 'approval' && prefs.sound_approvals === false) shouldPlay = false;
-          if (category === 'job' && prefs.sound_jobs === false) shouldPlay = false;
-          if (category === 'agenda' && prefs.sound_agenda === false) shouldPlay = false;
+            if (prefs) {
+              if (tipo === 'mention' && prefs.sound_mentions === false) shouldPlay = false;
+              if (tipo === 'approval' && prefs.sound_approvals === false) shouldPlay = false;
+              if (tipo === 'job' && prefs.sound_jobs === false) shouldPlay = false;
+              if (tipo === 'agenda' && prefs.sound_agenda === false) shouldPlay = false;
+            }
 
-          if (shouldPlay) {
-            playSound(prefs.sound_volume as any);
+            if (shouldPlay) {
+              playSound(prefs?.sound_volume as any || 'medium');
+            }
           }
         }
       )
