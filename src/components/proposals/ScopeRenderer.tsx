@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkBreaks from "remark-breaks";
 
 export function ScopeRenderer({
   text,
@@ -21,9 +22,9 @@ export function ScopeRenderer({
 
   return (
     <div
-      className={`prose prose-sm max-w-none prose-headings:mt-3 prose-headings:mb-2 prose-p:my-2 prose-ul:my-2 prose-li:my-0.5 ${className}`}
+      className={`prose prose-sm max-w-none prose-headings:mt-6 prose-headings:mb-4 prose-p:my-3 prose-ul:my-3 prose-li:my-1 ${className}`}
     >
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{content}</ReactMarkdown>
     </div>
   );
 }
