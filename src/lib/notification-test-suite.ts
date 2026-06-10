@@ -23,7 +23,7 @@ export async function runFullNotificationTest() {
       await notify({
         userId: user.id,
         title: "Teste: Inserção Direta",
-        description: "Validando se a função RPC notify_user está gravando corretamente.",
+        description: "Validando se o novo sistema de notificações está gravando corretamente.",
         category: "general"
       });
       addResult("RPC notify_user", "success");

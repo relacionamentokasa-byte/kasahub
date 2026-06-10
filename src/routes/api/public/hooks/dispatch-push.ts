@@ -47,8 +47,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
           });
         }
 
-        const ageMs = Date.now() - new Date(notif.created_at).getTime();
+        const ageMs = Date.now() - new Date(notif.created_at!).getTime();
         if (ageMs > 5 * 60 * 1000) {
+
           return new Response(JSON.stringify({ error: "expired" }), {
             status: 410,
             headers: { "Content-Type": "application/json" },
@@ -58,7 +59,7 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
         const { data: subs, error: subsErr } = await supabaseAdmin
           .from("push_subscriptions")
           .select("id, endpoint, p256dh, auth")
-          .eq("user_id", notif.user_id);
+          .eq("user_id", notif.user_id!);
 
         if (subsErr) {
           return new Response(JSON.stringify({ error: subsErr.message }), {
