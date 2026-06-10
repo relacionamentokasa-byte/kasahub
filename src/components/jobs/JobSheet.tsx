@@ -863,9 +863,9 @@ export function JobSheet({
 
                                 <button
                                   onClick={() => delItemMut.mutate(item.id)}
-                                  className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all"
+                                  className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all p-1"
                                 >
-                                  <Trash2 className="size-4" />
+                                  <X className="size-4" />
                                 </button>
                               </div>
                             </div>
