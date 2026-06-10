@@ -376,7 +376,7 @@ export function ProposalEditorContent({
           </button>
         ) : <span />}
         <div className="flex items-center gap-2 flex-wrap">
-          <Button onClick={() => saveMut.mutate(undefined)} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
+          <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending} variant="outline" className="gap-2"><Save className="size-4" /> Salvar</Button>
           <Button variant="outline" onClick={copyShareLink} className="gap-2"><Copy className="size-4" /> Copiar link do cliente</Button>
           {proposal.status === "draft" && (
             <Button
