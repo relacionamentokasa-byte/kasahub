@@ -370,15 +370,18 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   
   const { data: userData } = await supabase.auth.getUser();
   if (data.assignee_id && data.assignee_id !== userData.user?.id) {
-    await supabase.rpc('notify_user', {
-      p_user_id: data.assignee_id,
-      p_title: "Novo Job Atribuído",
-      p_description: `Você foi designado para: ${data.title}`,
-      p_category: 'job',
-      p_origin_type: 'jobs',
-      p_origin_id: data.id,
-      p_link: '/jobs'
-    } as any);
+    const { data: profiles } = await supabase.from('profiles').select('display_name, full_name').eq('id', userData.user?.id || '').maybeSingle();
+    const authorName = profiles?.display_name || profiles?.full_name || 'Alguém';
+
+    await notify({
+      userId: data.assignee_id,
+      title: "Novo Job Atribuído",
+      description: `${authorName} designou você como responsável do job ${data.title}`,
+      category: 'job',
+      originType: 'jobs',
+      originId: data.id,
+      link: `/jobs?jobId=${data.id}`
+    });
   }
   
   // Checklist padrão é inicializado via trigger no banco de dados (tr_initialize_job_checklist)
