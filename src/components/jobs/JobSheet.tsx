@@ -200,17 +200,17 @@ export function JobSheet({
       if (variables.status && job && variables.status !== job.status) {
         const teamInvolved = (job as any).team_involved || [];
         const statusLabel = JOB_STATUS_LABELS[variables.status as keyof typeof JOB_STATUS_LABELS]?.label || variables.status;
+        const recipients = teamInvolved.filter((id: string) => id !== currentUser?.id);
         
-        teamInvolved.forEach((userId: string) => {
-          if (userId === currentUser?.id) return;
-          enviarNotificacao(
-            userId,
+        if (recipients.length > 0) {
+          enviarNotificacaoMultipla(
+            recipients,
             `Status alterado: ${job.title}`,
             `O status do job foi alterado para: ${statusLabel}`,
             "job",
             `/jobs?jobId=${job.id}`
           ).catch(console.error);
-        });
+        }
       }
 
       // Notify if assignee changes
