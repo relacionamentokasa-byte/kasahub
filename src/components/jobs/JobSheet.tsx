@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -80,6 +81,8 @@ export function JobSheet({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const { user: currentUser } = useCurrentUser();
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.role === 'master';
   const open = !!job;
   const [draft, setDraft] = useState("");
   const [comment, setComment] = useState("");

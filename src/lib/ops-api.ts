@@ -206,10 +206,10 @@ export async function fetchProjectStats(projectId: string) {
 
 // ---------- Jobs ----------
 export const JOB_STATUS_LABELS: Record<string, { label: string, color: string }> = {
-  not_started: { label: 'Nova Demanda', color: '#71717a' },
+  not_started: { label: 'Nova Demanda', color: '#374151' },
   in_progress: { label: 'Em Andamento', color: '#3b82f6' },
-  review: { label: 'Em Revisão', color: '#f59e0b' },
-  done: { label: 'Concluído', color: '#10b981' },
+  review: { label: 'Em Revisão', color: '#ffbc45' },
+  done: { label: 'Concluído', color: '#22c55e' },
   paused: { label: 'Pausado', color: '#f97316' },
 };
 
