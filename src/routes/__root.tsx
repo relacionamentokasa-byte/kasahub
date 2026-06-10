@@ -18,7 +18,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
-import { useAudioNotifications } from "@/hooks/use-audio-notifications";
+import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { registerPWA } from "@/lib/pwa-register";
 
 const CookieConsent = lazy(() => import("@/components/CookieConsent").then(m => ({ default: m.CookieConsent })));
