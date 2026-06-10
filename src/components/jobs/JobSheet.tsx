@@ -403,21 +403,11 @@ export function JobSheet({
     mutationFn: async ({ content, type, metadata, isSystem }: { content: string; type?: string; metadata?: any; isSystem?: boolean }) => {
       const result = await addJobComment(job!.id, content, type, metadata, isSystem);
       
-      // Handle mentions manually for instant notification if not a system comment
-      if (!isSystem && content.includes('@')) {
-        const jobTitle = job!.title;
-        const jobLink = `/jobs?jobId=${job!.id}`;
-        await handleMentions(content, {
-          title: jobTitle,
-          link: jobLink,
-          originType: 'job',
-          originId: job!.id
-        });
-      }
+      // Notificações e menções são processadas centralizadamente no ops-api.ts
       
       return result;
     },
-    onMutate: async ({ content, type, isSystem }) => {
+    onMutate: async ({ content, type, metadata, isSystem }) => {
       const qk = ["job-comments", job!.id];
       await qc.cancelQueries({ queryKey: qk });
       const prev = qc.getQueryData<any[]>(qk);
@@ -429,11 +419,12 @@ export function JobSheet({
         id: tempId,
         job_id: job!.id,
         user_id: user?.id,
-        content,
+        mensagem: content,
         type: type || 'comment',
         is_system: isSystem || false,
         created_at: new Date().toISOString(),
-        mentions: []
+        mentions: [],
+        metadata: metadata || {}
       };
       
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
@@ -448,28 +439,10 @@ export function JobSheet({
     },
     onSuccess: (data: any, variables) => {
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
+      qc.refetchQueries({ queryKey: ["job-comments", job!.id] });
       
-      // Notify team members about new comment
-      if (!variables.isSystem) {
-        const teamInvolved = ((job as any).team_involved || []) as any[];
-        const recipients = teamInvolved
-          .map(m => typeof m === 'string' ? m : m.user_id)
-          .filter((userId: string) => 
-            userId &&
-            userId !== currentUser?.id && 
-            !variables.content.includes('@')
-          );
-
-        if (recipients.length > 0) {
-          enviarNotificacaoMultipla(
-            recipients,
-            `Novo comentário: ${job!.title}`,
-            variables.content.substring(0, 100) + (variables.content.length > 100 ? '...' : ''),
-            "comment",
-            `/jobs?jobId=${job!.id}`
-          ).catch(console.error);
-        }
-      }
+      // Notificações já são disparadas pela função addJobComment no ops-api.ts
+      // para evitar duplicidade, removemos a lógica daqui.
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
