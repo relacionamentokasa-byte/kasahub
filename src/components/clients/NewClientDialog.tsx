@@ -26,6 +26,22 @@ export function NewClientDialog({
   onCreated?: (id: string) => void;
 }) {
   const qc = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('clients-realtime-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'clients' },
+        () => qc.invalidateQueries({ queryKey: ["clients"] })
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [qc]);
+
   const [form, setForm] = useState({
     name: "",
     company: "",
