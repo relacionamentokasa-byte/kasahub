@@ -424,7 +424,11 @@ export function JobSheet({
         is_system: isSystem || false,
         created_at: new Date().toISOString(),
         mentions: [],
-        metadata: metadata || {}
+        metadata: metadata || {},
+        profiles: {
+          display_name: currentUser?.user_metadata?.display_name || currentUser?.email,
+          avatar_url: currentUser?.user_metadata?.avatar_url
+        }
       };
       
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
