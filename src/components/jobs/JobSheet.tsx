@@ -192,9 +192,42 @@ export function JobSheet({
       
       return { prev };
     },
-    onSuccess: (updatedJob) => {
+    onSuccess: (updatedJob, variables) => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       qc.invalidateQueries({ queryKey: ["job", job!.id] });
+      
+      // Notify team members when status changes
+      if (variables.status && job && variables.status !== job.status) {
+        const teamInvolved = (job as any).team_involved || [];
+        const statusLabel = JOB_STATUS_LABELS[variables.status as keyof typeof JOB_STATUS_LABELS]?.label || variables.status;
+        
+        teamInvolved.forEach((userId: string) => {
+          if (userId === currentUser?.id) return;
+          notify({
+            userId,
+            title: `Job: ${job.title}`,
+            description: `Status alterado para: ${statusLabel}`,
+            category: "job",
+            link: `/jobs?jobId=${job.id}`,
+            originType: "job",
+            originId: job.id
+          }).catch(console.error);
+        });
+      }
+
+      // Notify if assignee changes
+      if (variables.assignee_id && job && variables.assignee_id !== (job as any).assignee_id) {
+        notify({
+          userId: variables.assignee_id,
+          title: "Novo Job Atribuído",
+          description: `Você foi atribuído ao job: ${job.title}`,
+          category: "job",
+          link: `/jobs?jobId=${job.id}`,
+          originType: "job",
+          originId: job.id
+        }).catch(console.error);
+      }
+
       toast.success("Job atualizado");
     },
     onError: (e: Error, _v, ctx) => {
