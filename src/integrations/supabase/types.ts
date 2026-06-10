@@ -1270,22 +1270,40 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_system: boolean | null
           job_id: string
           mensagem: string
+          mentions: Json | null
+          metadata: Json | null
+          previous_versions: Json | null
+          type: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
+          is_system?: boolean | null
           job_id: string
           mensagem: string
+          mentions?: Json | null
+          metadata?: Json | null
+          previous_versions?: Json | null
+          type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
+          is_system?: boolean | null
           job_id?: string
           mensagem?: string
+          mentions?: Json | null
+          metadata?: Json | null
+          previous_versions?: Json | null
+          type?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
