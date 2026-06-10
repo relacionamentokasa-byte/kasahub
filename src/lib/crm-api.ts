@@ -204,7 +204,7 @@ export async function createProposal(input: {
   first_due_date?: string;
   notes?: string | null;
   scope?: string[];
-  scope_text?: string | null;
+  scope_text?: string[] | string | null;
   auto_create_jobs?: boolean;
   contract_template_id?: string | null;
   contract_content?: string | null;
