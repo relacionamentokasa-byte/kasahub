@@ -235,7 +235,7 @@ function PublicProposalView() {
       client_legal_name: lead?.company || client?.company || proposal.client_name,
       client_document: client?.document || "",
       client_address: client?.address || "",
-      client_email: proposal.client_email || client?.email || "",
+      client_email: lead?.email || client?.email || proposal.client_email || "",
       client_phone: lead?.phone || client?.phone || "",
       services_list: (proposal.scope || []).join(", "),
       monthly_value: formatCurrency(proposal.monthly_investment),
