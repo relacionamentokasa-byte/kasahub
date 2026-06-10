@@ -470,9 +470,13 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
 
   return (
     <div
-      className={`bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition ${
+      className={cn(
+        "bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition relative overflow-hidden",
         dragging ? "shadow-2xl rotate-1" : ""
-      }`}
+      )}
+      style={{ 
+        borderLeft: `4px solid ${priorityColor(job.priority)}` 
+      }}
     >
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
