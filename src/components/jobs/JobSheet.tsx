@@ -299,7 +299,7 @@ export function JobSheet({
       // 1. Update checklist item immediately
       const { error: checklistError } = await supabase
         .from("job_checklist")
-        .update({ done, updated_at: new Date().toISOString() })
+        .update({ done, updated_at: new Date().toISOString() } as any)
         .eq("id", id);
       
       if (checklistError) throw checklistError;
