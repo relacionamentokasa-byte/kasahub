@@ -814,6 +814,11 @@ export function JobSheet({
                                         .then(() => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }));
                                     }
                                   }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.currentTarget.blur();
+                                    }
+                                  }}
                                   className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm ${
                                     item.done ? "line-through text-foreground/40" : "font-medium text-foreground"
                                   }`}
