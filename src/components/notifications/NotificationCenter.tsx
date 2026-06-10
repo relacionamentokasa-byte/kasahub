@@ -58,9 +58,20 @@ export function NotificationCenter() {
             table: "notificacoes",
             filter: `user_id=eq.${user.id}`,
           },
-          () => {
+          (payload) => {
+            const newNotif = payload.new as Notificacao;
             qc.invalidateQueries({ queryKey: ["notificacoes"] });
-            // Som de notificação pode ser chamado aqui se desejado
+            
+            // Notificação instantânea via Toast
+            toast(newNotif.titulo, {
+              description: newNotif.mensagem,
+              duration: 5000,
+              icon: <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center mr-2"><IconForCategory tipo={newNotif.tipo} /></div>,
+              action: newNotif.link ? {
+                label: "Ver",
+                onClick: () => navigate({ to: newNotif.link as any })
+              } : undefined,
+            });
           }
         )
         .subscribe();
