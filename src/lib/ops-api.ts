@@ -393,6 +393,7 @@ export async function updateJob(
   patch: Database["public"]["Tables"]["jobs"]["Update"],
 ) {
   if (patch.due_date === null) throw new Error("Prazo final é obrigatório");
+  
   // Checklist validation on completion
   if (patch.status === 'done' || patch.done_at) {
     const checklist = await fetchChecklist(id);
@@ -402,24 +403,47 @@ export async function updateJob(
     }
   }
 
+  const { data: originalJob } = await supabase.from("jobs").select("status, assignee_id, title, team_involved").eq("id", id).single();
+
   const { data, error } = await supabase.from("jobs").update(patch).eq("id", id).select().single();
   if (error) throw error;
   
   const { data: userData } = await supabase.auth.getUser();
-  if (patch.assignee_id && patch.assignee_id !== userData.user?.id) {
+  const currentUserId = userData.user?.id;
+
+  // Notificação de atribuição
+  if (patch.assignee_id && patch.assignee_id !== originalJob?.assignee_id && patch.assignee_id !== currentUserId) {
+    const { data: profiles } = await supabase.from('profiles').select('display_name, full_name').eq('id', currentUserId || '').maybeSingle();
+    const authorName = profiles?.display_name || profiles?.full_name || 'Alguém';
+
     await supabase.rpc('notify_user', {
       p_user_id: patch.assignee_id,
-      p_title: "Responsabilidade de Job",
-      p_description: `Você agora é responsável por: ${data.title}`,
+      p_title: "Novo Job Atribuído",
+      p_description: `${authorName} atribuiu você ao job: ${data.title}`,
       p_category: 'job',
       p_origin_type: 'jobs',
       p_origin_id: data.id,
-      p_link: '/jobs'
+      p_link: `/jobs?jobId=${data.id}`
     } as any);
   }
 
-  if (patch.status === 'done' || patch.done_at) {
-    // Notificar criador ou gestor? Para o MVP, focar nas atribuições e menções.
+  // Notificação de mudança de status para a equipe
+  if (patch.status && originalJob && patch.status !== originalJob.status) {
+    const teamInvolved = (originalJob as any).team_involved || [];
+    const statusLabel = JOB_STATUS_LABELS[patch.status as keyof typeof JOB_STATUS_LABELS]?.label || patch.status;
+    
+    for (const userId of teamInvolved) {
+      if (userId === currentUserId) continue;
+      await supabase.rpc('notify_user', {
+        p_user_id: userId,
+        p_title: `Status alterado: ${data.title}`,
+        p_description: `O job agora está em: ${statusLabel}`,
+        p_category: 'job',
+        p_origin_type: 'jobs',
+        p_origin_id: data.id,
+        p_link: `/jobs?jobId=${data.id}`
+      } as any).catch(console.error);
+    }
   }
 
   await logAudit("update", "job", id, null, patch);
