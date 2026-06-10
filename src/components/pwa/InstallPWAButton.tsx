@@ -34,32 +34,7 @@ export function InstallPWAButton() {
     };
   }, []);
 
-  const isPreview = typeof window !== "undefined" && (
-    window.location.hostname.includes("lovable.app") ||
-    window.location.hostname.includes("lovableproject.com") ||
-    window.location.hostname.includes("beta.lovable.dev")
-  );
-
-  if (installed || (!evt && !isPreview)) return null;
-
-  if (isPreview && !evt) {
-    return (
-      <Button
-        size="sm"
-        variant="outline"
-        className="gap-2 opacity-50 cursor-not-allowed"
-        title="A instalação só está disponível no domínio final (publicado). Use a URL .lovable.app para instalar."
-        onClick={() => {
-          toast.info("A opção de instalar como aplicativo só aparecerá quando você acessar o site através da URL pública publicada.", {
-            description: "No ambiente de edição (preview) o navegador bloqueia a instalação por segurança."
-          });
-        }}
-      >
-        <Download className="size-4" />
-        <span className="hidden sm:inline">Instalar App</span>
-      </Button>
-    );
-  }
+  if (installed || !evt) return null;
 
   return (
     <Button
