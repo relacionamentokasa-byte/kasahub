@@ -125,6 +125,13 @@ export function JobSheet({
   });
 
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: currentUser } = useQuery({ 
+    queryKey: ["auth-user"], 
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+  });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: servicesData = [] } = useQuery({ queryKey: ["services", "active"], queryFn: async () => {
