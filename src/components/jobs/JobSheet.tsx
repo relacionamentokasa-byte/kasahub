@@ -295,45 +295,79 @@ export function JobSheet({
   });
 
   const toggleItemMut = useMutation({
-    mutationFn: ({ id, done }: { id: string; done: boolean }) => toggleChecklistItem(id, done),
+    mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
+      // 1. Update checklist item immediately
+      const { error: checklistError } = await supabase
+        .from("job_checklist")
+        .update({ done, updated_at: new Date().toISOString() } as any)
+        .eq("id", id);
+      
+      if (checklistError) throw checklistError;
+
+      // 2. Fetch current status to recalculate progress
+      const currentItems = checklist.map(it => it.id === id ? { ...it, done } : it);
+      const total = currentItems.length;
+      const completed = currentItems.filter(it => it.done).length;
+      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+      // 3. Update the job record
+      const { error: jobError } = await supabase
+        .from("jobs")
+        .update({
+          completed_steps: completed,
+          total_steps: total,
+          progress_percentage: progress
+        } as any)
+        .eq("id", job!.id);
+
+      if (jobError) throw jobError;
+      
+      return { id, done, completed, total, progress };
+    },
     onMutate: async ({ id, done }) => {
+      // Cancelar queries para evitar sobrescritas
       await qc.cancelQueries({ queryKey: ["job-checklist", job!.id] });
-      const prev = qc.getQueryData<any[]>(["job-checklist", job!.id]);
+      await qc.cancelQueries({ queryKey: ["jobs"] });
+
+      // Snapshot dos dados atuais
+      const prevChecklist = qc.getQueryData<any[]>(["job-checklist", job!.id]);
+      const prevJobs = qc.getQueryData<any[]>(["jobs"]);
+
+      // Atualização otimista do Checklist
       qc.setQueryData<any[]>(["job-checklist", job!.id], (old) =>
-        (old ?? []).map((item) => (item.id === id ? { ...item, done } : item)),
+        (old ?? []).map((item) => (item.id === id ? { ...item, done } : item))
       );
       
-      const currentChecklist = prev || [];
-      const newChecklist = currentChecklist.map(it => it.id === id ? { ...it, done } : it);
+      // Cálculo do novo progresso para atualização otimista do Job
+      const newChecklist = (prevChecklist || []).map(it => it.id === id ? { ...it, done } : it);
       const total = newChecklist.length;
       const completed = newChecklist.filter(it => it.done).length;
       const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
+      // Atualização otimista da lista de Jobs (para o Kanban)
       qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
         if (!old || !Array.isArray(old)) return old;
-        return old.map(j => {
-          if (j.id === job!.id) {
-            return {
-              ...j,
-              completed_steps: completed,
-              total_steps: total,
-              progress_percentage: progress
-            };
-          }
-          return j;
-        });
+        return old.map(j => (j.id === job!.id ? { 
+          ...j, 
+          completed_steps: completed, 
+          total_steps: total, 
+          progress_percentage: progress 
+        } : j));
       });
 
-      return { prev };
+      return { prevChecklist, prevJobs };
     },
     onSuccess: () => {
+      // Revalidar para garantir consistência após a mutação
       qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
-      qc.invalidateQueries({ queryKey: ["available-periods"] });
+      qc.invalidateQueries({ queryKey: ["job", job!.id] });
     },
-
     onError: (_e, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
+      // Rollback em caso de erro
+      if (ctx?.prevChecklist) qc.setQueryData(["job-checklist", job!.id], ctx.prevChecklist);
+      if (ctx?.prevJobs) qc.setQueryData(["jobs"], ctx.prevJobs);
+      toast.error("Falha ao atualizar checklist");
     }
   });
 
