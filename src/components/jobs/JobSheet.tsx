@@ -296,9 +296,7 @@ export function JobSheet({
 
   const toggleItemMut = useMutation({
     mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
-      console.log(`Iniciando atualização do item ${id} para done=${done}`);
-      
-      // 1. Update checklist item immediately
+      // 1. Update checklist item
       const { data: updatedItem, error: checklistError } = await supabase
         .from("job_checklist")
         .update({ done, updated_at: new Date().toISOString() } as any)
@@ -308,58 +306,52 @@ export function JobSheet({
       
       if (checklistError) {
         console.error("Erro detalhado do Supabase ao atualizar checklist:", checklistError);
-        throw new Error(`Erro ao atualizar item: ${checklistError.message} (Código: ${checklistError.code})`);
+        throw new Error(`Erro ao atualizar item: ${checklistError.message}`);
       }
 
-      console.log("Item atualizado com sucesso:", updatedItem);
+      // 2. Fetch current status to recalculate progress for the single source of truth in DB
+      const { data: currentItems, error: fetchError } = await supabase
+        .from("job_checklist")
+        .select("done")
+        .eq("job_id", job!.id);
 
-      // 2. Fetch current status to recalculate progress
-      const currentItems = checklist.map(it => it.id === id ? { ...it, done } : it);
-      const total = currentItems.length;
-      const completed = currentItems.filter(it => it.done).length;
-      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+      if (!fetchError && currentItems) {
+        const total = currentItems.length;
+        const completed = currentItems.filter(it => it.done).length;
+        const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-      console.log(`Recalculando progresso: ${completed}/${total} (${progress}%)`);
-
-      // 3. Update the job record
-      const { error: jobError } = await supabase
-        .from("jobs")
-        .update({
-          completed_steps: completed,
-          total_steps: total,
-          progress_percentage: progress
-        } as any)
-        .eq("id", job!.id);
-
-      if (jobError) {
-        console.error("Erro detalhado do Supabase ao atualizar progresso do job:", jobError);
-        // Não lançamos erro aqui para não travar a UI se o item do checklist foi atualizado,
-        // mas o progresso falhou (embora idealmente ambos funcionem)
+        // 3. Update the job record
+        await supabase
+          .from("jobs")
+          .update({
+            completed_steps: completed,
+            total_steps: total,
+            progress_percentage: progress
+          } as any)
+          .eq("id", job!.id);
       }
       
-      return { id, done, completed, total, progress };
+      return { id, done };
     },
     onMutate: async ({ id, done }) => {
-      // Cancelar queries para evitar sobrescritas
+      // Cancel queries to avoid overwriting optimistic updates
       await qc.cancelQueries({ queryKey: ["job-checklist", job!.id] });
       await qc.cancelQueries({ queryKey: ["jobs"] });
 
-      // Snapshot dos dados atuais
       const prevChecklist = qc.getQueryData<any[]>(["job-checklist", job!.id]);
       const prevJobs = qc.getQueryData<any[]>(["jobs"]);
 
-      // Atualização otimista do Checklist
+      // OPTIMISTIC UPDATE: Checklist
       qc.setQueryData<any[]>(["job-checklist", job!.id], (old) =>
         (old ?? []).map((item) => (item.id === id ? { ...item, done } : item))
       );
       
-      // Cálculo do novo progresso para atualização otimista do Job
-      const newChecklist = (prevChecklist || []).map(it => it.id === id ? { ...it, done } : it);
-      const total = newChecklist.length;
-      const completed = newChecklist.filter(it => it.done).length;
+      // OPTIMISTIC UPDATE: Jobs progress (for Kanban and Sheet UI)
+      const currentItems = (prevChecklist || []).map(it => it.id === id ? { ...it, done } : it);
+      const total = currentItems.length;
+      const completed = currentItems.filter(it => it.done).length;
       const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
 
-      // Atualização otimista da lista de Jobs (para o Kanban)
       qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
         if (!old || !Array.isArray(old)) return old;
         return old.map(j => (j.id === job!.id ? { 
@@ -372,17 +364,16 @@ export function JobSheet({
 
       return { prevChecklist, prevJobs };
     },
-    onSuccess: () => {
-      // Revalidar para garantir consistência após a mutação
+    onSettled: () => {
+      // Re-fetch to ensure sync with server, but UI was already updated
       qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
-      qc.invalidateQueries({ queryKey: ["job", job!.id] });
     },
-    onError: (_e, _v, ctx) => {
-      // Rollback em caso de erro
+    onError: (err, _v, ctx) => {
       if (ctx?.prevChecklist) qc.setQueryData(["job-checklist", job!.id], ctx.prevChecklist);
       if (ctx?.prevJobs) qc.setQueryData(["jobs"], ctx.prevJobs);
-      toast.error("Falha ao atualizar checklist");
+      toast.error("Falha ao sincronizar alteração");
+      console.error("Mutation error:", err);
     }
   });
 
