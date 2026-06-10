@@ -269,3 +269,56 @@ export const deleteUserServer = createServerFn({ method: "POST" })
 export async function deleteUser(userId: string) {
   return deleteUserServer({ data: { userId } });
 }
+
+export const updateUserPasswordServer = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({
+    userId: z.string().uuid(),
+    password: z.string().min(6),
+  }).parse(input))
+  .handler(async ({ data, context }) => {
+    const SUPABASE_URL = process.env.SUPABASE_URL;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Supabase environment variables not configured on server");
+    }
+
+    const adminClient = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // Verify if current user is admin
+    const { data: currentUserRoles } = await adminClient
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId)
+      .eq("role", "admin");
+
+    if (!currentUserRoles || currentUserRoles.length === 0) {
+      throw new Error("Apenas administradores podem redefinir senhas");
+    }
+
+    // Update user password in Auth
+    const { error: authError } = await adminClient.auth.admin.updateUserById(data.userId, {
+      password: data.password
+    });
+
+    if (authError) throw authError;
+
+    // Update plain_password in Profile for visibility (if it exists)
+    const { error: profileError } = await adminClient
+      .from("profiles")
+      .update({ plain_password: data.password })
+      .eq("id", data.userId);
+    
+    if (profileError) {
+      console.warn("Could not update plain_password in profile:", profileError.message);
+    }
+
+    return { success: true };
+  });
+
+export async function updateUserPassword(userId: string, password: string) {
+  return updateUserPasswordServer({ data: { userId, password } });
+}

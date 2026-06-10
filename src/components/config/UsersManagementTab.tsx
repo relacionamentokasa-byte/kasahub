@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Trash2, UserPlus, ShieldAlert, RefreshCw, Mail, Eye, EyeOff } from "lucide-react";
+import { Loader2, Trash2, UserPlus, ShieldAlert, RefreshCw, Mail, Eye, EyeOff, KeyRound } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { fetchUsers, fetchInvites, createInvite, deleteInvite, updateUserStatus, deleteUser } from "@/lib/users-api";
+import { updateUserPassword } from "@/lib/team-api";
 import { fetchAgencySettings } from "@/lib/settings-api";
 import { fetchCustomRoles, assignProfileRole } from "@/lib/permissions-api";
 import { createInvite as createTeamInvite, resendInvite, ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
@@ -154,6 +155,66 @@ function InviteUserDialog({ roles = [], disabled, limitReached }: { roles?: any[
               {mut.isPending ? "Enviando..." : "Enviar Convite"}
             </Button>
           )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ResetPasswordDialog({ userId, userName, canEdit }: { userId: string, userName: string, canEdit: boolean }) {
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const qc = useQueryClient();
+
+  const mut = useMutation({
+    mutationFn: () => updateUserPassword(userId, password),
+    onSuccess: () => {
+      toast.success("Senha atualizada com sucesso");
+      qc.invalidateQueries({ queryKey: ["users"] });
+      setOpen(false);
+      setPassword("");
+    },
+    onError: (e: Error) => toast.error("Erro ao atualizar senha: " + e.message),
+  });
+
+  if (!canEdit) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="text-foreground/40 hover:text-primary h-8 w-8 p-0"
+          title="Redefinir Senha"
+        >
+          <KeyRound className="size-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Redefinir Senha de {userName}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="new-password">Nova Senha</Label>
+            <Input 
+              id="new-password"
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              placeholder="Digite a nova senha (mín. 6 caracteres)"
+            />
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+          <Button 
+            onClick={() => mut.mutate()} 
+            disabled={password.length < 6 || mut.isPending}
+          >
+            {mut.isPending ? "Salvando..." : "Salvar Nova Senha"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -346,6 +407,11 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       
                       {canEdit && (
                         <>
+                          <ResetPasswordDialog 
+                            userId={u.id} 
+                            userName={u.display_name || u.full_name || "Usuário"} 
+                            canEdit={canEdit} 
+                          />
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button 
