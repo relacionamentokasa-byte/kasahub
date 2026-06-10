@@ -18,6 +18,16 @@ import React from "react";
 
 const NOTIFICATION_SOUND_URL = "https://lovable-pre-project.lovable.app/lovable-uploads/notification-chime.mp3";
 
+const IconForCategory = ({ tipo }: { tipo: string }) => {
+  if (tipo === 'critical') return React.createElement(AlertCircle, { className: "size-4 text-rose-500" });
+  if (tipo === 'alert') return React.createElement(AlertTriangle, { className: "size-4 text-amber-500" });
+  if (tipo === 'mention' || tipo === 'at') return React.createElement(AtSign, { className: "size-4 text-sky-500" });
+  if (tipo === 'finance') return React.createElement("span", { className: "text-xs font-bold text-rose-500" }, "$");
+  if (tipo === 'job') return React.createElement(Briefcase, { className: "size-4 text-primary" });
+  
+  return React.createElement(Info, { className: "size-4 text-primary" });
+};
+
 export function useRealtimeNotifications() {
   const lastProcessedId = useRef<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
