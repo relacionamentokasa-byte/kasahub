@@ -451,27 +451,8 @@ export function JobSheet({
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
       qc.refetchQueries({ queryKey: ["job-comments", job!.id] });
       
-      // Notify team members about new comment
-      if (!variables.isSystem) {
-        const teamInvolved = ((job as any).team_involved || []) as any[];
-        const recipients = teamInvolved
-          .map(m => typeof m === 'string' ? m : m.user_id)
-          .filter((userId: string) => 
-            userId &&
-            userId !== currentUser?.id && 
-            !variables.content.includes('@')
-          );
-
-        if (recipients.length > 0) {
-          enviarNotificacaoMultipla(
-            recipients,
-            `Novo comentário: ${job!.title}`,
-            variables.content.substring(0, 100) + (variables.content.length > 100 ? '...' : ''),
-            "comment",
-            `/jobs?jobId=${job!.id}`
-          ).catch(console.error);
-        }
-      }
+      // Notificações já são disparadas pela função addJobComment no ops-api.ts
+      // para evitar duplicidade, removemos a lógica daqui.
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
