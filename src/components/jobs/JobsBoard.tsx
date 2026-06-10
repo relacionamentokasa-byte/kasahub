@@ -481,10 +481,6 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2 min-w-0 flex-1">
-            <span
-              className="size-1.5 rounded-full mt-1.5 shrink-0"
-              style={{ background: priorityColor(job.priority) }}
-            />
             <div className="min-w-0">
               <div className="font-semibold text-sm leading-snug truncate">{job.title}</div>
               <div className="text-[9px] text-foreground/40 mt-0.5 flex flex-col gap-0.5">
