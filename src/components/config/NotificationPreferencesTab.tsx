@@ -4,7 +4,8 @@ import { Loader2, Bell, Shield, Info } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { runFullNotificationTest } from "@/lib/notification-test-suite";
 
 function ToggleRow({
   title,
@@ -220,14 +221,24 @@ export function NotificationPreferencesTab() {
               <p className="text-sm text-foreground/50">Gerencie como e quando você deseja ser notificado no sistema.</p>
             </div>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="font-bold text-[10px] uppercase tracking-wider gap-2"
-            onClick={sendTestNotification}
-          >
-            Enviar Teste
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="font-bold text-[10px] uppercase tracking-wider gap-2"
+              onClick={sendTestNotification}
+            >
+              Teste Simples
+            </Button>
+            <Button 
+              variant="default" 
+              size="sm" 
+              className="font-bold text-[10px] uppercase tracking-wider gap-2"
+              onClick={runFullNotificationTest}
+            >
+              Rodar Teste Completo (Gatilhos)
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-2">
