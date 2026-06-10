@@ -1,106 +1,100 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type NotificationType = "info" | "alert" | "critical";
-export type NotificationCategory = "mention" | "comment" | "job" | "approval" | "agenda" | "finance" | "general";
-
-export interface Notification {
+export interface Notificacao {
   id: string;
   user_id: string;
-  title: string;
-  description: string | null;
-  type: NotificationType;
-  category: NotificationCategory;
+  titulo: string;
+  mensagem: string;
+  tipo: string;
+  lido: boolean;
   link: string | null;
-  origin_type: string | null;
-  origin_id: string | null;
-  is_read: boolean;
-  is_archived: boolean;
-  metadata: {
-    author_name?: string;
-    author_avatar?: string;
-    [key: string]: any;
-  } | null;
   created_at: string;
 }
 
 export async function fetchNotifications() {
-  const { data, error } = await supabase
-    .from("notifications")
-    .select("*")
-    .eq("is_archived", false)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data as any as Notification[];
-}
-
-export async function markAsRead(id: string) {
-  const { error } = await supabase
-    .from("notifications")
-    .update({ is_read: true } as any)
-    .eq("id", id);
-  if (error) throw error;
-}
-
-export async function markAllAsRead() {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return;
-  const { error } = await supabase
-    .from("notifications")
-    .update({ is_read: true } as any)
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("notificacoes")
+    .select("*")
     .eq("user_id", user.id)
-    .eq("is_read", false);
-  if (error) throw error;
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao buscar notificações:", error);
+    return [];
+  }
+  return data as Notificacao[];
 }
 
-export async function archiveNotification(id: string) {
+export async function criarNotificacao(
+  user_id: string,
+  titulo: string,
+  mensagem: string,
+  tipo: string = "geral",
+  link?: string
+) {
   const { error } = await supabase
-    .from("notifications")
-    .update({ is_archived: true } as any)
-    .eq("id", id);
-  if (error) throw error;
+    .from("notificacoes")
+    .insert({
+      user_id,
+      titulo,
+      mensagem,
+      tipo,
+      link: link || null
+    });
+
+  if (error) {
+    console.error("Erro ao criar notificação:", error);
+    throw error;
+  }
 }
 
-export async function notify(input: {
+// Mantendo alias para compatibilidade com código existente enquanto migramos
+export const notify = async (input: {
   userId: string;
   title: string;
   description?: string;
-  type?: NotificationType;
-  category?: NotificationCategory;
+  type?: string;
+  category?: string;
   link?: string;
-  originType?: string;
-  originId?: string;
-}) {
-  const { data: authData } = await supabase.auth.getUser();
-  const currentUserId = authData.user?.id;
-  let metadata = null;
+  [key: string]: any; // Permite propriedades extras para compatibilidade
+}) => {
+  return criarNotificacao(
+    input.userId,
+    input.title,
+    input.description || "",
+    input.type || input.category || "geral",
+    input.link
+  );
+};
 
-  if (currentUserId) {
-    const { data: profile } = await supabase.from('profiles').select('display_name, full_name, avatar_url').eq('id', currentUserId).maybeSingle();
-    metadata = {
-      author_name: profile?.display_name || profile?.full_name || 'Alguém',
-      author_avatar: profile?.avatar_url
-    };
-  } else {
-    metadata = {
-      author_name: 'Sistema',
-      author_avatar: null
-    };
-  }
 
-  console.log("Enviando notificação para:", input.userId, "Categoria:", input.category);
-  const { error } = await supabase.rpc("notify_user", {
-    p_user_id: input.userId,
-    p_title: input.title,
-    p_description: input.description ?? null,
-    p_type: input.type ?? "info",
-    p_category: input.category ?? "general",
-    p_link: input.link ?? null,
-    p_origin_type: input.originType ?? null,
-    p_origin_id: input.originId ?? null,
-    p_metadata: metadata
-  } as any);
+export async function marcarComoLida(id: string) {
+  const { error } = await supabase
+    .from("notificacoes")
+    .update({ lido: true })
+    .eq("id", id);
+
   if (error) {
-    console.error("Erro ao chamar rpc.notify_user:", error);
+    console.error("Erro ao marcar como lida:", error);
+    throw error;
+  }
+}
+
+export async function marcarTodasComoLidas() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const { error } = await supabase
+    .from("notificacoes")
+    .update({ lido: true })
+    .eq("user_id", user.id)
+    .eq("lido", false);
+
+  if (error) {
+    console.error("Erro ao marcar todas como lidas:", error);
     throw error;
   }
 }
@@ -122,23 +116,15 @@ export async function handleMentions(text: string, context: {
     .select("id, display_name, full_name")
     .or(`display_name.ilike.any.{${names.join(",")}},full_name.ilike.any.{${names.join(",")}}`);
 
-  if (profileError) {
-    console.error("Erro ao buscar perfis para menções:", profileError);
-    return;
-  }
+  if (profileError || !profiles) return;
 
-  if (!profiles || profiles.length === 0) {
-    console.log("Nenhum perfil correspondente encontrado para menções:", names);
-    return;
-  }
-
-  const { data: userData } = await supabase.auth.getUser();
-  const currentUserId = userData.user?.id || '';
+  const { data: { user } } = await supabase.auth.getUser();
+  const currentUserId = user?.id;
   
   const { data: currentProfile } = await supabase
     .from("profiles")
     .select("display_name, full_name")
-    .eq("id", currentUserId)
+    .eq("id", currentUserId || "")
     .maybeSingle();
 
   const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
@@ -146,14 +132,12 @@ export async function handleMentions(text: string, context: {
   for (const profile of profiles) {
     if (profile.id === currentUserId) continue;
     
-    await notify({
-      userId: profile.id,
-      title: `${authorName} mencionou você`,
-      description: `Em: ${context.title}`,
-      category: "mention" as const,
-      link: context.link,
-      originType: context.originType,
-      originId: context.originId
-    });
+    await criarNotificacao(
+      profile.id,
+      `${authorName} mencionou você`,
+      `Mencionou você no job: ${context.title}`,
+      "mention",
+      context.link
+    );
   }
 }

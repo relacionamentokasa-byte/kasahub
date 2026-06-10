@@ -1,19 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   fetchNotifications, 
-  markAsRead, 
-  markAllAsRead, 
-  archiveNotification, 
-  type Notification 
+  marcarComoLida, 
+  marcarTodasComoLidas, 
+  type Notificacao 
 } from "@/lib/notifications-api";
 import { 
   Bell, 
-  Check, 
   CheckCheck, 
-  Archive, 
-  ExternalLink, 
   Inbox,
   AlertCircle,
   AlertTriangle,
@@ -39,7 +35,7 @@ export function NotificationCenter() {
   const navigate = useNavigate();
   
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ["notifications"],
+    queryKey: ["notificacoes"],
     queryFn: fetchNotifications,
   });
 
@@ -50,28 +46,22 @@ export function NotificationCenter() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Clean up any existing channel before creating a new one
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-
       channel = supabase
-        .channel(`notification-changes-${user.id}`)
+        .channel(`notificacoes-${user.id}`)
         .on(
           "postgres_changes",
           {
             event: "INSERT",
             schema: "public",
-            table: "notifications",
+            table: "notificacoes",
             filter: `user_id=eq.${user.id}`,
           },
           () => {
-            qc.invalidateQueries({ queryKey: ["notifications"] });
+            qc.invalidateQueries({ queryKey: ["notificacoes"] });
+            // Som de notificação pode ser chamado aqui se desejado
           }
-        );
-      
-      // Chaining .subscribe() AFTER all .on() listeners
-      channel.subscribe();
+        )
+        .subscribe();
     };
 
     setupSubscription();
@@ -83,38 +73,25 @@ export function NotificationCenter() {
     };
   }, [qc]);
 
-  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadCount = notifications.filter(n => !n.lido).length;
 
   const readMut = useMutation({
-    mutationFn: markAsRead,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
+    mutationFn: marcarComoLida,
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["notificacoes"] }),
   });
 
   const readAllMut = useMutation({
-    mutationFn: markAllAsRead,
+    mutationFn: marcarTodasComoLidas,
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["notifications"] });
+      qc.invalidateQueries({ queryKey: ["notificacoes"] });
       toast.success("Todas as notificações marcadas como lidas");
     },
   });
 
-  const archiveMut = useMutation({
-    mutationFn: archiveNotification,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["notifications"] }),
-  });
-
-  const handleAction = (n: Notification) => {
-    if (!n.is_read) readMut.mutate(n.id);
+  const handleAction = (n: Notificacao) => {
+    if (!n.lido) readMut.mutate(n.id);
     if (n.link) {
       navigate({ to: n.link as any });
-    }
-  };
-
-  const getIcon = (type: string) => {
-    switch (type) {
-      case 'critical': return <AlertCircle className="size-4 text-rose-500" />;
-      case 'alert': return <AlertTriangle className="size-4 text-amber-500" />;
-      default: return <Info className="size-4 text-primary" />;
     }
   };
 
@@ -163,10 +140,9 @@ export function NotificationCenter() {
 
           <TabsContent value="unread" className="m-0">
             <NotificationList 
-              items={notifications.filter(n => !n.is_read)} 
+              items={notifications.filter(n => !n.lido)} 
               isLoading={isLoading} 
               onAction={handleAction}
-              onArchive={(id) => archiveMut.mutate(id)}
               emptyText="Você está em dia!"
             />
           </TabsContent>
@@ -175,7 +151,6 @@ export function NotificationCenter() {
               items={notifications} 
               isLoading={isLoading} 
               onAction={handleAction}
-              onArchive={(id) => archiveMut.mutate(id)}
               emptyText="Nenhuma notificação por aqui."
             />
           </TabsContent>
@@ -183,7 +158,7 @@ export function NotificationCenter() {
         
         <div className="p-2 border-t border-border bg-muted/30">
           <Button variant="ghost" className="w-full h-8 text-[10px] uppercase font-bold text-foreground/40 hover:text-primary" onClick={() => navigate({ to: "/config?tab=notifications" as any })}>
-            Configurações de Notificação
+            Configurações
           </Button>
         </div>
       </PopoverContent>
@@ -195,13 +170,11 @@ function NotificationList({
   items, 
   isLoading, 
   onAction, 
-  onArchive,
   emptyText 
 }: { 
-  items: Notification[], 
+  items: Notificacao[], 
   isLoading: boolean, 
-  onAction: (n: Notification) => void,
-  onArchive: (id: string) => void,
+  onAction: (n: Notificacao) => void,
   emptyText: string
 }) {
   if (isLoading) {
@@ -230,60 +203,31 @@ function NotificationList({
             key={n.id} 
             className={cn(
               "p-4 hover:bg-muted/50 transition-colors cursor-pointer group relative",
-              !n.is_read && "bg-primary/5"
+              !n.lido && "bg-primary/5"
             )}
             onClick={() => onAction(n)}
           >
-            {!n.is_read && (
+            {!n.lido && (
               <span className="absolute left-1 top-1/2 -translate-y-1/2 size-1.5 bg-primary rounded-full" />
             )}
             <div className="flex gap-3">
               <div className="shrink-0">
-                {n.metadata?.author_avatar ? (
-                  <img 
-                    src={n.metadata.author_avatar} 
-                    alt={n.metadata.author_name || 'Autor'} 
-                    className="size-8 rounded-full border border-border object-cover"
-                  />
-                ) : (
-                  <div className="size-8 rounded-full bg-surface border border-border flex items-center justify-center">
-                    <IconForCategory category={n.category} type={n.type} />
-                  </div>
-                )}
+                <div className="size-8 rounded-full bg-surface border border-border flex items-center justify-center">
+                  <IconForCategory tipo={n.tipo} />
+                </div>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-0.5">
-                  <p className={cn("text-xs font-bold truncate", !n.is_read ? "text-foreground" : "text-foreground/70")}>
-                    {n.title}
+                  <p className={cn("text-xs font-bold truncate", !n.lido ? "text-foreground" : "text-foreground/70")}>
+                    {n.titulo}
                   </p>
                   <span className="text-[9px] text-foreground/30 whitespace-nowrap font-mono-kasa">
                     {formatDistanceToNow(new Date(n.created_at), { addSuffix: true, locale: ptBR })}
                   </span>
                 </div>
                 <p className="text-xs text-foreground/50 line-clamp-2 leading-relaxed">
-                  {n.description}
+                  {n.mensagem}
                 </p>
-                <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[9px] uppercase font-bold tracking-widest text-primary/60">
-                    {n.origin_type || 'Sistema'}
-                  </span>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-6 w-6"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onArchive(n.id);
-                      }}
-                    >
-                      <Archive className="size-3 text-foreground/40 hover:text-rose-500" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6">
-                      <ExternalLink className="size-3 text-foreground/40 hover:text-primary" />
-                    </Button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -293,16 +237,11 @@ function NotificationList({
   );
 }
 
-function IconForCategory({ category, type }: { category: string, type: string }) {
-  if (type === 'critical') return <AlertCircle className="size-3.5 text-rose-500" />;
-  if (type === 'alert') return <AlertTriangle className="size-3.5 text-amber-500" />;
+function IconForCategory({ tipo }: { tipo: string }) {
+  if (tipo === 'critical') return <AlertCircle className="size-3.5 text-rose-500" />;
+  if (tipo === 'alert') return <AlertTriangle className="size-3.5 text-amber-500" />;
+  if (tipo === 'mention') return <span className="text-[10px] font-bold text-sky-500">@</span>;
+  if (tipo === 'finance') return <span className="text-[10px] font-bold text-rose-500">$</span>;
   
-  switch (category) {
-    case 'mention': return <span className="text-[10px] font-bold text-sky-500">@</span>;
-    case 'job': return <Check className="size-3.5 text-emerald-500" />;
-    case 'approval': return <CheckCheck className="size-3.5 text-amber-500" />;
-    case 'finance': return <span className="text-[10px] font-bold text-rose-500">$</span>;
-    case 'agenda': return <Clock className="size-3.5 text-primary" />;
-    default: return <Info className="size-3.5 text-primary" />;
-  }
+  return <Info className="size-3.5 text-primary" />;
 }

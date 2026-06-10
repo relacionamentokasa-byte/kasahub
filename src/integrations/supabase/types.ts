@@ -1709,30 +1709,36 @@ export type Database = {
           },
         ]
       }
-      notification_logs: {
+      notificacoes: {
         Row: {
-          channel: string
-          created_at: string
-          error_message: string | null
+          created_at: string | null
           id: string
-          status: string
-          user_id: string
+          lido: boolean | null
+          link: string | null
+          mensagem: string
+          tipo: string | null
+          titulo: string
+          user_id: string | null
         }
         Insert: {
-          channel: string
-          created_at?: string
-          error_message?: string | null
+          created_at?: string | null
           id?: string
-          status: string
-          user_id: string
+          lido?: boolean | null
+          link?: string | null
+          mensagem: string
+          tipo?: string | null
+          titulo: string
+          user_id?: string | null
         }
         Update: {
-          channel?: string
-          created_at?: string
-          error_message?: string | null
+          created_at?: string | null
           id?: string
-          status?: string
-          user_id?: string
+          lido?: boolean | null
+          link?: string | null
+          mensagem?: string
+          tipo?: string | null
+          titulo?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1793,54 +1799,6 @@ export type Database = {
           updated_at?: string
           user_id?: string
           whatsapp_enabled?: boolean | null
-        }
-        Relationships: []
-      }
-      notifications: {
-        Row: {
-          category: string | null
-          created_at: string
-          description: string | null
-          id: string
-          is_archived: boolean | null
-          is_read: boolean | null
-          link: string | null
-          metadata: Json | null
-          origin_id: string | null
-          origin_type: string | null
-          title: string
-          type: string | null
-          user_id: string
-        }
-        Insert: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_archived?: boolean | null
-          is_read?: boolean | null
-          link?: string | null
-          metadata?: Json | null
-          origin_id?: string | null
-          origin_type?: string | null
-          title: string
-          type?: string | null
-          user_id: string
-        }
-        Update: {
-          category?: string | null
-          created_at?: string
-          description?: string | null
-          id?: string
-          is_archived?: boolean | null
-          is_read?: boolean | null
-          link?: string | null
-          metadata?: Json | null
-          origin_id?: string | null
-          origin_type?: string | null
-          title?: string
-          type?: string | null
-          user_id?: string
         }
         Relationships: []
       }
@@ -2952,20 +2910,6 @@ export type Database = {
           source_queue: string
         }
         Returns: number
-      }
-      notify_user: {
-        Args: {
-          p_category?: string
-          p_description?: string
-          p_link?: string
-          p_metadata?: Json
-          p_origin_id?: string
-          p_origin_type?: string
-          p_title: string
-          p_type?: string
-          p_user_id: string
-        }
-        Returns: undefined
       }
       project_progress: { Args: { _project_id: string }; Returns: number }
       read_email_batch: {

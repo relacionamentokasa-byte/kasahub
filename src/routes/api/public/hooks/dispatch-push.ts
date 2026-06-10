@@ -34,8 +34,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
         // Load notification; only dispatch if created in last 5 minutes
         // to prevent arbitrary replay against guessed UUIDs.
         const { data: notif, error: notifErr } = await supabaseAdmin
-          .from("notifications")
-          .select("id, user_id, title, description, link, category, created_at")
+          .from("notificacoes")
+          .select("id, user_id, titulo, mensagem, link, created_at")
+
           .eq("id", parsed.notification_id)
           .single();
 
@@ -46,8 +47,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
           });
         }
 
-        const ageMs = Date.now() - new Date(notif.created_at).getTime();
+        const ageMs = Date.now() - new Date(notif.created_at!).getTime();
         if (ageMs > 5 * 60 * 1000) {
+
           return new Response(JSON.stringify({ error: "expired" }), {
             status: 410,
             headers: { "Content-Type": "application/json" },
@@ -57,7 +59,7 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
         const { data: subs, error: subsErr } = await supabaseAdmin
           .from("push_subscriptions")
           .select("id, endpoint, p256dh, auth")
-          .eq("user_id", notif.user_id);
+          .eq("user_id", notif.user_id!);
 
         if (subsErr) {
           return new Response(JSON.stringify({ error: subsErr.message }), {
@@ -78,8 +80,9 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
         webpush.setVapidDetails(subject, publicKey, privateKey);
 
         const payload = JSON.stringify({
-          title: notif.title || "KASA HUB",
-          body: notif.description || "",
+          title: notif.titulo || "KASA HUB",
+          body: notif.mensagem || "",
+
           url: notif.link || "/",
           tag: `notif-${notif.id}`,
         });
