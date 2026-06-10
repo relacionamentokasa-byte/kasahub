@@ -524,12 +524,18 @@ export async function toggleChecklistItem(id: string, done: boolean) {
     
   if (fetchError) throw fetchError;
 
-  const { error: updateError } = await supabase.from("job_checklist").update({ 
-    done,
-    updated_at: new Date().toISOString()
-  } as any).eq("id", id);
+  const { error: updateError } = await supabase
+    .from("job_checklist")
+    .update({ 
+      done,
+      updated_at: new Date().toISOString()
+    } as any)
+    .eq("id", id);
   
-  if (updateError) throw updateError;
+  if (updateError) {
+    console.error("Erro no Supabase ao atualizar job_checklist:", updateError);
+    throw updateError;
+  }
 
   // Recalculate job progress
   if (item?.job_id) {

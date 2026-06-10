@@ -296,42 +296,15 @@ export function JobSheet({
 
   const toggleItemMut = useMutation({
     mutationFn: async ({ id, done }: { id: string; done: boolean }) => {
-      // 1. Update checklist item
-      const { data: updatedItem, error: checklistError } = await supabase
-        .from("job_checklist")
-        .update({ done, updated_at: new Date().toISOString() } as any)
-        .eq("id", id)
-        .select()
-        .single();
-      
-      if (checklistError) {
-        console.error("Erro detalhado do Supabase ao atualizar checklist:", checklistError);
-        throw new Error(`Erro ao atualizar item: ${checklistError.message}`);
+      // Use the centralized API function for consistency
+      try {
+        await toggleChecklistItem(id, done);
+        return { id, done };
+      } catch (error: any) {
+        console.error("ERRO COMPLETO DO SUPABASE AO ATUALIZAR CHECKLIST:", error);
+        console.error("Dados tentados - id:", id, "done:", done);
+        throw error;
       }
-
-      // 2. Fetch current status to recalculate progress for the single source of truth in DB
-      const { data: currentItems, error: fetchError } = await supabase
-        .from("job_checklist")
-        .select("done")
-        .eq("job_id", job!.id);
-
-      if (!fetchError && currentItems) {
-        const total = currentItems.length;
-        const completed = currentItems.filter(it => it.done).length;
-        const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-        // 3. Update the job record
-        await supabase
-          .from("jobs")
-          .update({
-            completed_steps: completed,
-            total_steps: total,
-            progress_percentage: progress
-          } as any)
-          .eq("id", job!.id);
-      }
-      
-      return { id, done };
     },
     onMutate: async ({ id, done }) => {
       // Cancel queries to avoid overwriting optimistic updates
