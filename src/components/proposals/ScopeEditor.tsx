@@ -108,7 +108,7 @@ export function ScopeEditor({
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[300px] px-4 py-3 whitespace-pre-line prose-p:mb-[12px] prose-p:mt-0 prose-strong:block prose-strong:mt-[16px] prose-strong:mb-[4px] first:prose-strong:mt-0',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[300px] px-4 py-3 prose-p:mb-[12px] prose-p:mt-0 prose-strong:block prose-strong:mt-[16px] prose-strong:mb-[4px] first:prose-strong:mt-0',
       },
     },
   });
