@@ -20,8 +20,8 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, AlertTriangle, Users, Copy, X } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { Plus, Search, Trash2, Users, Copy, X, Filter, Check } from "lucide-react";
+import { format } from "date-fns";
 import {
   fetchJobStages,
   fetchJobs,
@@ -36,7 +36,6 @@ import {
   type Job,
   type JobStage,
 } from "@/lib/ops-api";
-import { getJobTypeLabel } from "@/lib/job-types";
 import { fetchProfiles } from "@/lib/profile-api";
 import { cn } from "@/lib/utils";
 
@@ -46,6 +45,11 @@ import { NewJobDialog } from "./NewJobDialog";
 import { JobSheet } from "./JobSheet";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
+
 
 export const JOBS_QUERY_KEY = (filters: any) => ["jobs", filters];
 
@@ -68,6 +72,9 @@ export function JobsBoard({
   const [period, setPeriod] = useState<string>("all");
   const [responsibleId, setResponsibleId] = useState<string>("all");
   const [clientFilterId, setClientFilterId] = useState<string>("all");
+  const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [teamFilter, setTeamFilter] = useState<string[]>([]);
 
   const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
   const queryKey = useMemo(() => JOBS_QUERY_KEY(filters), [filters]);
@@ -128,39 +135,69 @@ export function JobsBoard({
       );
     }
 
-    // Filtro por Responsável
+    // Filtro por Responsável Principal
     if (responsibleId !== "all") {
       result = result.filter((j) => {
         const mainRespId = (j as any).main_responsible_id || j.assignee_id;
-        const teamInvolved = (j as any).team_involved || [];
-        const isTeamMember = teamInvolved.some((m: any) => m.user_id === responsibleId);
-        return mainRespId === responsibleId || isTeamMember;
+        return mainRespId === responsibleId;
       });
     }
+
+    // Filtro por Equipe Envolvida (Novo)
+    if (teamFilter.length > 0) {
+      result = result.filter((j) => {
+        const teamInvolved = (j as any).team_involved || [];
+        // Verifica se qualquer um dos membros filtrados está na equipe envolvida (armazenada como array de objetos ou strings)
+        return teamFilter.some(userId => 
+          teamInvolved.some((m: any) => (m.user_id || m) === userId)
+        );
+      });
+    }
+
 
     // Filtro por Cliente
     if (clientFilterId !== "all") {
       result = result.filter((j) => j.client_id === clientFilterId);
     }
 
+    // Filtro por Prioridade
+    if (priorityFilter !== "all") {
+      result = result.filter((j) => j.priority === priorityFilter);
+    }
+
+    // Filtro por Status
+    if (statusFilter !== "all") {
+      result = result.filter((j) => j.status === statusFilter);
+    }
+
     return result;
-  }, [jobs, query, responsibleId, clientFilterId]);
+  }, [jobs, query, responsibleId, teamFilter, clientFilterId, priorityFilter, statusFilter]);
 
   const clearFilters = () => {
     setQuery("");
     setResponsibleId("all");
     setClientFilterId("all");
     setPeriod("all");
+    setPriorityFilter("all");
+    setStatusFilter("all");
+    setTeamFilter([]);
   };
 
-  const hasActiveFilters = query !== "" || responsibleId !== "all" || clientFilterId !== "all" || period !== "all";
+  const activeFiltersCount = [
+    query !== "",
+    responsibleId !== "all",
+    clientFilterId !== "all",
+    period !== "all",
+    priorityFilter !== "all",
+    statusFilter !== "all",
+    teamFilter.length > 0
+  ].filter(Boolean).length;
 
-  const byStage = useMemo(() => {
-    const m = new Map<string, Job[]>();
-    for (const s of stages) m.set(s.id, []);
-    for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
-    return m;
-  }, [stages, filtered]);
+  const toggleTeamMember = (id: string) => {
+    setTeamFilter(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const moveMut = useMutation({
     mutationFn: ({ id, stage }: { id: string; stage: JobStage }) =>
@@ -182,6 +219,15 @@ export function JobsBoard({
     },
   });
 
+  const activeJob = activeId ? jobs.find((j) => j.id === activeId) : null;
+
+  const byStage = useMemo(() => {
+    const m = new Map<string, Job[]>();
+    for (const s of stages) m.set(s.id, []);
+    for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
+    return m;
+  }, [stages, filtered]);
+
   function onDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
   }
@@ -195,9 +241,8 @@ export function JobsBoard({
     moveMut.mutate({ id: String(e.active.id), stage });
   }
 
-  const activeJob = activeId ? jobs.find((j) => j.id === activeId) : null;
-
   return (
+
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
@@ -208,74 +253,181 @@ export function JobsBoard({
             Jobs
           </h1>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-          {showPeriodFilter && (
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-full sm:w-40 h-9 bg-surface border-border shrink-0">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Períodos</SelectItem>
-                {availablePeriods.map(p => {
-                  const [year, month] = p.split('-');
-                  const date = new Date(parseInt(year), parseInt(month) - 1);
-                  const label = format(date, "MMMM yyyy", { locale: ptBR });
-                  return <SelectItem key={p} value={p}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
-                })}
-              </SelectContent>
-            </Select>
-          )}
+        
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Central de Filtros */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-9 gap-2 border-border bg-surface hover:bg-surface-elevated"
+              >
+                <Filter className="size-4" />
+                <span>Filtros</span>
+                {activeFiltersCount > 0 && (
+                  <Badge variant="default" className="ml-1 h-5 min-w-5 px-1 bg-primary text-[10px]">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-4 bg-surface border-border shadow-2xl" align="end">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-sm">Filtros Avançados</h3>
+                  {activeFiltersCount > 0 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={clearFilters}
+                      className="h-7 text-[10px] text-primary hover:text-primary/80 p-0"
+                    >
+                      Limpar filtros
+                    </Button>
+                  )}
+                </div>
 
-          <Select value={responsibleId} onValueChange={setResponsibleId}>
-            <SelectTrigger className="w-full sm:w-44 h-9 bg-surface border-border shrink-0">
-              <SelectValue placeholder="Responsável" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Responsáveis</SelectItem>
-              {profiles.map(p => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.display_name || p.full_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                <div className="space-y-3">
+                  {/* Busca */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Busca</label>
+                    <div className="relative">
+                      <Search className="size-3.5 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
+                      <Input
+                        placeholder="Buscar por nome..."
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        className="pl-9 h-9 bg-surface-elevated border-border"
+                      />
+                    </div>
+                  </div>
 
-          <Select value={clientFilterId} onValueChange={setClientFilterId}>
-            <SelectTrigger className="w-full sm:w-44 h-9 bg-surface border-border shrink-0">
-              <SelectValue placeholder="Cliente" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Clientes</SelectItem>
-              {clients.map(c => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.company || c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                  {/* Responsável Principal */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Responsável Principal</label>
+                    <Select value={responsibleId} onValueChange={setResponsibleId}>
+                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
+                        <SelectValue placeholder="Selecione um responsável" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos Responsáveis</SelectItem>
+                        {profiles.map(p => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.display_name || p.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-          <div className="relative flex-1 sm:flex-none">
-            <Search className="size-3.5 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
-            <Input
-              placeholder="Buscar Job…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-9 w-full sm:w-48 bg-surface border-border"
-            />
-          </div>
+                  {/* Equipe Envolvida */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Equipe Envolvida</label>
+                    <div className="max-h-32 overflow-y-auto border border-border rounded-md bg-surface-elevated p-2 space-y-1 custom-scrollbar">
+                      {profiles.map(p => {
+                        const isSelected = teamFilter.includes(p.id);
+                        return (
+                          <div 
+                            key={p.id} 
+                            className="flex items-center gap-2 p-1.5 rounded-sm hover:bg-surface transition cursor-pointer"
+                            onClick={() => toggleTeamMember(p.id)}
+                          >
+                            <Checkbox 
+                              checked={isSelected}
+                              onCheckedChange={() => toggleTeamMember(p.id)}
+                              className="size-3.5"
+                            />
+                            <Avatar className="size-5">
+                              <AvatarImage src={p.avatar_url || ''} />
+                              <AvatarFallback className="text-[8px] bg-primary/20 text-primary">
+                                {(p.display_name || p.full_name || '?').charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-xs truncate flex-1">{p.display_name || p.full_name}</span>
+                            {isSelected && <Check className="size-3 text-primary shrink-0" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
 
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearFilters}
-              className="h-9 px-3 text-foreground/50 hover:text-foreground shrink-0"
-              title="Limpar filtros"
-            >
-              <X className="size-4" />
-              <span className="sm:hidden ml-2">Limpar</span>
-            </Button>
-          )}
+                  {/* Cliente */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Cliente</label>
+                    <Select value={clientFilterId} onValueChange={setClientFilterId}>
+                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
+                        <SelectValue placeholder="Filtrar por cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os Clientes</SelectItem>
+                        {clients.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.company || c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Prioridade */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Prioridade</label>
+                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
+                        <SelectValue placeholder="Prioridade" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todas</SelectItem>
+                        <SelectItem value="high">Alta</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="low">Baixa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Status */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Status</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        {Object.entries(JOB_STATUS_LABELS).map(([key, value]) => (
+                          <SelectItem key={key} value={key}>
+                            {value.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Período */}
+                  {showPeriodFilter && (
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Período</label>
+                      <Select value={period} onValueChange={setPeriod}>
+                        <SelectTrigger className="h-9 bg-surface-elevated border-border">
+                          <SelectValue placeholder="Período" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Todos os Períodos</SelectItem>
+                          {availablePeriods.map(p => {
+                            const [year, month] = p.split('-');
+                            const date = new Date(parseInt(year), parseInt(month) - 1);
+                            const label = format(date, "MMMM yyyy", { locale: ptBR });
+                            return <SelectItem key={p} value={p}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
+                          })}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <Button
             onClick={() => setNewStage(stages[0] ?? null)}
@@ -293,7 +445,7 @@ export function JobsBoard({
               const cards = byStage.get(stage.id) ?? [];
               return (
                 <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
-                  {cards.map((j) => (
+                  {cards.map((j: Job) => (
                     <JobCard 
                       key={j.id} 
                       job={j} 
@@ -321,7 +473,9 @@ export function JobsBoard({
       <JobSheet job={openJob} stages={stages} onClose={() => setOpenId(null)} />
     </div>
   );
+
 }
+
 
 function Column({
   stage,
