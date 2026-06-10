@@ -257,6 +257,7 @@ export function ProposalEditorContent({
       } as any);
     },
     onSuccess: (updatedProposal, vars) => {
+      // Update local form status if changed in mutation variables
       if (vars?.status) setForm((p) => ({ ...p, status: vars.status! }));
       
       // Update cache directly with returned data to avoid "reversion" during refetch
