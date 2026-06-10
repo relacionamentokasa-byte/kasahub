@@ -226,7 +226,37 @@ export async function createProposal(input: {
   contract_content?: string | null;
 }) {
   const sanitizedInput = sanitizeProposalPayload(input);
-...
+  
+  if (sanitizedInput.client_id) {
+    const { data: client } = await supabase.from('clients').select('status').eq('id', sanitizedInput.client_id).single();
+    if (client?.status === 'inactive') throw new Error("Não é possível criar propostas para clientes inativos.");
+  }
+
+  const { data: userData } = await supabase.auth.getUser();
+  const { data, error } = await supabase
+    .from("proposals")
+    .insert({ ...sanitizedInput, owner_id: userData.user?.id ?? null } as any)
+    .select()
+    .single();
+  if (error) throw error;
+
+  await recordTimelineEvent({
+    client_id: (data as any).client_id,
+    lead_id: (data as any).lead_id,
+    type: 'proposal_created',
+    title: `Proposta comercial criada: ${data.title}`,
+    description: `Valor total: ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(data.total || 0)}`,
+    metadata: { proposal_id: data.id }
+  });
+
+  return data;
+}
+
+
+export async function updateProposal(
+  id: string,
+  patch: Partial<Database["public"]["Tables"]["proposals"]["Update"]>,
+) {
   const sanitizedPatch = sanitizeProposalPayload(patch);
   
   const { data, error } = await supabase
