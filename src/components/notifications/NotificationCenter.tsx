@@ -41,50 +41,8 @@ export function NotificationCenter() {
     queryFn: fetchNotifications,
   });
 
-  useEffect(() => {
-    let channel: any;
-
-    const setupSubscription = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      channel = supabase
-        .channel(`notificacoes-${user.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "INSERT",
-            schema: "public",
-            table: "notificacoes",
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            const newNotif = payload.new as Notificacao;
-            qc.invalidateQueries({ queryKey: ["notificacoes"] });
-            
-            // Notificação instantânea via Toast
-            toast(newNotif.titulo, {
-              description: newNotif.mensagem,
-              duration: 5000,
-              icon: <div className="size-6 rounded-full bg-primary/10 flex items-center justify-center mr-2"><IconForCategory tipo={newNotif.tipo} /></div>,
-              action: newNotif.link ? {
-                label: "Ver",
-                onClick: () => navigate({ to: newNotif.link as any })
-              } : undefined,
-            });
-          }
-        )
-        .subscribe();
-    };
-
-    setupSubscription();
-
-    return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
-    };
-  }, [qc]);
+  // A subscrição em tempo real agora é gerenciada globalmente no useRealtimeNotifications
+  // para evitar duplicidade de toasts e sons.
 
   const unreadCount = notifications.filter(n => !n.lido).length;
 
