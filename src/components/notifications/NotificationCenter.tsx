@@ -44,12 +44,14 @@ export function NotificationCenter() {
   });
 
   useEffect(() => {
+    let channel: any;
+
     const setupSubscription = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const channel = supabase
-        .channel("notification-changes")
+      channel = supabase
+        .channel(`notification-changes-${user.id}`)
         .on(
           "postgres_changes",
           {
@@ -63,13 +65,15 @@ export function NotificationCenter() {
           }
         )
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     };
 
     setupSubscription();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
   }, [qc]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
