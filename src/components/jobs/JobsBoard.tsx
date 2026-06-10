@@ -79,13 +79,13 @@ export function JobsBoard({
 
   useEffect(() => {
     const channel = supabase
-      .channel('jobs-realtime')
+      .channel('jobs-realtime-board')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'jobs' },
-        () => {
+        (payload) => {
+          console.log("Mudança em tempo real detectada:", payload);
           qc.invalidateQueries({ queryKey: ["jobs"] });
-          qc.refetchQueries({ queryKey: ["jobs"], type: 'active' });
         }
       )
       .subscribe();
