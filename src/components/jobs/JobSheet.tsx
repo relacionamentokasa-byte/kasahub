@@ -429,11 +429,12 @@ export function JobSheet({
         id: tempId,
         job_id: job!.id,
         user_id: user?.id,
-        content,
+        mensagem: content,
         type: type || 'comment',
         is_system: isSystem || false,
         created_at: new Date().toISOString(),
-        mentions: []
+        mentions: [],
+        metadata: metadata || {}
       };
       
       qc.setQueryData<any[]>(qk, (old) => [...(old ?? []), newComment]);
@@ -448,6 +449,7 @@ export function JobSheet({
     },
     onSuccess: (data: any, variables) => {
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
+      qc.refetchQueries({ queryKey: ["job-comments", job!.id] });
       
       // Notify team members about new comment
       if (!variables.isSystem) {
