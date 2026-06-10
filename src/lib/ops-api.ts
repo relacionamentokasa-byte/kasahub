@@ -442,7 +442,7 @@ export async function updateJob(
         p_origin_type: 'jobs',
         p_origin_id: data.id,
         p_link: `/jobs?jobId=${data.id}`
-      } as any).catch(console.error);
+      } as any);
     }
   }
 
