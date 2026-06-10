@@ -181,17 +181,20 @@ export function NotificationPreferencesTab() {
       if (!currentUser) return;
 
       toast.promise(
-        supabase.rpc("notify_user", {
-          p_user_id: currentUser.id,
-          p_title: "Teste de Notificação",
-          p_description: "Esta é uma notificação de teste enviada para verificar se o sistema está funcionando corretamente.",
-          p_category: "general",
-          p_type: "info",
-          p_metadata: {
-            author_name: "Sistema KASA",
-            test: true
-          }
-        }),
+        async () => {
+          const { error } = await supabase.rpc("notify_user", {
+            p_user_id: currentUser.id,
+            p_title: "Teste de Notificação",
+            p_description: "Esta é uma notificação de teste enviada para verificar se o sistema está funcionando corretamente.",
+            p_category: "general",
+            p_type: "info",
+            p_metadata: {
+              author_name: "Sistema KASA",
+              test: true
+            }
+          });
+          if (error) throw error;
+        },
         {
           loading: 'Enviando teste...',
           success: 'Notificação de teste enviada! Verifique o sininho no topo.',
