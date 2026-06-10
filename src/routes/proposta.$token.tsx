@@ -42,7 +42,7 @@ type Proposal = {
   accepted_name: string | null;
   public_token: string;
   scope: string[] | null;
-  scope_text?: string | null;
+  scope_text?: string | string[] | null;
   recurring_months?: number | null;
   installments?: number | null;
   payment_method?: string | null;
@@ -232,6 +232,15 @@ function PublicProposalView() {
     if (!data?.proposal || !data?.proposal.contract_content) return null;
     const { proposal, agency, client, lead } = data;
     const rawContractContent = proposal.contract_content;
+    
+    let servicesList = "";
+    const scopeData = proposal.scope_text || proposal.scope || [];
+    if (Array.isArray(scopeData)) {
+      servicesList = scopeData.join(", ");
+    } else if (typeof scopeData === 'string') {
+      servicesList = scopeData;
+    }
+
     return replaceContractVariables(rawContractContent as string, {
       client_name: lead?.name || client?.name || proposal.client_name,
       client_legal_name: lead?.company || client?.company || proposal.client_name,
@@ -239,7 +248,7 @@ function PublicProposalView() {
       client_address: client?.address || "",
       client_email: lead?.email || client?.email || proposal.client_email || "",
       client_phone: lead?.phone || client?.phone || "",
-      services_list: (proposal.scope || []).join(", "),
+      services_list: servicesList,
       monthly_value: formatCurrency(proposal.monthly_investment),
       setup_value: formatCurrency(proposal.one_time_investment),
       total_value: formatCurrency(
@@ -471,8 +480,8 @@ function PublicProposalView() {
             Escopo & Serviços
             <div className="w-12 h-0.5 bg-[#ffbc45] mt-2"></div>
            </h2>
-           <div className="bg-[#f9f7f3] p-6 rounded-2xl">
-              <ScopeRenderer text={proposal.scope_text} fallback={proposal.scope} className="text-slate-700" />
+           <div className="bg-[#f9f7f3] p-6 sm:p-8 rounded-2xl border border-[#ece8e0]">
+              <ScopeRenderer text={proposal.scope_text} fallback={proposal.scope} className="text-[#0c1618]" />
            </div>
         </div>
 
