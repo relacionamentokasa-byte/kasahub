@@ -82,11 +82,14 @@ type Client = {
   email: string | null;
   phone: string | null;
   document: string | null;
+  address: string | null;
   logo_url?: string | null;
 } | null;
 type Lead = {
   name: string | null;
   company: string | null;
+  phone: string | null;
+  email: string | null;
 } | null;
 
 
@@ -230,10 +233,10 @@ function PublicProposalView() {
     return replaceContractVariables(rawContractContent as string, {
       client_name: lead?.name || client?.name || proposal.client_name,
       client_legal_name: lead?.company || client?.company || proposal.client_name,
-      client_document: agency?.document || "",
-      client_address: agency?.address || "",
-      client_email: proposal.client_email || "",
-      client_phone: agency?.phone || "",
+      client_document: client?.document || "",
+      client_address: client?.address || "",
+      client_email: lead?.email || client?.email || proposal.client_email || "",
+      client_phone: lead?.phone || client?.phone || "",
       services_list: (proposal.scope || []).join(", "),
       monthly_value: formatCurrency(proposal.monthly_investment),
       setup_value: formatCurrency(proposal.one_time_investment),
@@ -447,14 +450,14 @@ function PublicProposalView() {
                <Phone className="size-5 text-[#ffbc45] shrink-0" />
                <div className="min-w-0">
                   <p className="text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">Telefone</p>
-                  <p className="font-bold font-sans truncate">{client?.phone || '—'}</p>
+                  <p className="font-bold font-sans truncate">{lead?.phone || client?.phone || '—'}</p>
                </div>
             </div>
             <div className="bg-[#f9f7f3] border border-[#ece8e0] p-3 sm:p-4 rounded-xl flex items-center gap-3">
                <Mail className="size-5 text-[#ffbc45] shrink-0" />
                <div className="min-w-0">
                   <p className="text-[10px] uppercase font-bold text-slate-400 whitespace-nowrap">E-mail</p>
-                  <p className="font-bold font-sans truncate">{client?.email || proposal.client_email || '—'}</p>
+                  <p className="font-bold font-sans truncate">{lead?.email || client?.email || proposal.client_email || '—'}</p>
                </div>
             </div>
           </div>
