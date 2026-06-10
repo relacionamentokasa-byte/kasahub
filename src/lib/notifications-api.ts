@@ -28,8 +28,8 @@ export async function fetchNotifications() {
   return data as Notificacao[];
 }
 
-export async function criarNotificacao(
-  user_id: string,
+export async function enviarNotificacao(
+  destinatario_id: string,
   titulo: string,
   mensagem: string,
   tipo: string = "geral",
@@ -38,7 +38,7 @@ export async function criarNotificacao(
   const { error } = await supabase
     .from("notificacoes")
     .insert({
-      user_id,
+      user_id: destinatario_id,
       titulo,
       mensagem,
       tipo,
@@ -46,12 +46,15 @@ export async function criarNotificacao(
     });
 
   if (error) {
-    console.error("Erro ao criar notificação:", error);
+    console.error("Erro ao enviar notificação:", error);
     throw error;
   }
 }
 
-// Mantendo alias para compatibilidade com código existente enquanto migramos
+// CriarNotificacao agora é um alias para enviarNotificacao
+export const criarNotificacao = enviarNotificacao;
+
+// Mantendo alias para compatibilidade com código existente
 export const notify = async (input: {
   userId: string;
   title: string;
@@ -59,9 +62,9 @@ export const notify = async (input: {
   type?: string;
   category?: string;
   link?: string;
-  [key: string]: any; // Permite propriedades extras para compatibilidade
+  [key: string]: any;
 }) => {
-  return criarNotificacao(
+  return enviarNotificacao(
     input.userId,
     input.title,
     input.description || "",
@@ -132,7 +135,7 @@ export async function handleMentions(text: string, context: {
   for (const profile of profiles) {
     if (profile.id === currentUserId) continue;
     
-    await criarNotificacao(
+    await enviarNotificacao(
       profile.id,
       `${authorName} mencionou você`,
       `Mencionou você no job: ${context.title}`,
