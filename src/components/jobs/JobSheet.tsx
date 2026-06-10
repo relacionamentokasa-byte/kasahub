@@ -303,19 +303,21 @@ export function JobSheet({
         (old ?? []).map((item) => (item.id === id ? { ...item, done } : item)),
       );
       
+      const currentChecklist = prev || [];
+      const newChecklist = currentChecklist.map(it => it.id === id ? { ...it, done } : it);
+      const total = newChecklist.length;
+      const completed = newChecklist.filter(it => it.done).length;
+      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
       qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
         if (!old || !Array.isArray(old)) return old;
         return old.map(j => {
           if (j.id === job!.id) {
-            const currentChecklist = prev || [];
-            const newChecklist = currentChecklist.map(it => it.id === id ? { ...it, done } : it);
-            const total = newChecklist.length;
-            const completed = newChecklist.filter(it => it.done).length;
             return {
               ...j,
               completed_steps: completed,
               total_steps: total,
-              progress_percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+              progress_percentage: progress
             };
           }
           return j;
@@ -327,7 +329,9 @@ export function JobSheet({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["available-periods"] });
     },
+
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
     }
