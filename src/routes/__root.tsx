@@ -152,8 +152,8 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function AudioNotificationManager() {
-  useAudioNotifications();
+function NotificationManager() {
+  useRealtimeNotifications();
   return null;
 }
 
