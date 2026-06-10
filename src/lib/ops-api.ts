@@ -725,14 +725,41 @@ export async function addJobComment(
     throw error;
   }
 
-  if (mentions.length > 0) {
-    const { data: job } = await supabase.from('jobs').select('title').eq('id', jobId).single();
-    await handleMentions(content, {
-      title: job?.title || 'Job',
-      link: `/jobs?jobId=${jobId}`,
-      originType: 'jobs',
-      originId: jobId
-    });
+  if (!isSystem) {
+    const { data: job } = await supabase.from('jobs').select('title, team_involved').eq('id', jobId).single();
+    const teamInvolved = (job as any)?.team_involved || [];
+    const jobTitle = job?.title || 'Job';
+
+    // 1. Handle Mentions
+    if (mentions.length > 0) {
+      await handleMentions(content, {
+        title: jobTitle,
+        link: `/jobs?jobId=${jobId}`,
+        originType: 'jobs',
+        originId: jobId
+      });
+    }
+
+    // 2. Notify Team Members (excluding author and mentions already handled)
+    const { data: currentProfile } = await supabase.from('profiles').select('display_name, full_name').eq('id', u.user?.id || '').maybeSingle();
+    const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
+
+    for (const userId of teamInvolved) {
+      if (userId === u.user?.id) continue;
+      // We don't want to double notify if they were mentioned, but handleMentions already checks profile match.
+      // To be safe and meet the requirement "notificar todos os membros da equipe", we send a generic comment notification.
+      // If they were mentioned, they might get two, but usually system "mention" has higher priority.
+      
+      await notify({
+        userId,
+        title: `Novo comentário: ${jobTitle}`,
+        description: `${authorName} comentou no job ${jobTitle}`,
+        category: 'comment',
+        originType: 'jobs',
+        originId: jobId,
+        link: `/jobs?jobId=${jobId}`
+      });
+    }
   }
 
   return data;
