@@ -305,7 +305,8 @@ export function JobSheet({
         .single();
       
       if (checklistError) {
-        console.error("Erro detalhado do Supabase ao atualizar checklist:", checklistError);
+        console.error("ERRO COMPLETO DO SUPABASE AO ATUALIZAR CHECKLIST:", checklistError);
+        console.error("Dados tentados - id:", id, "done:", done);
         throw new Error(`Erro ao atualizar item: ${checklistError.message}`);
       }
 
