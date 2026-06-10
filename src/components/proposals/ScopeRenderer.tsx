@@ -31,7 +31,7 @@ export function ScopeRenderer({
     <div className={`space-y-2 ${className}`}>
       <ul className="list-disc list-inside space-y-2">
         {items.map((item, idx) => (
-          <li key={idx} className="text-foreground/80 leading-relaxed">
+          <li key={idx} className="text-slate-700 font-medium leading-relaxed">
             {item}
           </li>
         ))}
