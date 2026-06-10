@@ -603,9 +603,10 @@ export async function deleteChecklistItem(id: string) {
 }
 
 export async function deleteJobComment(id: string) {
-  const { error } = await supabase.from("job_comments").delete().eq("id", id);
+  const { error } = await supabase.from("job_comentarios").delete().eq("id", id);
   if (error) throw error;
 }
+
 
 export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
   const { data, error } = await supabase
