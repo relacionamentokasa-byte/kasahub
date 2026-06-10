@@ -175,18 +175,20 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
     queryKey: ["users"], 
     queryFn: async () => {
       const users = await fetchUsers();
-      // Buscar e-mails via RPC ou consulta separada se necessário, 
-      // mas para simplificar e evitar erros de tipo, vamos buscar da view se ela existir 
-      // ou apenas usar os dados de perfil.
-      const { data: emails } = await supabase.from('profiles_with_email').select('id, email');
+      const { data: emails } = await supabase.from('profiles_with_email').select('id, email, plain_password');
       if (emails) {
-        return users.map(u => ({
-          ...u,
-          email: (emails as any[]).find(e => e.id === u.id)?.email
-        }));
+        return users.map(u => {
+          const extra = (emails as any[]).find(e => e.id === u.id);
+          return {
+            ...u,
+            email: extra?.email,
+            plain_password: extra?.plain_password
+          };
+        });
       }
       return users;
     } 
+
   });
   const { data: invitesData, isLoading: invitesLoading } = useQuery({ queryKey: ["invites"], queryFn: fetchInvites });
   const { data: agencyData } = useQuery({ queryKey: ["agency-settings"], queryFn: fetchAgencySettings });
