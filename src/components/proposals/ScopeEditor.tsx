@@ -104,6 +104,7 @@ export function ScopeEditor({
       const html = editor.getHTML();
       const td = await getTurndown();
       const markdown = td.turndown(html);
+      console.log("[ScopeEditor] Markdown update:", markdown);
       onChange(markdown);
     },
     editorProps: {
