@@ -50,6 +50,11 @@ export function NotificationCenter() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Clean up any existing channel before creating a new one
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+
       channel = supabase
         .channel(`notification-changes-${user.id}`)
         .on(
@@ -63,8 +68,10 @@ export function NotificationCenter() {
           () => {
             qc.invalidateQueries({ queryKey: ["notifications"] });
           }
-        )
-        .subscribe();
+        );
+      
+      // Chaining .subscribe() AFTER all .on() listeners
+      channel.subscribe();
     };
 
     setupSubscription();
