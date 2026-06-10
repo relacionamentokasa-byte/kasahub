@@ -7,11 +7,23 @@ export function ScopeRenderer({
   fallback?: string[] | null;
   className?: string;
 }) {
-  const items = Array.isArray(text) 
-    ? text 
-    : (typeof text === 'string' && text.length > 0)
-      ? text.split('\n').map(line => line.replace(/^[-\s*]+/, '').trim()).filter(Boolean)
-      : fallback || [];
+  let items: string[] = [];
+  if (Array.isArray(text)) {
+    items = text;
+  } else if (typeof text === 'string' && text.length > 0) {
+    if (text.startsWith('[')) {
+      try {
+        const parsed = JSON.parse(text);
+        items = Array.isArray(parsed) ? parsed : [text];
+      } catch (e) {
+        items = [text];
+      }
+    } else {
+      items = text.split('\n').map(line => line.replace(/^[-\s*]+/, '').trim()).filter(Boolean);
+    }
+  } else {
+    items = fallback || [];
+  }
 
   if (items.length === 0) return null;
 

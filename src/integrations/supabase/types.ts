@@ -2256,7 +2256,7 @@ export type Database = {
           responsible_id: string | null
           root_proposal_id: string | null
           scope: string[] | null
-          scope_text: string | null
+          scope_text: Json | null
           sent_at: string | null
           service_ids: string[]
           service_type: string | null
@@ -2328,7 +2328,7 @@ export type Database = {
           responsible_id?: string | null
           root_proposal_id?: string | null
           scope?: string[] | null
-          scope_text?: string | null
+          scope_text?: Json | null
           sent_at?: string | null
           service_ids?: string[]
           service_type?: string | null
@@ -2400,7 +2400,7 @@ export type Database = {
           responsible_id?: string | null
           root_proposal_id?: string | null
           scope?: string[] | null
-          scope_text?: string | null
+          scope_text?: Json | null
           sent_at?: string | null
           service_ids?: string[]
           service_type?: string | null

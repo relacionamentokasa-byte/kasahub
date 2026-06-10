@@ -204,7 +204,7 @@ export async function createProposal(input: {
   first_due_date?: string;
   notes?: string | null;
   scope?: string[];
-  scope_text?: string | null;
+  scope_text?: string[] | string | null;
   auto_create_jobs?: boolean;
   contract_template_id?: string | null;
   contract_content?: string | null;
@@ -285,6 +285,7 @@ export async function duplicateProposal(id: string): Promise<Proposal> {
       client_name: original.client_name,
       client_email: original.client_email,
       lead_id: original.lead_id,
+      client_id: (original as any).client_id,
       intro: original.intro,
       monthly_investment: original.monthly_investment,
       one_time_investment: original.one_time_investment,
@@ -293,6 +294,22 @@ export async function duplicateProposal(id: string): Promise<Proposal> {
       valid_until: original.valid_until,
       status: "draft",
       owner_id: userData.user?.id ?? null,
+      scope_text: (original as any).scope_text,
+      scope: original.scope,
+      briefing: (original as any).briefing,
+      contract_type: (original as any).contract_type,
+      payment_kind: (original as any).payment_kind,
+      recurring_months: (original as any).recurring_months,
+      installments: (original as any).installments,
+      billing_day: (original as any).billing_day,
+      payment_method: (original as any).payment_method,
+      contract_template_id: (original as any).contract_template_id,
+      contract_content: (original as any).contract_content,
+      responsible_id: (original as any).responsible_id,
+      commercial_id: (original as any).commercial_id,
+      account_id: (original as any).account_id,
+      category_id: (original as any).category_id,
+      notes: (original as any).notes,
     })
     .select()
     .single();

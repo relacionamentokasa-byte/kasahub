@@ -194,7 +194,21 @@ export function ProposalEditorContent({
         auto_create_jobs: p.auto_create_jobs ?? true,
         recurring_months: Number(p.recurring_months ?? 12),
         scope: p.scope ?? [],
-        scope_text: Array.isArray(p.scope_text) ? p.scope_text : (typeof p.scope_text === 'string' ? p.scope_text.split('\n').map((s: string) => s.replace(/^[-\s*]+/, '').trim()).filter(Boolean) : []),
+        scope_text: (() => {
+          if (Array.isArray(p.scope_text)) return p.scope_text;
+          if (typeof p.scope_text === 'string' && p.scope_text.length > 0) {
+            if (p.scope_text.startsWith('[')) {
+              try {
+                const parsed = JSON.parse(p.scope_text);
+                return Array.isArray(parsed) ? parsed : [p.scope_text];
+              } catch (e) {
+                return [p.scope_text];
+              }
+            }
+            return p.scope_text.split('\n').map((s: string) => s.replace(/^[-\s*]+/, '').trim()).filter(Boolean);
+          }
+          return [];
+        })(),
         payment_method: p.payment_method ?? "boleto",
         monthly_investment: Number(proposal.monthly_investment || 0),
         one_time_investment: Number(proposal.one_time_investment || 0),
