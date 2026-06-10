@@ -31,6 +31,7 @@ import {
   addJobComment,
   deleteChecklistItem,
   deleteJob,
+  duplicateJob,
   fetchChecklist,
   fetchJobComments,
   toggleChecklistItem,
@@ -48,7 +49,7 @@ import {
   updateChecklistItem,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash } from "lucide-react";
+import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash, Copy } from "lucide-react";
 import { handleMentions } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
@@ -261,6 +262,16 @@ export function JobSheet({
       if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
       toast.error(e.message);
     },
+  });
+
+  const dupMut = useMutation({
+    mutationFn: () => duplicateJob(job!.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job duplicado");
+      onClose();
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   const addItemMut = useMutation({
@@ -1138,7 +1149,31 @@ export function JobSheet({
               </div>
             </ScrollArea>
 
-            <div className="p-6 pt-2 border-t border-border shrink-0">
+            <div className="p-6 pt-2 border-t border-border shrink-0 bg-surface/50">
+              <div className="flex items-center justify-between mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => dupMut.mutate()}
+                  disabled={dupMut.isPending}
+                  className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 gap-2 h-8 px-3"
+                >
+                  <Copy className="size-3" />
+                  Duplicar Job
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => confirm(`Remover este job?`) && deleteMut.mutate()}
+                  disabled={deleteMut.isPending}
+                  className="text-[10px] font-bold uppercase tracking-widest text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 h-8 px-3"
+                >
+                  <Trash2 className="size-3" />
+                  Excluir Job
+                </Button>
+              </div>
+
+
               
               <div className="relative z-[100]">
                 <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
