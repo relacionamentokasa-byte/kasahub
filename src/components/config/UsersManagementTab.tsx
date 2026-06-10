@@ -24,8 +24,9 @@ import { updateUserPassword } from "@/lib/team-api";
 import { fetchAgencySettings } from "@/lib/settings-api";
 import { fetchCustomRoles, assignProfileRole } from "@/lib/permissions-api";
 import { createInvite as createTeamInvite, resendInvite, ROLE_LABEL, ROLE_COLOR, type AppRole } from "@/lib/team-api";
-import { notify } from "@/lib/notifications-api";
+import { notify, criarNotificacao } from "@/lib/notifications-api";
 import { usePermissions } from "@/hooks/use-permissions";
+
 
 import { cn } from "@/lib/utils";
 
@@ -246,14 +247,14 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
       const message = "🎉 Sistema de notificações ativo! Bem-vindo ao Kasa Hub.";
       
       const promises = profiles.map(profile => 
-        notify({
-          userId: profile.id,
-          title: "Teste de Notificação",
-          description: message,
-          category: "general",
-          type: "info"
-        })
+        criarNotificacao(
+          profile.id,
+          "Teste de Notificação",
+          message,
+          "general"
+        )
       );
+
 
       await Promise.all(promises);
       toast.success(`Notificação de teste enviada para ${profiles.length} usuários!`);
