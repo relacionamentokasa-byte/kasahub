@@ -1805,6 +1805,7 @@ export type Database = {
           is_archived: boolean | null
           is_read: boolean | null
           link: string | null
+          metadata: Json | null
           origin_id: string | null
           origin_type: string | null
           title: string
@@ -1819,6 +1820,7 @@ export type Database = {
           is_archived?: boolean | null
           is_read?: boolean | null
           link?: string | null
+          metadata?: Json | null
           origin_id?: string | null
           origin_type?: string | null
           title: string
@@ -1833,6 +1835,7 @@ export type Database = {
           is_archived?: boolean | null
           is_read?: boolean | null
           link?: string | null
+          metadata?: Json | null
           origin_id?: string | null
           origin_type?: string | null
           title?: string

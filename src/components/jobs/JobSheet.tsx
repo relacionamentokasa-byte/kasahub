@@ -50,7 +50,7 @@ import {
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, Send, FileText, CheckSquare, Paperclip, MessageSquare, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, AtSign, Pencil, Check, RotateCcw, Trash, Copy } from "lucide-react";
-import { handleMentions } from "@/lib/notifications-api";
+import { handleMentions, notify } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -192,9 +192,42 @@ export function JobSheet({
       
       return { prev };
     },
-    onSuccess: (updatedJob) => {
+    onSuccess: (updatedJob, variables) => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       qc.invalidateQueries({ queryKey: ["job", job!.id] });
+      
+      // Notify team members when status changes
+      if (variables.status && job && variables.status !== job.status) {
+        const teamInvolved = (job as any).team_involved || [];
+        const statusLabel = JOB_STATUS_LABELS[variables.status as keyof typeof JOB_STATUS_LABELS]?.label || variables.status;
+        
+        teamInvolved.forEach((userId: string) => {
+          if (userId === currentUser?.id) return;
+          notify({
+            userId,
+            title: `Job: ${job.title}`,
+            description: `Status alterado para: ${statusLabel}`,
+            category: "job",
+            link: `/jobs?jobId=${job.id}`,
+            originType: "job",
+            originId: job.id
+          }).catch(console.error);
+        });
+      }
+
+      // Notify if assignee changes
+      if (variables.assignee_id && job && variables.assignee_id !== (job as any).assignee_id) {
+        notify({
+          userId: variables.assignee_id,
+          title: "Novo Job Atribuído",
+          description: `Você foi atribuído ao job: ${job.title}`,
+          category: "job",
+          link: `/jobs?jobId=${job.id}`,
+          originType: "job",
+          originId: job.id
+        }).catch(console.error);
+      }
+
       toast.success("Job atualizado");
     },
     onError: (e: Error, _v, ctx) => {
@@ -414,8 +447,27 @@ export function JobSheet({
       
       return { prev };
     },
-    onSuccess: () => {
+    onSuccess: (data: any, variables) => {
       qc.invalidateQueries({ queryKey: ["job-comments", job!.id] });
+      
+      // Notify team members about new comment
+      if (!variables.isSystem) {
+        const teamInvolved = (job as any).team_involved || [];
+        teamInvolved.forEach((userId: string) => {
+          // Skip the author of the comment and mentions (already handled in mutationFn)
+          if (userId === currentUser?.id) return;
+          
+          notify({
+            userId,
+            title: `Novo comentário: ${job!.title}`,
+            description: variables.content.substring(0, 100) + (variables.content.length > 100 ? '...' : ''),
+            category: "comment",
+            link: `/jobs?jobId=${job!.id}`,
+            originType: "job",
+            originId: job!.id
+          }).catch(console.error);
+        });
+      }
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["job-comments", job!.id], ctx.prev);
