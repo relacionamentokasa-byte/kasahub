@@ -155,7 +155,7 @@ export async function deleteClientCascade(clientId: string): Promise<{
   const jobIds = (jobsRows ?? []).map((j) => j.id);
   if (jobIds.length) {
     await supabase.from("job_checklist").delete().in("job_id", jobIds);
-    await supabase.from("job_comments").delete().in("job_id", jobIds);
+    await supabase.from("job_comentarios").delete().in("job_id", jobIds);
     await supabase.from("jobs").delete().in("id", jobIds);
   }
 

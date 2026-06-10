@@ -8,7 +8,7 @@ export type Project = Database["public"]["Tables"]["projects"]["Row"];
 export type JobStage = Database["public"]["Tables"]["job_stages"]["Row"];
 export type Job = Database["public"]["Tables"]["jobs"]["Row"];
 export type JobChecklist = Database["public"]["Tables"]["job_checklist"]["Row"];
-export type JobComment = Database["public"]["Tables"]["job_comments"]["Row"];
+export type JobComment = Database["public"]["Tables"]["job_comentarios"]["Row"];
 
 // ---------- Clients ----------
 export async function fetchClients(): Promise<Client[]> {
@@ -603,14 +603,15 @@ export async function deleteChecklistItem(id: string) {
 }
 
 export async function deleteJobComment(id: string) {
-  const { error } = await supabase.from("job_comments").delete().eq("id", id);
+  const { error } = await supabase.from("job_comentarios").delete().eq("id", id);
   if (error) throw error;
 }
 
+
 export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
   const { data, error } = await supabase
-    .from("job_comments")
-    .select("*")
+    .from("job_comentarios")
+    .select("*, profiles:user_id(display_name, full_name, avatar_url)")
     .eq("job_id", jobId)
     .order("created_at", { ascending: true });
   if (error) throw error;
@@ -659,12 +660,12 @@ export async function fetchJobComments(jobId: string): Promise<JobComment[]> {
     return updatedComment;
   }));
 
-  return dataWithUrls;
+  return dataWithUrls as JobComment[];
 }
 
 export async function updateJobComment(commentId: string, content: string) {
   const { data: existing } = await supabase
-    .from("job_comments")
+    .from("job_comentarios")
     .select("*")
     .eq("id", commentId)
     .single();
@@ -673,15 +674,15 @@ export async function updateJobComment(commentId: string, content: string) {
 
   const previousVersions = (existing as any).previous_versions || [];
   const newVersion = {
-    content: existing.content,
+    mensagem: (existing as any).mensagem,
     updated_at: (existing as any).updated_at || existing.created_at,
     metadata: (existing as any).metadata,
   };
 
   const { data, error } = await supabase
-    .from("job_comments")
+    .from("job_comentarios")
     .update({
-      content,
+      mensagem: content,
       updated_at: new Date().toISOString(),
       previous_versions: [...previousVersions, newVersion]
     } as any)
@@ -692,6 +693,7 @@ export async function updateJobComment(commentId: string, content: string) {
   if (error) throw error;
   return data;
 }
+
 
 
 export async function addJobComment(
@@ -707,7 +709,7 @@ export async function addJobComment(
   const payload: any = { 
     job_id: jobId, 
     user_id: u.user?.id || null, 
-    content, 
+    mensagem: content, 
     mentions,
     type,
     metadata,
@@ -715,10 +717,11 @@ export async function addJobComment(
   };
 
   const { data, error } = await supabase
-    .from("job_comments")
+    .from("job_comentarios")
     .insert(payload)
     .select()
     .single();
+
     
   if (error) {
     console.error("Error adding job comment:", error);

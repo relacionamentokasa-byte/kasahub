@@ -140,7 +140,7 @@ export function JobSheet({
     
     channel
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_checklist', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }))
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_comments', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] }))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'job_comentarios', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-comments", job.id] }))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'job_history', filter: `job_id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["job-history", job.id] }))
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'jobs', filter: `id=eq.${job.id}` }, () => qc.invalidateQueries({ queryKey: ["jobs"] }))
       .subscribe();
@@ -507,9 +507,9 @@ export function JobSheet({
         id: `comment-${c.id}`, 
         commentId: c.id,
         type: (c as any).type || 'comment', 
-        content: c.content, 
+        content: (c as any).mensagem || "", 
         user_id: c.user_id, 
-        created_at: c.created_at, 
+        created_at: c.created_at || new Date().toISOString(), 
         updated_at: (c as any).updated_at,
         previous_versions: (c as any).previous_versions || [],
         is_system: (c as any).is_system,
@@ -522,12 +522,13 @@ export function JobSheet({
         type: 'attachment', 
         content: `Arquivo enviado: ${a.file_name}`, 
         user_id: a.user_id, 
-        created_at: a.created_at, 
+        created_at: a.created_at || new Date().toISOString(), 
         is_system: false,
         metadata: { file_name: a.file_name, file_url: a.file_url },
         file_url: a.file_url || undefined
       }))
-    ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+    ].sort((a, b) => new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime());
+
   }, [comments, attachments, job]);
 
   if (!job) return null;

@@ -156,7 +156,7 @@ export async function cancelProposalWorkflow(
         const { error: checklistErr } = await supabase.from("job_checklist").delete().in("job_id", jobIds);
         if (checklistErr) throw new Error(`Falha ao remover checklist das tarefas: ${checklistErr.message}`);
         
-        const { error: commentsErr } = await supabase.from("job_comments").delete().in("job_id", jobIds);
+        const { error: commentsErr } = await supabase.from("job_comentarios").delete().in("job_id", jobIds);
         if (commentsErr) throw new Error(`Falha ao remover comentários das tarefas: ${commentsErr.message}`);
       }
 
