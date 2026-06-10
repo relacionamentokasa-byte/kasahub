@@ -414,20 +414,20 @@ export async function updateJob(
   const { data: userData } = await supabase.auth.getUser();
   const currentUserId = userData.user?.id;
 
+  const { data: profiles } = await supabase.from('profiles').select('display_name, full_name').eq('id', currentUserId || '').maybeSingle();
+  const authorName = profiles?.display_name || profiles?.full_name || 'Alguém';
+
   // Notificação de atribuição
   if (patch.assignee_id && patch.assignee_id !== originalJob?.assignee_id && patch.assignee_id !== currentUserId) {
-    const { data: profiles } = await supabase.from('profiles').select('display_name, full_name').eq('id', currentUserId || '').maybeSingle();
-    const authorName = profiles?.display_name || profiles?.full_name || 'Alguém';
-
-    await supabase.rpc('notify_user', {
-      p_user_id: patch.assignee_id,
-      p_title: "Novo Job Atribuído",
-      p_description: `${authorName} atribuiu você ao job: ${data.title}`,
-      p_category: 'job',
-      p_origin_type: 'jobs',
-      p_origin_id: data.id,
-      p_link: `/jobs?jobId=${data.id}`
-    } as any);
+    await notify({
+      userId: patch.assignee_id,
+      title: "Novo Job Atribuído",
+      description: `${authorName} designou você como responsável do job ${data.title}`,
+      category: 'job',
+      originType: 'jobs',
+      originId: data.id,
+      link: `/jobs?jobId=${data.id}`
+    });
   }
 
   // Notificação de mudança de status para a equipe
@@ -437,15 +437,15 @@ export async function updateJob(
     
     for (const userId of teamInvolved) {
       if (userId === currentUserId) continue;
-      await supabase.rpc('notify_user', {
-        p_user_id: userId,
-        p_title: `Status alterado: ${data.title}`,
-        p_description: `O job agora está em: ${statusLabel}`,
-        p_category: 'job',
-        p_origin_type: 'jobs',
-        p_origin_id: data.id,
-        p_link: `/jobs?jobId=${data.id}`
-      } as any);
+      await notify({
+        userId: userId,
+        title: `Status alterado: ${data.title}`,
+        description: `O job ${data.title} foi atualizado para ${statusLabel}`,
+        category: 'job',
+        originType: 'jobs',
+        originId: data.id,
+        link: `/jobs?jobId=${data.id}`
+      });
     }
   }
 
