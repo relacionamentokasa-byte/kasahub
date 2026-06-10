@@ -303,19 +303,21 @@ export function JobSheet({
         (old ?? []).map((item) => (item.id === id ? { ...item, done } : item)),
       );
       
+      const currentChecklist = prev || [];
+      const newChecklist = currentChecklist.map(it => it.id === id ? { ...it, done } : it);
+      const total = newChecklist.length;
+      const completed = newChecklist.filter(it => it.done).length;
+      const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
+
       qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
         if (!old || !Array.isArray(old)) return old;
         return old.map(j => {
           if (j.id === job!.id) {
-            const currentChecklist = prev || [];
-            const newChecklist = currentChecklist.map(it => it.id === id ? { ...it, done } : it);
-            const total = newChecklist.length;
-            const completed = newChecklist.filter(it => it.done).length;
             return {
               ...j,
               completed_steps: completed,
               total_steps: total,
-              progress_percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+              progress_percentage: progress
             };
           }
           return j;
@@ -327,7 +329,9 @@ export function JobSheet({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["job-checklist", job!.id] });
       qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["available-periods"] });
     },
+
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
     }
@@ -801,10 +805,11 @@ export function JobSheet({
                             <div key={item.id} className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all">
                               <Checkbox
                                 checked={item.done}
-                                onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: !!v })}
-                                className="size-5"
+                                onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: v === true })}
+                                className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300"
                               />
                               <div className="flex-1">
+
                                 <input
                                   defaultValue={item.content}
                                   onBlur={(e) => {
@@ -819,11 +824,12 @@ export function JobSheet({
                                       e.currentTarget.blur();
                                     }
                                   }}
-                                  className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm ${
-                                    item.done ? "line-through text-foreground/40" : "font-medium text-foreground"
+                                  className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm transition-all duration-300 ${
+                                    item.done ? "line-through text-foreground/40 italic" : "font-medium text-foreground"
                                   }`}
                                 />
                               </div>
+
                               
                               <div className="flex items-center gap-2">
                                 <Select

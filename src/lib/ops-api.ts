@@ -516,12 +516,36 @@ export async function addChecklistItem(jobId: string, content: string) {
 }
 
 export async function toggleChecklistItem(id: string, done: boolean) {
-  const { error } = await supabase.from("job_checklist").update({ 
+  const { data: item, error: fetchError } = await supabase
+    .from("job_checklist")
+    .select("job_id")
+    .eq("id", id)
+    .single();
+    
+  if (fetchError) throw fetchError;
+
+  const { error: updateError } = await supabase.from("job_checklist").update({ 
     done,
     updated_at: new Date().toISOString()
   } as any).eq("id", id);
-  if (error) throw error;
+  
+  if (updateError) throw updateError;
+
+  // Recalculate job progress
+  if (item?.job_id) {
+    const checklist = await fetchChecklist(item.job_id);
+    const total = checklist.length;
+    const completed = checklist.filter(it => it.done).length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+    await supabase.from("jobs").update({
+      completed_steps: completed,
+      total_steps: total,
+      progress_percentage: percentage
+    } as any).eq("id", item.job_id);
+  }
 }
+
 
 export async function updateChecklistItem(id: string, patch: Partial<JobChecklist>) {
   const { data, error } = await supabase
