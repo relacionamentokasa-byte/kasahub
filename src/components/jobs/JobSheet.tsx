@@ -1149,7 +1149,34 @@ export function JobSheet({
               </div>
             </ScrollArea>
 
-            <div className="p-6 pt-2 border-t border-border shrink-0">
+            <div className="p-6 pt-2 border-t border-border shrink-0 bg-surface/50">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => dupMut.mutate()}
+                    disabled={dupMut.isPending}
+                    className="text-[10px] font-bold uppercase tracking-widest text-primary hover:text-primary hover:bg-primary/10 gap-2 h-8 px-3"
+                  >
+                    <Copy className="size-3" />
+                    Duplicar Job
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => confirm(`Remover este job?`) && deleteMut.mutate()}
+                    disabled={deleteMut.isPending}
+                    className="text-[10px] font-bold uppercase tracking-widest text-destructive hover:text-destructive hover:bg-destructive/10 gap-2 h-8 px-3"
+                  >
+                    <Trash2 className="size-3" />
+                    Excluir Job
+                  </Button>
+                </div>
+              </div>
+
               
               <div className="relative z-[100]">
                 <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
