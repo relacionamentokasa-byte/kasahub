@@ -8,7 +8,7 @@ import { brl } from "./finance-api";
  * This should be called from a background process or a scheduled task.
  * For this implementation, we provide it as a function that can be triggered.
  */
-export async function checkFinancialDeadlines() {
+export async function checkDailyNotifications() {
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
   
