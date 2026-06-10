@@ -100,6 +100,7 @@ function formatCurrency(value: number, currency = "BRL") {
 }
 
 function PublicProposalView() {
+  console.log("[Public Proposal] Rendering view...");
   const { token } = Route.useParams();
   const [data, setData] = useState<{
     proposal: Proposal;
