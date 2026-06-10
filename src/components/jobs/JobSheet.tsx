@@ -804,9 +804,21 @@ export function JobSheet({
                                 onCheckedChange={(v) => toggleItemMut.mutate({ id: item.id, done: !!v })}
                                 className="size-5"
                               />
-                              <span className={`flex-1 text-sm ${item.done ? "line-through text-foreground/40" : "font-medium text-foreground"}`}>
-                                {item.content}
-                              </span>
+                              <div className="flex-1">
+                                <input
+                                  defaultValue={item.content}
+                                  onBlur={(e) => {
+                                    const newContent = e.target.value.trim();
+                                    if (newContent && newContent !== item.content) {
+                                      updateChecklistItem(item.id, { content: newContent })
+                                        .then(() => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }));
+                                    }
+                                  }}
+                                  className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm ${
+                                    item.done ? "line-through text-foreground/40" : "font-medium text-foreground"
+                                  }`}
+                                />
+                              </div>
                               
                               <div className="flex items-center gap-2">
                                 <Select
@@ -871,6 +883,73 @@ export function JobSheet({
                             <Plus className="size-5" />
                           </Button>
                         </form>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="size-4 text-primary" />
+                        <Label className="text-xs font-bold uppercase tracking-wider">Anexos do Job</Label>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 gap-2">
+                        {attachments.map((file) => (
+                          <div key={file.id} className="flex items-center justify-between p-2 bg-background border border-border rounded-lg group">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <FileText className="size-4 text-foreground/40 shrink-0" />
+                              <span className="text-xs font-medium truncate text-foreground/80">{file.file_name}</span>
+                            </div>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                onClick={() => window.open(file.file_url, '_blank')}
+                              >
+                                <ExternalLink className="size-3.5" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-7 h-7 w-7 text-foreground/40 hover:text-destructive"
+                                onClick={async () => {
+                                  if (confirm("Deseja remover este anexo?")) {
+                                    const { error } = await supabase.from('job_attachments').delete().eq('id', file.id);
+                                    if (!error) {
+                                      qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
+                                      toast.success("Anexo removido");
+                                    }
+                                  }
+                                }}
+                              >
+                                <X className="size-3.5" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-border rounded-xl p-6 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-2"
+                      >
+                        {isUploading ? (
+                          <Loader2 className="size-6 text-primary animate-spin" />
+                        ) : (
+                          <FileUp className="size-6 text-foreground/20" />
+                        )}
+                        <div className="text-center">
+                          <p className="text-xs font-bold text-foreground/60">
+                            {isUploading ? "Enviando arquivo..." : "Clique ou arraste para anexar"}
+                          </p>
+                          <p className="text-[10px] text-foreground/40 uppercase tracking-widest mt-1">Formatos suportados: PDF, JPG, PNG, DOCX</p>
+                        </div>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          onChange={handleFileUpload}
+                        />
                       </div>
                     </div>
 
