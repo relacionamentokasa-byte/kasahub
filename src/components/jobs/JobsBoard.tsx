@@ -388,7 +388,6 @@ export function JobsBoard({
         </div>
       </div>
 
-
       <div className="flex-1 overflow-x-auto px-6 lg:px-10 pb-10 scroll-smooth snap-x">
         <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
           <div className="flex gap-4 min-w-max h-full">
@@ -396,7 +395,7 @@ export function JobsBoard({
               const cards = byStage.get(stage.id) ?? [];
               return (
                 <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
-                  {cards.map((j) => (
+                  {cards.map((j: Job) => (
                     <JobCard 
                       key={j.id} 
                       job={j} 
@@ -424,7 +423,30 @@ export function JobsBoard({
       <JobSheet job={openJob} stages={stages} onClose={() => setOpenId(null)} />
     </div>
   );
+
+  function onDragStart(e: DragStartEvent) {
+    setActiveId(String(e.active.id));
+  }
+  function onDragEnd(e: DragEndEvent) {
+    setActiveId(null);
+    const overId = e.over?.id ? String(e.over.id) : null;
+    if (!overId) return;
+    const stage = stages.find((s) => s.id === overId);
+    const job = jobs.find((j) => j.id === e.active.id);
+    if (!stage || !job || job.stage_id === overId) return;
+    moveMut.mutate({ id: String(e.active.id), stage });
+  }
+
+  const activeJob = activeId ? jobs.find((j) => j.id === activeId) : null;
+
+  const byStage = useMemo(() => {
+    const m = new Map<string, Job[]>();
+    for (const s of stages) m.set(s.id, []);
+    for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
+    return m;
+  }, [stages, filtered]);
 }
+
 
 function Column({
   stage,
