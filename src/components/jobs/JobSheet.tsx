@@ -824,11 +824,12 @@ export function JobSheet({
                                       e.currentTarget.blur();
                                     }
                                   }}
-                                  className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm ${
-                                    item.done ? "line-through text-foreground/40" : "font-medium text-foreground"
+                                  className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm transition-all duration-300 ${
+                                    item.done ? "line-through text-foreground/40 italic" : "font-medium text-foreground"
                                   }`}
                                 />
                               </div>
+
                               
                               <div className="flex items-center gap-2">
                                 <Select
