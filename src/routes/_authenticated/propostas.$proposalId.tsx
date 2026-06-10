@@ -258,11 +258,16 @@ export function ProposalEditorContent({
         'cancelled_by', 'internal_approval_by'
       ];
 
+      const dateFields = [
+        'valid_until', 'first_due_date', 'sent_at', 'accepted_at', 
+        'converted_at', 'signed_at', 'cancelled_at', 'deleted_at'
+      ];
+
       fields.forEach(field => {
         let value = (currentForm as any)[field];
         
-        // Sanitize UUID fields: convert empty strings to null
-        if (uuidFields.includes(field) && value === "") {
+        // Sanitize UUID and Date fields: convert empty strings to null
+        if ((uuidFields.includes(field) || dateFields.includes(field)) && value === "") {
           value = null;
         }
 
