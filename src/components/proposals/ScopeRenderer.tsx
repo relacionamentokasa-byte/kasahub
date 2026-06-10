@@ -22,7 +22,11 @@ export function ScopeRenderer({
 
   return (
     <div
-      className={`prose prose-sm max-w-none prose-headings:mt-6 prose-headings:mb-4 prose-p:my-3 prose-ul:my-3 prose-li:my-1 ${className}`}
+      className={`prose prose-sm max-w-none 
+        prose-headings:mt-6 prose-headings:mb-4 
+        prose-p:mb-2 prose-p:mt-0
+        prose-strong:block prose-strong:mt-4 first:prose-strong:mt-0
+        ${className}`}
     >
       <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>{content}</ReactMarkdown>
     </div>
