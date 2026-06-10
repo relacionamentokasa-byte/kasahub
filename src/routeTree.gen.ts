@@ -14,6 +14,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
+import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
+import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -42,6 +44,7 @@ import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/e
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as ApiPublicPropostaTokenRouteImport } from './routes/api/public/proposta.$token'
+import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
@@ -68,6 +71,16 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
 const PropostaTokenRoute = PropostaTokenRouteImport.update({
   id: '/proposta/$token',
   path: '/proposta/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProposalTokenRoute = ProposalTokenRouteImport.update({
+  id: '/proposal/$token',
+  path: '/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PTokenRoute = PTokenRouteImport.update({
+  id: '/p/$token',
+  path: '/p/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DmeTokenRoute = DmeTokenRouteImport.update({
@@ -215,6 +228,11 @@ const ApiPublicPropostaTokenRoute = ApiPublicPropostaTokenRouteImport.update({
   path: '/api/public/proposta/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicProposalTokenRoute = ApiPublicProposalTokenRouteImport.update({
+  id: '/api/public/proposal/$token',
+  path: '/api/public/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksDispatchPushRoute =
   ApiPublicHooksDispatchPushRouteImport.update({
     id: '/api/public/hooks/dispatch-push',
@@ -255,6 +273,8 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/p/$token': typeof PTokenRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
@@ -264,6 +284,7 @@ export interface FileRoutesByFullPath {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -291,6 +312,8 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/p/$token': typeof PTokenRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
@@ -301,6 +324,7 @@ export interface FileRoutesByTo {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -330,6 +354,8 @@ export interface FileRoutesById {
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/p/$token': typeof PTokenRoute
+  '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
@@ -340,6 +366,7 @@ export interface FileRoutesById {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -370,6 +397,8 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/p/$token'
+    | '/proposal/$token'
     | '/proposta/$token'
     | '/clientes/$clientId'
     | '/projetos/$projectId'
@@ -379,6 +408,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -406,6 +436,8 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/p/$token'
+    | '/proposal/$token'
     | '/proposta/$token'
     | '/'
     | '/clientes/$clientId'
@@ -416,6 +448,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -444,6 +477,8 @@ export interface FileRouteTypes {
     | '/_authenticated/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/p/$token'
+    | '/proposal/$token'
     | '/proposta/$token'
     | '/_authenticated/'
     | '/_authenticated/clientes/$clientId'
@@ -454,6 +489,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
@@ -466,12 +502,15 @@ export interface RootRouteChildren {
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
+  PTokenRoute: typeof PTokenRoute
+  ProposalTokenRoute: typeof ProposalTokenRoute
   PropostaTokenRoute: typeof PropostaTokenRoute
   ApiPublicFaviconRoute: typeof ApiPublicFaviconRoute
   ApiPublicManifestRoute: typeof ApiPublicManifestRoute
   ApiPublicApproveTokenRoute: typeof ApiPublicApproveTokenRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
+  ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
   ApiPublicPropostaTokenRoute: typeof ApiPublicPropostaTokenRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -513,6 +552,20 @@ declare module '@tanstack/react-router' {
       path: '/proposta/$token'
       fullPath: '/proposta/$token'
       preLoaderRoute: typeof PropostaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposal/$token': {
+      id: '/proposal/$token'
+      path: '/proposal/$token'
+      fullPath: '/proposal/$token'
+      preLoaderRoute: typeof ProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$token': {
+      id: '/p/$token'
+      path: '/p/$token'
+      fullPath: '/p/$token'
+      preLoaderRoute: typeof PTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dme/$token': {
@@ -711,6 +764,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPropostaTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/proposal/$token': {
+      id: '/api/public/proposal/$token'
+      path: '/api/public/proposal/$token'
+      fullPath: '/api/public/proposal/$token'
+      preLoaderRoute: typeof ApiPublicProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/dispatch-push': {
       id: '/api/public/hooks/dispatch-push'
       path: '/api/public/hooks/dispatch-push'
@@ -827,12 +887,15 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
+  PTokenRoute: PTokenRoute,
+  ProposalTokenRoute: ProposalTokenRoute,
   PropostaTokenRoute: PropostaTokenRoute,
   ApiPublicFaviconRoute: ApiPublicFaviconRoute,
   ApiPublicManifestRoute: ApiPublicManifestRoute,
   ApiPublicApproveTokenRoute: ApiPublicApproveTokenRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
+  ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
   ApiPublicPropostaTokenRoute: ApiPublicPropostaTokenRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
@@ -841,3 +904,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
