@@ -29,16 +29,19 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
 
   const [editing, setEditing] = useState<ScopeTemplate | null>(null);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", category: "", content: "" });
+  const [form, setForm] = useState({ name: "", category: "", content: [] as string[] });
 
   function startNew() {
     setEditing(null);
-    setForm({ name: "", category: "", content: "" });
+    setForm({ name: "", category: "", content: [] });
     setOpen(true);
   }
   function startEdit(t: ScopeTemplate) {
     setEditing(t);
-    setForm({ name: t.name, category: t.category ?? "", content: t.content });
+    const content = Array.isArray(t.content) 
+      ? t.content 
+      : (typeof t.content === 'string' ? t.content.split('\n').map(s => s.replace(/^[-\s*]+/, '').trim()).filter(Boolean) : []);
+    setForm({ name: t.name, category: t.category ?? "", content });
     setOpen(true);
   }
 
@@ -48,12 +51,12 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
         ? updateScopeTemplate(editing.id, {
             name: form.name,
             category: form.category || null,
-            content: form.content,
+            content: form.content as any,
           })
         : createScopeTemplate({
             name: form.name,
             category: form.category || null,
-            content: form.content,
+            content: form.content as any,
           }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["scope-templates"] });
@@ -162,7 +165,7 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
             </Button>
             <Button
               onClick={() => saveMut.mutate()}
-              disabled={!form.name.trim() || !form.content.trim() || saveMut.isPending}
+              disabled={!form.name.trim() || form.content.length === 0 || saveMut.isPending}
             >
               {saveMut.isPending && <Loader2 className="size-3.5 animate-spin" />}
               Salvar
