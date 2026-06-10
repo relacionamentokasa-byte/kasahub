@@ -239,7 +239,9 @@ export function ProposalEditorContent({
 
       const uuidFields = [
         'client_id', 'lead_id', 'responsible_id', 'commercial_id', 
-        'account_id', 'category_id', 'contract_template_id'
+        'account_id', 'category_id', 'contract_template_id', 'owner_id',
+        'parent_id', 'root_proposal_id', 'generated_contract_id', 'generated_project_id',
+        'cancelled_by', 'internal_approval_by'
       ];
 
       fields.forEach(field => {
