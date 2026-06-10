@@ -435,8 +435,11 @@ export async function updateJob(
     const teamInvolved = (originalJob as any).team_involved || [];
     const statusLabel = JOB_STATUS_LABELS[patch.status as keyof typeof JOB_STATUS_LABELS]?.label || patch.status;
     
-    for (const userId of teamInvolved) {
-      if (userId === currentUserId) continue;
+    for (const member of teamInvolved) {
+      // team_involved can be an array of objects {"user_id": "...", "role": "..."} or just strings
+      const userId = typeof member === 'string' ? member : member?.user_id;
+      
+      if (!userId || userId === currentUserId) continue;
       await notify({
         userId: userId,
         title: `Status alterado: ${data.title}`,
@@ -747,11 +750,11 @@ export async function addJobComment(
     const { data: currentProfile } = await supabase.from('profiles').select('display_name, full_name').eq('id', u.user?.id || '').maybeSingle();
     const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
 
-    for (const userId of teamInvolved) {
-      if (userId === u.user?.id) continue;
-      // We don't want to double notify if they were mentioned, but handleMentions already checks profile match.
-      // To be safe and meet the requirement "notificar todos os membros da equipe", we send a generic comment notification.
-      // If they were mentioned, they might get two, but usually system "mention" has higher priority.
+    for (const member of teamInvolved) {
+      // team_involved can be an array of objects {"user_id": "...", "role": "..."} or just strings
+      const userId = typeof member === 'string' ? member : member?.user_id;
+      
+      if (!userId || userId === u.user?.id) continue;
       
       await notify({
         userId,

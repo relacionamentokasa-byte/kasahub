@@ -200,7 +200,10 @@ export function JobSheet({
       if (variables.status && job && variables.status !== job.status) {
         const teamInvolved = (job as any).team_involved || [];
         const statusLabel = JOB_STATUS_LABELS[variables.status as keyof typeof JOB_STATUS_LABELS]?.label || variables.status;
-        const recipients = teamInvolved.filter((id: string) => id !== currentUser?.id);
+        
+        const recipients = teamInvolved
+          .map((m: any) => typeof m === 'string' ? m : m.user_id)
+          .filter((id: string) => id && id !== currentUser?.id);
         
         if (recipients.length > 0) {
           enviarNotificacaoMultipla(
@@ -448,11 +451,14 @@ export function JobSheet({
       
       // Notify team members about new comment
       if (!variables.isSystem) {
-        const teamInvolved = ((job as any).team_involved || []) as string[];
-        const recipients = teamInvolved.filter((userId: string) => 
-          userId !== currentUser?.id && 
-          !variables.content.includes('@')
-        );
+        const teamInvolved = ((job as any).team_involved || []) as any[];
+        const recipients = teamInvolved
+          .map(m => typeof m === 'string' ? m : m.user_id)
+          .filter((userId: string) => 
+            userId &&
+            userId !== currentUser?.id && 
+            !variables.content.includes('@')
+          );
 
         if (recipients.length > 0) {
           enviarNotificacaoMultipla(
