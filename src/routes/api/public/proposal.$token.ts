@@ -20,6 +20,7 @@ export const Route = createFileRoute("/api/public/proposal/$token")({
   server: {
     handlers: {
       GET: async ({ params }) => {
+        console.log("[API Public Proposal] GET Request for token:", params.token);
         try {
           const parsed = TokenSchema.safeParse(params.token);
           if (!parsed.success) {
