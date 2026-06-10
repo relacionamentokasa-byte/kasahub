@@ -10,7 +10,7 @@ export function ScopeRenderer({
   const items = Array.isArray(text) 
     ? text 
     : (typeof text === 'string' && text.length > 0)
-      ? text.split('\n').map(line => line.replace(/^[-\s*]+/, '').trim()).filter(Boolean)
+      ? (text.startsWith('[') ? ((() => { try { return JSON.parse(text); } catch(e) { return [text]; } })()) : text.split('\n').map(line => line.replace(/^[-\s*]+/, '').trim()).filter(Boolean))
       : fallback || [];
 
   if (items.length === 0) return null;
