@@ -169,7 +169,9 @@ export async function fetchProposalItems(proposalId: string): Promise<ProposalIt
 export function sanitizeProposalUUIDs<T extends object>(input: T): T {
   const uuidFields = [
     'client_id', 'lead_id', 'responsible_id', 'commercial_id', 
-    'account_id', 'category_id', 'contract_template_id', 'owner_id'
+    'account_id', 'category_id', 'contract_template_id', 'owner_id',
+    'parent_id', 'root_proposal_id', 'generated_contract_id', 'generated_project_id',
+    'cancelled_by', 'internal_approval_by'
   ];
   const result = { ...input } as any;
   for (const field of uuidFields) {
