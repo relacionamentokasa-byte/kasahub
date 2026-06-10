@@ -59,9 +59,10 @@ export function useAudioNotifications() {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'notifications',
+          table: 'notificacoes',
           filter: `user_id=eq.${user.id}`
         },
+
         (payload) => {
           const newNotif = payload.new;
           if (newNotif.id === lastProcessedId.current) return;
