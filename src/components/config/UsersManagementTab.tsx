@@ -297,22 +297,18 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       <div>
                         <p className="font-medium">{u.display_name || u.full_name || "Sem nome"}</p>
                         <p className="text-[10px] text-foreground/40">{u.email}</p>
-                        {u.plain_password ? (
-                          <div className="flex items-center gap-2 mt-1">
-                            <p className="text-[10px] font-mono text-primary/70">
-                              {visiblePasswords[u.id] ? u.plain_password : "••••••••"}
-                            </p>
-                            <button
-                              onClick={() => togglePasswordVisibility(u.id)}
-                              className="text-foreground/40 hover:text-primary transition-colors p-1"
-                              title={visiblePasswords[u.id] ? "Ocultar senha" : "Ver senha"}
-                            >
-                              {visiblePasswords[u.id] ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
-                            </button>
-                          </div>
-                        ) : (
-                          <p className="text-[9px] text-foreground/20 italic mt-1">Senha não disponível</p>
-                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-[10px] font-mono text-primary/70">
+                            {visiblePasswords[u.id] ? (u.plain_password || "Senha não disponível") : "••••••••"}
+                          </p>
+                          <button
+                            onClick={() => togglePasswordVisibility(u.id)}
+                            className="text-foreground/40 hover:text-primary transition-colors p-1"
+                            title={visiblePasswords[u.id] ? "Ocultar senha" : "Ver senha"}
+                          >
+                            {visiblePasswords[u.id] ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </td>
