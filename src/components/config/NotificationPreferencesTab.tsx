@@ -1,15 +1,9 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, AlertTriangle, Phone, Mail, Bell, Smartphone, Volume2, Music } from "lucide-react";
+import { Loader2, Bell, Shield, Info } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchMyProfile } from "@/lib/profile-api";
-import { Button } from "@/components/ui/button";
-import { Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { useAudioNotifications } from "@/hooks/use-audio-notifications";
-
+import { useEffect } from "react";
 
 function ToggleRow({
   title,
@@ -25,44 +19,43 @@ function ToggleRow({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
-      <div>
-        <p className="font-medium text-sm">{title}</p>
-        <p className="text-xs text-foreground/50">{description}</p>
+    <div className="flex items-center justify-between py-4 border-b border-border/50 last:border-0 hover:bg-muted/5 transition-colors px-2 rounded-lg">
+      <div className="space-y-1">
+        <p className="font-bold text-sm tracking-tight">{title}</p>
+        <p className="text-xs text-foreground/50 leading-relaxed max-w-[400px]">{description}</p>
       </div>
-      <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} />
+      <Switch 
+        checked={checked} 
+        onCheckedChange={onChange} 
+        disabled={disabled}
+        className="data-[state=checked]:bg-primary"
+      />
     </div>
   );
 }
 
 export function NotificationPreferencesTab() {
   const qc = useQueryClient();
-  const [testResults, setTestResults] = useState<any[] | null>(null);
-  const [isTesting, setIsTesting] = useState(false);
-  const { playSound } = useAudioNotifications();
 
-  
-  const { data: { user } = {} } = useQuery({
+  // Get current user
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["auth-user"],
     queryFn: async () => {
-      const { data } = await supabase.auth.getUser();
-      return data;
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return user;
     }
   });
 
-  const { data: profile } = useQuery({
-    queryKey: ["my-profile"],
-    queryFn: fetchMyProfile,
-    enabled: !!user?.id
-  });
-
-  const { data: prefs, isLoading } = useQuery({
+  // Get preferences
+  const { data: prefs, isLoading: prefsLoading } = useQuery({
     queryKey: ["notification-preferences", user?.id],
     queryFn: async () => {
+      if (!user?.id) return null;
       const { data, error } = await supabase
         .from("notification_preferences")
         .select("*")
-        .eq("user_id", user?.id || '')
+        .eq("user_id", user.id)
         .maybeSingle();
       if (error) throw error;
       return data;
@@ -70,368 +63,160 @@ export function NotificationPreferencesTab() {
     enabled: !!user?.id
   });
 
-  const { data: logs } = useQuery({
-    queryKey: ["notification-logs", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("notification_logs")
-        .select("*")
-        .eq("user_id", user?.id || '')
-        .order("created_at", { ascending: false })
-        .limit(10);
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id
-  });
+  // Realtime subscription setup
+  useEffect(() => {
+    if (!user?.id) return;
 
+    let channel: any;
+
+    const setupSubscription = async () => {
+      // Clean up previous channel
+      if (channel) {
+        await supabase.removeChannel(channel);
+      }
+
+      channel = supabase
+        .channel(`notif-prefs-updates-${user.id}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "notification_preferences",
+            filter: `user_id=eq.${user.id}`,
+          },
+          () => {
+            qc.invalidateQueries({ queryKey: ["notification-preferences", user.id] });
+          }
+        )
+        .subscribe();
+    };
+
+    setupSubscription();
+
+    return () => {
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+    };
+  }, [user?.id, qc]);
+
+  // Update preferences mutation
   const mut = useMutation({
     mutationFn: async (patch: any) => {
-      const hasPhone = profile?.phone && profile.phone.length > 5;
-
-      if (patch.whatsapp_enabled && !hasPhone) {
-        throw new Error("MISSING_PHONE");
-      }
+      if (!user?.id) throw new Error("Usuário não autenticado");
 
       const { data: existing } = await supabase
         .from("notification_preferences")
         .select("user_id")
-        .eq("user_id", user?.id || '')
+        .eq("user_id", user.id)
         .maybeSingle();
 
       if (existing) {
         const { error } = await supabase
           .from("notification_preferences")
           .update(patch)
-          .eq("user_id", user?.id || '');
+          .eq("user_id", user.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("notification_preferences")
           .insert({
-            user_id: user?.id,
+            user_id: user.id,
             ...patch
           });
         if (error) throw error;
       }
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["notification-preferences"] });
-      toast.success("Preferências atualizadas");
+      qc.invalidateQueries({ queryKey: ["notification-preferences", user?.id] });
+      toast.success("Preferências salvas com sucesso!");
     },
     onError: (e: Error) => {
-      if (e.message === "MISSING_PHONE") {
-        toast.error("Telefone não cadastrado", {
-          description: "Cadastre seu WhatsApp no perfil para ativar este canal."
-        });
-      } else {
-        toast.error(e.message);
-      }
+      toast.error(`Erro ao salvar: ${e.message}`);
     }
   });
 
-  const handleRequestPushPermission = async () => {
-    if (!('Notification' in window)) {
-      toast.error("Este navegador não suporta notificações Push.");
-      return;
+  if (userLoading || prefsLoading) {
+    return (
+      <div className="p-20 flex flex-col items-center justify-center gap-4">
+        <Loader2 className="size-8 animate-spin text-primary/40" />
+        <p className="text-sm text-foreground/40 font-mono-kasa animate-pulse">Carregando preferências...</p>
+      </div>
+    );
+  }
+
+  const notificationTypes = [
+    {
+      key: "jobs",
+      title: "Atribuição de Job",
+      description: "Notifica quando uma nova tarefa for atribuída a você ou quando houver mudanças críticas em jobs que você participa."
+    },
+    {
+      key: "mentions",
+      title: "Menções",
+      description: "Alertas imediatos quando alguém mencionar seu @usuário em qualquer parte do sistema (comentários, notas, briefings)."
+    },
+    {
+      key: "comments",
+      title: "Comentários",
+      description: "Fique por dentro de novas interações e discussões em tarefas ou projetos onde você está envolvido."
+    },
+    {
+      key: "approvals",
+      title: "Mudança de Status",
+      description: "Receba avisos quando o status de uma tarefa mudar, mantendo o fluxo de trabalho sempre atualizado."
+    },
+    {
+      key: "agenda",
+      title: "Prazo Próximo",
+      description: "Lembretes preventivos automáticos (1 dia antes) para garantir que nenhuma entrega importante seja esquecida."
     }
-
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      toast.success("Permissão concedida!", {
-        description: "Agora você pode ativar o canal Push Mobile."
-      });
-      // Ativar o canal automaticamente se a permissão for concedida
-      mut.mutate({ push_enabled: true });
-    } else {
-      toast.error("Permissão negada", {
-        description: "Habilite as notificações nas configurações do seu navegador."
-      });
-    }
-  };
-
-  const handleTestNotification = async () => {
-    if (!user?.id) return;
-    
-    setIsTesting(true);
-    setTestResults(null);
-    toast.info("Iniciando auditoria de canais...");
-    
-    try {
-      // Registrar token se push estiver ativo (simulado para este MVP)
-      if (prefs?.push_enabled && 'serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        console.log("Service Worker pronto para teste de Push");
-      }
-
-      const { data, error } = await supabase.functions.invoke("send-test-notification", {
-        body: { userId: user.id }
-      });
-      
-      if (error) throw error;
-      
-      setTestResults(data.results);
-      qc.invalidateQueries({ queryKey: ["notification-logs"] });
-      qc.invalidateQueries({ queryKey: ["notifications"] });
-      
-      const hasFailures = data.results.some((r: any) => r.status === 'failure');
-      if (hasFailures) {
-        toast.warning("Auditoria concluída com alertas.");
-      } else {
-        toast.success("Todos os canais ativos responderam!");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Erro crítico na auditoria.");
-    } finally {
-      setIsTesting(false);
-    }
-  };
-
-  if (isLoading) return <div className="p-12 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>;
+  ];
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-surface p-6">
-        <h3 className="font-display font-bold mb-4">Categorias de Alerta</h3>
-        <ToggleRow 
-          title="Menções" 
-          description="Quando alguém citar seu @usuario em comentários." 
-          checked={prefs?.mentions ?? true}
-          onChange={(v) => mut.mutate({ mentions: v })}
-        />
-        <ToggleRow 
-          title="Comentários" 
-          description="Novas interações em registros que você participa." 
-          checked={prefs?.comments ?? true}
-          onChange={(v) => mut.mutate({ comments: v })}
-        />
-        <ToggleRow 
-          title="Jobs e Tarefas" 
-          description="Atribuições, prazos e mudanças em jobs." 
-          checked={prefs?.jobs ?? true}
-          onChange={(v) => mut.mutate({ jobs: v })}
-        />
-        <ToggleRow 
-          title="Aprovações" 
-          description="Status de aprovação de clientes e novas peças." 
-          checked={prefs?.approvals ?? true}
-          onChange={(v) => mut.mutate({ approvals: v })}
-        />
-        <ToggleRow 
-          title="Agenda e Reuniões" 
-          description="Lembretes de eventos e compromissos." 
-          checked={prefs?.agenda ?? true}
-          onChange={(v) => mut.mutate({ agenda: v })}
-        />
-        <ToggleRow 
-          title="Financeiro" 
-          description="Vencimentos, recebimentos e inadimplência." 
-          checked={prefs?.finance ?? true}
-          onChange={(v) => mut.mutate({ finance: v })}
-        />
-      </div>
-
-      <div className="rounded-xl border border-border bg-surface p-6">
-        <h3 className="font-display font-bold mb-4">Canais Externos</h3>
-        
-        {(!profile?.phone || profile.phone.length < 5) && (
-          <div className="mb-4 p-3 rounded bg-amber-500/10 border border-amber-500/20 flex gap-3 items-start">
-            <AlertTriangle className="size-4 text-amber-500 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-amber-200">WhatsApp e Push desativados</p>
-              <p className="text-[10px] text-amber-200/70 leading-relaxed">
-                Detectamos que seu telefone não está cadastrado. Vá em "Meu Perfil" para inserir seu WhatsApp.
-              </p>
-            </div>
+    <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="bg-surface border border-border rounded-2xl p-8 shadow-sm">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="p-3 rounded-xl bg-primary/10 text-primary">
+            <Bell className="size-6" />
           </div>
-        )}
-
-        <ToggleRow 
-          title="E-mail" 
-          description={`Receber em: ${user?.email || 'e-mail não encontrado'}`}
-          checked={prefs?.email_enabled ?? false}
-          onChange={(v) => mut.mutate({ email_enabled: v })}
-        />
-        <ToggleRow 
-          title="WhatsApp" 
-          description={profile?.phone ? `Enviar para: ${profile.phone}` : "Requer telefone no perfil"} 
-          checked={prefs?.whatsapp_enabled ?? false}
-          onChange={(v) => mut.mutate({ whatsapp_enabled: v })}
-          disabled={!profile?.phone}
-        />
-        <div className="space-y-3">
-          <ToggleRow 
-            title="Push Mobile" 
-            description="Notificações no seu smartphone Android ou iPhone." 
-            checked={prefs?.push_enabled ?? false}
-            onChange={(v) => {
-              if (v && Notification.permission !== 'granted') {
-                handleRequestPushPermission();
-              } else {
-                mut.mutate({ push_enabled: v });
-              }
-            }}
-          />
+          <div>
+            <h3 className="text-xl font-bold tracking-tight">Notificações da Plataforma</h3>
+            <p className="text-sm text-foreground/50">Gerencie como e quando você deseja ser notificado no sistema.</p>
+          </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-border space-y-6">
-          <div className="flex flex-col gap-2">
-            <h4 className="text-sm font-medium">Histórico e Auditoria</h4>
-            <p className="text-xs text-foreground/50">
-              Execute um teste real para validar a integridade de todos os canais de comunicação.
+        <div className="space-y-2">
+          {notificationTypes.map((type) => (
+            <ToggleRow 
+              key={type.key}
+              title={type.title}
+              description={type.description}
+              checked={prefs ? (prefs as any)[type.key] ?? true : true}
+              onChange={(v) => mut.mutate({ [type.key]: v })}
+              disabled={mut.isPending}
+            />
+          ))}
+        </div>
+
+        <div className="mt-10 p-4 bg-muted/30 border border-border/50 rounded-xl flex gap-3">
+          <Info className="size-4 text-primary shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="text-xs font-bold uppercase tracking-wider text-foreground/70">Tempo Real Ativado</p>
+            <p className="text-[11px] text-foreground/50 leading-relaxed">
+              As alterações são aplicadas instantaneamente a todos os seus dispositivos conectados através do Supabase Realtime.
             </p>
           </div>
-
-          <Button 
-            variant="outline" 
-            className="w-full md:w-auto"
-            onClick={handleTestNotification}
-            disabled={isTesting}
-          >
-            {isTesting ? <Loader2 className="size-4 mr-2 animate-spin" /> : <Bell className="size-4 mr-2" />}
-            {isTesting ? "Auditando Canais..." : "Enviar Notificação de Teste"}
-          </Button>
-
-          {testResults && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-              {testResults.map((res: any, i: number) => (
-                <div key={i} className="p-3 rounded-lg border border-border bg-background/50 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-mono-kasa uppercase text-foreground/40">{res.channel}</span>
-                    <span className={cn(
-                      "size-2 rounded-full",
-                      res.status === 'success' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : 
-                      res.status === 'failure' ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" : "bg-muted"
-                    )} />
-                  </div>
-                  <div className="space-y-1">
-                    <p className={cn(
-                      "text-xs font-bold",
-                      res.status === 'success' ? "text-emerald-400" : 
-                      res.status === 'failure' ? "text-red-400" : "text-foreground/40"
-                    )}>
-                      {res.status === 'success' ? "Sucesso" : res.status === 'failure' ? "Falha" : "Inativo"}
-                    </p>
-                    {res.error && <p className="text-[10px] text-foreground/60 leading-tight">{res.error}</p>}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {logs && logs.length > 0 && (
-            <div className="mt-6 space-y-3">
-              <h5 className="text-[10px] font-mono-kasa uppercase text-foreground/40 tracking-widest">Logs Recentes</h5>
-              <div className="rounded-lg border border-border overflow-hidden">
-                <table className="w-full text-[10px] font-mono-kasa">
-                  <thead className="bg-surface">
-                    <tr>
-                      <th className="text-left p-2 border-b border-border">Data/Hora</th>
-                      <th className="text-left p-2 border-b border-border">Canal</th>
-                      <th className="text-left p-2 border-b border-border">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((log: any) => (
-                      <tr key={log.id} className="border-b border-border last:border-0 hover:bg-surface/50 transition-colors">
-                        <td className="p-2 opacity-60">{new Date(log.created_at).toLocaleString()}</td>
-                        <td className="p-2">{log.channel}</td>
-                        <td className="p-2">
-                          <span className={log.status === 'success' ? "text-emerald-400" : "text-red-400"}>
-                            {log.status === 'success' ? "OK" : "ERRO"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-surface p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10 text-primary">
-              <Volume2 className="size-5" />
-            </div>
-            <h3 className="font-display font-bold">Alertas Sonoros</h3>
-          </div>
-          <Switch 
-            checked={prefs?.sound_enabled ?? true} 
-            onCheckedChange={(v) => mut.mutate({ sound_enabled: v })}
-          />
-        </div>
-
-        <div className={cn("space-y-6 transition-opacity", !(prefs?.sound_enabled ?? true) && "opacity-50 pointer-events-none")}>
-          <div className="space-y-4">
-            <p className="text-[10px] font-mono-kasa uppercase text-foreground/40 tracking-widest">Configurações de Áudio</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Volume do Alerta</p>
-                <div className="flex items-center gap-2">
-                  {['low', 'medium', 'high'].map((vol) => (
-                    <Button
-                      key={vol}
-                      variant={prefs?.sound_volume === vol ? "default" : "outline"}
-                      size="sm"
-                      className="flex-1 capitalize h-8 text-xs"
-                      onClick={() => mut.mutate({ sound_volume: vol })}
-                    >
-                      {vol === 'low' ? 'Baixo' : vol === 'medium' ? 'Médio' : 'Alto'}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Teste de Som</p>
-                <Button 
-                  variant="outline" 
-                  className="w-full gap-2 h-8 text-xs"
-                  onClick={() => playSound(prefs?.sound_volume as any)}
-                >
-                  <Music className="size-3" /> Reproduzir Som de Teste
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="pt-6 border-t border-border space-y-2">
-            <p className="text-[10px] font-mono-kasa uppercase text-foreground/40 tracking-widest mb-4">Ativar som para:</p>
-            
-            <ToggleRow 
-              title="Sons de Menções" 
-              description="Alertas sonoros para quando você for citado." 
-              checked={prefs?.sound_mentions ?? true}
-              onChange={(v) => mut.mutate({ sound_mentions: v })}
-            />
-            <ToggleRow 
-              title="Sons de Aprovações" 
-              description="Alertas para novos status de aprovação." 
-              checked={prefs?.sound_approvals ?? true}
-              onChange={(v) => mut.mutate({ sound_approvals: v })}
-            />
-            <ToggleRow 
-              title="Sons de Jobs" 
-              description="Alertas para mudanças em seus jobs." 
-              checked={prefs?.sound_jobs ?? true}
-              onChange={(v) => mut.mutate({ sound_jobs: v })}
-            />
-            <ToggleRow 
-              title="Sons de Agenda" 
-              description="Alertas para reuniões e compromissos." 
-              checked={prefs?.sound_agenda ?? true}
-              onChange={(v) => mut.mutate({ sound_agenda: v })}
-            />
-          </div>
+      <div className="bg-surface/50 border border-dashed border-border rounded-2xl p-6 flex items-center justify-between gap-6">
+        <div className="flex items-center gap-3 text-foreground/40">
+          <Shield className="size-5" />
+          <p className="text-xs font-medium">As preferências são privadas e vinculadas exclusivamente à sua conta de usuário.</p>
         </div>
       </div>
     </div>
   );
 }
-
