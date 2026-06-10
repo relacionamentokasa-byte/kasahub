@@ -383,10 +383,30 @@ export async function bulkUpdateTransactions(ids: string[], patch: Database["pub
 
 export async function markPaid(id: string, paid: boolean) {
 
-  return updateTransaction(id, {
+  const result = await updateTransaction(id, {
     status: paid ? "paid" : "pending",
     paid_at: paid ? new Date().toISOString().slice(0, 10) : null,
   });
+
+  if (paid) {
+    // Notify administrators
+    const { data: admins } = await supabase.from('profiles').select('id').eq('role', 'admin');
+    if (admins) {
+      for (const admin of admins) {
+        await notify({
+          userId: admin.id,
+          title: "Pagamento Confirmado",
+          description: `Lançamento ${result.description} de ${brl(Number(result.amount))} foi marcado como pago`,
+          category: 'finance',
+          originType: 'transactions',
+          originId: result.id,
+          link: '/financeiro'
+        });
+      }
+    }
+  }
+
+  return result;
 }
 
 export async function settleTransaction(
