@@ -16,7 +16,7 @@ const SignSchema = z.object({
   accepted_representation: z.literal(true),
 });
 
-export const Route = createFileRoute("/api/public/proposal/$token")({
+export const Route = createFileRoute("/api/public/proposta/$token")({
   server: {
     handlers: {
       GET: async ({ params }) => {

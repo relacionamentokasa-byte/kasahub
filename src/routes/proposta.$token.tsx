@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 
 
-export const Route = createFileRoute("/p/$token")({
+export const Route = createFileRoute("/proposta/$token")({
   ssr: false,
   head: () => ({ meta: [{ title: "Proposta Comercial" }] }),
   component: PublicProposalView,
