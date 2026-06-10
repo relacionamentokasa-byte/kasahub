@@ -51,6 +51,33 @@ export async function enviarNotificacao(
   }
 }
 
+export async function enviarNotificacaoMultipla(
+  destinatarios_ids: string[],
+  titulo: string,
+  mensagem: string,
+  tipo: string = "geral",
+  link?: string
+) {
+  if (destinatarios_ids.length === 0) return;
+  
+  const inserts = destinatarios_ids.map(id => ({
+    user_id: id,
+    titulo,
+    mensagem,
+    tipo,
+    link: link || null
+  }));
+
+  const { error } = await supabase
+    .from("notificacoes")
+    .insert(inserts);
+
+  if (error) {
+    console.error("Erro ao enviar notificações múltiplas:", error);
+    throw error;
+  }
+}
+
 // CriarNotificacao agora é um alias para enviarNotificacao
 export const criarNotificacao = enviarNotificacao;
 
