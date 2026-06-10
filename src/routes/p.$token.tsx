@@ -87,6 +87,7 @@ type Client = {
 type Lead = {
   name: string | null;
   company: string | null;
+  phone: string | null;
 } | null;
 
 
