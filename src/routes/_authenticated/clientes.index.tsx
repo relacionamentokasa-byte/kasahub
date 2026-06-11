@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Mail, Phone, ExternalLink, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -72,15 +72,12 @@ function ClientsPage() {
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground/30" />
           <Input
-            placeholder="Buscar por nome, empresa ou e-mail..."
+            placeholder="Buscar por nome ou empresa..."
             className="pl-9 bg-surface border-border rounded-xl h-11"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button variant="outline" size="icon" className="h-11 w-11 rounded-xl shrink-0">
-          <Filter className="size-4" />
-        </Button>
       </div>
 
       <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
