@@ -16,11 +16,6 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as PTokenRouteImport } from './routes/p.$token'
-import { Route as FinancialInvoicesRouteImport } from './routes/financial/invoices'
-import { Route as FinancialImportRouteImport } from './routes/financial/import'
-import { Route as FinancialExtraDemandsRouteImport } from './routes/financial/extra-demands'
-import { Route as FinancialExpensesRouteImport } from './routes/financial/expenses'
-import { Route as FinancialDashboardRouteImport } from './routes/financial/dashboard'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -86,31 +81,6 @@ const ProposalTokenRoute = ProposalTokenRouteImport.update({
 const PTokenRoute = PTokenRouteImport.update({
   id: '/p/$token',
   path: '/p/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialInvoicesRoute = FinancialInvoicesRouteImport.update({
-  id: '/financial/invoices',
-  path: '/financial/invoices',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialImportRoute = FinancialImportRouteImport.update({
-  id: '/financial/import',
-  path: '/financial/import',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialExtraDemandsRoute = FinancialExtraDemandsRouteImport.update({
-  id: '/financial/extra-demands',
-  path: '/financial/extra-demands',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialExpensesRoute = FinancialExpensesRouteImport.update({
-  id: '/financial/expenses',
-  path: '/financial/expenses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialDashboardRoute = FinancialDashboardRouteImport.update({
-  id: '/financial/dashboard',
-  path: '/financial/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DmeTokenRoute = DmeTokenRouteImport.update({
@@ -303,11 +273,6 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
-  '/financial/dashboard': typeof FinancialDashboardRoute
-  '/financial/expenses': typeof FinancialExpensesRoute
-  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
-  '/financial/import': typeof FinancialImportRoute
-  '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -347,11 +312,6 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
-  '/financial/dashboard': typeof FinancialDashboardRoute
-  '/financial/expenses': typeof FinancialExpensesRoute
-  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
-  '/financial/import': typeof FinancialImportRoute
-  '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -394,11 +354,6 @@ export interface FileRoutesById {
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
-  '/financial/dashboard': typeof FinancialDashboardRoute
-  '/financial/expenses': typeof FinancialExpensesRoute
-  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
-  '/financial/import': typeof FinancialImportRoute
-  '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -442,11 +397,6 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
-    | '/financial/dashboard'
-    | '/financial/expenses'
-    | '/financial/extra-demands'
-    | '/financial/import'
-    | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -486,11 +436,6 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
-    | '/financial/dashboard'
-    | '/financial/expenses'
-    | '/financial/extra-demands'
-    | '/financial/import'
-    | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -532,11 +477,6 @@ export interface FileRouteTypes {
     | '/_authenticated/relatorios'
     | '/approve/$token'
     | '/dme/$token'
-    | '/financial/dashboard'
-    | '/financial/expenses'
-    | '/financial/extra-demands'
-    | '/financial/import'
-    | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -562,11 +502,6 @@ export interface RootRouteChildren {
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
-  FinancialDashboardRoute: typeof FinancialDashboardRoute
-  FinancialExpensesRoute: typeof FinancialExpensesRoute
-  FinancialExtraDemandsRoute: typeof FinancialExtraDemandsRoute
-  FinancialImportRoute: typeof FinancialImportRoute
-  FinancialInvoicesRoute: typeof FinancialInvoicesRoute
   PTokenRoute: typeof PTokenRoute
   ProposalTokenRoute: typeof ProposalTokenRoute
   PropostaTokenRoute: typeof PropostaTokenRoute
@@ -631,41 +566,6 @@ declare module '@tanstack/react-router' {
       path: '/p/$token'
       fullPath: '/p/$token'
       preLoaderRoute: typeof PTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/invoices': {
-      id: '/financial/invoices'
-      path: '/financial/invoices'
-      fullPath: '/financial/invoices'
-      preLoaderRoute: typeof FinancialInvoicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/import': {
-      id: '/financial/import'
-      path: '/financial/import'
-      fullPath: '/financial/import'
-      preLoaderRoute: typeof FinancialImportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/extra-demands': {
-      id: '/financial/extra-demands'
-      path: '/financial/extra-demands'
-      fullPath: '/financial/extra-demands'
-      preLoaderRoute: typeof FinancialExtraDemandsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/expenses': {
-      id: '/financial/expenses'
-      path: '/financial/expenses'
-      fullPath: '/financial/expenses'
-      preLoaderRoute: typeof FinancialExpensesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/dashboard': {
-      id: '/financial/dashboard'
-      path: '/financial/dashboard'
-      fullPath: '/financial/dashboard'
-      preLoaderRoute: typeof FinancialDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dme/$token': {
@@ -987,11 +887,6 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
-  FinancialDashboardRoute: FinancialDashboardRoute,
-  FinancialExpensesRoute: FinancialExpensesRoute,
-  FinancialExtraDemandsRoute: FinancialExtraDemandsRoute,
-  FinancialImportRoute: FinancialImportRoute,
-  FinancialInvoicesRoute: FinancialInvoicesRoute,
   PTokenRoute: PTokenRoute,
   ProposalTokenRoute: ProposalTokenRoute,
   PropostaTokenRoute: PropostaTokenRoute,
@@ -1009,3 +904,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
