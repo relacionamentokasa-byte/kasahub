@@ -849,7 +849,19 @@ function ProposalsPage() {
                           <ArrowUpRight className="size-3.5 opacity-60" />
                         </button>
                       </td>
-                      <td className="px-5 py-3 text-foreground/70">{p.client_name}</td>
+                      <td className="px-5 py-3">
+                        {p.client_id ? (
+                          <Link 
+                            to="/clientes/$clientId" 
+                            params={{ clientId: p.client_id }}
+                            className="text-foreground/70 hover:text-primary hover:underline cursor-pointer transition-colors font-medium"
+                          >
+                            {p.client_name}
+                          </Link>
+                        ) : (
+                          <span className="text-foreground/70">{p.client_name}</span>
+                        )}
+                      </td>
                       <td className="px-5 py-3 text-right text-primary">
                         {p.contract_type === 'recurring' 
                           ? formatCurrency(Number(p.monthly_investment || 0)) 
@@ -948,7 +960,17 @@ function ProposalsPage() {
                       }}
                     />
                   </div>
-                  <p className="text-xs text-foreground/60 mt-1">{p.client_name}</p>
+                  {p.client_id ? (
+                    <Link 
+                      to="/clientes/$clientId" 
+                      params={{ clientId: p.client_id }}
+                      className="text-xs text-foreground/60 mt-1 hover:text-primary hover:underline cursor-pointer transition-colors block w-fit"
+                    >
+                      {p.client_name}
+                    </Link>
+                  ) : (
+                    <p className="text-xs text-foreground/60 mt-1">{p.client_name}</p>
+                  )}
                   <div className="flex items-center justify-between mt-3">
                     <span className={`text-[10px] px-2 py-1 rounded ${s.cls}`}>
                       {s.label}

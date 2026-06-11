@@ -213,12 +213,12 @@ function FinancialPage() {
                     <Link 
                       to="/clientes/$clientId"
                       params={{ clientId: t.client_id || "" }}
-                      className="text-[10px] text-foreground/40 font-medium uppercase truncate max-w-[200px] hover:text-primary transition-colors inline-flex items-center gap-1"
+                      className="group/client flex items-center gap-1.5 mt-0.5"
                     >
-
-
-                      {(t.clients as any)?.company || (t.clients as any)?.name || "—"}
-                      <ArrowRight className="size-2" />
+                      <span className="text-[10px] text-foreground/40 font-bold uppercase truncate max-w-[200px] group-hover/client:text-primary group-hover/client:underline cursor-pointer transition-all">
+                        {(t.clients as any)?.company || (t.clients as any)?.name || "—"}
+                      </span>
+                      <ArrowRight className="size-2 text-foreground/20 group-hover/client:text-primary group-hover/client:translate-x-0.5 transition-all" />
                     </Link>
 
                   </TableCell>

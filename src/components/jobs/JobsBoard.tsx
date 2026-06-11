@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ptBR } from "date-fns/locale";
@@ -651,6 +652,7 @@ function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any
 }
 
 function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: any[]; dragging?: boolean }) {
+  const navigate = useNavigate();
   const progress = (job as any).progress_percentage || 0;
   const totalSteps = (job as any).total_steps || 0;
   const completedSteps = (job as any).completed_steps || 0;
@@ -684,7 +686,21 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                   </div>
                 )}
                 
-                <div className="flex items-center gap-1 text-[9px] text-foreground/40 font-medium px-1">
+                <div 
+                  className={cn(
+                    "flex items-center gap-1 text-[9px] font-medium px-1 transition-colors w-fit",
+                    job.client_id ? "text-foreground/40 hover:text-primary hover:underline cursor-pointer" : "text-foreground/40"
+                  )}
+                  onClick={(e) => {
+                    if (job.client_id) {
+                      e.stopPropagation();
+                      navigate({ 
+                        to: "/clientes/$clientId", 
+                        params: { clientId: job.client_id } 
+                      });
+                    }
+                  }}
+                >
                    <Building2 className="size-2.5 shrink-0 opacity-40" />
                    <span className="truncate">
                      {(job as any).clients?.company || (job as any).clients?.name || "Sem Cliente"}
