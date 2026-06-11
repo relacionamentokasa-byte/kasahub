@@ -13,6 +13,7 @@ import { approveProposal } from "@/lib/proposal-approval";
 import { useNavigate } from "@tanstack/react-router";
 import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface Props {
   proposalId: string | null;
