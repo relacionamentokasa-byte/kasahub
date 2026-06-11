@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowLeft, Mail, Phone, Building2, Pencil, 
   Wallet, FileText, FolderKanban, Activity, 
-  TrendingUp, Handshake, CheckSquare 
+  TrendingUp, Handshake, CheckSquare, Loader2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -18,6 +18,7 @@ import { fetchProjects, fetchExtraDemands } from "@/lib/ops-api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
