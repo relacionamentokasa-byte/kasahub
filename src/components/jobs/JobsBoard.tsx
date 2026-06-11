@@ -20,7 +20,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, Users, Copy, X, Filter, Check } from "lucide-react";
+import { Plus, Search, Trash2, Users, Copy, X, Filter, Check, FolderKanban, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import {
   fetchJobStages,
@@ -671,23 +671,25 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
       <div className="flex flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-2 min-w-0 flex-1">
-            <div className="min-w-0">
-              <div className="font-semibold text-sm leading-snug truncate">{job.title}</div>
-              <div className="text-[9px] text-foreground/40 mt-0.5 flex flex-col gap-0.5">
-                <div className="flex items-center gap-2">
-
-                  {(job as any).client_id && (
-                    <span className="text-[8px] px-1 bg-primary/5 rounded border border-primary/10 truncate max-w-[100px]">
-                      Cliente: {(job as any).clients?.company || (job as any).clients?.name || "..."}
-                    </span>
-                  )}
-                </div>
+            <div className="min-w-0 w-full">
+              <div className="font-semibold text-sm leading-snug truncate group-hover:text-primary transition-colors">{job.title}</div>
+              
+              <div className="flex flex-col gap-1 mt-2">
                 {job.project_id && (
-                  <div className="flex items-center gap-1 truncate text-[8px] opacity-70">
-                    <span className="shrink-0">•</span>
-                    <span className="truncate">{(job as any).projects?.name || `Projeto #${job.project_id.slice(0, 4)}`}</span>
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 text-primary border border-primary/10 rounded-md w-fit max-w-full overflow-hidden">
+                    <FolderKanban className="size-2.5 shrink-0" />
+                    <span className="text-[9px] font-bold uppercase tracking-tight truncate">
+                      {(job as any).projects?.name || "Projeto Desconhecido"}
+                    </span>
                   </div>
                 )}
+                
+                <div className="flex items-center gap-1 text-[9px] text-foreground/40 font-medium px-1">
+                   <Building2 className="size-2.5 shrink-0 opacity-40" />
+                   <span className="truncate">
+                     {(job as any).clients?.company || (job as any).clients?.name || "Sem Cliente"}
+                   </span>
+                </div>
               </div>
             </div>
           </div>

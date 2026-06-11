@@ -487,11 +487,10 @@ export async function duplicateJob(id: string) {
     await supabase.from("job_checklist").insert(newItems);
   }
 
-  // 4. Update project stats
-  if (newJob.project_id) {
+  if (newJob && newJob.project_id) {
     await refreshProjectStats(newJob.project_id);
   }
-
+  
   return newJob;
 }
 

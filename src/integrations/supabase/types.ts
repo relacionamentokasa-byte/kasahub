@@ -1876,7 +1876,7 @@ export type Database = {
       projects: {
         Row: {
           briefing: string | null
-          client_id: string | null
+          client_id: string
           color: string | null
           completed_jobs: number
           contract_id: string | null
@@ -1897,7 +1897,7 @@ export type Database = {
         }
         Insert: {
           briefing?: string | null
-          client_id?: string | null
+          client_id: string
           color?: string | null
           completed_jobs?: number
           contract_id?: string | null
@@ -1918,7 +1918,7 @@ export type Database = {
         }
         Update: {
           briefing?: string | null
-          client_id?: string | null
+          client_id?: string
           color?: string | null
           completed_jobs?: number
           contract_id?: string | null
