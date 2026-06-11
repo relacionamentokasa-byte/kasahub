@@ -61,11 +61,12 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     mutationFn: (patch: Partial<Proposal>) => updateProposal(proposalId, patch),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+      qc.invalidateQueries({ queryKey: ["propostas"] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Proposta salva com sucesso");
+      toast.success("Alterações salvas");
       setIsDirty(false);
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error(`Erro ao salvar: ${e.message}`),
   });
 
   const handleSave = () => {
@@ -125,12 +126,8 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
           <Select
             value={form.status}
             onValueChange={(val) => {
-              if (val === "Aprovada") {
-                handleApprove();
-              } else {
-                setForm({ ...form, status: val });
-                setIsDirty(true);
-              }
+              setForm({ ...form, status: val });
+              setIsDirty(true);
             }}
           >
             <SelectTrigger className="w-[180px] h-9 rounded-full bg-surface border-border">
