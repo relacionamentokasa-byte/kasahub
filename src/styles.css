@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@tremor/react/dist/tremor.css";
+
 @source "../src";
 @import "tw-animate-css";
 
