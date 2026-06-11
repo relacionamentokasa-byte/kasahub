@@ -7,6 +7,7 @@ interface AgendaItem {
   id: string;
   title: string;
   subtitle?: string;
+  client_id?: string;
   type: 'job_today' | 'job_overdue' | 'approval' | 'collection' | 'google_event';
   value?: number;
   source?: 'system' | 'google';
@@ -55,7 +56,17 @@ export function AgendaSection({ items }: AgendaSectionProps) {
                     <div key={item.id} className="p-2.5 rounded-xl hover:bg-muted/30 transition-colors border border-transparent hover:border-border group">
                       <p className="text-[11px] font-medium line-clamp-2 leading-snug group-hover:text-primary transition-colors">{item.title}</p>
                       <div className="flex items-center justify-between mt-2">
-                        <span className="text-[9px] font-mono-kasa text-foreground/40 uppercase">{item.subtitle}</span>
+                        {item.client_id ? (
+                          <Link 
+                            to="/clientes/$clientId" 
+                            params={{ clientId: item.client_id }}
+                            className="text-[9px] font-mono-kasa text-foreground/40 uppercase hover:text-primary hover:underline cursor-pointer transition-colors"
+                          >
+                            {item.subtitle}
+                          </Link>
+                        ) : (
+                          <span className="text-[9px] font-mono-kasa text-foreground/40 uppercase">{item.subtitle}</span>
+                        )}
                         {item.source === 'google' && (
                           <span className="text-[8px] font-mono-kasa text-sky-400/60 flex items-center gap-1">
                             <div className="size-1 rounded-full bg-sky-400" /> Google
