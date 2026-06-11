@@ -362,18 +362,6 @@ function ProposalsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Button 
-            variant="outline" 
-            onClick={syncRetroactiveFinance}
-            disabled={isSyncing}
-            className="flex-1 sm:flex-none rounded-full font-semibold h-11 sm:h-10 px-5 gap-2 border-primary/20 text-primary/80 hover:bg-primary/5"
-          >
-            {isSyncing ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
-            Sincronizar Retroativo
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={() => setShowTrash(!showTrash)}
 
             className="flex-1 sm:flex-none rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
