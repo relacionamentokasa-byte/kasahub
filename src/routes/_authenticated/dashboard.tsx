@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
+
 import { checkDailyNotifications } from "@/lib/notifications-cron";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -33,6 +34,12 @@ function DashboardPage() {
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Bem-vindo de volta. Veja o que precisa de sua atenção.</p>
         </div>
         <div className="grid grid-cols-2 sm:flex items-center gap-3">
+          <Link to="/relatorios" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full rounded-full font-semibold h-11 px-6 gap-2">
+              <Wallet className="size-4 shrink-0" /> Financeiro
+            </Button>
+          </Link>
+
           <Link to="/propostas" className="w-full sm:w-auto">
             <Button variant="outline" className="w-full rounded-full font-semibold h-11 px-6">
               Propostas
