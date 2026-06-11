@@ -693,6 +693,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                   )}
                   onClick={(e) => {
                     if (job.client_id) {
+                      e.preventDefault();
                       e.stopPropagation();
                       navigate({ 
                         to: "/clientes/$clientId", 
