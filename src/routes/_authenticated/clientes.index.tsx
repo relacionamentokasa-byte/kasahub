@@ -36,8 +36,15 @@ function ClientsPage() {
   const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
 
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: fetchClients,
+    queryKey: ["clients", "with-billing"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*, transactions(amount, status, type)")
+        .order("company", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
   const filteredClients = clients.filter(c => 
@@ -86,6 +93,7 @@ function ClientsPage() {
             <TableRow>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Cliente / Empresa</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden md:table-cell">Contato</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Faturamento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden sm:table-cell text-center">Status</TableHead>
               <TableHead className="w-[80px]"></TableHead>
             </TableRow>
@@ -104,8 +112,12 @@ function ClientsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredClients.map((client) => (
-                <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
+                const totalBilling = (client.transactions || [])
+                  .filter((t: any) => t.type === 'income' && t.status === 'paid')
+                  .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
+                return (
+                  <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
                   <TableCell className="py-4">
                     {/* Link obrigatório para Visão 360 */}
                     <Link 
@@ -141,6 +153,14 @@ function ClientsPage() {
                         </div>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="py-4 text-right">
+                    <span className={cn(
+                      "text-sm font-bold",
+                      totalBilling > 0 ? "text-foreground" : "text-foreground/20"
+                    )}>
+                      {brl(totalBilling)}
+                    </span>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell py-4 text-center">
                     <Badge 
