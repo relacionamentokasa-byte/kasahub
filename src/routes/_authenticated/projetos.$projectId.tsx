@@ -19,9 +19,16 @@ function ProjectDetail() {
   const { projectId } = useParams({ from: "/_authenticated/projetos/$projectId" });
   const [editOpen, setEditOpen] = useState(false);
 
-  const { data: project, isLoading: projectLoading } = useQuery({
+  const { data: project, isLoading: projectLoading, error: projectError } = useQuery({
     queryKey: ["project", projectId],
-    queryFn: () => fetchProject(projectId),
+    queryFn: async () => {
+      try {
+        return await fetchProject(projectId);
+      } catch (err) {
+        console.error("Error fetching project details:", err);
+        throw err;
+      }
+    },
   });
 
   const { data: client } = useQuery({

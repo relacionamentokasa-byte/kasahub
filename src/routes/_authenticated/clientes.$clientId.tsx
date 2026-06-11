@@ -32,9 +32,14 @@ function ClientDetail() {
   const { data: client, isLoading: clientLoading, error: clientError } = useQuery({ 
     queryKey: ["client", clientId], 
     queryFn: async () => {
-      const { data, error } = await supabase.from("clients").select("*").eq("id", clientId).single();
-      if (error) throw error;
-      return data;
+      try {
+        const { data, error } = await supabase.from("clients").select("*").eq("id", clientId).single();
+        if (error) throw error;
+        return data;
+      } catch (err) {
+        console.error("Error fetching client 360 view:", err);
+        throw err;
+      }
     }
   });
 
