@@ -132,13 +132,15 @@ function ClientDetail() {
             <TabsList className="bg-transparent border-0 h-auto p-0 gap-8 overflow-x-auto justify-start no-scrollbar">
               {[
                 { v: "overview", label: "Resumo", icon: Activity },
+                { v: "contratos", label: "Contratos", icon: FileSignature },
                 { v: "propostas", label: "Propostas", icon: FileText },
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
-                { v: "financeiro", label: "Financeiro", icon: Wallet },
+                { v: "financeiro", label: "Extrato", icon: Wallet },
                 { v: "servicos", label: "Serviços", icon: Handshake },
-                { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
+                { v: "timeline", label: "Histórico", icon: TrendingUp },
               ].map((tab) => (
+
                 <TabsTrigger
                   key={tab.v}
                   value={tab.v}
