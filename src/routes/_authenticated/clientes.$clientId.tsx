@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowLeft, Mail, Phone, Building2, Pencil, 
   Wallet, FileText, FolderKanban, Activity, 
-  TrendingUp, Handshake, CheckSquare, Loader2
+  TrendingUp, Handshake, CheckSquare, Loader2,
+  FileSignature, DollarSign, Calendar
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -13,11 +14,12 @@ import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { brl } from "@/lib/utils-format";
 import { fetchProposals } from "@/lib/crm-api";
-import { fetchTransactions } from "@/lib/finance-api";
+import { fetchTransactions, fetchContracts } from "@/lib/finance-api";
 import { fetchProjects, fetchExtraDemands } from "@/lib/ops-api";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 
 
