@@ -17,6 +17,8 @@ import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as FinancialInvoicesRouteImport } from './routes/financial/invoices'
+import { Route as FinancialExtraDemandsRouteImport } from './routes/financial/extra-demands'
+import { Route as FinancialExpensesRouteImport } from './routes/financial/expenses'
 import { Route as FinancialDashboardRouteImport } from './routes/financial/dashboard'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
@@ -88,6 +90,16 @@ const PTokenRoute = PTokenRouteImport.update({
 const FinancialInvoicesRoute = FinancialInvoicesRouteImport.update({
   id: '/financial/invoices',
   path: '/financial/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialExtraDemandsRoute = FinancialExtraDemandsRouteImport.update({
+  id: '/financial/extra-demands',
+  path: '/financial/extra-demands',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialExpensesRoute = FinancialExpensesRouteImport.update({
+  id: '/financial/expenses',
+  path: '/financial/expenses',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinancialDashboardRoute = FinancialDashboardRouteImport.update({
@@ -286,6 +298,8 @@ export interface FileRoutesByFullPath {
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/financial/dashboard': typeof FinancialDashboardRoute
+  '/financial/expenses': typeof FinancialExpensesRoute
+  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
   '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -327,6 +341,8 @@ export interface FileRoutesByTo {
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/financial/dashboard': typeof FinancialDashboardRoute
+  '/financial/expenses': typeof FinancialExpensesRoute
+  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
   '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -371,6 +387,8 @@ export interface FileRoutesById {
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/financial/dashboard': typeof FinancialDashboardRoute
+  '/financial/expenses': typeof FinancialExpensesRoute
+  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
   '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -416,6 +434,8 @@ export interface FileRouteTypes {
     | '/approve/$token'
     | '/dme/$token'
     | '/financial/dashboard'
+    | '/financial/expenses'
+    | '/financial/extra-demands'
     | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
@@ -457,6 +477,8 @@ export interface FileRouteTypes {
     | '/approve/$token'
     | '/dme/$token'
     | '/financial/dashboard'
+    | '/financial/expenses'
+    | '/financial/extra-demands'
     | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
@@ -500,6 +522,8 @@ export interface FileRouteTypes {
     | '/approve/$token'
     | '/dme/$token'
     | '/financial/dashboard'
+    | '/financial/expenses'
+    | '/financial/extra-demands'
     | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
@@ -527,6 +551,8 @@ export interface RootRouteChildren {
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
   FinancialDashboardRoute: typeof FinancialDashboardRoute
+  FinancialExpensesRoute: typeof FinancialExpensesRoute
+  FinancialExtraDemandsRoute: typeof FinancialExtraDemandsRoute
   FinancialInvoicesRoute: typeof FinancialInvoicesRoute
   PTokenRoute: typeof PTokenRoute
   ProposalTokenRoute: typeof ProposalTokenRoute
@@ -599,6 +625,20 @@ declare module '@tanstack/react-router' {
       path: '/financial/invoices'
       fullPath: '/financial/invoices'
       preLoaderRoute: typeof FinancialInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financial/extra-demands': {
+      id: '/financial/extra-demands'
+      path: '/financial/extra-demands'
+      fullPath: '/financial/extra-demands'
+      preLoaderRoute: typeof FinancialExtraDemandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financial/expenses': {
+      id: '/financial/expenses'
+      path: '/financial/expenses'
+      fullPath: '/financial/expenses'
+      preLoaderRoute: typeof FinancialExpensesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/financial/dashboard': {
@@ -928,6 +968,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
   FinancialDashboardRoute: FinancialDashboardRoute,
+  FinancialExpensesRoute: FinancialExpensesRoute,
+  FinancialExtraDemandsRoute: FinancialExtraDemandsRoute,
   FinancialInvoicesRoute: FinancialInvoicesRoute,
   PTokenRoute: PTokenRoute,
   ProposalTokenRoute: ProposalTokenRoute,
@@ -946,3 +988,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
