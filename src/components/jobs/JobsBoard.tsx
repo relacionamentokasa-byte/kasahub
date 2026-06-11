@@ -687,6 +687,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                 )}
                 
                 <div 
+                  data-testid="client-link"
                   className={cn(
                     "flex items-center gap-1 text-[9px] font-medium px-1 transition-colors w-fit",
                     job.client_id ? "text-foreground/40 hover:text-primary hover:underline cursor-pointer" : "text-foreground/40"

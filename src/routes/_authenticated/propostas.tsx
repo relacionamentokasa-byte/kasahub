@@ -854,6 +854,7 @@ function ProposalsPage() {
                           <Link 
                             to="/clientes/$clientId" 
                             params={{ clientId: p.client_id }}
+                            data-testid="client-link"
                             className="text-foreground/70 hover:text-primary hover:underline cursor-pointer transition-colors font-medium"
                           >
                             {p.client_name}
