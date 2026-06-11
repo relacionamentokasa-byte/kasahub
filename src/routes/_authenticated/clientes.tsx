@@ -27,7 +27,7 @@ import { fetchClients } from "@/lib/ops-api";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({ meta: [{ title: "Clientes — KASA HUB" }] }),
-  component: ClientsPage,
+  component: () => <Outlet />,
 });
 
 function ClientsPage() {
