@@ -200,12 +200,11 @@ export async function approveProposal(
       const due = safeBillingDay(baseYear, baseMonth0 + i, dayOfMonth);
       transactions.push({
         kind: "income",
+        type: "income",
         description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount})`,
         amount: monthlyAmount,
         due_date: ymd(due),
         status: "pending",
-        kind: "income",
-        type: "income",
         account_id: proposal.account_id ?? null,
         category_id: proposal.category_id ?? null,
         client_id: clientId,
@@ -222,12 +221,11 @@ export async function approveProposal(
   if (setupAmount > 0) {
     transactions.push({
       kind: "income",
+      type: "income",
       description: `Setup / Investimento Único - ${proposal.title}`,
       amount: setupAmount,
       due_date: proposal.first_due_date ?? ymd(new Date()),
       status: "pending",
-      kind: "income",
-      type: "income",
       account_id: proposal.account_id ?? null,
       category_id: proposal.category_id ?? null,
       client_id: clientId,
