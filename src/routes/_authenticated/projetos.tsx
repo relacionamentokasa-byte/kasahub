@@ -10,6 +10,7 @@ import { NewProjectDialog } from "@/components/projects/NewProjectDialog";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/projetos")({
   head: () => ({ meta: [{ title: "Projetos — KASA HUB" }] }),
