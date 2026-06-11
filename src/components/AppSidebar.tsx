@@ -14,7 +14,9 @@ import {
   Handshake,
   CalendarRange,
   Activity,
+  Wallet,
   UsersRound,
+
   Loader2,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -62,8 +64,10 @@ const groups: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Gestão",
     items: [
+      { title: "Financeiro", url: "/relatorios", icon: Wallet, module: "financeiro" as any },
     ],
   },
+
   {
     label: "Sistema",
     items: [

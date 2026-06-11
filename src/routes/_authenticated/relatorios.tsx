@@ -10,6 +10,7 @@ import {
 } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
+import { cn } from "@/lib/utils";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -23,8 +24,10 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Trash2
 } from "lucide-react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,7 +258,7 @@ function StatCard({ title, value, icon: Icon, color }: { title: string, value?: 
           <div className="size-8 rounded-xl bg-muted flex items-center justify-center">
             <Icon className={cn("size-4", color)} />
           </div>
-          <Badge variant="ghost" className="text-[10px] font-mono-kasa text-foreground/30">Mês Atual</Badge>
+          <Badge variant="outline" className="text-[10px] font-mono-kasa text-foreground/30">Mês Atual</Badge>
         </div>
         <div>
           <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">{title}</p>
