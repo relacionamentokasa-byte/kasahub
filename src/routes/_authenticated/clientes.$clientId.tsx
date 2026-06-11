@@ -1,10 +1,10 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { 
-  ArrowLeft, Mail, Phone, Building2, Pencil, 
+  ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
-  FileSignature, DollarSign, Calendar
+  FileSignature
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,23 +16,20 @@ import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 import { fetchProposals } from "@/lib/crm-api";
 import { fetchTransactions, fetchContracts } from "@/lib/finance-api";
-import { fetchProjects, fetchExtraDemands } from "@/lib/ops-api";
+import { fetchProjects } from "@/lib/ops-api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
-
-
-
-
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
-  head: () => ({ meta: [{ title: "Cliente — KASA HUB" }] }),
+  head: () => ({ meta: [{ title: "Visão 360 do Cliente — KASA HUB" }] }),
   component: ClientDetail,
 });
 
 function ClientDetail() {
   const { clientId } = useParams({ from: "/_authenticated/clientes/$clientId" });
-  const { data: client } = useQuery({ 
+
+  const { data: client, isLoading: clientLoading, error: clientError } = useQuery({ 
     queryKey: ["client", clientId], 
     queryFn: async () => {
       const { data, error } = await supabase.from("clients").select("*").eq("id", clientId).single();
@@ -43,26 +40,29 @@ function ClientDetail() {
 
   const { data: proposals = [] } = useQuery({ 
     queryKey: ["client-proposals", clientId], 
-    queryFn: () => fetchProposals().then(res => res.filter(p => p.client_id === clientId)) 
+    queryFn: () => fetchProposals().then(res => res.filter(p => p.client_id === clientId)),
+    enabled: !!client
   });
 
   const { data: projects = [] } = useQuery({ 
     queryKey: ["client-projects", clientId], 
-    queryFn: () => fetchProjects({ clientId }) 
+    queryFn: () => fetchProjects({ clientId }),
+    enabled: !!client
   });
 
   const { data: contracts = [] } = useQuery({ 
     queryKey: ["client-contracts", clientId], 
-    queryFn: () => fetchContracts({ clientId }) 
+    queryFn: () => fetchContracts({ clientId }),
+    enabled: !!client
   });
 
   const { data: transactions = [] } = useQuery({ 
     queryKey: ["client-transactions", clientId], 
-    queryFn: () => fetchTransactions({ clientId }) 
+    queryFn: () => fetchTransactions({ clientId }),
+    enabled: !!client
   });
 
-
-  if (!client) return (
+  if (clientLoading) return (
     <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-4">
       <div className="relative">
         <Loader2 className="size-12 animate-spin text-primary/20" />
@@ -75,6 +75,23 @@ function ClientDetail() {
     </div>
   );
 
+  if (clientError || !client) return (
+    <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-6">
+      <div className="size-16 rounded-full bg-destructive/10 flex items-center justify-center">
+        <Activity className="size-8 text-destructive" />
+      </div>
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold">Cliente não encontrado</h2>
+        <p className="text-foreground/50">O ID informado não corresponde a nenhum cliente na base.</p>
+      </div>
+      <Button asChild variant="outline" className="rounded-full">
+        <Link to="/clientes">
+          <ArrowLeft className="size-4 mr-2" /> Voltar para lista
+        </Link>
+      </Button>
+    </div>
+  );
+
   const totalRevenue = transactions
     .filter(t => t.type === "income" && t.status === "paid")
     .reduce((sum, t) => sum + Number(t.amount), 0);
@@ -84,13 +101,13 @@ function ClientDetail() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   return (
-    <div className="flex flex-col h-full bg-background/50">
+    <div className="flex flex-col h-full bg-background/50 animate-reveal">
+      {/* Header / Resumo Rápido */}
       <div className="px-6 lg:px-10 pt-8 pb-6 border-b border-border bg-surface">
         <div className="max-w-[1600px] mx-auto">
           <Link to="/clientes" className="inline-flex items-center gap-2 text-xs text-foreground/40 hover:text-primary transition-colors mb-6 group">
             <ArrowLeft className="size-3.5 group-hover:-translate-x-0.5 transition-transform" /> Voltar para lista
           </Link>
-
           
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
@@ -136,6 +153,7 @@ function ClientDetail() {
         </div>
       </div>
 
+      {/* Navegação 360 */}
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
         <div className="bg-surface border-b border-border sticky top-0 z-10">
           <div className="max-w-[1600px] mx-auto px-6 lg:px-10">
@@ -146,11 +164,10 @@ function ClientDetail() {
                 { v: "propostas", label: "Propostas", icon: FileText },
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
-                { v: "financeiro", label: "Extrato", icon: Wallet },
+                { v: "financeiro", label: "Financeiro", icon: Wallet },
                 { v: "servicos", label: "Serviços", icon: Handshake },
-                { v: "timeline", label: "Histórico", icon: TrendingUp },
+                { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
               ].map((tab) => (
-
                 <TabsTrigger
                   key={tab.v}
                   value={tab.v}
@@ -166,50 +183,55 @@ function ClientDetail() {
 
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-8">
+            
+            {/* Conteúdo: Resumo */}
             <TabsContent value="overview" className="m-0 space-y-8 animate-reveal">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <QuickStatCard title="Propostas" value={proposals.length} icon={FileText} color="text-amber-500" />
                 <QuickStatCard title="Projetos Ativos" value={projects.filter(p => p.status === 'active').length} icon={FolderKanban} color="text-purple-500" />
                 <QuickStatCard title="Jobs Pendentes" value={0} icon={CheckSquare} color="text-blue-500" />
-                <QuickStatCard title="Status Financeiro" value="Em dia" icon={Wallet} color="text-emerald-500" isText />
+                <QuickStatCard title="Receita Paga" value={brl(totalRevenue)} icon={Wallet} color="text-emerald-500" isText />
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <Card className="lg:col-span-2 bg-surface border-border overflow-hidden">
-                  <CardContent className="p-6">
-                    <h3 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
-                      <FolderKanban className="size-4 text-primary" /> Projetos Recentes
-                    </h3>
-                    <div className="space-y-4">
+                  <CardHeader className="border-b border-border bg-muted/20">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                      <FolderKanban className="size-4 text-primary" /> Projetos em Andamento
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="divide-y divide-border">
                       {projects.slice(0, 5).map(project => (
-                        <div key={project.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-background/30 hover:border-primary/30 transition-colors">
+                        <div key={project.id} className="flex items-center justify-between p-4 hover:bg-muted/10 transition-colors">
                           <div className="min-w-0">
                             <p className="font-semibold text-sm truncate">{project.name}</p>
-                            <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mt-0.5">Iniciado em {new Date(project.created_at).toLocaleDateString()}</p>
+                            <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mt-0.5">Criado em {new Date(project.created_at).toLocaleDateString()}</p>
                           </div>
                           <Badge variant="outline" className="rounded-full text-[9px] uppercase tracking-tighter">
                             {project.status}
                           </Badge>
                         </div>
                       ))}
-                      {projects.length === 0 && <p className="text-sm text-foreground/30 italic text-center py-8">Nenhum projeto vinculado.</p>}
+                      {projects.length === 0 && <p className="text-sm text-foreground/30 italic text-center py-12">Nenhum projeto vinculado.</p>}
                     </div>
                   </CardContent>
                 </Card>
 
-                <Card className="bg-surface border-border overflow-hidden">
-                  <CardContent className="p-6">
-                    <h3 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
-                      <TrendingUp className="size-4 text-primary" /> Últimas Atividades
-                    </h3>
-                    <div className="max-h-[400px] overflow-y-auto no-scrollbar">
-                      <ClientTimeline clientId={clientId} />
-                    </div>
+                <Card className="bg-surface border-border overflow-hidden flex flex-col">
+                  <CardHeader className="border-b border-border bg-muted/20">
+                    <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+                      <TrendingUp className="size-4 text-primary" /> Histórico Recente
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 flex-1 overflow-y-auto">
+                    <ClientTimeline clientId={clientId} />
                   </CardContent>
                 </Card>
               </div>
             </TabsContent>
 
+            {/* Conteúdo: Contratos (Propostas Aprovadas) */}
             <TabsContent value="contratos" className="m-0 space-y-6 animate-reveal">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {contracts.map(contract => (
@@ -225,16 +247,12 @@ function ClientDetail() {
                         <FileSignature className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
                       </div>
                       <h4 className="font-bold text-sm mb-1">{contract.title}</h4>
-                      <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mb-4">Início em {new Date(contract.start_date).toLocaleDateString()}</p>
+                      <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mb-4">Início: {new Date(contract.start_date).toLocaleDateString()}</p>
                       
                       <div className="space-y-2 pt-4 border-t border-border">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Recorrência</span>
+                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Fee Mensal</span>
                           <span className="text-xs font-bold text-primary">{brl(Number(contract.monthly_value))}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Valor Total</span>
-                          <span className="text-xs font-semibold">{brl(Number(contract.total_value))}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -249,14 +267,14 @@ function ClientDetail() {
               </div>
             </TabsContent>
 
+            {/* Conteúdo: Propostas */}
             <TabsContent value="propostas" className="m-0 animate-reveal">
-
-               <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+               <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
                  <Table>
                    <TableHeader className="bg-muted/30">
                      <TableRow>
                        <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Proposta</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor Total</TableHead>
                        <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
                      </TableRow>
                    </TableHeader>
@@ -270,47 +288,20 @@ function ClientDetail() {
                          </TableCell>
                        </TableRow>
                      ))}
-                     {proposals.length === 0 && <TableRow><TableCell colSpan={3} className="h-32 text-center text-foreground/30 italic">Nenhuma proposta.</TableCell></TableRow>}
+                     {proposals.length === 0 && <TableRow><TableCell colSpan={3} className="h-32 text-center text-foreground/30 italic">Nenhuma proposta encontrada.</TableCell></TableRow>}
                    </TableBody>
                  </Table>
                </div>
             </TabsContent>
 
-            <TabsContent value="projetos" className="m-0 animate-reveal">
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                 {projects.map(p => (
-                   <Card key={p.id} className="bg-surface border-border hover:border-primary/40 transition-all group">
-                     <CardContent className="p-6">
-                        <div className="flex justify-between items-start mb-4">
-                          <Badge variant="outline" className="rounded-full text-[9px] uppercase">{p.status}</Badge>
-                          <FolderKanban className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
-                        </div>
-                        <h4 className="font-bold text-sm mb-2">{p.name}</h4>
-                        <div className="flex items-center gap-2 mb-3">
-                          <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[9px] font-bold uppercase tracking-tighter gap-1">
-                            <CheckSquare className="size-2.5" />
-                            {p.total_jobs || 0} Jobs
-                          </Badge>
-                          {p.completed_jobs > 0 && (
-                            <Badge variant="outline" className="text-[9px] uppercase tracking-tighter">
-                              {p.completed_jobs} Concluídos
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-foreground/40 line-clamp-2 min-h-[32px]">{p.briefing || "Sem descrição."}</p>
-                     </CardContent>
-                   </Card>
-                 ))}
-                 {projects.length === 0 && <div className="col-span-full h-32 flex items-center justify-center text-foreground/30 italic">Nenhum projeto.</div>}
-               </div>
+            {/* Conteúdo: Jobs */}
+            <TabsContent value="jobs" className="m-0 min-h-[500px] animate-reveal">
+              <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Gestão · Operação" />
             </TabsContent>
 
-            <TabsContent value="jobs" className="m-0 min-h-0 animate-reveal">
-              <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Operação · Cliente" />
-            </TabsContent>
-
+            {/* Conteúdo: Financeiro */}
             <TabsContent value="financeiro" className="m-0 animate-reveal">
-               <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+               <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
                  <Table>
                    <TableHeader className="bg-muted/30">
                      <TableRow>
@@ -329,11 +320,13 @@ function ClientDetail() {
                            {t.type === 'income' ? '+' : '-'} {brl(Number(t.amount))}
                          </TableCell>
                          <TableCell className="text-center py-4">
-                           <Badge variant="outline" className={`rounded-full text-[10px] uppercase tracking-widest ${t.status === 'paid' ? 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5' : ''}`}>{t.status}</Badge>
+                           <Badge variant="outline" className={`rounded-full text-[10px] uppercase tracking-widest ${t.status === 'paid' ? 'border-emerald-500/20 text-green-500 bg-green-500/5' : 'text-foreground/40'}`}>
+                             {t.status === 'paid' ? 'Liquidado' : t.status}
+                           </Badge>
                          </TableCell>
                        </TableRow>
                      ))}
-                     {transactions.length === 0 && <TableRow><TableCell colSpan={4} className="h-32 text-center text-foreground/30 italic">Sem lançamentos.</TableCell></TableRow>}
+                     {transactions.length === 0 && <TableRow><TableCell colSpan={4} className="h-32 text-center text-foreground/30 italic">Nenhum lançamento financeiro.</TableCell></TableRow>}
                    </TableBody>
                  </Table>
                </div>
@@ -357,17 +350,16 @@ function ClientDetail() {
 
 function QuickStatCard({ title, value, icon: Icon, color, isText = false }: { title: string, value: any, icon: any, color: string, isText?: boolean }) {
   return (
-    <Card className="bg-surface border-border shadow-sm">
+    <Card className="bg-surface border-border shadow-sm hover:border-primary/20 transition-colors">
       <CardContent className="p-5 flex items-center gap-4">
         <div className={`size-10 rounded-xl bg-background border border-border flex items-center justify-center ${color}`}>
           <Icon className="size-5" />
         </div>
         <div>
           <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none mb-1">{title}</p>
-          <h4 className="text-lg font-bold tracking-tight">{value}</h4>
+          <h3 className="text-xl font-bold tracking-tight">{value}</h3>
         </div>
       </CardContent>
     </Card>
   );
 }
-
