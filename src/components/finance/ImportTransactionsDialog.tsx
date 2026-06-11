@@ -124,6 +124,7 @@ export function ImportTransactionsDialog({
       const clientByName = new Map(clients.map((c) => [(c.company || c.name).toLowerCase().trim(), c.id]));
       const catByName = new Map(categories.map((c) => [c.name.toLowerCase().trim(), c.id]));
       
+      const batchId = crypto.randomUUID();
       const inserts: any[] = [];
       const errors: ImportResult["errors"] = [];
 
