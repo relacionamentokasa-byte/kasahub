@@ -22,12 +22,5 @@ export default defineConfig({
     define: {
       'process.env.VITE_NEWS_API_KEY': JSON.stringify(process.env.NEWS_API_KEY),
     },
-    resolve: {
-      alias: {
-        "entities/lib/decode.js": path.resolve(__dirname, "node_modules/entities/lib/decode.js"),
-        "entities/lib/encode.js": path.resolve(__dirname, "node_modules/entities/lib/encode.js"),
-        "entities": path.resolve(__dirname, "node_modules/entities"),
-      },
-    },
   }
 });
