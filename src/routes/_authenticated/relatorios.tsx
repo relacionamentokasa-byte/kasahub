@@ -109,9 +109,10 @@ function FinancialPage() {
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-full gap-2">
+          <Button variant="outline" className="rounded-full gap-2" onClick={() => setImportOpen(true)}>
             <FileSpreadsheet className="size-4" /> Importar
           </Button>
+
           <Button className="rounded-full gap-2 bg-primary text-primary-foreground">
             <Plus className="size-4" /> Novo Lançamento
           </Button>
