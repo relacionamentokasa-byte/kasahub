@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Building2, Mail, Phone, ExternalLink, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Mail, Phone, ExternalLink, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -110,6 +110,7 @@ function ClientsPage() {
               filteredClients.map((client) => (
                 <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
                   <TableCell className="py-4">
+                    {/* Link obrigatório para Visão 360 */}
                     <Link 
                       to="/clientes/$clientId"
                       params={{ clientId: client.id }}
@@ -123,7 +124,7 @@ function ClientsPage() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-sm truncate">{client.company || client.name}</div>
+                        <div className="font-semibold text-sm truncate hover:underline">{client.company || client.name}</div>
                         <div className="text-[10px] text-foreground/40 font-medium truncate uppercase tracking-tight">{client.company ? client.name : "—"}</div>
                       </div>
                     </Link>
