@@ -39,11 +39,11 @@ function ClientsPage() {
   const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
 
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["clients", "with-billing"],
+    queryKey: ["clients", "with-billing-and-proposals"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("*, transactions(amount, status, type)")
+        .select("*, transactions(amount, status, type), proposals(status)")
         .order("company", { ascending: true });
       if (error) throw error;
       return data ?? [];
@@ -96,6 +96,7 @@ function ClientsPage() {
             <TableRow>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Cliente / Empresa</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden md:table-cell">Contato</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-center">Contrato Ativo</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Faturamento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden sm:table-cell text-center">Status</TableHead>
               <TableHead className="w-[80px]"></TableHead>
@@ -120,6 +121,9 @@ function ClientsPage() {
                 const totalBilling = (client.transactions || [])
                   .filter((t: any) => t.type === 'income' && t.status === 'paid')
                   .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+                
+                const hasActiveContract = (client.proposals || [])
+                  .some((p: any) => p.status === 'Aprovada');
 
                 return (
                   <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
@@ -158,6 +162,19 @@ function ClientsPage() {
                         </div>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="py-4 text-center">
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2",
+                        hasActiveContract 
+                          ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5" 
+                          : "border-foreground/10 text-foreground/40 bg-foreground/5"
+                      )}
+                    >
+                      {hasActiveContract ? 'Sim' : 'Não'}
+                    </Badge>
                   </TableCell>
                   <TableCell className="py-4 text-right">
                     <span className={cn(
