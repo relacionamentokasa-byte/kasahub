@@ -211,10 +211,12 @@ function FinancialPage() {
                   <TableCell className="py-4">
                     <div className="font-semibold text-sm">{t.description}</div>
                     <Link 
-                      to="/clientes/$clientId" 
+                      to="/clientes/$clientId"
                       params={{ clientId: t.client_id || "" }}
                       className="text-[10px] text-foreground/40 font-medium uppercase truncate max-w-[200px] hover:text-primary transition-colors inline-flex items-center gap-1"
                     >
+
+
                       {(t.clients as any)?.company || (t.clients as any)?.name || "—"}
                       <ArrowRight className="size-2" />
                     </Link>

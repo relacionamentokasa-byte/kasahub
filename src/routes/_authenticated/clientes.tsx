@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Building2, Mail, Phone, ExternalLink, Filter, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -112,7 +111,7 @@ function ClientsPage() {
                 <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
                   <TableCell className="py-4">
                     <Link 
-                      to="/clientes/$clientId" 
+                      to="/clientes/$clientId"
                       params={{ clientId: client.id }}
                       className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                     >
