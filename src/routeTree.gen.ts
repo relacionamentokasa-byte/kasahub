@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as PTokenRouteImport } from './routes/p.$token'
+import { Route as FinancialDashboardRouteImport } from './routes/financial/dashboard'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -81,6 +82,11 @@ const ProposalTokenRoute = ProposalTokenRouteImport.update({
 const PTokenRoute = PTokenRouteImport.update({
   id: '/p/$token',
   path: '/p/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialDashboardRoute = FinancialDashboardRouteImport.update({
+  id: '/financial/dashboard',
+  path: '/financial/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DmeTokenRoute = DmeTokenRouteImport.update({
@@ -273,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/financial/dashboard': typeof FinancialDashboardRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -312,6 +319,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/financial/dashboard': typeof FinancialDashboardRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -354,6 +362,7 @@ export interface FileRoutesById {
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/financial/dashboard': typeof FinancialDashboardRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -397,6 +406,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/financial/dashboard'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -436,6 +446,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/financial/dashboard'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -477,6 +488,7 @@ export interface FileRouteTypes {
     | '/_authenticated/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/financial/dashboard'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -502,6 +514,7 @@ export interface RootRouteChildren {
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
+  FinancialDashboardRoute: typeof FinancialDashboardRoute
   PTokenRoute: typeof PTokenRoute
   ProposalTokenRoute: typeof ProposalTokenRoute
   PropostaTokenRoute: typeof PropostaTokenRoute
@@ -566,6 +579,13 @@ declare module '@tanstack/react-router' {
       path: '/p/$token'
       fullPath: '/p/$token'
       preLoaderRoute: typeof PTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financial/dashboard': {
+      id: '/financial/dashboard'
+      path: '/financial/dashboard'
+      fullPath: '/financial/dashboard'
+      preLoaderRoute: typeof FinancialDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dme/$token': {
@@ -887,6 +907,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
+  FinancialDashboardRoute: FinancialDashboardRoute,
   PTokenRoute: PTokenRoute,
   ProposalTokenRoute: ProposalTokenRoute,
   PropostaTokenRoute: PropostaTokenRoute,
