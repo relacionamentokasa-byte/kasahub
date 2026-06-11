@@ -24,7 +24,7 @@ import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { fetchClients } from "@/lib/ops-api";
 
-export const Route = createFileRoute("/_authenticated/clientes")({
+export const Route = createFileRoute("/_authenticated/clientes/")({
   head: () => ({ meta: [{ title: "Clientes — KASA HUB" }] }),
   component: ClientsPage,
 });
@@ -124,7 +124,7 @@ function ClientsPage() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-sm truncate hover:underline">{client.company || client.name}</div>
+                        <div className="font-semibold text-sm truncate hover:underline hover:text-primary cursor-pointer transition-colors">{client.company || client.name}</div>
                         <div className="text-[10px] text-foreground/40 font-medium truncate uppercase tracking-tight">{client.company ? client.name : "—"}</div>
                       </div>
                     </Link>

@@ -19,8 +19,6 @@ import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
-import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
-import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedParceirosRouteImport } from './routes/_authenticated/parceiros'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
@@ -28,10 +26,12 @@ import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenti
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
-import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authenticated/aprovacoes'
+import { Route as AuthenticatedPropostasIndexRouteImport } from './routes/_authenticated/propostas.index'
+import { Route as AuthenticatedProjetosIndexRouteImport } from './routes/_authenticated/projetos.index'
+import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
 import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
 import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
@@ -95,16 +95,6 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
-  id: '/propostas',
-  path: '/propostas',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedProjetosRoute = AuthenticatedProjetosRouteImport.update({
-  id: '/projetos',
-  path: '/projetos',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
   id: '/portal',
   path: '/portal',
@@ -141,11 +131,6 @@ const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
   path: '/config',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedCeoRoute = AuthenticatedCeoRouteImport.update({
   id: '/ceo',
   path: '/ceo',
@@ -161,6 +146,24 @@ const AuthenticatedAprovacoesRoute = AuthenticatedAprovacoesRouteImport.update({
   path: '/aprovacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPropostasIndexRoute =
+  AuthenticatedPropostasIndexRouteImport.update({
+    id: '/propostas/',
+    path: '/propostas/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjetosIndexRoute =
+  AuthenticatedProjetosIndexRouteImport.update({
+    id: '/projetos/',
+    path: '/projetos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedClientesIndexRoute =
+  AuthenticatedClientesIndexRouteImport.update({
+    id: '/clientes/',
+    path: '/clientes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicManifestRoute = ApiPublicManifestRouteImport.update({
   id: '/api/public/manifest',
   path: '/api/public/manifest',
@@ -173,21 +176,21 @@ const ApiPublicFaviconRoute = ApiPublicFaviconRouteImport.update({
 } as any)
 const AuthenticatedPropostasProposalIdRoute =
   AuthenticatedPropostasProposalIdRouteImport.update({
-    id: '/$proposalId',
-    path: '/$proposalId',
-    getParentRoute: () => AuthenticatedPropostasRoute,
+    id: '/propostas/$proposalId',
+    path: '/propostas/$proposalId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedProjetosProjectIdRoute =
   AuthenticatedProjetosProjectIdRouteImport.update({
-    id: '/$projectId',
-    path: '/$projectId',
-    getParentRoute: () => AuthenticatedProjetosRoute,
+    id: '/projetos/$projectId',
+    path: '/projetos/$projectId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedClientesClientIdRoute =
   AuthenticatedClientesClientIdRouteImport.update({
-    id: '/$clientId',
-    path: '/$clientId',
-    getParentRoute: () => AuthenticatedClientesRoute,
+    id: '/clientes/$clientId',
+    path: '/clientes/$clientId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const LovableEmailQueueProcessRoute =
   LovableEmailQueueProcessRouteImport.update({
@@ -239,7 +242,6 @@ export interface FileRoutesByFullPath {
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/ceo': typeof AuthenticatedCeoRoute
-  '/clientes': typeof AuthenticatedClientesRouteWithChildren
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -247,8 +249,6 @@ export interface FileRoutesByFullPath {
   '/jobs': typeof AuthenticatedJobsRoute
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
-  '/projetos': typeof AuthenticatedProjetosRouteWithChildren
-  '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
@@ -260,6 +260,9 @@ export interface FileRoutesByFullPath {
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/clientes/': typeof AuthenticatedClientesIndexRoute
+  '/projetos/': typeof AuthenticatedProjetosIndexRoute
+  '/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -275,7 +278,6 @@ export interface FileRoutesByTo {
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/ceo': typeof AuthenticatedCeoRoute
-  '/clientes': typeof AuthenticatedClientesRouteWithChildren
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -283,8 +285,6 @@ export interface FileRoutesByTo {
   '/jobs': typeof AuthenticatedJobsRoute
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
-  '/projetos': typeof AuthenticatedProjetosRouteWithChildren
-  '/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
@@ -297,6 +297,9 @@ export interface FileRoutesByTo {
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/clientes': typeof AuthenticatedClientesIndexRoute
+  '/projetos': typeof AuthenticatedProjetosIndexRoute
+  '/propostas': typeof AuthenticatedPropostasIndexRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -314,7 +317,6 @@ export interface FileRoutesById {
   '/_authenticated/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/ceo': typeof AuthenticatedCeoRoute
-  '/_authenticated/clientes': typeof AuthenticatedClientesRouteWithChildren
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -322,8 +324,6 @@ export interface FileRoutesById {
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
   '/_authenticated/parceiros': typeof AuthenticatedParceirosRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
-  '/_authenticated/projetos': typeof AuthenticatedProjetosRouteWithChildren
-  '/_authenticated/propostas': typeof AuthenticatedPropostasRouteWithChildren
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
@@ -336,6 +336,9 @@ export interface FileRoutesById {
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
+  '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
+  '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -354,7 +357,6 @@ export interface FileRouteTypes {
     | '/aprovacoes'
     | '/calendario'
     | '/ceo'
-    | '/clientes'
     | '/config'
     | '/crm'
     | '/dashboard'
@@ -362,8 +364,6 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/parceiros'
     | '/portal'
-    | '/projetos'
-    | '/propostas'
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
@@ -375,6 +375,9 @@ export interface FileRouteTypes {
     | '/propostas/$proposalId'
     | '/api/public/favicon'
     | '/api/public/manifest'
+    | '/clientes/'
+    | '/projetos/'
+    | '/propostas/'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -390,7 +393,6 @@ export interface FileRouteTypes {
     | '/aprovacoes'
     | '/calendario'
     | '/ceo'
-    | '/clientes'
     | '/config'
     | '/crm'
     | '/dashboard'
@@ -398,8 +400,6 @@ export interface FileRouteTypes {
     | '/jobs'
     | '/parceiros'
     | '/portal'
-    | '/projetos'
-    | '/propostas'
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
@@ -412,6 +412,9 @@ export interface FileRouteTypes {
     | '/propostas/$proposalId'
     | '/api/public/favicon'
     | '/api/public/manifest'
+    | '/clientes'
+    | '/projetos'
+    | '/propostas'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -428,7 +431,6 @@ export interface FileRouteTypes {
     | '/_authenticated/aprovacoes'
     | '/_authenticated/calendario'
     | '/_authenticated/ceo'
-    | '/_authenticated/clientes'
     | '/_authenticated/config'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
@@ -436,8 +438,6 @@ export interface FileRouteTypes {
     | '/_authenticated/jobs'
     | '/_authenticated/parceiros'
     | '/_authenticated/portal'
-    | '/_authenticated/projetos'
-    | '/_authenticated/propostas'
     | '/_authenticated/relatorios'
     | '/approve/$token'
     | '/dme/$token'
@@ -450,6 +450,9 @@ export interface FileRouteTypes {
     | '/_authenticated/propostas/$proposalId'
     | '/api/public/favicon'
     | '/api/public/manifest'
+    | '/_authenticated/clientes/'
+    | '/_authenticated/projetos/'
+    | '/_authenticated/propostas/'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -553,20 +556,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/propostas': {
-      id: '/_authenticated/propostas'
-      path: '/propostas'
-      fullPath: '/propostas'
-      preLoaderRoute: typeof AuthenticatedPropostasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/projetos': {
-      id: '/_authenticated/projetos'
-      path: '/projetos'
-      fullPath: '/projetos'
-      preLoaderRoute: typeof AuthenticatedProjetosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/portal': {
       id: '/_authenticated/portal'
       path: '/portal'
@@ -616,13 +605,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfigRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/clientes': {
-      id: '/_authenticated/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof AuthenticatedClientesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/ceo': {
       id: '/_authenticated/ceo'
       path: '/ceo'
@@ -644,6 +626,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAprovacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/propostas/': {
+      id: '/_authenticated/propostas/'
+      path: '/propostas'
+      fullPath: '/propostas/'
+      preLoaderRoute: typeof AuthenticatedPropostasIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projetos/': {
+      id: '/_authenticated/projetos/'
+      path: '/projetos'
+      fullPath: '/projetos/'
+      preLoaderRoute: typeof AuthenticatedProjetosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/clientes/': {
+      id: '/_authenticated/clientes/'
+      path: '/clientes'
+      fullPath: '/clientes/'
+      preLoaderRoute: typeof AuthenticatedClientesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/manifest': {
       id: '/api/public/manifest'
       path: '/api/public/manifest'
@@ -660,24 +663,24 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/propostas/$proposalId': {
       id: '/_authenticated/propostas/$proposalId'
-      path: '/$proposalId'
+      path: '/propostas/$proposalId'
       fullPath: '/propostas/$proposalId'
       preLoaderRoute: typeof AuthenticatedPropostasProposalIdRouteImport
-      parentRoute: typeof AuthenticatedPropostasRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/projetos/$projectId': {
       id: '/_authenticated/projetos/$projectId'
-      path: '/$projectId'
+      path: '/projetos/$projectId'
       fullPath: '/projetos/$projectId'
       preLoaderRoute: typeof AuthenticatedProjetosProjectIdRouteImport
-      parentRoute: typeof AuthenticatedProjetosRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clientes/$clientId': {
       id: '/_authenticated/clientes/$clientId'
-      path: '/$clientId'
+      path: '/clientes/$clientId'
       fullPath: '/clientes/$clientId'
       preLoaderRoute: typeof AuthenticatedClientesClientIdRouteImport
-      parentRoute: typeof AuthenticatedClientesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/lovable/email/queue/process': {
       id: '/lovable/email/queue/process'
@@ -738,52 +741,10 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AuthenticatedClientesRouteChildren {
-  AuthenticatedClientesClientIdRoute: typeof AuthenticatedClientesClientIdRoute
-}
-
-const AuthenticatedClientesRouteChildren: AuthenticatedClientesRouteChildren = {
-  AuthenticatedClientesClientIdRoute: AuthenticatedClientesClientIdRoute,
-}
-
-const AuthenticatedClientesRouteWithChildren =
-  AuthenticatedClientesRoute._addFileChildren(
-    AuthenticatedClientesRouteChildren,
-  )
-
-interface AuthenticatedProjetosRouteChildren {
-  AuthenticatedProjetosProjectIdRoute: typeof AuthenticatedProjetosProjectIdRoute
-}
-
-const AuthenticatedProjetosRouteChildren: AuthenticatedProjetosRouteChildren = {
-  AuthenticatedProjetosProjectIdRoute: AuthenticatedProjetosProjectIdRoute,
-}
-
-const AuthenticatedProjetosRouteWithChildren =
-  AuthenticatedProjetosRoute._addFileChildren(
-    AuthenticatedProjetosRouteChildren,
-  )
-
-interface AuthenticatedPropostasRouteChildren {
-  AuthenticatedPropostasProposalIdRoute: typeof AuthenticatedPropostasProposalIdRoute
-}
-
-const AuthenticatedPropostasRouteChildren: AuthenticatedPropostasRouteChildren =
-  {
-    AuthenticatedPropostasProposalIdRoute:
-      AuthenticatedPropostasProposalIdRoute,
-  }
-
-const AuthenticatedPropostasRouteWithChildren =
-  AuthenticatedPropostasRoute._addFileChildren(
-    AuthenticatedPropostasRouteChildren,
-  )
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAprovacoesRoute: typeof AuthenticatedAprovacoesRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedCeoRoute: typeof AuthenticatedCeoRoute
-  AuthenticatedClientesRoute: typeof AuthenticatedClientesRouteWithChildren
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -791,17 +752,20 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
   AuthenticatedParceirosRoute: typeof AuthenticatedParceirosRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
-  AuthenticatedProjetosRoute: typeof AuthenticatedProjetosRouteWithChildren
-  AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRouteWithChildren
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedClientesClientIdRoute: typeof AuthenticatedClientesClientIdRoute
+  AuthenticatedProjetosProjectIdRoute: typeof AuthenticatedProjetosProjectIdRoute
+  AuthenticatedPropostasProposalIdRoute: typeof AuthenticatedPropostasProposalIdRoute
+  AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
+  AuthenticatedProjetosIndexRoute: typeof AuthenticatedProjetosIndexRoute
+  AuthenticatedPropostasIndexRoute: typeof AuthenticatedPropostasIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAprovacoesRoute: AuthenticatedAprovacoesRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedCeoRoute: AuthenticatedCeoRoute,
-  AuthenticatedClientesRoute: AuthenticatedClientesRouteWithChildren,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -809,10 +773,14 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
   AuthenticatedParceirosRoute: AuthenticatedParceirosRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
-  AuthenticatedProjetosRoute: AuthenticatedProjetosRouteWithChildren,
-  AuthenticatedPropostasRoute: AuthenticatedPropostasRouteWithChildren,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedClientesClientIdRoute: AuthenticatedClientesClientIdRoute,
+  AuthenticatedProjetosProjectIdRoute: AuthenticatedProjetosProjectIdRoute,
+  AuthenticatedPropostasProposalIdRoute: AuthenticatedPropostasProposalIdRoute,
+  AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
+  AuthenticatedProjetosIndexRoute: AuthenticatedProjetosIndexRoute,
+  AuthenticatedPropostasIndexRoute: AuthenticatedPropostasIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

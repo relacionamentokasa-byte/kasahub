@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
-export const Route = createFileRoute("/_authenticated/projetos")({
+export const Route = createFileRoute("/_authenticated/projetos/")({
   head: () => ({ meta: [{ title: "Projetos — KASA HUB" }] }),
   component: ProjetosPage,
 });
