@@ -137,46 +137,46 @@ export function JobsBoard({
     // Filtro por texto
     const q = query.trim().toLowerCase();
     if (q) {
-      result = result.filter((j) => 
-        j.title.toLowerCase().includes(q) || 
-        (j as any).clients?.name?.toLowerCase().includes(q) ||
-        (j as any).clients?.company?.toLowerCase().includes(q) ||
-        (j as any).projects?.name?.toLowerCase().includes(q)
-      );
+      result = result.filter((j) => {
+        const titleMatch = j.title?.toLowerCase().includes(q);
+        const clientNameMatch = (j as any).clients?.name?.toLowerCase().includes(q);
+        const clientCompanyMatch = (j as any).clients?.company?.toLowerCase().includes(q);
+        const projectNameMatch = (j as any).projects?.name?.toLowerCase().includes(q);
+        
+        return titleMatch || clientNameMatch || clientCompanyMatch || projectNameMatch;
+      });
     }
 
     // Filtro por Responsável Principal
-    if (responsibleId !== "all") {
+    if (responsibleId && responsibleId !== "all") {
       result = result.filter((j) => {
         const mainRespId = (j as any).main_responsible_id || j.assignee_id;
         return mainRespId === responsibleId;
       });
     }
 
-    // Filtro por Equipe Envolvida (Novo)
-    if (teamFilter.length > 0) {
+    // Filtro por Equipe Envolvida
+    if (teamFilter && teamFilter.length > 0) {
       result = result.filter((j) => {
         const teamInvolved = (j as any).team_involved || [];
-        // Verifica se qualquer um dos membros filtrados está na equipe envolvida (armazenada como array de objetos ou strings)
         return teamFilter.some(userId => 
           teamInvolved.some((m: any) => (m.user_id || m) === userId)
         );
       });
     }
 
-
     // Filtro por Cliente
-    if (clientFilterId !== "all") {
+    if (clientFilterId && clientFilterId !== "all") {
       result = result.filter((j) => j.client_id === clientFilterId);
     }
 
     // Filtro por Prioridade
-    if (priorityFilter !== "all") {
+    if (priorityFilter && priorityFilter !== "all") {
       result = result.filter((j) => j.priority === priorityFilter);
     }
 
     // Filtro por Status
-    if (statusFilter !== "all") {
+    if (statusFilter && statusFilter !== "all") {
       result = result.filter((j) => j.status === statusFilter);
     }
 
@@ -265,6 +265,18 @@ export function JobsBoard({
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
+          {activeFiltersCount > 0 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearFilters}
+              className="h-9 gap-2 text-primary hover:text-primary/80 hover:bg-primary/5"
+            >
+              <X className="size-4" />
+              <span>Limpar Filtros</span>
+            </Button>
+          )}
+
           {/* Central de Filtros */}
           <Popover>
             <PopoverTrigger asChild>
