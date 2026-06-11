@@ -39,7 +39,7 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
   function startEdit(t: ScopeTemplate) {
     setEditing(t);
     const content = Array.isArray(t.content) 
-      ? t.content.join("\n") 
+      ? t.content.map(item => `<p>${item}</p>`).join("")
       : (t.content || "");
     setForm({ name: t.name, category: t.category ?? "", content });
 

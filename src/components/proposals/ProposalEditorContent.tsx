@@ -268,8 +268,9 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
           </div>
           <div className="bg-transparent">
             <ScopeEditor 
-              value={form.scope as any} 
-              onChange={v => { setForm({ ...form, scope: v as any }); setIsDirty(true); }} 
+              value={form.scope || ""} 
+              onChange={v => { setForm({ ...form, scope: v }); setIsDirty(true); }} 
+
             />
           </div>
 
