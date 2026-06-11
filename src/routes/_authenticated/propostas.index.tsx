@@ -202,6 +202,8 @@ function ProposalsPage() {
             const due = safeBillingDay(baseYear, baseMonth0 + i, dayOfMonth);
             transactions.push({
               kind: "income",
+              type: "income", // Map to old column for backward compatibility
+
               description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount}) [Retroativo]`,
               amount: monthlyAmount,
               due_date: ymd(due),
@@ -220,6 +222,8 @@ function ProposalsPage() {
         if (setupAmount > 0) {
           transactions.push({
             kind: "income",
+            type: "income", // Map to old column for backward compatibility
+
             description: `Setup / Investimento Único - ${proposal.title} [Retroativo]`,
             amount: setupAmount,
             due_date: firstDueRaw,
