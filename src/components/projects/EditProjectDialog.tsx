@@ -119,14 +119,18 @@ export function EditProjectDialog({
   });
 
   const del = useMutation({
-    mutationFn: () => deleteProject(project.id),
+    mutationFn: async () => {
+      const { error } = await supabase.from('projects').delete().eq('id', project.id);
+      if (error) throw error;
+      return project.id;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Projeto removido");
+      toast.success("Projeto removido com sucesso!");
       onOpenChange(false);
       navigate({ to: "/projetos" });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: any) => toast.error(`Erro ao excluir: ${e.message}`),
   });
 
 
@@ -241,7 +245,7 @@ export function EditProjectDialog({
           <Button
             variant="ghost"
             onClick={() => {
-              if (confirm("Remover este projeto? Esta ação não pode ser desfeita.")) del.mutate();
+              if (confirm("Tem certeza? Isso apagará também todos os jobs, eventos de calendário e financeiro vinculados a este projeto.")) del.mutate();
             }}
             disabled={del.isPending}
             className="text-destructive hover:text-destructive"
