@@ -113,7 +113,7 @@ function ClientsPage() {
                     <Link 
                       to="/clientes/$clientId"
                       params={{ clientId: client.id }}
-                      className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                      className="flex items-center gap-3 transition-opacity group-hover:opacity-80"
                     >
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 border border-primary/20">
                         {client.logo_url ? (
