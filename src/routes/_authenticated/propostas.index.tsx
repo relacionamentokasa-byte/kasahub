@@ -69,6 +69,8 @@ import {
   RotateCcw,
   Ban,
   Search,
+  XCircle,
+  Filter,
 } from "lucide-react";
 
 import { toast } from "sonner";
