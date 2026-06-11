@@ -96,7 +96,7 @@ export async function approveProposal(
 
   // 3. Step 2: Atualização do Status da Proposta
   const proposalUpdate: Record<string, any> = {
-    status: "converted",
+    status: "Aprovada",
     accepted_at: new Date().toISOString(),
     converted_at: new Date().toISOString(),
     client_id: clientId,
@@ -200,11 +200,11 @@ export async function approveProposal(
       const due = safeBillingDay(baseYear, baseMonth0 + i, dayOfMonth);
       transactions.push({
         kind: "income",
+        type: "income",
         description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount})`,
         amount: monthlyAmount,
         due_date: ymd(due),
         status: "pending",
-        is_recurring: true,
         account_id: proposal.account_id ?? null,
         category_id: proposal.category_id ?? null,
         client_id: clientId,
@@ -221,11 +221,11 @@ export async function approveProposal(
   if (setupAmount > 0) {
     transactions.push({
       kind: "income",
+      type: "income",
       description: `Setup / Investimento Único - ${proposal.title}`,
       amount: setupAmount,
       due_date: proposal.first_due_date ?? ymd(new Date()),
       status: "pending",
-      is_recurring: false,
       account_id: proposal.account_id ?? null,
       category_id: proposal.category_id ?? null,
       client_id: clientId,
