@@ -17,6 +17,7 @@ import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as FinancialInvoicesRouteImport } from './routes/financial/invoices'
+import { Route as FinancialImportRouteImport } from './routes/financial/import'
 import { Route as FinancialExtraDemandsRouteImport } from './routes/financial/extra-demands'
 import { Route as FinancialExpensesRouteImport } from './routes/financial/expenses'
 import { Route as FinancialDashboardRouteImport } from './routes/financial/dashboard'
@@ -90,6 +91,11 @@ const PTokenRoute = PTokenRouteImport.update({
 const FinancialInvoicesRoute = FinancialInvoicesRouteImport.update({
   id: '/financial/invoices',
   path: '/financial/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialImportRoute = FinancialImportRouteImport.update({
+  id: '/financial/import',
+  path: '/financial/import',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinancialExtraDemandsRoute = FinancialExtraDemandsRouteImport.update({
@@ -300,6 +306,7 @@ export interface FileRoutesByFullPath {
   '/financial/dashboard': typeof FinancialDashboardRoute
   '/financial/expenses': typeof FinancialExpensesRoute
   '/financial/extra-demands': typeof FinancialExtraDemandsRoute
+  '/financial/import': typeof FinancialImportRoute
   '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -343,6 +350,7 @@ export interface FileRoutesByTo {
   '/financial/dashboard': typeof FinancialDashboardRoute
   '/financial/expenses': typeof FinancialExpensesRoute
   '/financial/extra-demands': typeof FinancialExtraDemandsRoute
+  '/financial/import': typeof FinancialImportRoute
   '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -389,6 +397,7 @@ export interface FileRoutesById {
   '/financial/dashboard': typeof FinancialDashboardRoute
   '/financial/expenses': typeof FinancialExpensesRoute
   '/financial/extra-demands': typeof FinancialExtraDemandsRoute
+  '/financial/import': typeof FinancialImportRoute
   '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/financial/dashboard'
     | '/financial/expenses'
     | '/financial/extra-demands'
+    | '/financial/import'
     | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
@@ -479,6 +489,7 @@ export interface FileRouteTypes {
     | '/financial/dashboard'
     | '/financial/expenses'
     | '/financial/extra-demands'
+    | '/financial/import'
     | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/financial/dashboard'
     | '/financial/expenses'
     | '/financial/extra-demands'
+    | '/financial/import'
     | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
@@ -553,6 +565,7 @@ export interface RootRouteChildren {
   FinancialDashboardRoute: typeof FinancialDashboardRoute
   FinancialExpensesRoute: typeof FinancialExpensesRoute
   FinancialExtraDemandsRoute: typeof FinancialExtraDemandsRoute
+  FinancialImportRoute: typeof FinancialImportRoute
   FinancialInvoicesRoute: typeof FinancialInvoicesRoute
   PTokenRoute: typeof PTokenRoute
   ProposalTokenRoute: typeof ProposalTokenRoute
@@ -625,6 +638,13 @@ declare module '@tanstack/react-router' {
       path: '/financial/invoices'
       fullPath: '/financial/invoices'
       preLoaderRoute: typeof FinancialInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financial/import': {
+      id: '/financial/import'
+      path: '/financial/import'
+      fullPath: '/financial/import'
+      preLoaderRoute: typeof FinancialImportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/financial/extra-demands': {
@@ -970,6 +990,7 @@ const rootRouteChildren: RootRouteChildren = {
   FinancialDashboardRoute: FinancialDashboardRoute,
   FinancialExpensesRoute: FinancialExpensesRoute,
   FinancialExtraDemandsRoute: FinancialExtraDemandsRoute,
+  FinancialImportRoute: FinancialImportRoute,
   FinancialInvoicesRoute: FinancialInvoicesRoute,
   PTokenRoute: PTokenRoute,
   ProposalTokenRoute: ProposalTokenRoute,
