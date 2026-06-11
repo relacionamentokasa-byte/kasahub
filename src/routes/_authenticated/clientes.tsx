@@ -117,6 +117,7 @@ function ClientsPage() {
                       className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                     >
 
+
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 border border-primary/20">
                         {client.logo_url ? (
                           <img src={client.logo_url} alt={client.name} className="size-full object-cover rounded-xl" />
