@@ -132,9 +132,23 @@ export function JobsBoard({
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const filtered = useMemo(() => {
-    let result = jobs;
+    // Se não houver jobs, retorna array vazio
+    if (!jobs || jobs.length === 0) return [];
     
-    // Filtro por texto
+    // Se não houver critérios de filtro ativos, retorna todos os jobs
+    const hasActiveFilters = 
+      query.trim() !== "" || 
+      (responsibleId && responsibleId !== "all") || 
+      (clientFilterId && clientFilterId !== "all") || 
+      (priorityFilter && priorityFilter !== "all") || 
+      (statusFilter && statusFilter !== "all") || 
+      (teamFilter && teamFilter.length > 0);
+
+    if (!hasActiveFilters) return jobs;
+
+    let result = [...jobs];
+    
+    // Filtro por texto (Case-insensitive)
     const q = query.trim().toLowerCase();
     if (q) {
       result = result.filter((j) => {
