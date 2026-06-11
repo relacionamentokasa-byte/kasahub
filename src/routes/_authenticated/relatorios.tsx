@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { 
   fetchTransactions, 
   fetchFinanceStats, 
@@ -25,8 +25,10 @@ import {
   Clock,
   AlertCircle,
   FileSpreadsheet,
-  Trash2
+  Trash2,
+  ArrowRight
 } from "lucide-react";
+
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
