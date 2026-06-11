@@ -159,6 +159,7 @@ export function ImportTransactionsDialog({
             due_date: dueDate,
             kind,
             status,
+            import_batch_id: batchId,
             paid_at: status === "paid" ? dueDate : null,
             client_id: clientByName.get(cName) || null,
             category_id: catByName.get(catName) || null,
