@@ -116,7 +116,8 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
               due_date: due.toISOString().split('T')[0],
               status: "pending",
               client_id: clientId,
-              proposal_id: proposalId
+              proposal_id: proposalId,
+              type: "income"
             });
           }
         }
@@ -129,7 +130,8 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
             due_date: firstDue,
             status: "pending",
             client_id: clientId,
-            proposal_id: proposalId
+            proposal_id: proposalId,
+            type: "income"
           });
         }
 

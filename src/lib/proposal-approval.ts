@@ -199,18 +199,13 @@ export async function approveProposal(
     for (let i = 0; i < installmentsCount; i++) {
       const due = safeBillingDay(baseYear, baseMonth0 + i, dayOfMonth);
       transactions.push({
-        kind: "income",
-        type: "income",
-        description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount})`,
+        client_id: clientId,
+        proposal_id: proposal.id,
         amount: monthlyAmount,
         due_date: ymd(due),
+        description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount})`,
         status: "pending",
-        category_id: (proposal as any).category_id ?? null,
-        client_id: clientId,
-        project_id: projectId,
-        proposal_id: proposal.id,
-        contract_id: contractId,
-        owner_id: proposal.owner_id ?? null,
+        type: "income"
       });
     }
   }
@@ -219,18 +214,13 @@ export async function approveProposal(
   const setupAmount = Number(proposal.one_time_investment || 0);
   if (setupAmount > 0) {
     transactions.push({
-      kind: "income",
-      type: "income",
-      description: `Setup / Investimento Único - ${proposal.title}`,
+      client_id: clientId,
+      proposal_id: proposal.id,
       amount: setupAmount,
       due_date: proposal.first_due_date ?? ymd(new Date()),
+      description: `Setup / Investimento Único - ${proposal.title}`,
       status: "pending",
-      category_id: (proposal as any).category_id ?? null,
-      client_id: clientId,
-      project_id: projectId,
-      proposal_id: proposal.id,
-      contract_id: contractId,
-      owner_id: proposal.owner_id ?? null,
+      type: "income"
     });
   }
 
