@@ -357,13 +357,24 @@ function FinanceiroPage() {
           <p className="text-sm text-foreground/60 mt-1">Gestão de caixa</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <Button
-            onClick={() => setOpenImport(true)}
-            variant="outline"
-            className="flex-1 sm:flex-none border-border rounded-full h-11 sm:h-10 px-4 gap-2"
-          >
-            <Upload className="size-4 shrink-0" /> Importar
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none border-border rounded-full h-11 sm:h-10 px-4 gap-2"
+              >
+                <Upload className="size-4 shrink-0" /> Planilhas
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setOpenImport(true)}>
+                <Plus className="size-4 mr-2" /> Importar Nova
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOpenManageImports(true)}>
+                <History className="size-4 mr-2" /> Gerenciar/Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             onClick={() => setOpenTx("income")}
             className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
