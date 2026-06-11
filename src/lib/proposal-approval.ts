@@ -116,11 +116,15 @@ export async function approveProposal(
   const monthly = Number(proposal.monthly_investment ?? 0);
   const totalValue = Number(proposal.total ?? proposal.one_time_investment ?? 0);
   
-  let installmentsCount = 0;
-  if (proposal.contract_type === "recurring") {
+  // Source of truth for número de parcelas: recurring_months (3, 6 ou 12 vindo da UI de pílulas).
+  // Fallback para contract_term legado, e por último 12.
+  let installmentsCount = Number(proposal.recurring_months || 0);
+  if (!installmentsCount) {
     if (proposal.contract_term === "monthly") installmentsCount = 1;
     else if (proposal.contract_term?.includes("_months")) installmentsCount = Number(proposal.contract_term.replace("_months", ""));
-    else installmentsCount = Number(proposal.recurring_months ?? 12);
+  }
+  if (!installmentsCount && Number(proposal.monthly_investment || 0) > 0) {
+    installmentsCount = 12;
   }
 
   const contractData = {
@@ -176,22 +180,27 @@ export async function approveProposal(
   proposalUpdate.generated_project_id = projectId;
   proposalUpdate.generated_contract_id = contractId;
 
-  // 5. Step 4: Geração Automática do Financeiro (Refatorado para Modelo de Contrato)
+  // 5. Step 4: Geração Automática do Financeiro (Receita Prevista)
+  // A primeira parcela cai exatamente na "Data do 1º Vencimento" e as demais
+  // são incrementadas em +1 mês mantendo o mesmo dia (clamp para o último dia do mês).
   let txCreated = 0;
-  const billingDay = Number(proposal.billing_day ?? 5);
-  const firstDueDate = proposal.first_due_date ? new Date(proposal.first_due_date) : new Date();
-  
+  const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
+  // Parse YYYY-MM-DD sem conversão de timezone
+  const [fy, fm, fd] = firstDueRaw.split("-").map(Number);
+  const dayOfMonth = fd;
+  const baseYear = fy;
+  const baseMonth0 = fm - 1;
+
   const transactions: any[] = [];
-  
-  // A. Geração das parcelas mensais (Recorrência)
+
+  // A. Geração das parcelas mensais (Recorrência) — gera EXATAMENTE installmentsCount lançamentos
   const monthlyAmount = Number(proposal.monthly_investment || 0);
-  if (monthlyAmount > 0) {
-    const months = installmentsCount > 0 ? installmentsCount : 12;
-    for (let i = 0; i < months; i++) {
-      const due = safeBillingDay(firstDueDate.getFullYear(), firstDueDate.getMonth() + i, billingDay);
+  if (monthlyAmount > 0 && installmentsCount > 0) {
+    for (let i = 0; i < installmentsCount; i++) {
+      const due = safeBillingDay(baseYear, baseMonth0 + i, dayOfMonth);
       transactions.push({
         kind: "income",
-        description: `Mensalidade ${proposal.title} (${i + 1}/${months})`,
+        description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount})`,
         amount: monthlyAmount,
         due_date: ymd(due),
         status: "pending",
