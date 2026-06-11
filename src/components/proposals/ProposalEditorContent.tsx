@@ -2,19 +2,15 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { 
   fetchProposal, 
-  fetchProposalItems, 
   updateProposal, 
-  upsertProposalItem, 
-  deleteProposalItem,
-  recalcProposalTotals,
   formatCurrency,
   type Proposal,
-  type ProposalItem
 } from "@/lib/crm-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { 
   Plus, 
   Trash2, 
@@ -39,7 +35,6 @@ import { ProposalApprovalDialog } from "./ProposalApprovalDialog";
 export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
   const qc = useQueryClient();
   const [form, setForm] = useState<Partial<Proposal>>({});
-  const [items, setItems] = useState<ProposalItem[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
 
@@ -48,22 +43,11 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     queryFn: () => fetchProposal(proposalId),
   });
 
-  const { data: proposalItems = [], isLoading: isLoadingItems } = useQuery({
-    queryKey: ["proposal-items", proposalId],
-    queryFn: () => fetchProposalItems(proposalId),
-  });
-
   useEffect(() => {
     if (proposal) {
       setForm(proposal);
     }
   }, [proposal]);
-
-  useEffect(() => {
-    if (proposalItems) {
-      setItems(proposalItems);
-    }
-  }, [proposalItems]);
 
   const updateMut = useMutation({
     mutationFn: (patch: Partial<Proposal>) => updateProposal(proposalId, patch),
@@ -76,45 +60,20 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const itemMut = useMutation({
-    mutationFn: (item: Partial<ProposalItem> & { title: string }) => 
-      upsertProposalItem({ ...item, proposal_id: proposalId }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["proposal-items", proposalId] });
-      persistTotals();
-    },
-  });
-
-  const delItemMut = useMutation({
-    mutationFn: (id: string) => deleteProposalItem(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["proposal-items", proposalId] });
-      persistTotals();
-    },
-  });
-
-  const persistTotals = () => {
-    const totals = recalcProposalTotals(items);
-    updateMut.mutate(totals);
-  };
-
   const handleSave = () => {
-    // Force blur to ensure last edits are captured if needed
+    // Calculate total before saving
+    const monthly = Number(form.monthly_investment || 0);
+    const months = Number(form.recurring_months || 0);
+    const setup = Number(form.one_time_investment || 0);
+    const total = (monthly * months) + setup;
+
+    const payload = { ...form, total };
+    
     (document.activeElement as HTMLElement)?.blur();
-    updateMut.mutate(form);
+    updateMut.mutate(payload);
   };
 
-  const addItem = () => {
-    itemMut.mutate({
-      title: "Novo Serviço",
-      quantity: 1,
-      unit_price: 0,
-      recurrence: form.contract_type === "recurring" ? "monthly" : "one_time",
-      order_index: items.length,
-    });
-  };
-
-  if (isLoadingProposal || isLoadingItems) {
+  if (isLoadingProposal) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="size-8 animate-spin text-primary" />
@@ -194,120 +153,109 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
         </div>
       </section>
 
-      {/* Services/Items */}
+      {/* Investment Section Refactored */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-primary">
-            <DollarSign className="size-4" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Itens e Investimento</h3>
-          </div>
-          <Button size="sm" variant="outline" onClick={addItem} className="h-8 rounded-full">
-            <Plus className="size-3.5 mr-1.5" /> Adicionar Item
-          </Button>
+        <div className="flex items-center gap-2 text-primary">
+          <DollarSign className="size-4" />
+          <h3 className="text-sm font-bold uppercase tracking-wider">Investimento e Contrato</h3>
         </div>
 
-        <div className="border border-border rounded-2xl overflow-hidden bg-surface shadow-sm">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/30 border-b border-border">
-              <tr>
-                <th className="text-left py-3 px-4 font-mono-kasa text-[10px] uppercase tracking-wider">Serviço / Descrição</th>
-                <th className="text-center py-3 px-2 font-mono-kasa text-[10px] uppercase tracking-wider w-20">Qtd</th>
-                <th className="text-right py-3 px-2 font-mono-kasa text-[10px] uppercase tracking-wider w-32">Preço Unit.</th>
-                <th className="text-center py-3 px-2 font-mono-kasa text-[10px] uppercase tracking-wider w-28">Recorrência</th>
-                <th className="text-right py-3 px-4 font-mono-kasa text-[10px] uppercase tracking-wider w-32">Subtotal</th>
-                <th className="w-10"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {items.map((item) => (
-                <tr key={item.id} className="group hover:bg-muted/10 transition-colors">
-                  <td className="py-3 px-4">
-                    <Input 
-                      value={item.title} 
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="col-span-2 space-y-6">
+            <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-6">
+              <div className="space-y-4">
+                <Label className="text-sm font-semibold">Duração do Contrato</Label>
+                <RadioGroup 
+                  value={String(form.recurring_months || "6")} 
+                  onValueChange={val => {
+                    setForm({ ...form, recurring_months: Number(val), contract_type: "recurring" });
+                    setIsDirty(true);
+                  }}
+                  className="flex flex-wrap gap-3"
+                >
+                  {[3, 6, 12].map((months) => (
+                    <div key={months} className="flex items-center">
+                      <RadioGroupItem value={String(months)} id={`r-${months}`} className="sr-only" />
+                      <Label
+                        htmlFor={`r-${months}`}
+                        className={cn(
+                          "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
+                          form.recurring_months === months 
+                            ? "bg-[#FFBC45] border-[#FFBC45] text-black shadow-md scale-105" 
+                            : "bg-surface hover:bg-muted"
+                        )}
+                      >
+                        {months} meses
+                      </Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
 
-                      onChange={e => {
-                        const newItems = items.map(it => it.id === item.id ? { ...it, title: e.target.value } : it);
-                        setItems(newItems);
-                      }}
-                      onBlur={() => itemMut.mutate({ id: item.id, title: item.title })}
-                      className="h-8 p-0 border-transparent bg-transparent font-medium focus-visible:ring-0"
-                    />
-                  </td>
-                  <td className="py-3 px-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Valor Mensal (Fee)</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                     <Input 
-                      type="number" 
-                      value={item.quantity} 
+                      type="number"
+                      placeholder="0,00"
+                      className="pl-10"
+                      value={form.monthly_investment || ""}
                       onChange={e => {
-                        const val = Number(e.target.value);
-                        const newItems = items.map(it => it.id === item.id ? { ...it, quantity: val } : it);
-                        setItems(newItems);
+                        setForm({ ...form, monthly_investment: Number(e.target.value) });
+                        setIsDirty(true);
                       }}
-                      onBlur={() => itemMut.mutate({ id: item.id, title: item.title, quantity: item.quantity })}
-                      className="h-8 text-center bg-transparent border-transparent focus-visible:ring-0"
                     />
-                  </td>
-                  <td className="py-3 px-2">
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-semibold">Setup / Investimento Único</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
                     <Input 
-                      type="number" 
-                      value={item.unit_price} 
+                      type="number"
+                      placeholder="0,00"
+                      className="pl-10"
+                      value={form.one_time_investment || ""}
                       onChange={e => {
-                        const val = Number(e.target.value);
-                        const newItems = items.map(it => it.id === item.id ? { ...it, unit_price: val } : it);
-                        setItems(newItems);
+                        setForm({ ...form, one_time_investment: Number(e.target.value) });
+                        setIsDirty(true);
                       }}
-                      onBlur={() => itemMut.mutate({ id: item.id, title: item.title, unit_price: item.unit_price })}
-                      className="h-8 text-right bg-transparent border-transparent focus-visible:ring-0"
                     />
-                  </td>
-                  <td className="py-3 px-2">
-                    <select 
-                      value={item.recurrence || "one_time"}
-                      onChange={e => {
-                        const val = e.target.value;
-                        const newItems = items.map(it => it.id === item.id ? { ...it, recurrence: val } : it);
-                        setItems(newItems);
-                        itemMut.mutate({ id: item.id, title: item.title, recurrence: val });
-                      }}
-                      className="h-8 w-full bg-transparent border-none text-center text-xs focus:ring-0 cursor-pointer"
-                    >
-                      <option value="one_time">Único</option>
-                      <option value="monthly">Mensal</option>
-                    </select>
-                  </td>
-                  <td className="py-3 px-4 text-right font-semibold">
-                    {formatCurrency(Number(item.quantity) * Number(item.unit_price))}
-                  </td>
-                  <td className="py-3 pr-2">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={() => delItemMut.mutate(item.id)}
-                      className="h-7 w-7 text-destructive/40 hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Trash2 className="size-3.5" />
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {items.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-foreground/30 italic">Nenhum item adicionado.</td>
-                </tr>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-center space-y-4">
+            <div className="text-center space-y-1">
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Resumo do Contrato</span>
+              <div className="text-3xl font-bold text-primary">
+                {formatCurrency((Number(form.monthly_investment || 0) * Number(form.recurring_months || 0)) + Number(form.one_time_investment || 0))}
+              </div>
+              <p className="text-xs text-muted-foreground">Valor total do investimento</p>
+            </div>
+            
+            <div className="pt-4 border-t border-border space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Mensalidade:</span>
+                <span className="font-medium">{formatCurrency(form.monthly_investment || 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Duração:</span>
+                <span className="font-medium">{form.recurring_months || 0} meses</span>
+              </div>
+              {Number(form.one_time_investment || 0) > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Setup:</span>
+                  <span className="font-medium">{formatCurrency(form.one_time_investment || 0)}</span>
+                </div>
               )}
-            </tbody>
-            <tfoot className="bg-muted/50 border-t border-border">
-              <tr>
-                <td colSpan={4} className="py-3 px-4 text-right font-mono-kasa text-[10px] uppercase tracking-wider text-foreground/50">Investimento Mensal</td>
-                <td className="py-3 px-4 text-right font-bold text-primary">{formatCurrency(form.monthly_investment || 0)}</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td colSpan={4} className="py-3 px-4 text-right font-mono-kasa text-[10px] uppercase tracking-wider text-foreground/50">Investimento Único</td>
-                <td className="py-3 px-4 text-right font-bold">{formatCurrency(form.one_time_investment || 0)}</td>
-                <td></td>
-              </tr>
-            </tfoot>
-          </table>
+            </div>
+          </div>
         </div>
       </section>
 
