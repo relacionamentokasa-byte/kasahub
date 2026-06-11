@@ -25,17 +25,23 @@ import {
   FileText,
   DollarSign,
   Calendar,
-  Layers
+  Layers,
+  Rocket,
+  ExternalLink,
+  Copy,
+  Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
 import { cn } from "@/lib/utils";
+import { ProposalApprovalDialog } from "./ProposalApprovalDialog";
 
 export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
   const qc = useQueryClient();
   const [form, setForm] = useState<Partial<Proposal>>({});
   const [items, setItems] = useState<ProposalItem[]>([]);
   const [isDirty, setIsDirty] = useState(false);
+  const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
 
   const { data: proposal, isLoading: isLoadingProposal } = useQuery({
     queryKey: ["proposal", proposalId],
@@ -115,6 +121,21 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
       </div>
     );
   }
+
+  const publicUrl = `${window.location.origin}/proposta/${proposal?.public_token}`;
+
+  const copyPublicLink = () => {
+    navigator.clipboard.writeText(publicUrl);
+    toast.success("Link público copiado!");
+  };
+
+  const handleApprove = () => {
+    if (isDirty) {
+      toast.error("Salve as alterações antes de aprovar.");
+      return;
+    }
+    setIsApprovalDialogOpen(true);
+  };
 
   return (
     <div className="space-y-8 animate-reveal">
@@ -332,7 +353,32 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
           {updateMut.isPending ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5 mr-2" />}
           Salvar Alterações
         </Button>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={copyPublicLink}
+            className="rounded-full h-12 px-6 font-semibold bg-surface border-border shadow-lg hover:bg-muted transition-all"
+          >
+            <Copy className="size-4 mr-2" />
+            Link Público
+          </Button>
+
+          <Button
+            onClick={handleApprove}
+            className="rounded-full h-12 px-8 font-bold bg-[#FFBC45] text-black hover:bg-[#FFBC45]/90 shadow-xl transition-all hover:scale-105"
+          >
+            <Rocket className="size-5 mr-2" />
+            Aprovar / Converter
+          </Button>
+        </div>
       </div>
+
+      <ProposalApprovalDialog 
+        proposalId={proposalId}
+        open={isApprovalDialogOpen}
+        onOpenChange={setIsApprovalDialogOpen}
+      />
     </div>
   );
 }

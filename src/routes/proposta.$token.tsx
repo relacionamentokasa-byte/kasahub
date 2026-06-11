@@ -210,7 +210,7 @@ function PublicProposalView() {
         if (j.error === "already_accepted") throw new Error("Esta proposta já foi aprovada.");
         throw new Error(j.error || "Esta proposta não pode ser aprovada sem a assinatura do cliente.");
       }
-      toast.success("Proposta aprovada e assinada com sucesso!");
+      toast.success("Proposta aprovada e assinada com sucesso! Cliente, Job e Financeiro gerados.");
       await load();
     } catch (e) {
       toast.error((e as Error).message);
