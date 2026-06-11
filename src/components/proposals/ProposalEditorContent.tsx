@@ -266,13 +266,13 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
             <Layers className="size-4" />
             <h3 className="text-sm font-bold uppercase tracking-wider">Escopo de Trabalho</h3>
           </div>
-          <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
+          <div className="bg-transparent">
             <ScopeEditor 
               value={form.scope as any} 
               onChange={v => { setForm({ ...form, scope: v as any }); setIsDirty(true); }} 
-
             />
           </div>
+
         </div>
 
         <div className="space-y-4">
