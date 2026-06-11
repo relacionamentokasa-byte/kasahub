@@ -261,7 +261,10 @@ function FinancialPage() {
           </TableBody>
         </Table>
       </div>
+
+      <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
+
   );
 }
 
