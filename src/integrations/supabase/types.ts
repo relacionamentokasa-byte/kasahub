@@ -965,45 +965,6 @@ export type Database = {
           },
         ]
       }
-      financial_imports: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          error_log: string | null
-          failed_rows: number
-          filename: string
-          id: string
-          import_type: string
-          imported_rows: number
-          status: string
-          total_rows: number
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          error_log?: string | null
-          failed_rows?: number
-          filename: string
-          id?: string
-          import_type: string
-          imported_rows?: number
-          status?: string
-          total_rows?: number
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          error_log?: string | null
-          failed_rows?: number
-          filename?: string
-          id?: string
-          import_type?: string
-          imported_rows?: number
-          status?: string
-          total_rows?: number
-        }
-        Relationships: []
-      }
       google_calendar_connections: {
         Row: {
           created_at: string | null
@@ -2583,7 +2544,6 @@ export type Database = {
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
-      check_financial_notifications: { Args: never; Returns: undefined }
       check_upcoming_deadlines: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -2609,10 +2569,6 @@ export type Database = {
         Returns: undefined
       }
       format_proposal_number: { Args: { n: number }; Returns: string }
-      get_finance_summary: {
-        Args: { p_from: string; p_to: string }
-        Returns: Json
-      }
       has_module_permission: {
         Args: { _action: string; _module: string; _user_id: string }
         Returns: boolean

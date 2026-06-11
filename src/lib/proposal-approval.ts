@@ -298,25 +298,8 @@ export async function approveProposal(
     // Auto-categorize based on proposal service_type or title
     let categoryId = proposal.category_id;
     if (!categoryId) {
-      const { data: categories } = await sb.from('financial_categories').select('id, name');
-      if (categories) {
-        // Simple mapping based on known service names or keywords
-        const serviceName = (proposal.service_type || proposal.title || "").toLowerCase();
-        let targetCat = 'Fee Mensal'; // Default for recurring
-        
-        if (serviceName.includes('tráfego') || serviceName.includes('ads')) targetCat = 'Tráfego Pago';
-        else if (serviceName.includes('social') || serviceName.includes('media')) targetCat = 'Social Media';
-        else if (serviceName.includes('conteúdo') || serviceName.includes('copy')) targetCat = 'Conteúdo';
-        else if (serviceName.includes('consultoria')) targetCat = 'Consultoria';
-        else if (serviceName.includes('job') || serviceName.includes('avulso')) targetCat = 'Job Avulso';
-        else if (serviceName.includes('projeto') || serviceName.includes('especial')) targetCat = 'Projeto Especial';
-        else if (serviceName.includes('comissão') || serviceName.includes('comissao')) targetCat = 'Comissão';
-        else if (serviceName.includes('imposto') || serviceName.includes('taxa')) targetCat = 'Imposto / Taxa';
-        else if (serviceName.includes('despesa') || serviceName.includes('custo')) targetCat = 'Despesa';
-        
-        const cat = categories.find(c => c.name === targetCat);
-        if (cat) categoryId = cat.id;
-      }
+      /* Categoria financeira removida com o módulo financeiro */
+      categoryId = null;
     }
 
     const rows: Array<Record<string, unknown>> = [];
@@ -371,23 +354,8 @@ export async function approveProposal(
       // Auto-categorize based on proposal service_type or title
       let categoryId = proposal.category_id;
       if (!categoryId) {
-        const { data: categories } = await sb.from('financial_categories').select('id, name');
-        if (categories) {
-          const serviceName = (proposal.service_type || proposal.title || "").toLowerCase();
-          let targetCat = 'Job Avulso'; // Default for one-time
-          
-          if (serviceName.includes('tráfego') || serviceName.includes('ads')) targetCat = 'Tráfego Pago';
-          else if (serviceName.includes('social') || serviceName.includes('media')) targetCat = 'Social Media';
-          else if (serviceName.includes('conteúdo') || serviceName.includes('copy')) targetCat = 'Conteúdo';
-          else if (serviceName.includes('consultoria')) targetCat = 'Consultoria';
-          else if (serviceName.includes('projeto') || serviceName.includes('especial')) targetCat = 'Projeto Especial';
-          else if (serviceName.includes('comissão') || serviceName.includes('comissao')) targetCat = 'Comissão';
-          else if (serviceName.includes('imposto') || serviceName.includes('taxa')) targetCat = 'Imposto / Taxa';
-          else if (serviceName.includes('despesa') || serviceName.includes('custo')) targetCat = 'Despesa';
-          
-          const cat = categories.find(c => c.name === targetCat);
-          if (cat) categoryId = cat.id;
-        }
+        /* Categoria financeira removida com o módulo financeiro */
+        categoryId = null;
       }
 
       const rows = Array.from({ length: installments }).map((_, i) => ({
