@@ -1,12 +1,24 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Mail, Phone, Building2, Pencil } from "lucide-react";
+import { 
+  ArrowLeft, Mail, Phone, Building2, Pencil, 
+  Wallet, FileText, FolderKanban, Activity, 
+  TrendingUp, Handshake, CheckSquare 
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
+import { brl } from "@/lib/utils-format";
+import { fetchProposals } from "@/lib/crm-api";
+import { fetchTransactions } from "@/lib/finance-api";
+import { fetchProjects, fetchExtraDemands } from "@/lib/ops-api";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
   head: () => ({ meta: [{ title: "Cliente — KASA HUB" }] }),
@@ -24,63 +36,266 @@ function ClientDetail() {
     }
   });
 
-  if (!client) return <div className="p-10 text-foreground/40">Carregando…</div>;
+  const { data: proposals = [] } = useQuery({ 
+    queryKey: ["client-proposals", clientId], 
+    queryFn: () => fetchProposals().then(res => res.filter(p => p.client_id === clientId)) 
+  });
+
+  const { data: projects = [] } = useQuery({ 
+    queryKey: ["client-projects", clientId], 
+    queryFn: () => fetchProjects({ clientId }) 
+  });
+
+  const { data: transactions = [] } = useQuery({ 
+    queryKey: ["client-transactions", clientId], 
+    queryFn: () => fetchTransactions({ clientId }) 
+  });
+
+  if (!client) return (
+    <div className="flex items-center justify-center h-full">
+      <Loader2 className="size-8 animate-spin text-primary/20" />
+    </div>
+  );
+
+  const totalRevenue = transactions
+    .filter(t => t.type === "income" && t.status === "paid")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const pendingRevenue = transactions
+    .filter(t => t.type === "income" && t.status === "pending")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4">
-        <div className="flex items-start gap-4 flex-wrap">
-          <div className="min-w-0 flex-1">
-            <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
-              {client.company || client.name}
-            </h1>
-            <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-xs text-foreground/50">
-               {client.email && <span className="inline-flex items-center gap-1.5 min-h-[24px]"><Mail className="size-3" />{client.email}</span>}
-               {client.phone && <span className="inline-flex items-center gap-1.5 min-h-[24px]"><Phone className="size-3" />{client.phone}</span>}
-               {client.document && <span className="inline-flex items-center gap-1.5 min-h-[24px]"><Building2 className="size-3" />{client.document}</span>}
+    <div className="flex flex-col h-full bg-background/50">
+      <div className="px-6 lg:px-10 pt-8 pb-6 border-b border-border bg-surface">
+        <div className="max-w-[1600px] mx-auto">
+          <Link to="/clientes" className="inline-flex items-center gap-2 text-xs text-foreground/40 hover:text-primary transition-colors mb-6 group">
+            <ArrowLeft className="size-3.5 group-hover:-translate-x-0.5 transition-transform" /> Voltar para lista
+          </Link>
+          
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex items-center gap-5">
+              <div className="size-16 lg:size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-2xl lg:text-3xl font-bold shadow-sm">
+                {client.logo_url ? (
+                  <img src={client.logo_url} alt={client.name} className="size-full object-cover rounded-2xl" />
+                ) : (
+                  (client.company || client.name)?.[0]?.toUpperCase()
+                )}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
+                    {client.company || client.name}
+                  </h1>
+                  <Badge variant="outline" className={`rounded-full uppercase tracking-widest text-[10px] border-2 ${
+                    client.status === 'active' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 
+                    client.status === 'paused' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5' : 
+                    'border-foreground/10 text-foreground/40'
+                  }`}>
+                    {client.status === 'active' ? 'Ativo' : client.status === 'paused' ? 'Pausado' : 'Inativo'}
+                  </Badge>
+                </div>
+                <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-xs text-foreground/50 font-medium">
+                  {client.email && <span className="inline-flex items-center gap-2"><Mail className="size-3.5 text-primary/40" />{client.email}</span>}
+                  {client.phone && <span className="inline-flex items-center gap-2"><Phone className="size-3.5 text-primary/40" />{client.phone}</span>}
+                  {client.document && <span className="inline-flex items-center gap-2"><Building2 className="size-3.5 text-primary/40" />{client.document}</span>}
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+               <div className="text-right hidden sm:block border-r border-border pr-5">
+                 <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none">Receita Total</p>
+                 <p className="text-lg font-bold text-emerald-500 mt-1">{brl(totalRevenue)}</p>
+               </div>
+               <div className="text-right hidden sm:block">
+                 <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none">A Receber</p>
+                 <p className="text-lg font-bold text-blue-500 mt-1">{brl(pendingRevenue)}</p>
+               </div>
             </div>
           </div>
         </div>
       </div>
 
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-        <div className="px-6 lg:px-10 border-b border-border">
-          <TabsList className="bg-transparent border-0 h-auto p-0 gap-1 overflow-x-auto justify-start">
-            {[
-              ["overview", "Resumo"],
-              ["jobs", "Jobs"],
-              ["servicos", "Serviços"],
-              ["timeline", "Timeline"],
-            ].map(([v, label]) => (
-              <TabsTrigger
-                key={v}
-                value={v}
-                className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-3 py-2.5 text-xs capitalize whitespace-nowrap"
-              >
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        <div className="bg-surface border-b border-border sticky top-0 z-10">
+          <div className="max-w-[1600px] mx-auto px-6 lg:px-10">
+            <TabsList className="bg-transparent border-0 h-auto p-0 gap-8 overflow-x-auto justify-start no-scrollbar">
+              {[
+                { v: "overview", label: "Resumo", icon: Activity },
+                { v: "propostas", label: "Propostas", icon: FileText },
+                { v: "projetos", label: "Projetos", icon: FolderKanban },
+                { v: "jobs", label: "Jobs", icon: CheckSquare },
+                { v: "financeiro", label: "Financeiro", icon: Wallet },
+                { v: "servicos", label: "Serviços", icon: Handshake },
+                { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.v}
+                  value={tab.v}
+                  className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-0 py-5 text-xs font-bold uppercase tracking-widest gap-2 transition-all hover:text-foreground/80"
+                >
+                  <tab.icon className="size-3.5" />
+                  {tab.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
         </div>
 
-        <TabsContent value="overview" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
-          <div className="bg-surface border border-border rounded-2xl p-5">
-            <p className="text-sm text-foreground/60 italic">Resumo do cliente disponível.</p>
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-8">
+            <TabsContent value="overview" className="m-0 space-y-8 animate-reveal">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <QuickStatCard title="Propostas" value={proposals.length} icon={FileText} color="text-amber-500" />
+                <QuickStatCard title="Projetos Ativos" value={projects.filter(p => p.status === 'active').length} icon={FolderKanban} color="text-purple-500" />
+                <QuickStatCard title="Jobs Pendentes" value={0} icon={CheckSquare} color="text-blue-500" />
+                <QuickStatCard title="Status Financeiro" value="Em dia" icon={Wallet} color="text-emerald-500" isText />
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <Card className="lg:col-span-2 bg-surface border-border overflow-hidden">
+                  <CardContent className="p-6">
+                    <h3 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <FolderKanban className="size-4 text-primary" /> Projetos Recentes
+                    </h3>
+                    <div className="space-y-4">
+                      {projects.slice(0, 5).map(project => (
+                        <div key={project.id} className="flex items-center justify-between p-4 rounded-xl border border-border bg-background/30 hover:border-primary/30 transition-colors">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm truncate">{project.name}</p>
+                            <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mt-0.5">Iniciado em {new Date(project.created_at).toLocaleDateString()}</p>
+                          </div>
+                          <Badge variant="outline" className="rounded-full text-[9px] uppercase tracking-tighter">
+                            {project.status}
+                          </Badge>
+                        </div>
+                      ))}
+                      {projects.length === 0 && <p className="text-sm text-foreground/30 italic text-center py-8">Nenhum projeto vinculado.</p>}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-surface border-border overflow-hidden">
+                  <CardContent className="p-6">
+                    <h3 className="text-sm font-bold uppercase tracking-wider mb-6 flex items-center gap-2">
+                      <TrendingUp className="size-4 text-primary" /> Últimas Atividades
+                    </h3>
+                    <div className="max-h-[400px] overflow-y-auto no-scrollbar">
+                      <ClientTimeline clientId={clientId} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="propostas" className="m-0 animate-reveal">
+               <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+                 <Table>
+                   <TableHeader className="bg-muted/30">
+                     <TableRow>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Proposta</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {proposals.map(p => (
+                       <TableRow key={p.id}>
+                         <TableCell className="font-medium text-sm py-4">{p.title}</TableCell>
+                         <TableCell className="text-right text-sm py-4">{brl(p.total || 0)}</TableCell>
+                         <TableCell className="text-center py-4">
+                           <Badge variant="outline" className="rounded-full text-[10px] uppercase tracking-widest">{p.status}</Badge>
+                         </TableCell>
+                       </TableRow>
+                     ))}
+                     {proposals.length === 0 && <TableRow><TableCell colSpan={3} className="h-32 text-center text-foreground/30 italic">Nenhuma proposta.</TableCell></TableRow>}
+                   </TableBody>
+                 </Table>
+               </div>
+            </TabsContent>
+
+            <TabsContent value="projetos" className="m-0 animate-reveal">
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                 {projects.map(p => (
+                   <Card key={p.id} className="bg-surface border-border hover:border-primary/40 transition-all group">
+                     <CardContent className="p-6">
+                        <div className="flex justify-between items-start mb-4">
+                          <Badge variant="outline" className="rounded-full text-[9px] uppercase">{p.status}</Badge>
+                          <FolderKanban className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
+                        </div>
+                        <h4 className="font-bold text-sm mb-2">{p.name}</h4>
+                        <p className="text-xs text-foreground/40 line-clamp-2 min-h-[32px]">{p.briefing || "Sem descrição."}</p>
+                     </CardContent>
+                   </Card>
+                 ))}
+                 {projects.length === 0 && <div className="col-span-full h-32 flex items-center justify-center text-foreground/30 italic">Nenhum projeto.</div>}
+               </div>
+            </TabsContent>
+
+            <TabsContent value="jobs" className="m-0 min-h-0 animate-reveal">
+              <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Operação · Cliente" />
+            </TabsContent>
+
+            <TabsContent value="financeiro" className="m-0 animate-reveal">
+               <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+                 <Table>
+                   <TableHeader className="bg-muted/30">
+                     <TableRow>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Vencimento</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Descrição</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
+                     </TableRow>
+                   </TableHeader>
+                   <TableBody>
+                     {transactions.map(t => (
+                       <TableRow key={t.id}>
+                         <TableCell className="text-sm py-4">{new Date(t.due_date).toLocaleDateString()}</TableCell>
+                         <TableCell className="font-medium text-sm py-4">{t.description}</TableCell>
+                         <TableCell className={`text-right text-sm py-4 font-bold ${t.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
+                           {t.type === 'income' ? '+' : '-'} {brl(Number(t.amount))}
+                         </TableCell>
+                         <TableCell className="text-center py-4">
+                           <Badge variant="outline" className={`rounded-full text-[10px] uppercase tracking-widest ${t.status === 'paid' ? 'border-emerald-500/20 text-emerald-500 bg-emerald-500/5' : ''}`}>{t.status}</Badge>
+                         </TableCell>
+                       </TableRow>
+                     ))}
+                     {transactions.length === 0 && <TableRow><TableCell colSpan={4} className="h-32 text-center text-foreground/30 italic">Sem lançamentos.</TableCell></TableRow>}
+                   </TableBody>
+                 </Table>
+               </div>
+            </TabsContent>
+
+            <TabsContent value="servicos" className="m-0 animate-reveal">
+              <ClientServicesManager clientId={clientId} />
+            </TabsContent>
+
+            <TabsContent value="timeline" className="m-0 animate-reveal">
+              <div className="max-w-3xl">
+                <ClientTimeline clientId={clientId} />
+              </div>
+            </TabsContent>
           </div>
-        </TabsContent>
-
-        <TabsContent value="jobs" className="flex-1 mt-0 min-h-0">
-          <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Cliente · Operação" />
-        </TabsContent>
-
-        <TabsContent value="servicos" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
-          <ClientServicesManager clientId={clientId} />
-        </TabsContent>
-
-        <TabsContent value="timeline" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6">
-          <ClientTimeline clientId={clientId} />
-        </TabsContent>
+        </div>
       </Tabs>
     </div>
   );
 }
+
+function QuickStatCard({ title, value, icon: Icon, color, isText = false }: { title: string, value: any, icon: any, color: string, isText?: boolean }) {
+  return (
+    <Card className="bg-surface border-border shadow-sm">
+      <CardContent className="p-5 flex items-center gap-4">
+        <div className={`size-10 rounded-xl bg-background border border-border flex items-center justify-center ${color}`}>
+          <Icon className="size-5" />
+        </div>
+        <div>
+          <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none mb-1">{title}</p>
+          <h4 className="text-lg font-bold tracking-tight">{value}</h4>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
