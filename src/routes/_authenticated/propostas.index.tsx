@@ -493,13 +493,14 @@ function ProposalsPage() {
                             const addedId = newIds.find(id => !oldIds.includes(id));
                             const service = services.find((s: Service) => s.id === addedId);
                             if (service && service.default_scope) {
-                              const scopeToAdd = (service.default_scope as string[]).filter(
-                                item => !form.scope.includes(item)
-                              );
+                              const scopeToAdd = (service.default_scope as string[])
+                                .map(item => `<p>${item}</p>`)
+                                .join("");
+                              
                               setForm({ 
                                 ...form, 
                                 service_ids: ids, 
-                                scope: [...form.scope, ...scopeToAdd] 
+                                scope: form.scope + scopeToAdd 
                               });
                               return;
                             }
@@ -632,55 +633,11 @@ function ProposalsPage() {
                 </div>
 
                 <div className="space-y-4 pt-6 border-t border-border">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Itens / Escopo</h3>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-[10px] gap-1 px-2"
-                      onClick={() => setForm({ ...form, scope: [...form.scope, ""] })}
-                    >
-                      <Plus className="size-3" /> Adicionar Item
-                    </Button>
-                  </div>
-                  <div className="space-y-2">
-                    {form.scope.length === 0 && (
-                      <p className="text-[11px] text-foreground/40 italic">
-                        Selecione serviços para carregar o escopo automático ou adicione itens manualmente.
-                      </p>
-                    )}
-                    {form.scope.map((item, idx) => (
-                      <div key={idx} className="flex gap-2 items-center group">
-                        <div className="size-4 rounded border border-primary/30 bg-primary/5 flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="size-2.5 text-primary" />
-                        </div>
-                        <Input
-                          value={item}
-                          onChange={(e) => {
-                            const newScope = [...form.scope];
-                            newScope[idx] = e.target.value;
-                            setForm({ ...form, scope: newScope });
-                          }}
-                          className="h-8 text-sm"
-                          placeholder="Descreva o item do escopo..."
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 text-foreground/30 hover:text-destructive shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => {
-                            const newScope = [...form.scope];
-                            newScope.splice(idx, 1);
-                            setForm({ ...form, scope: newScope });
-                          }}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
+                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Itens / Escopo</h3>
+                  <ScopeEditor
+                    value={form.scope}
+                    onChange={(v) => setForm({ ...form, scope: v })}
+                  />
                 </div>
 
                 <div className="space-y-4 pt-6 border-t border-border">
