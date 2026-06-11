@@ -2639,6 +2639,7 @@ export type Database = {
           dme_id: string | null
           due_date: string
           id: string
+          import_batch_id: string | null
           installment_number: number | null
           installment_total: number | null
           is_recurring: boolean
@@ -2667,6 +2668,7 @@ export type Database = {
           dme_id?: string | null
           due_date?: string
           id?: string
+          import_batch_id?: string | null
           installment_number?: number | null
           installment_total?: number | null
           is_recurring?: boolean
@@ -2695,6 +2697,7 @@ export type Database = {
           dme_id?: string | null
           due_date?: string
           id?: string
+          import_batch_id?: string | null
           installment_number?: number | null
           installment_total?: number | null
           is_recurring?: boolean

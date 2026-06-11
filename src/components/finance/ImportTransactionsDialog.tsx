@@ -124,6 +124,7 @@ export function ImportTransactionsDialog({
       const clientByName = new Map(clients.map((c) => [(c.company || c.name).toLowerCase().trim(), c.id]));
       const catByName = new Map(categories.map((c) => [c.name.toLowerCase().trim(), c.id]));
       
+      const batchId = crypto.randomUUID();
       const inserts: any[] = [];
       const errors: ImportResult["errors"] = [];
 
@@ -158,6 +159,7 @@ export function ImportTransactionsDialog({
             due_date: dueDate,
             kind,
             status,
+            import_batch_id: batchId,
             paid_at: status === "paid" ? dueDate : null,
             client_id: clientByName.get(cName) || null,
             category_id: catByName.get(catName) || null,

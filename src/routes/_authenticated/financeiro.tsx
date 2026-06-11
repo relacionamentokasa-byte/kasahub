@@ -27,6 +27,7 @@ import {
   Info,
   Filter,
   Check,
+  History as HistoryIcon,
 } from "lucide-react";
 
 import {
@@ -92,6 +93,7 @@ import { fetchClients } from "@/lib/ops-api";
 import { NewTransactionDialog } from "@/components/finance/NewTransactionDialog";
 import { NewBankAccountDialog } from "@/components/finance/NewBankAccountDialog";
 import { ImportTransactionsDialog } from "@/components/finance/ImportTransactionsDialog";
+import { ManageImportsDialog } from "@/components/finance/ManageImportsDialog";
 import { SettleTransactionDialog } from "@/components/finance/SettleTransactionDialog";
 import type { Transaction } from "@/lib/finance-api";
 import { toast } from "sonner";
@@ -169,6 +171,7 @@ function FinanceiroPage() {
   const [openTx, setOpenTx] = useState<false | "income" | "expense" | "transfer" | "adjustment">(false);
   const [openAcc, setOpenAcc] = useState(false);
   const [openImport, setOpenImport] = useState(false);
+  const [openManageImports, setOpenManageImports] = useState(false);
   const [settleTx, setSettleTx] = useState<Transaction | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteTxId, setDeleteTxId] = useState<string | null>(null);
@@ -355,13 +358,24 @@ function FinanceiroPage() {
           <p className="text-sm text-foreground/60 mt-1">Gestão de caixa</p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <Button
-            onClick={() => setOpenImport(true)}
-            variant="outline"
-            className="flex-1 sm:flex-none border-border rounded-full h-11 sm:h-10 px-4 gap-2"
-          >
-            <Upload className="size-4 shrink-0" /> Importar
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex-1 sm:flex-none border-border rounded-full h-11 sm:h-10 px-4 gap-2"
+              >
+                <Upload className="size-4 shrink-0" /> Planilhas
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={() => setOpenImport(true)}>
+                <Plus className="size-4 mr-2" /> Importar Nova
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setOpenManageImports(true)}>
+                <HistoryIcon className="size-4 mr-2" /> Gerenciar/Excluir
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             onClick={() => setOpenTx("income")}
             className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
@@ -1030,6 +1044,7 @@ function FinanceiroPage() {
         bankAccount={editingAcc}
       />
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
+      <ManageImportsDialog open={openManageImports} onOpenChange={setOpenManageImports} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
       
       <DeleteTransactionCascadeDialog

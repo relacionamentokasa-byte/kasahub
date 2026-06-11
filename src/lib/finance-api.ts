@@ -376,6 +376,35 @@ export async function bulkDeleteTransactions(ids: string[]) {
   if (error) throw error;
 }
 
+export async function deleteImportBatch(batchId: string) {
+  const { error } = await supabase.from("transactions").delete().eq("import_batch_id", batchId).neq("status", "paid");
+  if (error) throw error;
+}
+
+export async function fetchImportBatches() {
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("import_batch_id, created_at, description")
+    .not("import_batch_id", "is", null)
+    .order("created_at", { ascending: false });
+  
+  if (error) throw error;
+  
+  const batches = new Map();
+  data.forEach(item => {
+    if (!batches.has(item.import_batch_id)) {
+      batches.set(item.import_batch_id, {
+        id: item.import_batch_id,
+        created_at: item.created_at,
+        sample_description: item.description
+      });
+    }
+  });
+  
+  return Array.from(batches.values());
+}
+
+
 export async function bulkUpdateTransactions(ids: string[], patch: Database["public"]["Tables"]["transactions"]["Update"]) {
   const { error } = await supabase.from("transactions").update(patch).in("id", ids);
   if (error) throw error;
