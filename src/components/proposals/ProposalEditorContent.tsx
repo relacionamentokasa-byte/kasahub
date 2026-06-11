@@ -73,12 +73,6 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     updateMut.mutate(payload);
   };
 
-  const handleSave = () => {
-    // Force blur to ensure last edits are captured if needed
-    (document.activeElement as HTMLElement)?.blur();
-    updateMut.mutate(form);
-  };
-
   if (isLoadingProposal) {
     return (
       <div className="flex items-center justify-center h-64">
