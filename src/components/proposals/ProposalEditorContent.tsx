@@ -268,8 +268,9 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
           </div>
           <div className="bg-surface border border-border rounded-2xl p-5 shadow-sm">
             <ScopeEditor 
-              value={form.scope || []} 
-              onChange={v => { setForm({ ...form, scope: v }); setIsDirty(true); }} 
+              value={form.scope as any} 
+              onChange={v => { setForm({ ...form, scope: v as any }); setIsDirty(true); }} 
+
             />
           </div>
         </div>
