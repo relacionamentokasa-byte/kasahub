@@ -170,10 +170,11 @@ function ClientsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-40">
                         <DropdownMenuItem asChild>
-                          <Link to={`/clientes/${client.id}`} className="flex items-center gap-2 cursor-pointer">
+                          <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="flex items-center gap-2 cursor-pointer">
                             <ExternalLink className="size-4" /> Ver detalhes
                           </Link>
                         </DropdownMenuItem>
+
 
                         <DropdownMenuItem 
                           onClick={() => setEditClient(client)}
