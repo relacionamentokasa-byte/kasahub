@@ -96,7 +96,7 @@ export async function approveProposal(
 
   // 3. Step 2: Atualização do Status da Proposta
   const proposalUpdate: Record<string, any> = {
-    status: "converted",
+    status: "Aprovada",
     accepted_at: new Date().toISOString(),
     converted_at: new Date().toISOString(),
     client_id: clientId,

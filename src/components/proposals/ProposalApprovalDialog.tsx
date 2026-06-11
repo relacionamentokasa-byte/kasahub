@@ -58,32 +58,47 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
 
   const approveMut = useMutation({
     mutationFn: async (options: { internalApproval?: boolean } = {}) => {
-      if (!proposalId) throw new Error("Proposta inválida");
-      if (!proposal?.signature_client && !options.internalApproval) {
-        throw new Error("Assinatura do cliente obrigatória.");
+      try {
+        if (!proposalId) throw new Error("Proposta inválida");
+        
+        // Validação de campos obrigatórios
+        if (!proposal?.client_name) throw new Error("Nome do cliente é obrigatório.");
+        if (!proposal?.monthly_investment && !proposal?.one_time_investment) throw new Error("Informe o valor mensal ou de setup.");
+        if (!proposal?.first_due_date) throw new Error("Data do 1º vencimento é obrigatória.");
+
+        if (!proposal?.signature_client && !options.internalApproval) {
+          throw new Error("Assinatura do cliente obrigatória.");
+        }
+
+        const { data: { user } } = await supabase.auth.getUser();
+
+        return await approveProposal(supabase, proposalId, { 
+          acceptedName: signature.trim() || proposal?.accepted_name,
+          internalApproval: !!options.internalApproval,
+          internalApprovalBy: user?.id
+        });
+      } catch (err: any) {
+        console.error("Falha na aprovação:", err);
+        throw err;
       }
-
-      const { data: { user } } = await supabase.auth.getUser();
-
-      return approveProposal(supabase, proposalId, { 
-        acceptedName: signature.trim() || proposal?.accepted_name,
-        internalApproval: !!options.internalApproval,
-        internalApprovalBy: user?.id
-      });
     },
     onSuccess: (data) => {
-      toast.success("Proposta convertida! Cliente, Job e Financeiro gerados com sucesso.");
+      toast.success("Proposta aprovada! Cliente, Job e Financeiro gerados com sucesso.");
       qc.invalidateQueries();
       onOpenChange(false);
       setSignature("");
       onApproved?.();
       
-      // Redirect to client 360 view
-      if (data.client_id) {
+      // Redirect to client 360 view or Project
+      if (data.project_id) {
+        navigate({ to: `/projetos` }); // Or to the specific project if you have a route /projetos/:id
+      } else if (data.client_id) {
         navigate({ to: `/clientes/${data.client_id}` });
       }
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      toast.error(`Erro na conversão: ${e.message}`);
+    },
   });
 
   return (
