@@ -492,13 +492,6 @@ export async function duplicateJob(id: string) {
   }
   
   return newJob;
-
-  // 4. Update project stats
-  if (newJob.project_id) {
-    await refreshProjectStats(newJob.project_id);
-  }
-
-  return newJob;
 }
 
 
