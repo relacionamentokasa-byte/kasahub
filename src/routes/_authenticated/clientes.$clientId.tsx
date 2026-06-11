@@ -49,10 +49,16 @@ function ClientDetail() {
     queryFn: () => fetchProjects({ clientId }) 
   });
 
+  const { data: contracts = [] } = useQuery({ 
+    queryKey: ["client-contracts", clientId], 
+    queryFn: () => fetchContracts({ clientId }) 
+  });
+
   const { data: transactions = [] } = useQuery({ 
     queryKey: ["client-transactions", clientId], 
     queryFn: () => fetchTransactions({ clientId }) 
   });
+
 
   if (!client) return (
     <div className="flex items-center justify-center h-full">
