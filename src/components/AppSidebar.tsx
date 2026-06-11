@@ -10,8 +10,6 @@ import {
   Users,
   FolderKanban,
   CheckSquare,
-  Wallet,
-  BarChart3,
   Settings,
   Handshake,
   CalendarRange,
@@ -19,7 +17,6 @@ import {
   UsersRound,
   Loader2,
   Newspaper,
-  Target,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { ModuleId } from "@/lib/permissions-api";
@@ -67,8 +64,6 @@ const groups: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Gestão",
     items: [
-      { title: "Metas", url: "/metas", icon: Target, module: "relatorios" },
-      { title: "Relatórios", url: "/relatorios", icon: BarChart3, module: "relatorios" },
     ],
   },
   {

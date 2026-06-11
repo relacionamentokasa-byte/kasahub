@@ -42,13 +42,6 @@ export async function updateClient(
   id: string,
   patch: Database["public"]["Tables"]["clients"]["Update"],
 ) {
-  if (patch.status === 'inactive') {
-    // Check for active contracts when inactivating
-    const { count } = await supabase.from('contracts').select('id', { count: 'exact', head: true }).eq('client_id', id).eq('status', 'active');
-    if (count && count > 0) {
-      throw new Error("Não é possível inativar um cliente com contratos ativos. Encerre os contratos primeiro.");
-    }
-  }
 
   const { data, error } = await supabase.from("clients").update(patch).eq("id", id).select().single();
   if (error) throw error;
@@ -94,9 +87,6 @@ export async function createProject(input: Database["public"]["Tables"]["project
   const client = await fetchClient(input.client_id);
   if (client.status === 'inactive') throw new Error("Não é possível criar projetos para clientes inativos.");
 
-  if (input.type !== 'special' && !input.contract_id) {
-    throw new Error("Projetos automáticos devem estar vinculados a um contrato.");
-  }
 
   const { data: u } = await supabase.auth.getUser();
   const { data, error } = await supabase
@@ -189,15 +179,7 @@ export async function fetchProjectStats(projectId: string) {
   const overdue = jobs.filter(j => !j.done_at && !(j.stage_id && doneStageIds.has(j.stage_id)) && j.due_date && j.due_date < today).length;
   const progress = total === 0 ? 0 : Math.round((done / total) * 100);
   
-  const { data: proj } = await supabase.from("projects").select("contract_id").eq("id", projectId).single();
-  let dmeCount = 0;
-  if (proj?.contract_id) {
-    const { count } = await supabase
-      .from("extra_demands")
-      .select("id", { count: "exact", head: true })
-      .eq("contract_id", proj.contract_id);
-    dmeCount = count || 0;
-  }
+  const dmeCount = 0;
 
 
   return { total, done, pending, overdue, progress, dmeCount: dmeCount || 0 };
@@ -295,7 +277,7 @@ export async function fetchJobStages(): Promise<JobStage[]> {
 export async function fetchJobs(filters: { projectId?: string; clientId?: string; serviceId?: string; period?: string } = {}): Promise<Job[]> {
   let q = supabase
     .from("jobs")
-    .select("*, clients(id, name, company), projects(id, name), services(id, name), contracts(id, title)")
+    .select("*, clients(id, name, company), projects(id, name), services(id, name)")
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: false });
   if (filters.projectId) q = q.eq("project_id", filters.projectId);
@@ -312,7 +294,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
   if (!input.service_id) throw new Error("Um job deve estar vinculado a um serviço.");
-  if (!input.contract_id) throw new Error("Um job deve estar vinculado a um contrato.");
+  
   
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
@@ -325,7 +307,6 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
     ...input,
     client_id: input.client_id || project.client_id || null,
     project_id: input.project_id || null,
-    contract_id: input.contract_id || project.contract_id || null,
     main_responsible_id: input.main_responsible_id || project.responsible_id || project.owner_id || null,
   };
 
@@ -336,7 +317,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   }, {} as any);
 
   // Garantir que campos obrigatórios não são nulos após limpeza
-  if (!cleanInput.client_id || !cleanInput.project_id || !cleanInput.service_id || !cleanInput.contract_id) {
+  if (!cleanInput.client_id || !cleanInput.project_id || !cleanInput.service_id) {
     throw new Error("Vínculos obrigatórios ausentes: Cliente, Projeto, Serviço e Contrato.");
   }
 
