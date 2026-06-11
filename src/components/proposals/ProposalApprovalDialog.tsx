@@ -226,8 +226,14 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
             </div>
 
 
-            <Badge variant="outline" className="text-[10px]">
-              Status atual: {proposal.status}
+            <Badge className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border-none", 
+              proposal.status === "Rascunho" ? "bg-gray-200 text-gray-800" :
+              proposal.status === "Enviada" ? "bg-blue-100 text-blue-800" :
+              proposal.status === "Aprovada" ? "bg-green-100 text-green-800" :
+              proposal.status === "Recusada" ? "bg-red-100 text-red-800" :
+              proposal.status === "Encerrada" ? "bg-slate-700 text-white" : ""
+            )}>
+              {proposal.status}
             </Badge>
           </div>
         )}

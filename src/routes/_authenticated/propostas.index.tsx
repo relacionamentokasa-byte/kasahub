@@ -31,6 +31,8 @@ import { sendEmail } from "@/lib/email.functions";
 
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -924,9 +926,9 @@ function ProposalsPage() {
                     <p className="text-xs text-foreground/60 mt-1">{p.client_name}</p>
                   )}
                   <div className="flex items-center justify-between mt-3">
-                    <span className={`text-[10px] px-2 py-1 rounded ${s.cls}`}>
+                    <Badge className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
                       {s.label}
-                    </span>
+                    </Badge>
                     <div className="text-right">
                       <p className="text-[10px] text-foreground/40">{p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}</p>
                       <p className="text-sm font-semibold text-primary">
