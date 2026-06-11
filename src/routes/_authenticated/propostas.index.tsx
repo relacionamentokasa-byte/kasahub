@@ -1025,6 +1025,8 @@ function ProposalsPage() {
         onClose={() => setSelectedId(null)}
       />
     </div>
+  );
+}
 
 function ActionsMenu({
   proposal,
