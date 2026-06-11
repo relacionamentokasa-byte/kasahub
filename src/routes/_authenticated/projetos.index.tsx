@@ -29,18 +29,23 @@ function ProjetosPage() {
   });
 
   const delMut = useMutation({
-    mutationFn: (id: string) => {
-      const confirmDelete = window.confirm("Tem certeza que deseja excluir este projeto? Todos os jobs vinculados também serão excluídos.");
+    mutationFn: async (id: string) => {
+      const confirmDelete = window.confirm(
+        "Tem certeza? Isso apagará também todos os jobs, eventos de calendário e financeiro vinculados a este projeto."
+      );
       if (!confirmDelete) throw new Error("Ação cancelada pelo usuário");
-      return deleteProject(id);
+      
+      const { error } = await supabase.from('projects').delete().eq('id', id);
+      if (error) throw error;
+      return id;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Projeto removido");
+      toast.success("Projeto removido com sucesso!");
     },
-    onError: (e: Error) => {
+    onError: (e: any) => {
       if (e.message !== "Ação cancelada pelo usuário") {
-        toast.error(e.message);
+        toast.error(`Erro ao excluir: ${e.message}`);
       }
     },
   });
