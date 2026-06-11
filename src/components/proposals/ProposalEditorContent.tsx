@@ -31,6 +31,14 @@ import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
 import { cn } from "@/lib/utils";
 import { ProposalApprovalDialog } from "./ProposalApprovalDialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
   const qc = useQueryClient();
@@ -98,6 +106,47 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
 
   return (
     <div className="space-y-8 animate-reveal">
+      {/* Status Banner */}
+      <div className="flex items-center justify-between bg-surface border border-border rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground/50">Status Atual:</span>
+          <Badge className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border-none", 
+            form.status === "Rascunho" ? "bg-gray-200 text-gray-800" :
+            form.status === "Enviada" ? "bg-blue-100 text-blue-800" :
+            form.status === "Aprovada" ? "bg-green-100 text-green-800" :
+            form.status === "Recusada" ? "bg-red-100 text-red-800" :
+            form.status === "Encerrada" ? "bg-slate-700 text-white" : ""
+          )}>
+            {form.status}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label className="text-xs font-bold uppercase tracking-wider text-foreground/50">Alterar Status:</Label>
+          <Select
+            value={form.status}
+            onValueChange={(val) => {
+              if (val === "Aprovada") {
+                handleApprove();
+              } else {
+                setForm({ ...form, status: val });
+                setIsDirty(true);
+              }
+            }}
+          >
+            <SelectTrigger className="w-[180px] h-9 rounded-full bg-surface border-border">
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Rascunho">Rascunho</SelectItem>
+              <SelectItem value="Enviada">Enviada</SelectItem>
+              <SelectItem value="Aprovada" className="text-green-600 font-semibold">Aprovada</SelectItem>
+              <SelectItem value="Recusada" className="text-red-600 font-semibold">Recusada</SelectItem>
+              <SelectItem value="Encerrada">Encerrada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       {/* Header Info */}
       <section className="grid md:grid-cols-2 gap-6 bg-surface border border-border rounded-2xl p-6 shadow-sm">
         <div className="space-y-4">
