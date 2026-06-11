@@ -66,6 +66,7 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
 
 function FinancialPage() {
   const qc = useQueryClient();
+  const [importOpen, setImportOpen] = useState(false);
   const [filter, setFilter] = useState({
     clientId: "all",
     status: "all",
@@ -73,6 +74,7 @@ function FinancialPage() {
     categoryId: "all",
     search: ""
   });
+
 
   const { data: stats } = useQuery({ queryKey: ["finance-stats"], queryFn: fetchFinanceStats });
   const { data: transactions = [], isLoading } = useQuery({ 
