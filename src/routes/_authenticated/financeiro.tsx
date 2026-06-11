@@ -1044,6 +1044,7 @@ function FinanceiroPage() {
         bankAccount={editingAcc}
       />
       <ImportTransactionsDialog open={openImport} onOpenChange={setOpenImport} />
+      <ManageImportsDialog open={openManageImports} onOpenChange={setOpenManageImports} />
       <SettleTransactionDialog tx={settleTx} open={!!settleTx} onOpenChange={(o) => !o && setSettleTx(null)} />
       
       <DeleteTransactionCascadeDialog
