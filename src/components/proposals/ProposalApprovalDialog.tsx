@@ -64,24 +64,19 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
         const clientId = proposal.client_id;
         if (!clientId) throw new Error("Cliente não vinculado à proposta.");
 
-        const { data: { user } } = await supabase.auth.getUser();
-
-        // 1. Atualizar Status da Proposta
+        // PASSO A: Atualizar Status da Proposta
         const { error: upErr } = await supabase
           .from("proposals")
           .update({ 
             status: "Aprovada",
             accepted_at: new Date().toISOString(),
             converted_at: new Date().toISOString(),
-            internal_approval: !!options.internalApproval,
-            internal_approval_by: user?.id,
-            internal_approval_at: options.internalApproval ? new Date().toISOString() : null
           })
           .eq("id", proposalId);
         
         if (upErr) throw upErr;
 
-        // 2. Criar Job (Tabela projects)
+        // PASSO B: Criar Job (Tabela projects)
         const { data: job, error: jobErr } = await supabase
           .from("projects")
           .insert({
@@ -96,12 +91,11 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
         
         if (jobErr) throw jobErr;
 
-        // 3. Gerar Financeiro (O Básico que Funciona)
+        // PASSO C: Financeiro (O Básico que Funciona)
         const monthly = Number(proposal.monthly_investment || 0);
         const setup = Number(proposal.one_time_investment || 0);
         const firstDue = proposal.first_due_date || new Date().toISOString().split('T')[0];
         
-        // Calcular meses (3, 6 ou 12)
         let months = Number(proposal.recurring_months || 0);
         if (!months) {
           if (proposal.contract_term === "monthly") months = 1;
@@ -122,8 +116,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
               due_date: due.toISOString().split('T')[0],
               status: "pending",
               client_id: clientId,
-              proposal_id: proposalId,
-              project_id: job.id
+              proposal_id: proposalId
             });
           }
         }
@@ -136,8 +129,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
             due_date: firstDue,
             status: "pending",
             client_id: clientId,
-            proposal_id: proposalId,
-            project_id: job.id
+            proposal_id: proposalId
           });
         }
 
@@ -146,7 +138,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
           if (txErr) throw txErr;
         }
 
-        return { client_id: clientId, project_id: job.id };
+        return { client_id: clientId };
       } catch (err: any) {
         console.error("Erro na aprovação:", err);
         throw err;
