@@ -200,7 +200,47 @@ function ClientDetail() {
               </div>
             </TabsContent>
 
+            <TabsContent value="contratos" className="m-0 space-y-6 animate-reveal">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {contracts.map(contract => (
+                  <Card key={contract.id} className="bg-surface border-border hover:border-primary/40 transition-all group">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant="outline" className={cn(
+                          "rounded-full text-[9px] uppercase tracking-wider",
+                          contract.status === 'active' ? "border-green-500/20 text-green-500 bg-green-500/5" : "text-foreground/40"
+                        )}>
+                          {contract.status === 'active' ? 'Ativo' : contract.status}
+                        </Badge>
+                        <FileSignature className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
+                      </div>
+                      <h4 className="font-bold text-sm mb-1">{contract.title}</h4>
+                      <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mb-4">Início em {new Date(contract.start_date).toLocaleDateString()}</p>
+                      
+                      <div className="space-y-2 pt-4 border-t border-border">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Recorrência</span>
+                          <span className="text-xs font-bold text-primary">{brl(Number(contract.monthly_value))}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Valor Total</span>
+                          <span className="text-xs font-semibold">{brl(Number(contract.total_value))}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {contracts.length === 0 && (
+                  <div className="col-span-full h-48 border-2 border-dashed border-border rounded-3xl flex flex-col items-center justify-center text-foreground/30 space-y-3">
+                    <FileSignature className="size-8 opacity-20" />
+                    <p className="text-sm italic">Nenhum contrato ativo para este cliente.</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
             <TabsContent value="propostas" className="m-0 animate-reveal">
+
                <div className="bg-surface border border-border rounded-2xl overflow-hidden">
                  <Table>
                    <TableHeader className="bg-muted/30">
