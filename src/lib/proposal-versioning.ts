@@ -122,16 +122,6 @@ export async function cancelProposalWorkflow(
     }
   }
 
-  // Verificar se há faturas pagas
-  const { data: transactions } = await supabase
-    .from("transactions")
-    .select("id, status")
-    .eq("proposal_id", proposalId);
-  
-  if (transactions?.some(t => t.status === 'paid')) {
-    console.warn(`[Cancel Workflow] Cancelamento abortado: existem faturas pagas.`);
-    throw new Error("Não é possível remover esta estrutura porque já existem registros operacionais vinculados. Utilize a opção Encerrar Projeto.");
-  }
 
   // 2. Remoção de estruturas operacionais seguindo a ordem obrigatória
   try {
@@ -178,12 +168,6 @@ export async function cancelProposalWorkflow(
       if (contractErr) throw new Error(`Falha ao remover contrato: ${contractErr.message}`);
     }
 
-    // 2.5 Cancelar transações pendentes remanescentes
-    await supabase
-      .from("transactions")
-      .update({ status: 'cancelled' })
-      .eq("proposal_id", proposalId)
-      .eq("status", 'pending');
 
     // 3. Atualizar status da proposta
     const { error: updateErr } = await supabase

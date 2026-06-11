@@ -92,11 +92,8 @@ export async function fetchPartnerStats(partnerId: string, type: PartnerType) {
     const { count: leadsCount } = await supabase.from('leads').select('id', { count: 'exact', head: true }).eq('origin_partner_id', partnerId);
     // Contracts closed
     const { count: contractsCount } = await supabase.from('contracts').select('id', { count: 'exact', head: true }).eq('partner_id', partnerId);
-    // Commissions (transactions)
-    const { data: txs } = await supabase.from('transactions').select('amount, status').eq('partner_id', partnerId);
-    
-    const paidCommissions = txs?.filter(t => t.status === 'paid').reduce((acc, t) => acc + Number(t.amount), 0) || 0;
-    const pendingCommissions = txs?.filter(t => t.status === 'pending').reduce((acc, t) => acc + Number(t.amount), 0) || 0;
+    const paidCommissions = 0;
+    const pendingCommissions = 0;
     
     return { leadsCount: leadsCount || 0, contractsCount: contractsCount || 0, paidCommissions, pendingCommissions };
   }

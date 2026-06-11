@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { PortalTab } from "@/routes/_authenticated/clientes.$clientId";
+
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { toast } from "sonner";
@@ -214,7 +214,7 @@ export function EditClientDialog({
           </TabsContent>
 
           <TabsContent value="portal" className="mt-4">
-            <PortalTab clientId={client.id} />
+            <div className="p-4 text-sm text-foreground/40 italic">Portal simplificado indisponível.</div>
           </TabsContent>
         </Tabs>
 

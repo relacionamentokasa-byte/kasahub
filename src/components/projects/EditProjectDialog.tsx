@@ -46,7 +46,7 @@ export function EditProjectDialog({
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
+  const contracts: any[] = [];
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "all"], queryFn: () => fetchProposals() });
 
   const [form, setForm] = useState({

@@ -1,5 +1,5 @@
 import { Target, ArrowRight, TrendingUp, ArrowUpRight, Plus } from "lucide-react";
-import { brl } from "@/lib/finance-api";
+import { brl } from "@/lib/utils-format";
 import { Link } from "@tanstack/react-router";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";

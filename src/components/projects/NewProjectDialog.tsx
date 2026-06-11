@@ -58,7 +58,7 @@ export function NewProjectDialog({
   }, [qc]);
 
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
+  const contracts: any[] = [];
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "all"], queryFn: () => fetchProposals() });
   const { data: services = [] } = useQuery({
     queryKey: ["services", "active"],
