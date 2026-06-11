@@ -4,6 +4,9 @@ import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2 }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { brl } from "@/lib/utils-format";
 import { 
   Table, 
   TableBody, 
@@ -101,13 +104,14 @@ function ClientsPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-foreground/40 italic">
+                <TableCell colSpan={5} className="h-32 text-center text-foreground/40 italic">
+
                   Carregando clientes...
                 </TableCell>
               </TableRow>
             ) : filteredClients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-foreground/40 italic">
+                <TableCell colSpan={5} className="h-32 text-center text-foreground/40 italic">
                   {search ? "Nenhum cliente encontrado para esta busca." : "Nenhum cliente cadastrado."}
                 </TableCell>
               </TableRow>
