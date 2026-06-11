@@ -56,18 +56,17 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const oneTime = useMemo(() => Number(proposal?.one_time_investment ?? 0), [proposal]);
 
   const approveMut = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (options: { internalApproval?: boolean } = {}) => {
       if (!proposalId) throw new Error("Proposta inválida");
-      if (!proposal?.signature_client && !ctx.internalApproval) {
+      if (!proposal?.signature_client && !options.internalApproval) {
         throw new Error("Assinatura do cliente obrigatória.");
       }
 
-      
       const { data: { user } } = await supabase.auth.getUser();
 
       return approveProposal(supabase, proposalId, { 
         acceptedName: signature.trim() || proposal?.accepted_name,
-        internalApproval: false,
+        internalApproval: !!options.internalApproval,
         internalApprovalBy: user?.id
       });
     },
@@ -237,7 +236,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
             Cancelar
           </Button>
           <Button
-            onClick={() => approveMut.mutate()}
+            onClick={() => approveMut.mutate({ internalApproval: true })}
             disabled={approveMut.isPending || !proposal}
             className="bg-green-600 text-white hover:bg-green-700 gap-2"
           >
