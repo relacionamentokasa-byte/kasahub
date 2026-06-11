@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { 
@@ -27,7 +27,9 @@ import {
   AlertCircle,
   FileSpreadsheet,
   Trash2,
-  ArrowRight
+  ArrowRight,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 
 
@@ -67,6 +69,8 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
 function FinancialPage() {
   const qc = useQueryClient();
   const [importOpen, setImportOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  
   const [filter, setFilter] = useState({
     clientId: "all",
     status: "all",
@@ -75,14 +79,42 @@ function FinancialPage() {
     search: ""
   });
 
+  const periodFilters = useMemo(() => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const startDate = new Date(year, month, 1).toISOString().split("T")[0];
+    const endDate = new Date(year, month + 1, 0).toISOString().split("T")[0];
+    return { startDate, endDate };
+  }, [selectedDate]);
 
-  const { data: stats } = useQuery({ queryKey: ["finance-stats"], queryFn: fetchFinanceStats });
+  const { data: stats } = useQuery({ 
+    queryKey: ["finance-stats", periodFilters], 
+    queryFn: () => fetchFinanceStats(periodFilters) 
+  });
+  
   const { data: transactions = [], isLoading } = useQuery({ 
-    queryKey: ["transactions", filter], 
-    queryFn: () => fetchTransactions(filter) 
+    queryKey: ["transactions", { ...filter, ...periodFilters }], 
+    queryFn: () => fetchTransactions({ ...filter, ...periodFilters }) 
   });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
+
+  const nextMonth = () => {
+    const next = new Date(selectedDate);
+    next.setMonth(next.getMonth() + 1);
+    setSelectedDate(next);
+  };
+
+  const prevMonth = () => {
+    const prev = new Date(selectedDate);
+    prev.setMonth(prev.getMonth() - 1);
+    setSelectedDate(prev);
+  };
+
+  const currentMonthLabel = selectedDate.toLocaleDateString("pt-BR", {
+    month: "long",
+    year: "numeric"
+  }).replace(/^\w/, (c) => c.toUpperCase());
 
   const statusMut = useMutation({
     mutationFn: ({ id, status }: { id: string, status: string }) => 
@@ -118,6 +150,34 @@ function FinancialPage() {
           </Button>
         </div>
       </header>
+
+      {/* Month Navigation */}
+      <div className="flex items-center justify-center gap-6 bg-surface border border-border rounded-2xl p-4 shadow-sm animate-reveal">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={prevMonth}
+          className="rounded-full hover:bg-primary/10 hover:text-primary transition-all"
+        >
+          <ChevronLeft className="size-6" />
+        </Button>
+        
+        <div className="flex flex-col items-center min-w-[200px]">
+          <span className="text-[10px] font-mono-kasa uppercase font-bold tracking-[0.2em] text-foreground/40 mb-1">Período de Referência</span>
+          <h2 className="text-xl lg:text-2xl font-display font-bold tracking-tight text-primary">
+            {currentMonthLabel}
+          </h2>
+        </div>
+
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={nextMonth}
+          className="rounded-full hover:bg-primary/10 hover:text-primary transition-all"
+        >
+          <ChevronRight className="size-6" />
+        </Button>
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -200,7 +260,16 @@ function FinancialPage() {
             {isLoading ? (
               <TableRow><TableCell colSpan={6} className="h-32 text-center text-foreground/30 italic">Carregando...</TableCell></TableRow>
             ) : filteredTransactions.length === 0 ? (
-              <TableRow><TableCell colSpan={6} className="h-32 text-center text-foreground/30 italic">Nenhum lançamento encontrado.</TableCell></TableRow>
+              <TableRow>
+                <TableCell colSpan={6} className="h-64 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
+                    <div className="size-16 rounded-full bg-muted flex items-center justify-center">
+                      <Wallet className="size-8" />
+                    </div>
+                    <p className="font-display font-medium">Nenhum lançamento financeiro encontrado para {currentMonthLabel}.</p>
+                  </div>
+                </TableCell>
+              </TableRow>
             ) : (
               filteredTransactions.map((t) => (
                 <TableRow key={t.id} className="group hover:bg-muted/10 transition-colors">

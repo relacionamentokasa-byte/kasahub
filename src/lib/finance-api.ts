@@ -75,10 +75,15 @@ export async function fetchContracts(filters: { clientId?: string } = {}) {
   return data || [];
 }
 
-export async function fetchFinanceStats() {
-  const { data: trans, error } = await supabase
+export async function fetchFinanceStats(filters: { startDate?: string; endDate?: string } = {}) {
+  let q = supabase
     .from("transactions")
     .select("amount, type, status, due_date");
+    
+  if (filters.startDate) q = q.gte("due_date", filters.startDate);
+  if (filters.endDate) q = q.lte("due_date", filters.endDate);
+
+  const { data: trans, error } = await q;
   if (error) throw error;
 
   const stats = {
@@ -95,7 +100,7 @@ export async function fetchFinanceStats() {
     const amount = Number(t.amount);
     if (t.type === "income") {
       if (t.status === "paid") stats.recebidasReceitas += amount;
-      else if (t.due_date >= today) stats.previstasReceitas += amount;
+      else stats.previstasReceitas += amount;
       
       if (t.due_date > today) stats.parcelasFuturas += amount;
     } else {
