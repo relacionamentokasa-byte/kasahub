@@ -279,6 +279,17 @@ function ClientDetail() {
                           <FolderKanban className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
                         </div>
                         <h4 className="font-bold text-sm mb-2">{p.name}</h4>
+                        <div className="flex items-center gap-2 mb-3">
+                          <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[9px] font-bold uppercase tracking-tighter gap-1">
+                            <CheckSquare className="size-2.5" />
+                            {p.total_jobs || 0} Jobs
+                          </Badge>
+                          {p.completed_jobs > 0 && (
+                            <Badge variant="outline" className="text-[9px] uppercase tracking-tighter">
+                              {p.completed_jobs} Concluídos
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-foreground/40 line-clamp-2 min-h-[32px]">{p.briefing || "Sem descrição."}</p>
                      </CardContent>
                    </Card>

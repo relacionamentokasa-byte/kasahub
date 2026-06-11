@@ -188,25 +188,50 @@ export function NewJobDialog({
             <TabsContent value="vinc" className="space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-2">
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-1.5">
-                  <Label>Projeto</Label>
-                  <Select value={form.project_id || undefined} onValueChange={(v) => setForm({ ...form, project_id: v })}>
-                    <SelectTrigger className={!form.project_id ? "border-destructive" : ""}><SelectValue placeholder="Selecione o Projeto" /></SelectTrigger>
+                  <Label>Cliente</Label>
+                  <Select 
+                    value={form.client_id || undefined} 
+                    onValueChange={(v) => {
+                      setForm(f => ({ ...f, client_id: v, project_id: "" }));
+                    }}
+                  >
+                    <SelectTrigger className={!form.client_id ? "border-destructive" : ""}>
+                      <SelectValue placeholder="Selecione o Cliente" />
+                    </SelectTrigger>
                     <SelectContent>
-                      {projects.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label>Cliente (Automático pelo projeto)</Label>
-                  <Select value={form.client_id || undefined} onValueChange={(v) => setForm({ ...form, client_id: v })}>
-                    <SelectTrigger className={!form.client_id ? "border-destructive bg-muted" : "bg-muted"} disabled><SelectValue placeholder="Selecione o Projeto primeiro" /></SelectTrigger>
+                  <Label>Projeto</Label>
+                  <Select 
+                    value={form.project_id || undefined} 
+                    onValueChange={(v) => {
+                      const p = projects.find(x => x.id === v);
+                      if (p) {
+                        setForm(f => ({ 
+                          ...f, 
+                          project_id: v, 
+                          client_id: p.client_id || f.client_id 
+                        }));
+                      } else {
+                        setForm(f => ({ ...f, project_id: v }));
+                      }
+                    }}
+                  >
+                    <SelectTrigger className={!form.project_id ? "border-destructive" : ""}>
+                      <SelectValue placeholder={form.client_id ? "Selecione o Projeto" : "Selecione o Cliente primeiro"} />
+                    </SelectTrigger>
                     <SelectContent>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                      ))}
+                      {projects
+                        .filter(p => !form.client_id || p.client_id === form.client_id)
+                        .map((p) => (
+                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>

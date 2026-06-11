@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, MoreVertical, Pencil, Trash2, Search } from "lucide-react";
+import { Plus, FolderKanban, MoreVertical, Pencil, Trash2, Search, CheckSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchClients, deleteProject } from "@/lib/ops-api";
@@ -28,12 +28,20 @@ function ProjetosPage() {
   });
 
   const delMut = useMutation({
-    mutationFn: (id: string) => deleteProject(id),
+    mutationFn: (id: string) => {
+      const confirmDelete = window.confirm("Tem certeza que deseja excluir este projeto? Todos os jobs vinculados também serão excluídos.");
+      if (!confirmDelete) throw new Error("Ação cancelada pelo usuário");
+      return deleteProject(id);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["projects"] });
       toast.success("Projeto removido");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => {
+      if (e.message !== "Ação cancelada pelo usuário") {
+        toast.error(e.message);
+      }
+    },
   });
 
   const filtered = projects.filter(p => p.name?.toLowerCase().includes(search.toLowerCase()));
@@ -80,6 +88,12 @@ function ProjetosPage() {
               <Link to="/projetos/$projectId" params={{ projectId: p.id }} className="block font-bold text-lg hover:text-primary transition-colors">
                 {p.name}
               </Link>
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
+                <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] font-bold uppercase tracking-tighter gap-1">
+                  <CheckSquare className="size-3" />
+                  {p.total_jobs || 0} Jobs Vinculados
+                </Badge>
+              </div>
             </div>
           ))}
         </div>
