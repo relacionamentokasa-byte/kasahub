@@ -1,5 +1,4 @@
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { ProjectDetailContent } from "@/routes/_authenticated/projetos.$projectId";
 
 export function ProjectDetailSheet({
   projectId,
@@ -16,11 +15,7 @@ export function ProjectDetailSheet({
         side="right"
         className="w-full sm:max-w-5xl p-0 overflow-hidden flex flex-col bg-background"
       >
-        {projectId && (
-          <div className="flex-1 overflow-y-auto">
-            <ProjectDetailContent projectId={projectId} embedded />
-          </div>
-        )}
+        <div className="p-6 text-foreground/40 italic">Visualização rápida simplificada em breve.</div>
       </SheetContent>
     </Sheet>
   );
