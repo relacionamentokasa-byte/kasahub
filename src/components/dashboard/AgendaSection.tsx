@@ -1,5 +1,5 @@
 import { Calendar, AlertCircle, FileCheck, ReceiptText, ArrowRight, ExternalLink } from "lucide-react";
-import { brl } from "@/lib/finance-api";
+import { brl } from "@/lib/utils-format";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";

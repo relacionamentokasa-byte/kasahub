@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { notify } from "./notifications-api";
-import { brl } from "./finance-api";
+import { brl } from "./utils-format";
 
 /**
  * Checks for overdue and upcoming transactions and notifies administrators.

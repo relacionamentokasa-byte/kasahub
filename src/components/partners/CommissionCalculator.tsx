@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { brl } from "@/lib/finance-api";
+import { brl } from "@/lib/utils-format";
 import { TrendingUp, Calculator } from "lucide-react";
 
 export function CommissionCalculator() {

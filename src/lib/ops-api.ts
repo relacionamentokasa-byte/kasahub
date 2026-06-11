@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { approveExtraDemand as approveExtraDemandShared } from "./dme-approval";
+
 import { handleMentions, notify } from "./notifications-api";
 
 export type Client = Database["public"]["Tables"]["clients"]["Row"];

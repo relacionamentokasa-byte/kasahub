@@ -4,7 +4,7 @@ import { fetchCalendarEvents, type CalendarEvent } from "@/lib/approvals-api";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { brl } from "@/lib/finance-api";
+import { brl } from "@/lib/utils-format";
 import { 
   Tooltip,
   TooltipContent,

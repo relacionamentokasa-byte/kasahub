@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchPartnerStats, type Partner, type PartnerType } from "@/lib/partners-api";
 import { Card } from "@/components/ui/card";
-import { brl, fetchTransactions } from "@/lib/finance-api";
+import { brl } from "@/lib/utils-format";
 import { Users, FileText, CheckCircle2, TrendingUp, Clock, CreditCard, Briefcase, Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";

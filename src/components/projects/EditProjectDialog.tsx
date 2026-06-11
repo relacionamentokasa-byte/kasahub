@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { updateProject, deleteProject, fetchClients } from "@/lib/ops-api";
-import { fetchContracts } from "@/lib/finance-api";
+
 import { fetchProposals } from "@/lib/crm-api";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,

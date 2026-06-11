@@ -229,9 +229,6 @@ export function ExecutiveDashboard() {
           stats={{
             jobsInProgress: filteredData.jobsInProgress,
             overdueJobs: filteredData.jobsOverdue,
-            completedJobs: filteredData.jobsCompleted,
-            pendingApprovals: filteredData.pendingApprovals,
-            dmesInProduction: filteredData.dmesInProduction
           }}
         />
       )}
