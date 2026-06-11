@@ -738,6 +738,69 @@ export type Database = {
         }
         Relationships: []
       }
+      contracts: {
+        Row: {
+          billing_day: number | null
+          client_id: string
+          created_at: string | null
+          end_date: string | null
+          id: string
+          monthly_value: number | null
+          payment_method: string | null
+          proposal_id: string | null
+          start_date: string
+          status: string | null
+          title: string
+          total_value: number
+          updated_at: string | null
+        }
+        Insert: {
+          billing_day?: number | null
+          client_id: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          monthly_value?: number | null
+          payment_method?: string | null
+          proposal_id?: string | null
+          start_date: string
+          status?: string | null
+          title: string
+          total_value: number
+          updated_at?: string | null
+        }
+        Update: {
+          billing_day?: number | null
+          client_id?: string
+          created_at?: string | null
+          end_date?: string | null
+          id?: string
+          monthly_value?: number | null
+          payment_method?: string | null
+          proposal_id?: string | null
+          start_date?: string
+          status?: string | null
+          title?: string
+          total_value?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_roles: {
         Row: {
           created_at: string
@@ -2475,6 +2538,7 @@ export type Database = {
           amount: number
           category_id: string | null
           client_id: string | null
+          contract_id: string | null
           created_at: string | null
           description: string
           due_date: string
@@ -2492,6 +2556,7 @@ export type Database = {
           amount: number
           category_id?: string | null
           client_id?: string | null
+          contract_id?: string | null
           created_at?: string | null
           description: string
           due_date: string
@@ -2509,6 +2574,7 @@ export type Database = {
           amount?: number
           category_id?: string | null
           client_id?: string | null
+          contract_id?: string | null
           created_at?: string | null
           description?: string
           due_date?: string
@@ -2535,6 +2601,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
           {

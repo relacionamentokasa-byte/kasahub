@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { 
   fetchTransactions, 
   fetchFinanceStats, 
@@ -11,6 +11,7 @@ import {
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
+import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -25,8 +26,11 @@ import {
   Clock,
   AlertCircle,
   FileSpreadsheet,
-  Trash2
+  Trash2,
+  ArrowRight
 } from "lucide-react";
+
+
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -62,6 +66,7 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
 
 function FinancialPage() {
   const qc = useQueryClient();
+  const [importOpen, setImportOpen] = useState(false);
   const [filter, setFilter] = useState({
     clientId: "all",
     status: "all",
@@ -69,6 +74,7 @@ function FinancialPage() {
     categoryId: "all",
     search: ""
   });
+
 
   const { data: stats } = useQuery({ queryKey: ["finance-stats"], queryFn: fetchFinanceStats });
   const { data: transactions = [], isLoading } = useQuery({ 
@@ -103,9 +109,10 @@ function FinancialPage() {
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="rounded-full gap-2">
+          <Button variant="outline" className="rounded-full gap-2" onClick={() => setImportOpen(true)}>
             <FileSpreadsheet className="size-4" /> Importar
           </Button>
+
           <Button className="rounded-full gap-2 bg-primary text-primary-foreground">
             <Plus className="size-4" /> Novo Lançamento
           </Button>
@@ -203,7 +210,15 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="font-semibold text-sm">{t.description}</div>
-                    <div className="text-[10px] text-foreground/40 font-medium uppercase truncate max-w-[200px]">{(t.clients as any)?.company || (t.clients as any)?.name || "—"}</div>
+                    <Link 
+                      to="/clientes/$clientId" 
+                      params={{ clientId: t.client_id || "" }}
+                      className="text-[10px] text-foreground/40 font-medium uppercase truncate max-w-[200px] hover:text-primary transition-colors inline-flex items-center gap-1"
+                    >
+                      {(t.clients as any)?.company || (t.clients as any)?.name || "—"}
+                      <ArrowRight className="size-2" />
+                    </Link>
+
                   </TableCell>
                   <TableCell className="py-4">
                     <Badge variant="outline" className="rounded-full text-[10px] font-mono-kasa uppercase tracking-tight">
@@ -246,7 +261,10 @@ function FinancialPage() {
           </TableBody>
         </Table>
       </div>
+
+      <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
+
   );
 }
 

@@ -5,6 +5,7 @@ export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
 export type TransactionUpdate = Database["public"]["Tables"]["transactions"]["Update"];
 export type Category = Database["public"]["Tables"]["transaction_categories"]["Row"];
+export type Contract = Database["public"]["Tables"]["contracts"]["Row"];
 
 export async function fetchTransactions(filters: {
   clientId?: string;
@@ -66,6 +67,14 @@ export async function fetchCategories() {
   return data || [];
 }
 
+export async function fetchContracts(filters: { clientId?: string } = {}) {
+  let q = supabase.from("contracts").select("*").order("created_at", { ascending: false });
+  if (filters.clientId) q = q.eq("client_id", filters.clientId);
+  const { data, error } = await q;
+  if (error) throw error;
+  return data || [];
+}
+
 export async function fetchFinanceStats() {
   const { data: trans, error } = await supabase
     .from("transactions")
@@ -97,3 +106,4 @@ export async function fetchFinanceStats() {
 
   return stats;
 }
+

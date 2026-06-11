@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { 
   ArrowLeft, Mail, Phone, Building2, Pencil, 
   Wallet, FileText, FolderKanban, Activity, 
-  TrendingUp, Handshake, CheckSquare, Loader2
+  TrendingUp, Handshake, CheckSquare, Loader2,
+  FileSignature, DollarSign, Calendar
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -12,12 +13,15 @@ import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { brl } from "@/lib/utils-format";
+import { cn } from "@/lib/utils";
 import { fetchProposals } from "@/lib/crm-api";
-import { fetchTransactions } from "@/lib/finance-api";
+import { fetchTransactions, fetchContracts } from "@/lib/finance-api";
 import { fetchProjects, fetchExtraDemands } from "@/lib/ops-api";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+
 
 
 
@@ -47,10 +51,16 @@ function ClientDetail() {
     queryFn: () => fetchProjects({ clientId }) 
   });
 
+  const { data: contracts = [] } = useQuery({ 
+    queryKey: ["client-contracts", clientId], 
+    queryFn: () => fetchContracts({ clientId }) 
+  });
+
   const { data: transactions = [] } = useQuery({ 
     queryKey: ["client-transactions", clientId], 
     queryFn: () => fetchTransactions({ clientId }) 
   });
+
 
   if (!client) return (
     <div className="flex items-center justify-center h-full">
@@ -124,13 +134,15 @@ function ClientDetail() {
             <TabsList className="bg-transparent border-0 h-auto p-0 gap-8 overflow-x-auto justify-start no-scrollbar">
               {[
                 { v: "overview", label: "Resumo", icon: Activity },
+                { v: "contratos", label: "Contratos", icon: FileSignature },
                 { v: "propostas", label: "Propostas", icon: FileText },
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
-                { v: "financeiro", label: "Financeiro", icon: Wallet },
+                { v: "financeiro", label: "Extrato", icon: Wallet },
                 { v: "servicos", label: "Serviços", icon: Handshake },
-                { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
+                { v: "timeline", label: "Histórico", icon: TrendingUp },
               ].map((tab) => (
+
                 <TabsTrigger
                   key={tab.v}
                   value={tab.v}
@@ -190,7 +202,47 @@ function ClientDetail() {
               </div>
             </TabsContent>
 
+            <TabsContent value="contratos" className="m-0 space-y-6 animate-reveal">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {contracts.map(contract => (
+                  <Card key={contract.id} className="bg-surface border-border hover:border-primary/40 transition-all group">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start mb-4">
+                        <Badge variant="outline" className={cn(
+                          "rounded-full text-[9px] uppercase tracking-wider",
+                          contract.status === 'active' ? "border-green-500/20 text-green-500 bg-green-500/5" : "text-foreground/40"
+                        )}>
+                          {contract.status === 'active' ? 'Ativo' : contract.status}
+                        </Badge>
+                        <FileSignature className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
+                      </div>
+                      <h4 className="font-bold text-sm mb-1">{contract.title}</h4>
+                      <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mb-4">Início em {new Date(contract.start_date).toLocaleDateString()}</p>
+                      
+                      <div className="space-y-2 pt-4 border-t border-border">
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Recorrência</span>
+                          <span className="text-xs font-bold text-primary">{brl(Number(contract.monthly_value))}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Valor Total</span>
+                          <span className="text-xs font-semibold">{brl(Number(contract.total_value))}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {contracts.length === 0 && (
+                  <div className="col-span-full h-48 border-2 border-dashed border-border rounded-3xl flex flex-col items-center justify-center text-foreground/30 space-y-3">
+                    <FileSignature className="size-8 opacity-20" />
+                    <p className="text-sm italic">Nenhum contrato ativo para este cliente.</p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
             <TabsContent value="propostas" className="m-0 animate-reveal">
+
                <div className="bg-surface border border-border rounded-2xl overflow-hidden">
                  <Table>
                    <TableHeader className="bg-muted/30">
