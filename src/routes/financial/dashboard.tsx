@@ -208,7 +208,7 @@ function FinancialDashboard() {
             category="value"
             index="name"
             colors={["amber", "emerald", "rose", "slate"]}
-            valueFormatter={(number) => `${number} faturas`}
+            valueFormatter={(number: number) => `${number} faturas`}
           />
         </Card>
       </Grid>
