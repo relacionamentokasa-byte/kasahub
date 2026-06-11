@@ -112,10 +112,10 @@ function ClientsPage() {
                 <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
                   <TableCell className="py-4">
                     <Link 
-                      to="/clientes/$clientId" 
-                      params={{ clientId: client.id }}
+                      to={`/clientes/${client.id}`}
                       className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                     >
+
 
 
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 border border-primary/20">
