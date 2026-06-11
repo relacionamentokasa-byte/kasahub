@@ -117,29 +117,29 @@ function ClientDetail() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
               <div className="size-16 lg:size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-2xl lg:text-3xl font-bold shadow-sm">
-                {client.logo_url ? (
-                  <img src={client.logo_url} alt={client.name} className="size-full object-cover rounded-2xl" />
+                {client?.logo_url ? (
+                  <img src={client?.logo_url} alt={client?.name} className="size-full object-cover rounded-2xl" />
                 ) : (
-                  (client.company || client.name)?.[0]?.toUpperCase()
+                  (client?.company || client?.name)?.[0]?.toUpperCase()
                 )}
               </div>
               <div className="min-w-0">
                 <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
-                    {client.company || client.name}
+                    {client?.company || client?.name}
                   </h1>
                   <Badge variant="outline" className={`rounded-full uppercase tracking-widest text-[10px] border-2 ${
-                    client.status === 'active' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 
-                    client.status === 'paused' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5' : 
+                    client?.status === 'active' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 
+                    client?.status === 'paused' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5' : 
                     'border-foreground/10 text-foreground/40'
                   }`}>
-                    {client.status === 'active' ? 'Ativo' : client.status === 'paused' ? 'Pausado' : 'Inativo'}
+                    {client?.status === 'active' ? 'Ativo' : client?.status === 'paused' ? 'Pausado' : 'Inativo'}
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-xs text-foreground/50 font-medium">
-                  {client.email && <span className="inline-flex items-center gap-2"><Mail className="size-3.5 text-primary/40" />{client.email}</span>}
-                  {client.phone && <span className="inline-flex items-center gap-2"><Phone className="size-3.5 text-primary/40" />{client.phone}</span>}
-                  {client.document && <span className="inline-flex items-center gap-2"><Building2 className="size-3.5 text-primary/40" />{client.document}</span>}
+                  {client?.email && <span className="inline-flex items-center gap-2"><Mail className="size-3.5 text-primary/40" />{client?.email}</span>}
+                  {client?.phone && <span className="inline-flex items-center gap-2"><Phone className="size-3.5 text-primary/40" />{client?.phone}</span>}
+                  {client?.document && <span className="inline-flex items-center gap-2"><Building2 className="size-3.5 text-primary/40" />{client?.document}</span>}
                 </div>
               </div>
             </div>
