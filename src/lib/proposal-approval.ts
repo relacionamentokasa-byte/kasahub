@@ -127,19 +127,19 @@ export async function approveProposal(
     installmentsCount = 12;
   }
 
-  const contractData = {
+  const contractData: Record<string, any> = {
     title: proposal.title,
     client_id: clientId,
     proposal_id: proposal.id,
     monthly_value: monthly,
     total_value: totalValue,
-    billing_day: proposal.billing_day ?? 5,
+    billing_day: (proposal as any).billing_day ?? 5,
     start_date: proposal.first_due_date ?? ymd(new Date()),
     status: "active",
     owner_id: proposal.owner_id ?? null,
     partner_id: (proposal as any).commercial_id || null, 
     type: proposal.contract_type || (monthly > 0 ? "recurring" : "one_time"),
-    service_ids: proposal.service_ids ?? [],
+    service_ids: (proposal as any).service_ids ?? [],
     installments_count: installmentsCount,
   };
 
@@ -205,7 +205,7 @@ export async function approveProposal(
         amount: monthlyAmount,
         due_date: ymd(due),
         status: "pending",
-        category_id: proposal.category_id ?? null,
+        category_id: (proposal as any).category_id ?? null,
         client_id: clientId,
         project_id: projectId,
         proposal_id: proposal.id,
@@ -225,7 +225,7 @@ export async function approveProposal(
       amount: setupAmount,
       due_date: proposal.first_due_date ?? ymd(new Date()),
       status: "pending",
-      category_id: proposal.category_id ?? null,
+      category_id: (proposal as any).category_id ?? null,
       client_id: clientId,
       project_id: projectId,
       proposal_id: proposal.id,
