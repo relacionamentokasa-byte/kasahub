@@ -372,7 +372,7 @@ function FinanceiroPage() {
                 <Plus className="size-4 mr-2" /> Importar Nova
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setOpenManageImports(true)}>
-                <History className="size-4 mr-2" /> Gerenciar/Excluir
+                <HistoryIcon className="size-4 mr-2" /> Gerenciar/Excluir
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
