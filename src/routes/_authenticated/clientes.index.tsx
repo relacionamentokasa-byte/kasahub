@@ -4,6 +4,9 @@ import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2 }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
+import { brl } from "@/lib/utils-format";
 import { 
   Table, 
   TableBody, 
@@ -36,11 +39,18 @@ function ClientsPage() {
   const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
 
   const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["clients"],
-    queryFn: fetchClients,
+    queryKey: ["clients", "with-billing"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("*, transactions(amount, status, type)")
+        .order("company", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
   });
 
-  const filteredClients = clients.filter(c => 
+  const filteredClients = clients.filter((c: any) => 
     (c.name?.toLowerCase().includes(search.toLowerCase())) ||
     (c.company?.toLowerCase().includes(search.toLowerCase())) ||
     (c.email?.toLowerCase().includes(search.toLowerCase()))
@@ -86,6 +96,7 @@ function ClientsPage() {
             <TableRow>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Cliente / Empresa</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden md:table-cell">Contato</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Faturamento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden sm:table-cell text-center">Status</TableHead>
               <TableHead className="w-[80px]"></TableHead>
             </TableRow>
@@ -93,19 +104,25 @@ function ClientsPage() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-foreground/40 italic">
+                <TableCell colSpan={5} className="h-32 text-center text-foreground/40 italic">
+
                   Carregando clientes...
                 </TableCell>
               </TableRow>
             ) : filteredClients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-32 text-center text-foreground/40 italic">
+                <TableCell colSpan={5} className="h-32 text-center text-foreground/40 italic">
                   {search ? "Nenhum cliente encontrado para esta busca." : "Nenhum cliente cadastrado."}
                 </TableCell>
               </TableRow>
             ) : (
-              filteredClients.map((client) => (
-                <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
+              filteredClients.map((client) => {
+                const totalBilling = (client.transactions || [])
+                  .filter((t: any) => t.type === 'income' && t.status === 'paid')
+                  .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
+                return (
+                  <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
                   <TableCell className="py-4">
                     {/* Link obrigatório para Visão 360 */}
                     <Link 
@@ -141,6 +158,14 @@ function ClientsPage() {
                         </div>
                       )}
                     </div>
+                  </TableCell>
+                  <TableCell className="py-4 text-right">
+                    <span className={cn(
+                      "text-sm font-bold",
+                      totalBilling > 0 ? "text-foreground" : "text-foreground/20"
+                    )}>
+                      {brl(totalBilling)}
+                    </span>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell py-4 text-center">
                     <Badge 
@@ -182,8 +207,9 @@ function ClientsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-                </TableRow>
-              ))
+                 </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
