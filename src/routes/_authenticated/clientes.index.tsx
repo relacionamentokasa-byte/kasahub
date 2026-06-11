@@ -112,6 +112,7 @@ function ClientsPage() {
                 </TableCell>
               </TableRow>
             ) : (
+              filteredClients.map((client) => {
                 const totalBilling = (client.transactions || [])
                   .filter((t: any) => t.type === 'income' && t.status === 'paid')
                   .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
@@ -202,8 +203,9 @@ function ClientsPage() {
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
-                </TableRow>
-              ))
+                 </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
