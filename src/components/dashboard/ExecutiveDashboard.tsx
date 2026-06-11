@@ -115,13 +115,13 @@ export function ExecutiveDashboard() {
     const todayIso = new Date().toISOString().slice(0, 10);
     const agendaItems = [
       ...jobs.filter(j => j.due_date === todayIso && !j.done_at).map(j => ({
-        id: j.id, title: j.title, subtitle: clients.find(c => c.id === j.client_id)?.company || "—", type: 'job_today' as const
+        id: j.id, title: j.title, subtitle: clients.find(c => c.id === j.client_id)?.company || "—", client_id: j.client_id, type: 'job_today' as const
       })),
       ...jobs.filter(j => j.due_date && j.due_date < todayIso && !j.done_at).map(j => ({
-        id: j.id, title: j.title, subtitle: clients.find(c => c.id === j.client_id)?.company || "—", type: 'job_overdue' as const
+        id: j.id, title: j.title, subtitle: clients.find(c => c.id === j.client_id)?.company || "—", client_id: j.client_id, type: 'job_overdue' as const
       })),
       ...jobs.filter(j => j.status === 'review').map(j => ({
-        id: j.id, title: j.title, subtitle: clients.find(c => c.id === j.client_id)?.company || "—", type: 'approval' as const
+        id: j.id, title: j.title, subtitle: clients.find(c => c.id === j.client_id)?.company || "—", client_id: j.client_id, type: 'approval' as const
       }))
     ];
 

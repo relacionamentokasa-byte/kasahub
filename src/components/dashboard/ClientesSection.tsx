@@ -1,4 +1,5 @@
 import { Users, Award } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 
 interface ClientRanking {
   id: string;
@@ -31,7 +32,13 @@ export function ClientesSection({ clients }: ClientesSectionProps) {
                 <tr key={c.id} className="hover:bg-muted/10 transition-colors">
                   <td className="px-6 py-4 flex items-center gap-3">
                     {i === 0 && <Award className="size-4 text-primary" />}
-                    <span className="text-sm font-medium">{c.name}</span>
+                    <Link 
+                      to="/clientes/$clientId"
+                      params={{ clientId: c.id }}
+                      className="text-sm font-medium hover:text-primary hover:underline transition-colors"
+                    >
+                      {c.name}
+                    </Link>
                   </td>
                 </tr>
               ))}
