@@ -29,19 +29,20 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
 
   const [editing, setEditing] = useState<ScopeTemplate | null>(null);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", category: "", content: [] as string[] });
+  const [form, setForm] = useState({ name: "", category: "", content: "" });
 
   function startNew() {
     setEditing(null);
-    setForm({ name: "", category: "", content: [] });
+    setForm({ name: "", category: "", content: "" });
     setOpen(true);
   }
   function startEdit(t: ScopeTemplate) {
     setEditing(t);
     const content = Array.isArray(t.content) 
-      ? t.content 
-      : (typeof t.content === 'string' ? t.content.split('\n').map(s => s.replace(/^[-\s*]+/, '').trim()).filter(Boolean) : []);
+      ? t.content.join("\n") 
+      : (t.content || "");
     setForm({ name: t.name, category: t.category ?? "", content });
+
     setOpen(true);
   }
 
@@ -155,7 +156,7 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
               <label className="text-xs text-muted-foreground">Conteúdo</label>
               <ScopeEditor 
                 value={form.content}
-                onChange={(content) => setForm({ ...form, content })}
+                onChange={(content: string) => setForm({ ...form, content })}
               />
             </div>
           </div>
@@ -165,7 +166,7 @@ export function ScopeTemplatesManager({ canEdit = true }: { canEdit?: boolean })
             </Button>
             <Button
               onClick={() => saveMut.mutate()}
-              disabled={!form.name.trim() || form.content.length === 0 || saveMut.isPending}
+              disabled={!form.name.trim() || !form.content.trim() || saveMut.isPending}
             >
               {saveMut.isPending && <Loader2 className="size-3.5 animate-spin" />}
               Salvar
