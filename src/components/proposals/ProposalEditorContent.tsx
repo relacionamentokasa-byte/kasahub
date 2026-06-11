@@ -202,8 +202,8 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 <tr key={item.id} className="group hover:bg-muted/10 transition-colors">
                   <td className="py-3 px-4">
                     <Input 
-                      variant="ghost" 
                       value={item.title} 
+
                       onChange={e => {
                         const newItems = items.map(it => it.id === item.id ? { ...it, title: e.target.value } : it);
                         setItems(newItems);
