@@ -219,7 +219,7 @@ export async function createProposal(input: {
   payment_method?: string;
   first_due_date?: string;
   notes?: string | null;
-  scope?: string[];
+  scope?: string;
   scope_text?: string[] | string | null;
   auto_create_jobs?: boolean;
   contract_template_id?: string | null;

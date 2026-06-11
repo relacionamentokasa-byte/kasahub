@@ -127,7 +127,7 @@ function ProposalsPage() {
     valid_until: "",
     intro: "Olá! É um prazer apresentar nossa proposta comercial. Nossa equipe está focada em entregar resultados excepcionais para sua marca.",
     notes: "",
-    scope: [] as string[],
+    scope: "",
   };
   const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState("");
