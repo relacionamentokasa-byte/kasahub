@@ -11,6 +11,7 @@ import {
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
+import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -28,6 +29,7 @@ import {
   Trash2,
   ArrowRight
 } from "lucide-react";
+
 
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
