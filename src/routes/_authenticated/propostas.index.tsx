@@ -362,7 +362,9 @@ function ProposalsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-
+          <Button 
+            variant="outline" 
+            onClick={() => setShowTrash(!showTrash)}
             className="flex-1 sm:flex-none rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
             {showTrash ? <ArrowUpRight className="size-4 rotate-180" /> : <Trash2 className="size-4" />}
