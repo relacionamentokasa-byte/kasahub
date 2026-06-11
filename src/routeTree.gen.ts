@@ -23,7 +23,6 @@ import { Route as AuthenticatedPropostasRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticated/projetos'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedParceirosRouteImport } from './routes/_authenticated/parceiros'
-import { Route as AuthenticatedNoticiasRouteImport } from './routes/_authenticated/noticias'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
@@ -114,11 +113,6 @@ const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
 const AuthenticatedParceirosRoute = AuthenticatedParceirosRouteImport.update({
   id: '/parceiros',
   path: '/parceiros',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedNoticiasRoute = AuthenticatedNoticiasRouteImport.update({
-  id: '/noticias',
-  path: '/noticias',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
@@ -251,7 +245,6 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
-  '/noticias': typeof AuthenticatedNoticiasRoute
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
@@ -288,7 +281,6 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
-  '/noticias': typeof AuthenticatedNoticiasRoute
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/projetos': typeof AuthenticatedProjetosRouteWithChildren
@@ -328,7 +320,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
-  '/_authenticated/noticias': typeof AuthenticatedNoticiasRoute
   '/_authenticated/parceiros': typeof AuthenticatedParceirosRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/projetos': typeof AuthenticatedProjetosRouteWithChildren
@@ -369,7 +360,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/integracoes'
     | '/jobs'
-    | '/noticias'
     | '/parceiros'
     | '/portal'
     | '/projetos'
@@ -406,7 +396,6 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/integracoes'
     | '/jobs'
-    | '/noticias'
     | '/parceiros'
     | '/portal'
     | '/projetos'
@@ -445,7 +434,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/integracoes'
     | '/_authenticated/jobs'
-    | '/_authenticated/noticias'
     | '/_authenticated/parceiros'
     | '/_authenticated/portal'
     | '/_authenticated/projetos'
@@ -591,13 +579,6 @@ declare module '@tanstack/react-router' {
       path: '/parceiros'
       fullPath: '/parceiros'
       preLoaderRoute: typeof AuthenticatedParceirosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/noticias': {
-      id: '/_authenticated/noticias'
-      path: '/noticias'
-      fullPath: '/noticias'
-      preLoaderRoute: typeof AuthenticatedNoticiasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/jobs': {
@@ -808,7 +789,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
-  AuthenticatedNoticiasRoute: typeof AuthenticatedNoticiasRoute
   AuthenticatedParceirosRoute: typeof AuthenticatedParceirosRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedProjetosRoute: typeof AuthenticatedProjetosRouteWithChildren
@@ -827,7 +807,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
-  AuthenticatedNoticiasRoute: AuthenticatedNoticiasRoute,
   AuthenticatedParceirosRoute: AuthenticatedParceirosRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedProjetosRoute: AuthenticatedProjetosRouteWithChildren,

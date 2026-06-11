@@ -16,7 +16,6 @@ import {
   Activity,
   UsersRound,
   Loader2,
-  Newspaper,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/use-permissions";
 import type { ModuleId } from "@/lib/permissions-api";
@@ -40,7 +39,6 @@ const groups: { label: string; items: SidebarItem[] }[] = [
   {
     label: "Geral",
     items: [
-      { title: "Central de Notícias", url: "/noticias", icon: Newspaper, module: "dashboard" },
       { title: "Painel", url: "/dashboard", icon: LayoutDashboard, module: "dashboard" },
     ],
   },
