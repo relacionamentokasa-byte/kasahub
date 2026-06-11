@@ -77,17 +77,14 @@ export const Route = createFileRoute("/_authenticated/propostas/")({
 });
 
 const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  draft: { label: "Rascunho", cls: "bg-foreground/10 text-foreground/70" },
-  sent: { label: "Enviada", cls: "bg-blue-500/15 text-blue-300" },
-  waiting_signature: { label: "Aguardando Assinatura", cls: "bg-amber-500/15 text-amber-300" },
-  signed: { label: "Assinada", cls: "bg-indigo-500/15 text-indigo-300" }, // Mantendo signed como "Assinada" que precede Aprovação se necessário, mas na lista pedida ele não aparece explicitamente entre Enviada e Aguardando Assinatura. O pedido pede: Rascunho, Enviada, Aguardando Assinatura, Aprovada, Convertida, Rejeitada.
-  accepted: { label: "Aprovada", cls: "bg-primary/20 text-primary font-bold border border-primary/20" },
-  converted: { label: "Convertida", cls: "bg-emerald-500/15 text-emerald-300" },
-  rejected: { label: "Rejeitada", cls: "bg-red-500/15 text-red-300" },
-  cancelled: { label: "Rejeitada", cls: "bg-red-500/15 text-red-300" }, // Mapeando cancelled para Rejeitada para unificar
+  Rascunho: { label: "Rascunho", cls: "bg-gray-200 text-gray-800" },
+  Enviada: { label: "Enviada", cls: "bg-blue-100 text-blue-800" },
+  Aprovada: { label: "Aprovada", cls: "bg-green-100 text-green-800" },
+  Recusada: { label: "Recusada", cls: "bg-red-100 text-red-800" },
+  Encerrada: { label: "Encerrada", cls: "bg-slate-700 text-white" },
 };
 
-const STATUS_ORDER = ["draft", "sent", "waiting_signature", "accepted", "converted", "cancelled"];
+const STATUS_ORDER = ["Rascunho", "Enviada", "Aprovada", "Recusada", "Encerrada"];
 
 
 function publicUrl(token: string) {
@@ -129,6 +126,7 @@ function ProposalsPage() {
     intro: "Olá! É um prazer apresentar nossa proposta comercial. Nossa equipe está focada em entregar resultados excepcionais para sua marca.",
     notes: "",
     scope: "",
+    status: "Rascunho",
   };
   const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState("");
@@ -238,7 +236,7 @@ function ProposalsPage() {
   const statusMut = useMutation({
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       // Bloqueio extra no front-end para garantir que não aprovem sem assinatura
-      if (status === "accepted" || status === "converted" || status === "signed") {
+      if (status === "Aprovada") {
         const { data: p } = await supabase.from("proposals").select("signature_client").eq("id", id).single();
         if (!p?.signature_client) {
           throw new Error("Não é possível aprovar uma proposta sem a assinatura digital do cliente.");
@@ -279,7 +277,7 @@ function ProposalsPage() {
     onSuccess: () => {
       toast.success("E-mail enviado");
       if (emailDialog) {
-        statusMut.mutate({ id: emailDialog.proposal.id, status: "sent" });
+        statusMut.mutate({ id: emailDialog.proposal.id, status: "Enviada" });
       }
       setEmailDialog(null);
     },
@@ -874,7 +872,7 @@ function ProposalsPage() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
                 {filteredProposals.map((p: Proposal) => {
-                  const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.draft;
+                    const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
 
               return (
                 <div
