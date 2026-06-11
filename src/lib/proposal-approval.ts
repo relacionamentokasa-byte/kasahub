@@ -116,11 +116,15 @@ export async function approveProposal(
   const monthly = Number(proposal.monthly_investment ?? 0);
   const totalValue = Number(proposal.total ?? proposal.one_time_investment ?? 0);
   
-  let installmentsCount = 0;
-  if (proposal.contract_type === "recurring") {
+  // Source of truth for número de parcelas: recurring_months (3, 6 ou 12 vindo da UI de pílulas).
+  // Fallback para contract_term legado, e por último 12.
+  let installmentsCount = Number(proposal.recurring_months || 0);
+  if (!installmentsCount) {
     if (proposal.contract_term === "monthly") installmentsCount = 1;
     else if (proposal.contract_term?.includes("_months")) installmentsCount = Number(proposal.contract_term.replace("_months", ""));
-    else installmentsCount = Number(proposal.recurring_months ?? 12);
+  }
+  if (!installmentsCount && Number(proposal.monthly_investment || 0) > 0) {
+    installmentsCount = 12;
   }
 
   const contractData = {
