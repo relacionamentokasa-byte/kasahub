@@ -165,6 +165,7 @@ function ProposalsPage() {
 
       for (const proposal of approvedProposals) {
         // 2. Check if transactions already exist for this proposal
+        const { count, error: cErr } = await supabase
           .from("transactions")
           .select("id", { count: "exact", head: true })
           .eq("proposal_id", proposal.id);
