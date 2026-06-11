@@ -13,12 +13,14 @@ import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { brl } from "@/lib/utils-format";
+import { cn } from "@/lib/utils";
 import { fetchProposals } from "@/lib/crm-api";
 import { fetchTransactions, fetchContracts } from "@/lib/finance-api";
 import { fetchProjects, fetchExtraDemands } from "@/lib/ops-api";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 
 
