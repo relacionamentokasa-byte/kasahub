@@ -636,8 +636,8 @@ function ProposalsPage() {
                 <div className="space-y-4 pt-6 border-t border-border">
                   <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Itens / Escopo</h3>
                   <ScopeEditor
-                    value={form.scope}
-                    onChange={(v) => setForm({ ...form, scope: v })}
+                    value={form.scope || ""}
+                    onChange={(v: string) => setForm({ ...form, scope: v })}
                   />
                 </div>
 
