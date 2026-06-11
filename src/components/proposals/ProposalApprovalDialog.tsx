@@ -10,6 +10,7 @@ import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, 
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProposal, fetchProposalItems, formatCurrency } from "@/lib/crm-api";
 import { approveProposal } from "@/lib/proposal-approval";
+import { useNavigate } from "@tanstack/react-router";
 import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 import { toast } from "sonner";
 
@@ -22,6 +23,7 @@ interface Props {
 
 export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onApproved }: Props) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [signature, setSignature] = useState("");
 
   const { data: proposal } = useQuery({
@@ -54,27 +56,31 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const oneTime = useMemo(() => Number(proposal?.one_time_investment ?? 0), [proposal]);
 
   const approveMut = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (options: { internalApproval?: boolean } = {}) => {
       if (!proposalId) throw new Error("Proposta inválida");
-      if (!proposal?.signature_client) {
+      if (!proposal?.signature_client && !options.internalApproval) {
         throw new Error("Assinatura do cliente obrigatória.");
       }
 
-      
       const { data: { user } } = await supabase.auth.getUser();
 
       return approveProposal(supabase, proposalId, { 
         acceptedName: signature.trim() || proposal?.accepted_name,
-        internalApproval: false,
+        internalApproval: !!options.internalApproval,
         internalApprovalBy: user?.id
       });
     },
-    onSuccess: () => {
-      toast.success("Proposta aprovada e convertida em contrato, projeto, jobs e financeiro.");
+    onSuccess: (data) => {
+      toast.success("Proposta convertida! Cliente, Job e Financeiro gerados com sucesso.");
       qc.invalidateQueries();
       onOpenChange(false);
       setSignature("");
       onApproved?.();
+      
+      // Redirect to client 360 view
+      if (data.client_id) {
+        navigate({ to: `/clientes/${data.client_id}` });
+      }
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -230,8 +236,8 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
             Cancelar
           </Button>
           <Button
-            onClick={() => approveMut.mutate()}
-            disabled={approveMut.isPending || !proposal || !proposal.signature_client}
+            onClick={() => approveMut.mutate({ internalApproval: true })}
+            disabled={approveMut.isPending || !proposal}
             className="bg-green-600 text-white hover:bg-green-700 gap-2"
           >
             {approveMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
