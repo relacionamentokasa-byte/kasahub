@@ -699,12 +699,7 @@ function ProposalsPage() {
           <div className="flex flex-wrap gap-1">
             {[
               { id: "all", label: "Todas" },
-              { id: "draft", label: "Rascunho" },
-              { id: "sent", label: "Enviada" },
-              { id: "waiting_signature", label: "Aguardando Assinatura" },
-              { id: "accepted", label: "Aprovada" },
-              { id: "converted", label: "Convertida" },
-              { id: "cancelled", label: "Rejeitada" },
+              ...STATUS_ORDER.map(status => ({ id: status, label: status }))
             ].map((chip) => (
               <button
                 key={chip.id}
@@ -831,9 +826,9 @@ function ProposalsPage() {
                         {formatCurrency(Number(p.total || 0))}
                       </td>
                       <td className="px-5 py-3">
-                        <span className={`text-[10px] capitalize px-2 py-1 rounded ${s.cls}`}>
+                        <Badge className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
                           {s.label}
-                        </span>
+                        </Badge>
                       </td>
                       <td className="px-5 py-3 text-right">
                         <ActionsMenu
