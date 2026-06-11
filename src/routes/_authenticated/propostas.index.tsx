@@ -69,6 +69,8 @@ import {
   RotateCcw,
   Ban,
   Search,
+  XCircle,
+  Filter,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -138,6 +140,12 @@ function ProposalsPage() {
   const [emailDialog, setEmailDialog] = useState<{ proposal: Proposal } | null>(null);
 
   const [emailForm, setEmailForm] = useState({ to: "", subject: "", message: "" });
+
+  const clearFilters = () => {
+    setSearch("");
+    setFilterStatus("all");
+    setFilterClient("all");
+  };
 
   const createMut = useMutation({
     mutationFn: async () => {
@@ -697,72 +705,90 @@ function ProposalsPage() {
       </div>
 
       {!showTrash && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-surface border border-border p-2 rounded-xl">
-          <div className="flex flex-wrap gap-1">
-            {[
-              { id: "all", label: "Todas" },
-              ...STATUS_ORDER.map(status => ({ id: status, label: status }))
-            ].map((chip) => (
-              <button
-                key={chip.id}
-                onClick={() => setFilterStatus(chip.id)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all ${
-                  filterStatus === chip.id 
-                    ? "bg-primary text-primary-foreground shadow-sm" 
-                    : "text-foreground/50 hover:bg-foreground/5 hover:text-foreground"
-                }`}
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-surface border border-border p-3 rounded-2xl shadow-sm">
+          <div className="flex flex-col md:flex-row items-center gap-3 w-full">
+            <div className="relative w-full md:w-80">
+              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
               <Input 
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar..." 
-                className="pl-9 h-9 text-xs bg-background/50 border-border focus:bg-background"
+                placeholder="Buscar por título ou cliente..." 
+                className="pl-10 h-10 text-sm bg-background/50 border-border focus:bg-background rounded-xl"
               />
             </div>
-            <Select value={filterClient} onValueChange={setFilterClient}>
-              <SelectTrigger className="h-9 text-xs bg-background/50 border-border md:w-48">
-                <SelectValue placeholder="Cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os clientes</SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <div className="relative w-full md:w-48">
+                <Filter className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 z-10" />
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger className="h-10 pl-9 text-sm bg-background/50 border-border rounded-xl">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Status</SelectItem>
+                    {STATUS_ORDER.map((status) => (
+                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Select value={filterClient} onValueChange={setFilterClient}>
+                <SelectTrigger className="h-10 text-sm bg-background/50 border-border rounded-xl md:w-56">
+                  <SelectValue placeholder="Todos os Clientes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Clientes</SelectItem>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {(search || filterStatus !== "all" || filterClient !== "all") && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearFilters}
+                  className="h-10 px-3 text-foreground/60 hover:text-foreground gap-2 rounded-xl"
+                >
+                  <XCircle className="size-4" />
+                  <span className="hidden sm:inline">Limpar</span>
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {filteredProposals.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-surface p-16 text-center">
-          <div className="size-14 rounded-2xl bg-primary/10 ring-1 ring-primary/30 grid place-items-center mx-auto mb-4">
-            <FileText className="size-6 text-primary" />
+        <div className="rounded-3xl border border-dashed border-border bg-surface/50 p-20 text-center animate-reveal">
+          <div className="size-20 rounded-3xl bg-primary/10 ring-1 ring-primary/30 grid place-items-center mx-auto mb-6 shadow-xl shadow-primary/5">
+            <Search className="size-8 text-primary" />
           </div>
-          <h2 className="font-display text-xl font-semibold mb-1">
+          <h2 className="font-display text-2xl font-bold mb-2">
             {showTrash 
               ? "A lixeira está vazia"
-              : (search || filterStatus !== "all" || filterClient !== "all" 
-                ? "Nenhuma proposta encontrada" 
-                : "Nenhuma proposta ainda")
+              : "Nenhuma proposta encontrada"
             }
           </h2>
-          <p className="text-foreground/60 text-sm">
+          <p className="text-foreground/60 text-sm max-w-md mx-auto mb-8">
             {showTrash
-              ? "As propostas que você excluir aparecerão aqui."
+              ? "As propostas que você excluir aparecerão aqui para serem restauradas ou removidas permanentemente."
               : (search || filterStatus !== "all" || filterClient !== "all" 
-                ? "Tente ajustar seus filtros de busca." 
-                : "Crie sua primeira proposta ou gere uma a partir de um lead no CRM.")
+                ? "Não encontramos resultados para os filtros aplicados. Tente ajustar sua busca ou limpar os filtros abaixo." 
+                : "Você ainda não criou nenhuma proposta comercial. Comece criando uma nova agora!")
             }
           </p>
+          {(search || filterStatus !== "all" || filterClient !== "all") && !showTrash && (
+            <Button 
+              variant="outline" 
+              onClick={clearFilters}
+              className="rounded-full px-8 h-12 font-semibold gap-2 border-primary/20 hover:bg-primary/5"
+            >
+              <RotateCcw className="size-4" /> Limpar Filtros
+            </Button>
+          )}
         </div>
       ) : (
 
