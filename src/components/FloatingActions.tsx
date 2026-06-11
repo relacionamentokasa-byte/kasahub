@@ -11,7 +11,7 @@ export function FloatingActions() {
     { icon: Users, label: "Novo Cliente", to: "/clientes", color: "text-blue-500" },
     { icon: FileText, label: "Nova Proposta", to: "/propostas", color: "text-amber-500" },
     { icon: CheckSquare, label: "Novo Job", to: "/jobs", color: "text-primary" },
-    { icon: Wallet, label: "Nova Transação", to: "/financeiro", color: "text-emerald-500" },
+    
   ];
 
   return (

@@ -36,8 +36,8 @@ export function NewLeadDialog({
   });
 
   const { data: representatives = [] } = useQuery({
-    queryKey: ["partners", "representative"],
-    queryFn: () => fetchPartners("representative"),
+    queryKey: ["partners"],
+    queryFn: () => fetchPartners(),
   });
 
   const mut = useMutation({
@@ -112,7 +112,7 @@ export function NewLeadDialog({
                   <SelectValue placeholder="Selecione o representante" />
                 </SelectTrigger>
                 <SelectContent>
-                  {representatives.map(r => (
+                  {representatives.map((r: any) => (
                     <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
                   ))}
                 </SelectContent>

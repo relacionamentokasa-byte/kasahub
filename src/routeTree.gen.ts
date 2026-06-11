@@ -16,11 +16,6 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as PTokenRouteImport } from './routes/p.$token'
-import { Route as FinancialInvoicesRouteImport } from './routes/financial/invoices'
-import { Route as FinancialImportRouteImport } from './routes/financial/import'
-import { Route as FinancialExtraDemandsRouteImport } from './routes/financial/extra-demands'
-import { Route as FinancialExpensesRouteImport } from './routes/financial/expenses'
-import { Route as FinancialDashboardRouteImport } from './routes/financial/dashboard'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -29,10 +24,8 @@ import { Route as AuthenticatedProjetosRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedParceirosRouteImport } from './routes/_authenticated/parceiros'
 import { Route as AuthenticatedNoticiasRouteImport } from './routes/_authenticated/noticias'
-import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
-import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
@@ -88,31 +81,6 @@ const PTokenRoute = PTokenRouteImport.update({
   path: '/p/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FinancialInvoicesRoute = FinancialInvoicesRouteImport.update({
-  id: '/financial/invoices',
-  path: '/financial/invoices',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialImportRoute = FinancialImportRouteImport.update({
-  id: '/financial/import',
-  path: '/financial/import',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialExtraDemandsRoute = FinancialExtraDemandsRouteImport.update({
-  id: '/financial/extra-demands',
-  path: '/financial/extra-demands',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialExpensesRoute = FinancialExpensesRouteImport.update({
-  id: '/financial/expenses',
-  path: '/financial/expenses',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FinancialDashboardRoute = FinancialDashboardRouteImport.update({
-  id: '/financial/dashboard',
-  path: '/financial/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DmeTokenRoute = DmeTokenRouteImport.update({
   id: '/dme/$token',
   path: '/dme/$token',
@@ -153,11 +121,6 @@ const AuthenticatedNoticiasRoute = AuthenticatedNoticiasRouteImport.update({
   path: '/noticias',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
-  id: '/metas',
-  path: '/metas',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
   id: '/jobs',
   path: '/jobs',
@@ -169,11 +132,6 @@ const AuthenticatedIntegracoesRoute =
     path: '/integracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
-  id: '/financeiro',
-  path: '/financeiro',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -291,10 +249,8 @@ export interface FileRoutesByFullPath {
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
-  '/metas': typeof AuthenticatedMetasRoute
   '/noticias': typeof AuthenticatedNoticiasRoute
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
@@ -303,11 +259,6 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
-  '/financial/dashboard': typeof FinancialDashboardRoute
-  '/financial/expenses': typeof FinancialExpensesRoute
-  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
-  '/financial/import': typeof FinancialImportRoute
-  '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -335,10 +286,8 @@ export interface FileRoutesByTo {
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/financeiro': typeof AuthenticatedFinanceiroRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
-  '/metas': typeof AuthenticatedMetasRoute
   '/noticias': typeof AuthenticatedNoticiasRoute
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
@@ -347,11 +296,6 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
-  '/financial/dashboard': typeof FinancialDashboardRoute
-  '/financial/expenses': typeof FinancialExpensesRoute
-  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
-  '/financial/import': typeof FinancialImportRoute
-  '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -382,10 +326,8 @@ export interface FileRoutesById {
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
-  '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/noticias': typeof AuthenticatedNoticiasRoute
   '/_authenticated/parceiros': typeof AuthenticatedParceirosRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
@@ -394,11 +336,6 @@ export interface FileRoutesById {
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
-  '/financial/dashboard': typeof FinancialDashboardRoute
-  '/financial/expenses': typeof FinancialExpensesRoute
-  '/financial/extra-demands': typeof FinancialExtraDemandsRoute
-  '/financial/import': typeof FinancialImportRoute
-  '/financial/invoices': typeof FinancialInvoicesRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
@@ -430,10 +367,8 @@ export interface FileRouteTypes {
     | '/config'
     | '/crm'
     | '/dashboard'
-    | '/financeiro'
     | '/integracoes'
     | '/jobs'
-    | '/metas'
     | '/noticias'
     | '/parceiros'
     | '/portal'
@@ -442,11 +377,6 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
-    | '/financial/dashboard'
-    | '/financial/expenses'
-    | '/financial/extra-demands'
-    | '/financial/import'
-    | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -474,10 +404,8 @@ export interface FileRouteTypes {
     | '/config'
     | '/crm'
     | '/dashboard'
-    | '/financeiro'
     | '/integracoes'
     | '/jobs'
-    | '/metas'
     | '/noticias'
     | '/parceiros'
     | '/portal'
@@ -486,11 +414,6 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
-    | '/financial/dashboard'
-    | '/financial/expenses'
-    | '/financial/extra-demands'
-    | '/financial/import'
-    | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -520,10 +443,8 @@ export interface FileRouteTypes {
     | '/_authenticated/config'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
-    | '/_authenticated/financeiro'
     | '/_authenticated/integracoes'
     | '/_authenticated/jobs'
-    | '/_authenticated/metas'
     | '/_authenticated/noticias'
     | '/_authenticated/parceiros'
     | '/_authenticated/portal'
@@ -532,11 +453,6 @@ export interface FileRouteTypes {
     | '/_authenticated/relatorios'
     | '/approve/$token'
     | '/dme/$token'
-    | '/financial/dashboard'
-    | '/financial/expenses'
-    | '/financial/extra-demands'
-    | '/financial/import'
-    | '/financial/invoices'
     | '/p/$token'
     | '/proposal/$token'
     | '/proposta/$token'
@@ -562,11 +478,6 @@ export interface RootRouteChildren {
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
-  FinancialDashboardRoute: typeof FinancialDashboardRoute
-  FinancialExpensesRoute: typeof FinancialExpensesRoute
-  FinancialExtraDemandsRoute: typeof FinancialExtraDemandsRoute
-  FinancialImportRoute: typeof FinancialImportRoute
-  FinancialInvoicesRoute: typeof FinancialInvoicesRoute
   PTokenRoute: typeof PTokenRoute
   ProposalTokenRoute: typeof ProposalTokenRoute
   PropostaTokenRoute: typeof PropostaTokenRoute
@@ -633,41 +544,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/financial/invoices': {
-      id: '/financial/invoices'
-      path: '/financial/invoices'
-      fullPath: '/financial/invoices'
-      preLoaderRoute: typeof FinancialInvoicesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/import': {
-      id: '/financial/import'
-      path: '/financial/import'
-      fullPath: '/financial/import'
-      preLoaderRoute: typeof FinancialImportRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/extra-demands': {
-      id: '/financial/extra-demands'
-      path: '/financial/extra-demands'
-      fullPath: '/financial/extra-demands'
-      preLoaderRoute: typeof FinancialExtraDemandsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/expenses': {
-      id: '/financial/expenses'
-      path: '/financial/expenses'
-      fullPath: '/financial/expenses'
-      preLoaderRoute: typeof FinancialExpensesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/financial/dashboard': {
-      id: '/financial/dashboard'
-      path: '/financial/dashboard'
-      fullPath: '/financial/dashboard'
-      preLoaderRoute: typeof FinancialDashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dme/$token': {
       id: '/dme/$token'
       path: '/dme/$token'
@@ -724,13 +600,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNoticiasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/metas': {
-      id: '/_authenticated/metas'
-      path: '/metas'
-      fullPath: '/metas'
-      preLoaderRoute: typeof AuthenticatedMetasRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/jobs': {
       id: '/_authenticated/jobs'
       path: '/jobs'
@@ -743,13 +612,6 @@ declare module '@tanstack/react-router' {
       path: '/integracoes'
       fullPath: '/integracoes'
       preLoaderRoute: typeof AuthenticatedIntegracoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/financeiro': {
-      id: '/_authenticated/financeiro'
-      path: '/financeiro'
-      fullPath: '/financeiro'
-      preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -944,10 +806,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
-  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedNoticiasRoute: typeof AuthenticatedNoticiasRoute
   AuthenticatedParceirosRoute: typeof AuthenticatedParceirosRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
@@ -965,10 +825,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
-  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedNoticiasRoute: AuthenticatedNoticiasRoute,
   AuthenticatedParceirosRoute: AuthenticatedParceirosRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
@@ -987,11 +845,6 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
-  FinancialDashboardRoute: FinancialDashboardRoute,
-  FinancialExpensesRoute: FinancialExpensesRoute,
-  FinancialExtraDemandsRoute: FinancialExtraDemandsRoute,
-  FinancialImportRoute: FinancialImportRoute,
-  FinancialInvoicesRoute: FinancialInvoicesRoute,
   PTokenRoute: PTokenRoute,
   ProposalTokenRoute: ProposalTokenRoute,
   PropostaTokenRoute: PropostaTokenRoute,

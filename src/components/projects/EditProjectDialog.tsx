@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { updateProject, deleteProject, fetchClients } from "@/lib/ops-api";
-import { fetchContracts } from "@/lib/finance-api";
+
 import { fetchProposals } from "@/lib/crm-api";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -46,7 +46,7 @@ export function EditProjectDialog({
   const qc = useQueryClient();
   const navigate = useNavigate();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const { data: contracts = [] } = useQuery({ queryKey: ["contracts"], queryFn: () => fetchContracts() });
+  const contracts: any[] = [];
   const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "all"], queryFn: () => fetchProposals() });
 
   const [form, setForm] = useState({

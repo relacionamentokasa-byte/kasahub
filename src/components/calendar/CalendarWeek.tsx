@@ -4,7 +4,6 @@ import { fetchCalendarEvents, type CalendarEvent } from "@/lib/approvals-api";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { brl } from "@/lib/finance-api";
 import { 
   Tooltip,
   TooltipContent,
@@ -32,7 +31,6 @@ export function CalendarWeek({ clientId, filter, onSelectEvent }: Props) {
   const [cursor, setCursor] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
-    // Start of week (Sunday)
     d.setDate(d.getDate() - d.getDay());
     return d;
   });
@@ -92,7 +90,6 @@ export function CalendarWeek({ clientId, filter, onSelectEvent }: Props) {
       </div>
 
       <div className="flex flex-col border border-border rounded-xl overflow-hidden bg-background">
-        {/* Header */}
         <div className="grid grid-cols-[60px_repeat(7,1fr)] border-b border-border bg-surface">
           <div className="p-2 border-r border-border" />
           {days.map((d) => (
@@ -109,9 +106,7 @@ export function CalendarWeek({ clientId, filter, onSelectEvent }: Props) {
           ))}
         </div>
 
-        {/* Body */}
         <div className="grid grid-cols-[60px_repeat(7,1fr)] relative max-h-[600px] overflow-y-auto">
-          {/* Time Column */}
           <div className="bg-surface/50">
             {hours.map(h => (
               <div key={h} className="h-20 border-b border-border border-r p-1 text-[9px] font-mono-kasa text-foreground/30 text-right pr-2">
@@ -120,7 +115,6 @@ export function CalendarWeek({ clientId, filter, onSelectEvent }: Props) {
             ))}
           </div>
 
-          {/* Day Columns */}
           {days.map((day) => {
             const dayEvents = filteredEvents.filter(e => new Date(e.starts_at).toDateString() === day.toDateString());
             
@@ -133,11 +127,9 @@ export function CalendarWeek({ clientId, filter, onSelectEvent }: Props) {
                   <div key={h} className="h-20 border-b border-border last:border-b-0" />
                 ))}
 
-                {/* Events */}
                 {dayEvents.map(e => {
                   const start = new Date(e.starts_at);
                   const top = (start.getHours() * 80) + (start.getMinutes() / 60 * 80);
-                  // Approximate duration to 1 hour if not specified
                   const height = 80; 
 
                   return (

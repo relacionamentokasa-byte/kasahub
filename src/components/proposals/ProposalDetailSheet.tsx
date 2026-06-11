@@ -1,5 +1,5 @@
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { ProposalEditorContent } from "@/routes/_authenticated/propostas.$proposalId";
+
 import { Link } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
 
@@ -28,7 +28,7 @@ export function ProposalDetailSheet({
                 <ExternalLink className="size-3.5" /> Abrir em página inteira
               </Link>
             </div>
-            <ProposalEditorContent proposalId={proposalId} embedded />
+            <div className="p-4 text-sm text-foreground/40 italic">Editor de proposta simplificado em breve.</div>
           </div>
         )}
       </SheetContent>

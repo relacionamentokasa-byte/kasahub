@@ -1,11 +1,8 @@
 import { Users, Award } from "lucide-react";
-import { brl } from "@/lib/finance-api";
 
 interface ClientRanking {
   id: string;
   name: string;
-  contracted: number;
-  extra: number;
   total: number;
 }
 
@@ -27,9 +24,6 @@ export function ClientesSection({ clients }: ClientesSectionProps) {
             <thead>
               <tr className="border-b border-border bg-muted/20">
                 <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40">Cliente</th>
-                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Contratado</th>
-                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Extra</th>
-                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">Total Faturado</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -39,15 +33,12 @@ export function ClientesSection({ clients }: ClientesSectionProps) {
                     {i === 0 && <Award className="size-4 text-primary" />}
                     <span className="text-sm font-medium">{c.name}</span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-right tabular-nums">{brl(c.contracted)}</td>
-                  <td className="px-6 py-4 text-sm text-right tabular-nums">{brl(c.extra)}</td>
-                  <td className="px-6 py-4 text-sm text-right font-bold tabular-nums text-primary">{brl(c.total)}</td>
                 </tr>
               ))}
               {sortedClients.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-8 text-center text-sm text-foreground/40 italic">
-                    Nenhum faturamento registrado no período.
+                  <td className="px-6 py-8 text-center text-sm text-foreground/40 italic">
+                    Nenhum cliente no período.
                   </td>
                 </tr>
               )}

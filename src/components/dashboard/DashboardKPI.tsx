@@ -1,5 +1,5 @@
 import { LucideIcon } from "lucide-react";
-import { brl } from "@/lib/finance-api";
+import { brl } from "@/lib/utils-format";
 
 interface DashboardKPIProps {
   icon: LucideIcon;

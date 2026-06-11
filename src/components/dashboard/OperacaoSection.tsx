@@ -1,13 +1,10 @@
-import { CheckCircle2, Clock, AlertCircle, FileCheck, Layers } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle } from "lucide-react";
 import { DashboardKPI } from "./DashboardKPI";
 
 interface OperacaoSectionProps {
   stats: {
     jobsInProgress: number;
-    jobsOverdue: number;
-    jobsCompleted: number;
-    pendingApprovals: number;
-    dmesInProduction: number;
+    overdueJobs: number;
   };
 }
 
@@ -15,9 +12,9 @@ export function OperacaoSection({ stats }: OperacaoSectionProps) {
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
-        <Layers className="size-4" /> Operação
+        Operação
       </h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
         <DashboardKPI 
           icon={Clock} 
           label="Em Andamento" 
@@ -27,26 +24,8 @@ export function OperacaoSection({ stats }: OperacaoSectionProps) {
         <DashboardKPI 
           icon={AlertCircle} 
           label="Atrasados" 
-          value={stats.jobsOverdue} 
+          value={stats.overdueJobs} 
           color="rose-500"
-        />
-        <DashboardKPI 
-          icon={CheckCircle2} 
-          label="Concluídos" 
-          value={stats.jobsCompleted} 
-          color="emerald-500"
-        />
-        <DashboardKPI 
-          icon={FileCheck} 
-          label="Apr. Pendentes" 
-          value={stats.pendingApprovals} 
-          color="amber-500"
-        />
-        <DashboardKPI 
-          icon={Layers} 
-          label="DMEs em Prod." 
-          value={stats.dmesInProduction} 
-          color="primary"
         />
       </div>
     </div>

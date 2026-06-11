@@ -1,18 +1,16 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchPartners, createPartner, type Partner, type PartnerType, deletePartner } from "@/lib/partners-api";
+import { fetchPartners, type Partner, type PartnerType, deletePartner } from "@/lib/partners-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Plus, Search, MoreHorizontal, Phone, Mail, MapPin, Trash2, Edit2, ExternalLink } from "lucide-react";
+import { Plus, Search, MoreHorizontal, Phone, Mail, MapPin, Trash2, Edit2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { PartnerDialog } from "./PartnerDialog";
-import { PartnerSheet } from "./PartnerSheet";
 import { Badge } from "@/components/ui/badge";
 import { usePermissions } from "@/hooks/use-permissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 
 interface Props {
   type: PartnerType;
@@ -23,18 +21,16 @@ export function PartnerList({ type }: Props) {
   const { isAdmin, can } = usePermissions();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [sheetPartner, setSheetPartner] = useState<Partner | null>(null);
-  const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
+  const [editingPartner, setEditingPartner] = useState<any | null>(null);
 
   const { data: partners = [], isLoading } = useQuery({
     queryKey: ["partners", type],
-    queryFn: () => fetchPartners(type),
+    queryFn: () => fetchPartners(),
   });
 
-  const filtered = partners.filter(p => 
-    p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.email?.toLowerCase().includes(search.toLowerCase()) ||
-    p.company_name?.toLowerCase().includes(search.toLowerCase())
+  const filtered = partners.filter((p: any) => 
+    p.name?.toLowerCase().includes(search.toLowerCase()) ||
+    p.email?.toLowerCase().includes(search.toLowerCase())
   );
 
   const deleteMut = useMutation({
@@ -46,16 +42,6 @@ export function PartnerList({ type }: Props) {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const handleEdit = (p: Partner) => {
-    setEditingPartner(p);
-    setDialogOpen(true);
-  };
-
-  const handleAdd = () => {
-    setEditingPartner(null);
-    setDialogOpen(true);
-  };
-
   if (isLoading) return <div className="py-20 text-center text-foreground/40 animate-pulse">Carregando parceiros...</div>;
 
   return (
@@ -64,71 +50,46 @@ export function PartnerList({ type }: Props) {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground/30" />
           <Input 
-            placeholder="Buscar por nome, e-mail ou empresa..." 
+            placeholder="Buscar parceiro..." 
             className="pl-10 bg-surface" 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        {(isAdmin || can("parceiros", "create")) && (
-          <Button onClick={handleAdd} className="gap-2">
-            <Plus className="size-4" /> Novo {typeLabel(type)}
-          </Button>
-        )}
+        <Button onClick={() => setDialogOpen(true)} className="gap-2">
+          <Plus className="size-4" /> Novo Parceiro
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((p) => (
+        {filtered.map((p: any) => (
           <Card 
             key={p.id} 
-            className="p-5 bg-surface border-border hover:border-primary/50 transition-colors group cursor-pointer"
-            onClick={() => setSheetPartner(p)}
+            className="p-5 bg-surface border-border hover:border-primary/50 transition-colors group"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex gap-4">
                 <Avatar className="size-12 border border-primary/20 bg-primary/5 rounded-full overflow-hidden">
-                  <AvatarImage src={p.photo_url || ""} className="aspect-square object-cover w-full h-full" />
+                  <AvatarImage src={p.photo_url || ""} />
                   <AvatarFallback className="text-lg font-bold text-primary bg-primary/10 uppercase">
-                    {p.name.substring(0, 2)}
+                    {p.name?.substring(0, 2)}
                   </AvatarFallback>
                 </Avatar>
 
                 <div>
                   <h3 className="font-bold text-lg leading-tight group-hover:text-primary transition-colors">{p.name}</h3>
-                  <p className="text-xs text-foreground/40 font-medium">
-                    {p.company_name || typeLabel(type)}
-                  </p>
                 </div>
               </div>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="size-8">
                     <MoreHorizontal className="size-4" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEdit(p);
-                    }} 
-                    className="gap-2"
-                  >
-                    <Edit2 className="size-3.5" /> Editar
+                  <DropdownMenuItem onClick={() => deleteMut.mutate(p.id)} className="gap-2 text-rose-500">
+                    <Trash2 className="size-3.5" /> Excluir
                   </DropdownMenuItem>
-                  {(isAdmin || can("parceiros", "delete")) && (
-                    <DropdownMenuItem 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm("Deseja realmente excluir este parceiro?")) {
-                          deleteMut.mutate(p.id);
-                        }
-                      }}
-                      className="gap-2 text-rose-500"
-                    >
-                      <Trash2 className="size-3.5" /> Excluir
-                    </DropdownMenuItem>
-                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -139,40 +100,10 @@ export function PartnerList({ type }: Props) {
                   <Mail className="size-3.5" /> {p.email}
                 </div>
               )}
-              {p.phone && (
-                <div className="flex items-center gap-2 text-xs text-foreground/60">
-                  <Phone className="size-3.5" /> {p.phone}
-                </div>
-              )}
-              {p.city && (
-                <div className="flex items-center gap-2 text-xs text-foreground/60">
-                  <MapPin className="size-3.5" /> {p.city}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t border-border">
-              <Badge variant="outline" className={p.status === 'active' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500'}>
-                {p.status === 'active' ? 'Ativo' : 'Inativo'}
-              </Badge>
-              {type === 'freelancer' && p.specialty && (
-                <Badge className="bg-primary/10 text-primary border-none">{p.specialty}</Badge>
-              )}
-              {type === 'representative' && p.commission_value && (
-                <span className="text-[10px] font-mono-kasa font-bold">
-                  {p.commission_type === 'percentage' ? `${p.commission_value}%` : `R$ ${p.commission_value}`}
-                </span>
-              )}
             </div>
           </Card>
         ))}
       </div>
-
-      {filtered.length === 0 && (
-        <div className="py-20 text-center bg-surface rounded-2xl border border-dashed border-border">
-          <p className="text-foreground/40">Nenhum parceiro encontrado.</p>
-        </div>
-      )}
 
       <PartnerDialog 
         open={dialogOpen} 
@@ -180,20 +111,6 @@ export function PartnerList({ type }: Props) {
         partner={editingPartner} 
         type={type} 
       />
-
-      <PartnerSheet
-        partner={sheetPartner}
-        onClose={() => setSheetPartner(null)}
-      />
     </div>
   );
-}
-
-function typeLabel(type: PartnerType) {
-  switch (type) {
-    case 'representative': return 'Representante';
-    case 'freelancer': return 'Freelancer';
-    case 'supplier': return 'Fornecedor';
-    case 'strategic': return 'Parceiro Estratégico';
-  }
 }
