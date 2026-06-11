@@ -49,6 +49,7 @@ function ClientDetail() {
 
 export function ClientDetailContent({ clientId, embedded = false }: { clientId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
+  const queryClient = useQueryClient();
   const sb = supabase as any;
 
   const { data: client } = useQuery({ queryKey: ["client", clientId], queryFn: () => fetchClient(clientId) });
@@ -313,7 +314,7 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
             <div className="flex gap-2">
               <Button 
                 variant="outline" 
-                size="xs" 
+                size="sm" 
                 className="h-8 text-[10px] uppercase font-bold tracking-widest gap-1.5"
                 onClick={async () => {
                   const activeContract = contracts.find((c: any) => c.status === 'active');
