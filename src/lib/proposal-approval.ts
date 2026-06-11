@@ -176,72 +176,61 @@ export async function approveProposal(
   proposalUpdate.generated_project_id = projectId;
   proposalUpdate.generated_contract_id = contractId;
 
-  // 5. Step 4: Geração Automática do Financeiro
+  // 5. Step 4: Geração Automática do Financeiro (Refatorado para Modelo de Contrato)
   let txCreated = 0;
   const billingDay = Number(proposal.billing_day ?? 5);
   const firstDueDate = proposal.first_due_date ? new Date(proposal.first_due_date) : new Date();
-
-  // Process items for financial records
-  if (items.length) {
-    const transactions: any[] = [];
-    
-    for (const item of items) {
-      const subtotal = Number(item.quantity) * Number(item.unit_price);
-      if (subtotal <= 0) continue;
-
-      if (item.recurrence === "monthly") {
-        // Recurring income
-        const months = installmentsCount > 0 ? installmentsCount : 12; // Default to 12 if indeterminate for preview
-        for (let i = 0; i < months; i++) {
-          const due = safeBillingDay(firstDueDate.getFullYear(), firstDueDate.getMonth() + i, billingDay);
-          transactions.push({
-            kind: "income",
-            description: `${item.title} (${i + 1}/${months})`,
-            amount: subtotal,
-            due_date: ymd(due),
-            status: "pending",
-            is_recurring: true,
-            account_id: proposal.account_id ?? null,
-            category_id: proposal.category_id ?? null,
-            client_id: clientId,
-            project_id: projectId,
-            proposal_id: proposal.id,
-            contract_id: contractId,
-            owner_id: proposal.owner_id ?? null,
-          });
-        }
-      } else {
-        // One-time income
-        const installments = Math.max(1, Number(proposal.installments ?? 1));
-        const amountPerInstallment = Math.round((subtotal / installments) * 100) / 100;
-        
-        for (let i = 0; i < installments; i++) {
-          transactions.push({
-            kind: "income",
-            description: installments > 1 ? `${item.title} (${i + 1}/${installments})` : item.title,
-            amount: amountPerInstallment,
-            due_date: ymd(addMonths(firstDueDate, i)),
-            status: "pending",
-            is_recurring: installments > 1,
-            installment_number: i + 1,
-            installment_total: installments,
-            account_id: proposal.account_id ?? null,
-            category_id: proposal.category_id ?? null,
-            client_id: clientId,
-            project_id: projectId,
-            proposal_id: proposal.id,
-            contract_id: contractId,
-            owner_id: proposal.owner_id ?? null,
-          });
-        }
-      }
+  
+  const transactions: any[] = [];
+  
+  // A. Geração das parcelas mensais (Recorrência)
+  const monthlyAmount = Number(proposal.monthly_investment || 0);
+  if (monthlyAmount > 0) {
+    const months = installmentsCount > 0 ? installmentsCount : 12;
+    for (let i = 0; i < months; i++) {
+      const due = safeBillingDay(firstDueDate.getFullYear(), firstDueDate.getMonth() + i, billingDay);
+      transactions.push({
+        kind: "income",
+        description: `Mensalidade ${proposal.title} (${i + 1}/${months})`,
+        amount: monthlyAmount,
+        due_date: ymd(due),
+        status: "pending",
+        is_recurring: true,
+        account_id: proposal.account_id ?? null,
+        category_id: proposal.category_id ?? null,
+        client_id: clientId,
+        project_id: projectId,
+        proposal_id: proposal.id,
+        contract_id: contractId,
+        owner_id: proposal.owner_id ?? null,
+      });
     }
+  }
 
-    if (transactions.length) {
-      const { error: txErr } = await sb.from("transactions").insert(transactions);
-      if (txErr) throw txErr;
-      txCreated = transactions.length;
-    }
+  // B. Geração do Setup (Investimento Único)
+  const setupAmount = Number(proposal.one_time_investment || 0);
+  if (setupAmount > 0) {
+    transactions.push({
+      kind: "income",
+      description: `Setup / Investimento Único - ${proposal.title}`,
+      amount: setupAmount,
+      due_date: proposal.first_due_date ?? ymd(new Date()),
+      status: "pending",
+      is_recurring: false,
+      account_id: proposal.account_id ?? null,
+      category_id: proposal.category_id ?? null,
+      client_id: clientId,
+      project_id: projectId,
+      proposal_id: proposal.id,
+      contract_id: contractId,
+      owner_id: proposal.owner_id ?? null,
+    });
+  }
+
+  if (transactions.length) {
+    const { error: txErr } = await sb.from("transactions").insert(transactions);
+    if (txErr) throw txErr;
+    txCreated = transactions.length;
   }
 
   // Final Proposal Update
