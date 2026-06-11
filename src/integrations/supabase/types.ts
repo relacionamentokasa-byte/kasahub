@@ -2888,6 +2888,10 @@ export type Database = {
         }
         Returns: string
       }
+      force_generate_contract_transactions: {
+        Args: { p_contract_id: string }
+        Returns: undefined
+      }
       format_proposal_number: { Args: { n: number }; Returns: string }
       get_finance_summary: {
         Args: { p_from: string; p_to: string }

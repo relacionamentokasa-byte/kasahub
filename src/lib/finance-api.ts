@@ -657,3 +657,9 @@ export function clientProfitability(clientId: string, txs: Transaction[]) {
   const margin = income > 0 ? (profit / income) * 100 : 0;
   return { income, expense, profit, margin };
 }
+
+export async function forceGenerateContractTransactions(contractId: string) {
+  const { error } = await supabase.rpc('force_generate_contract_transactions', { p_contract_id: contractId });
+  if (error) throw error;
+}
+

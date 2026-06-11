@@ -15,6 +15,7 @@ import { ClientContracts } from "@/components/clients/ClientContracts";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { toast } from "sonner";
 import { fetchClient, fetchProjects, updateClient, fetchExtraDemands, fetchJobs, fetchJobStages } from "@/lib/ops-api";
+import { forceGenerateContractTransactions } from "@/lib/finance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { createPortalUser, deletePortalUser, resetPortalUserPassword } from "@/lib/portal-users.functions";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -48,6 +49,7 @@ function ClientDetail() {
 
 export function ClientDetailContent({ clientId, embedded = false }: { clientId: string; embedded?: boolean }) {
   const [editOpen, setEditOpen] = useState(false);
+  const queryClient = useQueryClient();
   const sb = supabase as any;
 
   const { data: client } = useQuery({ queryKey: ["client", clientId], queryFn: () => fetchClient(clientId) });
@@ -307,6 +309,36 @@ export function ClientDetailContent({ clientId, embedded = false }: { clientId: 
         </TabsContent>
 
         <TabsContent value="finance" className="flex-1 overflow-y-auto px-6 lg:px-10 py-6 mt-0 space-y-6">
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-foreground/40">Visão Geral Financeira</h2>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 text-[10px] uppercase font-bold tracking-widest gap-1.5"
+                onClick={async () => {
+                  const activeContract = contracts.find((c: any) => c.status === 'active');
+                  if (!activeContract) {
+                    toast.error("Nenhum contrato ativo encontrado para este cliente.");
+                    return;
+                  }
+                  
+                  const confirm = window.confirm(`Deseja forçar a regeneração das faturas do contrato "${activeContract.title}"? Isso recriará os lançamentos pendentes futuros.`);
+                  if (!confirm) return;
+
+                  try {
+                    await forceGenerateContractTransactions(activeContract.id);
+                    toast.success("Faturas regeneradas com sucesso!");
+                    queryClient.invalidateQueries({ queryKey: ["transactions", clientId] });
+                  } catch (err: any) {
+                    toast.error("Erro ao regenerar faturas: " + err.message);
+                  }
+                }}
+              >
+                <Activity className="size-3 text-amber-500" /> Forçar Regeneração de Faturas
+              </Button>
+            </div>
+          </div>
           {(() => {
             const txList = transactions as Array<{ id: string; description: string; kind: string; status: string; due_date: string; amount: number }>;
             const income = txList.filter((t) => t.kind === "income").reduce((s, t) => s + Number(t.amount), 0);
