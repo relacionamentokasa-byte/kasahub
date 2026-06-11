@@ -32,7 +32,6 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authenticated/aprovacoes'
-import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
 import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
 import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
@@ -162,12 +161,6 @@ const AuthenticatedAprovacoesRoute = AuthenticatedAprovacoesRouteImport.update({
   path: '/aprovacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedClientesIndexRoute =
-  AuthenticatedClientesIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthenticatedClientesRoute,
-  } as any)
 const ApiPublicManifestRoute = ApiPublicManifestRouteImport.update({
   id: '/api/public/manifest',
   path: '/api/public/manifest',
@@ -267,7 +260,6 @@ export interface FileRoutesByFullPath {
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
-  '/clientes/': typeof AuthenticatedClientesIndexRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -283,6 +275,7 @@ export interface FileRoutesByTo {
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/ceo': typeof AuthenticatedCeoRoute
+  '/clientes': typeof AuthenticatedClientesRouteWithChildren
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -304,7 +297,6 @@ export interface FileRoutesByTo {
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
-  '/clientes': typeof AuthenticatedClientesIndexRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -344,7 +336,6 @@ export interface FileRoutesById {
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
-  '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -384,7 +375,6 @@ export interface FileRouteTypes {
     | '/propostas/$proposalId'
     | '/api/public/favicon'
     | '/api/public/manifest'
-    | '/clientes/'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -400,6 +390,7 @@ export interface FileRouteTypes {
     | '/aprovacoes'
     | '/calendario'
     | '/ceo'
+    | '/clientes'
     | '/config'
     | '/crm'
     | '/dashboard'
@@ -421,7 +412,6 @@ export interface FileRouteTypes {
     | '/propostas/$proposalId'
     | '/api/public/favicon'
     | '/api/public/manifest'
-    | '/clientes'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -460,7 +450,6 @@ export interface FileRouteTypes {
     | '/_authenticated/propostas/$proposalId'
     | '/api/public/favicon'
     | '/api/public/manifest'
-    | '/_authenticated/clientes/'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -655,13 +644,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAprovacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/clientes/': {
-      id: '/_authenticated/clientes/'
-      path: '/'
-      fullPath: '/clientes/'
-      preLoaderRoute: typeof AuthenticatedClientesIndexRouteImport
-      parentRoute: typeof AuthenticatedClientesRoute
-    }
     '/api/public/manifest': {
       id: '/api/public/manifest'
       path: '/api/public/manifest'
@@ -758,12 +740,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedClientesRouteChildren {
   AuthenticatedClientesClientIdRoute: typeof AuthenticatedClientesClientIdRoute
-  AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
 }
 
 const AuthenticatedClientesRouteChildren: AuthenticatedClientesRouteChildren = {
   AuthenticatedClientesClientIdRoute: AuthenticatedClientesClientIdRoute,
-  AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
 }
 
 const AuthenticatedClientesRouteWithChildren =
