@@ -50,7 +50,7 @@ function ClientsPage() {
     },
   });
 
-  const filteredClients = clients.filter(c => 
+  const filteredClients = clients.filter((c: any) => 
     (c.name?.toLowerCase().includes(search.toLowerCase())) ||
     (c.company?.toLowerCase().includes(search.toLowerCase())) ||
     (c.email?.toLowerCase().includes(search.toLowerCase()))
