@@ -213,6 +213,7 @@ function FinancialPage() {
                     <Link 
                       to="/clientes/$clientId"
                       params={{ clientId: t.client_id || "" }}
+                      data-testid="client-link"
                       className="group/client flex items-center gap-1.5 mt-0.5"
                     >
                       <span className="text-[10px] text-foreground/40 font-bold uppercase truncate max-w-[200px] group-hover/client:text-primary group-hover/client:underline cursor-pointer transition-all">
