@@ -19,6 +19,7 @@ import {
 import { fetchClients } from "@/lib/ops-api";
 import { recordProposalEvent } from "@/lib/proposal-events";
 import { fetchServices, type Service } from "@/lib/services-api";
+import { ymd, safeBillingDay } from "@/lib/proposal-approval";
 import { ServicesMultiSelect } from "@/components/proposals/ServicesMultiSelect";
 import {
   Select,
@@ -140,6 +141,113 @@ function ProposalsPage() {
   const [emailDialog, setEmailDialog] = useState<{ proposal: Proposal } | null>(null);
 
   const [emailForm, setEmailForm] = useState({ to: "", subject: "", message: "" });
+
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const syncRetroactiveFinance = async () => {
+    setIsSyncing(true);
+    try {
+      // 1. Fetch all approved/converted proposals
+      const { data: approvedProposals, error: pErr } = await supabase
+        .from("proposals")
+        .select("*")
+        .in("status", ["Aprovada", "converted", "accepted", "signed"]);
+      
+      if (pErr) throw pErr;
+      if (!approvedProposals || approvedProposals.length === 0) {
+        toast.info("Nenhuma proposta aprovada encontrada para sincronizar.");
+        return;
+      }
+
+      let syncCount = 0;
+      let totalTransactions = 0;
+
+      for (const proposal of approvedProposals) {
+        // 2. Check if transactions already exist for this proposal
+        const { count, error: cErr } = await supabase
+          .from("transactions")
+          .select("id", { count: "exact", head: true })
+          .eq("proposal_id", proposal.id);
+        
+        if (cErr) throw cErr;
+        if (count && count > 0) continue; // Skip if already has transactions
+
+        // 3. Generate transactions (same logic as approveProposal)
+        const clientId = proposal.client_id;
+        if (!clientId) continue;
+
+        const monthlyAmount = Number(proposal.monthly_investment || 0);
+        const setupAmount = Number(proposal.one_time_investment || 0);
+        
+        if (monthlyAmount <= 0 && setupAmount <= 0) continue;
+
+        let installmentsCount = Number(proposal.recurring_months || 0);
+        if (!installmentsCount) {
+          if (proposal.contract_term === "monthly") installmentsCount = 1;
+          else if (proposal.contract_term?.includes("_months")) installmentsCount = Number(proposal.contract_term.replace("_months", ""));
+          else if (monthlyAmount > 0) installmentsCount = 12;
+        }
+
+        const transactions: any[] = [];
+        const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
+        const [fy, fm, fd] = firstDueRaw.split("-").map(Number);
+        const dayOfMonth = fd;
+        const baseYear = fy;
+        const baseMonth0 = fm - 1;
+
+        // A. Monthly installments
+        if (monthlyAmount > 0 && installmentsCount > 0) {
+          for (let i = 0; i < installmentsCount; i++) {
+            const due = safeBillingDay(baseYear, baseMonth0 + i, dayOfMonth);
+            transactions.push({
+              kind: "income",
+              description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount}) [Retroativo]`,
+              amount: monthlyAmount,
+              due_date: ymd(due),
+              status: "pending",
+              is_recurring: true,
+              client_id: clientId,
+              proposal_id: proposal.id,
+              contract_id: proposal.generated_contract_id,
+              project_id: proposal.generated_project_id,
+              owner_id: proposal.owner_id,
+            });
+          }
+        }
+
+        // B. Setup
+        if (setupAmount > 0) {
+          transactions.push({
+            kind: "income",
+            description: `Setup / Investimento Único - ${proposal.title} [Retroativo]`,
+            amount: setupAmount,
+            due_date: firstDueRaw,
+            status: "pending",
+            is_recurring: false,
+            client_id: clientId,
+            proposal_id: proposal.id,
+            contract_id: proposal.generated_contract_id,
+            project_id: proposal.generated_project_id,
+            owner_id: proposal.owner_id,
+          });
+        }
+
+        if (transactions.length) {
+          const { error: txErr } = await supabase.from("transactions").insert(transactions);
+          if (txErr) throw txErr;
+          syncCount++;
+          totalTransactions += transactions.length;
+        }
+      }
+
+      toast.success(`Sincronização concluída! Lançamentos gerados para ${syncCount} propostas antigas (${totalTransactions} parcelas).`);
+    } catch (error: any) {
+      console.error("Erro na sincronização retroativa:", error);
+      toast.error(`Falha na sincronização: ${error.message}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const clearFilters = () => {
     setSearch("");
@@ -361,7 +469,17 @@ function ProposalsPage() {
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button 
             variant="outline" 
+            onClick={syncRetroactiveFinance}
+            disabled={isSyncing}
+            className="flex-1 sm:flex-none rounded-full font-semibold h-11 sm:h-10 px-5 gap-2 border-primary/20 text-primary/80 hover:bg-primary/5"
+          >
+            {isSyncing ? <Loader2 className="size-4 animate-spin" /> : <RotateCcw className="size-4" />}
+            Sincronizar Retroativo
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={() => setShowTrash(!showTrash)}
+
             className="flex-1 sm:flex-none rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
             {showTrash ? <ArrowUpRight className="size-4 rotate-180" /> : <Trash2 className="size-4" />}

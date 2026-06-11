@@ -7,17 +7,17 @@ import { fetchJobStages } from "./ops-api";
 
 type SB = SupabaseClient;
 
-function addMonths(d: Date, n: number): Date {
+export function addMonths(d: Date, n: number): Date {
   const r = new Date(d.getTime());
   r.setMonth(r.getMonth() + n);
   return r;
 }
 
-function ymd(d: Date): string {
+export function ymd(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-function safeBillingDay(year: number, month0: number, day: number): Date {
+export function safeBillingDay(year: number, month0: number, day: number): Date {
   // clamp to last day of month
   const last = new Date(year, month0 + 1, 0).getDate();
   return new Date(year, month0, Math.min(day, last));
