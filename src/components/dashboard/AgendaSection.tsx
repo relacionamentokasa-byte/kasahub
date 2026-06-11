@@ -1,5 +1,4 @@
-import { Calendar, AlertCircle, FileCheck, ReceiptText, ArrowRight, ExternalLink } from "lucide-react";
-import { brl } from "@/lib/utils-format";
+import { Calendar, AlertCircle, FileCheck, ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -57,9 +56,6 @@ export function AgendaSection({ items }: AgendaSectionProps) {
                       <p className="text-[11px] font-medium line-clamp-2 leading-snug group-hover:text-primary transition-colors">{item.title}</p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-[9px] font-mono-kasa text-foreground/40 uppercase">{item.subtitle}</span>
-                        {item.value !== undefined && (
-                          <span className="text-[9px] font-mono-kasa font-bold text-emerald-400">{brl(item.value)}</span>
-                        )}
                         {item.source === 'google' && (
                           <span className="text-[8px] font-mono-kasa text-sky-400/60 flex items-center gap-1">
                             <div className="size-1 rounded-full bg-sky-400" /> Google
@@ -77,4 +73,3 @@ export function AgendaSection({ items }: AgendaSectionProps) {
     </div>
   );
 }
-

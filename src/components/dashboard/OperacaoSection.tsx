@@ -4,7 +4,7 @@ import { DashboardKPI } from "./DashboardKPI";
 interface OperacaoSectionProps {
   stats: {
     jobsInProgress: number;
-    jobsOverdue: number;
+    overdueJobs: number;
   };
 }
 
@@ -24,7 +24,7 @@ export function OperacaoSection({ stats }: OperacaoSectionProps) {
         <DashboardKPI 
           icon={AlertCircle} 
           label="Atrasados" 
-          value={stats.jobsOverdue} 
+          value={stats.overdueJobs} 
           color="rose-500"
         />
       </div>

@@ -647,9 +647,7 @@ export async function deleteExtraDemand(id: string) {
 }
 
 export async function approveExtraDemand(id: string) {
-  const res = await approveExtraDemandShared(supabase, id);
-  await logAudit("approve", "dme", id, null, { status: "approved" });
-  return res;
+  return;
 }
 
 async function logAudit(action: string, entity_type: string, entity_id: string, old_data: any, new_data: any) {
