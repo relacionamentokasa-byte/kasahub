@@ -176,10 +176,20 @@ function ClientDetail() {
                 <TabsTrigger
                   key={tab.v}
                   value={tab.v}
-                  className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-0 py-5 text-xs font-bold uppercase tracking-widest gap-2 transition-all hover:text-foreground/80"
+                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-0 py-5 text-xs font-bold uppercase tracking-widest gap-2 transition-all hover:text-foreground/80"
                 >
                   <tab.icon className="size-3.5" />
                   {tab.label}
+                  {tab.v === "contratos" && contracts.length > 0 && (
+                    <span className="absolute -top-1 -right-2 flex size-4 items-center justify-center rounded-full bg-emerald-500 text-[8px] text-white">
+                      {contracts.length}
+                    </span>
+                  )}
+                  {tab.v === "propostas" && proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length > 0 && (
+                    <span className="absolute -top-1 -right-2 flex size-4 items-center justify-center rounded-full bg-amber-500 text-[8px] text-white">
+                      {proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length}
+                    </span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
