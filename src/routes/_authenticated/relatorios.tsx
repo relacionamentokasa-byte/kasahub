@@ -624,6 +624,15 @@ function FinancialPage() {
   );
 }
 
+function TotalCell({ label, value, className }: { label: string; value: number; className?: string }) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">{label}</span>
+      <span className={cn("text-base lg:text-lg font-bold tracking-tight tabular-nums", className)}>{brl(value)}</span>
+    </div>
+  );
+}
+
 function StatCard({ title, value, icon: Icon, color }: { title: string, value?: number, icon: any, color: string }) {
   return (
     <Card className="bg-surface border-border shadow-sm overflow-hidden group hover:border-primary/50 transition-colors">
