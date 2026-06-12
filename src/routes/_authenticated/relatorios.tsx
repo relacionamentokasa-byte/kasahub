@@ -15,6 +15,7 @@ import { FinancialImportDialog } from "@/components/finance/FinancialImportDialo
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
+import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
 import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
@@ -436,6 +437,11 @@ function FinancialPage() {
         <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-500" />
         <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-500" />
       </div>
+
+      <FinancialRulesPanel
+        totalFaturamento={stats?.recebidasReceitas ?? 0}
+        periodoLabel={currentMonthLabel}
+      />
 
       {/* Quick Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2">
