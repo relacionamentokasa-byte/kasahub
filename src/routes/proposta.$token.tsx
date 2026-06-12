@@ -160,8 +160,10 @@ function PublicProposalView() {
     const interval = setInterval(() => {
       // Pause background refresh while the client is signing.
       if (signingRef.current) return;
+      // Pause when tab is hidden — saves bandwidth, resumes on focus.
+      if (typeof document !== "undefined" && document.hidden) return;
       load(true);
-    }, 15000);
+    }, 3000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
