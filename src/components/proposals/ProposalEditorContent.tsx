@@ -155,9 +155,13 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                       qc.invalidateQueries({ queryKey: ["contracts"] });
                       qc.invalidateQueries({ queryKey: ["projects"] });
                       qc.invalidateQueries({ queryKey: ["transactions"] });
+                      setForm({ ...form, status: newStatus });
                       return "Status revertido. O projeto e o financeiro vinculados foram removidos.";
                     },
-                    error: (err) => `Erro ao reverter: ${err.message}`
+                    error: (err) => {
+                      console.error(`[DEBUG] Erro ao reverter status para "${newStatus}":`, err);
+                      return `Erro ao reverter: ${err.message}`;
+                    }
                   }
                 );
               } else {
