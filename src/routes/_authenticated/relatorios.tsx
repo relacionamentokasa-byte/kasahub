@@ -107,9 +107,12 @@ function FinancialPage() {
     return isNaN(n) ? 0 : n;
   };
 
-  const mapType = (raw: any): "income" | "expense" => {
-    const s = String(raw || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    return s.includes("receita") || s.includes("entrada") || s.includes("income") ? "income" : "expense";
+  const mapType = (raw: any): "income" | "expense" | null => {
+    const s = String(raw ?? "").trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (!s) return null;
+    if (s.includes("receita") || s.includes("entrada") || s.includes("income") || s.includes("credito")) return "income";
+    if (s.includes("despesa") || s.includes("saida") || s.includes("expense") || s.includes("debito")) return "expense";
+    return null;
   };
 
   const mapStatus = (raw: any): "paid" | "pending" => {
@@ -148,11 +151,20 @@ function FinancialPage() {
               };
               const due_date = parseDateBR(getCol("data", "data de vencimento", "vencimento"));
               const description = String(getCol("descricao", "descrição", "description") || "Importação");
-              const amount = parseAmountBR(getCol("valor", "amount"));
-              const type = mapType(getCol("tipo", "type"));
+              let amount = parseAmountBR(getCol("valor", "amount"));
+              let type = mapType(getCol("tipo", "type"));
+
+              // Fallback: infer type from amount sign when "Tipo" is missing/unrecognized
+              if (!type) {
+                if (amount > 0) type = "income";
+                else if (amount < 0) type = "expense";
+              }
+              // Always store positive amounts
+              if (amount < 0) amount = Math.abs(amount);
+
               const status = mapStatus(getCol("status", "situacao", "situação"));
               const category = getCol("categoria", "category");
-              if (!due_date || !amount) return null;
+              if (!due_date || !amount || !type) return null;
               return {
                 description,
                 amount,
@@ -166,6 +178,10 @@ function FinancialPage() {
               };
             })
             .filter(Boolean) as any[];
+
+          console.log("Payload higienizado:", payload);
+
+
 
           if (!payload.length) {
             toast.error("Nenhuma linha válida encontrada. Verifique data e valor.");
