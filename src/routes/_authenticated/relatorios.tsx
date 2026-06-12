@@ -400,6 +400,7 @@ function FinancialPage() {
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <TransactionFormDialog open={transactionOpen} onOpenChange={setTransactionOpen} />
       <CategoriesManagerDialog open={categoriesOpen} onOpenChange={setCategoriesOpen} />
+      <ContasBancariasManagerDialog open={contasOpen} onOpenChange={setContasOpen} />
     </div>
 
   );
