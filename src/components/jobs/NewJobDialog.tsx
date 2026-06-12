@@ -64,11 +64,26 @@ export function NewJobDialog({
     team_involved_ids: [] as string[],
   });
 
+  // Projetos dependem do cliente selecionado (cascade)
+  const selectedClientId = form.client_id;
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+    queryKey: ["projects", selectedClientId],
+    queryFn: () => fetchProjects({ clientId: selectedClientId }),
+    enabled: !!selectedClientId,
+  });
+
+  // Ao trocar de cliente, limpa o projeto selecionado (evita projeto do cliente anterior)
+  useEffect(() => {
+    setForm((f) => (f.project_id ? { ...f, project_id: "" } : f));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClientId]);
+
+  // Auto-preenche dados quando um projeto é escolhido
   useEffect(() => {
     if (form.project_id) {
-      const p = projects.find(x => x.id === form.project_id);
+      const p = projects.find((x) => x.id === form.project_id);
       if (p) {
-        setForm(f => ({
+        setForm((f) => ({
           ...f,
           client_id: p.client_id || f.client_id,
           contract_id: p.contract_id || f.contract_id,
@@ -77,6 +92,7 @@ export function NewJobDialog({
       }
     }
   }, [form.project_id, projects]);
+
 
   const mut = useMutation({
     mutationFn: async () => {
