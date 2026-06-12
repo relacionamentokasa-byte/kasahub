@@ -109,7 +109,11 @@ export function ContasBancariasManagerDialog({ open, onOpenChange }: Props) {
                 Nenhuma conta cadastrada ainda.
               </div>
             ) : (
-              contas.map((c) => (
+              contas.map((c: any) => {
+                const saldo = Number(c.saldo_atual ?? c.saldo_inicial ?? 0);
+                const saldoColor =
+                  saldo < 0 ? "text-red-600" : saldo > 0 ? "text-emerald-600" : "text-foreground";
+                return (
                 <div key={c.id} className="flex items-center justify-between p-3">
                   <div className="flex items-center gap-3">
                     <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -119,6 +123,9 @@ export function ContasBancariasManagerDialog({ open, onOpenChange }: Props) {
                       <div className="text-sm font-medium">{c.nome}</div>
                       <div className="text-xs text-muted-foreground">
                         Saldo inicial: {brl(Number(c.saldo_inicial))}
+                      </div>
+                      <div className={`text-sm font-semibold ${saldoColor}`}>
+                        Saldo atual: {brl(saldo)}
                       </div>
                     </div>
                   </div>
