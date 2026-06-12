@@ -65,17 +65,6 @@ const transactionSchema = z.object({
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
-const PREDEFINED_CATEGORIES = [
-  "Vendas",
-  "Prestação de Serviços",
-  "Impostos",
-  "Folha de Pagamento",
-  "Marketing",
-  "Ferramentas/Software",
-  "Infraestrutura",
-  "Geral",
-];
-
 interface TransactionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -83,11 +72,15 @@ interface TransactionFormDialogProps {
 
 export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDialogProps) {
   const queryClient = useQueryClient();
-  const [categorySearch, setCategorySearch] = useState("");
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: fetchClients,
+  });
+
+  const { data: categorias = [] } = useQuery({
+    queryKey: ["categorias_financeiras"],
+    queryFn: fetchCategoriasFinanceiras,
   });
 
   const form = useForm<TransactionFormValues>({
