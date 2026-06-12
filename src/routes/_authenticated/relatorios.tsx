@@ -265,6 +265,7 @@ function FinancialPage() {
     categoryId: "all",
     search: ""
   });
+  const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
 
   const periodFilters = useMemo(() => {
     const year = selectedDate.getFullYear();
