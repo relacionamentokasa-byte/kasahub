@@ -140,7 +140,8 @@ export function ContasBancariasManagerDialog({ open, onOpenChange }: Props) {
                     <Trash2 className="size-4 text-destructive" />
                   </Button>
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>
