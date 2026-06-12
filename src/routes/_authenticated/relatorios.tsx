@@ -313,8 +313,10 @@ function FinancialPage() {
       qc.invalidateQueries({ queryKey: ["transactions"] });
       qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
       qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      qc.invalidateQueries({ queryKey: ["saude-negocio"] });
       toast.success("Status atualizado");
     }
+
   });
 
 
