@@ -111,6 +111,8 @@ export function ExecutiveDashboard() {
     const periodJobs = jobs.filter(j => inRange(j.created_at));
     const jobsInProgress = jobs.filter(j => !j.done_at).length;
     const jobsOverdue = jobs.filter(j => !j.done_at && j.due_date && j.due_date < new Date().toISOString().slice(0, 10)).length;
+    const monthStartIso = startOfMonth(new Date()).toISOString();
+    const jobsCompletedMonth = jobs.filter(j => j.done_at && j.done_at >= monthStartIso).length;
     const pendingApprovals = jobs.filter(j => j.status === 'review').length;
 
     const todayIso = new Date().toISOString().slice(0, 10);
