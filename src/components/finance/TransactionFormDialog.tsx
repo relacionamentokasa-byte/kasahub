@@ -7,6 +7,7 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchCategoriasFinanceiras } from "@/lib/categorias-financeiras-api";
+import { fetchContasBancarias } from "@/lib/contas-bancarias-api";
 
 import {
   Dialog,
