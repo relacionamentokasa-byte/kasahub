@@ -29,6 +29,7 @@ import {
   AlertCircle,
   FileSpreadsheet,
   Trash2,
+  Settings,
   ArrowRight,
   ChevronLeft,
   ChevronRight
