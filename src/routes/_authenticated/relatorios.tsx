@@ -39,7 +39,7 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  Wand2
+  
 } from "lucide-react";
 
 
