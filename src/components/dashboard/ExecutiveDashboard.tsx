@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
 import { GestaoSection } from "./GestaoSection";
+import { SaudeNegocioSection } from "./SaudeNegocioSection";
 import { OperacaoSection } from "./OperacaoSection";
 import { PerformanceSection } from "./PerformanceSection";
 import { AgendaSection } from "./AgendaSection";
@@ -110,6 +111,8 @@ export function ExecutiveDashboard() {
     const periodJobs = jobs.filter(j => inRange(j.created_at));
     const jobsInProgress = jobs.filter(j => !j.done_at).length;
     const jobsOverdue = jobs.filter(j => !j.done_at && j.due_date && j.due_date < new Date().toISOString().slice(0, 10)).length;
+    const monthStartIso = startOfMonth(new Date()).toISOString();
+    const jobsCompletedMonth = jobs.filter(j => j.done_at && j.done_at >= monthStartIso).length;
     const pendingApprovals = jobs.filter(j => j.status === 'review').length;
 
     const todayIso = new Date().toISOString().slice(0, 10);
@@ -153,7 +156,7 @@ export function ExecutiveDashboard() {
       ind: { mrr: 0, monthIncome: 0, monthExpense: 0, monthResult: 0 },
       jobsInProgress,
       jobsOverdue,
-      jobsCompleted: 0,
+      jobsCompletedMonth,
       pendingApprovals,
       dmesInProduction: 0,
       performanceMetrics: { monthGoal: 0, monthActual: 0, yearGoal: 0, yearActual: 0, projection: 0 },
@@ -224,11 +227,14 @@ export function ExecutiveDashboard() {
         </div>
       </header>
 
+      <SaudeNegocioSection />
+
       {visibleSections.operacao && (
         <OperacaoSection 
           stats={{
             jobsInProgress: filteredData.jobsInProgress,
             overdueJobs: filteredData.jobsOverdue,
+            jobsCompletedMonth: filteredData.jobsCompletedMonth,
           }}
         />
       )}
