@@ -4,6 +4,7 @@ import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
 import { GestaoSection } from "./GestaoSection";
 import { SaudeNegocioSection } from "./SaudeNegocioSection";
+import { ResumoFinanceiroSection } from "./ResumoFinanceiroSection";
 import { OperacaoSection } from "./OperacaoSection";
 import { PerformanceSection } from "./PerformanceSection";
 import { AgendaSection } from "./AgendaSection";
