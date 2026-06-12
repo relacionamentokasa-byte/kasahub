@@ -379,36 +379,89 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
 
       {/* Actions */}
       <div className="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 flex items-center gap-3 z-50">
-        <Button 
-          onClick={handleSave} 
-          disabled={!isDirty || updateMut.isPending}
-          className={cn(
-            "rounded-full h-12 px-8 font-bold shadow-xl transition-all",
-            isDirty ? "bg-primary text-primary-foreground hover:scale-105" : "bg-muted text-muted-foreground"
-          )}
-        >
-          {updateMut.isPending ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5 mr-2" />}
-          Salvar Alterações
-        </Button>
+        {form.status !== "Aprovada" ? (
+          <>
+            <Button 
+              onClick={handleSave} 
+              disabled={!isDirty || updateMut.isPending}
+              className={cn(
+                "rounded-full h-12 px-8 font-bold shadow-xl transition-all",
+                isDirty ? "bg-primary text-primary-foreground hover:scale-105" : "bg-muted text-muted-foreground"
+              )}
+            >
+              {updateMut.isPending ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5 mr-2" />}
+              Salvar Alterações
+            </Button>
 
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={copyPublicLink}
-            className="rounded-full h-12 px-6 font-semibold bg-surface border-border shadow-lg hover:bg-muted transition-all"
-          >
-            <Copy className="size-4 mr-2" />
-            Link Público
-          </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                onClick={copyPublicLink}
+                className="rounded-full h-12 px-6 font-semibold bg-surface border-border shadow-lg hover:bg-muted transition-all"
+              >
+                <Copy className="size-4 mr-2" />
+                Link Público
+              </Button>
 
-          <Button
-            onClick={handleApprove}
-            className="rounded-full h-12 px-8 font-bold bg-[#FFBC45] text-black hover:bg-[#FFBC45]/90 shadow-xl transition-all hover:scale-105"
-          >
-            <Rocket className="size-5 mr-2" />
-            Aprovar / Converter
-          </Button>
-        </div>
+              <Button
+                onClick={handleApprove}
+                className="rounded-full h-12 px-8 font-bold bg-[#FFBC45] text-black hover:bg-[#FFBC45]/90 shadow-xl transition-all hover:scale-105"
+              >
+                <Rocket className="size-5 mr-2" />
+                Aprovar / Converter
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={copyPublicLink}
+              className="rounded-full h-12 px-6 font-semibold bg-surface border-border shadow-lg hover:bg-muted transition-all"
+            >
+              <Copy className="size-4 mr-2" />
+              Link Público
+            </Button>
+
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                const confirmed = window.confirm(
+                  "Você está cancelando uma proposta que já foi aprovada. " +
+                  "Isso removerá automaticamente o Projeto, o Contrato e todos os lançamentos financeiros vinculados. " +
+                  "Deseja continuar?"
+                );
+
+                if (!confirmed) return;
+
+                const { revertProposalApproval } = await import("@/lib/proposal-approval");
+                
+                toast.promise(
+                  revertProposalApproval(supabase, proposalId, { reopen: false }),
+                  {
+                    loading: "Cancelando proposta e removendo dados vinculados...",
+                    success: () => {
+                      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+                      qc.invalidateQueries({ queryKey: ["client-contracts"] });
+                      qc.invalidateQueries({ queryKey: ["client-projects"] });
+                      qc.invalidateQueries({ queryKey: ["client-transactions"] });
+                      qc.invalidateQueries({ queryKey: ["proposals"] });
+                      qc.invalidateQueries({ queryKey: ["contracts"] });
+                      qc.invalidateQueries({ queryKey: ["projects"] });
+                      qc.invalidateQueries({ queryKey: ["transactions"] });
+                      return "Proposta cancelada. O projeto e o financeiro vinculados foram removidos.";
+                    },
+                    error: (err) => `Erro ao cancelar: ${err.message}`
+                  }
+                );
+              }}
+              className="rounded-full h-12 px-8 font-bold shadow-xl transition-all hover:scale-105"
+            >
+              <Trash2 className="size-5 mr-2" />
+              Cancelar Proposta
+            </Button>
+          </div>
+        )}
       </div>
 
       <ProposalApprovalDialog 
