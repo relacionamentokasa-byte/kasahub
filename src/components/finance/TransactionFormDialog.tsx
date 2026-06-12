@@ -179,71 +179,45 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
             <FormField
               control={form.control}
               name="category"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Categoria</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
+              render={({ field }) => {
+                const currentType = form.watch("type");
+                const tipoFiltro = currentType === "income" ? "Receita" : currentType === "expense" ? "Despesa" : null;
+                const filtered = tipoFiltro
+                  ? categorias.filter((c) => c.tipo === tipoFiltro)
+                  : categorias;
+                return (
+                  <FormItem>
+                    <FormLabel>Categoria</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? field.value : "Selecione ou crie uma categoria..."}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
+                        <SelectTrigger>
+                          <SelectValue placeholder={
+                            currentType === "income"
+                              ? "Selecione uma categoria de receita..."
+                              : currentType === "expense"
+                              ? "Selecione uma categoria de despesa..."
+                              : "Selecione uma categoria..."
+                          } />
+                        </SelectTrigger>
                       </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
-                      <Command>
-                        <CommandInput 
-                          placeholder="Buscar ou criar categoria..." 
-                          onValueChange={setCategorySearch}
-                        />
-                        <CommandList>
-                          <CommandEmpty className="p-1">
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-start gap-2 text-xs"
-                              onClick={() => {
-                                field.onChange(categorySearch);
-                                setCategorySearch("");
-                              }}
-                            >
-                              <Plus className="h-3 w-3" />
-                              Criar "{categorySearch}"
-                            </Button>
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {PREDEFINED_CATEGORIES.map((cat) => (
-                              <CommandItem
-                                key={cat}
-                                value={cat}
-                                onSelect={() => {
-                                  field.onChange(cat);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    cat === field.value ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                {cat}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
+                      <SelectContent>
+                        {filtered.length === 0 ? (
+                          <div className="px-3 py-2 text-xs text-muted-foreground">
+                            Nenhuma categoria. Cadastre em "Categorias".
+                          </div>
+                        ) : (
+                          filtered.map((c) => (
+                            <SelectItem key={c.id} value={c.nome}>
+                              {c.nome}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormField
