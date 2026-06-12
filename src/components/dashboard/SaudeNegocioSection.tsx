@@ -65,6 +65,13 @@ async function fetchSaudeNegocio(refDate: Date) {
     .filter((t) => !isRecurringTx(t) && isAvulsoTx(t))
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
+  // Receita efetivamente recebida no mês (alimenta a Meta de Faturamento).
+  // Apenas transações com status de sucesso são contabilizadas — Pendente/Atrasado/Agendado são ignorados.
+  const PAID_STATUSES = new Set(["paid", "recebido", "pago", "efetivado", "liquidado"]);
+  const receitaEfetivada = incomes
+    .filter((t) => PAID_STATUSES.has(String(t.status || "").toLowerCase()))
+    .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+
 
   // Clientes Ativos
   const { count: clientesAtivos } = await supabase
@@ -101,12 +108,14 @@ async function fetchSaudeNegocio(refDate: Date) {
   return {
     mrr,
     avulsa,
+    receitaEfetivada,
     clientesAtivos: clientesAtivos || 0,
     propostasPendentes: propostasPendentes || 0,
     jobsConcluidos: jobsConcluidos || 0,
     meta,
   };
 }
+
 
 export function SaudeNegocioSection() {
   const qc = useQueryClient();
@@ -124,8 +133,11 @@ export function SaudeNegocioSection() {
   const clientesAtivos = data?.clientesAtivos || 0;
   const propostasPendentes = data?.propostasPendentes || 0;
   const meta = data?.meta || 0;
-  const faturado = mrr + avulsa;
-  const progresso = meta > 0 ? Math.min(100, (faturado / meta) * 100) : 0;
+  // Apenas receita efetivamente recebida no mês alimenta a Meta de Faturamento.
+  const faturado = data?.receitaEfetivada || 0;
+  const progressoRaw = meta > 0 ? (faturado / meta) * 100 : 0;
+  const progresso = Math.min(progressoRaw, 100);
+
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<string>("");
