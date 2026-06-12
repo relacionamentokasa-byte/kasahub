@@ -219,7 +219,7 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
             <Calendar className="size-4" />
             <h3 className="text-sm font-bold uppercase tracking-wider">Prazos e Validade</h3>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <Label>Válido até</Label>
               <Input 
@@ -234,6 +234,14 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 type="date" 
                 value={form.first_due_date || ""} 
                 onChange={e => { setForm({ ...form, first_due_date: e.target.value }); setIsDirty(true); }}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Data de Início do Serviço</Label>
+              <Input
+                type="date"
+                value={(form as any).service_start_date || ""}
+                onChange={e => { setForm({ ...form, service_start_date: e.target.value } as any); setIsDirty(true); }}
               />
             </div>
           </div>
