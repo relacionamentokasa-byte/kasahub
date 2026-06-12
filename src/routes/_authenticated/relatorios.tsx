@@ -339,6 +339,19 @@ function FinancialPage() {
     .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
+  const totals = filteredTransactions.reduce(
+    (acc: { receitas: number; despesas: number; proLabore: number }, t: any) => {
+      const v = Number(t.amount || 0);
+      const proLab = isProLabore(getCatName(t));
+      if (t.type === "income") acc.receitas += v;
+      else if (t.type === "expense" && proLab) acc.proLabore += v;
+      else if (t.type === "expense") acc.despesas += v;
+      return acc;
+    },
+    { receitas: 0, despesas: 0, proLabore: 0 },
+  );
+  const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
