@@ -68,6 +68,7 @@ export function InlineCategoryPicker({
     mutationFn: handleUpdateCategoria,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
       toast.success("Categoria atualizada");
       setOpen(false);
     },

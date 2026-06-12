@@ -44,6 +44,7 @@ export function InlineClientPicker({
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
       toast.success("Cliente vinculado com sucesso");
       setOpen(false);
     },
