@@ -321,6 +321,37 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               )}
             />
 
+            <FormField
+              control={form.control}
+              name="conta_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Conta Bancária</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma conta bancária" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {contas.length === 0 ? (
+                        <div className="px-3 py-2 text-xs text-muted-foreground">
+                          Nenhuma conta. Cadastre em "Contas".
+                        </div>
+                      ) : (
+                        contas.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <DialogFooter className="pt-4">
               <Button
                 type="button"
