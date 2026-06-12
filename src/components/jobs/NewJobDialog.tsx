@@ -45,10 +45,10 @@ export function NewJobDialog({
   defaultPeriod?: string;
 }) {
   const qc = useQueryClient();
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+
 
   const [form, setForm] = useState({
     title: "",
@@ -64,11 +64,26 @@ export function NewJobDialog({
     team_involved_ids: [] as string[],
   });
 
+  // Projetos dependem do cliente selecionado (cascade)
+  const selectedClientId = form.client_id;
+  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+    queryKey: ["projects", selectedClientId],
+    queryFn: () => fetchProjects({ clientId: selectedClientId }),
+    enabled: !!selectedClientId,
+  });
+
+  // Ao trocar de cliente, limpa o projeto selecionado (evita projeto do cliente anterior)
+  useEffect(() => {
+    setForm((f) => (f.project_id ? { ...f, project_id: "" } : f));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedClientId]);
+
+  // Auto-preenche dados quando um projeto é escolhido
   useEffect(() => {
     if (form.project_id) {
-      const p = projects.find(x => x.id === form.project_id);
+      const p = projects.find((x) => x.id === form.project_id);
       if (p) {
-        setForm(f => ({
+        setForm((f) => ({
           ...f,
           client_id: p.client_id || f.client_id,
           contract_id: p.contract_id || f.contract_id,
@@ -77,6 +92,7 @@ export function NewJobDialog({
       }
     }
   }, [form.project_id, projects]);
+
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -208,33 +224,45 @@ export function NewJobDialog({
 
                 <div className="space-y-1.5">
                   <Label>Projeto</Label>
-                  <Select 
-                    value={form.project_id || undefined} 
+                  <Select
+                    value={form.project_id || undefined}
                     onValueChange={(v) => {
-                      const p = projects.find(x => x.id === v);
+                      const p = projects.find((x) => x.id === v);
                       if (p) {
-                        setForm(f => ({ 
-                          ...f, 
-                          project_id: v, 
-                          client_id: p.client_id || f.client_id 
+                        setForm((f) => ({
+                          ...f,
+                          project_id: v,
+                          client_id: p.client_id || f.client_id,
                         }));
                       } else {
-                        setForm(f => ({ ...f, project_id: v }));
+                        setForm((f) => ({ ...f, project_id: v }));
                       }
                     }}
+                    disabled={!selectedClientId}
                   >
                     <SelectTrigger className={!form.project_id ? "border-destructive" : ""}>
-                      <SelectValue placeholder={form.client_id ? "Selecione o Projeto" : "Selecione o Cliente primeiro"} />
+                      <SelectValue
+                        placeholder={
+                          !selectedClientId
+                            ? "Selecione o Cliente primeiro"
+                            : isLoadingProjects
+                              ? "Carregando projetos..."
+                              : projects.length === 0
+                                ? "Nenhum projeto encontrado para este cliente"
+                                : "Selecione o Projeto"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {projects
-                        .filter(p => !form.client_id || p.client_id === form.client_id)
-                        .map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                        ))}
+                      {projects.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+
 
                 <div className="space-y-1.5">
                   <Label>Serviço Vinculado</Label>
