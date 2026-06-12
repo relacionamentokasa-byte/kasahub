@@ -12,6 +12,7 @@ import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
+import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -69,6 +70,7 @@ export const Route = createFileRoute("/_authenticated/relatorios")({
 function FinancialPage() {
   const qc = useQueryClient();
   const [importOpen, setImportOpen] = useState(false);
+  const [transactionOpen, setTransactionOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   const [filter, setFilter] = useState({
@@ -145,7 +147,10 @@ function FinancialPage() {
             <FileSpreadsheet className="size-4" /> Importar
           </Button>
 
-          <Button className="rounded-full gap-2 bg-primary text-primary-foreground">
+          <Button 
+            className="rounded-full gap-2 bg-primary text-primary-foreground"
+            onClick={() => setTransactionOpen(true)}
+          >
             <Plus className="size-4" /> Novo Lançamento
           </Button>
         </div>
@@ -294,7 +299,7 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className="py-4">
                     <Badge variant="outline" className="rounded-full text-[10px] font-mono-kasa uppercase tracking-tight">
-                      {(t.transaction_categories as any)?.name || "Geral"}
+                      {t.category || (t.transaction_categories as any)?.name || "Geral"}
                     </Badge>
                   </TableCell>
                   <TableCell className={cn("py-4 text-right font-bold text-sm", t.type === "income" ? "text-emerald-500" : "text-red-500")}>
@@ -335,6 +340,7 @@ function FinancialPage() {
       </div>
 
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      <TransactionFormDialog open={transactionOpen} onOpenChange={setTransactionOpen} />
     </div>
 
   );
