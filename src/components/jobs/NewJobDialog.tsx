@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { createJob, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
+import { createJob, createProject, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
+
 import { JOBS_QUERY_KEY } from "./JobsBoard";
 import { fetchPartners } from "@/lib/partners-api";
 import { fetchProfiles } from "@/lib/profile-api";
@@ -92,6 +93,42 @@ export function NewJobDialog({
       }
     }
   }, [form.project_id, projects]);
+
+  // Se o cliente escolhido não tem nenhum projeto, cria um automaticamente
+  // (projeto padrão com o nome do cliente) e seleciona no formulário.
+  const autoCreatingProjectRef = useRef(false);
+  useEffect(() => {
+    if (
+      !selectedClientId ||
+      isLoadingProjects ||
+      projects.length > 0 ||
+      autoCreatingProjectRef.current
+    ) return;
+
+    autoCreatingProjectRef.current = true;
+    (async () => {
+      try {
+        const client = clients.find((c: any) => c.id === selectedClientId);
+        const clientName = (client as any)?.company || (client as any)?.name || "Cliente";
+        const created = await createProject({
+          name: `Projeto ${clientName}`,
+          client_id: selectedClientId,
+          status: "active",
+          type: "automatic",
+        } as any);
+        await qc.invalidateQueries({ queryKey: ["projects", selectedClientId] });
+        await qc.invalidateQueries({ queryKey: ["projects"] });
+        setForm((f) => ({ ...f, project_id: (created as any).id }));
+        toast.success(`Projeto "${(created as any).name}" criado automaticamente`);
+      } catch (e: any) {
+        toast.error(`Não foi possível criar o projeto: ${e?.message || e}`);
+      } finally {
+        autoCreatingProjectRef.current = false;
+      }
+    })();
+  }, [selectedClientId, isLoadingProjects, projects.length, clients, qc]);
+
+
 
 
   const mut = useMutation({
