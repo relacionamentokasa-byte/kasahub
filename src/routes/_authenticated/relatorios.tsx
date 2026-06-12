@@ -480,19 +480,15 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="font-semibold text-sm">{t.description}</div>
-                    <Link 
-                      to="/clientes/$clientId"
-                      params={{ clientId: t.client_id || "" }}
-                      data-testid="client-link"
-                      className="group/client flex items-center gap-1.5 mt-0.5"
-                    >
-                      <span className="text-[10px] text-foreground/40 font-bold uppercase truncate max-w-[200px] group-hover/client:text-primary group-hover/client:underline cursor-pointer transition-all">
-                        {(t.clients as any)?.company || (t.clients as any)?.name || "—"}
-                      </span>
-                      <ArrowRight className="size-2 text-foreground/20 group-hover/client:text-primary group-hover/client:translate-x-0.5 transition-all" />
-                    </Link>
-
+                    <InlineClientPicker
+                      transactionId={t.id}
+                      currentClientId={t.client_id}
+                      currentClientName={
+                        (t.clients as any)?.company || (t.clients as any)?.name || null
+                      }
+                    />
                   </TableCell>
+
                   <TableCell className="py-4">
                     <Badge variant="outline" className="rounded-full text-[10px] font-mono-kasa uppercase tracking-tight">
                       {t.category || (t.transaction_categories as any)?.name || "Geral"}
