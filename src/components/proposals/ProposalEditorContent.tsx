@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
 import { cn } from "@/lib/utils";
 import { ProposalApprovalDialog } from "./ProposalApprovalDialog";
+import { ProposalSignatureCard } from "./ProposalSignatureCard";
 import {
   Select,
   SelectContent,
@@ -114,6 +115,20 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
 
   return (
     <div className="space-y-8 animate-reveal">
+      {/* Signature / Acceptance Card */}
+      <ProposalSignatureCard
+        status={form.status}
+        signatureClient={(form as any).signature_client}
+        clientSignatureData={(form as any).client_signature_data}
+        acceptedName={(form as any).accepted_name}
+        acceptedAt={(form as any).accepted_at}
+        signedAtClient={(form as any).signed_at_client}
+        acceptedIp={(form as any).accepted_ip}
+        clientSignedEmail={(form as any).client_signed_email}
+        clientEmail={form.client_email}
+        clientName={form.client_name}
+      />
+
       {/* Status Banner */}
       <div className="flex items-center justify-between bg-surface border border-border rounded-2xl p-4 shadow-sm">
         <div className="flex items-center gap-3">
