@@ -78,18 +78,16 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
       return result;
     },
       onSuccess: (data) => {
-        toast.success("Proposta Aprovada com Sucesso!");
-        // Invalidate ALL relevant queries to ensure UI updates everywhere
-        qc.invalidateQueries({ queryKey: ["client", data.client_id] });
-        qc.invalidateQueries({ queryKey: ["client-contracts", data.client_id] });
-        qc.invalidateQueries({ queryKey: ["client-proposals", data.client_id] });
-        qc.invalidateQueries({ queryKey: ["client-transactions", data.client_id] });
-        qc.invalidateQueries({ queryKey: ["proposals"] });
-        qc.invalidateQueries({ queryKey: ["contracts"] });
-        
+        // Fecha o modal ANTES de invalidar/navegar para evitar re-render em loop.
         onOpenChange(false);
         setSignature("");
+        toast.success("Proposta Aprovada com Sucesso!");
+        // Invalida apenas as queries essenciais — evita cascata de refetches.
+        qc.invalidateQueries({ queryKey: ["propostas"] });
+        qc.invalidateQueries({ queryKey: ["proposals"] });
+        qc.invalidateQueries({ queryKey: ["projects"] });
         onApproved?.();
+        // Redireciona o usuário (desmonta o editor e quebra qualquer loop residual).
         navigate({ to: `/clientes/${data.client_id}` });
       },
     onError: (e: Error) => {
