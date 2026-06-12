@@ -13,6 +13,7 @@ import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
+import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -28,6 +29,7 @@ import {
   AlertCircle,
   FileSpreadsheet,
   Trash2,
+  Settings,
   ArrowRight,
   ChevronLeft,
   ChevronRight
@@ -71,6 +73,7 @@ function FinancialPage() {
   const qc = useQueryClient();
   const [importOpen, setImportOpen] = useState(false);
   const [transactionOpen, setTransactionOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   
   const [filter, setFilter] = useState({
@@ -143,6 +146,9 @@ function FinancialPage() {
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" className="rounded-full gap-2" onClick={() => setCategoriesOpen(true)}>
+            <Settings className="size-4" /> Categorias
+          </Button>
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setImportOpen(true)}>
             <FileSpreadsheet className="size-4" /> Importar
           </Button>
@@ -341,6 +347,7 @@ function FinancialPage() {
 
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <TransactionFormDialog open={transactionOpen} onOpenChange={setTransactionOpen} />
+      <CategoriesManagerDialog open={categoriesOpen} onOpenChange={setCategoriesOpen} />
     </div>
 
   );
