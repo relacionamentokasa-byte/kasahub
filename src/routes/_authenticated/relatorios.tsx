@@ -28,6 +28,7 @@ import {
   Clock,
   AlertCircle,
   FileSpreadsheet,
+  Upload,
   Trash2,
   Settings,
   ArrowRight,
@@ -75,6 +76,21 @@ function FinancialPage() {
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const handleDownloadTemplate = () => {
+    const headers = ["Data", "Descrição", "Valor", "Tipo", "Categoria", "Status"];
+    const example = ["2026-01-15", "Exemplo de lançamento", "1000.00", "Receita", "Fee Mensal", "Pago"];
+    const csv = "\uFEFF" + [headers.join(","), example.join(",")].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "modelo-fluxo-de-caixa.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
   
   const [filter, setFilter] = useState({
     clientId: "all",
@@ -149,9 +165,21 @@ function FinancialPage() {
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setCategoriesOpen(true)}>
             <Settings className="size-4" /> Categorias
           </Button>
-          <Button variant="outline" className="rounded-full gap-2" onClick={() => setImportOpen(true)}>
-            <FileSpreadsheet className="size-4" /> Importar
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="rounded-full gap-2">
+                <FileSpreadsheet className="size-4" /> Importar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleDownloadTemplate}>
+                <Download className="size-4 mr-2" /> Baixar Planilha Modelo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setImportOpen(true)}>
+                <Upload className="size-4 mr-2" /> Fazer Upload de Dados
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button 
             className="rounded-full gap-2 bg-primary text-primary-foreground"
