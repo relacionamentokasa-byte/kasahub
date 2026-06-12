@@ -154,21 +154,30 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
           if (!proposal) {
             return Response.json({ error: "not_found" }, { status: 404 });
           }
-          if (proposal.status === "cancelled") {
+          if (proposal.status === "Cancelada" || proposal.status === "cancelled") {
             return Response.json({ error: "cancelled" }, { status: 409 });
           }
-          if (proposal.status === "accepted") {
+          if (
+            proposal.status === "Aprovada" ||
+            proposal.status === "accepted" ||
+            proposal.status === "signed" ||
+            proposal.status === "converted"
+          ) {
             return Response.json({ error: "already_accepted" }, { status: 409 });
           }
 
           const signatureLine = `${body.accepted_name} — CPF ${body.accepted_cpf} (${body.accepted_role})`;
+          const nowIso = new Date().toISOString();
 
-          await supabaseAdmin
+          // 1. Atualiza a proposta para "Aprovada" e grava todos os dados da assinatura
+          const { error: updErr } = await supabaseAdmin
             .from("proposals")
             .update({
-              status: "signed",
+              status: "Aprovada",
+              accepted_at: nowIso,
+              accepted_name: body.accepted_name,
               signature_client: signatureLine,
-              signed_at_client: new Date().toISOString(),
+              signed_at_client: nowIso,
               accepted_user_agent: userAgent,
               accepted_ip: ip,
               client_cpf: body.accepted_cpf,
@@ -181,12 +190,13 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
                 browser: `${uaResult.browser.name} ${uaResult.browser.version}`,
                 device: uaResult.device.type || "desktop",
                 os: `${uaResult.os.name} ${uaResult.os.version}`,
-                timestamp: new Date().toISOString(),
+                timestamp: nowIso,
                 email: body.accepted_email,
-                role: body.accepted_role
-              }
+                role: body.accepted_role,
+              },
             })
             .eq("id", proposal.id);
+          if (updErr) throw updErr;
 
           await supabaseAdmin.from("proposal_events").insert({
             proposal_id: proposal.id,
@@ -198,14 +208,20 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
               device: uaResult.device.type || "desktop",
               os: `${uaResult.os.name} ${uaResult.os.version}`,
               email: body.accepted_email,
-              role: body.accepted_role
-            }
+              role: body.accepted_role,
+            },
           });
 
-          await approveProposal(supabaseAdmin, proposal.id, {
-            acceptedName: body.accepted_name,
-            acceptedIp: ip,
-          });
+          // 2 + 3. Cria cliente (se necessário), contrato, projeto, jobs e lançamentos financeiros
+          try {
+            await approveProposal(supabaseAdmin, proposal.id, {
+              acceptedName: body.accepted_name,
+              acceptedIp: ip,
+            });
+          } catch (approvalErr) {
+            console.error("[API Public Proposal POST] Erro ao gerar projeto/financeiro:", approvalErr);
+            // Não falha a assinatura — a proposta já está aprovada; agência pode regerar manualmente
+          }
 
           return Response.json({ ok: true });
         } catch (err) {

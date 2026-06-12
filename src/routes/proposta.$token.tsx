@@ -210,7 +210,7 @@ function PublicProposalView() {
         if (j.error === "already_accepted") throw new Error("Esta proposta já foi aprovada.");
         throw new Error(j.error || "Esta proposta não pode ser aprovada sem a assinatura do cliente.");
       }
-      toast.success("Proposta aprovada e assinada com sucesso! Cliente, Job e Financeiro gerados.");
+      toast.success("Proposta assinada com sucesso! Seu projeto já foi iniciado.");
       await load();
     } catch (e) {
       toast.error((e as Error).message);
@@ -313,7 +313,7 @@ function PublicProposalView() {
   }
 
   const { proposal, agency, client, lead } = data;
-  const accepted = proposal.status === "accepted" || proposal.status === "signed" || proposal.status === "converted";
+  const accepted = proposal.status === "Aprovada" || proposal.status === "accepted" || proposal.status === "signed" || proposal.status === "converted";
   const cancelled = proposal.status === "cancelled";
 
   if (cancelled) {
