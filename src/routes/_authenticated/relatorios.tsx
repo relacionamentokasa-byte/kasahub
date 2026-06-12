@@ -81,14 +81,118 @@ function FinancialPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const parseDateBR = (raw: string): string | null => {
+    if (!raw) return null;
+    const s = String(raw).trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+    const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (m) {
+      const [, d, mo, y] = m;
+      const yyyy = y.length === 2 ? `20${y}` : y;
+      return `${yyyy}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+    }
+    const dt = new Date(s);
+    return isNaN(dt.getTime()) ? null : dt.toISOString().slice(0, 10);
+  };
+
+  const parseAmountBR = (raw: any): number => {
+    if (raw == null || raw === "") return 0;
+    if (typeof raw === "number") return raw;
+    const cleaned = String(raw)
+      .replace(/r\$\s?/gi, "")
+      .replace(/\s/g, "")
+      .replace(/\.(?=\d{3}(\D|$))/g, "")
+      .replace(",", ".");
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? 0 : n;
+  };
+
+  const mapType = (raw: any): "income" | "expense" => {
+    const s = String(raw || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return s.includes("receita") || s.includes("entrada") || s.includes("income") ? "income" : "expense";
+  };
+
+  const mapStatus = (raw: any): "paid" | "pending" => {
+    const s = String(raw || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return s.includes("pago") || s.includes("recebido") || s.includes("paid") || s.includes("liquidado") ? "paid" : "pending";
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    console.log(file);
-    toast.info("Arquivo selecionado. Integração de leitura em breve.", {
-      description: file.name,
+    const inputEl = event.target;
+
+    const Papa = (await import("papaparse")).default;
+    Papa.parse<Record<string, any>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          const rows = results.data || [];
+          if (!rows.length) {
+            toast.error("Planilha vazia ou sem dados válidos.");
+            inputEl.value = "";
+            return;
+          }
+
+          const payload = rows
+            .map((r) => {
+              const getCol = (...keys: string[]) => {
+                for (const k of keys) {
+                  const found = Object.keys(r).find(
+                    (rk) => rk.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === k
+                  );
+                  if (found && r[found] != null && String(r[found]).trim() !== "") return r[found];
+                }
+                return null;
+              };
+              const due_date = parseDateBR(getCol("data", "data de vencimento", "vencimento"));
+              const description = String(getCol("descricao", "descrição", "description") || "Importação");
+              const amount = parseAmountBR(getCol("valor", "amount"));
+              const type = mapType(getCol("tipo", "type"));
+              const status = mapStatus(getCol("status", "situacao", "situação"));
+              const category = getCol("categoria", "category");
+              if (!due_date || !amount) return null;
+              return {
+                description,
+                amount,
+                type,
+                kind: type,
+                status,
+                due_date,
+                category: category ? String(category) : null,
+                payment_date: status === "paid" ? due_date : null,
+                payment_method: "Importação",
+              };
+            })
+            .filter(Boolean) as any[];
+
+          if (!payload.length) {
+            toast.error("Nenhuma linha válida encontrada. Verifique data e valor.");
+            inputEl.value = "";
+            return;
+          }
+
+          const { supabase } = await import("@/integrations/supabase/client");
+          const { error } = await supabase.from("transactions").insert(payload);
+          if (error) {
+            toast.error("Erro na importação: " + error.message);
+          } else {
+            toast.success(`Importação concluída! ${payload.length} lançamentos adicionados com sucesso.`);
+            qc.invalidateQueries({ queryKey: ["transactions"] });
+            qc.invalidateQueries({ queryKey: ["finance-stats"] });
+          }
+        } catch (e: any) {
+          toast.error("Erro ao processar arquivo: " + (e?.message || "desconhecido"));
+        } finally {
+          inputEl.value = "";
+        }
+      },
+      error: (err) => {
+        toast.error("Erro ao ler CSV: " + err.message);
+        inputEl.value = "";
+      },
     });
-    event.target.value = "";
   };
 
   const handleDownloadTemplate = () => {
