@@ -126,7 +126,6 @@ export function JobsBoard({
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
-  const [isNewJobOpen, setIsNewJobOpen] = useState(false);
   const openJob = useMemo(() => jobs.find(j => j.id === openId) || null, [jobs, openId]);
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
@@ -272,11 +271,8 @@ export function JobsBoard({
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <span className="text-primary text-[10px] uppercase font-bold tracking-wider">
-            Operação · Jobs
-          </span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            Jobs
+            {title}
           </h1>
         </div>
         
@@ -468,26 +464,11 @@ export function JobsBoard({
           </Popover>
 
           <Button 
-            onClick={() => setIsNewJobOpen(true)}
+            onClick={() => setNewStage(stages[0] || null)}
             className="h-9 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md rounded-full px-4"
           >
             <Plus className="size-4" />
-            <span className="font-bold">Novo Job</span>
-          </Button>
-          
-          <NewJobDialog 
-            open={isNewJobOpen} 
-            onOpenChange={setIsNewJobOpen}
-            stage={stages[0] || null}
-            defaultClientId={clientId}
-            defaultProjectId={projectId}
-          />
-
-          <Button
-            onClick={() => setNewStage(stages[0] ?? null)}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-9 px-5 gap-2 shrink-0"
-          >
-            <Plus className="size-4 shrink-0" /> Novo
+            <span className="font-bold">+ Novo Job</span>
           </Button>
         </div>
       </div>
