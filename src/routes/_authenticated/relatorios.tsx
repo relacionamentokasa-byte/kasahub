@@ -16,6 +16,7 @@ import { TransactionFormDialog } from "@/components/finance/TransactionFormDialo
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
+import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
 import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
 import { 
   TrendingUp, 
