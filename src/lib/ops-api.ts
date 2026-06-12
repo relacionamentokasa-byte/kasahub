@@ -57,8 +57,16 @@ export async function deleteClient(id: string) {
 }
 
 // ---------- Projects ----------
-export async function fetchProjects(filters: { clientId?: string; status?: string; type?: string; contractId?: string; search?: string } = {}): Promise<Project[]> {
-  let q = supabase.from("projects").select("*").order("created_at", { ascending: false });
+export type ProjectWithDetails = Project & {
+  clients: { name: string | null; company: string | null } | null;
+  contracts: { end_date: string | null } | null;
+};
+
+export async function fetchProjects(filters: { clientId?: string; status?: string; type?: string; contractId?: string; search?: string } = {}): Promise<ProjectWithDetails[]> {
+  let q = supabase
+    .from("projects")
+    .select("*, clients(name, company), contracts(end_date)")
+    .order("created_at", { ascending: false });
   
   if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
   if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
@@ -71,7 +79,7 @@ export async function fetchProjects(filters: { clientId?: string; status?: strin
   
   const { data, error } = await q;
   if (error) throw error;
-  return data ?? [];
+  return (data as ProjectWithDetails[]) ?? [];
 }
 
 export async function fetchProject(id: string): Promise<Project> {
