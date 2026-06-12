@@ -53,6 +53,11 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     queryFn: () => fetchProposal(proposalId),
   });
 
+  const { data: contractTemplates = [] } = useQuery({
+    queryKey: ["contract-templates"],
+    queryFn: fetchContractTemplates,
+  });
+
   useEffect(() => {
     if (proposal) {
       setForm(proposal);
