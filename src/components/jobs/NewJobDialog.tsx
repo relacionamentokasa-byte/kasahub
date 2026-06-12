@@ -67,7 +67,13 @@ export function NewJobDialog({
 
   // Projetos dependem do cliente selecionado (cascade)
   const selectedClientId = form.client_id;
-  const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
+  const {
+    data: projects = [],
+    isLoading: isLoadingProjects,
+    isFetching: isFetchingProjects,
+    isSuccess: isProjectsSuccess,
+    dataUpdatedAt: projectsUpdatedAt,
+  } = useQuery({
     queryKey: ["projects", selectedClientId],
     queryFn: async () => {
       console.log("[NewJobDialog] Buscando projetos para o cliente:", selectedClientId);
@@ -78,9 +84,10 @@ export function NewJobDialog({
     enabled: !!selectedClientId,
   });
 
-  // Ao trocar de cliente, limpa o projeto selecionado (evita projeto do cliente anterior)
+  // Ao trocar de cliente, limpa o projeto selecionado e libera o ref de auto-criação
   useEffect(() => {
     setForm((f) => (f.project_id ? { ...f, project_id: "" } : f));
+    autoCreatingProjectRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClientId]);
 
@@ -99,13 +106,14 @@ export function NewJobDialog({
     }
   }, [form.project_id, projects]);
 
-  // Se o cliente escolhido não tem nenhum projeto, cria um automaticamente
-  // (projeto padrão com o nome do cliente) e seleciona no formulário.
+  // Se o cliente escolhido REALMENTE não tem nenhum projeto (fetch concluído com sucesso e retornou 0),
+  // cria um automaticamente. Usamos isSuccess + !isFetching para evitar criar durante a janela de loading.
   const autoCreatingProjectRef = useRef(false);
   useEffect(() => {
     if (
       !selectedClientId ||
-      isLoadingProjects ||
+      !isProjectsSuccess ||
+      isFetchingProjects ||
       projects.length > 0 ||
       autoCreatingProjectRef.current
     ) return;
@@ -131,7 +139,7 @@ export function NewJobDialog({
         autoCreatingProjectRef.current = false;
       }
     })();
-  }, [selectedClientId, isLoadingProjects, projects.length, clients, qc]);
+  }, [selectedClientId, isProjectsSuccess, isFetchingProjects, projectsUpdatedAt, projects.length, clients, qc]);
 
 
 
