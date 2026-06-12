@@ -26,10 +26,13 @@ async function fetchSaudeNegocio(refDate: Date) {
   const monthStartDate = startOfMonth(refDate).toISOString().slice(0, 10);
   const monthEndDate = endOfMonth(refDate).toISOString().slice(0, 10);
 
-  // Transações do mês com categoria embutida
+  // Transações do mês com categoria + contrato + proposta embutidos
+  // (fallback caso a categoria não tenha sido injetada na automação)
   const { data: txData, error: txErr } = await supabase
     .from("transactions")
-    .select("amount, type, kind, due_date, status, categorias_financeiras(nome)")
+    .select(
+      "amount, type, kind, is_recurring, due_date, status, contract_id, proposal_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
+    )
     .gte("due_date", monthStartDate)
     .lte("due_date", monthEndDate);
   if (txErr) console.error("transactions fetch error", txErr);
@@ -39,13 +42,29 @@ async function fetchSaudeNegocio(refDate: Date) {
   // MRR precisa refletir a previsibilidade de faturamento, incluindo parcelas vincendas.
   const incomes = txs.filter((t) => (t.kind || t.type) === "income");
 
-  const mrr = incomes
-    .filter((t) => matchesKeyword(t.categorias_financeiras?.nome, MRR_KEYWORDS))
+  const isRecurringTx = (t: any) => {
+    if (matchesKeyword(t.categorias_financeiras?.nome, MRR_KEYWORDS)) return true;
+    if (t.is_recurring === true) return true;
+    const contractType = t.contracts?.type || t.proposals?.contract_type;
+    if (contractType && String(contractType).toLowerCase().includes("recurring")) return true;
+    return false;
+  };
+
+  const isAvulsoTx = (t: any) => {
+    if (matchesKeyword(t.categorias_financeiras?.nome, AVULSO_KEYWORDS)) return true;
+    if (t.is_recurring === false && (t.contract_id || t.proposal_id)) {
+      const contractType = t.contracts?.type || t.proposals?.contract_type;
+      if (contractType && !String(contractType).toLowerCase().includes("recurring")) return true;
+      if (!contractType) return true;
+    }
+    return false;
+  };
+
+  const mrr = incomes.filter(isRecurringTx).reduce((acc, t) => acc + Number(t.amount || 0), 0);
+  const avulsa = incomes
+    .filter((t) => !isRecurringTx(t) && isAvulsoTx(t))
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
-  const avulsa = incomes
-    .filter((t) => matchesKeyword(t.categorias_financeiras?.nome, AVULSO_KEYWORDS))
-    .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
   // Clientes Ativos
   const { count: clientesAtivos } = await supabase
