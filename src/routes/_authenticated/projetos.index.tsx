@@ -116,8 +116,12 @@ function ProjetosPage() {
                 {p.name}
               </Link>
               {(() => {
-                const clientName = p.clients?.[0]?.name || p.clients?.[0]?.company || null;
-                const dateAlert = getDateAlertColor(p.contracts?.[0]?.end_date);
+                const clientRel: any = p.clients;
+                const client = Array.isArray(clientRel) ? clientRel[0] : clientRel;
+                const clientName = client?.name || client?.company || null;
+                const contractRel: any = p.contracts;
+                const contract = Array.isArray(contractRel) ? contractRel[0] : contractRel;
+                const dateAlert = getDateAlertColor(contract?.end_date);
                 return (
                   <div className="mt-2 space-y-1">
                     {clientName && (
