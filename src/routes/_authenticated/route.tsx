@@ -59,6 +59,7 @@ function ShellLayout() {
         </div>
         <OnboardingWizard />
         <FloatingActions />
+        <GlobalChatWidget />
       </div>
     </SidebarProvider>
   );
