@@ -440,6 +440,7 @@ function FinancialPage() {
 
       <FinancialRulesPanel
         totalFaturamento={stats?.recebidasReceitas ?? 0}
+        despesasReais={stats?.pagasDespesas ?? 0}
         periodoLabel={currentMonthLabel}
       />
 
