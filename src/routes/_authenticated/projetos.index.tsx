@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, MoreVertical, Pencil, Trash2, Search, CheckSquare } from "lucide-react";
+import { Plus, FolderKanban, MoreVertical, Pencil, Trash2, Search, CheckSquare, Building2, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchClients, deleteProject } from "@/lib/ops-api";
