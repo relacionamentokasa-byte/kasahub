@@ -69,7 +69,12 @@ export function NewJobDialog({
   const selectedClientId = form.client_id;
   const { data: projects = [], isLoading: isLoadingProjects } = useQuery({
     queryKey: ["projects", selectedClientId],
-    queryFn: () => fetchProjects({ clientId: selectedClientId }),
+    queryFn: async () => {
+      console.log("[NewJobDialog] Buscando projetos para o cliente:", selectedClientId);
+      const result = await fetchProjects({ clientId: selectedClientId });
+      console.log("[NewJobDialog] Projetos retornados:", result?.length, result);
+      return result;
+    },
     enabled: !!selectedClientId,
   });
 
