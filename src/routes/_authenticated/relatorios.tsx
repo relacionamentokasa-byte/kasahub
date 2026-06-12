@@ -32,6 +32,7 @@ import {
   Upload,
   Trash2,
   Settings,
+  Landmark,
   ArrowRight,
   ChevronLeft,
   ChevronRight
