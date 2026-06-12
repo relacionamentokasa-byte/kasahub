@@ -125,9 +125,44 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
           <Label className="text-xs font-bold uppercase tracking-wider text-foreground/50">Alterar Status:</Label>
           <Select
             value={form.status}
-            onValueChange={(val) => {
-              setForm({ ...form, status: val });
-              setIsDirty(true);
+            onValueChange={async (val) => {
+              const oldStatus = form.status;
+              const newStatus = val;
+
+              // Se a proposta estava Aprovada e o novo status NÃO é Aprovada, reverter
+              if (oldStatus === "Aprovada" && newStatus !== "Aprovada") {
+                const confirmed = window.confirm(
+                  "Você está revertendo uma proposta que já foi aprovada. " +
+                  "Isso removerá automaticamente o Projeto, o Contrato e todos os lançamentos financeiros vinculados. " +
+                  "Deseja continuar?"
+                );
+
+                if (!confirmed) return;
+
+                const { revertProposalApproval } = await import("@/lib/proposal-approval");
+                
+                toast.promise(
+                  revertProposalApproval(supabase, proposalId, { reopen: newStatus === "Rascunho" }),
+                  {
+                    loading: "Revertendo aprovação e removendo dados vinculados...",
+                    success: () => {
+                      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+                      qc.invalidateQueries({ queryKey: ["client-contracts"] });
+                      qc.invalidateQueries({ queryKey: ["client-projects"] });
+                      qc.invalidateQueries({ queryKey: ["client-transactions"] });
+                      qc.invalidateQueries({ queryKey: ["proposals"] });
+                      qc.invalidateQueries({ queryKey: ["contracts"] });
+                      qc.invalidateQueries({ queryKey: ["projects"] });
+                      qc.invalidateQueries({ queryKey: ["transactions"] });
+                      return "Status revertido. O projeto e o financeiro vinculados foram removidos.";
+                    },
+                    error: (err) => `Erro ao reverter: ${err.message}`
+                  }
+                );
+              } else {
+                setForm({ ...form, status: newStatus });
+                setIsDirty(true);
+              }
             }}
           >
             <SelectTrigger className="w-[180px] h-9 rounded-full bg-surface border-border">
@@ -136,9 +171,10 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
             <SelectContent>
               <SelectItem value="Rascunho">Rascunho</SelectItem>
               <SelectItem value="Enviada">Enviada</SelectItem>
-              <SelectItem value="Aprovada" className="text-green-600 font-semibold">Aprovada</SelectItem>
+              <SelectItem value="Aprovada" className="text-green-600 font-semibold" disabled={form.status === "Aprovada"}>Aprovada</SelectItem>
               <SelectItem value="Recusada" className="text-red-600 font-semibold">Recusada</SelectItem>
               <SelectItem value="Encerrada">Encerrada</SelectItem>
+              <SelectItem value="Cancelada" className="text-red-600 font-semibold">Cancelada</SelectItem>
             </SelectContent>
           </Select>
         </div>
