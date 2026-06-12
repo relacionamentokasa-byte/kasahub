@@ -271,9 +271,6 @@ export function JobsBoard({
     <div className="flex flex-col h-full">
       <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <span className="text-primary text-[10px] uppercase font-bold tracking-wider">
-            {eyebrow}
-          </span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
             {title}
           </h1>
