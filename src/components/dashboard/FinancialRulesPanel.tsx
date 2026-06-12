@@ -7,57 +7,69 @@ import {
   Wallet,
   Receipt,
   Sparkles,
+  CheckCircle2,
+  AlertTriangle,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { brl } from "@/lib/utils-format";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const PRO_LABORE_FIXO = 6484; // 4 sócios x R$ 1.621,00
 
 interface FinancialRulesPanelProps {
   totalFaturamento: number;
+  despesasReais?: number;
   periodoLabel?: string;
 }
 
 export function FinancialRulesPanel({
   totalFaturamento,
+  despesasReais = 0,
   periodoLabel,
 }: FinancialRulesPanelProps) {
   const calc = useMemo(() => {
-    const reservaDespesas = totalFaturamento * 0.25;
+    const tetoDespesas = totalFaturamento * 0.25;
     const reservaInvestimento = totalFaturamento * 0.10;
     const totalProLabore = PRO_LABORE_FIXO;
     const lucroBruto =
-      totalFaturamento - reservaDespesas - reservaInvestimento - totalProLabore;
+      totalFaturamento - despesasReais - reservaInvestimento - totalProLabore;
     const lucroLiquido = Math.max(lucroBruto, 0);
     const distribuicaoSocios = lucroLiquido * 0.75;
     const caixaEmpresa = lucroLiquido * 0.25;
+    const economiaDespesas = tetoDespesas - despesasReais;
+    const dentroDaMeta = despesasReais <= tetoDespesas;
+    const pctTeto =
+      tetoDespesas > 0 ? (despesasReais / tetoDespesas) * 100 : 0;
     return {
-      reservaDespesas,
+      tetoDespesas,
+      despesasReais,
       reservaInvestimento,
       totalProLabore,
       lucroLiquido,
       lucroBruto,
       distribuicaoSocios,
       caixaEmpresa,
+      economiaDespesas,
+      dentroDaMeta,
+      pctTeto,
     };
-  }, [totalFaturamento]);
+  }, [totalFaturamento, despesasReais]);
 
   const pct = (v: number) =>
     totalFaturamento > 0 ? (v / totalFaturamento) * 100 : 0;
 
   const chartData = [
-    { name: "Despesas (25%)", value: calc.reservaDespesas, color: "#f59e0b" },
+    { name: "Despesas Reais", value: calc.despesasReais, color: calc.dentroDaMeta ? "#10b981" : "#ef4444" },
     { name: "Investimento (10%)", value: calc.reservaInvestimento, color: "#3b82f6" },
     { name: "Pró-labore", value: calc.totalProLabore, color: "#a855f7" },
-    { name: "Distribuição Sócios", value: calc.distribuicaoSocios, color: "#10b981" },
+    { name: "Distribuição Sócios", value: calc.distribuicaoSocios, color: "#059669" },
     { name: "Caixa da Empresa", value: calc.caixaEmpresa, color: "#0ea5e9" },
   ].filter((d) => d.value > 0);
 
   return (
     <section className="rounded-3xl border border-border bg-gradient-to-br from-surface via-background to-surface p-6 shadow-sm space-y-6">
-      {/* Header */}
       <header className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
@@ -82,10 +94,8 @@ export function FinancialRulesPanel({
         </div>
       </header>
 
-      {/* Funnel layout */}
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         <div className="space-y-4">
-          {/* Top: Faturamento */}
           <BlockCard
             icon={TrendingUp}
             label="Faturamento Bruto (100%)"
@@ -95,15 +105,78 @@ export function FinancialRulesPanel({
             big
           />
 
-          {/* Deduções iniciais */}
           <div className="grid sm:grid-cols-2 gap-3">
-            <BlockCard
-              icon={Receipt}
-              label="Reserva Despesas (25%)"
-              value={calc.reservaDespesas}
-              percentage={pct(calc.reservaDespesas)}
-              tone="amber"
-            />
+            {/* Despesas: Realizado vs Teto */}
+            <div
+              className={cn(
+                "rounded-2xl border p-4 space-y-2",
+                calc.dentroDaMeta
+                  ? "bg-emerald-50 border-emerald-200"
+                  : "bg-rose-50 border-rose-200",
+              )}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Receipt
+                    className={cn(
+                      "size-4",
+                      calc.dentroDaMeta ? "text-emerald-700" : "text-rose-700",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-xs font-bold uppercase tracking-wider",
+                      calc.dentroDaMeta ? "text-emerald-700" : "text-rose-700",
+                    )}
+                  >
+                    Despesas
+                  </span>
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-bold tabular-nums",
+                    calc.dentroDaMeta ? "text-emerald-700" : "text-rose-700",
+                  )}
+                >
+                  {calc.pctTeto.toFixed(1)}% do teto
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xl font-bold tabular-nums text-foreground">
+                  {brl(calc.despesasReais)}
+                </div>
+                <div className="text-[11px] text-foreground/60">
+                  Realizado · Teto: <span className="font-semibold">{brl(calc.tetoDespesas)}</span>
+                </div>
+              </div>
+              <Progress
+                value={Math.min(calc.pctTeto, 100)}
+                className={cn(
+                  "h-1.5",
+                  calc.dentroDaMeta
+                    ? "[&>div]:bg-emerald-500"
+                    : "[&>div]:bg-rose-500",
+                )}
+              />
+              {calc.dentroDaMeta ? (
+                <Badge
+                  variant="secondary"
+                  className="bg-emerald-100 text-emerald-800 border-emerald-200 gap-1"
+                >
+                  <CheckCircle2 className="size-3" />
+                  Economia de {brl(calc.economiaDespesas)}
+                </Badge>
+              ) : (
+                <Badge
+                  variant="destructive"
+                  className="gap-1"
+                >
+                  <AlertTriangle className="size-3" />
+                  Acima do teto em {brl(Math.abs(calc.economiaDespesas))}
+                </Badge>
+              )}
+            </div>
+
             <BlockCard
               icon={PiggyBank}
               label="Reserva Investimento (10%)"
@@ -113,7 +186,6 @@ export function FinancialRulesPanel({
             />
           </div>
 
-          {/* Pró-labore */}
           <BlockCard
             icon={Users}
             label="Pró-labore Fixo (4 Sócios)"
@@ -123,13 +195,12 @@ export function FinancialRulesPanel({
             hint="4 × R$ 1.621,00"
           />
 
-          {/* Base: Lucro Líquido + divisão */}
           <div
             className={cn(
               "rounded-2xl p-5 border-2 space-y-4",
               calc.lucroBruto < 0
                 ? "bg-rose-50 border-rose-200"
-                : "bg-emerald-50 border-emerald-200"
+                : "bg-emerald-50 border-emerald-200",
             )}
           >
             <div className="flex items-center justify-between">
@@ -140,7 +211,7 @@ export function FinancialRulesPanel({
                 <div
                   className={cn(
                     "text-3xl font-bold",
-                    calc.lucroBruto < 0 ? "text-rose-700" : "text-emerald-700"
+                    calc.lucroBruto < 0 ? "text-rose-700" : "text-emerald-700",
                   )}
                 >
                   {brl(calc.lucroLiquido)}
@@ -148,6 +219,11 @@ export function FinancialRulesPanel({
                 {calc.lucroBruto < 0 && (
                   <div className="text-xs text-rose-600 mt-1">
                     Operação no vermelho: {brl(calc.lucroBruto)}
+                  </div>
+                )}
+                {calc.dentroDaMeta && calc.economiaDespesas > 0 && (
+                  <div className="text-[11px] text-emerald-700/80 mt-1">
+                    + {brl(calc.economiaDespesas)} adicionados pela economia em despesas
                   </div>
                 )}
               </div>
@@ -173,7 +249,6 @@ export function FinancialRulesPanel({
           </div>
         </div>
 
-        {/* Pie chart */}
         <div className="rounded-2xl border border-border bg-surface p-4 flex flex-col">
           <div className="text-[10px] uppercase tracking-widest font-bold text-foreground/50 mb-2">
             Composição do Faturamento

@@ -180,6 +180,7 @@ export function ResumoFinanceiroSection() {
 
       <FinancialRulesPanel
         totalFaturamento={m.receitasRecebidas}
+        despesasReais={m.despesasPagas}
         periodoLabel={periodoLabel}
       />
     </div>
