@@ -61,6 +61,7 @@ type Proposal = {
   contract_type: string;
   contract_term: string | null;
   first_due_date: string | null;
+  service_start_date?: string | null;
   billing_day: number;
   number_display?: string | null;
   contract_template_id?: string | null;
@@ -145,6 +146,8 @@ function PublicProposalView() {
 
   useEffect(() => {
     load();
+    const interval = setInterval(load, 7000);
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -541,7 +544,7 @@ function PublicProposalView() {
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Início</p>
-                    <p className="text-sm font-bold font-sans">{proposal.first_due_date ? new Date(proposal.first_due_date).toLocaleDateString("pt-BR") : '—'}</p>
+                    <p className="text-sm font-bold font-sans">{proposal.service_start_date ? new Date(proposal.service_start_date + 'T00:00:00').toLocaleDateString("pt-BR") : 'A definir'}</p>
                 </div>
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Dia de Cobrança</p>
