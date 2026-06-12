@@ -7,6 +7,7 @@ import { AppTopbar } from "@/components/AppTopbar";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { FloatingActions } from "@/components/FloatingActions";
 import { GlobalChatWidget } from "@/components/GlobalChatWidget";
+import { usePresence } from "@/hooks/use-presence";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
