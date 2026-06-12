@@ -6,6 +6,7 @@ import {
   formatCurrency,
   type Proposal,
 } from "@/lib/crm-api";
+import { fetchContractTemplates } from "@/lib/contracts-api";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
