@@ -224,33 +224,45 @@ export function NewJobDialog({
 
                 <div className="space-y-1.5">
                   <Label>Projeto</Label>
-                  <Select 
-                    value={form.project_id || undefined} 
+                  <Select
+                    value={form.project_id || undefined}
                     onValueChange={(v) => {
-                      const p = projects.find(x => x.id === v);
+                      const p = projects.find((x) => x.id === v);
                       if (p) {
-                        setForm(f => ({ 
-                          ...f, 
-                          project_id: v, 
-                          client_id: p.client_id || f.client_id 
+                        setForm((f) => ({
+                          ...f,
+                          project_id: v,
+                          client_id: p.client_id || f.client_id,
                         }));
                       } else {
-                        setForm(f => ({ ...f, project_id: v }));
+                        setForm((f) => ({ ...f, project_id: v }));
                       }
                     }}
+                    disabled={!selectedClientId}
                   >
                     <SelectTrigger className={!form.project_id ? "border-destructive" : ""}>
-                      <SelectValue placeholder={form.client_id ? "Selecione o Projeto" : "Selecione o Cliente primeiro"} />
+                      <SelectValue
+                        placeholder={
+                          !selectedClientId
+                            ? "Selecione o Cliente primeiro"
+                            : isLoadingProjects
+                              ? "Carregando projetos..."
+                              : projects.length === 0
+                                ? "Nenhum projeto encontrado para este cliente"
+                                : "Selecione o Projeto"
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {projects
-                        .filter(p => !form.client_id || p.client_id === form.client_id)
-                        .map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                        ))}
+                      {projects.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+
 
                 <div className="space-y-1.5">
                   <Label>Serviço Vinculado</Label>
