@@ -120,7 +120,9 @@ export function AppSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <div className="h-16 flex justify-center items-center px-4 mt-2">
-        <KasaLogo collapsed={collapsed} variant="sidebar" iconOnly={collapsed} />
+        <Link to="/dashboard" className="flex items-center justify-center">
+          <KasaLogo collapsed={collapsed} variant="sidebar" iconOnly={collapsed} />
+        </Link>
       </div>
 
       <SidebarContent className="px-2 gap-2">
@@ -188,7 +190,7 @@ function UserFooter({ collapsed }: { collapsed: boolean }) {
   const initials = name.split(" ").map((n: string) => n[0]).join("").toUpperCase().slice(0, 2);
 
   return (
-    <Link to="/config?tab=profile" className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/5 transition-colors cursor-pointer">
+    <Link to="/config" className="flex items-center gap-3 px-2 py-2 rounded-md hover:bg-white/5 transition-colors cursor-pointer">
       <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
         {profile?.avatar_url ? (
           <img src={profile.avatar_url} alt={name} className="size-full object-cover" />
