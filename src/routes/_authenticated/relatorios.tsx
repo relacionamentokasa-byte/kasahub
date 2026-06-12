@@ -339,6 +339,19 @@ function FinancialPage() {
     .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
+  const totals = filteredTransactions.reduce(
+    (acc: { receitas: number; despesas: number; proLabore: number }, t: any) => {
+      const v = Number(t.amount || 0);
+      const proLab = isProLabore(getCatName(t));
+      if (t.type === "income") acc.receitas += v;
+      else if (t.type === "expense" && proLab) acc.proLabore += v;
+      else if (t.type === "expense") acc.despesas += v;
+      return acc;
+    },
+    { receitas: 0, despesas: 0, proLabore: 0 },
+  );
+  const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -589,6 +602,17 @@ function FinancialPage() {
             )}
           </TableBody>
         </Table>
+
+        <div className="border-t border-border bg-muted/30 px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <TotalCell label="Receitas" value={totals.receitas} className="text-emerald-600 dark:text-emerald-400" />
+          <TotalCell label="Despesas" value={totals.despesas} className="text-red-600 dark:text-red-400" />
+          <TotalCell label="Pró-labore" value={totals.proLabore} className="text-purple-600 dark:text-purple-400" />
+          <TotalCell
+            label="Saldo do Período"
+            value={saldoPeriodo}
+            className={saldoPeriodo >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}
+          />
+        </div>
       </div>
 
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
@@ -597,6 +621,15 @@ function FinancialPage() {
       <ContasBancariasManagerDialog open={contasOpen} onOpenChange={setContasOpen} />
     </div>
 
+  );
+}
+
+function TotalCell({ label, value, className }: { label: string; value: number; className?: string }) {
+  return (
+    <div className="flex flex-col">
+      <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">{label}</span>
+      <span className={cn("text-base lg:text-lg font-bold tracking-tight tabular-nums", className)}>{brl(value)}</span>
+    </div>
   );
 }
 
