@@ -121,32 +121,47 @@ function PublicProposalView() {
   const [acceptRepresentation, setAcceptRepresentation] = useState(false);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const sigPad = useRef<SignatureCanvas>(null);
+  const lastDataRef = useRef<string | null>(null);
+  const signingRef = useRef(false);
+  signingRef.current = signing;
 
-  async function load() {
-    setLoading(true);
+  async function load(silent = false) {
+    // Only show the full-screen loader on the very first load.
+    // Background refreshes must be invisible to the user (no flicker / scroll reset).
+    if (!silent) setLoading(true);
     try {
       const res = await fetch(`/api/public/proposta/${token}`);
       if (res.status === 404) {
-        setErrorCode("not_found");
+        if (!silent) setErrorCode("not_found");
         return;
       }
       if (!res.ok) {
-        setErrorCode("generic");
+        if (!silent) setErrorCode("generic");
         return;
       }
-      const json = await res.json();
-      setData(json);
+      const text = await res.text();
+      // Skip re-render entirely if nothing changed since the last fetch.
+      if (lastDataRef.current === text) {
+        if (!silent) setErrorCode(null);
+        return;
+      }
+      lastDataRef.current = text;
+      setData(JSON.parse(text));
       setErrorCode(null);
     } catch {
-      setErrorCode("generic");
+      if (!silent) setErrorCode("generic");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 7000);
+    const interval = setInterval(() => {
+      // Pause background refresh while the client is signing.
+      if (signingRef.current) return;
+      load(true);
+    }, 15000);
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
