@@ -79,14 +79,17 @@ export function NewProjectDialog({
   });
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
 
-  const { data: contracted = [] } = useQuery({
+  const { data: contracted } = useQuery({
     queryKey: ["client-services", form.client_id],
     queryFn: () => fetchClientServices(form.client_id),
     enabled: !!form.client_id,
   });
 
   useEffect(() => {
-    // Pre-select all active contracted services when client changes
+    // Pre-select all active contracted services when client changes.
+    // IMPORTANTE: só roda quando há dados reais — evita loop infinito (erro #185)
+    // causado por um array default novo a cada render.
+    if (!contracted) return;
     setSelectedServiceIds(
       contracted.filter((c) => c.status === "active").map((c) => c.service_id),
     );

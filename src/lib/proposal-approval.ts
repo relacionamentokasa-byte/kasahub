@@ -157,6 +157,17 @@ export async function approveProposal(
 
   // Create Project (vinculado ao cliente, proposta e contrato)
   let projectId: string | null = proposal.generated_project_id ?? null;
+
+  // Se a proposta aponta para um projeto que foi excluído, recria.
+  if (projectId) {
+    const { data: existingProject } = await sb
+      .from("projects")
+      .select("id")
+      .eq("id", projectId)
+      .maybeSingle();
+    if (!existingProject) projectId = null;
+  }
+
   if (!projectId) {
     if (!clientId) {
       throw new Error("Não foi possível criar o projeto: cliente não identificado.");
@@ -172,6 +183,7 @@ export async function approveProposal(
       status: "active",
       type: "automatic",
     };
+    console.log("Payload do Projeto:", projectPayload);
     try {
       const { data: createdProject, error: prjErr } = await sb
         .from("projects")
