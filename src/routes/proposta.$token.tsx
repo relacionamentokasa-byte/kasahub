@@ -220,10 +220,27 @@ function PublicProposalView() {
       return;
     }
 
-    const signatureData = sigPad.current?.getTrimmedCanvas().toDataURL('image/png');
+    let signatureData: string | undefined;
+    try {
+      signatureData = sigPad.current?.getTrimmedCanvas().toDataURL('image/png');
+    } catch (trimErr) {
+      console.warn("[proposta sign] getTrimmedCanvas falhou, usando canvas raw", trimErr);
+      try {
+        signatureData = sigPad.current?.getCanvas().toDataURL('image/png');
+      } catch (e) {
+        console.error("[proposta sign] falha ao capturar assinatura", e);
+        toast.error("Não foi possível capturar sua assinatura. Tente novamente.");
+        return;
+      }
+    }
+    if (!signatureData || signatureData.length < 100) {
+      toast.error("Assinatura inválida. Desenhe novamente.");
+      return;
+    }
 
     setSigning(true);
     try {
+      console.log("[proposta sign] enviando", { token, name: signerName, sigLen: signatureData.length });
       const res = await fetch(`/api/public/proposta/${token}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -237,15 +254,17 @@ function PublicProposalView() {
           accepted_representation: true,
         }),
       });
+      const j = await res.json().catch(() => ({}));
+      console.log("[proposta sign] resposta", res.status, j);
       if (!res.ok) {
-        const j = await res.json().catch(() => ({}));
         if (j.error === "cancelled") throw new Error("Esta proposta não está mais disponível.");
         if (j.error === "already_accepted") throw new Error("Esta proposta já foi aprovada.");
-        throw new Error(j.error || "Esta proposta não pode ser aprovada sem a assinatura do cliente.");
+        throw new Error(j.error || j.details || "Erro ao aprovar a proposta. Tente novamente.");
       }
       toast.success("Proposta assinada com sucesso! Seu projeto já foi iniciado.");
       await load();
     } catch (e) {
+      console.error("[proposta sign] erro", e);
       toast.error((e as Error).message);
     } finally {
       setSigning(false);
