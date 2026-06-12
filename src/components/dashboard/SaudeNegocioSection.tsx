@@ -204,30 +204,8 @@ export function SaudeNegocioSection() {
         <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">
           Saúde do Negócio
         </h3>
-        <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setRefDate((d) => startOfMonth(addMonths(d, -1)))}
-            aria-label="Mês anterior"
-          >
-            <ChevronLeft className="size-4" />
-          </Button>
-          <span className="text-xs font-medium px-2 capitalize min-w-[110px] text-center">
-            {format(refDate, "MMMM 'de' yyyy", { locale: ptBR })}
-          </span>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => setRefDate((d) => startOfMonth(addMonths(d, 1)))}
-            aria-label="Próximo mês"
-          >
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
       </div>
+
 
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
