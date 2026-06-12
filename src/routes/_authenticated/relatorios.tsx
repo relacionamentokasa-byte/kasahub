@@ -342,11 +342,24 @@ function FinancialPage() {
     },
   });
 
-  const filteredTransactions = transactions.filter(t => 
-    t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
-    (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
-    (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase())
-  );
+  const getCatName = (t: any) => (t.categorias_financeiras as any)?.nome || t.category || "";
+
+  const filteredTransactions = transactions.filter((t: any) => {
+    const matchSearch =
+      t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
+      (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
+      (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase());
+    if (!matchSearch) return false;
+    const proLab = isProLabore(getCatName(t));
+    if (quickFilter === "income") return t.type === "income";
+    if (quickFilter === "expense_op") return t.type === "expense" && !proLab;
+    if (quickFilter === "pro_labore") return proLab;
+    return true;
+  });
+
+  const proLaboreMes = transactions
+    .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
+    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
