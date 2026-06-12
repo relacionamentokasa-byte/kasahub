@@ -641,7 +641,9 @@ function StatCard({ title, value, icon: Icon, color }: { title: string, value?: 
           <div className="size-8 rounded-xl bg-muted flex items-center justify-center">
             <Icon className={cn("size-4", color)} />
           </div>
-          <Badge variant="outline" className="text-[10px] font-mono-kasa text-foreground/30">Mês Atual</Badge>
+          {title !== 'PARCELAS FUTURAS' && (
+            <Badge variant="outline" className="text-[10px] font-mono-kasa text-foreground/30">Mês Atual</Badge>
+          )}
         </div>
         <div>
           <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">{title}</p>
