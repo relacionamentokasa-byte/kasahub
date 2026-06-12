@@ -437,6 +437,11 @@ function FinancialPage() {
         <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-500" />
       </div>
 
+      <FinancialRulesPanel
+        totalFaturamento={stats?.recebidasReceitas ?? 0}
+        periodoLabel={currentMonthLabel}
+      />
+
       {/* Quick Filter Tabs */}
       <div className="flex flex-wrap items-center gap-2">
         <ToggleGroup
