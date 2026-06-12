@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
 import { supabase } from "@/integrations/supabase/client";
 import { GestaoSection } from "./GestaoSection";
+import { SaudeNegocioSection } from "./SaudeNegocioSection";
 import { OperacaoSection } from "./OperacaoSection";
 import { PerformanceSection } from "./PerformanceSection";
 import { AgendaSection } from "./AgendaSection";
