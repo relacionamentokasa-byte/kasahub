@@ -300,7 +300,7 @@ function ClientDetail() {
                    </TableHeader>
                    <TableBody>
                      {proposals
-                       .filter(p => p.status !== 'Aprovada' && p.status !== 'Cancelada')
+                       .filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status))
                        .map(p => (
                         <TableRow key={p.id} className="group">
                           <TableCell className="font-medium text-sm py-4">{p.title}</TableCell>
