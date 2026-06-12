@@ -37,7 +37,10 @@ export function GlobalChatWidget() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const onlineIds = usePresence(currentUserId);
+  const { onlineUsers, onlineSet: onlineIds } = usePresenceContext();
+  if (typeof window !== "undefined") {
+    console.log("Usuários Online no Chat:", onlineUsers);
+  }
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["chat-profiles"],
