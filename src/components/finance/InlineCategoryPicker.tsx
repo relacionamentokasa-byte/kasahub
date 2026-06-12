@@ -76,11 +76,21 @@ export function InlineCategoryPicker({
     },
   });
 
+  const isProLabore =
+    (atual?.nome || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") === "pro-labore";
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         onClick={(e) => e.stopPropagation()}
-        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-border bg-background hover:bg-muted text-[10px] font-mono-kasa uppercase tracking-tight outline-none transition-colors"
+        className={
+          isProLabore
+            ? "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-indigo-300 bg-indigo-100 text-indigo-800 hover:bg-indigo-200 text-[10px] font-mono-kasa uppercase tracking-tight outline-none transition-colors font-bold"
+            : "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-border bg-background hover:bg-muted text-[10px] font-mono-kasa uppercase tracking-tight outline-none transition-colors"
+        }
       >
         {atual?.nome || "Vincular Categoria"}
         <ChevronDown className="size-2.5 text-foreground/50" />

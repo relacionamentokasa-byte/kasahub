@@ -68,7 +68,19 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
+
+const PRO_LABORE = "pro-labore";
+const normalize = (s: string | null | undefined) =>
+  (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+const isProLabore = (name: string | null | undefined) =>
+  normalize(name) === PRO_LABORE;
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
@@ -253,6 +265,7 @@ function FinancialPage() {
     categoryId: "all",
     search: ""
   });
+  const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
 
   const periodFilters = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -329,11 +342,24 @@ function FinancialPage() {
     },
   });
 
-  const filteredTransactions = transactions.filter(t => 
-    t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
-    (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
-    (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase())
-  );
+  const getCatName = (t: any) => (t.categorias_financeiras as any)?.nome || t.category || "";
+
+  const filteredTransactions = transactions.filter((t: any) => {
+    const matchSearch =
+      t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
+      (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
+      (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase());
+    if (!matchSearch) return false;
+    const proLab = isProLabore(getCatName(t));
+    if (quickFilter === "income") return t.type === "income";
+    if (quickFilter === "expense_op") return t.type === "expense" && !proLab;
+    if (quickFilter === "pro_labore") return proLab;
+    return true;
+  });
+
+  const proLaboreMes = transactions
+    .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
+    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
@@ -421,12 +447,36 @@ function FinancialPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} color="text-blue-500" />
         <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} color="text-emerald-500" />
         <StatCard title="Parcelas Futuras" value={stats?.parcelasFuturas} icon={Calendar} color="text-primary" />
         <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} color="text-amber-500" />
         <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-500" />
+        <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-500" />
+      </div>
+
+      {/* Quick Filter Tabs */}
+      <div className="flex flex-wrap items-center gap-2">
+        <ToggleGroup
+          type="single"
+          value={quickFilter}
+          onValueChange={(v) => v && setQuickFilter(v as any)}
+          className="bg-surface border border-border rounded-full p-1 gap-1"
+        >
+          <ToggleGroupItem value="all" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
+            Todos
+          </ToggleGroupItem>
+          <ToggleGroupItem value="income" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-emerald-500 data-[state=on]:text-white">
+            Receitas
+          </ToggleGroupItem>
+          <ToggleGroupItem value="expense_op" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-red-500 data-[state=on]:text-white">
+            Despesas Operacionais
+          </ToggleGroupItem>
+          <ToggleGroupItem value="pro_labore" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
+            Pró-labore
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
       {/* Filters */}
