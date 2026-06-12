@@ -58,8 +58,8 @@ export async function deleteClient(id: string) {
 
 // ---------- Projects ----------
 export type ProjectWithDetails = Project & {
-  clients: { name: string | null; company: string | null }[] | null;
-  contracts: { end_date: string | null }[] | null;
+  clients: { name: string | null; company: string | null } | null;
+  contracts: { end_date: string | null } | null;
 };
 
 export async function fetchProjects(filters: { clientId?: string; status?: string; type?: string; contractId?: string; search?: string } = {}): Promise<ProjectWithDetails[]> {
