@@ -28,6 +28,7 @@ import {
   Clock,
   AlertCircle,
   FileSpreadsheet,
+  Upload,
   Trash2,
   Settings,
   ArrowRight,
