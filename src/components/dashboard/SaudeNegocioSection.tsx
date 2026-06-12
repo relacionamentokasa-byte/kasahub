@@ -1,55 +1,51 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, Zap, Users, FileText, Target, Pencil } from "lucide-react";
+import { TrendingUp, Zap, Users, FileText, Target, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardKPI } from "./DashboardKPI";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { brl } from "@/lib/utils-format";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth, addMonths, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
-async function fetchSaudeNegocio() {
-  const now = new Date();
-  const monthStart = startOfMonth(now).toISOString();
-  const monthEnd = endOfMonth(now).toISOString();
-  const monthStartDate = startOfMonth(now).toISOString().slice(0, 10);
-  const monthEndDate = endOfMonth(now).toISOString().slice(0, 10);
+const MRR_KEYWORDS = ["fee", "mensal", "mensalidade", "recorrente", "recorrência", "recorrencia"];
+const AVULSO_KEYWORDS = ["avulso", "avulsa", "pontual", "extra"];
 
-  // MRR: all active recurring approved proposals (sum of monthly_investment)
-  const { data: mrrData } = await supabase
-    .from("proposals")
-    .select("monthly_investment")
-    .eq("status", "Aprovada")
-    .eq("contract_type", "recurring")
-    .is("deleted_at", null);
+function matchesKeyword(name: string | null | undefined, keywords: string[]) {
+  if (!name) return false;
+  const n = name.toLowerCase();
+  return keywords.some((k) => n.includes(k));
+}
 
-  const mrr = (mrrData || []).reduce(
-    (acc: number, p: any) => acc + Number(p.monthly_investment || 0),
-    0,
-  );
+async function fetchSaudeNegocio(refDate: Date) {
+  const monthStart = startOfMonth(refDate).toISOString();
+  const monthEnd = endOfMonth(refDate).toISOString();
+  const monthStartDate = startOfMonth(refDate).toISOString().slice(0, 10);
+  const monthEndDate = endOfMonth(refDate).toISOString().slice(0, 10);
 
-  // Receita Avulsa (Mês): one_time proposals approved this month
-  const { data: avulsaData } = await supabase
-    .from("proposals")
-    .select("one_time_investment, total, accepted_at, converted_at")
-    .eq("status", "Aprovada")
-    .eq("contract_type", "one_time")
-    .is("deleted_at", null)
-    .or(`accepted_at.gte.${monthStart},converted_at.gte.${monthStart}`);
+  // Transações do mês com categoria embutida
+  const { data: txData, error: txErr } = await supabase
+    .from("transactions")
+    .select("amount, type, kind, due_date, status, categorias_financeiras(nome)")
+    .gte("due_date", monthStartDate)
+    .lte("due_date", monthEndDate);
+  if (txErr) console.error("transactions fetch error", txErr);
 
-  const avulsa = (avulsaData || [])
-    .filter((p: any) => {
-      const ref = p.accepted_at || p.converted_at;
-      return ref && ref >= monthStart && ref <= monthEnd;
-    })
-    .reduce(
-      (acc: number, p: any) =>
-        acc + Number(p.one_time_investment || p.total || 0),
-      0,
-    );
+  const txs = (txData || []) as any[];
+  const incomes = txs.filter((t) => (t.kind || t.type) === "income");
 
-  // Clientes Ativos: count of projects with status='active'
+  const mrr = incomes
+    .filter((t) => matchesKeyword(t.categorias_financeiras?.nome, MRR_KEYWORDS))
+    .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+
+  const avulsa = incomes
+    .filter((t) => matchesKeyword(t.categorias_financeiras?.nome, AVULSO_KEYWORDS))
+    .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+
+  // Clientes Ativos
   const { count: clientesAtivos } = await supabase
     .from("projects")
     .select("*", { count: "exact", head: true })
@@ -75,8 +71,8 @@ async function fetchSaudeNegocio() {
     .select("target_value")
     .eq("type", "revenue")
     .eq("period", "month")
-    .eq("month", now.getMonth() + 1)
-    .eq("year", now.getFullYear())
+    .eq("month", refDate.getMonth() + 1)
+    .eq("year", refDate.getFullYear())
     .maybeSingle();
 
   const meta = Number(goalData?.target_value || 0);
@@ -93,10 +89,14 @@ async function fetchSaudeNegocio() {
 
 export function SaudeNegocioSection() {
   const qc = useQueryClient();
+  const [refDate, setRefDate] = useState<Date>(() => startOfMonth(new Date()));
+  const monthKey = useMemo(() => format(refDate, "yyyy-MM"), [refDate]);
+
   const { data } = useQuery({
-    queryKey: ["saude-negocio"],
-    queryFn: fetchSaudeNegocio,
+    queryKey: ["saude-negocio", monthKey],
+    queryFn: () => fetchSaudeNegocio(refDate),
   });
+
 
   const mrr = data?.mrr || 0;
   const avulsa = data?.avulsa || 0;
