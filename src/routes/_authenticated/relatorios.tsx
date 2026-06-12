@@ -602,6 +602,17 @@ function FinancialPage() {
             )}
           </TableBody>
         </Table>
+
+        <div className="border-t border-border bg-muted/30 px-4 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+          <TotalCell label="Receitas" value={totals.receitas} className="text-emerald-600 dark:text-emerald-400" />
+          <TotalCell label="Despesas" value={totals.despesas} className="text-red-600 dark:text-red-400" />
+          <TotalCell label="Pró-labore" value={totals.proLabore} className="text-purple-600 dark:text-purple-400" />
+          <TotalCell
+            label="Saldo do Período"
+            value={saldoPeriodo}
+            className={saldoPeriodo >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}
+          />
+        </div>
       </div>
 
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
