@@ -186,11 +186,18 @@ function FinancialPage() {
               <DropdownMenuItem onClick={handleDownloadTemplate}>
                 <Download className="size-4 mr-2" /> Baixar Planilha Modelo
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setImportOpen(true)}>
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
                 <Upload className="size-4 mr-2" /> Fazer Upload de Dados
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.xlsx"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
 
           <Button 
             className="rounded-full gap-2 bg-primary text-primary-foreground"
