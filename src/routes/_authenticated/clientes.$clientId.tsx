@@ -321,7 +321,7 @@ function ClientDetail() {
                           </TableCell>
                         </TableRow>
                       ))}
-                     {proposals.filter(p => p.status !== 'Aprovada' && p.status !== 'Cancelada').length === 0 && (
+                     {proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length === 0 && (
                        <TableRow>
                          <TableCell colSpan={5} className="h-32 text-center text-foreground/30 italic">
                            <div className="flex flex-col items-center gap-2">
