@@ -2558,6 +2558,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          category: string | null
           category_id: string | null
           client_id: string | null
           contract_id: string | null
@@ -2578,6 +2579,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          category?: string | null
           category_id?: string | null
           client_id?: string | null
           contract_id?: string | null
@@ -2598,6 +2600,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          category?: string | null
           category_id?: string | null
           client_id?: string | null
           contract_id?: string | null
