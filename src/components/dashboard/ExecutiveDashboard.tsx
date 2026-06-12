@@ -156,7 +156,7 @@ export function ExecutiveDashboard() {
       ind: { mrr: 0, monthIncome: 0, monthExpense: 0, monthResult: 0 },
       jobsInProgress,
       jobsOverdue,
-      jobsCompleted: 0,
+      jobsCompletedMonth,
       pendingApprovals,
       dmesInProduction: 0,
       performanceMetrics: { monthGoal: 0, monthActual: 0, yearGoal: 0, yearActual: 0, projection: 0 },
