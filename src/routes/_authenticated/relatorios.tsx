@@ -149,9 +149,21 @@ function FinancialPage() {
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setCategoriesOpen(true)}>
             <Settings className="size-4" /> Categorias
           </Button>
-          <Button variant="outline" className="rounded-full gap-2" onClick={() => setImportOpen(true)}>
-            <FileSpreadsheet className="size-4" /> Importar
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="rounded-full gap-2">
+                <FileSpreadsheet className="size-4" /> Importar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleDownloadTemplate}>
+                <Download className="size-4 mr-2" /> Baixar Planilha Modelo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setImportOpen(true)}>
+                <Upload className="size-4 mr-2" /> Fazer Upload de Dados
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button 
             className="rounded-full gap-2 bg-primary text-primary-foreground"
