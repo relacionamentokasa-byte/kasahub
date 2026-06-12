@@ -100,13 +100,13 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
 
   const mutation = useMutation({
     mutationFn: (values: TransactionFormValues) => {
-      // Map back to external labels for category if needed, but we added a text column
-      return createTransaction({
+      const payload = {
         ...values,
         due_date: format(values.due_date, "yyyy-MM-dd"),
-        // If it's paid, we might want to set payment_date too
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
-      } as any);
+        client_id: values.client_id === "none" ? null : values.client_id,
+      };
+      return createTransaction(payload as any);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
