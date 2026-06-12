@@ -16,6 +16,7 @@ import { TransactionFormDialog } from "@/components/finance/TransactionFormDialo
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
+import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
 import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
 import { 
   TrendingUp, 
@@ -568,8 +569,8 @@ function FinancialPage() {
               filteredTransactions.map((t) => (
                 <TableRow key={t.id} className="group hover:bg-muted/10 transition-colors">
                   <TableCell className="py-4">
-                    <div className="text-sm font-medium">{new Date(t.due_date).toLocaleDateString("pt-BR")}</div>
-                    {t.payment_date && <div className="text-[10px] text-emerald-500 font-mono-kasa uppercase">Pago em {new Date(t.payment_date).toLocaleDateString("pt-BR")}</div>}
+                    <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
+                    {t.payment_date && <div className="text-[10px] text-emerald-500 font-mono-kasa uppercase mt-1">Pago em {new Date(t.payment_date).toLocaleDateString("pt-BR")}</div>}
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="font-semibold text-sm">{t.description}</div>
