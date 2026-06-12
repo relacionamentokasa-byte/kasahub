@@ -73,13 +73,19 @@ export function NewJobDialog({
     isFetching: isFetchingProjects,
     isSuccess: isProjectsSuccess,
     dataUpdatedAt: projectsUpdatedAt,
+    error: projectsError,
   } = useQuery({
     queryKey: ["projects", selectedClientId],
     queryFn: async () => {
-      console.log("[NewJobDialog] Buscando projetos para o cliente:", selectedClientId);
-      const result = await fetchProjects({ clientId: selectedClientId });
-      console.log("[NewJobDialog] Projetos retornados:", result?.length, result);
-      return result;
+      console.log("[NewJobDialog] ID do Cliente Selecionado:", selectedClientId);
+      try {
+        const result = await fetchProjects({ clientId: selectedClientId });
+        console.log("[NewJobDialog] Projetos retornados:", result?.length, result);
+        return result;
+      } catch (e) {
+        console.error("[NewJobDialog] Erro ao buscar projetos:", e);
+        throw e;
+      }
     },
     enabled: !!selectedClientId,
   });
@@ -297,9 +303,11 @@ export function NewJobDialog({
                             ? "Selecione o Cliente primeiro"
                             : isLoadingProjects
                               ? "Carregando projetos..."
-                              : projects.length === 0
-                                ? "Nenhum projeto encontrado para este cliente"
-                                : "Selecione o Projeto"
+                              : projectsError
+                                ? "Erro ao carregar projetos"
+                                : projects.length === 0
+                                  ? "Nenhum projeto encontrado para este cliente"
+                                  : "Selecione o Projeto"
                         }
                       />
                     </SelectTrigger>
@@ -311,6 +319,12 @@ export function NewJobDialog({
                       ))}
                     </SelectContent>
                   </Select>
+                  {projectsError ? (
+                    <p className="text-[10px] font-bold text-destructive flex items-center gap-1">
+                      <AlertCircle className="size-3" />
+                      {(projectsError as Error).message}
+                    </p>
+                  ) : null}
                 </div>
 
 
