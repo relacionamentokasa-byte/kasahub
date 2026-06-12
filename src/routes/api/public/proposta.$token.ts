@@ -147,7 +147,7 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
 
           const { data: proposal } = await supabaseAdmin
             .from("proposals")
-            .select("id, status")
+            .select("id, status, title, owner_id, responsible_id")
             .eq("public_token", token)
             .maybeSingle();
 
