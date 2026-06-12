@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordProposalEventAdmin } from "./proposal-events";
 import { recordTimelineEvent } from "./client-timeline";
 
-import { fetchJobStages } from "./ops-api";
+import { fetchJobStages, createJob } from "./ops-api";
 
 type SB = SupabaseClient;
 
@@ -180,7 +180,54 @@ export async function approveProposal(
   proposalUpdate.generated_project_id = projectId;
   proposalUpdate.generated_contract_id = contractId;
 
-  // 5. Step 4: Geração Automática do Financeiro (Receita Prevista)
+  // 5. Step 4: Criação dos Jobs baseados no Escopo dos Serviços
+  let jobsCreated = 0;
+  const serviceIds = (proposal as any).service_ids ?? [];
+  
+  if (serviceIds.length > 0) {
+    const { data: services } = await sb
+      .from("services")
+      .select("id, name, default_scope")
+      .in("id", serviceIds);
+
+    if (services && services.length > 0) {
+      const { data: stages } = await sb
+        .from("job_stages")
+        .select("id")
+        .order("order_index", { ascending: true })
+        .limit(1);
+      
+      const defaultStageId = stages?.[0]?.id;
+      const dueDate = proposal.first_due_date ?? ymd(addMonths(new Date(), 1));
+
+      for (const service of services) {
+        const scope = service.default_scope as string[] || [];
+        for (const jobTitle of scope) {
+          try {
+            await sb.from("jobs").insert({
+              project_id: projectId,
+              client_id: clientId,
+              contract_id: contractId,
+              service_id: service.id,
+              title: jobTitle,
+              status: "not_started",
+              priority: "medium",
+              stage_id: defaultStageId,
+              due_date: dueDate,
+              order_index: jobsCreated,
+              labels: [],
+              main_responsible_id: proposal.responsible_id ?? proposal.owner_id ?? null,
+            });
+            jobsCreated++;
+          } catch (err) {
+            console.error(`Erro ao criar job "${jobTitle}":`, err);
+          }
+        }
+      }
+    }
+  }
+
+  // 6. Step 5: Geração Automática do Financeiro (Receita Prevista)
   // A primeira parcela cai exatamente na "Data do 1º Vencimento" e as demais
   // são incrementadas em +1 mês mantendo o mesmo dia (clamp para o último dia do mês).
   let txCreated = 0;
@@ -234,9 +281,9 @@ export async function approveProposal(
   const { error: upErr } = await sb.from("proposals").update(proposalUpdate).eq("id", proposalId);
   if (upErr) throw upErr;
 
-  // 6. Record events and timeline
+  // 7. Record events and timeline
   await recordProposalEventAdmin(sb, proposalId, ctx.internalApproval ? "internal_approval" : "approved", {
-    jobs_created: 1, // The project itself is the main "job" container
+    jobs_created: jobsCreated || 1,
     transactions_created: txCreated,
     accepted_name: ctx.acceptedName ?? null,
     internal_approval: ctx.internalApproval ?? false,
@@ -254,7 +301,7 @@ export async function approveProposal(
     client_id: clientId!,
     project_id: projectId!,
     contract_id: contractId,
-    jobs_created: 1,
+    jobs_created: jobsCreated,
     transactions_created: txCreated,
     created_at: new Date().toISOString(),
   };
