@@ -9,7 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { fetchProfiles } from "@/lib/profile-api";
-import { usePresence } from "@/hooks/use-presence";
+import { usePresenceContext } from "@/contexts/PresenceContext";
 
 interface Message {
   id: string;
@@ -37,7 +37,10 @@ export function GlobalChatWidget() {
     return () => sub.subscription.unsubscribe();
   }, []);
 
-  const onlineIds = usePresence(currentUserId);
+  const { onlineUsers, onlineSet: onlineIds } = usePresenceContext();
+  if (typeof window !== "undefined") {
+    console.log("Usuários Online no Chat:", onlineUsers);
+  }
 
   const { data: profiles = [] } = useQuery({
     queryKey: ["chat-profiles"],
