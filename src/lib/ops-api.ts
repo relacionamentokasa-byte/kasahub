@@ -79,7 +79,7 @@ export async function fetchProjects(filters: { clientId?: string; status?: strin
   
   const { data, error } = await q;
   if (error) throw error;
-  return (data as ProjectWithDetails[]) ?? [];
+  return ((data ?? []) as unknown) as ProjectWithDetails[];
 }
 
 export async function fetchProject(id: string): Promise<Project> {
