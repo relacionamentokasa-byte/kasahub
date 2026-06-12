@@ -3,7 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { recordProposalEventAdmin } from "./proposal-events";
 import { recordTimelineEvent } from "./client-timeline";
 
-import { fetchJobStages, createJob } from "./ops-api";
+
 
 type SB = SupabaseClient;
 
