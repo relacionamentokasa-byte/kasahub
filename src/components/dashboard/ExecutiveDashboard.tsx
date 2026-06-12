@@ -227,11 +227,14 @@ export function ExecutiveDashboard() {
         </div>
       </header>
 
+      <SaudeNegocioSection />
+
       {visibleSections.operacao && (
         <OperacaoSection 
           stats={{
             jobsInProgress: filteredData.jobsInProgress,
             overdueJobs: filteredData.jobsOverdue,
+            jobsCompletedMonth: filteredData.jobsCompletedMonth,
           }}
         />
       )}
