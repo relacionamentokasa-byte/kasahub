@@ -43,7 +43,7 @@ function ClientDetail() {
     }
   });
 
-  const { data: proposals = [] } = useQuery({ 
+  const { data: proposals = [], refetch: refetchProposals } = useQuery({ 
     queryKey: ["client-proposals", clientId], 
     queryFn: () => fetchProposals().then(res => res.filter(p => p.client_id === clientId)),
     enabled: !!client
@@ -55,7 +55,7 @@ function ClientDetail() {
     enabled: !!client
   });
 
-  const { data: contracts = [] } = useQuery({ 
+  const { data: contracts = [], refetch: refetchContracts } = useQuery({ 
     queryKey: ["client-contracts", clientId], 
     queryFn: () => fetchContracts({ clientId }),
     enabled: !!client
