@@ -37,7 +37,8 @@ import {
   Landmark,
   ArrowRight,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Wand2
 } from "lucide-react";
 
 
@@ -300,6 +301,34 @@ function FinancialPage() {
     }
   });
 
+  const fixContasMut = useMutation({
+    mutationFn: async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { data: contas, error: contasErr } = await supabase
+        .from("contas_bancarias" as any)
+        .select("id")
+        .order("created_at", { ascending: true })
+        .limit(1);
+      if (contasErr) throw contasErr;
+      if (!contas || contas.length === 0) {
+        throw new Error("Nenhuma conta bancária cadastrada. Crie uma conta primeiro.");
+      }
+      const { error, count } = await supabase
+        .from("transactions")
+        .update({ conta_id: (contas[0] as any).id }, { count: "exact" })
+        .is("conta_id", null);
+      if (error) throw error;
+      return count ?? 0;
+    },
+    onSuccess: (count) => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success(`Lançamentos antigos vinculados à conta principal com sucesso!${count ? ` (${count})` : ""}`);
+    },
+    onError: (e: any) => {
+      toast.error(e?.message || "Erro ao corrigir lançamentos");
+    },
+  });
+
   const filteredTransactions = transactions.filter(t => 
     t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
     (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
@@ -317,6 +346,16 @@ function FinancialPage() {
         <div className="flex gap-2">
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setCategoriesOpen(true)}>
             <Settings className="size-4" /> Categorias
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-full gap-2"
+            onClick={() => fixContasMut.mutate()}
+            disabled={fixContasMut.isPending}
+            title="Vincula lançamentos antigos sem conta à conta principal"
+          >
+            <Wand2 className="size-4" />
+            {fixContasMut.isPending ? "Corrigindo..." : "Corrigir Contas Vazias"}
           </Button>
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setContasOpen(true)}>
             <Landmark className="size-4" /> Contas
