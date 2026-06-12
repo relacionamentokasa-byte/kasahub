@@ -192,9 +192,9 @@ function ClientDetail() {
             {/* Conteúdo: Resumo */}
             <TabsContent value="overview" className="m-0 space-y-8 animate-reveal">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <QuickStatCard title="Propostas" value={proposals.length} icon={FileText} color="text-amber-500" />
+                <QuickStatCard title="Propostas" value={proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length} icon={FileText} color="text-amber-500" />
+                <QuickStatCard title="Contratos Ativos" value={contracts.filter(c => c.status === 'active').length} icon={FileSignature} color="text-emerald-500" />
                 <QuickStatCard title="Projetos Ativos" value={projects.filter(p => p.status === 'active').length} icon={FolderKanban} color="text-purple-500" />
-                <QuickStatCard title="Jobs Pendentes" value={0} icon={CheckSquare} color="text-blue-500" />
                 <QuickStatCard title="Receita Paga" value={brl(totalRevenue)} icon={Wallet} color="text-emerald-500" isText />
               </div>
 
