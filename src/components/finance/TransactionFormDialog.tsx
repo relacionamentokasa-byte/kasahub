@@ -102,6 +102,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["contas_bancarias"] });
       queryClient.invalidateQueries({ queryKey: ["finance-stats"] });
       toast.success("Lançamento registrado com sucesso!");
       form.reset();

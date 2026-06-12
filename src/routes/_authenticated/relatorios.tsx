@@ -227,6 +227,7 @@ function FinancialPage() {
           } else {
             toast.success(`Importação concluída! ${payload.length} lançamentos adicionados com sucesso.`);
             qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
             qc.invalidateQueries({ queryKey: ["finance-stats"] });
           }
 
@@ -309,6 +310,7 @@ function FinancialPage() {
       updateTransaction(id, { status: status as any, payment_date: status === "paid" ? new Date().toISOString().split("T")[0] : null }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
       qc.invalidateQueries({ queryKey: ["finance-stats"] });
       toast.success("Status atualizado");
     }
@@ -335,6 +337,7 @@ function FinancialPage() {
     },
     onSuccess: (count) => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
       toast.success(`Lançamentos antigos vinculados à conta principal com sucesso!${count ? ` (${count})` : ""}`);
     },
     onError: (e: any) => {

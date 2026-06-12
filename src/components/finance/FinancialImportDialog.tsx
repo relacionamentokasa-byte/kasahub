@@ -238,6 +238,7 @@ export function FinancialImportDialog({ open, onOpenChange }: { open: boolean, o
 
       toast.success(`${transactionsToInsert.length} lançamentos importados com sucesso!`);
       qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
       qc.invalidateQueries({ queryKey: ["finance-stats"] });
       onOpenChange(false);
       resetState();
