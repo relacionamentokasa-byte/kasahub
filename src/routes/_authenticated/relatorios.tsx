@@ -76,6 +76,17 @@ function FinancialPage() {
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    console.log(file);
+    toast.info("Arquivo selecionado. Integração de leitura em breve.", {
+      description: file.name,
+    });
+    event.target.value = "";
+  };
 
   const handleDownloadTemplate = () => {
     const headers = ["Data", "Descrição", "Valor", "Tipo", "Categoria", "Status"];
