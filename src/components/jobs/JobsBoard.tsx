@@ -126,6 +126,7 @@ export function JobsBoard({
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [isNewJobOpen, setIsNewJobOpen] = useState(false);
   const openJob = useMemo(() => jobs.find(j => j.id === openId) || null, [jobs, openId]);
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
@@ -465,6 +466,22 @@ export function JobsBoard({
               </div>
             </PopoverContent>
           </Popover>
+
+          <Button 
+            onClick={() => setIsNewJobOpen(true)}
+            className="h-9 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md rounded-full px-4"
+          >
+            <Plus className="size-4" />
+            <span className="font-bold">Novo Job</span>
+          </Button>
+          
+          <NewJobDialog 
+            open={isNewJobOpen} 
+            onOpenChange={setIsNewJobOpen}
+            stage={stages[0] || null}
+            defaultClientId={clientId}
+            defaultProjectId={projectId}
+          />
 
           <Button
             onClick={() => setNewStage(stages[0] ?? null)}
