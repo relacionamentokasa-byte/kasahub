@@ -17,6 +17,27 @@ export const Route = createFileRoute("/_authenticated/projetos/")({
   component: ProjetosPage,
 });
 
+function formatDateBR(dateStr: string | null | undefined) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + "T00:00:00");
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function getDateAlertColor(dateStr: string | null | undefined): { text: string; label: string } | null {
+  if (!dateStr) return null;
+  const end = new Date(dateStr + "T00:00:00");
+  if (isNaN(end.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffMs = end.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return { text: "text-red-500", label: `Vencido há ${Math.abs(diffDays)} dias` };
+  if (diffDays <= 30) return { text: "text-amber-500", label: `Vence em ${diffDays} dias` };
+  return { text: "text-muted-foreground", label: `Válido até ${formatDateBR(dateStr)}` };
+}
+
 function ProjetosPage() {
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
