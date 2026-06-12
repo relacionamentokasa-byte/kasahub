@@ -257,11 +257,17 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
           </Button>
           <Button
             onClick={() => approveMut.mutate({ internalApproval: true })}
-            disabled={approveMut.isPending || !proposal}
+            disabled={
+              approveMut.isPending ||
+              !proposal ||
+              !(proposal.signature_client || (proposal as any).client_signature_data)
+            }
             className="bg-green-600 text-white hover:bg-green-700 gap-2"
           >
             {approveMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-            Aprovar Proposta
+            {proposal && !(proposal.signature_client || (proposal as any).client_signature_data)
+              ? "Aguardando Assinatura do Cliente"
+              : "Aprovar Proposta"}
           </Button>
         </DialogFooter>
       </DialogContent>

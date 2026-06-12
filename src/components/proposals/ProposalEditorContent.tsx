@@ -182,7 +182,13 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
             <SelectContent>
               <SelectItem value="Rascunho">Rascunho</SelectItem>
               <SelectItem value="Enviada">Enviada</SelectItem>
-              <SelectItem value="Aprovada" className="text-green-600 font-semibold" disabled={form.status === "Aprovada"}>Aprovada</SelectItem>
+              <SelectItem
+                value="Aprovada"
+                className="text-green-600 font-semibold"
+                disabled={form.status === "Aprovada" || !(form.signature_client || (form as any).client_signature_data)}
+              >
+                Aprovada {!(form.signature_client || (form as any).client_signature_data) ? "(requer assinatura do cliente)" : ""}
+              </SelectItem>
               <SelectItem value="Recusada" className="text-red-600 font-semibold">Recusada</SelectItem>
               <SelectItem value="Encerrada">Encerrada</SelectItem>
               

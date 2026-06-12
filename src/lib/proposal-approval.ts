@@ -52,6 +52,14 @@ export async function approveProposal(
     .single();
   if (pErr || !proposal) throw new Error(pErr?.message ?? "Proposta não encontrada");
 
+  // TRAVA: nenhuma aprovação (nem interna) pode ocorrer sem a assinatura digital do cliente
+  const hasClientSignature =
+    (proposal.signature_client && String(proposal.signature_client).trim().length > 0) ||
+    ((proposal as any).client_signature_data && String((proposal as any).client_signature_data).trim().length > 0);
+  if (!hasClientSignature) {
+    throw new Error("Esta proposta não pode ser aprovada sem a assinatura digital do cliente. Envie o link público para o cliente assinar.");
+  }
+
   const { data: items, error: iErr } = await sb
     .from("proposal_items")
     .select("*")
