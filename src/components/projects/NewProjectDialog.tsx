@@ -1,12 +1,6 @@
-import { useEffect, useState } from "react";
-
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { createProject, fetchClients } from "@/lib/ops-api";
-
-import { fetchProposals } from "@/lib/crm-api";
-import { fetchClientServices, generateJobsForProject } from "@/lib/client-services-api";
-import { fetchServices } from "@/lib/services-api";
 import {
   Dialog,
   DialogContent,
@@ -16,9 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectTrigger,
@@ -26,224 +18,126 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { ImageUpload } from "@/components/ui/image-upload";
 
+/**
+ * Modal "+ Novo Projeto" — reconstruído do zero (clean code).
+ * - SEM useEffect (zero risco de loop infinito / erro #185)
+ * - Apenas 2 campos: Nome do Projeto e Cliente
+ * - Insert direto + invalidateQueries + fechamento do modal
+ */
 export function NewProjectDialog({
   open,
   onOpenChange,
-  defaultClientId,
-  onCreated,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
-  defaultClientId?: string;
-  onCreated?: (id: string) => void;
 }) {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
+  const [name, setName] = useState("");
+  const [clientId, setClientId] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
-  useEffect(() => {
-    const channel = supabase
-      .channel('projects-realtime-sync')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'projects' },
-        () => qc.invalidateQueries({ queryKey: ["projects"] })
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [qc]);
-
-  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const contracts: any[] = [];
-  const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "all"], queryFn: () => fetchProposals() });
-  const { data: services = [] } = useQuery({
-    queryKey: ["services", "active"],
-    queryFn: () => fetchServices({ onlyActive: true }),
-  });
-
-  const [form, setForm] = useState({
-    name: "",
-    client_id: defaultClientId ?? "",
-    contract_id: "",
-    proposal_id: "",
-    briefing: "",
-    start_date: "",
-    due_date: "",
-    responsible_id: "",
-    cover_url: "" as string | null,
-    type: "special" as const,
-  });
-  const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
-
-  const { data: contracted } = useQuery({
-    queryKey: ["client-services", form.client_id],
-    queryFn: () => fetchClientServices(form.client_id),
-    enabled: !!form.client_id,
-  });
-
-  useEffect(() => {
-    // Pre-select all active contracted services when client changes.
-    // IMPORTANTE: só roda quando há dados reais — evita loop infinito (erro #185)
-    // causado por um array default novo a cada render.
-    if (!contracted) return;
-    setSelectedServiceIds(
-      contracted.filter((c) => c.status === "active").map((c) => c.service_id),
-    );
-  }, [contracted]);
-
-  const clientContracts = contracts.filter((c) => !form.client_id || c.client_id === form.client_id);
-  const clientProposals = proposals.filter(
-    (p) =>
-      (!form.client_id || (p as { client_id?: string | null }).client_id === form.client_id) &&
-      ["accepted", "sent", "viewed"].includes(p.status),
-  );
-
-  const { data: users = [] } = useQuery({
-    queryKey: ["users"],
+  const { data: clients = [] } = useQuery({
+    queryKey: ["clients", "select-options"],
     queryFn: async () => {
-      const { data } = await supabase.from("profiles").select("id, full_name");
-      return data || [];
+      const { data, error } = await supabase
+        .from("clients")
+        .select("id, name, company")
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: open,
+  });
+
+  const handleCreate = async () => {
+    if (!name.trim()) {
+      toast.error("Informe o nome do projeto.");
+      return;
     }
-  });
+    if (!clientId) {
+      toast.error("Selecione um cliente.");
+      return;
+    }
 
-  const mut = useMutation({
-    mutationFn: async () => {
-      const project = await createProject({
-        name: form.name,
-        client_id: form.client_id || null,
-        contract_id: form.contract_id || null,
-        proposal_id: form.proposal_id || null,
-        briefing: form.briefing || null,
-        start_date: form.start_date || null,
-        due_date: form.due_date || null,
-        cover_url: form.cover_url || null,
-        responsible_id: form.responsible_id || null,
-        type: form.type,
-      } as Parameters<typeof createProject>[0]);
-      // Geração automática de jobs desabilitada (limpeza operacional)
+    setIsSaving(true);
+    try {
+      const payload = {
+        name: name.trim(),
+        client_id: clientId,
+        status: "active",
+        type: "special",
+      };
+      console.log("Payload do Projeto:", payload);
 
-      return project;
-    },
-    onSuccess: (p) => {
-      qc.invalidateQueries({ queryKey: ["projects"] });
-      qc.invalidateQueries({ queryKey: ["jobs"] });
-      toast.success("Projeto criado");
+      const { error } = await supabase.from("projects").insert([payload]);
+
+      if (error) {
+        console.error("ERRO CRÍTICO AO CRIAR PROJETO:", error);
+        toast.error(`Erro no Banco: ${error.message}`);
+        return;
+      }
+
+      toast.success("Projeto criado com sucesso!");
+      setName("");
+      setClientId("");
       onOpenChange(false);
-      setForm({ name: "", client_id: defaultClientId ?? "", contract_id: "", proposal_id: "", briefing: "", start_date: "", due_date: "", responsible_id: "", cover_url: "", type: "special" });
-      setSelectedServiceIds([]);
-      onCreated?.(p.id);
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  const serviceName = (id: string) => services.find((s) => s.id === id)?.name ?? "Serviço";
-
-  function toggleService(id: string) {
-    setSelectedServiceIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  }
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+    } catch (e) {
+      console.error("Erro na criação do projeto:", e);
+      toast.error(e instanceof Error ? e.message : "Erro inesperado ao criar projeto.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-border max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-surface border-border">
         <DialogHeader>
-          <DialogTitle className="font-display text-xl">Novo Projeto Especial</DialogTitle>
+          <DialogTitle className="font-display text-xl">Novo Projeto</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+
+        <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Capa do projeto</Label>
-            <ImageUpload
-              value={form.cover_url}
-              onChange={(url) => setForm({ ...form, cover_url: url })}
-              folder="projects"
-              label="Capa"
+            <Label>Nome do Projeto</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Ex: Gestão de Redes Sociais"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label>Nome do projeto</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          </div>
+
           <div className="space-y-1.5">
             <Label>Cliente</Label>
-            <Select
-              value={form.client_id || undefined}
-              onValueChange={(v) => setForm({ ...form, client_id: v, contract_id: "", proposal_id: "" })}
-            >
-              <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+            <Select value={clientId || undefined} onValueChange={(v) => setClientId(v)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
               <SelectContent>
                 {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.company || c.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-
-          {/* Seleção de serviços para geração de jobs removida (limpeza operacional) */}
-
-
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1.5">
-              <Label>Contrato (opcional)</Label>
-              <Select
-                value={form.contract_id || undefined}
-                onValueChange={(v) => setForm({ ...form, contract_id: v })}
-                disabled={!form.client_id}
-              >
-                <SelectTrigger><SelectValue placeholder="Vincular a um contrato (opcional)" /></SelectTrigger>
-                <SelectContent>
-                  {clientContracts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Responsável</Label>
-              <Select
-                value={form.responsible_id || undefined}
-                onValueChange={(v) => setForm({ ...form, responsible_id: v })}
-              >
-                <SelectTrigger><SelectValue placeholder="Responsável" /></SelectTrigger>
-                <SelectContent>
-                  {users.map((u: any) => (
-                    <SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Data de Início</Label>
-              <Input type="date" value={form.start_date} onChange={(e) => setForm({ ...form, start_date: e.target.value })} />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label>Prazo (Entrega Final)</Label>
-            <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
-          </div>
-          <div className="space-y-1.5">
-            <Label>Briefing</Label>
-            <Textarea rows={4} value={form.briefing} onChange={(e) => setForm({ ...form, briefing: e.target.value })} />
-          </div>
         </div>
+
         <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+            Cancelar
+          </Button>
           <Button
-            onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.name || !form.client_id}
+            onClick={() => handleCreate()}
+            disabled={isSaving || !name.trim() || !clientId}
             className="bg-primary text-primary-foreground hover:bg-primary/90"
           >
-
-            Criar
+            {isSaving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+            Criar Projeto
           </Button>
         </DialogFooter>
       </DialogContent>
