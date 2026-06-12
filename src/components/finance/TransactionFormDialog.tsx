@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarIcon, Check, ChevronsUpDown, Loader2, Plus } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { fetchCategoriasFinanceiras } from "@/lib/categorias-financeiras-api";
 
 import {
   Dialog,
