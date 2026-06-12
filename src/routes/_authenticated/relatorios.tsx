@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
+import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { 
   TrendingUp, 
   TrendingDown, 
