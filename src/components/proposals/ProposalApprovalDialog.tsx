@@ -86,6 +86,9 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
         qc.invalidateQueries({ queryKey: ["propostas"] });
         qc.invalidateQueries({ queryKey: ["proposals"] });
         qc.invalidateQueries({ queryKey: ["projects"] });
+        qc.invalidateQueries({ queryKey: ["transactions"] });
+        qc.invalidateQueries({ queryKey: ["saude-negocio"] });
+        qc.invalidateQueries({ queryKey: ["dashboard-metrics"] });
         onApproved?.();
         // Redireciona o usuário (desmonta o editor e quebra qualquer loop residual).
         navigate({ to: `/clientes/${data.client_id}` });
