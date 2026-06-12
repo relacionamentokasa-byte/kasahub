@@ -115,7 +115,27 @@ function ProjetosPage() {
               <Link to="/projetos/$projectId" params={{ projectId: p.id }} className="block font-bold text-lg hover:text-primary transition-colors">
                 {p.name}
               </Link>
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
+              {(() => {
+                const clientName = p.clients?.[0]?.name || p.clients?.[0]?.company || null;
+                const dateAlert = getDateAlertColor(p.contracts?.[0]?.end_date);
+                return (
+                  <div className="mt-2 space-y-1">
+                    {clientName && (
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Building2 className="size-3.5 shrink-0" />
+                        <span className="truncate">{clientName}</span>
+                      </div>
+                    )}
+                    {dateAlert && (
+                      <div className={`flex items-center gap-1.5 text-sm ${dateAlert.text}`}>
+                        <Calendar className="size-3.5 shrink-0" />
+                        <span>{dateAlert.label}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
                 <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] font-bold uppercase tracking-tighter gap-1">
                   <CheckSquare className="size-3" />
                   {p.total_jobs || 0} Jobs Vinculados
