@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
 import { cn } from "@/lib/utils";
 import { ProposalApprovalDialog } from "./ProposalApprovalDialog";
+import { ProposalSignatureCard } from "./ProposalSignatureCard";
 import {
   Select,
   SelectContent,
