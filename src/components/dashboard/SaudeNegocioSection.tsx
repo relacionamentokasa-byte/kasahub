@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, Zap, Users, FileText, Target, Pencil, ChevronLeft, ChevronRight } from "lucide-react";
+import { TrendingUp, Zap, Users, FileText, Target, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardKPI } from "./DashboardKPI";
 import { Progress } from "@/components/ui/progress";
