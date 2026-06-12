@@ -60,7 +60,7 @@ export function InlineClientPicker({
     updateClient.mutate(id);
   };
 
-  const sorted = [...clients].sort((a: any, b: any) =>
+  const sorted = ([...(clients as any[])]).sort((a: any, b: any) =>
     (a.company || a.name || "").localeCompare(b.company || b.name || ""),
   );
 
