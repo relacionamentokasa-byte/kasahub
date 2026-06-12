@@ -58,93 +58,24 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
 
   const approveMut = useMutation({
     mutationFn: async (options: { internalApproval?: boolean } = {}) => {
-      try {
-        if (!proposalId || !proposal) throw new Error("Proposta inválida");
-        
-        const clientId = proposal.client_id;
-        if (!clientId) throw new Error("Cliente não vinculado à proposta.");
+      if (!proposalId || !proposal) throw new Error("Proposta inválida");
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Usuário não autenticado");
 
-        // PASSO A: Atualizar Status da Proposta
-        const { error: upErr } = await supabase
-          .from("proposals")
-          .update({ 
-            status: "Aprovada",
-            accepted_at: new Date().toISOString(),
-            converted_at: new Date().toISOString(),
-          })
-          .eq("id", proposalId);
-        
-        if (upErr) throw upErr;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
 
-        // PASSO B: Criar Job (Tabela projects)
-        const { data: job, error: jobErr } = await supabase
-          .from("projects")
-          .insert({
-            name: proposal.title,
-            client_id: clientId,
-            proposal_id: proposalId,
-            status: "active",
-            type: "automatic"
-          })
-          .select("id")
-          .single();
-        
-        if (jobErr) throw jobErr;
+      const result = await approveProposal(supabase, proposalId, {
+        internalApproval: options.internalApproval,
+        internalApprovalBy: user.id,
+        acceptedName: profile?.full_name || user.email,
+      });
 
-        // PASSO C: Financeiro (O Básico que Funciona)
-        const monthly = Number(proposal.monthly_investment || 0);
-        const setup = Number(proposal.one_time_investment || 0);
-        const firstDue = proposal.first_due_date || new Date().toISOString().split('T')[0];
-        
-        let months = Number(proposal.recurring_months || 0);
-        if (!months) {
-          if (proposal.contract_term === "monthly") months = 1;
-          else if (proposal.contract_term?.includes("_months")) months = Number(proposal.contract_term.replace("_months", ""));
-          else if (monthly > 0) months = 12;
-        }
-
-        const transactions: any[] = [];
-        const [fy, fm, fd] = firstDue.split("-").map(Number);
-
-        // Loop para parcelas mensais
-        if (monthly > 0 && months > 0) {
-          for (let i = 0; i < months; i++) {
-            const due = new Date(fy, fm - 1 + i, fd);
-            transactions.push({
-              description: `Mensalidade: ${proposal.title} (${i + 1}/${months})`,
-              amount: monthly,
-              due_date: due.toISOString().split('T')[0],
-              status: "pending",
-              client_id: clientId,
-              proposal_id: proposalId,
-              type: "income"
-            });
-          }
-        }
-
-        // Setup único
-        if (setup > 0) {
-          transactions.push({
-            description: `Setup / Ativação: ${proposal.title}`,
-            amount: setup,
-            due_date: firstDue,
-            status: "pending",
-            client_id: clientId,
-            proposal_id: proposalId,
-            type: "income"
-          });
-        }
-
-        if (transactions.length > 0) {
-          const { error: txErr } = await supabase.from("transactions").insert(transactions);
-          if (txErr) throw txErr;
-        }
-
-        return { client_id: clientId };
-      } catch (err: any) {
-        console.error("Erro na aprovação:", err);
-        throw err;
-      }
+      return result;
     },
     onSuccess: (data) => {
       toast.success("Proposta Aprovada com Sucesso!");

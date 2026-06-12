@@ -745,13 +745,18 @@ export type Database = {
           created_at: string | null
           end_date: string | null
           id: string
+          installments_count: number | null
           monthly_value: number | null
+          owner_id: string | null
+          partner_id: string | null
           payment_method: string | null
           proposal_id: string | null
+          service_ids: string[] | null
           start_date: string
           status: string | null
           title: string
           total_value: number
+          type: string | null
           updated_at: string | null
         }
         Insert: {
@@ -760,13 +765,18 @@ export type Database = {
           created_at?: string | null
           end_date?: string | null
           id?: string
+          installments_count?: number | null
           monthly_value?: number | null
+          owner_id?: string | null
+          partner_id?: string | null
           payment_method?: string | null
           proposal_id?: string | null
+          service_ids?: string[] | null
           start_date: string
           status?: string | null
           title: string
           total_value: number
+          type?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -775,13 +785,18 @@ export type Database = {
           created_at?: string | null
           end_date?: string | null
           id?: string
+          installments_count?: number | null
           monthly_value?: number | null
+          owner_id?: string | null
+          partner_id?: string | null
           payment_method?: string | null
           proposal_id?: string | null
+          service_ids?: string[] | null
           start_date?: string
           status?: string | null
           title?: string
           total_value?: number
+          type?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -790,6 +805,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
           {

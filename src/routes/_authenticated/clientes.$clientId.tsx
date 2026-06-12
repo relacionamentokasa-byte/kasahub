@@ -247,18 +247,28 @@ function ClientDetail() {
                           "rounded-full text-[9px] uppercase tracking-wider",
                           contract.status === 'active' ? "border-green-500/20 text-green-500 bg-green-500/5" : "text-foreground/40"
                         )}>
-                          {contract.status === 'active' ? 'Ativo' : contract.status}
+                          {contract.status === 'active' ? 'Contrato Ativo' : contract.status}
                         </Badge>
                         <FileSignature className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
                       </div>
                       <h4 className="font-bold text-sm mb-1">{contract.title}</h4>
                       <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mb-4">Início: {new Date(contract.start_date).toLocaleDateString()}</p>
                       
-                      <div className="space-y-2 pt-4 border-t border-border">
+                      <div className="space-y-3 pt-4 border-t border-border">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] uppercase text-foreground/40 font-medium">Fee Mensal</span>
-                          <span className="text-xs font-bold text-primary">{brl(Number(contract.monthly_value))}</span>
+                          <span className="text-[10px] uppercase text-foreground/40 font-medium tracking-wider">Fee Mensal (MRR)</span>
+                          <span className="text-xs font-bold text-emerald-500">{brl(Number(contract.monthly_value))}</span>
                         </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] uppercase text-foreground/40 font-medium tracking-wider">Duração</span>
+                          <span className="text-xs font-bold">{(contract as any).installments_count ? `${(contract as any).installments_count} meses` : 'Recorrente'}</span>
+                        </div>
+                        
+                        <Button asChild variant="outline" size="sm" className="w-full mt-2 rounded-xl text-[10px] uppercase font-bold tracking-widest gap-2 h-9">
+                          <Link to={`/propostas/${contract.proposal_id}`}>
+                            <FileText className="size-3" /> Detalhes do Contrato
+                          </Link>
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -266,7 +276,10 @@ function ClientDetail() {
                 {contracts.length === 0 && (
                   <div className="col-span-full h-48 border-2 border-dashed border-border rounded-3xl flex flex-col items-center justify-center text-foreground/30 space-y-3">
                     <FileSignature className="size-8 opacity-20" />
-                    <p className="text-sm italic">Nenhum contrato ativo para este cliente.</p>
+                    <div className="text-center">
+                      <p className="text-sm font-bold">Nenhum contrato ativo</p>
+                      <p className="text-[10px] uppercase mt-1">Aprove uma proposta para gerar o contrato</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -279,21 +292,45 @@ function ClientDetail() {
                    <TableHeader className="bg-muted/30">
                      <TableRow>
                        <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Proposta</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Data</TableHead>
                        <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor Total</TableHead>
                        <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Ação</TableHead>
                      </TableRow>
                    </TableHeader>
                    <TableBody>
-                     {proposals.map(p => (
-                       <TableRow key={p.id}>
-                         <TableCell className="font-medium text-sm py-4">{p.title}</TableCell>
-                         <TableCell className="text-right text-sm py-4">{brl(p.total || 0)}</TableCell>
-                         <TableCell className="text-center py-4">
-                           <Badge variant="outline" className="rounded-full text-[10px] uppercase tracking-widest">{p.status}</Badge>
+                     {proposals
+                       .filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status))
+                       .map(p => (
+                        <TableRow key={p.id} className="group">
+                          <TableCell className="font-medium text-sm py-4">{p.title}</TableCell>
+                          <TableCell className="text-xs text-foreground/40 py-4">{new Date(p.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right text-sm py-4">{brl(p.total || 0)}</TableCell>
+                          <TableCell className="text-center py-4">
+                            <Badge variant="outline" className={cn(
+                              "rounded-full text-[9px] uppercase tracking-widest",
+                              p.status === 'draft' ? "border-amber-500/20 text-amber-500 bg-amber-500/5" : "border-foreground/10 text-foreground/40"
+                            )}>
+                              {p.status === 'draft' ? 'Rascunho' : p.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center py-4">
+                             <Button asChild variant="ghost" size="sm" className="h-8 text-[10px] uppercase font-bold tracking-widest rounded-lg">
+                               <Link to={`/propostas/${p.id}`}>Editar</Link>
+                             </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                     {proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length === 0 && (
+                       <TableRow>
+                         <TableCell colSpan={5} className="h-32 text-center text-foreground/30 italic">
+                           <div className="flex flex-col items-center gap-2">
+                             <FileText className="size-5 opacity-20" />
+                             <span>Nenhuma proposta em negociação encontrada.</span>
+                           </div>
                          </TableCell>
                        </TableRow>
-                     ))}
-                     {proposals.length === 0 && <TableRow><TableCell colSpan={3} className="h-32 text-center text-foreground/30 italic">Nenhuma proposta encontrada.</TableCell></TableRow>}
+                     )}
                    </TableBody>
                  </Table>
                </div>
