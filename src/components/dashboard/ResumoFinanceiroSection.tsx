@@ -177,6 +177,11 @@ export function ResumoFinanceiroSection() {
           />
         </div>
       )}
+
+      <FinancialRulesPanel
+        totalFaturamento={m.receitasRecebidas}
+        periodoLabel={periodoLabel}
+      />
     </div>
   );
 }
