@@ -37,7 +37,9 @@ import {
   Landmark,
   ArrowRight,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Wand2
+
 } from "lucide-react";
 
 
