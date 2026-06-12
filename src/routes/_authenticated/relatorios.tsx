@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { 
@@ -76,6 +76,17 @@ function FinancialPage() {
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    console.log(file);
+    toast.info("Arquivo selecionado. Integração de leitura em breve.", {
+      description: file.name,
+    });
+    event.target.value = "";
+  };
 
   const handleDownloadTemplate = () => {
     const headers = ["Data", "Descrição", "Valor", "Tipo", "Categoria", "Status"];
@@ -175,11 +186,18 @@ function FinancialPage() {
               <DropdownMenuItem onClick={handleDownloadTemplate}>
                 <Download className="size-4 mr-2" /> Baixar Planilha Modelo
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setImportOpen(true)}>
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
                 <Upload className="size-4 mr-2" /> Fazer Upload de Dados
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".csv,.xlsx"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
 
           <Button 
             className="rounded-full gap-2 bg-primary text-primary-foreground"
