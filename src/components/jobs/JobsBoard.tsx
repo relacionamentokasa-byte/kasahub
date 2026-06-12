@@ -126,6 +126,7 @@ export function JobsBoard({
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [isNewJobOpen, setIsNewJobOpen] = useState(false);
   const openJob = useMemo(() => jobs.find(j => j.id === openId) || null, [jobs, openId]);
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
