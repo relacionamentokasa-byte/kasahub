@@ -63,11 +63,13 @@ export function ResumoFinanceiroSection() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("id, type, kind, status, amount, due_date")
+        .select(
+          "id, type, kind, status, amount, due_date, categorias_financeiras(nome)",
+        )
         .gte("due_date", monthStart)
         .lte("due_date", monthEnd);
       if (error) throw error;
-      return (data || []) as Tx[];
+      return (data || []) as unknown as Tx[];
     },
   });
 
@@ -78,12 +80,14 @@ export function ResumoFinanceiroSection() {
     let parcelasFuturas = 0;
     let despesasPrevistas = 0;
     let despesasPagas = 0;
+    let despesasOperacionaisPagas = 0;
 
     for (const t of transactions) {
       const amount = Number(t.amount || 0);
       const isIncome = (t.type ?? t.kind) === "income";
       const isExpense = (t.type ?? t.kind) === "expense";
       const isPaid = PAID_STATUSES.has((t.status || "").toLowerCase());
+      const proLab = isProLaboreCat(t.categorias_financeiras?.nome);
 
       if (isIncome) {
         receitasPrevistas += amount;
@@ -91,7 +95,10 @@ export function ResumoFinanceiroSection() {
         if (!isPaid && t.due_date > todayStr) parcelasFuturas += amount;
       } else if (isExpense) {
         despesasPrevistas += amount;
-        if (isPaid) despesasPagas += amount;
+        if (isPaid) {
+          despesasPagas += amount;
+          if (!proLab) despesasOperacionaisPagas += amount;
+        }
       }
     }
 
@@ -101,6 +108,7 @@ export function ResumoFinanceiroSection() {
       parcelasFuturas,
       despesasPrevistas,
       despesasPagas,
+      despesasOperacionaisPagas,
       saldo: receitasRecebidas - despesasPagas,
     };
   }, [transactions]);
