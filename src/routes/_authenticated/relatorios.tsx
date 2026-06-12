@@ -77,6 +77,7 @@ function FinancialPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [contasOpen, setContasOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
