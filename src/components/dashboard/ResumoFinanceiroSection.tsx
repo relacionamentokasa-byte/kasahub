@@ -31,9 +31,20 @@ type Tx = {
   status: string | null;
   amount: number | string | null;
   due_date: string;
+  categorias_financeiras?: { nome: string | null } | null;
 };
 
 const PAID_STATUSES = new Set(["paid", "recebido", "pago", "efetivado", "received"]);
+
+const normalizeCat = (s: string | null | undefined) =>
+  (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+const isProLaboreCat = (name: string | null | undefined) =>
+  normalizeCat(name) === "pro-labore";
 
 export function ResumoFinanceiroSection() {
   const [refDate, setRefDate] = useState<Date>(() => new Date());
@@ -52,11 +63,13 @@ export function ResumoFinanceiroSection() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("transactions")
-        .select("id, type, kind, status, amount, due_date")
+        .select(
+          "id, type, kind, status, amount, due_date, categorias_financeiras(nome)",
+        )
         .gte("due_date", monthStart)
         .lte("due_date", monthEnd);
       if (error) throw error;
-      return (data || []) as Tx[];
+      return (data || []) as unknown as Tx[];
     },
   });
 
@@ -67,12 +80,14 @@ export function ResumoFinanceiroSection() {
     let parcelasFuturas = 0;
     let despesasPrevistas = 0;
     let despesasPagas = 0;
+    let despesasOperacionaisPagas = 0;
 
     for (const t of transactions) {
       const amount = Number(t.amount || 0);
       const isIncome = (t.type ?? t.kind) === "income";
       const isExpense = (t.type ?? t.kind) === "expense";
       const isPaid = PAID_STATUSES.has((t.status || "").toLowerCase());
+      const proLab = isProLaboreCat(t.categorias_financeiras?.nome);
 
       if (isIncome) {
         receitasPrevistas += amount;
@@ -80,7 +95,10 @@ export function ResumoFinanceiroSection() {
         if (!isPaid && t.due_date > todayStr) parcelasFuturas += amount;
       } else if (isExpense) {
         despesasPrevistas += amount;
-        if (isPaid) despesasPagas += amount;
+        if (isPaid) {
+          despesasPagas += amount;
+          if (!proLab) despesasOperacionaisPagas += amount;
+        }
       }
     }
 
@@ -90,6 +108,7 @@ export function ResumoFinanceiroSection() {
       parcelasFuturas,
       despesasPrevistas,
       despesasPagas,
+      despesasOperacionaisPagas,
       saldo: receitasRecebidas - despesasPagas,
     };
   }, [transactions]);
@@ -180,7 +199,7 @@ export function ResumoFinanceiroSection() {
 
       <FinancialRulesPanel
         totalFaturamento={m.receitasRecebidas}
-        despesasReais={m.despesasPagas}
+        despesasReais={m.despesasOperacionaisPagas}
         periodoLabel={periodoLabel}
       />
     </div>
