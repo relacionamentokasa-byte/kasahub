@@ -265,30 +265,59 @@ export async function revertProposalApproval(
   proposalId: string,
   opts: { reopen?: boolean } = {},
 ): Promise<void> {
-  // cancel pending transactions tied to this proposal
-  await sb
+  // 1. Delete transactions (financeiro)
+  const { error: txErr } = await sb
     .from("transactions")
-    .update({ status: "cancelled" })
-    .eq("proposal_id", proposalId)
-    .eq("status", "pending");
+    .delete()
+    .eq("proposal_id", proposalId);
+  if (txErr) console.warn("Erro ao deletar transações na reversão:", txErr);
 
+  // 2. Load IDs to delete related data
   const { data: proposal } = await sb
     .from("proposals")
     .select("generated_project_id, generated_contract_id")
     .eq("id", proposalId)
     .maybeSingle();
 
-  if (proposal?.generated_contract_id) {
-    await sb.from("contracts").update({ status: "cancelled" }).eq("id", proposal.generated_contract_id);
-  }
+  // 3. Delete Calendar Events linked to the project
   if (proposal?.generated_project_id) {
-    await sb.from("projects").update({ status: "archived" }).eq("id", proposal.generated_project_id);
+    const { error: evErr } = await sb
+      .from("calendar_events")
+      .delete()
+      .eq("project_id", proposal.generated_project_id);
+    if (evErr) console.warn("Erro ao deletar eventos do calendário:", evErr);
   }
 
-  await sb
+  // 4. Delete Project
+  if (proposal?.generated_project_id) {
+    const { error: prjErr } = await sb
+      .from("projects")
+      .delete()
+      .eq("id", proposal.generated_project_id);
+    if (prjErr) console.warn("Erro ao deletar projeto:", prjErr);
+  }
+
+  // 5. Delete Contract
+  if (proposal?.generated_contract_id) {
+    const { error: ctErr } = await sb
+      .from("contracts")
+      .delete()
+      .eq("id", proposal.generated_contract_id);
+    if (ctErr) console.warn("Erro ao deletar contrato:", ctErr);
+  }
+
+  // 6. Update Proposal Status and clear generated IDs
+  const { error: upErr } = await sb
     .from("proposals")
-    .update({ status: opts.reopen ? "draft" : "cancelled" })
+    .update({ 
+      status: opts.reopen ? "draft" : "cancelled",
+      generated_project_id: null,
+      generated_contract_id: null,
+      accepted_at: null,
+      converted_at: null
+    })
     .eq("id", proposalId);
+  if (upErr) throw upErr;
 
   await recordProposalEventAdmin(sb, proposalId, opts.reopen ? "reopened" : "cancelled");
 }
