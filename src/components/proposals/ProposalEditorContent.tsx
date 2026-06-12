@@ -6,6 +6,7 @@ import {
   formatCurrency,
   type Proposal,
 } from "@/lib/crm-api";
+import { fetchContractTemplates } from "@/lib/contracts-api";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,11 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
   const { data: proposal, isLoading: isLoadingProposal } = useQuery({
     queryKey: ["proposal", proposalId],
     queryFn: () => fetchProposal(proposalId),
+  });
+
+  const { data: contractTemplates = [] } = useQuery({
+    queryKey: ["contract-templates"],
+    queryFn: fetchContractTemplates,
   });
 
   useEffect(() => {
@@ -211,8 +217,32 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 <Input value={form.client_email || ""} disabled className="bg-muted/50" />
               </div>
             </div>
+            <div className="space-y-1.5">
+              <Label>Modelo de Contrato</Label>
+              <Select
+                value={(form as any).contract_template_id || "__none__"}
+                onValueChange={(val) => {
+                  setForm({ ...form, contract_template_id: val === "__none__" ? null : val } as any);
+                  setIsDirty(true);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o modelo jurídico..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">Nenhum modelo</SelectItem>
+                  {contractTemplates.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                Modelo usado para gerar o contrato quando a proposta for aprovada.
+              </p>
+            </div>
           </div>
         </div>
+
 
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-primary">
