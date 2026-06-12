@@ -10,7 +10,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { fetchProfiles } from "@/lib/profile-api";
-import { usePresence } from "@/hooks/use-presence";
+import { usePresenceContext } from "@/contexts/PresenceContext";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   head: () => ({
