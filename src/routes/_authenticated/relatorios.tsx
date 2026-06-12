@@ -16,6 +16,7 @@ import { TransactionFormDialog } from "@/components/finance/TransactionFormDialo
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
+import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -490,9 +491,14 @@ function FinancialPage() {
                   </TableCell>
 
                   <TableCell className="py-4">
-                    <Badge variant="outline" className="rounded-full text-[10px] font-mono-kasa uppercase tracking-tight">
-                      {t.category || (t.transaction_categories as any)?.name || "Geral"}
-                    </Badge>
+                    <InlineCategoryPicker
+                      transactionId={t.id}
+                      currentCategoryId={t.category_id}
+                      currentCategoryName={
+                        (t.transaction_categories as any)?.name || t.category || null
+                      }
+                      transactionType={t.type}
+                    />
                   </TableCell>
                   <TableCell className={cn("py-4 text-right font-bold text-sm", t.type === "income" ? "text-emerald-500" : "text-red-500")}>
                     {t.type === "income" ? "+" : "-"} {brl(Number(t.amount))}
