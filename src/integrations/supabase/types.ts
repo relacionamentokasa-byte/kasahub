@@ -409,6 +409,30 @@ export type Database = {
           },
         ]
       }
+      categorias_financeiras: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          tipo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       client_deletion_audit: {
         Row: {
           client_id: string
