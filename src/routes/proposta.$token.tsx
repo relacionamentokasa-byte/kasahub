@@ -158,11 +158,26 @@ function PublicProposalView() {
   useEffect(() => {
     load();
     const interval = setInterval(() => {
-      // Pause background refresh while the client is signing.
+      if (signingRef.current) return;
+      if (typeof document !== "undefined" && document.hidden) return;
+      load(true);
+    }, 3000);
+    // Refresh imediato quando o cliente volta para a aba
+    const onFocus = () => {
       if (signingRef.current) return;
       load(true);
-    }, 15000);
-    return () => clearInterval(interval);
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("focus", onFocus);
+      document.addEventListener("visibilitychange", onFocus);
+    }
+    return () => {
+      clearInterval(interval);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("focus", onFocus);
+        document.removeEventListener("visibilitychange", onFocus);
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
