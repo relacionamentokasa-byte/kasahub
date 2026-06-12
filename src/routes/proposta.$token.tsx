@@ -61,6 +61,7 @@ type Proposal = {
   contract_type: string;
   contract_term: string | null;
   first_due_date: string | null;
+  service_start_date?: string | null;
   billing_day: number;
   number_display?: string | null;
   contract_template_id?: string | null;
