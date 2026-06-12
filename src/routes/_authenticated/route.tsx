@@ -32,12 +32,6 @@ export const Route = createFileRoute("/_authenticated")({
 function ShellLayout() {
   const { user } = Route.useRouteContext();
 
-  // Mantém o usuário online durante toda a sessão autenticada,
-  // independentemente de qual tela ele esteja visualizando.
-  usePresence(user?.id);
-
-
-  
   useEffect(() => {
     if (user?.id) {
       supabase
@@ -55,19 +49,22 @@ function ShellLayout() {
   }, [user?.id]);
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background text-foreground relative">
-        <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <AppTopbar />
-          <main className="flex-1 min-w-0">
-            <Outlet />
-          </main>
+    <PresenceProvider userId={user?.id}>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full bg-background text-foreground relative">
+          <AppSidebar />
+          <div className="flex-1 flex flex-col min-w-0">
+            <AppTopbar />
+            <main className="flex-1 min-w-0">
+              <Outlet />
+            </main>
+          </div>
+          <OnboardingWizard />
+          <FloatingActions />
+          <GlobalChatWidget />
         </div>
-        <OnboardingWizard />
-        <FloatingActions />
-        <GlobalChatWidget />
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </PresenceProvider>
   );
 }
+
