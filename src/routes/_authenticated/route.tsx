@@ -31,6 +31,12 @@ export const Route = createFileRoute("/_authenticated")({
 
 function ShellLayout() {
   const { user } = Route.useRouteContext();
+
+  // Mantém o usuário online durante toda a sessão autenticada,
+  // independentemente de qual tela ele esteja visualizando.
+  usePresence(user?.id);
+
+
   
   useEffect(() => {
     if (user?.id) {
