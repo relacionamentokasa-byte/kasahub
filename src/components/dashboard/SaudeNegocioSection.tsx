@@ -1,8 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, Zap, Users, FileText, Target } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { TrendingUp, Zap, Users, FileText, Target, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardKPI } from "./DashboardKPI";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { brl } from "@/lib/utils-format";
 import { startOfMonth, endOfMonth } from "date-fns";
 
