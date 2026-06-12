@@ -17,7 +17,7 @@ export async function fetchTransactions(filters: {
 } = {}) {
   let q = supabase
     .from("transactions")
-    .select("*, clients(id, name, company), transaction_categories(id, name, type)")
+    .select("*, clients(id, name, company), categorias_financeiras(id, nome, tipo)")
     .order("due_date", { ascending: false });
 
   if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
