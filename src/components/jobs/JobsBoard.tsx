@@ -467,6 +467,22 @@ export function JobsBoard({
             </PopoverContent>
           </Popover>
 
+          <Button 
+            onClick={() => setIsNewJobOpen(true)}
+            className="h-9 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md rounded-full px-4"
+          >
+            <Plus className="size-4" />
+            <span className="font-bold">Novo Job</span>
+          </Button>
+          
+          <NewJobDialog 
+            open={isNewJobOpen} 
+            onOpenChange={setIsNewJobOpen}
+            stage={stages[0] || null}
+            defaultClientId={clientId}
+            defaultProjectId={projectId}
+          />
+
           <Button
             onClick={() => setNewStage(stages[0] ?? null)}
             className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-9 px-5 gap-2 shrink-0"
