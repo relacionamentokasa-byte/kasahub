@@ -43,7 +43,7 @@ function ClientDetail() {
     }
   });
 
-  const { data: proposals = [] } = useQuery({ 
+  const { data: proposals = [], refetch: refetchProposals } = useQuery({ 
     queryKey: ["client-proposals", clientId], 
     queryFn: () => fetchProposals().then(res => res.filter(p => p.client_id === clientId)),
     enabled: !!client
@@ -55,7 +55,7 @@ function ClientDetail() {
     enabled: !!client
   });
 
-  const { data: contracts = [] } = useQuery({ 
+  const { data: contracts = [], refetch: refetchContracts } = useQuery({ 
     queryKey: ["client-contracts", clientId], 
     queryFn: () => fetchContracts({ clientId }),
     enabled: !!client
@@ -176,10 +176,20 @@ function ClientDetail() {
                 <TabsTrigger
                   key={tab.v}
                   value={tab.v}
-                  className="data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-0 py-5 text-xs font-bold uppercase tracking-widest gap-2 transition-all hover:text-foreground/80"
+                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-0 py-5 text-xs font-bold uppercase tracking-widest gap-2 transition-all hover:text-foreground/80"
                 >
                   <tab.icon className="size-3.5" />
                   {tab.label}
+                  {tab.v === "contratos" && contracts.length > 0 && (
+                    <span className="absolute -top-1 -right-2 flex size-4 items-center justify-center rounded-full bg-emerald-500 text-[8px] text-white">
+                      {contracts.length}
+                    </span>
+                  )}
+                  {tab.v === "propostas" && proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length > 0 && (
+                    <span className="absolute -top-1 -right-2 flex size-4 items-center justify-center rounded-full bg-amber-500 text-[8px] text-white">
+                      {proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length}
+                    </span>
+                  )}
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -192,9 +202,9 @@ function ClientDetail() {
             {/* Conteúdo: Resumo */}
             <TabsContent value="overview" className="m-0 space-y-8 animate-reveal">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <QuickStatCard title="Propostas" value={proposals.length} icon={FileText} color="text-amber-500" />
+                <QuickStatCard title="Propostas" value={proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length} icon={FileText} color="text-amber-500" />
+                <QuickStatCard title="Contratos Ativos" value={contracts.filter(c => c.status === 'active').length} icon={FileSignature} color="text-emerald-500" />
                 <QuickStatCard title="Projetos Ativos" value={projects.filter(p => p.status === 'active').length} icon={FolderKanban} color="text-purple-500" />
-                <QuickStatCard title="Jobs Pendentes" value={0} icon={CheckSquare} color="text-blue-500" />
                 <QuickStatCard title="Receita Paga" value={brl(totalRevenue)} icon={Wallet} color="text-emerald-500" isText />
               </div>
 
