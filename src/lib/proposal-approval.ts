@@ -220,6 +220,17 @@ export async function approveProposal(
   const baseYear = fy;
   const baseMonth0 = fm - 1;
 
+  // Injeção automática de categoria financeira para alimentar o Dashboard
+  // (MRR ← Fee Mensal, Receita Avulsa ← Job Avulso)
+  const { data: catRows } = await sb
+    .from("categorias_financeiras")
+    .select("id, nome")
+    .in("nome", ["Fee Mensal", "Job Avulso"]);
+  const feeMensalId =
+    catRows?.find((c: any) => c.nome === "Fee Mensal")?.id ?? null;
+  const jobAvulsoId =
+    catRows?.find((c: any) => c.nome === "Job Avulso")?.id ?? null;
+
   const transactions: any[] = [];
 
   // A. Geração das parcelas mensais (Recorrência) — gera EXATAMENTE installmentsCount lançamentos
@@ -230,11 +241,15 @@ export async function approveProposal(
       transactions.push({
         client_id: clientId,
         proposal_id: proposal.id,
+        contract_id: contractId,
+        category_id: feeMensalId,
         amount: monthlyAmount,
         due_date: ymd(due),
         description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount})`,
         status: "pending",
-        type: "income"
+        type: "income",
+        kind: "income",
+        is_recurring: true,
       });
     }
   }
@@ -245,11 +260,15 @@ export async function approveProposal(
     transactions.push({
       client_id: clientId,
       proposal_id: proposal.id,
+      contract_id: contractId,
+      category_id: jobAvulsoId,
       amount: setupAmount,
       due_date: proposal.first_due_date ?? ymd(new Date()),
       description: `Setup / Investimento Único - ${proposal.title}`,
       status: "pending",
-      type: "income"
+      type: "income",
+      kind: "income",
+      is_recurring: false,
     });
   }
 
@@ -258,6 +277,7 @@ export async function approveProposal(
     if (txErr) throw txErr;
     txCreated = transactions.length;
   }
+
 
   // Final Proposal Update
   const { error: upErr } = await sb.from("proposals").update(proposalUpdate).eq("id", proposalId);
