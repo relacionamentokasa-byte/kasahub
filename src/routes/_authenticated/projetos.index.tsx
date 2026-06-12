@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, FolderKanban, MoreVertical, Pencil, Trash2, Search, CheckSquare } from "lucide-react";
+import { Plus, FolderKanban, MoreVertical, Pencil, Trash2, Search, CheckSquare, Building2, Calendar } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchClients, deleteProject } from "@/lib/ops-api";
@@ -16,6 +16,27 @@ export const Route = createFileRoute("/_authenticated/projetos/")({
   head: () => ({ meta: [{ title: "Projetos — KASA HUB" }] }),
   component: ProjetosPage,
 });
+
+function formatDateBR(dateStr: string | null | undefined) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr + "T00:00:00");
+  if (isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+}
+
+function getDateAlertColor(dateStr: string | null | undefined): { text: string; label: string } | null {
+  if (!dateStr) return null;
+  const end = new Date(dateStr + "T00:00:00");
+  if (isNaN(end.getTime())) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffMs = end.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays < 0) return { text: "text-red-500", label: `Vencido há ${Math.abs(diffDays)} dias` };
+  if (diffDays <= 30) return { text: "text-amber-500", label: `Vence em ${diffDays} dias` };
+  return { text: "text-muted-foreground", label: `Válido até ${formatDateBR(dateStr)}` };
+}
 
 function ProjetosPage() {
   const qc = useQueryClient();
@@ -94,7 +115,27 @@ function ProjetosPage() {
               <Link to="/projetos/$projectId" params={{ projectId: p.id }} className="block font-bold text-lg hover:text-primary transition-colors">
                 {p.name}
               </Link>
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
+              {(() => {
+                const clientName = p.clients?.[0]?.name || p.clients?.[0]?.company || null;
+                const dateAlert = getDateAlertColor(p.contracts?.[0]?.end_date);
+                return (
+                  <div className="mt-2 space-y-1">
+                    {clientName && (
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Building2 className="size-3.5 shrink-0" />
+                        <span className="truncate">{clientName}</span>
+                      </div>
+                    )}
+                    {dateAlert && (
+                      <div className={`flex items-center gap-1.5 text-sm ${dateAlert.text}`}>
+                        <Calendar className="size-3.5 shrink-0" />
+                        <span>{dateAlert.label}</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
                 <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] font-bold uppercase tracking-tighter gap-1">
                   <CheckSquare className="size-3" />
                   {p.total_jobs || 0} Jobs Vinculados
