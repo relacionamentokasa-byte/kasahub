@@ -185,7 +185,7 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
               <SelectItem value="Aprovada" className="text-green-600 font-semibold" disabled={form.status === "Aprovada"}>Aprovada</SelectItem>
               <SelectItem value="Recusada" className="text-red-600 font-semibold">Recusada</SelectItem>
               <SelectItem value="Encerrada">Encerrada</SelectItem>
-              <SelectItem value="Cancelada" className="text-red-600 font-semibold">Cancelada</SelectItem>
+              
             </SelectContent>
           </Select>
         </div>
