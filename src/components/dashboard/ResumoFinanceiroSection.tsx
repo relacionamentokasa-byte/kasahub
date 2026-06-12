@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { brl } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
 import { DashboardKPI } from "./DashboardKPI";
+import { FinancialRulesPanel } from "./FinancialRulesPanel";
 
 type Tx = {
   id: string;
