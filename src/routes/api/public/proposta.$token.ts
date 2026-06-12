@@ -223,6 +223,40 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
             // Não falha a assinatura — a proposta já está aprovada; agência pode regerar manualmente
           }
 
+          // 4. Notifica a agência (owner + responsável + admins) que a proposta foi assinada
+          try {
+            const recipients = new Set<string>();
+            if (proposal.owner_id) recipients.add(proposal.owner_id);
+            if (proposal.responsible_id) recipients.add(proposal.responsible_id);
+
+            const { data: admins } = await supabaseAdmin
+              .from("user_roles")
+              .select("user_id")
+              .in("role", ["admin", "ceo", "gestor"]);
+            for (const a of admins ?? []) {
+              if (a.user_id) recipients.add(a.user_id);
+            }
+
+            if (recipients.size > 0) {
+              const titulo = "Proposta assinada";
+              const mensagem = `${body.accepted_name} assinou a proposta "${proposal.title}" pelo link público. Status: Aprovada.`;
+              const link = `/propostas/${proposal.id}`;
+              await supabaseAdmin.from("notificacoes").insert(
+                Array.from(recipients).map((user_id) => ({
+                  user_id,
+                  titulo,
+                  mensagem,
+                  tipo: "success",
+                  link,
+                  lido: false,
+                })),
+              );
+            }
+          } catch (notifyErr) {
+            console.error("[API Public Proposal POST] Erro ao notificar agência:", notifyErr);
+          }
+
+
           return Response.json({ ok: true });
         } catch (err) {
           console.error("[API Public Proposal POST] Catastrophic Error:", err);
