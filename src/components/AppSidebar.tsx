@@ -16,6 +16,8 @@ import {
   Activity,
   Wallet,
   UsersRound,
+  MessageSquare,
+
 
   Loader2,
 } from "lucide-react";
@@ -59,6 +61,8 @@ const groups: { label: string; items: SidebarItem[] }[] = [
       { title: "Jobs", url: "/jobs", icon: CheckSquare, module: "jobs" },
       { title: "Parceiros", url: "/parceiros", icon: Handshake, module: "parceiros" },
       { title: "Agenda", url: "/calendario", icon: CalendarRange, module: "dashboard" },
+      { title: "Chat", url: "/chat", icon: MessageSquare, module: "dashboard" },
+
     ],
   },
   {
