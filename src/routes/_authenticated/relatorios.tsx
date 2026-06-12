@@ -138,6 +138,24 @@ function FinancialPage() {
             return;
           }
 
+          const { supabase } = await import("@/integrations/supabase/client");
+
+          // 1. Busca a conta bancária principal (primeira cadastrada).
+          const { data: contas, error: erroConta } = await supabase
+            .from("contas_bancarias")
+            .select("id")
+            .order("created_at", { ascending: true })
+            .limit(1);
+
+          if (erroConta || !contas || contas.length === 0) {
+            toast.error(
+              "Por favor, cadastre pelo menos uma Conta Bancária no sistema antes de importar a planilha.",
+            );
+            inputEl.value = "";
+            return;
+          }
+          const contaPrincipalId = contas[0].id;
+
           const payload = rows
             .map((r) => {
               const getCol = (...keys: string[]) => {
@@ -175,13 +193,12 @@ function FinancialPage() {
                 category: category ? String(category) : null,
                 payment_date: status === "paid" ? due_date : null,
                 payment_method: "Importação",
+                conta_id: contaPrincipalId,
               };
             })
             .filter(Boolean) as any[];
 
           console.log("Payload higienizado:", payload);
-
-
 
           if (!payload.length) {
             toast.error("Nenhuma linha válida encontrada. Verifique data e valor.");
@@ -189,7 +206,6 @@ function FinancialPage() {
             return;
           }
 
-          const { supabase } = await import("@/integrations/supabase/client");
           const { error } = await supabase.from("transactions").insert(payload);
           if (error) {
             toast.error("Erro na importação: " + error.message);
@@ -198,6 +214,7 @@ function FinancialPage() {
             qc.invalidateQueries({ queryKey: ["transactions"] });
             qc.invalidateQueries({ queryKey: ["finance-stats"] });
           }
+
         } catch (e: any) {
           toast.error("Erro ao processar arquivo: " + (e?.message || "desconhecido"));
         } finally {
