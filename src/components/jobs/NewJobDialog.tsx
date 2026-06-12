@@ -45,10 +45,10 @@ export function NewJobDialog({
   defaultPeriod?: string;
 }) {
   const qc = useQueryClient();
-  const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+
 
   const [form, setForm] = useState({
     title: "",
