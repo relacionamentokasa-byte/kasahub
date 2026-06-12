@@ -261,7 +261,7 @@ function ClientDetail() {
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-[10px] uppercase text-foreground/40 font-medium tracking-wider">Duração</span>
-                          <span className="text-xs font-bold">{contract.installments_count ? `${contract.installments_count} meses` : 'Recorrente'}</span>
+                          <span className="text-xs font-bold">{(contract as any).installments_count ? `${(contract as any).installments_count} meses` : 'Recorrente'}</span>
                         </div>
                         
                         <Button asChild variant="outline" size="sm" className="w-full mt-2 rounded-xl text-[10px] uppercase font-bold tracking-widest gap-2 h-9">
