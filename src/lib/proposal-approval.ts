@@ -155,26 +155,38 @@ export async function approveProposal(
     contractId = createdContract.id;
   }
 
-  // Create Project (Job)
+  // Create Project (vinculado ao cliente, proposta e contrato)
   let projectId: string | null = proposal.generated_project_id ?? null;
   if (!projectId) {
-    const { data: createdProject, error: prjErr } = await sb
-      .from("projects")
-      .insert({
-        name: proposal.title,
-        client_id: clientId,
-        proposal_id: proposal.id,
-        contract_id: contractId,
-        briefing: proposal.briefing ?? proposal.intro ?? null,
-        owner_id: proposal.responsible_id ?? proposal.owner_id ?? null,
-        responsible_id: proposal.responsible_id ?? proposal.owner_id ?? null,
-        status: "active",
-        type: "automatic"
-      })
-      .select("id")
-      .single();
-    if (prjErr) throw prjErr;
-    projectId = createdProject.id;
+    if (!clientId) {
+      throw new Error("Não foi possível criar o projeto: cliente não identificado.");
+    }
+    const projectPayload = {
+      name: proposal.title || "Projeto sem título",
+      client_id: clientId,
+      proposal_id: proposal.id,
+      contract_id: contractId,
+      briefing: proposal.briefing ?? proposal.intro ?? null,
+      owner_id: proposal.responsible_id ?? proposal.owner_id ?? null,
+      responsible_id: proposal.responsible_id ?? proposal.owner_id ?? null,
+      status: "active",
+      type: "automatic",
+    };
+    try {
+      const { data: createdProject, error: prjErr } = await sb
+        .from("projects")
+        .insert(projectPayload)
+        .select("id")
+        .single();
+      if (prjErr) {
+        console.error("[approveProposal] Falha ao criar projeto:", prjErr, "payload:", projectPayload);
+        throw new Error(`Não foi possível criar o projeto: ${prjErr.message}`);
+      }
+      projectId = createdProject.id;
+    } catch (e) {
+      console.error("[approveProposal] Exceção ao criar projeto:", e, "payload:", projectPayload);
+      throw e;
+    }
   }
 
   proposalUpdate.generated_project_id = projectId;
