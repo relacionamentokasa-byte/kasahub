@@ -340,6 +340,17 @@ function FinancialPage() {
     .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
+  // Despesas reais operacionais: exclui Pró-labore (já contabilizado separadamente)
+  // e considera apenas as efetivamente pagas.
+  const despesasReaisOperacionais = transactions
+    .filter(
+      (t: any) =>
+        t.type === "expense" &&
+        !isProLabore(getCatName(t)) &&
+        t.status === "paid",
+    )
+    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
   const totals = filteredTransactions.reduce(
     (acc: { receitas: number; despesas: number; proLabore: number }, t: any) => {
       const v = Number(t.amount || 0);
