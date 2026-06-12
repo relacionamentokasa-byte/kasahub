@@ -3,7 +3,7 @@ import { ChevronDown, Check, UserPlus } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchClients } from "@/lib/finance-api";
+import { fetchClients } from "@/lib/ops-api";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
