@@ -35,6 +35,8 @@ async function fetchSaudeNegocio(refDate: Date) {
   if (txErr) console.error("transactions fetch error", txErr);
 
   const txs = (txData || []) as any[];
+  // Receitas do mês — INDEPENDENTE de status (Pendente, Atrasado, Recebido).
+  // MRR precisa refletir a previsibilidade de faturamento, incluindo parcelas vincendas.
   const incomes = txs.filter((t) => (t.kind || t.type) === "income");
 
   const mrr = incomes
