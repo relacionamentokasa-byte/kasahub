@@ -31,9 +31,20 @@ type Tx = {
   status: string | null;
   amount: number | string | null;
   due_date: string;
+  categorias_financeiras?: { nome: string | null } | null;
 };
 
 const PAID_STATUSES = new Set(["paid", "recebido", "pago", "efetivado", "received"]);
+
+const normalizeCat = (s: string | null | undefined) =>
+  (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+const isProLaboreCat = (name: string | null | undefined) =>
+  normalizeCat(name) === "pro-labore";
 
 export function ResumoFinanceiroSection() {
   const [refDate, setRefDate] = useState<Date>(() => new Date());
