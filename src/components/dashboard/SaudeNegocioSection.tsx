@@ -1,8 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
-import { TrendingUp, Zap, Users, FileText, Target } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { TrendingUp, Zap, Users, FileText, Target, Pencil } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardKPI } from "./DashboardKPI";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { brl } from "@/lib/utils-format";
 import { startOfMonth, endOfMonth } from "date-fns";
 
@@ -89,6 +92,7 @@ async function fetchSaudeNegocio() {
 }
 
 export function SaudeNegocioSection() {
+  const qc = useQueryClient();
   const { data } = useQuery({
     queryKey: ["saude-negocio"],
     queryFn: fetchSaudeNegocio,
@@ -101,6 +105,65 @@ export function SaudeNegocioSection() {
   const meta = data?.meta || 0;
   const faturado = mrr + avulsa;
   const progresso = meta > 0 ? Math.min(100, (faturado / meta) * 100) : 0;
+
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState<string>("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      setDraft(meta ? String(meta) : "");
+      setTimeout(() => inputRef.current?.focus(), 0);
+    }
+  }, [editing, meta]);
+
+  const saveMeta = useMutation({
+    mutationFn: async (newValue: number) => {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      const { data: existing } = await supabase
+        .from("agency_goals")
+        .select("id")
+        .eq("type", "revenue")
+        .eq("period", "month")
+        .eq("month", month)
+        .eq("year", year)
+        .maybeSingle();
+
+      if (existing?.id) {
+        const { error } = await supabase
+          .from("agency_goals")
+          .update({ target_value: newValue })
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { data: userData } = await supabase.auth.getUser();
+        const { error } = await supabase.from("agency_goals").insert({
+          type: "revenue",
+          period: "month",
+          month,
+          year,
+          target_value: newValue,
+          owner_id: userData.user?.id,
+        });
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["saude-negocio"] });
+      toast.success("Meta atualizada");
+    },
+    onError: (e: any) => toast.error(e?.message || "Erro ao salvar meta"),
+  });
+
+  const commit = () => {
+    const parsed = Number(draft.replace(",", "."));
+    setEditing(false);
+    if (!isNaN(parsed) && parsed >= 0 && parsed !== meta) {
+      saveMeta.mutate(parsed);
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -141,18 +204,45 @@ export function SaudeNegocioSection() {
 
       {/* Meta de Faturamento */}
       <div className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+        <div className="flex items-start justify-between mb-3 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
               <Target className="size-5 text-primary" />
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-semibold text-[#334155]">
                 Meta de Faturamento (Mês)
               </p>
-              <p className="text-xs text-foreground/40">
-                {brl(faturado)} de {meta > 0 ? brl(meta) : "meta não definida"}
-              </p>
+              <div className="text-xs text-foreground/40 flex items-center gap-1.5 flex-wrap">
+                <span>{brl(faturado)} de</span>
+                {editing ? (
+                  <Input
+                    ref={inputRef}
+                    type="number"
+                    inputMode="decimal"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onBlur={commit}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") commit();
+                      if (e.key === "Escape") setEditing(false);
+                    }}
+                    className="h-6 w-32 text-xs px-2"
+                    placeholder="0.00"
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditing(true)}
+                    className="inline-flex items-center gap-1 hover:text-primary transition-colors"
+                  >
+                    <span className="font-medium">
+                      {meta > 0 ? brl(meta) : "definir meta"}
+                    </span>
+                    <Pencil className="size-3" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <p className="text-2xl font-bold tracking-tight text-foreground">
