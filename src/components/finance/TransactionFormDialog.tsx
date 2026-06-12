@@ -7,6 +7,7 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchCategoriasFinanceiras } from "@/lib/categorias-financeiras-api";
+import { fetchContasBancarias } from "@/lib/contas-bancarias-api";
 
 import {
   Dialog,
@@ -52,6 +53,7 @@ const transactionSchema = z.object({
   }),
   status: z.enum(["pending", "paid"]),
   client_id: z.string().optional(),
+  conta_id: z.string().min(1, "A conta bancária é obrigatória"),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -72,6 +74,11 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
   const { data: categorias = [] } = useQuery({
     queryKey: ["categorias_financeiras"],
     queryFn: fetchCategoriasFinanceiras,
+  });
+
+  const { data: contas = [] } = useQuery({
+    queryKey: ["contas_bancarias"],
+    queryFn: fetchContasBancarias,
   });
 
   const form = useForm<TransactionFormValues>({
@@ -307,6 +314,37 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                           {client.company || client.name}
                         </SelectItem>
                       ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="conta_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Conta Bancária</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione uma conta bancária" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {contas.length === 0 ? (
+                        <div className="px-3 py-2 text-xs text-muted-foreground">
+                          Nenhuma conta. Cadastre em "Contas".
+                        </div>
+                      ) : (
+                        contas.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.nome}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
+import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -31,6 +32,7 @@ import {
   Upload,
   Trash2,
   Settings,
+  Landmark,
   ArrowRight,
   ChevronLeft,
   ChevronRight
@@ -75,6 +77,7 @@ function FinancialPage() {
   const [importOpen, setImportOpen] = useState(false);
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
+  const [contasOpen, setContasOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -175,6 +178,9 @@ function FinancialPage() {
         <div className="flex gap-2">
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setCategoriesOpen(true)}>
             <Settings className="size-4" /> Categorias
+          </Button>
+          <Button variant="outline" className="rounded-full gap-2" onClick={() => setContasOpen(true)}>
+            <Landmark className="size-4" /> Contas
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -394,6 +400,7 @@ function FinancialPage() {
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <TransactionFormDialog open={transactionOpen} onOpenChange={setTransactionOpen} />
       <CategoriesManagerDialog open={categoriesOpen} onOpenChange={setCategoriesOpen} />
+      <ContasBancariasManagerDialog open={contasOpen} onOpenChange={setContasOpen} />
     </div>
 
   );

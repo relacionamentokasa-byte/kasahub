@@ -729,6 +729,33 @@ export type Database = {
         }
         Relationships: []
       }
+      contas_bancarias: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          owner_id: string | null
+          saldo_inicial: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          owner_id?: string | null
+          saldo_inicial?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          owner_id?: string | null
+          saldo_inicial?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contract_templates: {
         Row: {
           archived_at: string | null
@@ -2615,6 +2642,7 @@ export type Database = {
           category: string | null
           category_id: string | null
           client_id: string | null
+          conta_id: string | null
           contract_id: string | null
           created_at: string | null
           description: string
@@ -2636,6 +2664,7 @@ export type Database = {
           category?: string | null
           category_id?: string | null
           client_id?: string | null
+          conta_id?: string | null
           contract_id?: string | null
           created_at?: string | null
           description: string
@@ -2657,6 +2686,7 @@ export type Database = {
           category?: string | null
           category_id?: string | null
           client_id?: string | null
+          conta_id?: string | null
           contract_id?: string | null
           created_at?: string | null
           description?: string
@@ -2686,6 +2716,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_conta_id_fkey"
+            columns: ["conta_id"]
+            isOneToOne: false
+            referencedRelation: "contas_bancarias"
             referencedColumns: ["id"]
           },
           {
