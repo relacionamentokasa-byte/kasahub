@@ -307,17 +307,22 @@ export async function revertProposalApproval(
   }
 
   // 6. Update Proposal Status and clear generated IDs
+  const targetStatus = opts.reopen ? "Rascunho" : "Cancelada";
+  
   const { error: upErr } = await sb
     .from("proposals")
     .update({ 
-      status: opts.reopen ? "draft" : "cancelled",
+      status: targetStatus,
       generated_project_id: null,
       generated_contract_id: null,
       accepted_at: null,
       converted_at: null
     })
     .eq("id", proposalId);
-  if (upErr) throw upErr;
+  if (upErr) {
+    console.error(`[CRITICAL] Falha ao atualizar status para "${targetStatus}":`, upErr);
+    throw upErr;
+  }
 
   await recordProposalEventAdmin(sb, proposalId, opts.reopen ? "reopened" : "cancelled");
 }
