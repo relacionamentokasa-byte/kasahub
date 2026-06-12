@@ -25,7 +25,6 @@ export function GlobalChatWidget() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [unread, setUnread] = useState<Record<string, number>>({});
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -46,7 +45,27 @@ export function GlobalChatWidget() {
     enabled: !!currentUserId,
   });
 
-  // Global listener for unread count tracking
+  // Unread messages per sender, sourced from the database (`read = false`).
+  const unreadQueryKey = ["chat-unread", currentUserId] as const;
+  const { data: unread = {} } = useQuery<Record<string, number>>({
+    queryKey: unreadQueryKey,
+    enabled: !!currentUserId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("sender_id")
+        .eq("receiver_id", currentUserId!)
+        .eq("read", false);
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      (data || []).forEach((m: { sender_id: string }) => {
+        counts[m.sender_id] = (counts[m.sender_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
+  // Realtime: whenever a new inbound message arrives, refresh the unread count.
   useEffect(() => {
     if (!currentUserId) return;
     const channel = supabase
@@ -61,18 +80,19 @@ export function GlobalChatWidget() {
         },
         (payload) => {
           const msg = payload.new as Message;
-          // If chat is open AND conversation with sender is active, don't count
-          if (open && selectedContactId === msg.sender_id) return;
-          setUnread((prev) => ({
-            ...prev,
-            [msg.sender_id]: (prev[msg.sender_id] || 0) + 1,
-          }));
+          // If the chat is open on this exact conversation, mark it read instead.
+          if (open && selectedContactId === msg.sender_id) {
+            markConversationRead(msg.sender_id);
+          } else {
+            queryClient.invalidateQueries({ queryKey: unreadQueryKey });
+          }
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUserId, open, selectedContactId]);
 
   const totalUnread = useMemo(
@@ -93,14 +113,26 @@ export function GlobalChatWidget() {
 
   const selectedContact = contacts.find((c: any) => c.id === selectedContactId);
 
+  const markConversationRead = async (contactId: string) => {
+    if (!currentUserId) return;
+    const { error } = await supabase
+      .from("messages")
+      .update({ read: true })
+      .eq("sender_id", contactId)
+      .eq("receiver_id", currentUserId)
+      .eq("read", false);
+    if (error) {
+      console.error("mark as read error:", error);
+      return;
+    }
+    queryClient.invalidateQueries({ queryKey: unreadQueryKey });
+  };
+
   const handleSelectContact = (id: string) => {
     setSelectedContactId(id);
-    setUnread((prev) => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
+    markConversationRead(id);
   };
+
 
   if (!currentUserId) return null;
 
