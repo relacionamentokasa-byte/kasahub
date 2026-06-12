@@ -76,6 +76,11 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
     queryFn: fetchCategoriasFinanceiras,
   });
 
+  const { data: contas = [] } = useQuery({
+    queryKey: ["contas_bancarias"],
+    queryFn: fetchContasBancarias,
+  });
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
