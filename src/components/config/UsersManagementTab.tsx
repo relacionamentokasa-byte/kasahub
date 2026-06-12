@@ -240,28 +240,9 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
   };
 
   const qc = useQueryClient();
-  const { data: usersData, isLoading: usersLoading } = useQuery({ 
-    queryKey: ["users"], 
-    queryFn: async () => {
-      const users = await fetchUsers();
-      // O campo plain_password já vem na query fetchUsers() agora que adicionamos na tabela profiles
-      // Mas para garantir o email que vem da view auth.users via profiles_with_email (se existir)
-      const { data: emails } = await supabase.from('profiles_with_email').select('id, email, plain_password');
-      
-      if (emails) {
-        return users.map(u => {
-          const extra = (emails as any[]).find(e => e.id === u.id);
-          return {
-            ...u,
-            email: extra?.email || u.email,
-            // Priorizamos o plain_password que vier do profiles_with_email se o profiles falhar,
-            // mas u.plain_password já deve conter o valor correto.
-            plain_password: extra?.plain_password || u.plain_password
-          };
-        });
-      }
-      return users;
-    } 
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: fetchUsers,
   });
   const { data: invitesData, isLoading: invitesLoading } = useQuery({ queryKey: ["invites"], queryFn: fetchInvites });
   const { data: agencyData } = useQuery({ queryKey: ["agency-settings"], queryFn: fetchAgencySettings });
