@@ -77,14 +77,21 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
 
       return result;
     },
-    onSuccess: (data) => {
-      toast.success("Proposta Aprovada com Sucesso!");
-      qc.invalidateQueries();
-      onOpenChange(false);
-      setSignature("");
-      onApproved?.();
-      navigate({ to: `/clientes/${data.client_id}` });
-    },
+      onSuccess: (data) => {
+        toast.success("Proposta Aprovada com Sucesso!");
+        // Invalidate ALL relevant queries to ensure UI updates everywhere
+        qc.invalidateQueries({ queryKey: ["client", data.client_id] });
+        qc.invalidateQueries({ queryKey: ["client-contracts", data.client_id] });
+        qc.invalidateQueries({ queryKey: ["client-proposals", data.client_id] });
+        qc.invalidateQueries({ queryKey: ["client-transactions", data.client_id] });
+        qc.invalidateQueries({ queryKey: ["proposals"] });
+        qc.invalidateQueries({ queryKey: ["contracts"] });
+        
+        onOpenChange(false);
+        setSignature("");
+        onApproved?.();
+        navigate({ to: `/clientes/${data.client_id}` });
+      },
     onError: (e: Error) => {
       toast.error(`Erro crítico: ${e.message}`);
     },
