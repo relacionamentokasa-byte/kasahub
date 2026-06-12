@@ -133,8 +133,11 @@ export function SaudeNegocioSection() {
   const clientesAtivos = data?.clientesAtivos || 0;
   const propostasPendentes = data?.propostasPendentes || 0;
   const meta = data?.meta || 0;
-  const faturado = mrr + avulsa;
-  const progresso = meta > 0 ? Math.min(100, (faturado / meta) * 100) : 0;
+  // Apenas receita efetivamente recebida no mês alimenta a Meta de Faturamento.
+  const faturado = data?.receitaEfetivada || 0;
+  const progressoRaw = meta > 0 ? (faturado / meta) * 100 : 0;
+  const progresso = Math.min(progressoRaw, 100);
+
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<string>("");
