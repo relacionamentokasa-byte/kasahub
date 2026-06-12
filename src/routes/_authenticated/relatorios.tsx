@@ -533,9 +533,6 @@ function FinancialPage() {
                     <InlineCategoryPicker
                       transactionId={t.id}
                       currentCategoryId={t.category_id}
-                      currentCategoryName={
-                        (t.transaction_categories as any)?.name || t.category || null
-                      }
                       transactionType={t.type}
                     />
                   </TableCell>
