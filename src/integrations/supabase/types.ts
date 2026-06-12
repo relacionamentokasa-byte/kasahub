@@ -2125,6 +2125,7 @@ export type Database = {
           scope_text: Json | null
           sent_at: string | null
           service_ids: string[]
+          service_start_date: string | null
           service_type: string | null
           signature_agency: string | null
           signature_client: string | null
@@ -2197,6 +2198,7 @@ export type Database = {
           scope_text?: Json | null
           sent_at?: string | null
           service_ids?: string[]
+          service_start_date?: string | null
           service_type?: string | null
           signature_agency?: string | null
           signature_client?: string | null
@@ -2269,6 +2271,7 @@ export type Database = {
           scope_text?: Json | null
           sent_at?: string | null
           service_ids?: string[]
+          service_start_date?: string | null
           service_type?: string | null
           signature_agency?: string | null
           signature_client?: string | null
