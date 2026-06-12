@@ -53,6 +53,7 @@ const transactionSchema = z.object({
   }),
   status: z.enum(["pending", "paid"]),
   client_id: z.string().optional(),
+  conta_id: z.string().min(1, "A conta bancária é obrigatória"),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
