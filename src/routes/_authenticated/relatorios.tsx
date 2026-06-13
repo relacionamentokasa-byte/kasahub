@@ -83,6 +83,8 @@ const normalize = (s: string | null | undefined) =>
     .replace(/^-+|-+$/g, "");
 const isProLabore = (name: string | null | undefined) =>
   normalize(name) === PRO_LABORE;
+const isInvestimento = (name: string | null | undefined) =>
+  normalize(name).includes("investimento");
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
@@ -340,13 +342,23 @@ function FinancialPage() {
     .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
-  // Despesas reais operacionais: exclui Pró-labore (já contabilizado separadamente)
-  // e considera apenas as efetivamente pagas.
+  // Despesas reais operacionais: exclui Pró-labore e Investimento
+  // (ambos contabilizados em blocos separados) e considera apenas as pagas.
   const despesasReaisOperacionais = transactions
     .filter(
       (t: any) =>
         t.type === "expense" &&
         !isProLabore(getCatName(t)) &&
+        !isInvestimento(getCatName(t)) &&
+        t.status === "paid",
+    )
+    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
+  const investimentoRealizado = transactions
+    .filter(
+      (t: any) =>
+        t.type === "expense" &&
+        isInvestimento(getCatName(t)) &&
         t.status === "paid",
     )
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
@@ -452,6 +464,7 @@ function FinancialPage() {
       <FinancialRulesPanel
         totalFaturamento={stats?.recebidasReceitas ?? 0}
         despesasReais={despesasReaisOperacionais}
+        investimentoRealizado={investimentoRealizado}
         periodoLabel={currentMonthLabel}
       />
 
