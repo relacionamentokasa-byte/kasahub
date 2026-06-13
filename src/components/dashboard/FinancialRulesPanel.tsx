@@ -44,10 +44,18 @@ export function FinancialRulesPanel({
     const dentroDaMeta = despesasReais <= tetoDespesas;
     const pctTeto =
       tetoDespesas > 0 ? (despesasReais / tetoDespesas) * 100 : 0;
+    const pctInvest =
+      reservaInvestimento > 0
+        ? (investimentoRealizado / reservaInvestimento) * 100
+        : 0;
+    const investimentoRestante = reservaInvestimento - investimentoRealizado;
     return {
       tetoDespesas,
       despesasReais,
       reservaInvestimento,
+      investimentoRealizado,
+      investimentoRestante,
+      pctInvest,
       totalProLabore,
       lucroLiquido,
       lucroBruto,
@@ -57,7 +65,7 @@ export function FinancialRulesPanel({
       dentroDaMeta,
       pctTeto,
     };
-  }, [totalFaturamento, despesasReais]);
+  }, [totalFaturamento, despesasReais, investimentoRealizado]);
 
   const pct = (v: number) =>
     totalFaturamento > 0 ? (v / totalFaturamento) * 100 : 0;
