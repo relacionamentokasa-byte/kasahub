@@ -187,14 +187,38 @@ export function FinancialRulesPanel({
               )}
             </div>
 
-            <BlockCard
-              icon={PiggyBank}
-              label="Reserva Investimento (10%)"
-              value={calc.reservaInvestimento}
-              percentage={pct(calc.reservaInvestimento)}
-              tone="blue"
-            />
+            <div className="rounded-2xl border p-4 space-y-2 bg-blue-50 border-blue-200">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <PiggyBank className="size-4 text-blue-700" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-700">
+                    Investimento (10%)
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold tabular-nums text-blue-700">
+                  {calc.pctInvest.toFixed(1)}% da reserva
+                </span>
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-xl font-bold tabular-nums text-foreground">
+                  {brl(calc.investimentoRealizado)}
+                </div>
+                <div className="text-[11px] text-foreground/60">
+                  Realizado · Reserva: <span className="font-semibold">{brl(calc.reservaInvestimento)}</span>
+                </div>
+              </div>
+              <Progress
+                value={Math.min(calc.pctInvest, 100)}
+                className="h-1.5 [&>div]:bg-blue-500"
+              />
+              <p className="text-[10px] text-foreground/50">
+                {calc.investimentoRestante > 0
+                  ? `Restam ${brl(calc.investimentoRestante)} para investir`
+                  : `Reserva totalmente aplicada`}
+              </p>
+            </div>
           </div>
+
 
           <BlockCard
             icon={Users}
