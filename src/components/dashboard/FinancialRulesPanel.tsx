@@ -36,7 +36,7 @@ export function FinancialRulesPanel({
     const reservaInvestimento = totalFaturamento * 0.10;
     const totalProLabore = PRO_LABORE_FIXO;
     const lucroBruto =
-      totalFaturamento - despesasReais - reservaInvestimento;
+      totalFaturamento - despesasReais - reservaInvestimento - totalProLabore;
     const lucroLiquido = Math.max(lucroBruto, 0);
     const distribuicaoSocios = lucroLiquido * 0.75;
     const caixaEmpresa = lucroLiquido * 0.25;
@@ -222,11 +222,11 @@ export function FinancialRulesPanel({
 
           <BlockCard
             icon={Users}
-            label="Pró-labore Fixo (4 Sócios) · informativo"
+            label="Pró-labore Fixo (4 Sócios)"
             value={calc.totalProLabore}
             percentage={pct(calc.totalProLabore)}
             tone="purple"
-            hint="4 × R$ 1.621,00 — não deduzido do Lucro Líquido"
+            hint="4 × R$ 1.621,00"
           />
 
 
