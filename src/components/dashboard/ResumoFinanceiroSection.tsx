@@ -83,6 +83,7 @@ export function ResumoFinanceiroSection() {
     let despesasPrevistas = 0;
     let despesasPagas = 0;
     let despesasOperacionaisPagas = 0;
+    let investimentoRealizado = 0;
 
     for (const t of transactions) {
       const amount = Number(t.amount || 0);
@@ -90,6 +91,7 @@ export function ResumoFinanceiroSection() {
       const isExpense = (t.type ?? t.kind) === "expense";
       const isPaid = PAID_STATUSES.has((t.status || "").toLowerCase());
       const proLab = isProLaboreCat(t.categorias_financeiras?.nome);
+      const invest = isInvestimentoCat(t.categorias_financeiras?.nome);
 
       if (isIncome) {
         receitasPrevistas += amount;
@@ -99,7 +101,8 @@ export function ResumoFinanceiroSection() {
         despesasPrevistas += amount;
         if (isPaid) {
           despesasPagas += amount;
-          if (!proLab) despesasOperacionaisPagas += amount;
+          if (invest) investimentoRealizado += amount;
+          else if (!proLab) despesasOperacionaisPagas += amount;
         }
       }
     }
@@ -111,6 +114,7 @@ export function ResumoFinanceiroSection() {
       despesasPrevistas,
       despesasPagas,
       despesasOperacionaisPagas,
+      investimentoRealizado,
       saldo: receitasRecebidas - despesasPagas,
     };
   }, [transactions]);
