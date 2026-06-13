@@ -21,12 +21,14 @@ const PRO_LABORE_FIXO = 6484; // 4 sócios x R$ 1.621,00
 interface FinancialRulesPanelProps {
   totalFaturamento: number;
   despesasReais?: number;
+  investimentoRealizado?: number;
   periodoLabel?: string;
 }
 
 export function FinancialRulesPanel({
   totalFaturamento,
   despesasReais = 0,
+  investimentoRealizado = 0,
   periodoLabel,
 }: FinancialRulesPanelProps) {
   const calc = useMemo(() => {
