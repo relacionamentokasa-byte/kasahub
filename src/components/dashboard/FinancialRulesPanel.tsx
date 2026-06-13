@@ -34,7 +34,7 @@ export function FinancialRulesPanel({
     const reservaInvestimento = totalFaturamento * 0.10;
     const totalProLabore = PRO_LABORE_FIXO;
     const lucroBruto =
-      totalFaturamento - despesasReais - reservaInvestimento - totalProLabore;
+      totalFaturamento - despesasReais - reservaInvestimento;
     const lucroLiquido = Math.max(lucroBruto, 0);
     const distribuicaoSocios = lucroLiquido * 0.75;
     const caixaEmpresa = lucroLiquido * 0.25;
