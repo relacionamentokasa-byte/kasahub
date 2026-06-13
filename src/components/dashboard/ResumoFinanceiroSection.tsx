@@ -45,6 +45,8 @@ const normalizeCat = (s: string | null | undefined) =>
     .replace(/^-+|-+$/g, "");
 const isProLaboreCat = (name: string | null | undefined) =>
   normalizeCat(name) === "pro-labore";
+const isInvestimentoCat = (name: string | null | undefined) =>
+  normalizeCat(name).includes("investimento");
 
 export function ResumoFinanceiroSection() {
   const [refDate, setRefDate] = useState<Date>(() => new Date());
