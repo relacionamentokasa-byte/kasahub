@@ -222,11 +222,11 @@ export function FinancialRulesPanel({
 
           <BlockCard
             icon={Users}
-            label="Pró-labore Fixo (4 Sócios) · informativo"
+            label="Pró-labore Fixo (4 Sócios)"
             value={calc.totalProLabore}
             percentage={pct(calc.totalProLabore)}
             tone="purple"
-            hint="4 × R$ 1.621,00 — não deduzido do Lucro Líquido"
+            hint="4 × R$ 1.621,00"
           />
 
 
