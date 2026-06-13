@@ -83,6 +83,8 @@ const normalize = (s: string | null | undefined) =>
     .replace(/^-+|-+$/g, "");
 const isProLabore = (name: string | null | undefined) =>
   normalize(name) === PRO_LABORE;
+const isInvestimento = (name: string | null | undefined) =>
+  normalize(name).includes("investimento");
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
