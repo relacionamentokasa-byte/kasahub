@@ -184,7 +184,7 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles, stages, attachments, approvals, invoices } = data;
+  const { client, jobs, responsibles, stages, attachments, approvals, invoices, proposals, currentContract } = data;
   const displayName = client.company || client.name;
 
   const approvalsJobs = jobs.filter(
