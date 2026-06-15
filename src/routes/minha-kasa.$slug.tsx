@@ -85,6 +85,38 @@ type Invoice = {
   created_at: string;
 };
 
+type Proposal = {
+  id: string;
+  title: string | null;
+  total: number;
+  monthly_investment: number;
+  status: string | null;
+  created_at: string;
+  accepted_at: string | null;
+  public_token: string | null;
+  number_display: string | null;
+  intro: string | null;
+  scope_text: any;
+  contract_content: string | null;
+  recurring_months: number | null;
+};
+
+type Contract = {
+  id: string;
+  title: string | null;
+  total_value: number | null;
+  monthly_value: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string | null;
+  payment_method: string | null;
+  type: string | null;
+  billing_day: number | null;
+  contract_content: string | null;
+  public_token: string | null;
+  number_display: string | null;
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -93,6 +125,8 @@ type ApiResponse = {
   attachments: Record<string, Attachment[]>;
   approvals: Record<string, ApprovalLog[]>;
   invoices: Invoice[];
+  proposals: Proposal[];
+  currentContract: Contract | null;
 };
 
 // High-contrast status pills: solid colored bg + white text
@@ -118,7 +152,7 @@ function isVideo(att: Attachment) {
 
 function MinhaKasaPage() {
   const { slug } = Route.useParams();
-  const [tab, setTab] = useState<"projects" | "approvals" | "finance">("projects");
+  const [tab, setTab] = useState<"projects" | "approvals" | "finance" | "docs">("projects");
 
   const { data, isLoading, error } = useQuery<ApiResponse>({
     queryKey: ["minha-kasa", slug],
@@ -150,7 +184,7 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles, stages, attachments, approvals, invoices } = data;
+  const { client, jobs, responsibles, stages, attachments, approvals, invoices, proposals, currentContract } = data;
   const displayName = client.company || client.name;
 
   const approvalsJobs = jobs.filter(
@@ -191,7 +225,9 @@ function MinhaKasaPage() {
                   ? "Acompanhe seus projetos em tempo real."
                   : tab === "approvals"
                     ? "Materiais aguardando sua aprovação."
-                    : "Suas faturas e pagamentos."}
+                    : tab === "finance"
+                      ? "Suas faturas e pagamentos."
+                      : "Propostas aprovadas e contrato vigente."}
               </p>
             </div>
           </div>
@@ -231,8 +267,10 @@ function MinhaKasaPage() {
               />
             ))
           )
-        ) : (
+        ) : tab === "finance" ? (
           <FinanceSection invoices={invoices || []} />
+        ) : (
+          <DocsSection proposals={proposals || []} contract={currentContract} />
         )}
 
         <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
@@ -243,7 +281,7 @@ function MinhaKasaPage() {
 
       {/* TAB BAR */}
       <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-        <div className="max-w-3xl mx-auto grid grid-cols-3">
+        <div className="max-w-3xl mx-auto grid grid-cols-4">
           <TabButton
             active={tab === "projects"}
             onClick={() => setTab("projects")}
@@ -263,6 +301,12 @@ function MinhaKasaPage() {
             icon={<Wallet className="size-5" />}
             label="Financeiro"
             badge={pendingInvoicesCount || undefined}
+          />
+          <TabButton
+            active={tab === "docs"}
+            onClick={() => setTab("docs")}
+            icon={<FileText className="size-5" />}
+            label="Propostas"
           />
         </div>
       </nav>
@@ -822,5 +866,343 @@ function InvoiceCard({ invoice }: { invoice: Invoice }) {
         </div>
       </div>
     </article>
+  );
+}
+
+// ============= PROPOSTAS & CONTRATOS =============
+
+function renderScopeText(scope: any): string {
+  if (!scope) return "";
+  if (typeof scope === "string") return scope;
+  if (Array.isArray(scope)) {
+    return scope
+      .map((s) => (typeof s === "string" ? `• ${s}` : `• ${s?.text || JSON.stringify(s)}`))
+      .join("\n");
+  }
+  try {
+    return JSON.stringify(scope, null, 2);
+  } catch {
+    return "";
+  }
+}
+
+function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract: Contract | null }) {
+  const [viewing, setViewing] = useState<
+    | { kind: "proposal"; data: Proposal }
+    | { kind: "contract"; data: Contract }
+    | null
+  >(null);
+
+  return (
+    <div className="space-y-5">
+      {/* PROPOSTAS */}
+      <section className="space-y-3">
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 px-1">
+          📄 Propostas Aprovadas
+        </h2>
+        {proposals.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center text-slate-600 text-sm">
+            Nenhuma proposta aprovada no momento.
+          </div>
+        ) : (
+          proposals.map((p) => (
+            <article
+              key={p.id}
+              className="bg-white border border-slate-200 rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] p-5"
+            >
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="flex-1 min-w-0">
+                  {p.number_display && (
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600 mb-0.5">
+                      {p.number_display}
+                    </div>
+                  )}
+                  <h3 className="font-bold text-base sm:text-lg text-slate-900 leading-tight">
+                    {p.title || "Proposta"}
+                  </h3>
+                </div>
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#10B981] text-white shadow-sm whitespace-nowrap">
+                  ✅ Aprovada
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-4">
+                <div className="text-xl sm:text-2xl font-black tabular-nums text-[#FFBC45]">
+                  {fmtBRL(p.total || p.monthly_investment)}
+                </div>
+                {p.monthly_investment > 0 && p.total !== p.monthly_investment && (
+                  <div className="text-xs font-semibold text-slate-700">
+                    {fmtBRL(p.monthly_investment)}/mês
+                  </div>
+                )}
+                <div className="text-xs text-slate-600 inline-flex items-center gap-1 font-medium">
+                  <Calendar className="size-3.5 text-[#FFBC45]" />
+                  {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setViewing({ kind: "proposal", data: p })}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-2.5 text-sm transition-colors shadow-md"
+                >
+                  📄 Visualizar
+                </button>
+                {p.public_token ? (
+                  <a
+                    href={`/proposta/${p.public_token}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#0C1618] text-[#0C1618] hover:bg-[#0C1618] hover:text-white font-bold py-2.5 text-sm transition-colors"
+                  >
+                    ⬇ Baixar PDF
+                  </a>
+                ) : (
+                  <button
+                    disabled
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-slate-300 text-slate-400 font-bold py-2.5 text-sm cursor-not-allowed"
+                  >
+                    ⬇ Baixar PDF
+                  </button>
+                )}
+              </div>
+            </article>
+          ))
+        )}
+      </section>
+
+      {/* CONTRATO VIGENTE */}
+      <section className="space-y-3">
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 px-1">
+          📜 Contrato Vigente
+        </h2>
+        {!contract ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 text-center text-slate-600 text-sm">
+            Nenhum contrato vigente no momento.
+          </div>
+        ) : (
+          <article
+            className="rounded-2xl p-5 sm:p-6 shadow-[0_8px_24px_rgba(12,22,24,0.25)]"
+            style={{
+              background: "linear-gradient(135deg, #0C1618 0%, #1A2D33 100%)",
+              border: "2px solid #FFBC45",
+            }}
+          >
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#FFBC45] mb-2">
+              <Sparkles className="size-3" /> Contrato Ativo
+            </div>
+            <h3 className="font-bold text-lg sm:text-xl text-white leading-tight mb-3">
+              {contract.title || "Contrato de Prestação de Serviços"}
+            </h3>
+
+            <div className="space-y-2 mb-5 text-sm">
+              {(contract.start_date || contract.end_date) && (
+                <div className="flex items-center gap-2 text-white/90">
+                  <Calendar className="size-4 text-[#FFBC45]" />
+                  <span className="font-medium">
+                    {contract.start_date ? format(new Date(contract.start_date + "T00:00:00"), "dd/MM/yyyy") : "—"}
+                    {" → "}
+                    {contract.end_date ? format(new Date(contract.end_date + "T00:00:00"), "dd/MM/yyyy") : "Indeterminado"}
+                  </span>
+                </div>
+              )}
+              {contract.monthly_value ? (
+                <div className="text-white">
+                  <span className="text-2xl font-black tabular-nums text-[#FFBC45]">
+                    {fmtBRL(contract.monthly_value)}
+                  </span>
+                  <span className="text-xs font-semibold text-white/80 ml-1">/mês</span>
+                </div>
+              ) : contract.total_value ? (
+                <div className="text-white">
+                  <span className="text-2xl font-black tabular-nums text-[#FFBC45]">
+                    {fmtBRL(contract.total_value)}
+                  </span>
+                  <span className="text-xs font-semibold text-white/80 ml-1">total</span>
+                </div>
+              ) : null}
+              {contract.billing_day && (
+                <div className="text-xs text-white/70 font-medium">
+                  Faturamento todo dia {contract.billing_day}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => setViewing({ kind: "contract", data: contract })}
+                disabled={!contract.contract_content}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] disabled:opacity-50 disabled:cursor-not-allowed text-[#0C1618] font-bold py-2.5 text-sm transition-colors shadow-md"
+              >
+                👁 Visualizar
+              </button>
+              {contract.public_token ? (
+                <a
+                  href={`/proposta/${contract.public_token}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#FFBC45] text-[#FFBC45] hover:bg-[#FFBC45] hover:text-[#0C1618] font-bold py-2.5 text-sm transition-colors"
+                >
+                  ⬇ Baixar PDF
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/20 text-white/40 font-bold py-2.5 text-sm cursor-not-allowed"
+                >
+                  ⬇ Baixar PDF
+                </button>
+              )}
+            </div>
+          </article>
+        )}
+      </section>
+
+      {viewing && <DocViewerModal item={viewing} onClose={() => setViewing(null)} />}
+    </div>
+  );
+}
+
+function DocViewerModal({
+  item,
+  onClose,
+}: {
+  item:
+    | { kind: "proposal"; data: Proposal }
+    | { kind: "contract"; data: Contract };
+  onClose: () => void;
+}) {
+  const isProposal = item.kind === "proposal";
+  const title = isProposal
+    ? item.data.title || "Proposta"
+    : item.data.title || "Contrato";
+  const subtitle = isProposal
+    ? item.data.number_display || ""
+    : "Contrato Vigente";
+  const publicToken = item.data.public_token;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white w-full sm:max-w-3xl sm:rounded-2xl shadow-2xl flex flex-col max-h-screen sm:max-h-[92vh] overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* HEADER */}
+        <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-200 bg-[#0C1618]">
+          <div className="min-w-0">
+            {subtitle && (
+              <div className="text-[10px] font-bold uppercase tracking-widest text-[#FFBC45]">
+                {subtitle}
+              </div>
+            )}
+            <h3 className="font-bold text-base sm:text-lg text-white truncate">{title}</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="shrink-0 size-9 inline-flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            aria-label="Fechar"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+
+        {/* CONTENT */}
+        <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-6 bg-white">
+          {isProposal ? (
+            <ProposalContent p={item.data} />
+          ) : item.data.contract_content ? (
+            <div
+              className="prose prose-sm sm:prose max-w-none text-slate-900 prose-headings:text-slate-900 prose-strong:text-slate-900"
+              dangerouslySetInnerHTML={{ __html: item.data.contract_content }}
+            />
+          ) : (
+            <p className="text-slate-600 text-sm">Conteúdo do contrato indisponível.</p>
+          )}
+        </div>
+
+        {/* FOOTER */}
+        <div className="px-5 py-4 border-t border-slate-200 bg-white">
+          {publicToken ? (
+            <a
+              href={`/proposta/${publicToken}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-3 text-sm transition-colors shadow-md"
+            >
+              ⬇ Baixar PDF
+            </a>
+          ) : (
+            <button
+              onClick={() => window.print()}
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-3 text-sm transition-colors shadow-md"
+            >
+              ⬇ Baixar PDF
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProposalContent({ p }: { p: Proposal }) {
+  const scopeText = renderScopeText(p.scope_text);
+  return (
+    <div className="space-y-5 text-slate-900">
+      <div>
+        <h1 className="text-2xl font-black text-slate-900 leading-tight">{p.title}</h1>
+        <p className="text-xs text-slate-600 mt-1 font-medium">
+          Criada em {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}
+          {p.accepted_at &&
+            ` · Aprovada em ${format(new Date(p.accepted_at), "dd/MM/yyyy")}`}
+        </p>
+      </div>
+
+      {p.intro && (
+        <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{p.intro}</div>
+      )}
+
+      {scopeText && (
+        <div>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-700 mb-2">
+            Escopo
+          </h2>
+          <div className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed bg-slate-50 border border-slate-200 rounded-xl p-4">
+            {scopeText}
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {p.total > 0 && (
+          <div className="rounded-xl border border-slate-200 p-4 bg-white">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
+              Valor total
+            </div>
+            <div className="text-2xl font-black tabular-nums text-[#FFBC45] mt-1">
+              {fmtBRL(p.total)}
+            </div>
+          </div>
+        )}
+        {p.monthly_investment > 0 && (
+          <div className="rounded-xl border border-slate-200 p-4 bg-white">
+            <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
+              Investimento mensal
+            </div>
+            <div className="text-2xl font-black tabular-nums text-[#FFBC45] mt-1">
+              {fmtBRL(p.monthly_investment)}
+            </div>
+            {p.recurring_months ? (
+              <div className="text-xs text-slate-600 mt-0.5 font-medium">
+                por {p.recurring_months} {p.recurring_months === 1 ? "mês" : "meses"}
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

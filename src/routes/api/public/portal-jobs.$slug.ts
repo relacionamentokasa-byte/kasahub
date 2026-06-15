@@ -143,8 +143,64 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           created_at: t.created_at,
         }));
 
+        // Fetch proposals (aprovadas/aceitas) do cliente
+        const { data: propRows } = await supabaseAdmin
+          .from("proposals")
+          .select("id, title, total, monthly_investment, status, created_at, accepted_at, public_token, number_display, intro, scope_text, contract_content, recurring_months")
+          .eq("client_id", client.id)
+          .is("deleted_at", null)
+          .in("status", ["accepted", "signed", "converted", "Aprovada", "aprovada"])
+          .order("created_at", { ascending: false });
+
+        const proposals = (propRows || []).map((p: any) => ({
+          id: p.id,
+          title: p.title,
+          total: Number(p.total) || 0,
+          monthly_investment: Number(p.monthly_investment) || 0,
+          status: p.status,
+          created_at: p.created_at,
+          accepted_at: p.accepted_at,
+          public_token: p.public_token,
+          number_display: p.number_display,
+          intro: p.intro,
+          scope_text: p.scope_text,
+          contract_content: p.contract_content,
+          recurring_months: p.recurring_months,
+        }));
+
+        // Fetch current contract (vigente)
+        const today = new Date().toISOString().slice(0, 10);
+        const { data: contractRows } = await supabaseAdmin
+          .from("contracts")
+          .select("id, title, total_value, monthly_value, start_date, end_date, status, payment_method, proposal_id, type, billing_day")
+          .eq("client_id", client.id)
+          .neq("status", "cancelled")
+          .or(`end_date.is.null,end_date.gte.${today}`)
+          .order("start_date", { ascending: false })
+          .limit(1);
+
+        let currentContract: any = null;
+        if (contractRows && contractRows[0]) {
+          const c: any = contractRows[0];
+          if (c.proposal_id) {
+            const { data: prop } = await supabaseAdmin
+              .from("proposals")
+              .select("contract_content, public_token, number_display")
+              .eq("id", c.proposal_id)
+              .maybeSingle();
+            currentContract = {
+              ...c,
+              contract_content: prop?.contract_content || null,
+              public_token: prop?.public_token || null,
+              number_display: prop?.number_display || null,
+            };
+          } else {
+            currentContract = { ...c, contract_content: null, public_token: null, number_display: null };
+          }
+        }
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract }),
           {
             status: 200,
             headers: {
