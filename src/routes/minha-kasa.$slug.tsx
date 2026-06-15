@@ -211,6 +211,50 @@ function JobCard({
           <Progress value={progress} className="h-1.5" />
         </div>
 
+        {stages.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <button
+              onClick={() => setStagesOpen((v) => !v)}
+              className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-foreground/60 hover:text-foreground transition-colors"
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <ListChecks className="size-3.5" />
+                Etapas
+                <span className="font-medium normal-case tracking-normal text-foreground/40">
+                  ({stagesDone}/{stagesTotal})
+                </span>
+              </span>
+              {stagesOpen ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+            </button>
+            {stagesOpen && (
+              <ul className="mt-3 space-y-2">
+                {stages.map((s, idx) => {
+                  const isCurrent = !s.done && stages.slice(0, idx).every((p) => p.done);
+                  return (
+                    <li key={s.id} className="flex items-center gap-2.5 text-sm">
+                      {s.done ? (
+                        <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+                      ) : isCurrent ? (
+                        <Clock className="size-4 shrink-0 text-amber-500" />
+                      ) : (
+                        <Circle className="size-4 shrink-0 text-foreground/25" />
+                      )}
+                      <span className={`flex-1 ${s.done ? "text-foreground/40 line-through" : isCurrent ? "text-foreground font-medium" : "text-foreground/70"}`}>
+                        {s.content}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                          Agora
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
+
         {job.description && (
           <>
             <button
