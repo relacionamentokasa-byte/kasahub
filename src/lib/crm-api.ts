@@ -308,7 +308,7 @@ export async function duplicateProposal(id: string): Promise<Proposal> {
       total: original.total,
       currency: original.currency,
       valid_until: original.valid_until,
-      status: "draft",
+      status: "Rascunho",
       owner_id: userData.user?.id ?? null,
       scope_text: (original as any).scope_text,
       scope: original.scope,
