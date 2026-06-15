@@ -141,6 +141,7 @@ function MinhaKasaPage() {
               key={job.id}
               job={job}
               responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
+              stages={stages?.[job.id] || []}
               primary={primary}
             />
           ))
