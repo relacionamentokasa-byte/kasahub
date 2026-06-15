@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Calendar, User, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Calendar, User, ChevronDown, ChevronUp, Sparkles, CheckCircle2, Circle, Clock, ListChecks } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
