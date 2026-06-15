@@ -1137,6 +1137,61 @@ export type Database = {
         }
         Relationships: []
       }
+      job_approval_logs: {
+        Row: {
+          action: string
+          attachment_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string
+          feedback: string | null
+          id: string
+          job_id: string
+        }
+        Insert: {
+          action: string
+          attachment_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          feedback?: string | null
+          id?: string
+          job_id: string
+        }
+        Update: {
+          action?: string
+          attachment_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string
+          feedback?: string | null
+          id?: string
+          job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_approval_logs_attachment_id_fkey"
+            columns: ["attachment_id"]
+            isOneToOne: false
+            referencedRelation: "job_attachments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_approval_logs_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_approval_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_attachments: {
         Row: {
           category: string | null
