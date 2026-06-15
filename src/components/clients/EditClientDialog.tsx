@@ -63,6 +63,8 @@ export function EditClientDialog({
     contract_type: client.contract_type ?? "recurring",
     contract_value: Number(client.contract_value ?? 0),
     start_date: client.start_date ?? "",
+    portal_slug: client.portal_slug ?? "",
+    portal_enabled: !!client.portal_enabled,
   });
   const [form, setForm] = useState(init);
   const [deleteOpen, setDeleteOpen] = useState(false);
