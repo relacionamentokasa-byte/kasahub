@@ -1,0 +1,2 @@
+ALTER TABLE public.jobs ADD COLUMN IF NOT EXISTS show_in_portal BOOLEAN NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS idx_jobs_show_in_portal ON public.jobs(client_id, show_in_portal) WHERE show_in_portal = true;
