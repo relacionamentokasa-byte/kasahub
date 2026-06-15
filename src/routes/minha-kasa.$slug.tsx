@@ -225,7 +225,9 @@ function MinhaKasaPage() {
                   ? "Acompanhe seus projetos em tempo real."
                   : tab === "approvals"
                     ? "Materiais aguardando sua aprovação."
-                    : "Suas faturas e pagamentos."}
+                    : tab === "finance"
+                      ? "Suas faturas e pagamentos."
+                      : "Propostas aprovadas e contrato vigente."}
               </p>
             </div>
           </div>
