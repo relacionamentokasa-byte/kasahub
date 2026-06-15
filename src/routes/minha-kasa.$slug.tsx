@@ -158,15 +158,20 @@ function MinhaKasaPage() {
 function JobCard({
   job,
   responsible,
+  stages,
   primary,
 }: {
   job: JobRow;
   responsible: { name: string | null; avatar: string | null } | null;
+  stages: StageItem[];
   primary: string;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [stagesOpen, setStagesOpen] = useState(true);
   const status = STATUS_MAP[job.status || "not_started"] || STATUS_MAP.not_started;
-  const progress = job.progress_percentage ?? 0;
+  const stagesDone = stages.filter((s) => s.done).length;
+  const stagesTotal = stages.length;
+  const progress = stagesTotal > 0 ? Math.round((stagesDone / stagesTotal) * 100) : (job.progress_percentage ?? 0);
 
   return (
     <article
