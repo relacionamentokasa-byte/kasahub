@@ -124,8 +124,27 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           });
         }
 
+        // Fetch invoices (transações de receita do cliente)
+        const { data: txRows } = await supabaseAdmin
+          .from("transactions")
+          .select("id, description, amount, due_date, payment_date, status, kind, payment_method, created_at")
+          .eq("client_id", client.id)
+          .eq("kind", "income")
+          .order("due_date", { ascending: true });
+
+        const invoices = (txRows || []).map((t: any) => ({
+          id: t.id,
+          description: t.description,
+          amount: Number(t.amount) || 0,
+          due_date: t.due_date,
+          payment_date: t.payment_date,
+          status: t.status,
+          payment_method: t.payment_method,
+          created_at: t.created_at,
+        }));
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices }),
           {
             status: 200,
             headers: {
@@ -138,3 +157,4 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
     },
   },
 });
+
