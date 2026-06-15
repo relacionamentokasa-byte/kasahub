@@ -33,6 +33,8 @@ type Client = {
   contract_type?: string | null;
   contract_value?: number | null;
   start_date?: string | null;
+  portal_slug?: string | null;
+  portal_enabled?: boolean | null;
 };
 
 export function EditClientDialog({
