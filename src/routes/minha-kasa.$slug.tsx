@@ -267,8 +267,10 @@ function MinhaKasaPage() {
               />
             ))
           )
-        ) : (
+        ) : tab === "finance" ? (
           <FinanceSection invoices={invoices || []} />
+        ) : (
+          <DocsSection proposals={proposals || []} contract={currentContract} />
         )}
 
         <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
