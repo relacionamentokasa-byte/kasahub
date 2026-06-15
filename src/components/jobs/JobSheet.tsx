@@ -441,6 +441,24 @@ export function JobSheet({
                   </div>
                 </div>
 
+                {/* MOSTRAR NO PORTAL */}
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/50 px-4 py-3">
+                  <div className="space-y-0.5">
+                    <Label className="text-xs font-bold flex items-center gap-1.5">
+                      👁️ Mostrar no Minha Kasa
+                    </Label>
+                    <p className="text-[10px] text-foreground/50">Quando ativado, este job aparece no portal do cliente.</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={!!(job as any).show_in_portal}
+                    onChange={(e) => updateMut.mutate({ show_in_portal: e.target.checked } as any)}
+                    className="size-5 accent-primary cursor-pointer"
+                  />
+                </div>
+
+
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
                   {/* PRIORIDADE */}
                   <div className="space-y-3">

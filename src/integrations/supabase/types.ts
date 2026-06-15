@@ -1383,6 +1383,7 @@ export type Database = {
           progress_percentage: number | null
           project_id: string
           service_id: string
+          show_in_portal: boolean
           stage_id: string | null
           status: string | null
           team_involved: Json | null
@@ -1425,6 +1426,7 @@ export type Database = {
           progress_percentage?: number | null
           project_id: string
           service_id: string
+          show_in_portal?: boolean
           stage_id?: string | null
           status?: string | null
           team_involved?: Json | null
@@ -1467,6 +1469,7 @@ export type Database = {
           progress_percentage?: number | null
           project_id?: string
           service_id?: string
+          show_in_portal?: boolean
           stage_id?: string | null
           status?: string | null
           team_involved?: Json | null
