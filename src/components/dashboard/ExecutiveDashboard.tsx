@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchClients, fetchJobs, fetchJobStages } from "@/lib/ops-api";
+import { fetchTransactions } from "@/lib/finance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { GestaoSection } from "./GestaoSection";
 import { SaudeNegocioSection } from "./SaudeNegocioSection";
@@ -69,6 +70,10 @@ export function ExecutiveDashboard() {
   const { data: clients = [], isLoading: clientsLoading } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: jobs = [], isLoading: jobsLoading } = useQuery({ queryKey: ["jobs"], queryFn: () => fetchJobs() });
   const { data: jobStages = [] } = useQuery({ queryKey: ["job_stages"], queryFn: fetchJobStages });
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["transactions", "dashboard-ranking"],
+    queryFn: () => fetchTransactions({ type: "receita" }),
+  });
 
   const { data: approvals = [] } = useQuery({
     queryKey: ["approvals", "all"],
@@ -129,12 +134,18 @@ export function ExecutiveDashboard() {
       }))
     ];
 
+    const totalsByClient = new Map<string, number>();
+    for (const t of transactions as any[]) {
+      if (!t.client_id) continue;
+      const d = t.payment_date || t.due_date;
+      if (!inRange(d)) continue;
+      const amount = Number(t.amount) || 0;
+      totalsByClient.set(t.client_id, (totalsByClient.get(t.client_id) || 0) + amount);
+    }
     const clientRanking = clients.map(client => ({
         id: client.id,
         name: client.company || client.name,
-        contracted: 0,
-        extra: 0,
-        total: 0
+        total: totalsByClient.get(client.id) || 0,
     }));
 
     const feedEvents: FeedEvent[] = [
@@ -166,7 +177,7 @@ export function ExecutiveDashboard() {
       feedEvents,
       alerts
     };
-  }, [jobs, clients, dateInterval]);
+  }, [jobs, clients, transactions, dateInterval]);
 
   if (isLoading) {
     return (
