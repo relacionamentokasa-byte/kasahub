@@ -82,9 +82,9 @@ type ApiResponse = {
 
 // High-contrast status pills: solid colored bg + white text
 const STATUS_MAP: Record<string, { emoji: string; label: string; cls: string }> = {
-  not_started: { emoji: "📥", label: "Novas Demandas", cls: "bg-slate-200 text-slate-800 border-slate-300" },
-  in_progress: { emoji: "⚙️", label: "Em Andamento", cls: "bg-[#1E3A5F] text-white border-[#1E3A5F]" },
-  review: { emoji: "🔍", label: "Em Revisão", cls: "bg-[#F59E0B] text-white border-[#F59E0B]" },
+  not_started: { emoji: "📥", label: "Novas Demandas", cls: "bg-[#9CA3AF] text-white border-[#9CA3AF]" },
+  in_progress: { emoji: "⚙️", label: "Em Andamento", cls: "bg-[#3B82F6] text-white border-[#3B82F6]" },
+  review: { emoji: "🔍", label: "Em Revisão", cls: "bg-[#FFBC45] text-white border-[#FFBC45]" },
   adjustments: { emoji: "👤", label: "Aguardando Cliente", cls: "bg-[#F97316] text-white border-[#F97316]" },
   done: { emoji: "🏁", label: "Concluído", cls: "bg-[#10B981] text-white border-[#10B981]" },
   cancelled: { emoji: "❌", label: "Cancelado", cls: "bg-rose-500 text-white border-rose-500" },
@@ -117,7 +117,7 @@ function MinhaKasaPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
         <div className="text-slate-600 text-sm font-medium">Carregando seu painel...</div>
       </div>
     );
@@ -125,7 +125,7 @@ function MinhaKasaPage() {
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#F8F9FA] p-6">
         <div className="text-center max-w-md">
           <div className="text-5xl mb-4">🔒</div>
           <h1 className="text-2xl font-bold mb-2 text-slate-900">Portal não encontrado</h1>
@@ -143,9 +143,9 @@ function MinhaKasaPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] pb-24 text-slate-900">
+    <div className="min-h-screen bg-[#F8F9FA] pb-24 text-slate-900">
       {/* HEADER */}
-      <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-[#1E3A5F] to-[#2A4A75]">
+      <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-[#0C1618] to-[#1A2D33]">
         <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8">
           <div className="flex items-center gap-4">
             {client.logo_url ? (
@@ -155,12 +155,12 @@ function MinhaKasaPage() {
                 className="size-14 rounded-2xl object-cover border-2 border-white/20 bg-white shadow-md"
               />
             ) : (
-              <div className="size-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md bg-[#F59E0B]">
+              <div className="size-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md bg-[#FFBC45]">
                 {displayName.charAt(0)}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#F59E0B]">
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
                 <Sparkles className="size-3" />
                 Minha Kasa
               </div>
@@ -211,7 +211,7 @@ function MinhaKasaPage() {
         )}
 
         <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
-          <span className="inline-flex items-center justify-center size-5 rounded-md bg-[#F59E0B] text-white text-[10px] font-black">K</span>
+          <span className="inline-flex items-center justify-center size-5 rounded-md bg-[#FFBC45] text-white text-[10px] font-black">K</span>
           <span>Powered by <span className="text-slate-700 font-bold">Kasa Marketing</span></span>
         </footer>
       </main>
@@ -255,7 +255,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`relative flex flex-col items-center justify-center gap-0.5 py-3 transition-colors ${
-        active ? "text-[#F59E0B]" : "text-slate-600 hover:text-slate-900"
+        active ? "text-[#FFBC45]" : "text-slate-600 hover:text-slate-900"
       }`}
     >
       <div className="relative">
@@ -315,13 +315,13 @@ function JobCard({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600 mb-4 font-medium">
           {job.due_date && (
             <span className="inline-flex items-center gap-1.5">
-              <Calendar className="size-3.5 text-[#F59E0B]" />
+              <Calendar className="size-3.5 text-[#FFBC45]" />
               {format(new Date(job.due_date), "dd 'de' MMM", { locale: ptBR })}
             </span>
           )}
           {responsible?.name && (
             <span className="inline-flex items-center gap-1.5">
-              <User className="size-3.5 text-[#1E3A5F]" />
+              <User className="size-3.5 text-[#0C1618]" />
               {responsible.name}
             </span>
           )}
@@ -334,7 +334,7 @@ function JobCard({
           </div>
           <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#F97316] to-[#F59E0B] transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-[#FFBC45] to-[#FFA500] transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -347,7 +347,7 @@ function JobCard({
               className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 hover:text-slate-900 transition-colors"
             >
               <span className="inline-flex items-center gap-1.5">
-                <ListChecks className="size-3.5 text-[#F59E0B]" />
+                <ListChecks className="size-3.5 text-[#FFBC45]" />
                 Etapas
                 <span className="font-semibold normal-case tracking-normal text-slate-600">
                   ({stagesDone}/{stagesTotal})
@@ -364,7 +364,7 @@ function JobCard({
                       {s.done ? (
                         <CheckCircle2 className="size-4 shrink-0 text-[#10B981]" />
                       ) : isCurrent ? (
-                        <Clock className="size-4 shrink-0 text-[#F97316]" />
+                        <Clock className="size-4 shrink-0 text-[#FFBC45]" />
                       ) : (
                         <Circle className="size-4 shrink-0 text-slate-400" />
                       )}
@@ -380,7 +380,7 @@ function JobCard({
                         {s.content}
                       </span>
                       {isCurrent && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F59E0B] text-white shadow-sm">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#FFBC45] text-white shadow-sm">
                           Agora
                         </span>
                       )}
@@ -396,7 +396,7 @@ function JobCard({
           <>
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#F59E0B] transition-colors"
+              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#FFBC45] transition-colors"
             >
               {expanded ? <>Ocultar detalhes <ChevronUp className="size-3.5" /></> : <>Ver detalhes <ChevronDown className="size-3.5" /></>}
             </button>
@@ -475,7 +475,7 @@ function ApprovalCard({
               href={active.file_url}
               target="_blank"
               rel="noreferrer"
-              className="flex flex-col items-center gap-2 text-white hover:text-[#F59E0B]"
+              className="flex flex-col items-center gap-2 text-white hover:text-[#FFBC45]"
             >
               <FileText className="size-12" />
               <span className="text-sm font-semibold">{active.file_name}</span>
@@ -493,7 +493,7 @@ function ApprovalCard({
               key={att.id}
               onClick={() => setActiveIdx(i)}
               className={`shrink-0 size-14 rounded-lg overflow-hidden border-2 transition-all ${
-                i === activeIdx ? "border-[#F59E0B] scale-105" : "border-slate-200 opacity-70 hover:opacity-100"
+                i === activeIdx ? "border-[#FFBC45] scale-105" : "border-slate-200 opacity-70 hover:opacity-100"
               }`}
             >
               {isImage(att) ? (
@@ -592,7 +592,7 @@ function ApprovalCard({
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   rows={5}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-[#F59E0B]"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFBC45] focus:border-[#FFBC45]"
                   placeholder="Ex: trocar a cor do título para laranja, reduzir o logo..."
                 />
               </>
