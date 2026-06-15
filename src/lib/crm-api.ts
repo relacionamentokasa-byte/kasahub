@@ -9,6 +9,37 @@ export type LeadActivity = Database["public"]["Tables"]["lead_activities"]["Row"
 export type Proposal = Database["public"]["Tables"]["proposals"]["Row"];
 export type ProposalItem = Database["public"]["Tables"]["proposal_items"]["Row"];
 
+const VALID_PROPOSAL_STATUSES = ["Rascunho", "Enviada", "Aprovada", "Recusada", "Encerrada"] as const;
+
+function normalizeProposalStatus(status: unknown, fallback = "Rascunho") {
+  if (typeof status !== "string") return fallback;
+  const trimmed = status.trim();
+  if ((VALID_PROPOSAL_STATUSES as readonly string[]).includes(trimmed)) return trimmed;
+
+  const aliases: Record<string, string> = {
+    draft: "Rascunho",
+    rascunho: "Rascunho",
+    reopened: "Rascunho",
+    sent: "Enviada",
+    viewed: "Enviada",
+    enviada: "Enviada",
+    waiting_signature: "Enviada",
+    "Aguardando Assinatura": "Enviada",
+    accepted: "Aprovada",
+    signed: "Aprovada",
+    converted: "Aprovada",
+    aprovada: "Aprovada",
+    refused: "Recusada",
+    rejected: "Recusada",
+    recusada: "Recusada",
+    cancelled: "Encerrada",
+    Cancelada: "Encerrada",
+    encerrada: "Encerrada",
+  };
+
+  return aliases[trimmed] ?? fallback;
+}
+
 export async function fetchStages(): Promise<Stage[]> {
   const { data, error } = await supabase
     .from("lead_stages")
@@ -195,6 +226,10 @@ export function sanitizeProposalPayload<T extends object>(input: T): T {
     }
   }
 
+  if (Object.prototype.hasOwnProperty.call(result, "status")) {
+    result.status = normalizeProposalStatus(result.status);
+  }
+
   return result;
 }
 
@@ -224,8 +259,9 @@ export async function createProposal(input: {
   auto_create_jobs?: boolean;
   contract_template_id?: string | null;
   contract_content?: string | null;
+  status?: string | null;
 }) {
-  const sanitizedInput = sanitizeProposalPayload(input);
+  const sanitizedInput = sanitizeProposalPayload({ ...input, status: normalizeProposalStatus(input.status) });
   
   if (sanitizedInput.client_id) {
     const { data: client } = await supabase.from('clients').select('status').eq('id', sanitizedInput.client_id).single();
