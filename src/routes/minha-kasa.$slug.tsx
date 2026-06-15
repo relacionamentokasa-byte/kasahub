@@ -74,6 +74,17 @@ type ApprovalLog = {
   attachment_id: string | null;
 };
 
+type Invoice = {
+  id: string;
+  description: string | null;
+  amount: number;
+  due_date: string | null;
+  payment_date: string | null;
+  status: string | null;
+  payment_method: string | null;
+  created_at: string;
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -81,6 +92,7 @@ type ApiResponse = {
   stages: Record<string, StageItem[]>;
   attachments: Record<string, Attachment[]>;
   approvals: Record<string, ApprovalLog[]>;
+  invoices: Invoice[];
 };
 
 // High-contrast status pills: solid colored bg + white text
