@@ -16,6 +16,9 @@ import {
   X,
   Play,
   FileText,
+  Wallet,
+  AlertCircle,
+  TrendingUp,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -71,6 +74,17 @@ type ApprovalLog = {
   attachment_id: string | null;
 };
 
+type Invoice = {
+  id: string;
+  description: string | null;
+  amount: number;
+  due_date: string | null;
+  payment_date: string | null;
+  status: string | null;
+  payment_method: string | null;
+  created_at: string;
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -78,6 +92,7 @@ type ApiResponse = {
   stages: Record<string, StageItem[]>;
   attachments: Record<string, Attachment[]>;
   approvals: Record<string, ApprovalLog[]>;
+  invoices: Invoice[];
 };
 
 // High-contrast status pills: solid colored bg + white text
@@ -103,7 +118,7 @@ function isVideo(att: Attachment) {
 
 function MinhaKasaPage() {
   const { slug } = Route.useParams();
-  const [tab, setTab] = useState<"projects" | "approvals">("projects");
+  const [tab, setTab] = useState<"projects" | "approvals" | "finance">("projects");
 
   const { data, isLoading, error } = useQuery<ApiResponse>({
     queryKey: ["minha-kasa", slug],
@@ -135,12 +150,16 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles, stages, attachments, approvals } = data;
+  const { client, jobs, responsibles, stages, attachments, approvals, invoices } = data;
   const displayName = client.company || client.name;
 
   const approvalsJobs = jobs.filter(
     (j) => j.status === "review" && (attachments?.[j.id]?.length || 0) > 0,
   );
+
+  const pendingInvoicesCount = (invoices || []).filter(
+    (i) => (i.status || "").toLowerCase() !== "paid" && (i.status || "").toLowerCase() !== "pago",
+  ).length;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-24 text-slate-900">
@@ -170,7 +189,9 @@ function MinhaKasaPage() {
               <p className="text-xs text-white/80 mt-1 font-medium">
                 {tab === "projects"
                   ? "Acompanhe seus projetos em tempo real."
-                  : "Materiais aguardando sua aprovação."}
+                  : tab === "approvals"
+                    ? "Materiais aguardando sua aprovação."
+                    : "Suas faturas e pagamentos."}
               </p>
             </div>
           </div>
@@ -192,22 +213,26 @@ function MinhaKasaPage() {
               />
             ))
           )
-        ) : approvalsJobs.length === 0 ? (
-          <EmptyState
-            icon="✅"
-            title="Nada para aprovar agora."
-            subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
-          />
-        ) : (
-          approvalsJobs.map((job) => (
-            <ApprovalCard
-              key={job.id}
-              slug={slug}
-              job={job}
-              attachments={attachments[job.id] || []}
-              approvals={approvals?.[job.id] || []}
+        ) : tab === "approvals" ? (
+          approvalsJobs.length === 0 ? (
+            <EmptyState
+              icon="✅"
+              title="Nada para aprovar agora."
+              subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
             />
-          ))
+          ) : (
+            approvalsJobs.map((job) => (
+              <ApprovalCard
+                key={job.id}
+                slug={slug}
+                job={job}
+                attachments={attachments[job.id] || []}
+                approvals={approvals?.[job.id] || []}
+              />
+            ))
+          )
+        ) : (
+          <FinanceSection invoices={invoices || []} />
         )}
 
         <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
@@ -218,7 +243,7 @@ function MinhaKasaPage() {
 
       {/* TAB BAR */}
       <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-        <div className="max-w-3xl mx-auto grid grid-cols-2">
+        <div className="max-w-3xl mx-auto grid grid-cols-3">
           <TabButton
             active={tab === "projects"}
             onClick={() => setTab("projects")}
@@ -231,6 +256,13 @@ function MinhaKasaPage() {
             icon={<CheckSquare className="size-5" />}
             label="Aprovações"
             badge={approvalsJobs.length || undefined}
+          />
+          <TabButton
+            active={tab === "finance"}
+            onClick={() => setTab("finance")}
+            icon={<Wallet className="size-5" />}
+            label="Financeiro"
+            badge={pendingInvoicesCount || undefined}
           />
         </div>
       </nav>
@@ -625,6 +657,170 @@ function ApprovalCard({
           </div>
         </div>
       )}
+    </article>
+  );
+}
+
+// ============= FINANCEIRO =============
+
+function fmtBRL(v: number) {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+}
+
+function classifyInvoice(inv: Invoice): "paid" | "overdue" | "pending" {
+  const s = (inv.status || "").toLowerCase();
+  if (s === "paid" || s === "pago") return "paid";
+  if (inv.due_date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const due = new Date(inv.due_date + "T00:00:00");
+    if (due < today) return "overdue";
+  }
+  return "pending";
+}
+
+function FinanceSection({ invoices }: { invoices: Invoice[] }) {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const monthInvoices = invoices.filter((i) => {
+    if (!i.due_date) return false;
+    const d = new Date(i.due_date + "T00:00:00");
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  });
+
+  const monthTotal = monthInvoices.reduce((s, i) => s + i.amount, 0);
+  const paidTotal = monthInvoices.filter((i) => classifyInvoice(i) === "paid").reduce((s, i) => s + i.amount, 0);
+  const pendingTotal = monthInvoices.filter((i) => classifyInvoice(i) === "pending").reduce((s, i) => s + i.amount, 0);
+  const overdueTotal = monthInvoices.filter((i) => classifyInvoice(i) === "overdue").reduce((s, i) => s + i.amount, 0);
+
+  // Show: overdue first, then pending sorted by due_date, then paid recent
+  const sorted = [...invoices].sort((a, b) => {
+    const ca = classifyInvoice(a);
+    const cb = classifyInvoice(b);
+    const rank = (c: string) => (c === "overdue" ? 0 : c === "pending" ? 1 : 2);
+    if (rank(ca) !== rank(cb)) return rank(ca) - rank(cb);
+    const da = a.due_date ? new Date(a.due_date).getTime() : 0;
+    const db = b.due_date ? new Date(b.due_date).getTime() : 0;
+    return da - db;
+  });
+
+  return (
+    <div className="space-y-4">
+      {/* RESUMO DO MÊS */}
+      <section className="rounded-2xl p-5 sm:p-6 bg-[#0C1618] text-white shadow-[0_8px_24px_rgba(12,22,24,0.25)] border border-[#1A2D33]">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+          <TrendingUp className="size-3.5" />
+          Resumo do mês · {format(now, "MMMM 'de' yyyy", { locale: ptBR })}
+        </div>
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-3xl sm:text-4xl font-black text-[#FFBC45] tracking-tight">{fmtBRL(monthTotal)}</span>
+          <span className="text-xs text-white/60 font-medium">total faturado</span>
+        </div>
+
+        <div className="mt-5 grid grid-cols-3 gap-2">
+          <FinanceStat label="✅ Pagas" value={paidTotal} color="#10B981" />
+          <FinanceStat label="⏳ Pendentes" value={pendingTotal} color="#FFBC45" />
+          <FinanceStat label="🔴 Vencidas" value={overdueTotal} color="#EF4444" />
+        </div>
+      </section>
+
+      {/* LISTA DE FATURAS */}
+      {sorted.length === 0 ? (
+        <EmptyState icon="🧾" title="Nenhuma fatura por aqui." subtitle="Quando houver lançamentos, eles aparecerão aqui." />
+      ) : (
+        sorted.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
+      )}
+    </div>
+  );
+}
+
+function FinanceStat({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
+      <div className="text-[10px] font-bold uppercase tracking-wider text-white/70">{label}</div>
+      <div className="mt-1 text-sm sm:text-base font-bold tabular-nums" style={{ color }}>
+        {fmtBRL(value)}
+      </div>
+    </div>
+  );
+}
+
+function InvoiceCard({ invoice }: { invoice: Invoice }) {
+  const state = classifyInvoice(invoice);
+  const badge =
+    state === "paid"
+      ? { cls: "bg-[#10B981] text-white", label: "✅ Pago" }
+      : state === "overdue"
+        ? { cls: "bg-[#EF4444] text-white", label: "❌ Vencido" }
+        : { cls: "bg-[#FFBC45] text-white", label: "💛 Pendente" };
+
+  return (
+    <article
+      className={`bg-white rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] border overflow-hidden ${
+        state === "overdue" ? "border-[#EF4444]/40 ring-1 ring-[#EF4444]/20" : "border-slate-200"
+      }`}
+    >
+      <div className="p-5 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-slate-900 text-base leading-tight truncate">
+              {invoice.description || "Fatura"}
+            </h3>
+            {invoice.due_date && (
+              <div className="mt-1.5 flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                <Calendar className="size-3.5" />
+                {state === "overdue" ? (
+                  <span className="text-[#EF4444] inline-flex items-center gap-1">
+                    <AlertCircle className="size-3.5" />
+                    Vencida em {format(new Date(invoice.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
+                  </span>
+                ) : state === "paid" && invoice.payment_date ? (
+                  <span className="text-[#10B981]">
+                    Paga em {format(new Date(invoice.payment_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
+                  </span>
+                ) : (
+                  <span>
+                    Vence em {format(new Date(invoice.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm ${badge.cls}`}>
+            {badge.label}
+          </span>
+        </div>
+
+        <div className="flex items-end justify-between gap-3 pt-2 border-t border-slate-100">
+          <div>
+            <div className="text-[10px] uppercase tracking-widest font-bold text-slate-600">Valor</div>
+            <div className="text-2xl font-black text-slate-900 tabular-nums leading-tight">{fmtBRL(invoice.amount)}</div>
+          </div>
+          {state !== "paid" && (
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.alert("Em breve: pagamento online. Por enquanto, entre em contato com sua gestora.");
+                }
+              }}
+              className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold text-white shadow-md transition-colors ${
+                state === "overdue" ? "bg-[#EF4444] hover:bg-[#DC2626]" : "bg-[#FFBC45] hover:bg-[#E5A93E]"
+              }`}
+            >
+              🔗 Pagar Agora
+            </button>
+          )}
+          {state === "paid" && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-bold text-[#10B981]">
+              <CheckCircle2 className="size-4" />
+              Quitada
+            </span>
+          )}
+        </div>
+      </div>
     </article>
   );
 }
