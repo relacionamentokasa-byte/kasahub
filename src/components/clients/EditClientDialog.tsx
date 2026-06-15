@@ -14,7 +14,7 @@ import { ImageUpload } from "@/components/ui/image-upload";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { Trash2, Copy, ExternalLink } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 type Client = {
