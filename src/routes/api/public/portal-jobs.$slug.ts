@@ -47,8 +47,28 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           });
         }
 
+        // Fetch checklist (etapas de execução) for visible jobs
+        const jobIds = (jobs || []).map((j) => j.id);
+        const stages: Record<string, Array<{ id: string; content: string; done: boolean; order_index: number }>> = {};
+        if (jobIds.length > 0) {
+          const { data: items } = await supabaseAdmin
+            .from("job_checklist")
+            .select("id, job_id, content, done, order_index")
+            .in("job_id", jobIds)
+            .order("order_index", { ascending: true });
+          (items || []).forEach((it: any) => {
+            if (!stages[it.job_id]) stages[it.job_id] = [];
+            stages[it.job_id].push({
+              id: it.id,
+              content: it.content,
+              done: !!it.done,
+              order_index: it.order_index ?? 0,
+            });
+          });
+        }
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages }),
           {
             status: 200,
             headers: {
