@@ -37,10 +37,13 @@ type ClientInfo = {
   portal_cover_url: string | null;
 };
 
+type StageItem = { id: string; content: string; done: boolean; order_index: number };
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
   responsibles: Record<string, { name: string | null; avatar: string | null }>;
+  stages: Record<string, StageItem[]>;
 };
 
 const STATUS_MAP: Record<string, { emoji: string; label: string; bg: string; text: string; border: string }> = {
