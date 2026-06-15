@@ -218,8 +218,72 @@ export function EditClientDialog({
             <ClientServicesManager clientId={client.id} />
           </TabsContent>
 
-          <TabsContent value="portal" className="mt-4">
-            <div className="p-4 text-sm text-foreground/40 italic">Portal simplificado indisponível.</div>
+          <TabsContent value="portal" className="mt-4 space-y-4">
+            <div className="rounded-xl border border-border bg-background/40 p-4 space-y-4">
+              <div>
+                <h3 className="font-bold text-sm flex items-center gap-1.5">👁️ Portal Minha Kasa</h3>
+                <p className="text-xs text-foreground/50 mt-0.5">
+                  Defina um identificador único (slug) para gerar o link público do cliente.
+                  No portal, ele verá apenas os jobs marcados com <strong>"Mostrar no Minha Kasa"</strong>.
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Slug do Portal</Label>
+                <Input
+                  value={form.portal_slug ?? ""}
+                  onChange={(e) => {
+                    const slug = e.target.value
+                      .toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .replace(/[^a-z0-9-]+/g, "-")
+                      .replace(/^-+|-+$/g, "");
+                    setForm({ ...form, portal_slug: slug });
+                  }}
+                  placeholder="ex: kasa-beauty"
+                />
+                <p className="text-[10px] text-foreground/40">
+                  Use apenas letras minúsculas, números e hífens.
+                </p>
+              </div>
+
+              {form.portal_slug && (
+                <div className="space-y-1.5">
+                  <Label>Link público</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      readOnly
+                      value={`${typeof window !== "undefined" ? window.location.origin : ""}/minha-kasa/${form.portal_slug}`}
+                      className="font-mono text-xs"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const url = `${window.location.origin}/minha-kasa/${form.portal_slug}`;
+                        navigator.clipboard.writeText(url);
+                        toast.success("Link copiado!");
+                      }}
+                    >
+                      <Copy className="size-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => window.open(`/minha-kasa/${form.portal_slug}`, "_blank")}
+                    >
+                      <ExternalLink className="size-4" />
+                    </Button>
+                  </div>
+                  <p className="text-[10px] text-foreground/40">
+                    Salve o cliente antes de compartilhar para garantir que o slug esteja persistido.
+                  </p>
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
 
