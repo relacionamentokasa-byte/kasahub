@@ -85,6 +85,38 @@ type Invoice = {
   created_at: string;
 };
 
+type Proposal = {
+  id: string;
+  title: string | null;
+  total: number;
+  monthly_investment: number;
+  status: string | null;
+  created_at: string;
+  accepted_at: string | null;
+  public_token: string | null;
+  number_display: string | null;
+  intro: string | null;
+  scope_text: any;
+  contract_content: string | null;
+  recurring_months: number | null;
+};
+
+type Contract = {
+  id: string;
+  title: string | null;
+  total_value: number | null;
+  monthly_value: number | null;
+  start_date: string | null;
+  end_date: string | null;
+  status: string | null;
+  payment_method: string | null;
+  type: string | null;
+  billing_day: number | null;
+  contract_content: string | null;
+  public_token: string | null;
+  number_display: string | null;
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -93,6 +125,8 @@ type ApiResponse = {
   attachments: Record<string, Attachment[]>;
   approvals: Record<string, ApprovalLog[]>;
   invoices: Invoice[];
+  proposals: Proposal[];
+  currentContract: Contract | null;
 };
 
 // High-contrast status pills: solid colored bg + white text
