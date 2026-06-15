@@ -73,7 +73,12 @@ export const Route = createFileRoute("/api/public/portal-action/$slug")({
         }
 
         // 2) Update job status & feedback
-        const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
+        const update: {
+          updated_at: string;
+          status?: string;
+          last_feedback?: string | null;
+          feedback_at?: string;
+        } = { updated_at: new Date().toISOString() };
         if (action === "approve") {
           update.status = "adjustments"; // 👤 Aguardando Cliente (próxima etapa)
         } else if (action === "request_adjustment") {
@@ -90,18 +95,17 @@ export const Route = createFileRoute("/api/public/portal-action/$slug")({
           try {
             await supabaseAdmin.from("notificacoes").insert({
               user_id: job.main_responsible_id,
-              title:
+              titulo:
                 action === "approve"
                   ? "Cliente aprovou ✅"
                   : action === "request_adjustment"
                     ? "Pedido de ajuste 🔄"
                     : "Comentário do cliente 💬",
-              message:
+              mensagem:
                 action === "approve"
                   ? `O cliente aprovou o job "${job.title}".`
                   : `Cliente em "${job.title}": ${feedback?.slice(0, 200) || ""}`,
-              type: action === "request_adjustment" ? "warning" : "info",
-              category: "job",
+              tipo: action === "request_adjustment" ? "warning" : "info",
               link: `/jobs?jobId=${job_id}`,
             });
           } catch {
