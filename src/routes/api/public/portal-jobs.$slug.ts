@@ -127,9 +127,9 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         // Fetch invoices (transações de receita do cliente)
         const { data: txRows } = await supabaseAdmin
           .from("transactions")
-          .select("id, description, amount, due_date, payment_date, status, kind, payment_method, created_at")
+          .select("id, description, amount, due_date, payment_date, status, kind, type, payment_method, created_at")
           .eq("client_id", client.id)
-          .eq("kind", "income")
+          .or("kind.eq.income,type.eq.income")
           .order("due_date", { ascending: true });
 
         const invoices = (txRows || []).map((t: any) => ({
