@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/minha-kasa/$slug")({
@@ -81,13 +80,14 @@ type ApiResponse = {
   approvals: Record<string, ApprovalLog[]>;
 };
 
-const STATUS_MAP: Record<string, { emoji: string; label: string; bg: string; text: string; border: string }> = {
-  not_started: { emoji: "📥", label: "Novas Demandas", bg: "bg-gray-100", text: "text-gray-700", border: "border-gray-200" },
-  in_progress: { emoji: "⚙️", label: "Em Andamento", bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
-  review: { emoji: "🔍", label: "Em Revisão", bg: "bg-amber-50", text: "text-amber-700", border: "border-amber-200" },
-  adjustments: { emoji: "👤", label: "Aguardando Cliente", bg: "bg-orange-50", text: "text-orange-700", border: "border-orange-200" },
-  done: { emoji: "🏁", label: "Concluído", bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
-  cancelled: { emoji: "❌", label: "Cancelado", bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+// High-contrast status pills: solid colored bg + white text
+const STATUS_MAP: Record<string, { emoji: string; label: string; cls: string }> = {
+  not_started: { emoji: "📥", label: "Novas Demandas", cls: "bg-slate-200 text-slate-800 border-slate-300" },
+  in_progress: { emoji: "⚙️", label: "Em Andamento", cls: "bg-[#1E3A5F] text-white border-[#1E3A5F]" },
+  review: { emoji: "🔍", label: "Em Revisão", cls: "bg-[#F59E0B] text-white border-[#F59E0B]" },
+  adjustments: { emoji: "👤", label: "Aguardando Cliente", cls: "bg-[#F97316] text-white border-[#F97316]" },
+  done: { emoji: "🏁", label: "Concluído", cls: "bg-[#10B981] text-white border-[#10B981]" },
+  cancelled: { emoji: "❌", label: "Cancelado", cls: "bg-rose-500 text-white border-rose-500" },
 };
 
 function isImage(att: Attachment) {
@@ -117,26 +117,25 @@ function MinhaKasaPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white">
-        <div className="text-foreground/50 text-sm">Carregando seu painel...</div>
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+        <div className="text-slate-600 text-sm font-medium">Carregando seu painel...</div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-white p-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] p-6">
         <div className="text-center max-w-md">
           <div className="text-5xl mb-4">🔒</div>
-          <h1 className="text-2xl font-bold mb-2">Portal não encontrado</h1>
-          <p className="text-foreground/50">Verifique o link recebido pela Kasa Marketing.</p>
+          <h1 className="text-2xl font-bold mb-2 text-slate-900">Portal não encontrado</h1>
+          <p className="text-slate-600">Verifique o link recebido pela Kasa Marketing.</p>
         </div>
       </div>
     );
   }
 
   const { client, jobs, responsibles, stages, attachments, approvals } = data;
-  const primary = client.brand_primary || "#FFBC45";
   const displayName = client.company || client.name;
 
   const approvalsJobs = jobs.filter(
@@ -144,33 +143,31 @@ function MinhaKasaPage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-orange-50/40 via-white to-white pb-24">
+    <div className="min-h-screen bg-[#FAFAFA] pb-24 text-slate-900">
       {/* HEADER */}
-      <header
-        className="relative overflow-hidden border-b border-border"
-        style={{ background: `linear-gradient(135deg, ${primary}25 0%, ${primary}05 100%)` }}
-      >
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-10">
+      <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-[#1E3A5F] to-[#2A4A75]">
+        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8">
           <div className="flex items-center gap-4">
             {client.logo_url ? (
-              <img src={client.logo_url} alt={displayName} className="size-14 rounded-2xl object-cover border border-border bg-white" />
+              <img
+                src={client.logo_url}
+                alt={displayName}
+                className="size-14 rounded-2xl object-cover border-2 border-white/20 bg-white shadow-md"
+              />
             ) : (
-              <div
-                className="size-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-sm"
-                style={{ background: primary }}
-              >
+              <div className="size-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md bg-[#F59E0B]">
                 {displayName.charAt(0)}
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-foreground/40">
-                <Sparkles className="size-3" style={{ color: primary }} />
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#F59E0B]">
+                <Sparkles className="size-3" />
                 Minha Kasa
               </div>
-              <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight mt-0.5">
+              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-0.5 text-white">
                 Olá, {client.name.split(" ")[0]}!
               </h1>
-              <p className="text-xs text-foreground/50 mt-1">
+              <p className="text-xs text-white/80 mt-1 font-medium">
                 {tab === "projects"
                   ? "Acompanhe seus projetos em tempo real."
                   : "Materiais aguardando sua aprovação."}
@@ -192,7 +189,6 @@ function MinhaKasaPage() {
                 job={job}
                 responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
                 stages={stages?.[job.id] || []}
-                primary={primary}
               />
             ))
           )
@@ -210,25 +206,24 @@ function MinhaKasaPage() {
               job={job}
               attachments={attachments[job.id] || []}
               approvals={approvals?.[job.id] || []}
-              primary={primary}
             />
           ))
         )}
 
-        <footer className="text-center text-[10px] text-foreground/30 pt-12 pb-6 uppercase tracking-widest">
-          Powered by Kasa Marketing
+        <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
+          <span className="inline-flex items-center justify-center size-5 rounded-md bg-[#F59E0B] text-white text-[10px] font-black">K</span>
+          <span>Powered by <span className="text-slate-700 font-bold">Kasa Marketing</span></span>
         </footer>
       </main>
 
       {/* TAB BAR */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-border bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
         <div className="max-w-3xl mx-auto grid grid-cols-2">
           <TabButton
             active={tab === "projects"}
             onClick={() => setTab("projects")}
             icon={<LayoutGrid className="size-5" />}
             label="Projetos"
-            primary={primary}
           />
           <TabButton
             active={tab === "approvals"}
@@ -236,7 +231,6 @@ function MinhaKasaPage() {
             icon={<CheckSquare className="size-5" />}
             label="Aprovações"
             badge={approvalsJobs.length || undefined}
-            primary={primary}
           />
         </div>
       </nav>
@@ -250,33 +244,29 @@ function TabButton({
   icon,
   label,
   badge,
-  primary,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   badge?: number;
-  primary: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className="relative flex flex-col items-center justify-center gap-0.5 py-3 transition-colors"
-      style={{ color: active ? primary : undefined }}
+      className={`relative flex flex-col items-center justify-center gap-0.5 py-3 transition-colors ${
+        active ? "text-[#F59E0B]" : "text-slate-600 hover:text-slate-900"
+      }`}
     >
       <div className="relative">
         {icon}
         {badge ? (
-          <span
-            className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center"
-            style={{ background: primary }}
-          >
+          <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center bg-[#F97316]">
             {badge}
           </span>
         ) : null}
       </div>
-      <span className={`text-[10px] font-semibold uppercase tracking-wider ${active ? "" : "text-foreground/40"}`}>
+      <span className="text-[10px] font-bold uppercase tracking-wider">
         {label}
       </span>
     </button>
@@ -287,8 +277,8 @@ function EmptyState({ icon, title, subtitle }: { icon: string; title: string; su
   return (
     <div className="text-center py-20">
       <div className="text-5xl mb-4">{icon}</div>
-      <p className="text-foreground/60 font-medium">{title}</p>
-      <p className="text-foreground/40 text-sm mt-1">{subtitle}</p>
+      <p className="text-slate-800 font-semibold">{title}</p>
+      <p className="text-slate-600 text-sm mt-1">{subtitle}</p>
     </div>
   );
 }
@@ -297,12 +287,10 @@ function JobCard({
   job,
   responsible,
   stages,
-  primary,
 }: {
   job: JobRow;
   responsible: { name: string | null; avatar: string | null } | null;
   stages: StageItem[];
-  primary: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [stagesOpen, setStagesOpen] = useState(true);
@@ -312,51 +300,56 @@ function JobCard({
   const progress = stagesTotal > 0 ? Math.round((stagesDone / stagesTotal) * 100) : (job.progress_percentage ?? 0);
 
   return (
-    <article className="bg-white border border-border rounded-2xl shadow-sm hover:shadow-md transition-all overflow-hidden">
+    <article className="bg-white border border-slate-200 rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] hover:shadow-[0_8px_24px_rgba(15,23,42,0.12)] transition-all overflow-hidden">
       <div className="p-5 sm:p-6">
         <div className="flex items-start justify-between gap-3 mb-3">
-          <h2 className="font-bold text-lg sm:text-xl leading-tight flex-1">{job.title}</h2>
+          <h2 className="font-bold text-lg sm:text-xl leading-tight flex-1 text-slate-900">{job.title}</h2>
           <span
-            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap ${status.bg} ${status.text} ${status.border}`}
+            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border whitespace-nowrap shadow-sm ${status.cls}`}
           >
             <span>{status.emoji}</span>
             <span className="hidden sm:inline">{status.label}</span>
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-foreground/60 mb-4">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600 mb-4 font-medium">
           {job.due_date && (
             <span className="inline-flex items-center gap-1.5">
-              <Calendar className="size-3.5" />
+              <Calendar className="size-3.5 text-[#F59E0B]" />
               {format(new Date(job.due_date), "dd 'de' MMM", { locale: ptBR })}
             </span>
           )}
           {responsible?.name && (
             <span className="inline-flex items-center gap-1.5">
-              <User className="size-3.5" />
+              <User className="size-3.5 text-[#1E3A5F]" />
               {responsible.name}
             </span>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold text-foreground/40">
-            <span>Progresso</span>
-            <span style={{ color: primary }}>{progress}%</span>
+          <div className="flex justify-between text-[10px] uppercase tracking-widest font-bold">
+            <span className="text-slate-700">Progresso</span>
+            <span className="text-slate-900">{progress}%</span>
           </div>
-          <Progress value={progress} className="h-1.5" />
+          <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#F97316] to-[#F59E0B] transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         </div>
 
         {stages.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border">
+          <div className="mt-4 pt-4 border-t border-slate-200">
             <button
               onClick={() => setStagesOpen((v) => !v)}
-              className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-foreground/60 hover:text-foreground transition-colors"
+              className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 hover:text-slate-900 transition-colors"
             >
               <span className="inline-flex items-center gap-1.5">
-                <ListChecks className="size-3.5" />
+                <ListChecks className="size-3.5 text-[#F59E0B]" />
                 Etapas
-                <span className="font-medium normal-case tracking-normal text-foreground/40">
+                <span className="font-semibold normal-case tracking-normal text-slate-600">
                   ({stagesDone}/{stagesTotal})
                 </span>
               </span>
@@ -369,17 +362,25 @@ function JobCard({
                   return (
                     <li key={s.id} className="flex items-center gap-2.5 text-sm">
                       {s.done ? (
-                        <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+                        <CheckCircle2 className="size-4 shrink-0 text-[#10B981]" />
                       ) : isCurrent ? (
-                        <Clock className="size-4 shrink-0 text-amber-500" />
+                        <Clock className="size-4 shrink-0 text-[#F97316]" />
                       ) : (
-                        <Circle className="size-4 shrink-0 text-foreground/25" />
+                        <Circle className="size-4 shrink-0 text-slate-400" />
                       )}
-                      <span className={`flex-1 ${s.done ? "text-foreground/40 line-through" : isCurrent ? "text-foreground font-medium" : "text-foreground/70"}`}>
+                      <span
+                        className={`flex-1 ${
+                          s.done
+                            ? "text-[#10B981] font-medium"
+                            : isCurrent
+                              ? "text-slate-900 font-semibold"
+                              : "text-slate-600"
+                        }`}
+                      >
                         {s.content}
                       </span>
                       {isCurrent && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#F59E0B] text-white shadow-sm">
                           Agora
                         </span>
                       )}
@@ -395,12 +396,12 @@ function JobCard({
           <>
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-foreground/60 hover:text-foreground transition-colors"
+              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#F59E0B] transition-colors"
             >
               {expanded ? <>Ocultar detalhes <ChevronUp className="size-3.5" /></> : <>Ver detalhes <ChevronDown className="size-3.5" /></>}
             </button>
             {expanded && (
-              <div className="mt-3 pt-3 border-t border-border text-sm text-foreground/70 whitespace-pre-wrap leading-relaxed">
+              <div className="mt-3 pt-3 border-t border-slate-200 text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">
                 {job.description}
               </div>
             )}
@@ -416,13 +417,11 @@ function ApprovalCard({
   job,
   attachments,
   approvals,
-  primary,
 }: {
   slug: string;
   job: JobRow;
   attachments: Attachment[];
   approvals: ApprovalLog[];
-  primary: string;
 }) {
   const qc = useQueryClient();
   const [activeIdx, setActiveIdx] = useState(0);
@@ -463,10 +462,10 @@ function ApprovalCard({
   const alreadyApproved = approvals.some((a) => a.action === "approved" && a.attachment_id === active?.id);
 
   return (
-    <article className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden">
+    <article className="bg-white border border-slate-200 rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] overflow-hidden">
       {/* PREVIEW */}
       {active ? (
-        <div className="relative bg-black/95 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
+        <div className="relative bg-slate-900 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
           {isImage(active) ? (
             <img src={active.file_url} alt={active.file_name} className="w-full h-full object-contain" />
           ) : isVideo(active) ? (
@@ -476,11 +475,11 @@ function ApprovalCard({
               href={active.file_url}
               target="_blank"
               rel="noreferrer"
-              className="flex flex-col items-center gap-2 text-white/90 hover:text-white"
+              className="flex flex-col items-center gap-2 text-white hover:text-[#F59E0B]"
             >
               <FileText className="size-12" />
-              <span className="text-sm font-medium">{active.file_name}</span>
-              <span className="text-xs text-white/60">Abrir arquivo</span>
+              <span className="text-sm font-semibold">{active.file_name}</span>
+              <span className="text-xs text-white/80">Abrir arquivo</span>
             </a>
           )}
         </div>
@@ -488,25 +487,24 @@ function ApprovalCard({
 
       {/* THUMBNAILS */}
       {attachments.length > 1 && (
-        <div className="flex gap-2 px-4 pt-3 overflow-x-auto">
+        <div className="flex gap-2 px-4 pt-3 overflow-x-auto bg-white">
           {attachments.map((att, i) => (
             <button
               key={att.id}
               onClick={() => setActiveIdx(i)}
               className={`shrink-0 size-14 rounded-lg overflow-hidden border-2 transition-all ${
-                i === activeIdx ? "scale-105" : "opacity-60 hover:opacity-100"
+                i === activeIdx ? "border-[#F59E0B] scale-105" : "border-slate-200 opacity-70 hover:opacity-100"
               }`}
-              style={{ borderColor: i === activeIdx ? primary : "transparent" }}
             >
               {isImage(att) ? (
                 <img src={att.file_url} alt="" className="w-full h-full object-cover" />
               ) : isVideo(att) ? (
-                <div className="w-full h-full bg-black flex items-center justify-center">
+                <div className="w-full h-full bg-slate-900 flex items-center justify-center">
                   <Play className="size-5 text-white" />
                 </div>
               ) : (
-                <div className="w-full h-full bg-muted flex items-center justify-center">
-                  <FileText className="size-5 text-foreground/40" />
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                  <FileText className="size-5 text-slate-600" />
                 </div>
               )}
             </button>
@@ -517,19 +515,19 @@ function ApprovalCard({
       {/* META + ACTIONS */}
       <div className="p-5 space-y-4">
         <div>
-          <h2 className="font-bold text-lg leading-tight">{job.title}</h2>
+          <h2 className="font-bold text-lg leading-tight text-slate-900">{job.title}</h2>
           {job.description && (
-            <p className="text-sm text-foreground/60 mt-1 line-clamp-3">{job.description}</p>
+            <p className="text-sm text-slate-700 mt-1 line-clamp-3">{job.description}</p>
           )}
           {active && (
-            <p className="text-[11px] text-foreground/40 mt-2">
+            <p className="text-[11px] text-slate-600 mt-2 font-medium">
               📎 {active.file_name} · {format(new Date(active.created_at), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
             </p>
           )}
         </div>
 
         {alreadyApproved && (
-          <div className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 inline-flex items-center gap-1.5">
+          <div className="text-xs font-bold text-white bg-[#10B981] rounded-lg px-3 py-2 inline-flex items-center gap-1.5 shadow-sm">
             <CheckCircle2 className="size-3.5" />
             Você já aprovou este material.
           </div>
@@ -539,30 +537,30 @@ function ApprovalCard({
           <button
             onClick={() => setModal("approve")}
             disabled={mutation.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10B981] hover:bg-[#0EA371] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
           >
             <CheckCircle2 className="size-4" /> Aprovar
           </button>
           <button
             onClick={() => setModal("adjust")}
             disabled={mutation.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-sm"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#F97316] hover:bg-[#EA6A0F] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
           >
             🔄 Solicitar Ajuste
           </button>
         </div>
 
         {approvals.length > 0 && (
-          <details className="text-xs text-foreground/50">
-            <summary className="cursor-pointer hover:text-foreground/80">Histórico ({approvals.length})</summary>
+          <details className="text-xs text-slate-700">
+            <summary className="cursor-pointer hover:text-slate-900 font-semibold">Histórico ({approvals.length})</summary>
             <ul className="mt-2 space-y-1">
               {approvals.slice(0, 6).map((a) => (
-                <li key={a.id} className="border-l-2 pl-2 border-border">
-                  <span className="font-semibold">
+                <li key={a.id} className="border-l-2 pl-2 border-slate-300">
+                  <span className="font-bold text-slate-900">
                     {a.action === "approved" ? "✅ Aprovado" : a.action === "adjustment_requested" ? "🔄 Ajuste" : "💬 Comentário"}
                   </span>{" "}
-                  · {format(new Date(a.created_at), "dd/MM HH:mm")}
-                  {a.feedback && <div className="text-foreground/70 mt-0.5">{a.feedback}</div>}
+                  <span className="text-slate-600">· {format(new Date(a.created_at), "dd/MM HH:mm")}</span>
+                  {a.feedback && <div className="text-slate-700 mt-0.5">{a.feedback}</div>}
                 </li>
               ))}
             </ul>
@@ -572,29 +570,29 @@ function ApprovalCard({
 
       {/* MODAL */}
       {modal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onClick={() => !mutation.isPending && setModal(null)}>
+        <div className="fixed inset-0 z-50 bg-slate-900/60 flex items-end sm:items-center justify-center p-4" onClick={() => !mutation.isPending && setModal(null)}>
           <div className="bg-white rounded-2xl w-full max-w-md p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between mb-3">
-              <h3 className="font-bold text-lg">
+              <h3 className="font-bold text-lg text-slate-900">
                 {modal === "approve" ? "Confirmar aprovação" : "Solicitar ajuste"}
               </h3>
-              <button onClick={() => !mutation.isPending && setModal(null)} className="text-foreground/40 hover:text-foreground">
+              <button onClick={() => !mutation.isPending && setModal(null)} className="text-slate-600 hover:text-slate-900">
                 <X className="size-5" />
               </button>
             </div>
 
             {modal === "approve" ? (
-              <p className="text-sm text-foreground/70">
-                Confirmar aprovação de <strong>{active?.file_name || job.title}</strong>? A equipe será notificada imediatamente.
+              <p className="text-sm text-slate-700">
+                Confirmar aprovação de <strong className="text-slate-900">{active?.file_name || job.title}</strong>? A equipe será notificada imediatamente.
               </p>
             ) : (
               <>
-                <p className="text-sm text-foreground/70 mb-3">Descreva o ajuste necessário:</p>
+                <p className="text-sm text-slate-700 mb-3">Descreva o ajuste necessário:</p>
                 <textarea
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   rows={5}
-                  className="w-full rounded-lg border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-[#F59E0B]"
                   placeholder="Ex: trocar a cor do título para laranja, reduzir o logo..."
                 />
               </>
@@ -604,7 +602,7 @@ function ApprovalCard({
               <button
                 onClick={() => setModal(null)}
                 disabled={mutation.isPending}
-                className="rounded-xl border border-border py-2.5 text-sm font-semibold hover:bg-muted disabled:opacity-50"
+                className="rounded-xl border border-slate-300 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -617,8 +615,8 @@ function ApprovalCard({
                       : { action: "request_adjustment", attachment_id: active?.id, feedback: feedback.trim() },
                   )
                 }
-                className={`rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-50 ${
-                  modal === "approve" ? "bg-emerald-500 hover:bg-emerald-600" : "bg-orange-500 hover:bg-orange-600"
+                className={`rounded-xl py-2.5 text-sm font-bold text-white disabled:opacity-50 shadow-md ${
+                  modal === "approve" ? "bg-[#10B981] hover:bg-[#0EA371]" : "bg-[#F97316] hover:bg-[#EA6A0F]"
                 }`}
               >
                 {mutation.isPending ? "Enviando..." : modal === "approve" ? "Confirmar" : "Enviar pedido"}
