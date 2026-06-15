@@ -80,6 +80,7 @@ export function EditClientDialog({
         ...form,
         logo_url: form.logo_url || null,
         start_date: form.start_date || null,
+        portal_slug: (form.portal_slug || "").trim() || null,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client", client.id] });
