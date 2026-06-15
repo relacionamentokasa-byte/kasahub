@@ -364,7 +364,7 @@ function JobCard({
                       {s.done ? (
                         <CheckCircle2 className="size-4 shrink-0 text-[#10B981]" />
                       ) : isCurrent ? (
-                        <Clock className="size-4 shrink-0 text-[#F97316]" />
+                        <Clock className="size-4 shrink-0 text-[#FFBC45]" />
                       ) : (
                         <Circle className="size-4 shrink-0 text-slate-400" />
                       )}
