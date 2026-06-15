@@ -130,7 +130,10 @@ function PublicProposalView() {
     // Background refreshes must be invisible to the user (no flicker / scroll reset).
     if (!silent) setLoading(true);
     try {
-      const res = await fetch(`/api/public/proposta/${token}`);
+      const res = await fetch(`/api/public/proposta/${token}?t=${Date.now()}`, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache", Pragma: "no-cache" },
+      });
       if (res.status === 404) {
         if (!silent) setErrorCode("not_found");
         return;
