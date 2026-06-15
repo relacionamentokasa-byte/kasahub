@@ -70,6 +70,10 @@ export function ExecutiveDashboard() {
   const { data: clients = [], isLoading: clientsLoading } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: jobs = [], isLoading: jobsLoading } = useQuery({ queryKey: ["jobs"], queryFn: () => fetchJobs() });
   const { data: jobStages = [] } = useQuery({ queryKey: ["job_stages"], queryFn: fetchJobStages });
+  const { data: transactions = [] } = useQuery({
+    queryKey: ["transactions", "dashboard-ranking"],
+    queryFn: () => fetchTransactions({ type: "receita" }),
+  });
 
   const { data: approvals = [] } = useQuery({
     queryKey: ["approvals", "all"],
