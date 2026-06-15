@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Calendar, User, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Calendar, User, ChevronDown, ChevronUp, Sparkles, CheckCircle2, Circle, Clock, ListChecks } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
@@ -37,10 +37,13 @@ type ClientInfo = {
   portal_cover_url: string | null;
 };
 
+type StageItem = { id: string; content: string; done: boolean; order_index: number };
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
   responsibles: Record<string, { name: string | null; avatar: string | null }>;
+  stages: Record<string, StageItem[]>;
 };
 
 const STATUS_MAP: Record<string, { emoji: string; label: string; bg: string; text: string; border: string }> = {
@@ -85,7 +88,7 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles } = data;
+  const { client, jobs, responsibles, stages } = data;
   const primary = client.brand_primary || "#FFBC45";
   const displayName = client.company || client.name;
 
@@ -138,6 +141,7 @@ function MinhaKasaPage() {
               key={job.id}
               job={job}
               responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
+              stages={stages?.[job.id] || []}
               primary={primary}
             />
           ))
@@ -154,15 +158,20 @@ function MinhaKasaPage() {
 function JobCard({
   job,
   responsible,
+  stages,
   primary,
 }: {
   job: JobRow;
   responsible: { name: string | null; avatar: string | null } | null;
+  stages: StageItem[];
   primary: string;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [stagesOpen, setStagesOpen] = useState(true);
   const status = STATUS_MAP[job.status || "not_started"] || STATUS_MAP.not_started;
-  const progress = job.progress_percentage ?? 0;
+  const stagesDone = stages.filter((s) => s.done).length;
+  const stagesTotal = stages.length;
+  const progress = stagesTotal > 0 ? Math.round((stagesDone / stagesTotal) * 100) : (job.progress_percentage ?? 0);
 
   return (
     <article
@@ -201,6 +210,50 @@ function JobCard({
           </div>
           <Progress value={progress} className="h-1.5" />
         </div>
+
+        {stages.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-border">
+            <button
+              onClick={() => setStagesOpen((v) => !v)}
+              className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-foreground/60 hover:text-foreground transition-colors"
+            >
+              <span className="inline-flex items-center gap-1.5">
+                <ListChecks className="size-3.5" />
+                Etapas
+                <span className="font-medium normal-case tracking-normal text-foreground/40">
+                  ({stagesDone}/{stagesTotal})
+                </span>
+              </span>
+              {stagesOpen ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+            </button>
+            {stagesOpen && (
+              <ul className="mt-3 space-y-2">
+                {stages.map((s, idx) => {
+                  const isCurrent = !s.done && stages.slice(0, idx).every((p) => p.done);
+                  return (
+                    <li key={s.id} className="flex items-center gap-2.5 text-sm">
+                      {s.done ? (
+                        <CheckCircle2 className="size-4 shrink-0 text-emerald-500" />
+                      ) : isCurrent ? (
+                        <Clock className="size-4 shrink-0 text-amber-500" />
+                      ) : (
+                        <Circle className="size-4 shrink-0 text-foreground/25" />
+                      )}
+                      <span className={`flex-1 ${s.done ? "text-foreground/40 line-through" : isCurrent ? "text-foreground font-medium" : "text-foreground/70"}`}>
+                        {s.content}
+                      </span>
+                      {isCurrent && (
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200">
+                          Agora
+                        </span>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        )}
 
         {job.description && (
           <>
