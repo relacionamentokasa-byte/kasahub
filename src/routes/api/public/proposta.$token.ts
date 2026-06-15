@@ -110,7 +110,9 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
               status: 200,
               headers: {
                 "Content-Type": "application/json",
-                "Cache-Control": "no-store",
+                "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+                Pragma: "no-cache",
+                Expires: "0",
               },
             },
           );
