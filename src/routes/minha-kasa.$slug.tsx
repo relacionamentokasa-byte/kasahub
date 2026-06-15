@@ -213,22 +213,26 @@ function MinhaKasaPage() {
               />
             ))
           )
-        ) : approvalsJobs.length === 0 ? (
-          <EmptyState
-            icon="✅"
-            title="Nada para aprovar agora."
-            subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
-          />
-        ) : (
-          approvalsJobs.map((job) => (
-            <ApprovalCard
-              key={job.id}
-              slug={slug}
-              job={job}
-              attachments={attachments[job.id] || []}
-              approvals={approvals?.[job.id] || []}
+        ) : tab === "approvals" ? (
+          approvalsJobs.length === 0 ? (
+            <EmptyState
+              icon="✅"
+              title="Nada para aprovar agora."
+              subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
             />
-          ))
+          ) : (
+            approvalsJobs.map((job) => (
+              <ApprovalCard
+                key={job.id}
+                slug={slug}
+                job={job}
+                attachments={attachments[job.id] || []}
+                approvals={approvals?.[job.id] || []}
+              />
+            ))
+          )
+        ) : (
+          <FinanceSection invoices={invoices || []} />
         )}
 
         <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
