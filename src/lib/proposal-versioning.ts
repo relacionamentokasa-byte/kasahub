@@ -5,9 +5,9 @@ export async function createProposalVersion(proposalId: string) {
 }
 
 export async function cancelProposalWorkflow(proposalId: string, reason: string) {
-  await supabase.from("proposals").update({ status: 'cancelled' }).eq("id", proposalId);
+  await supabase.from("proposals").update({ status: 'Encerrada' }).eq("id", proposalId);
 }
 
 export async function reopenProposal(proposalId: string) {
-  await supabase.from("proposals").update({ status: 'draft' }).eq("id", proposalId);
+  await supabase.from("proposals").update({ status: 'Rascunho' }).eq("id", proposalId);
 }
