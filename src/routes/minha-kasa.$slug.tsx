@@ -88,7 +88,7 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles } = data;
+  const { client, jobs, responsibles, stages } = data;
   const primary = client.brand_primary || "#FFBC45";
   const displayName = client.company || client.name;
 
