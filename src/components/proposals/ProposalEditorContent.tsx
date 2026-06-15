@@ -295,6 +295,25 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 onChange={e => { setForm({ ...form, service_start_date: e.target.value } as any); setIsDirty(true); }}
               />
             </div>
+            <div className="space-y-1.5">
+              <Label>Dia de Cobrança (1-31)</Label>
+              <Input
+                type="number"
+                min={1}
+                max={31}
+                placeholder="Ex: 5"
+                value={(form as any).billing_day ?? ""}
+                onChange={e => {
+                  const v = e.target.value;
+                  const num = v === "" ? null : Math.min(31, Math.max(1, Number(v)));
+                  setForm({ ...form, billing_day: num } as any);
+                  setIsDirty(true);
+                }}
+              />
+              <p className="text-xs text-muted-foreground">
+                Dia do mês em que a cobrança será gerada.
+              </p>
+            </div>
           </div>
         </div>
       </section>
