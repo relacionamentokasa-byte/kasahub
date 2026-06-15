@@ -45,6 +45,7 @@ import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/em
 import { Route as ApiPublicPropostaTokenRouteImport } from './routes/api/public/proposta.$token'
 import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
 import { Route as ApiPublicPortalJobsSlugRouteImport } from './routes/api/public/portal-jobs.$slug'
+import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/public/portal-action.$slug'
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
@@ -236,6 +237,12 @@ const ApiPublicPortalJobsSlugRoute = ApiPublicPortalJobsSlugRouteImport.update({
   path: '/api/public/portal-jobs/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPortalActionSlugRoute =
+  ApiPublicPortalActionSlugRouteImport.update({
+    id: '/api/public/portal-action/$slug',
+    path: '/api/public/portal-action/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksDispatchPushRoute =
   ApiPublicHooksDispatchPushRouteImport.update({
     id: '/api/public/hooks/dispatch-push',
@@ -286,6 +293,7 @@ export interface FileRoutesByFullPath {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
@@ -326,6 +334,7 @@ export interface FileRoutesByTo {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
@@ -368,6 +377,7 @@ export interface FileRoutesById {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
@@ -410,6 +420,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/portal-action/$slug'
     | '/api/public/portal-jobs/$slug'
     | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
@@ -450,6 +461,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/portal-action/$slug'
     | '/api/public/portal-jobs/$slug'
     | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
@@ -491,6 +503,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/portal-action/$slug'
     | '/api/public/portal-jobs/$slug'
     | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
@@ -514,6 +527,7 @@ export interface RootRouteChildren {
   ApiPublicApproveTokenRoute: typeof ApiPublicApproveTokenRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
+  ApiPublicPortalActionSlugRoute: typeof ApiPublicPortalActionSlugRoute
   ApiPublicPortalJobsSlugRoute: typeof ApiPublicPortalJobsSlugRoute
   ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
   ApiPublicPropostaTokenRoute: typeof ApiPublicPropostaTokenRoute
@@ -776,6 +790,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPortalJobsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/portal-action/$slug': {
+      id: '/api/public/portal-action/$slug'
+      path: '/api/public/portal-action/$slug'
+      fullPath: '/api/public/portal-action/$slug'
+      preLoaderRoute: typeof ApiPublicPortalActionSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/dispatch-push': {
       id: '/api/public/hooks/dispatch-push'
       path: '/api/public/hooks/dispatch-push'
@@ -862,6 +883,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicApproveTokenRoute: ApiPublicApproveTokenRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
+  ApiPublicPortalActionSlugRoute: ApiPublicPortalActionSlugRoute,
   ApiPublicPortalJobsSlugRoute: ApiPublicPortalJobsSlugRoute,
   ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
   ApiPublicPropostaTokenRoute: ApiPublicPropostaTokenRoute,

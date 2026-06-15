@@ -67,8 +67,65 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           });
         }
 
+        // Fetch attachments for visible jobs (signed URLs from private bucket)
+        const attachments: Record<string, Array<{ id: string; file_name: string; file_url: string; file_type: string | null; category: string | null; created_at: string }>> = {};
+        if (jobIds.length > 0) {
+          const { data: attRows } = await supabaseAdmin
+            .from("job_attachments")
+            .select("id, job_id, file_name, file_url, file_type, category, created_at")
+            .in("job_id", jobIds)
+            .order("created_at", { ascending: false });
+
+          for (const att of attRows || []) {
+            let signedUrl: string = att.file_url;
+            try {
+              const parts = (att.file_url || "").split("/job-attachments/");
+              if (parts.length >= 2) {
+                const path = parts[1];
+                if (!path.includes("..") && !path.startsWith("/")) {
+                  const { data: signed } = await supabaseAdmin.storage
+                    .from("job-attachments")
+                    .createSignedUrl(path, 3600);
+                  if (signed?.signedUrl) signedUrl = signed.signedUrl;
+                }
+              }
+            } catch {
+              /* keep raw URL */
+            }
+            if (!attachments[att.job_id]) attachments[att.job_id] = [];
+            attachments[att.job_id].push({
+              id: att.id,
+              file_name: att.file_name,
+              file_url: signedUrl,
+              file_type: att.file_type,
+              category: att.category,
+              created_at: att.created_at,
+            });
+          }
+        }
+
+        // Fetch approval logs for visible jobs
+        const approvals: Record<string, Array<{ id: string; action: string; feedback: string | null; created_at: string; attachment_id: string | null }>> = {};
+        if (jobIds.length > 0) {
+          const { data: logs } = await supabaseAdmin
+            .from("job_approval_logs")
+            .select("id, job_id, action, feedback, created_at, attachment_id")
+            .in("job_id", jobIds)
+            .order("created_at", { ascending: false });
+          (logs || []).forEach((l: any) => {
+            if (!approvals[l.job_id]) approvals[l.job_id] = [];
+            approvals[l.job_id].push({
+              id: l.id,
+              action: l.action,
+              feedback: l.feedback,
+              created_at: l.created_at,
+              attachment_id: l.attachment_id,
+            });
+          });
+        }
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals }),
           {
             status: 200,
             headers: {
