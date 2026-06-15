@@ -1,0 +1,1 @@
+ALTER TABLE public.proposals ALTER COLUMN status SET DEFAULT 'Rascunho';

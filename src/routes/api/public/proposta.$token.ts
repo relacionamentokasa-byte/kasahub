@@ -87,11 +87,11 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
               : Promise.resolve({ data: null }),
           ]);
 
-          // Auto-mark as viewed
-          if (proposal.status === "sent") {
+          // Auto-mark as viewed using a status accepted by the database constraint.
+          if (proposal.status === "Enviada" || proposal.status === "sent") {
             await supabaseAdmin
               .from("proposals")
-              .update({ status: "viewed" })
+              .update({ status: "Enviada" })
               .eq("id", proposal.id);
             await supabaseAdmin
               .from("proposal_events")

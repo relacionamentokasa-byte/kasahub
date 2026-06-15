@@ -812,7 +812,7 @@ function ProposalsPage() {
               </thead>
               <tbody>
                 {filteredProposals.map((p: Proposal) => {
-                  const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.draft;
+                  const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
 
                   return (
                     <tr
@@ -872,8 +872,8 @@ function ProposalsPage() {
                           onShare={() => copyLink(p)}
                           onWhatsApp={() => openWhatsApp(p)}
                           onEmail={() => openEmail(p)}
-                          onReopen={() => statusMut.mutate({ id: p.id, status: "reopened" })}
-                          onCancel={() => statusMut.mutate({ id: p.id, status: "cancelled" })}
+                          onReopen={() => statusMut.mutate({ id: p.id, status: "Rascunho" })}
+                          onCancel={() => statusMut.mutate({ id: p.id, status: "Encerrada" })}
                           onRestore={() => restoreMut.mutate(p.id)}
                           onDelete={() => {
                             if (showTrash) {
@@ -927,8 +927,8 @@ function ProposalsPage() {
                       onShare={() => copyLink(p)}
                       onWhatsApp={() => openWhatsApp(p)}
                       onEmail={() => openEmail(p)}
-                      onReopen={() => statusMut.mutate({ id: p.id, status: "reopened" })}
-                      onCancel={() => statusMut.mutate({ id: p.id, status: "cancelled" })}
+                      onReopen={() => statusMut.mutate({ id: p.id, status: "Rascunho" })}
+                      onCancel={() => statusMut.mutate({ id: p.id, status: "Encerrada" })}
                       onRestore={() => restoreMut.mutate(p.id)}
                       onDelete={() => {
                         if (showTrash) {
