@@ -82,8 +82,8 @@ type ApiResponse = {
 
 // High-contrast status pills: solid colored bg + white text
 const STATUS_MAP: Record<string, { emoji: string; label: string; cls: string }> = {
-  not_started: { emoji: "📥", label: "Novas Demandas", cls: "bg-slate-200 text-slate-800 border-slate-300" },
-  in_progress: { emoji: "⚙️", label: "Em Andamento", cls: "bg-[#1E3A5F] text-white border-[#1E3A5F]" },
+  not_started: { emoji: "📥", label: "Novas Demandas", cls: "bg-[#9CA3AF] text-white border-[#9CA3AF]" },
+  in_progress: { emoji: "⚙️", label: "Em Andamento", cls: "bg-[#3B82F6] text-white border-[#3B82F6]" },
   review: { emoji: "🔍", label: "Em Revisão", cls: "bg-[#FFBC45] text-white border-[#FFBC45]" },
   adjustments: { emoji: "👤", label: "Aguardando Cliente", cls: "bg-[#F97316] text-white border-[#F97316]" },
   done: { emoji: "🏁", label: "Concluído", cls: "bg-[#10B981] text-white border-[#10B981]" },
