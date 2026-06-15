@@ -177,7 +177,7 @@ export function ExecutiveDashboard() {
       feedEvents,
       alerts
     };
-  }, [jobs, clients, dateInterval]);
+  }, [jobs, clients, transactions, dateInterval]);
 
   if (isLoading) {
     return (
