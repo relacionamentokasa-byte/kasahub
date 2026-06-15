@@ -152,7 +152,7 @@ function isVideo(att: Attachment) {
 
 function MinhaKasaPage() {
   const { slug } = Route.useParams();
-  const [tab, setTab] = useState<"projects" | "approvals" | "finance">("projects");
+  const [tab, setTab] = useState<"projects" | "approvals" | "finance" | "docs">("projects");
 
   const { data, isLoading, error } = useQuery<ApiResponse>({
     queryKey: ["minha-kasa", slug],
