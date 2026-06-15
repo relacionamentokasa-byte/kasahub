@@ -84,8 +84,16 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     const setup = Number(form.one_time_investment || 0);
     const total = (monthly * months) + setup;
 
-    const payload = { ...form, total };
-    
+    // Sincroniza o snapshot do contrato com o modelo selecionado.
+    // A página pública renderiza `contract_content` (cópia), não busca pelo template_id.
+    const templateId = (form as any).contract_template_id;
+    const selectedTemplate = templateId
+      ? contractTemplates.find((t) => t.id === templateId)
+      : null;
+    const contract_content = selectedTemplate ? selectedTemplate.content : null;
+
+    const payload = { ...form, total, contract_content };
+
     (document.activeElement as HTMLElement)?.blur();
     updateMut.mutate(payload);
   };
