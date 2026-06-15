@@ -189,7 +189,9 @@ function MinhaKasaPage() {
               <p className="text-xs text-white/80 mt-1 font-medium">
                 {tab === "projects"
                   ? "Acompanhe seus projetos em tempo real."
-                  : "Materiais aguardando sua aprovação."}
+                  : tab === "approvals"
+                    ? "Materiais aguardando sua aprovação."
+                    : "Suas faturas e pagamentos."}
               </p>
             </div>
           </div>
