@@ -2293,31 +2293,23 @@ function HomeSection({
       {/* HEALTH STATUS */}
       <HealthCard tone={healthTone} pendingApprovals={pendingApprovals.length} overdue={overdueTotal > 0} />
 
-      {/* RECENT FILES */}
+      {/* RECENT FILES — aprovadas nos últimos 7 dias */}
+      {recentFiles.length > 0 && (
       <section>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
             <Folder className="size-3.5 text-[var(--portal-primary)]" />
-            Últimas Entregas
+            Entregas da semana
           </h2>
-          {recentFiles.length > 0 && (
-            <button
-              onClick={() => onNavigate("projects")}
-              className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
-            >
-              Ver todos <ArrowRight className="size-3" />
-            </button>
-          )}
+          <button
+            onClick={() => onNavigate("approvals")}
+            className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
+          >
+            Ver todas <ArrowRight className="size-3" />
+          </button>
         </div>
-        {recentFiles.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
-            <div className="mx-auto mb-2 size-14 rounded-full bg-slate-100 flex items-center justify-center">
-              <ImageIcon className="size-7 text-slate-400" strokeWidth={1.5} />
-            </div>
-            <p className="text-sm text-slate-700 font-semibold">Sem entregas por aqui ainda.</p>
-            <p className="text-xs text-slate-500 mt-0.5">As próximas artes aparecerão aqui.</p>
-          </div>
-        ) : (
+        {(
+
           <div className="grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
             {recentFiles.map((f) => (
               <button
