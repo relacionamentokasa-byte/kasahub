@@ -1015,6 +1015,9 @@ function timeAgoPtBR(iso: string): string {
 // ============= APROVAÇÕES — ESTILO INSTAGRAM =============
 
 function approvalFormatLabel(item: ApprovalItem): string {
+  // Explicit format wins
+  if (item.format === "carousel") return "Carrossel";
+  if (item.format === "story") return "Story";
   // Try to infer a short format label from the title; fall back to content type.
   const t = (item.title || "").toLowerCase();
   if (/(reels?|tiktok|short)/.test(t)) return "Reels";
@@ -1025,6 +1028,18 @@ function approvalFormatLabel(item: ApprovalItem): string {
   if (item.content_type === "pdf") return "PDF";
   if (item.content_type === "text") return "Legenda";
   return "Post";
+}
+
+function approvalSlideSummary(item: ApprovalItem): string | null {
+  if (!item.format || item.format === "single" || !item.slides?.length) return null;
+  const total = item.slides.length;
+  const statuses = item.slide_statuses || {};
+  const approved = item.slides.filter((s) => statuses[s.id] === "approved").length;
+  const rejected = item.slides.filter((s) => statuses[s.id] === "rejected").length;
+  if (rejected > 0) return `✏️ ${rejected} ajuste${rejected > 1 ? "s" : ""} · ${total} slides`;
+  if (approved === total) return `✅ ${total}/${total} aprovados`;
+  if (approved > 0) return `${approved}/${total} aprovados`;
+  return `${total} slides`;
 }
 
 function ApprovalsInstagramSection({
