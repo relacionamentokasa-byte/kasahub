@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, Zap, Users, FileText, Target, Pencil } from "lucide-react";
+import { TrendingUp, Zap, Users, FileText, Target, Pencil, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardKPI } from "./DashboardKPI";
 import { Progress } from "@/components/ui/progress";
@@ -208,7 +208,7 @@ export function SaudeNegocioSection() {
 
 
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
         <DashboardKPI
           icon={TrendingUp}
           label="MRR"
@@ -222,6 +222,13 @@ export function SaudeNegocioSection() {
           value={brl(avulsa)}
           subValue="Jobs pontuais"
           color="amber-500"
+        />
+        <DashboardKPI
+          icon={Receipt}
+          label="Ticket Médio"
+          value={brl(clientesAtivos > 0 ? mrr / clientesAtivos : 0)}
+          subValue="MRR ÷ clientes ativos"
+          color="indigo-500"
         />
         <DashboardKPI
           icon={Users}
