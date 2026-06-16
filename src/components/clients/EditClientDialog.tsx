@@ -151,17 +151,17 @@ export function EditClientDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label>Nome *</Label>
+              <Label>Nome Fantasia *</Label>
               <Input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="Nome completo do cliente"
+                placeholder="Nome fantasia do cliente"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label>Empresa</Label>
+                <Label>Razão Social</Label>
                 <Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
               </div>
               <div className="space-y-1.5">
@@ -192,16 +192,79 @@ export function EditClientDialog({
                 <Label>Telefone</Label>
                 <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="(11) 99999-9999" />
               </div>
-              <div className="space-y-1.5 col-span-2">
-                <Label>Endereço</Label>
-                <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua, número, cidade, estado" />
-              </div>
-              <div className="space-y-1.5 col-span-2">
-                <Label>Cor da marca</Label>
-                <div className="flex gap-2">
-                  <Input type="color" value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} className="w-12 p-1 h-10" />
-                  <Input value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} />
+            </div>
+
+            <div className="pt-2 border-t border-border/50">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/60 mb-2">Endereço</h4>
+              <div className="grid grid-cols-6 gap-3">
+                <div className="space-y-1.5 col-span-4">
+                  <Label>Endereço</Label>
+                  <Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Rua / Avenida" />
                 </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label>Número</Label>
+                  <Input value={form.address_number} onChange={(e) => setForm({ ...form, address_number: e.target.value })} placeholder="123" />
+                </div>
+                <div className="space-y-1.5 col-span-3">
+                  <Label>Bairro</Label>
+                  <Input value={form.neighborhood} onChange={(e) => setForm({ ...form, neighborhood: e.target.value })} />
+                </div>
+                <div className="space-y-1.5 col-span-3">
+                  <Label>CEP</Label>
+                  <Input value={form.zip_code} onChange={(e) => setForm({ ...form, zip_code: e.target.value })} placeholder="00000-000" />
+                </div>
+                <div className="space-y-1.5 col-span-4">
+                  <Label>Cidade</Label>
+                  <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label>Estado</Label>
+                  <Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase() })} placeholder="UF" maxLength={2} />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-border/50">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/60 mb-2">Responsável Comercial</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5 col-span-2">
+                  <Label>Nome</Label>
+                  <Input value={form.commercial_contact_name} onChange={(e) => setForm({ ...form, commercial_contact_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Telefone</Label>
+                  <Input value={form.commercial_contact_phone} onChange={(e) => setForm({ ...form, commercial_contact_phone: e.target.value })} placeholder="(11) 99999-9999" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>E-mail</Label>
+                  <Input type="email" value={form.commercial_contact_email} onChange={(e) => setForm({ ...form, commercial_contact_email: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-border/50">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/60 mb-2">Responsável Financeiro</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5 col-span-2">
+                  <Label>Nome</Label>
+                  <Input value={form.financial_contact_name} onChange={(e) => setForm({ ...form, financial_contact_name: e.target.value })} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Telefone</Label>
+                  <Input value={form.financial_contact_phone} onChange={(e) => setForm({ ...form, financial_contact_phone: e.target.value })} placeholder="(11) 99999-9999" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>E-mail</Label>
+                  <Input type="email" value={form.financial_contact_email} onChange={(e) => setForm({ ...form, financial_contact_email: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5 pt-2 border-t border-border/50">
+              <Label>Cor da marca</Label>
+              <div className="flex gap-2">
+                <Input type="color" value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} className="w-12 p-1 h-10" />
+                <Input value={form.brand_primary} onChange={(e) => setForm({ ...form, brand_primary: e.target.value })} />
               </div>
             </div>
 
