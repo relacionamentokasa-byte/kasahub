@@ -250,6 +250,15 @@ export function JobsBoard({
     const m = new Map<string, Job[]>();
     for (const s of stages) m.set(s.id, []);
     for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
+    // Ordena cada coluna por data de entrega (cronológica, mais próxima primeiro; sem data ao final)
+    for (const [k, list] of m) {
+      list.sort((a, b) => {
+        const da = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
+        const db = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+        return da - db;
+      });
+      m.set(k, list);
+    }
     return m;
   }, [stages, filtered]);
 
