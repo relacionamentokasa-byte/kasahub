@@ -2300,8 +2300,116 @@ function HomeSection({
 
   const teaser = pendingApprovals[0];
 
+  // ---- AÇÕES PENDENTES DO CLIENTE ----
+  const actionItems = useMemo(() => {
+    const items: Array<{
+      key: string;
+      icon: string;
+      text: string;
+      cta: string;
+      tone: "red" | "yellow" | "blue";
+      onClick: () => void;
+    }> = [];
+
+    if (pendingApprovals.length > 0) {
+      items.push({
+        key: "approvals",
+        icon: "🎨",
+        text:
+          pendingApprovals.length === 1
+            ? "1 arte aguardando sua aprovação"
+            : `${pendingApprovals.length} artes aguardando aprovação`,
+        cta: "Aprovar",
+        tone: "blue",
+        onClick: () => onNavigate("approvals"),
+      });
+    }
+
+    const overdue = (invoices || []).filter((i) => classifyInvoice(i) === "overdue");
+    if (overdue.length > 0) {
+      items.push({
+        key: "overdue",
+        icon: "🔴",
+        text:
+          overdue.length === 1
+            ? `1 fatura vencida — R$ ${overdue[0].amount.toFixed(2).replace(".", ",")}`
+            : `${overdue.length} faturas vencidas`,
+        cta: "Ver",
+        tone: "red",
+        onClick: () => onNavigate("finance"),
+      });
+    }
+
+    const dueSoon = (invoices || []).filter((i) => {
+      if (classifyInvoice(i) !== "pending" || !i.due_date) return false;
+      const diff = (new Date(i.due_date + "T00:00:00").getTime() - Date.now()) / 86400000;
+      return diff >= 0 && diff <= 3;
+    });
+    if (dueSoon.length > 0) {
+      const next = dueSoon[0];
+      const diff = Math.ceil(
+        (new Date(next.due_date! + "T00:00:00").getTime() - Date.now()) / 86400000,
+      );
+      items.push({
+        key: "due-soon",
+        icon: "⏰",
+        text:
+          dueSoon.length === 1
+            ? diff === 0
+              ? "1 fatura vence hoje"
+              : diff === 1
+                ? "1 fatura vence amanhã"
+                : `1 fatura vence em ${diff} dias`
+            : `${dueSoon.length} faturas vencem nos próximos dias`,
+        cta: "Ver",
+        tone: "yellow",
+        onClick: () => onNavigate("finance"),
+      });
+    }
+
+    return items;
+  }, [pendingApprovals, invoices, onNavigate]);
+
   return (
     <div className="space-y-5 md:space-y-6 animate-fade-in">
+
+      {/* O QUE PRECISA DE VOCÊ */}
+      {actionItems.length > 0 && (
+        <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-4 py-2.5 bg-gradient-to-r from-[var(--portal-primary)]/10 to-transparent border-b border-slate-100">
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
+              <AlertCircle className="size-3.5 text-[var(--portal-primary)]" />
+              O que precisa de você
+            </h2>
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {actionItems.map((it) => {
+              const toneCls =
+                it.tone === "red"
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : it.tone === "yellow"
+                    ? "bg-[var(--portal-primary)] hover:opacity-90 text-white"
+                    : "bg-slate-900 hover:bg-slate-800 text-white";
+              return (
+                <li key={it.key} className="flex items-center gap-3 px-4 py-3">
+                  <span className="text-xl leading-none flex-shrink-0">{it.icon}</span>
+                  <p className="flex-1 min-w-0 text-sm font-semibold text-slate-800 truncate">
+                    {it.text}
+                  </p>
+                  <button
+                    onClick={it.onClick}
+                    className={`flex-shrink-0 inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${toneCls}`}
+                  >
+                    {it.cta} <ArrowRight className="size-3" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+
 
       {/* RECENT FILES — aprovadas nos últimos 7 dias */}
       {recentFiles.length > 0 && (
@@ -2375,28 +2483,8 @@ function HomeSection({
         </div>
       </section>
 
-      {/* PENDING APPROVAL TEASER */}
-      {teaser && (
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
-              <CheckSquare className="size-3.5 text-[var(--portal-primary)]" />
-              Pendente de Aprovação
-            </h2>
-            {pendingApprovals.length > 1 && (
-              <button
-                onClick={() => onNavigate("approvals")}
-                className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
-              >
-                Ver todas ({pendingApprovals.length}) <ArrowRight className="size-3" />
-              </button>
-            )}
-          </div>
-          <div className="max-w-2xl">
-            <ApprovalFeedCard slug={slug} item={teaser} />
-          </div>
-        </section>
-      )}
+
+
 
       {/* LIGHTBOX */}
       {lightbox && (
