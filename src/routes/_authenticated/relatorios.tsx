@@ -94,6 +94,8 @@ const isProLabore = (name: string | null | undefined) =>
   normalize(name) === PRO_LABORE;
 const isInvestimento = (name: string | null | undefined) =>
   normalize(name).includes("investimento");
+const formatDateOnlyBR = (date: string | null | undefined) =>
+  date ? new Date(`${date.slice(0, 10)}T00:00:00`).toLocaleDateString("pt-BR") : "";
 
 export const Route = createFileRoute("/_authenticated/relatorios")({
   head: () => ({ meta: [{ title: "Financeiro — KASA HUB" }] }),
@@ -601,7 +603,7 @@ function FinancialPage() {
                 <TableRow key={t.id} className="group hover:bg-muted/10 transition-colors">
                   <TableCell className="py-4">
                     <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
-                    {t.payment_date && <div className="text-[10px] text-emerald-500 font-mono-kasa uppercase mt-1">Pago em {new Date(t.payment_date).toLocaleDateString("pt-BR")}</div>}
+                    {t.payment_date && <div className="text-[10px] text-emerald-500 font-mono-kasa uppercase mt-1">Pago em {formatDateOnlyBR(t.payment_date)}</div>}
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="font-semibold text-sm">{t.description}</div>
