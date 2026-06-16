@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Receipt,
 } from "lucide-react";
 import {
   startOfMonth,
@@ -31,6 +32,7 @@ type Tx = {
   status: string | null;
   amount: number | string | null;
   due_date: string;
+  client_id?: string | null;
   categorias_financeiras?: { nome: string | null } | null;
 };
 
@@ -66,7 +68,7 @@ export function ResumoFinanceiroSection() {
       const { data, error } = await supabase
         .from("transactions")
         .select(
-          "id, type, kind, status, amount, due_date, categorias_financeiras(nome)",
+          "id, type, kind, status, amount, due_date, client_id, categorias_financeiras(nome)",
         )
         .gte("due_date", monthStart)
         .lte("due_date", monthEnd);
@@ -84,6 +86,7 @@ export function ResumoFinanceiroSection() {
     let despesasPagas = 0;
     let despesasOperacionaisPagas = 0;
     let investimentoRealizado = 0;
+    const clientesPagantes = new Set<string>();
 
     for (const t of transactions) {
       const amount = Number(t.amount || 0);
@@ -95,7 +98,10 @@ export function ResumoFinanceiroSection() {
 
       if (isIncome) {
         receitasPrevistas += amount;
-        if (isPaid) receitasRecebidas += amount;
+        if (isPaid) {
+          receitasRecebidas += amount;
+          if (t.client_id) clientesPagantes.add(t.client_id);
+        }
         if (!isPaid && t.due_date > todayStr) parcelasFuturas += amount;
       } else if (isExpense) {
         despesasPrevistas += amount;
@@ -107,6 +113,9 @@ export function ResumoFinanceiroSection() {
       }
     }
 
+    const ticketMedio =
+      clientesPagantes.size > 0 ? receitasRecebidas / clientesPagantes.size : 0;
+
     return {
       receitasPrevistas,
       receitasRecebidas,
@@ -115,6 +124,8 @@ export function ResumoFinanceiroSection() {
       despesasPagas,
       despesasOperacionaisPagas,
       investimentoRealizado,
+      ticketMedio,
+      clientesPagantesCount: clientesPagantes.size,
       saldo: receitasRecebidas - despesasPagas,
     };
   }, [transactions]);
@@ -178,6 +189,13 @@ export function ResumoFinanceiroSection() {
             value={brl(m.receitasRecebidas)}
             subValue="Já pagas"
             color="emerald-500"
+          />
+          <DashboardKPI
+            icon={Receipt}
+            label="Ticket Médio"
+            value={brl(m.ticketMedio)}
+            subValue={`${m.clientesPagantesCount} cliente(s) pagantes`}
+            color="indigo-500"
           />
           <DashboardKPI
             icon={Clock}
