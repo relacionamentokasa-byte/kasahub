@@ -696,8 +696,8 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                 <div 
                   data-testid="client-link"
                   className={cn(
-                    "flex items-center gap-1 text-[9px] font-medium px-1 transition-colors w-fit",
-                    job.client_id ? "text-foreground/40 hover:text-primary hover:underline cursor-pointer" : "text-foreground/40"
+                    "flex items-center gap-1.5 text-xs font-semibold px-1 transition-colors w-fit",
+                    job.client_id ? "text-foreground/80 hover:text-primary hover:underline cursor-pointer" : "text-foreground/50"
                   )}
                   onClick={(e) => {
                     if (job.client_id) {
@@ -710,7 +710,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                     }
                   }}
                 >
-                   <Building2 className="size-2.5 shrink-0 opacity-40" />
+                   <Building2 className="size-3.5 shrink-0 opacity-60" />
                    <span className="truncate">
                      {(job as any).clients?.company || (job as any).clients?.name || "Sem Cliente"}
                    </span>
