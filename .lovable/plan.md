@@ -1,52 +1,70 @@
-## PWA do KASA HUB — implementação faseada
+# Stories e Carrossel no portal de aprovações
 
-Vou entregar em fases para manter qualidade. Confirme se quer tudo ou só a Fase 1.
+Adicionar dois novos formatos de peça (**Story** e **Carrossel**) no fluxo `approval_items` que alimenta o portal `minha-kasa`, com **comentários ancorados em cada slide** e **aprovação slide-a-slide**.
 
-### Fase 1 — PWA instalável + offline (escopo recomendado para esta entrega)
+## 1. Banco (uma migration)
 
-**1. Manifest e ícones**
-- `public/manifest.webmanifest` com `name`, `short_name`, `description`, `theme_color`, `background_color`, `display: standalone`, `start_url`, ícones 192/512 (já existe `manifest.webmanifest` — revisar).
-- Tags `<link rel="manifest">`, `theme-color`, `apple-touch-icon` em `src/routes/__root.tsx`.
-- Ícones em `public/` (PNG 192/512, apple-touch).
+**Novas colunas em `approval_items`:**
+- `format text default 'single'` — `single | carousel | story`
+- `slides jsonb default '[]'` — array ordenado `[{ id, url, mime_type, thumbnail_url?, duration_ms? }]` (substitui `content_url` quando `format ≠ single`)
+- `slide_statuses jsonb default '{}'` — `{ "<slide_id>": "approved" | "rejected" | "pending" }` para aprovação parcial
+- Status geral (`status`) continua existindo: vira `approved` quando **todos** slides aprovados, `rejected` se algum rejeitado, senão `pending`.
 
-**2. Service worker offline (vite-plugin-pwa)**
-- `bun add -d vite-plugin-pwa`.
-- Configurar em `vite.config.ts` com `registerType: "autoUpdate"`, `injectRegister: null`, `devOptions.enabled: false`, `generateSW`, runtime caching:
-  - HTML/navegações → `NetworkFirst`.
-  - Assets hashed mesma origem → `CacheFirst`.
-  - Excluir `/~oauth`, `/api/*`.
-- Wrapper `src/lib/pwa-register.ts` com guarda contra preview Lovable / iframe / `?sw=off` / dev. Importado em `src/start.ts`.
-- Remover/substituir `public/sw.js` existente por kill-switch ANTES de subir o novo (se houver registro anterior); aqui o atual `public/sw.js` é simples — reaproveitar via vite-plugin-pwa.
+**Nova tabela `approval_item_comments`:**
+- `id`, `approval_item_id` (FK), `slide_id text null` (null = comentário da peça toda; preenchido = ancorado em um slide), `author_type` (`client | team`), `author_name`, `author_id uuid null`, `body text`, `is_change_request bool`, `created_at`.
+- GRANTs: `authenticated` (time) + `service_role`. Acesso do cliente acontece via server route com token (mesma lógica do portal hoje).
+- RLS: time vê tudo do tenant; insert do cliente vai por rota pública com token.
 
-**3. UI**
-- Componente `InstallPWAButton` que escuta `beforeinstallprompt` e mostra "📲 Instalar KASA HUB" no AppTopbar/menu.
-- Componente `ConnectionIndicator` (🟢/🔴) no topbar usando `navigator.onLine` + eventos `online`/`offline`. Ao reconectar, dispara `queryClient.invalidateQueries()` (sincroniza automaticamente).
-- Splash já é nativo via manifest (background_color + theme_color + ícone 512).
-- Footer com `KASA HUB v1.0.0` (`src/lib/version.ts`).
+## 2. Upload (time)
 
-**4. Configurações → Aplicativo (PWA)**
-- Nova aba em `src/routes/_authenticated/config.tsx` → `PwaSettingsTab.tsx`:
-  - Campos: nome, short_name, descrição, theme_color, background_color (lidos/gravados em `agency_settings` — adicionar colunas `pwa_name`, `pwa_short_name`, `pwa_description`, `pwa_theme_color`, `pwa_background_color`).
-  - Upload de ícones 192/512 e favicon (bucket `public-assets`).
-  - Botão "🔔 Enviar Notificação de Teste" (usa Notification API local + som, infra existente).
-  - Switches de notificação já existem em `notification_preferences` — reusar e exibir aqui também.
-- Endpoint `/api/public/manifest.webmanifest` (server route) gera manifest dinâmico a partir de `agency_settings` (para customização). Tag `<link rel="manifest" href="/api/public/manifest.webmanifest">`.
+Atualizar `SendForApprovalDialog` (`src/components/jobs/SendForApprovalDialog.tsx`):
+- Novo seletor de **Formato** acima do tipo: `Único | Carrossel | Story`.
+- Quando Carrossel ou Story: input vira **upload múltiplo** (até 10 imagens / 7 vídeos curtos para story), com lista reorderável (drag) e botão remover por slide.
+- Legenda única (já existe) continua aplicável.
+- `createApprovalItem` em `src/lib/approval-items-api.ts` ganha `format` e `slides[]`.
 
-**5. Indicador de versão**
-- Constante `APP_VERSION = "1.0.0"` em `src/lib/version.ts`.
-- Exibido em rodapé/sidebar.
+## 3. Portal do cliente (`src/routes/minha-kasa.$slug.tsx`)
 
-### Fase 2 — Push notifications (entrega separada)
-- Requer escolha do provider: **Web Push nativo (VAPID)** OU **Firebase Cloud Messaging**.
-- Tabela `push_subscriptions(user_id, endpoint, p256dh, auth, user_agent)`.
-- Server route `/api/public/push-subscribe` (POST autenticado).
-- Edge function ou server fn `sendPush(userId, payload)` para disparar nas mesmas regras de `notify_user`.
-- Worker dedicado `public/firebase-messaging-sw.js` OU bloco `push` no SW principal (Web Push).
-- Pergunto qual provider antes de implementar.
+Dois novos componentes de preview (renderizados quando `format !== 'single'`):
 
-### Fase 3 — Auditoria responsiva
-- Revisão página a página (Dashboard, CRM, Clientes, Propostas, Contratos, Projetos, Jobs, Agenda, Financeiro, Portal). Trabalho extenso — recomendo abrir em pedidos individuais conforme prioridade.
+**`CarouselPreview`** — quadrado 1:1, swipe horizontal (touch + setas), bolinhas indicadoras embaixo, contador `1/4` no topo direito. Cada slide tem:
+- Badge de status do slide (aprovado / pendente / ajuste)
+- Botão "💬 Comentar este slide" → abre input ancorado naquele `slide_id`
+- Botões "Aprovar slide" / "Pedir ajuste" individuais
 
----
+**`StoryPreview`** — vertical 9:16, barras de progresso no topo (estilo Insta), auto-advance 5s (pausável ao segurar), tap esquerda/direita pra navegar. Mesmas ações por slide.
 
-**Recomendação**: implementar **Fase 1 agora** (instalação + offline + indicador + aba Aplicativo + versão). Push e auditoria mobile ficam para mensagens dedicadas. Confirma?
+Comentários: lista filtrada por `slide_id` aparece junto do slide ativo. Comentários "da peça toda" (slide_id null) ficam no rodapé.
+
+## 4. Backend público (server route)
+
+Atualizar `src/routes/api/public/portal-approval-action.$slug.ts` pra aceitar:
+- `action: "approve_slide" | "reject_slide" | "comment"` com `slide_id` opcional
+- Recalcular `status` agregado da peça automaticamente quando todos slides decididos.
+
+## 5. UI auxiliar
+
+Atualizar grid/lista de peças no portal pra mostrar:
+- Ícone de formato (🖼️ único, 🎠 carrossel, 📱 story)
+- Contador "2/4 slides aprovados" quando aplicável
+- Badge "Ajustes pedidos em 1 slide"
+
+## Detalhes técnicos
+
+- Upload de múltiplos arquivos usa o `public-assets` bucket já existente, mesma função do `ImageUpload`.
+- Drag-and-drop de reordenação: `@dnd-kit/sortable` (já instalado? verificar — se não, `bun add @dnd-kit/core @dnd-kit/sortable`).
+- Story auto-advance via `setInterval` + `requestAnimationFrame` pra barras de progresso suaves.
+- Tipos: estender `ApprovalContentType` → manter; adicionar `ApprovalFormat = 'single' | 'carousel' | 'story'`.
+- Backwards-compat: peças antigas têm `format = 'single'` e seguem funcionando via `content_url`.
+
+## Ordem de execução
+
+1. Migration (DB)
+2. `approval-items-api.ts` + tipos
+3. `SendForApprovalDialog` (upload múltiplo + reorder)
+4. Server route (`portal-approval-action`)
+5. `CarouselPreview` + `StoryPreview` componentes novos
+6. Integrar no `minha-kasa.$slug.tsx` (substituir bloco de render quando `format !== 'single'`)
+7. Badges/contadores na grid
+
+Posso começar pela migration?

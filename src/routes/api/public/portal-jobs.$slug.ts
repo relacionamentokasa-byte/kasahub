@@ -202,11 +202,26 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         // Fetch approval_items (Feed estilo Instagram)
         const { data: itemRows } = await (supabaseAdmin as any)
           .from("approval_items")
-          .select("id, title, description, content_type, content_url, content_text, caption, thumbnail_url, status, feedback, sent_for_approval_at, viewed_at, approved_at, rejected_at, created_at, job_id, project_id")
+          .select("id, title, description, content_type, content_url, content_text, caption, thumbnail_url, status, feedback, sent_for_approval_at, viewed_at, approved_at, rejected_at, created_at, job_id, project_id, format, slides, slide_statuses")
           .eq("client_id", client.id)
           .neq("status", "archived")
           .order("created_at", { ascending: false });
         const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
+
+        // Fetch comments for those items
+        const itemIds = approvalItems.map((i) => i.id as string);
+        const approvalComments: Record<string, Array<Record<string, unknown>>> = {};
+        if (itemIds.length > 0) {
+          const { data: cRows } = await (supabaseAdmin as any)
+            .from("approval_item_comments")
+            .select("id, approval_item_id, slide_id, author_type, author_name, body, is_change_request, created_at")
+            .in("approval_item_id", itemIds)
+            .order("created_at", { ascending: true });
+          (cRows || []).forEach((c: any) => {
+            if (!approvalComments[c.approval_item_id]) approvalComments[c.approval_item_id] = [];
+            approvalComments[c.approval_item_id].push(c);
+          });
+        }
 
         // Fetch upcoming calendar events (próximos 60 dias)
         const nowIso = new Date().toISOString();
@@ -222,7 +237,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         const events = evRows || [];
 
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, events }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, events }),
 
           {
             status: 200,

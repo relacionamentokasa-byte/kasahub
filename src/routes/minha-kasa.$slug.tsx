@@ -134,6 +134,25 @@ type Contract = {
   number_display: string | null;
 };
 
+type ApprovalSlide = {
+  id: string;
+  url: string;
+  mime_type?: string | null;
+  thumbnail_url?: string | null;
+  kind?: "image" | "video";
+};
+
+type ApprovalItemComment = {
+  id: string;
+  approval_item_id: string;
+  slide_id: string | null;
+  author_type: "client" | "team";
+  author_name: string | null;
+  body: string;
+  is_change_request: boolean;
+  created_at: string;
+};
+
 type ApprovalItem = {
   id: string;
   title: string;
@@ -151,6 +170,9 @@ type ApprovalItem = {
   rejected_at: string | null;
   created_at: string;
   job_id: string | null;
+  format?: "single" | "carousel" | "story";
+  slides?: ApprovalSlide[];
+  slide_statuses?: Record<string, "pending" | "approved" | "rejected">;
 };
 
 type ApiResponse = {
@@ -164,6 +186,7 @@ type ApiResponse = {
   proposals: Proposal[];
   currentContract: Contract | null;
   approvalItems: ApprovalItem[];
+  approvalComments?: Record<string, ApprovalItemComment[]>;
   events?: CalendarEventRow[];
 };
 
@@ -249,7 +272,7 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [] } = data;
+  const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [], approvalComments = {} } = data;
   const displayName = client.company || client.name;
 
   const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
@@ -478,6 +501,7 @@ function MinhaKasaPage() {
               slug={slug}
               client={client}
               items={approvalItems}
+              commentsByItem={approvalComments}
             />
 
           ) : tab === "finance" ? (
@@ -991,6 +1015,9 @@ function timeAgoPtBR(iso: string): string {
 // ============= APROVAÇÕES — ESTILO INSTAGRAM =============
 
 function approvalFormatLabel(item: ApprovalItem): string {
+  // Explicit format wins
+  if (item.format === "carousel") return "Carrossel";
+  if (item.format === "story") return "Story";
   // Try to infer a short format label from the title; fall back to content type.
   const t = (item.title || "").toLowerCase();
   if (/(reels?|tiktok|short)/.test(t)) return "Reels";
@@ -1003,14 +1030,28 @@ function approvalFormatLabel(item: ApprovalItem): string {
   return "Post";
 }
 
+function approvalSlideSummary(item: ApprovalItem): string | null {
+  if (!item.format || item.format === "single" || !item.slides?.length) return null;
+  const total = item.slides.length;
+  const statuses = item.slide_statuses || {};
+  const approved = item.slides.filter((s) => statuses[s.id] === "approved").length;
+  const rejected = item.slides.filter((s) => statuses[s.id] === "rejected").length;
+  if (rejected > 0) return `✏️ ${rejected} ajuste${rejected > 1 ? "s" : ""} · ${total} slides`;
+  if (approved === total) return `✅ ${total}/${total} aprovados`;
+  if (approved > 0) return `${approved}/${total} aprovados`;
+  return `${total} slides`;
+}
+
 function ApprovalsInstagramSection({
   slug,
   client,
   items,
+  commentsByItem,
 }: {
   slug: string;
   client: ClientInfo;
   items: ApprovalItem[];
+  commentsByItem: Record<string, ApprovalItemComment[]>;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
@@ -1156,6 +1197,7 @@ function ApprovalsInstagramSection({
         <ApprovalFullscreenModal
           slug={slug}
           item={activeItem}
+          comments={commentsByItem[activeItem.id] || []}
           onClose={() => setActiveId(null)}
         />
       )}
@@ -1232,10 +1274,21 @@ function ApprovalGridTile({ item, onClick }: { item: ApprovalItem; onClick: () =
         {badge.emoji}
       </div>
 
+      {/* Multi-slide indicator (carousel/story) */}
+      {item.format && item.format !== "single" && (item.slides?.length ?? 0) > 1 && (
+        <div className="absolute top-1.5 left-1.5 z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur text-white text-[10px] font-bold shadow-md">
+          {item.format === "story" ? "📱" : "🎠"}
+          <span>{item.slides!.length}</span>
+        </div>
+      )}
+
       {/* Label overlay */}
       <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/70 to-transparent">
         <p className="text-[10px] md:text-[11px] font-bold text-white truncate leading-tight">
           {approvalFormatLabel(item)}
+          {approvalSlideSummary(item) && (
+            <span className="font-normal opacity-80"> · {approvalSlideSummary(item)}</span>
+          )}
         </p>
       </div>
     </button>
@@ -1245,52 +1298,87 @@ function ApprovalGridTile({ item, onClick }: { item: ApprovalItem; onClick: () =
 function ApprovalFullscreenModal({
   slug,
   item,
+  comments,
   onClose,
 }: {
   slug: string;
   item: ApprovalItem;
+  comments: ApprovalItemComment[];
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const isMulti = !!item.format && item.format !== "single" && (item.slides?.length ?? 0) > 0;
+  const slides = isMulti ? item.slides! : [];
+  const [slideIdx, setSlideIdx] = useState(0);
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [commentName, setCommentName] = useState("");
+  const [paused, setPaused] = useState(false);
 
+  const activeSlide = isMulti ? slides[slideIdx] : null;
+  const activeSlideStatus = activeSlide ? (item.slide_statuses?.[activeSlide.id] ?? "pending") : null;
+
+  // Keyboard nav
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (isMulti && e.key === "ArrowRight") setSlideIdx((i) => Math.min(i + 1, slides.length - 1));
+      if (isMulti && e.key === "ArrowLeft") setSlideIdx((i) => Math.max(i - 1, 0));
+    };
     document.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, [onClose, isMulti, slides.length]);
 
-  const mutation = useMutation({
-    mutationFn: async (action: "approve" | "reject") => {
+  // Story auto-advance
+  useEffect(() => {
+    if (item.format !== "story" || !isMulti || paused) return;
+    const t = setTimeout(() => {
+      setSlideIdx((i) => (i + 1) % slides.length);
+    }, 5000);
+    return () => clearTimeout(t);
+  }, [item.format, isMulti, paused, slideIdx, slides.length]);
+
+  const action = useMutation({
+    mutationFn: async (payload: { action: string; slide_id?: string | null; feedback?: string | null; comment?: string | null; author_name?: string | null }) => {
       const res = await fetch(`/api/public/portal-approval-action/${slug}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ item_id: item.id, action, feedback: feedback.trim() || null }),
+        body: JSON.stringify({ item_id: item.id, ...payload }),
       });
       if (!res.ok) throw new Error("action_failed");
-      return { action };
+      return payload;
     },
-    onSuccess: ({ action }) => {
+    onSuccess: (payload) => {
       qc.invalidateQueries({ queryKey: ["minha-kasa", slug] });
-      if (action === "approve") {
-        toast.success("Aprovado! ✅");
-        onClose();
-      } else {
+      if (payload.action === "approve" || payload.action === "approve_slide") toast.success("Aprovado! ✅");
+      else if (payload.action === "reject" || payload.action === "reject_slide") {
         toast.success("Ajuste enviado! A equipe vai revisar.");
         setShowFeedback(false);
         setFeedback("");
-        onClose();
+      } else if (payload.action === "comment") {
+        toast.success("💬 Comentário enviado");
+        setCommentText("");
+      }
+      // Auto-advance after slide action
+      if ((payload.action === "approve_slide" || payload.action === "reject_slide") && slideIdx < slides.length - 1) {
+        setTimeout(() => setSlideIdx((i) => Math.min(i + 1, slides.length - 1)), 350);
       }
     },
     onError: () => toast.error("Não foi possível registrar agora. Tente novamente."),
   });
 
   const isPending = item.status === "pending";
+  const slideComments = activeSlide
+    ? comments.filter((c) => c.slide_id === activeSlide.id)
+    : [];
+  const itemComments = comments.filter((c) => c.slide_id === null);
+
+  const isStory = item.format === "story";
 
   return (
     <div
@@ -1298,13 +1386,32 @@ function ApprovalFullscreenModal({
       onClick={onClose}
     >
       <div
-        className="relative w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-md sm:rounded-2xl bg-black overflow-hidden flex flex-col"
+        className={`relative w-full h-full sm:h-auto sm:max-h-[95vh] ${isStory ? "sm:max-w-[420px]" : "sm:max-w-md"} sm:rounded-2xl bg-black overflow-hidden flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Story progress bars */}
+        {isMulti && isStory && (
+          <div className="absolute top-0 left-0 right-0 z-30 flex gap-1 px-3 pt-3">
+            {slides.map((_, i) => (
+              <div key={i} className="flex-1 h-0.5 bg-white/30 rounded overflow-hidden">
+                <div
+                  className={`h-full bg-white transition-all ${
+                    i < slideIdx ? "w-full" : i === slideIdx ? (paused ? "w-1/2" : "w-full animate-[story_5s_linear]") : "w-0"
+                  }`}
+                  style={i === slideIdx && !paused ? { animation: "story-progress 5s linear" } : {}}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 pt-5 bg-gradient-to-b from-black/80 to-transparent">
           <div className="text-white min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wider opacity-80">{approvalFormatLabel(item)}</p>
+            <p className="text-xs font-bold uppercase tracking-wider opacity-80">
+              {approvalFormatLabel(item)}
+              {isMulti && ` · ${slideIdx + 1}/${slides.length}`}
+            </p>
             <p className="text-sm font-semibold truncate">{item.title}</p>
           </div>
           <button
@@ -1318,8 +1425,19 @@ function ApprovalFullscreenModal({
         </div>
 
         {/* Media */}
-        <div className="flex-1 flex items-center justify-center overflow-auto bg-black">
-          {item.content_type === "image" && item.content_url ? (
+        <div
+          className={`flex-1 flex items-center justify-center overflow-hidden bg-black relative ${isStory ? "aspect-[9/16] max-h-[75vh]" : ""}`}
+          onPointerDown={() => isStory && setPaused(true)}
+          onPointerUp={() => isStory && setPaused(false)}
+          onPointerLeave={() => isStory && setPaused(false)}
+        >
+          {isMulti && activeSlide ? (
+            activeSlide.kind === "video" || (activeSlide.mime_type || "").startsWith("video") ? (
+              <video src={activeSlide.url} controls autoPlay muted={isStory} className="w-full h-full object-contain" />
+            ) : (
+              <img src={activeSlide.url} alt={`Slide ${slideIdx + 1}`} className="w-full h-full object-contain" />
+            )
+          ) : item.content_type === "image" && item.content_url ? (
             <img src={item.content_url} alt={item.title} className="w-full h-full object-contain" />
           ) : item.content_type === "video" && item.content_url ? (
             <video src={item.content_url} controls autoPlay className="w-full h-full object-contain" />
@@ -1341,10 +1459,99 @@ function ApprovalFullscreenModal({
           ) : (
             <div className="text-white/60 text-sm">Conteúdo indisponível</div>
           )}
+
+          {/* Carousel arrows */}
+          {isMulti && !isStory && slides.length > 1 && (
+            <>
+              {slideIdx > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSlideIdx((i) => i - 1)}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white/85 hover:bg-white text-slate-900 grid place-items-center shadow-lg font-bold"
+                  aria-label="Anterior"
+                >
+                  ‹
+                </button>
+              )}
+              {slideIdx < slides.length - 1 && (
+                <button
+                  type="button"
+                  onClick={() => setSlideIdx((i) => i + 1)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 size-9 rounded-full bg-white/85 hover:bg-white text-slate-900 grid place-items-center shadow-lg font-bold"
+                  aria-label="Próximo"
+                >
+                  ›
+                </button>
+              )}
+            </>
+          )}
+
+          {/* Story tap zones */}
+          {isMulti && isStory && (
+            <>
+              <button
+                type="button"
+                onClick={() => setSlideIdx((i) => Math.max(i - 1, 0))}
+                className="absolute left-0 top-0 bottom-0 w-1/3"
+                aria-label="Anterior"
+              />
+              <button
+                type="button"
+                onClick={() => setSlideIdx((i) => Math.min(i + 1, slides.length - 1))}
+                className="absolute right-0 top-0 bottom-0 w-1/3"
+                aria-label="Próximo"
+              />
+            </>
+          )}
+
+          {/* Per-slide status badge */}
+          {isMulti && activeSlideStatus && (
+            <div className="absolute top-14 right-3 z-10">
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold shadow-md ${
+                  activeSlideStatus === "approved"
+                    ? "bg-emerald-500 text-white"
+                    : activeSlideStatus === "rejected"
+                    ? "bg-amber-400 text-amber-950"
+                    : "bg-white/85 text-slate-700"
+                }`}
+              >
+                {activeSlideStatus === "approved" ? "✅ Aprovado" : activeSlideStatus === "rejected" ? "✏️ Ajuste" : "⏳ Pendente"}
+              </span>
+            </div>
+          )}
         </div>
 
+        {/* Carousel dots */}
+        {isMulti && !isStory && slides.length > 1 && (
+          <div className="bg-black/85 py-2 flex justify-center gap-1.5">
+            {slides.map((s, i) => {
+              const st = item.slide_statuses?.[s.id] ?? "pending";
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setSlideIdx(i)}
+                  className={`size-2 rounded-full transition-all ${
+                    i === slideIdx ? "w-6" : ""
+                  } ${
+                    st === "approved"
+                      ? "bg-emerald-400"
+                      : st === "rejected"
+                      ? "bg-amber-400"
+                      : i === slideIdx
+                      ? "bg-white"
+                      : "bg-white/40"
+                  }`}
+                  aria-label={`Ir para slide ${i + 1}`}
+                />
+              );
+            })}
+          </div>
+        )}
+
         {/* Caption */}
-        {item.caption && (
+        {item.caption && !isStory && (
           <div className="px-4 py-3 bg-black/85 border-t border-white/10 max-h-32 overflow-y-auto">
             <div className="flex items-center justify-between mb-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">📝 Legenda</span>
@@ -1367,24 +1574,146 @@ function ApprovalFullscreenModal({
           </div>
         )}
 
+        {/* Comments (per-slide for multi, global for single) */}
+        {(isMulti ? slideComments.length > 0 : itemComments.length > 0) && (
+          <div className="bg-slate-50 border-t border-slate-200 px-4 py-3 max-h-40 overflow-y-auto space-y-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+              💬 Comentários {isMulti ? `do slide ${slideIdx + 1}` : ""}
+            </p>
+            {(isMulti ? slideComments : itemComments).map((c) => (
+              <div
+                key={c.id}
+                className={`rounded-lg p-2 text-xs ${
+                  c.is_change_request
+                    ? "bg-amber-100 border border-amber-300"
+                    : c.author_type === "client"
+                    ? "bg-white border border-slate-200"
+                    : "bg-[var(--portal-primary-15)] border border-[var(--portal-primary)]/30"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="font-bold text-slate-800">{c.author_name || (c.author_type === "client" ? "Cliente" : "Time")}</span>
+                  {c.author_type === "team" && <span className="text-[9px] uppercase font-bold text-slate-500">Time</span>}
+                  {c.is_change_request && <span className="text-[9px] uppercase font-bold text-amber-700">Ajuste</span>}
+                </div>
+                <p className="text-slate-700 whitespace-pre-wrap">{c.body}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* Actions */}
         <div className="bg-white p-4 space-y-3">
-          {!isPending ? (
+          {!isPending && !isMulti ? (
             <div className="text-center text-sm font-semibold text-slate-600 py-2">
               {item.status === "approved" ? "✅ Já aprovada" : "✏️ Ajuste já solicitado"}
             </div>
+          ) : isMulti ? (
+            // ---- Per-slide actions ----
+            <div className="space-y-2">
+              {activeSlideStatus === "pending" && !showFeedback ? (
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => action.mutate({ action: "approve_slide", slide_id: activeSlide!.id })}
+                    disabled={action.isPending}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10B981] hover:bg-[#0EA371] disabled:opacity-50 text-white font-bold py-3 text-sm shadow-md"
+                  >
+                    <CheckCircle2 className="size-4" /> APROVAR SLIDE
+                  </button>
+                  <button
+                    onClick={() => setShowFeedback(true)}
+                    disabled={action.isPending}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)] disabled:opacity-50 text-slate-900 font-bold py-3 text-sm shadow-md"
+                  >
+                    ✏️ AJUSTAR
+                  </button>
+                </div>
+              ) : showFeedback ? (
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-slate-800">
+                    ✏️ Ajuste do slide {slideIdx + 1}
+                  </label>
+                  <textarea
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    rows={2}
+                    autoFocus
+                    placeholder="O que precisa ser ajustado neste slide?"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary)]"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        if (!feedback.trim()) return toast.error("Descreva o ajuste.");
+                        action.mutate({ action: "reject_slide", slide_id: activeSlide!.id, feedback: feedback.trim() });
+                      }}
+                      disabled={action.isPending}
+                      className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 text-white font-bold py-2.5 text-xs shadow-md"
+                    >
+                      ⬆️ Enviar ajuste
+                    </button>
+                    <button
+                      onClick={() => { setShowFeedback(false); setFeedback(""); }}
+                      className="rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 text-xs"
+                    >
+                      ↩️ Voltar
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center text-xs font-semibold text-slate-600 py-1">
+                  {activeSlideStatus === "approved" ? "✅ Slide aprovado" : "✏️ Ajuste solicitado neste slide"}
+                </div>
+              )}
+
+              {/* Comment box (per slide) */}
+              <div className="pt-2 border-t border-slate-200 space-y-2">
+                {!commentName && (
+                  <input
+                    value={commentName}
+                    onChange={(e) => setCommentName(e.target.value)}
+                    placeholder="Seu nome (opcional)"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs"
+                  />
+                )}
+                <div className="flex gap-2">
+                  <input
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    placeholder={`💬 Comentar slide ${slideIdx + 1}...`}
+                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary)]"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && commentText.trim()) {
+                        action.mutate({ action: "comment", slide_id: activeSlide!.id, comment: commentText.trim(), author_name: commentName.trim() || null });
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={() => {
+                      if (!commentText.trim()) return;
+                      action.mutate({ action: "comment", slide_id: activeSlide!.id, comment: commentText.trim(), author_name: commentName.trim() || null });
+                    }}
+                    disabled={!commentText.trim() || action.isPending}
+                    className="px-3 rounded-lg bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white text-xs font-bold"
+                  >
+                    Enviar
+                  </button>
+                </div>
+              </div>
+            </div>
           ) : !showFeedback ? (
+            // ---- Single-item actions (legacy) ----
             <div className="grid grid-cols-2 gap-2">
               <button
-                onClick={() => mutation.mutate("approve")}
-                disabled={mutation.isPending}
+                onClick={() => action.mutate({ action: "approve", feedback: feedback.trim() || null })}
+                disabled={action.isPending}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10B981] hover:bg-[#0EA371] disabled:opacity-50 text-white font-bold py-3 text-sm shadow-md"
               >
                 <CheckCircle2 className="size-4" /> APROVAR
               </button>
               <button
                 onClick={() => setShowFeedback(true)}
-                disabled={mutation.isPending}
+                disabled={action.isPending}
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)] disabled:opacity-50 text-slate-900 font-bold py-3 text-sm shadow-md"
               >
                 ✏️ AJUSTAR
@@ -1406,20 +1735,17 @@ function ApprovalFullscreenModal({
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => {
-                    if (!feedback.trim()) {
-                      toast.error("Descreva o ajuste antes de enviar.");
-                      return;
-                    }
-                    mutation.mutate("reject");
+                    if (!feedback.trim()) return toast.error("Descreva o ajuste antes de enviar.");
+                    action.mutate({ action: "reject", feedback: feedback.trim() });
                   }}
-                  disabled={mutation.isPending}
+                  disabled={action.isPending}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 text-white font-bold py-3 text-sm shadow-md"
                 >
                   ⬆️ Enviar Ajuste
                 </button>
                 <button
                   onClick={() => { setShowFeedback(false); setFeedback(""); }}
-                  disabled={mutation.isPending}
+                  disabled={action.isPending}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-bold py-3 text-sm"
                 >
                   ↩️ Voltar
@@ -1429,6 +1755,14 @@ function ApprovalFullscreenModal({
           )}
         </div>
       </div>
+
+      {/* Story progress keyframes (inline) */}
+      <style>{`
+        @keyframes story-progress {
+          from { width: 0% }
+          to { width: 100% }
+        }
+      `}</style>
     </div>
   );
 }
