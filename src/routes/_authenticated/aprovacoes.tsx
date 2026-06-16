@@ -8,6 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { ApprovalsGrid } from "@/components/approvals/ApprovalsGrid";
 import { ApprovalSheet } from "@/components/approvals/ApprovalSheet";
 import { NewApprovalDialog } from "@/components/approvals/NewApprovalDialog";
+import { ApprovalStoriesRow } from "@/components/approvals/ApprovalStoriesRow";
 import { fetchClients } from "@/lib/ops-api";
 import { type Approval, type ApprovalStatus } from "@/lib/approvals-api";
 
@@ -40,6 +41,15 @@ function ApprovalsPage() {
           <Plus className="size-4" /> Nova peça
         </Button>
       </header>
+
+      <ApprovalStoriesRow
+        onPickClient={(cid, first) => {
+          setClientId(cid);
+          setStatus("pending");
+          setSelected(first);
+        }}
+      />
+
 
       <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-background/95 backdrop-blur py-2">
         <Select value={clientId} onValueChange={setClientId}>
