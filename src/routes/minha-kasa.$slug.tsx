@@ -2077,3 +2077,35 @@ function KpiCard({ label, value, color, emoji }: { label: string; value: number;
   );
 }
 
+
+function MinhaKasaDarkStyles() {
+  // Scoped dark-mode overrides for the minha-kasa portal.
+  // Maps slate/white utility classes used in this file to dark equivalents
+  // so we can offer a dark theme without rewriting every component.
+  const css = `
+[data-mk-theme="dark"] .bg-white { background-color: #161b2b !important; }
+[data-mk-theme="dark"] .bg-slate-50 { background-color: #0f1422 !important; }
+[data-mk-theme="dark"] .bg-slate-100 { background-color: #1f2638 !important; }
+[data-mk-theme="dark"] .bg-slate-200 { background-color: #2a3247 !important; }
+[data-mk-theme="dark"] .bg-slate-900 { background-color: #e2e8f0 !important; }
+[data-mk-theme="dark"] .border-white { border-color: #161b2b !important; }
+[data-mk-theme="dark"] .ring-white { --tw-ring-color: #161b2b !important; }
+[data-mk-theme="dark"] .border-slate-100 { border-color: rgba(255,255,255,0.06) !important; }
+[data-mk-theme="dark"] .border-slate-200 { border-color: rgba(255,255,255,0.10) !important; }
+[data-mk-theme="dark"] .border-slate-300 { border-color: rgba(255,255,255,0.16) !important; }
+[data-mk-theme="dark"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(255,255,255,0.06) !important; }
+[data-mk-theme="dark"] .from-slate-100 { --tw-gradient-from: #1f2638 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgba(31,38,56,0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important; }
+[data-mk-theme="dark"] .to-slate-200 { --tw-gradient-to: #2a3247 var(--tw-gradient-to-position) !important; }
+[data-mk-theme="dark"] .text-slate-400 { color: #94a3b8 !important; }
+[data-mk-theme="dark"] .text-slate-500 { color: #94a3b8 !important; }
+[data-mk-theme="dark"] .text-slate-600 { color: #cbd5e1 !important; }
+[data-mk-theme="dark"] .text-slate-700 { color: #e2e8f0 !important; }
+[data-mk-theme="dark"] .text-slate-800 { color: #f1f5f9 !important; }
+[data-mk-theme="dark"] .text-slate-900 { color: #f8fafc !important; }
+[data-mk-theme="dark"] .shadow-sm,
+[data-mk-theme="dark"] .shadow,
+[data-mk-theme="dark"] .shadow-md,
+[data-mk-theme="dark"] .shadow-lg { box-shadow: 0 4px 14px rgba(0,0,0,0.45) !important; }
+`;
+  return <style dangerouslySetInnerHTML={{ __html: css }} />;
+}
