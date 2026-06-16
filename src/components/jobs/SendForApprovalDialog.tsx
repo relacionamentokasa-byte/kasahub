@@ -87,6 +87,7 @@ export function SendForApprovalDialog({
       setDescription("");
       setUrl(defaultUrl);
       setText("");
+      setCaption("");
     },
     onError: (err: Error) => toast.error(err.message || "Erro ao enviar"),
   });
