@@ -709,6 +709,16 @@ function FinancialPage() {
       <TransactionFormDialog open={transactionOpen} onOpenChange={setTransactionOpen} />
       <CategoriesManagerDialog open={categoriesOpen} onOpenChange={setCategoriesOpen} />
       <ContasBancariasManagerDialog open={contasOpen} onOpenChange={setContasOpen} />
+      <EditTransactionDialog
+        open={!!editingTx}
+        onOpenChange={(o) => !o && setEditingTx(null)}
+        transaction={editingTx}
+      />
+      <BaixaDialog
+        open={!!baixaTx}
+        onOpenChange={(o) => !o && setBaixaTx(null)}
+        transaction={baixaTx}
+      />
     </div>
 
   );
