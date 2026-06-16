@@ -283,8 +283,15 @@ function MinhaKasaPage() {
   } as React.CSSProperties;
   const coverGradient = `linear-gradient(135deg, color-mix(in oklab, ${coverColor} 92%, black) 0%, ${coverColor} 60%, color-mix(in oklab, ${coverColor} 85%, ${primary}) 100%)`;
 
+  const isDark = theme === "dark";
+
   return (
-    <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900" style={portalThemeVars}>
+    <div
+      data-mk-theme={theme}
+      className="min-h-screen pb-12"
+      style={{ ...portalThemeVars, background: isDark ? "#0b0f1a" : "#F0F2F5", color: isDark ? "#e2e8f0" : "#0f172a" }}
+    >
+      <MinhaKasaDarkStyles />
       <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
         {/* HEADER — cover + profile info as independent blocks (no clipping card) */}
         <div className="relative">
@@ -311,11 +318,23 @@ function MinhaKasaPage() {
                 <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[var(--portal-primary-10)] blur-3xl" />
               </>
             )}
-            <div className="absolute top-3 right-4 z-10 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[var(--portal-primary)]">
-              <Sparkles className="size-3" />
-              Minha Kasa
+            <div className="absolute top-3 right-4 z-10 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={isDark ? "Mudar para tema claro" : "Mudar para tema escuro"}
+                title={isDark ? "Tema claro" : "Tema escuro"}
+                className="inline-flex items-center justify-center size-7 rounded-full bg-black/30 hover:bg-black/45 backdrop-blur text-white border border-white/20 transition-colors"
+              >
+                {isDark ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+              </button>
+              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[var(--portal-primary)]">
+                <Sparkles className="size-3" />
+                Minha Kasa
+              </div>
             </div>
           </div>
+
 
           {/* 2. AVATAR — overflows the cover, half above / half below */}
           <div className="relative h-0">
