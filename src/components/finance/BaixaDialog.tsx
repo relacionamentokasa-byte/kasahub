@@ -35,8 +35,13 @@ interface Props {
 
 export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
   const qc = useQueryClient();
+  const todayLocal = () => {
+    const d = new Date();
+    const off = d.getTimezoneOffset();
+    return new Date(d.getTime() - off * 60000).toISOString().split("T")[0];
+  };
   const [paidValue, setPaidValue] = useState<string>("");
-  const [paidDate, setPaidDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [paidDate, setPaidDate] = useState<string>(todayLocal());
   const [method, setMethod] = useState<string>("PIX");
   const [notes, setNotes] = useState<string>("");
 
@@ -45,7 +50,7 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
       const ref =
         transaction.valor_real ?? transaction.valor_previsto ?? transaction.amount ?? 0;
       setPaidValue(String(ref));
-      setPaidDate(new Date().toISOString().split("T")[0]);
+      setPaidDate(todayLocal());
       setMethod(transaction.payment_method || "PIX");
       setNotes(transaction.notes || "");
     }
