@@ -35,7 +35,9 @@ type Client = {
   start_date?: string | null;
   portal_slug?: string | null;
   portal_enabled?: boolean | null;
+  portal_cover_url?: string | null;
 };
+
 
 export function EditClientDialog({
   client,
