@@ -392,6 +392,53 @@ export function SendForApprovalDialog({
                 </div>
               )}
 
+              {mediaAttachments.length > 0 && (
+                <div className="rounded-lg border border-border bg-muted/30 p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/60">
+                      📎 Anexos do job — toque para usar como slide
+                    </p>
+                    <span className="text-[10px] font-mono text-foreground/40">
+                      {mediaAttachments.length} disponível{mediaAttachments.length > 1 ? "is" : ""}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {mediaAttachments.map((a) => {
+                      const selectedIdx = slides.findIndex((s) => s.url === a.file_url);
+                      const selected = selectedIdx >= 0;
+                      const kind = attachmentKind(a);
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => toggleAttachmentSlide(a)}
+                          title={a.file_name}
+                          className={`relative aspect-square rounded-md overflow-hidden border-2 transition-all ${
+                            selected
+                              ? "border-primary ring-2 ring-primary/30"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                        >
+                          {kind === "image" ? (
+                            <img src={a.file_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full grid place-items-center bg-muted">
+                              <Film className="size-5 text-foreground/40" />
+                            </div>
+                          )}
+                          {selected && (
+                            <div className="absolute top-0.5 right-0.5 size-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black grid place-items-center shadow">
+                              {selectedIdx + 1}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+
               <input
                 ref={fileRef}
                 type="file"
