@@ -1031,10 +1031,12 @@ function ApprovalsInstagramSection({
   slug,
   client,
   items,
+  commentsByItem,
 }: {
   slug: string;
   client: ClientInfo;
   items: ApprovalItem[];
+  commentsByItem: Record<string, ApprovalItemComment[]>;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
