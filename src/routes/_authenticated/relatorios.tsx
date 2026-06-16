@@ -17,6 +17,7 @@ import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerD
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { EditTransactionDialog } from "@/components/finance/EditTransactionDialog";
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
+import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
@@ -110,6 +111,7 @@ function FinancialPage() {
   const [contasOpen, setContasOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<any | null>(null);
   const [baixaTx, setBaixaTx] = useState<any | null>(null);
+  const [deletingTx, setDeletingTx] = useState<any | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -660,36 +662,72 @@ function FinancialPage() {
                     <StatusBadge status={t.status} />
                   </TableCell>
                   <TableCell className="py-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreVertical className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {t.status !== "paid" && (
-                          <DropdownMenuItem onClick={() => setBaixaTx(t)} className="text-emerald-600 gap-2">
-                            <CreditCard className="size-4" /> Dar Baixa
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem onClick={() => setEditingTx(t)} className="gap-2">
-                          <Pencil className="size-4" /> Editar
-                        </DropdownMenuItem>
-                        {t.status !== "paid" && (
-                          <DropdownMenuItem onClick={() => statusMut.mutate({ id: t.id, status: "paid" })} className="text-emerald-500 gap-2">
-                            <CheckCircle2 className="size-4" /> Marcar como Pago (rápido)
-                          </DropdownMenuItem>
-                        )}
-                        {t.status === "paid" && (
-                          <DropdownMenuItem onClick={() => statusMut.mutate({ id: t.id, status: "pending" })} className="gap-2">
-                            <Clock className="size-4" /> Estornar para Pendente
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem className="text-destructive gap-2">
-                          <Trash2 className="size-4" /> Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-1">
+                      {(t.status === "pending" || t.status === "overdue") && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setBaixaTx(t)}
+                                className="h-8 w-8 rounded-lg text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                              >
+                                <CreditCard className="size-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Dar Baixa</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      {t.status === "paid" && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => statusMut.mutate({ id: t.id, status: "pending" })}
+                                className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+                              >
+                                <Clock className="size-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Estornar para Pendente</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setEditingTx(t)}
+                              className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Editar</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setDeletingTx(t)}
+                              className="h-8 w-8 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Excluir</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </TableCell>
                 </TableRow>
                 );
@@ -723,6 +761,11 @@ function FinancialPage() {
         open={!!baixaTx}
         onOpenChange={(o) => !o && setBaixaTx(null)}
         transaction={baixaTx}
+      />
+      <DeleteTransactionDialog
+        open={!!deletingTx}
+        onOpenChange={(o) => !o && setDeletingTx(null)}
+        transaction={deletingTx}
       />
     </div>
 
