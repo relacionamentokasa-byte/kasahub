@@ -285,7 +285,7 @@ function MinhaKasaPage() {
 
       {/* TAB BAR */}
       <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-        <div className="max-w-3xl mx-auto grid grid-cols-4">
+        <div className="max-w-3xl md:max-w-6xl mx-auto grid grid-cols-4">
           <TabButton
             active={tab === "projects"}
             onClick={() => setTab("projects")}
