@@ -1182,6 +1182,7 @@ function ApprovalsInstagramSection({
         <ApprovalFullscreenModal
           slug={slug}
           item={activeItem}
+          comments={commentsByItem[activeItem.id] || []}
           onClose={() => setActiveId(null)}
         />
       )}
