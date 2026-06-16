@@ -1135,3 +1135,61 @@ export function JobSheet({
     </Sheet>
   );
 }
+
+function RejectedFeedback({ item }: { item: ApprovalItem }) {
+  const { data: comments = [] } = useQuery({
+    queryKey: ["approval-item-comments", item.id],
+    queryFn: () => listApprovalItemComments(item.id),
+    staleTime: 30_000,
+  });
+
+  const changeRequests = comments.filter((c) => c.is_change_request);
+  const slideIndexById = new Map((item.slides ?? []).map((s, i) => [s.id, i + 1]));
+  const rejectedSlides = Object.entries(item.slide_statuses ?? {})
+    .filter(([, st]) => st === "rejected")
+    .map(([sid]) => slideIndexById.get(sid))
+    .filter((n): n is number => !!n)
+    .sort((a, b) => a - b);
+
+  if (!item.feedback && changeRequests.length === 0 && rejectedSlides.length === 0) {
+    return (
+      <div className="px-3 pb-3 -mt-1 text-[11px] text-foreground/60 italic">
+        Cliente pediu ajustes, mas não deixou observações.
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-orange-500/20 bg-orange-500/5 px-3 py-3 space-y-2 rounded-b-lg">
+      <p className="text-[10px] uppercase tracking-wider font-bold text-orange-500 flex items-center gap-1">
+        <AlertCircle className="size-3" /> Ajustes pedidos pelo cliente
+      </p>
+      {rejectedSlides.length > 0 && (
+        <p className="text-[11px] text-foreground/70">
+          Slides com ajuste: <span className="font-semibold text-foreground">{rejectedSlides.map((n) => `#${n}`).join(", ")}</span>
+        </p>
+      )}
+      {item.feedback && (
+        <div className="text-xs text-foreground/85 whitespace-pre-wrap bg-background border border-border rounded-md p-2 leading-relaxed">
+          {item.feedback}
+        </div>
+      )}
+      {changeRequests.map((c) => {
+        const slideNum = c.slide_id ? slideIndexById.get(c.slide_id) : null;
+        return (
+          <div key={c.id} className="text-xs text-foreground/85 bg-background border border-border rounded-md p-2 leading-relaxed">
+            <div className="flex items-center gap-2 mb-1 text-[10px] text-foreground/50 uppercase tracking-wider font-bold">
+              <span>{c.author_name || "Cliente"}</span>
+              {slideNum && <span className="text-orange-500">· Slide #{slideNum}</span>}
+              <span className="ml-auto normal-case tracking-normal font-normal text-foreground/40">
+                {format(new Date(c.created_at), "dd/MM HH:mm")}
+              </span>
+            </div>
+            <p className="whitespace-pre-wrap">{c.body}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
