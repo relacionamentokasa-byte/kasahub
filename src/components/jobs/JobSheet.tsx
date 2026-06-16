@@ -45,7 +45,8 @@ import {
   updateChecklistItem,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy } from "lucide-react";
+import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send } from "lucide-react";
+import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
 import { enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
