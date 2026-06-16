@@ -164,7 +164,7 @@ type ApiResponse = {
 const STATUS_MAP: Record<string, { emoji: string; label: string; cls: string }> = {
   not_started: { emoji: "📥", label: "Novas Demandas", cls: "bg-[#9CA3AF] text-white border-[#9CA3AF]" },
   in_progress: { emoji: "⚙️", label: "Em Andamento", cls: "bg-[#3B82F6] text-white border-[#3B82F6]" },
-  review: { emoji: "🔍", label: "Em Revisão", cls: "bg-[#FFBC45] text-white border-[#FFBC45]" },
+  review: { emoji: "🔍", label: "Em Revisão", cls: "bg-[var(--portal-primary)] text-white border-[var(--portal-primary)]" },
   adjustments: { emoji: "👤", label: "Aguardando Cliente", cls: "bg-[#F97316] text-white border-[#F97316]" },
   done: { emoji: "🏁", label: "Concluído", cls: "bg-[#10B981] text-white border-[#10B981]" },
   cancelled: { emoji: "❌", label: "Cancelado", cls: "bg-rose-500 text-white border-rose-500" },
@@ -268,14 +268,14 @@ function MinhaKasaPage() {
                   className="absolute inset-0 opacity-[0.12]"
                   style={{
                     backgroundImage:
-                      "repeating-linear-gradient(45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px)",
+                      "repeating-linear-gradient(45deg, var(--portal-primary) 0, var(--portal-primary) 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, var(--portal-primary) 0, var(--portal-primary) 1px, transparent 1px, transparent 22px)",
                   }}
                 />
-                <div className="absolute top-4 right-12 size-40 rounded-full bg-[#FFBC45]/15 blur-3xl" />
-                <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[#FFBC45]/10 blur-3xl" />
+                <div className="absolute top-4 right-12 size-40 rounded-full bg-[var(--portal-primary-15)] blur-3xl" />
+                <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[var(--portal-primary-10)] blur-3xl" />
               </>
             )}
-            <div className="absolute top-3 right-4 z-10 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+            <div className="absolute top-3 right-4 z-10 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[var(--portal-primary)]">
               <Sparkles className="size-3" />
               Minha Kasa
             </div>
@@ -291,7 +291,7 @@ function MinhaKasaPage() {
                   className="size-32 rounded-full object-cover border-4 border-white bg-white shadow-lg"
                 />
               ) : (
-                <div className="size-32 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg border-4 border-white bg-gradient-to-br from-[#FFBC45] to-[#E89B1F]">
+                <div className="size-32 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg border-4 border-white bg-gradient-to-br from-[var(--portal-primary)] to-[var(--portal-primary-dark)]">
                   {displayName.charAt(0)}
                 </div>
               )}
@@ -305,7 +305,7 @@ function MinhaKasaPage() {
                   className="size-24 rounded-full object-cover border-4 border-white bg-white shadow-lg"
                 />
               ) : (
-                <div className="size-24 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-white bg-gradient-to-br from-[#FFBC45] to-[#E89B1F]">
+                <div className="size-24 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-white bg-gradient-to-br from-[var(--portal-primary)] to-[var(--portal-primary-dark)]">
                   {displayName.charAt(0)}
                 </div>
               )}
@@ -324,7 +324,7 @@ function MinhaKasaPage() {
                 </p>
               )}
               <div className="mt-2 flex justify-center md:justify-start">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#FFBC45]/15 to-[#FFBC45]/5 border border-[#FFBC45]/30 text-[11px] font-bold text-[#9A6A00]">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[var(--portal-primary-15)] to-[var(--portal-primary-5)] border border-[var(--portal-primary-30)] text-[11px] font-bold text-[#9A6A00]">
                   <span>⭐</span>
                   <span>Cliente Premium</span>
                 </span>
@@ -441,7 +441,7 @@ function MinhaKasaPage() {
           )}
 
           <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-8 pb-4 font-semibold">
-            <span className="inline-flex items-center justify-center size-5 rounded-md bg-[#FFBC45] text-white text-[10px] font-black">K</span>
+            <span className="inline-flex items-center justify-center size-5 rounded-md bg-[var(--portal-primary)] text-white text-[10px] font-black">K</span>
             <span>Powered by <span className="text-slate-700 font-bold">Kasa Marketing</span></span>
           </footer>
         </main>
@@ -470,11 +470,11 @@ function FbTabButton({
       onClick={onClick}
       className={`relative shrink-0 flex items-center justify-center gap-2 px-4 md:px-5 py-3 md:py-3.5 text-[13px] md:text-sm font-semibold transition-all duration-200 border-b-[3px] -mb-px ${
         active
-          ? "text-[#9A6A00] border-[#FFBC45]"
+          ? "text-[#9A6A00] border-[var(--portal-primary)]"
           : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-transparent"
       }`}
     >
-      <span className={active ? "text-[#FFBC45]" : "text-slate-500"}>{icon}</span>
+      <span className={active ? "text-[var(--portal-primary)]" : "text-slate-500"}>{icon}</span>
       <span>{label}</span>
       {badge ? (
         <span className="inline-flex min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold text-white items-center justify-center bg-[#EF4444]">
@@ -506,7 +506,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={`relative flex flex-col items-center justify-center gap-0.5 py-3 transition-all duration-200 ${
-        active ? "text-[#FFBC45]" : "text-slate-600 hover:text-slate-900"
+        active ? "text-[var(--portal-primary)]" : "text-slate-600 hover:text-slate-900"
       }`}
     >
       <div className="relative">
@@ -615,7 +615,7 @@ function JobCard({
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-slate-600 mb-4 font-medium">
           {job.due_date && (
             <span className="inline-flex items-center gap-1.5">
-              <Calendar className="size-3.5 text-[#FFBC45]" />
+              <Calendar className="size-3.5 text-[var(--portal-primary)]" />
               {format(new Date(job.due_date), "dd 'de' MMM", { locale: ptBR })}
             </span>
           )}
@@ -634,7 +634,7 @@ function JobCard({
           </div>
           <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-[#FFBC45] to-[#FFA500] transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-[var(--portal-primary)] to-[var(--portal-primary-dark)] transition-all"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -647,7 +647,7 @@ function JobCard({
               className="w-full flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700 hover:text-slate-900 transition-colors"
             >
               <span className="inline-flex items-center gap-1.5">
-                <ListChecks className="size-3.5 text-[#FFBC45]" />
+                <ListChecks className="size-3.5 text-[var(--portal-primary)]" />
                 Etapas
                 <span className="font-semibold normal-case tracking-normal text-slate-600">
                   ({stagesDone}/{stagesTotal})
@@ -664,7 +664,7 @@ function JobCard({
                       {s.done ? (
                         <CheckCircle2 className="size-4 shrink-0 text-[#10B981]" />
                       ) : isCurrent ? (
-                        <Clock className="size-4 shrink-0 text-[#FFBC45]" />
+                        <Clock className="size-4 shrink-0 text-[var(--portal-primary)]" />
                       ) : (
                         <Circle className="size-4 shrink-0 text-slate-400" />
                       )}
@@ -680,7 +680,7 @@ function JobCard({
                         {s.content}
                       </span>
                       {isCurrent && (
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[#FFBC45] text-white shadow-sm">
+                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--portal-primary)] text-white shadow-sm">
                           Agora
                         </span>
                       )}
@@ -696,7 +696,7 @@ function JobCard({
           <>
             <button
               onClick={() => setExpanded((v) => !v)}
-              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[#FFBC45] transition-colors"
+              className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-[var(--portal-primary)] transition-colors"
             >
               {expanded ? <>Ocultar detalhes <ChevronUp className="size-3.5" /></> : <>Ver detalhes <ChevronDown className="size-3.5" /></>}
             </button>
@@ -775,7 +775,7 @@ function ApprovalCard({
               href={active.file_url}
               target="_blank"
               rel="noreferrer"
-              className="flex flex-col items-center gap-2 text-white hover:text-[#FFBC45]"
+              className="flex flex-col items-center gap-2 text-white hover:text-[var(--portal-primary)]"
             >
               <FileText className="size-12" />
               <span className="text-sm font-semibold">{active.file_name}</span>
@@ -793,7 +793,7 @@ function ApprovalCard({
               key={att.id}
               onClick={() => setActiveIdx(i)}
               className={`shrink-0 size-14 rounded-lg overflow-hidden border-2 transition-all ${
-                i === activeIdx ? "border-[#FFBC45] scale-105" : "border-slate-200 opacity-70 hover:opacity-100"
+                i === activeIdx ? "border-[var(--portal-primary)] scale-105" : "border-slate-200 opacity-70 hover:opacity-100"
               }`}
             >
               {isImage(att) ? (
@@ -892,7 +892,7 @@ function ApprovalCard({
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   rows={5}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFBC45] focus:border-[#FFBC45]"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary)] focus:border-[var(--portal-primary)]"
                   placeholder="Ex: trocar a cor do título para laranja, reduzir o logo..."
                 />
               </>
@@ -976,7 +976,7 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
       <div className="px-5 pt-4 pb-3 flex items-center gap-2 text-xs font-semibold text-slate-700 border-b border-slate-100">
         <span className="text-base">{typeBadge}</span>
         <span className="truncate flex-1">{item.title}</span>
-        <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full bg-[#FFBC45]/15 text-[#B47A00]">
+        <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full bg-[var(--portal-primary-15)] text-[#B47A00]">
           Pendente
         </span>
       </div>
@@ -992,7 +992,7 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
             href={item.content_url}
             target="_blank"
             rel="noreferrer"
-            className="w-full aspect-[4/3] flex flex-col items-center justify-center gap-3 text-white hover:text-[#FFBC45]"
+            className="w-full aspect-[4/3] flex flex-col items-center justify-center gap-3 text-white hover:text-[var(--portal-primary)]"
           >
             <FileText className="size-16" />
             <span className="text-sm font-bold">Visualizar PDF</span>
@@ -1025,7 +1025,7 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
                     () => toast.error("Não foi possível copiar."),
                   );
                 }}
-                className="text-[11px] font-bold text-[#FFBC45] hover:text-[#E5A93E]"
+                className="text-[11px] font-bold text-[var(--portal-primary)] hover:text-[var(--portal-primary-hover)]"
               >
                 📋 Copiar
               </button>
@@ -1061,7 +1061,7 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
             <button
               onClick={() => setShowFeedback(true)}
               disabled={mutation.isPending}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#E5A93E] disabled:opacity-50 text-slate-900 font-bold py-3 text-sm transition-colors shadow-md"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)] disabled:opacity-50 text-slate-900 font-bold py-3 text-sm transition-colors shadow-md"
             >
               ✏️ Ajustar
             </button>
@@ -1077,7 +1077,7 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
               rows={4}
               autoFocus
               placeholder="Descreva os ajustes necessários..."
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFBC45] focus:border-[#FFBC45]"
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary)] focus:border-[var(--portal-primary)]"
             />
             <div className="grid grid-cols-2 gap-2">
               <button
@@ -1169,26 +1169,26 @@ function FinanceSection({ invoices }: { invoices: Invoice[] }) {
       {/* RESUMO DO MÊS */}
       <section className="rounded-2xl p-5 sm:p-6 md:p-8 bg-[#0C1618] text-white shadow-[0_8px_24px_rgba(12,22,24,0.25)] border border-[#1A2D33]">
         <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-[var(--portal-primary)]">
             <TrendingUp className="size-3.5" />
             Resumo do mês · {format(now, "MMMM 'de' yyyy", { locale: ptBR })}
           </div>
           <div className="hidden md:flex items-baseline gap-2">
-            <span className="text-2xl font-black text-[#FFBC45] tracking-tight tabular-nums">{fmtBRL(monthTotal)}</span>
+            <span className="text-2xl font-black text-[var(--portal-primary)] tracking-tight tabular-nums">{fmtBRL(monthTotal)}</span>
             <span className="text-[10px] uppercase tracking-widest text-white/60 font-bold">total faturado</span>
           </div>
         </div>
         <div className="md:hidden mt-2 flex items-baseline gap-2">
-          <span className="text-3xl sm:text-4xl font-black text-[#FFBC45] tracking-tight">{fmtBRL(monthTotal)}</span>
+          <span className="text-3xl sm:text-4xl font-black text-[var(--portal-primary)] tracking-tight">{fmtBRL(monthTotal)}</span>
           <span className="text-xs text-white/60 font-medium">total faturado</span>
         </div>
 
         <div className="mt-5 md:mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
           <FinanceStat label="✅ Pagas" value={paidTotal} color="#10B981" />
-          <FinanceStat label="⏳ Pendentes" value={pendingTotal} color="#FFBC45" />
+          <FinanceStat label="⏳ Pendentes" value={pendingTotal} color="var(--portal-primary)" />
           <FinanceStat label="🔴 Vencidas" value={overdueTotal} color="#EF4444" />
           <FinanceStat label="💰 Restante" value={remainingTotal} color="#F97316" />
-          <FinanceStat label="📊 Total mês" value={monthTotal} color="#FFBC45" />
+          <FinanceStat label="📊 Total mês" value={monthTotal} color="var(--portal-primary)" />
         </div>
       </section>
 
@@ -1246,7 +1246,7 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
       ? { cls: "bg-[#10B981] text-white", label: "✅ Pago" }
       : state === "overdue"
         ? { cls: "bg-[#EF4444] text-white", label: "❌ Vencido" }
-        : { cls: "bg-[#FFBC45] text-white", label: "💛 Pendente" };
+        : { cls: "bg-[var(--portal-primary)] text-white", label: "💛 Pendente" };
 
   const dateLabel = invoice.due_date
     ? format(new Date(invoice.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })
@@ -1283,7 +1283,7 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
               }
             }}
             className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors ${
-              state === "overdue" ? "bg-[#EF4444] hover:bg-[#DC2626]" : "bg-[#FFBC45] hover:bg-[#E5A93E]"
+              state === "overdue" ? "bg-[#EF4444] hover:bg-[#DC2626]" : "bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)]"
             }`}
           >
             🔗 Pagar
@@ -1306,7 +1306,7 @@ function InvoiceCard({ invoice }: { invoice: Invoice }) {
       ? { cls: "bg-[#10B981] text-white", label: "✅ Pago" }
       : state === "overdue"
         ? { cls: "bg-[#EF4444] text-white", label: "❌ Vencido" }
-        : { cls: "bg-[#FFBC45] text-white", label: "💛 Pendente" };
+        : { cls: "bg-[var(--portal-primary)] text-white", label: "💛 Pendente" };
 
   return (
     <article
@@ -1359,7 +1359,7 @@ function InvoiceCard({ invoice }: { invoice: Invoice }) {
                 }
               }}
               className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-bold text-white shadow-md transition-colors ${
-                state === "overdue" ? "bg-[#EF4444] hover:bg-[#DC2626]" : "bg-[#FFBC45] hover:bg-[#E5A93E]"
+                state === "overdue" ? "bg-[#EF4444] hover:bg-[#DC2626]" : "bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)]"
               }`}
             >
               🔗 Pagar Agora
@@ -1435,7 +1435,7 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
               </div>
 
               <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 mb-4">
-                <div className="text-xl sm:text-2xl font-black tabular-nums text-[#FFBC45]">
+                <div className="text-xl sm:text-2xl font-black tabular-nums text-[var(--portal-primary)]">
                   {fmtBRL(p.total || p.monthly_investment)}
                 </div>
                 {p.monthly_investment > 0 && p.total !== p.monthly_investment && (
@@ -1444,7 +1444,7 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
                   </div>
                 )}
                 <div className="text-xs text-slate-600 inline-flex items-center gap-1 font-medium">
-                  <Calendar className="size-3.5 text-[#FFBC45]" />
+                  <Calendar className="size-3.5 text-[var(--portal-primary)]" />
                   {format(new Date(p.created_at), "dd/MM/yyyy", { locale: ptBR })}
                 </div>
               </div>
@@ -1452,7 +1452,7 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setViewing({ kind: "proposal", data: p })}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-2.5 text-sm transition-colors shadow-md"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-2.5 text-sm transition-colors shadow-md"
                 >
                   📄 Visualizar
                 </button>
@@ -1493,10 +1493,10 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
             className="rounded-2xl p-5 sm:p-6 shadow-[0_8px_24px_rgba(12,22,24,0.25)]"
             style={{
               background: "linear-gradient(135deg, #0C1618 0%, #1A2D33 100%)",
-              border: "2px solid #FFBC45",
+              border: "2px solid var(--portal-primary)",
             }}
           >
-            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#FFBC45] mb-2">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--portal-primary)] mb-2">
               <Sparkles className="size-3" /> Contrato Ativo
             </div>
             <h3 className="font-bold text-lg sm:text-xl text-white leading-tight mb-3">
@@ -1506,7 +1506,7 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
             <div className="space-y-2 mb-5 text-sm">
               {(contract.start_date || contract.end_date) && (
                 <div className="flex items-center gap-2 text-white/90">
-                  <Calendar className="size-4 text-[#FFBC45]" />
+                  <Calendar className="size-4 text-[var(--portal-primary)]" />
                   <span className="font-medium">
                     {contract.start_date ? format(new Date(contract.start_date + "T00:00:00"), "dd/MM/yyyy") : "—"}
                     {" → "}
@@ -1516,14 +1516,14 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
               )}
               {contract.monthly_value ? (
                 <div className="text-white">
-                  <span className="text-2xl font-black tabular-nums text-[#FFBC45]">
+                  <span className="text-2xl font-black tabular-nums text-[var(--portal-primary)]">
                     {fmtBRL(contract.monthly_value)}
                   </span>
                   <span className="text-xs font-semibold text-white/80 ml-1">/mês</span>
                 </div>
               ) : contract.total_value ? (
                 <div className="text-white">
-                  <span className="text-2xl font-black tabular-nums text-[#FFBC45]">
+                  <span className="text-2xl font-black tabular-nums text-[var(--portal-primary)]">
                     {fmtBRL(contract.total_value)}
                   </span>
                   <span className="text-xs font-semibold text-white/80 ml-1">total</span>
@@ -1540,7 +1540,7 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
               <button
                 onClick={() => setViewing({ kind: "contract", data: contract })}
                 disabled={!contract.contract_content}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] disabled:opacity-50 disabled:cursor-not-allowed text-[#0C1618] font-bold py-2.5 text-sm transition-colors shadow-md"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[#FFAA20] disabled:opacity-50 disabled:cursor-not-allowed text-[#0C1618] font-bold py-2.5 text-sm transition-colors shadow-md"
               >
                 👁 Visualizar
               </button>
@@ -1549,7 +1549,7 @@ function DocsSection({ proposals, contract }: { proposals: Proposal[]; contract:
                   href={`/proposta/${contract.public_token}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[#FFBC45] text-[#FFBC45] hover:bg-[#FFBC45] hover:text-[#0C1618] font-bold py-2.5 text-sm transition-colors"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border-2 border-[var(--portal-primary)] text-[var(--portal-primary)] hover:bg-[var(--portal-primary)] hover:text-[#0C1618] font-bold py-2.5 text-sm transition-colors"
                 >
                   ⬇ Baixar PDF
                 </a>
@@ -1602,7 +1602,7 @@ function DocViewerModal({
         <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-slate-200 bg-[#0C1618]">
           <div className="min-w-0">
             {subtitle && (
-              <div className="text-[10px] font-bold uppercase tracking-widest text-[#FFBC45]">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-[var(--portal-primary)]">
                 {subtitle}
               </div>
             )}
@@ -1638,14 +1638,14 @@ function DocViewerModal({
               href={`/proposta/${publicToken}`}
               target="_blank"
               rel="noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-3 text-sm transition-colors shadow-md"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-3 text-sm transition-colors shadow-md"
             >
               ⬇ Baixar PDF
             </a>
           ) : (
             <button
               onClick={() => window.print()}
-              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-3 text-sm transition-colors shadow-md"
+              className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[#FFAA20] text-[#0C1618] font-bold py-3 text-sm transition-colors shadow-md"
             >
               ⬇ Baixar PDF
             </button>
@@ -1690,7 +1690,7 @@ function ProposalContent({ p }: { p: Proposal }) {
             <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
               Valor total
             </div>
-            <div className="text-2xl font-black tabular-nums text-[#FFBC45] mt-1">
+            <div className="text-2xl font-black tabular-nums text-[var(--portal-primary)] mt-1">
               {fmtBRL(p.total)}
             </div>
           </div>
@@ -1700,7 +1700,7 @@ function ProposalContent({ p }: { p: Proposal }) {
             <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
               Investimento mensal
             </div>
-            <div className="text-2xl font-black tabular-nums text-[#FFBC45] mt-1">
+            <div className="text-2xl font-black tabular-nums text-[var(--portal-primary)] mt-1">
               {fmtBRL(p.monthly_investment)}
             </div>
             {p.recurring_months ? (
@@ -1820,13 +1820,13 @@ function HomeSection({
       <section>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
-            <Folder className="size-3.5 text-[#FFBC45]" />
+            <Folder className="size-3.5 text-[var(--portal-primary)]" />
             Últimas Entregas
           </h2>
           {recentFiles.length > 0 && (
             <button
               onClick={() => onNavigate("projects")}
-              className="text-[11px] font-bold text-slate-600 hover:text-[#FFBC45] inline-flex items-center gap-1 transition-colors"
+              className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
             >
               Ver todos <ArrowRight className="size-3" />
             </button>
@@ -1846,7 +1846,7 @@ function HomeSection({
               <button
                 key={f.id}
                 onClick={() => setLightbox({ url: f.url, name: f.name, kind: f.kind })}
-                className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 hover:border-[#FFBC45] hover:shadow-md transition-all duration-200"
+                className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 hover:border-[var(--portal-primary)] hover:shadow-md transition-all duration-200"
               >
                 {f.kind === "image" ? (
                   <img src={f.url} alt={f.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
@@ -1875,19 +1875,19 @@ function HomeSection({
       <section>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
-            <Wallet className="size-3.5 text-[#FFBC45]" />
+            <Wallet className="size-3.5 text-[var(--portal-primary)]" />
             Resumo de {format(now, "MMMM", { locale: ptBR })}
           </h2>
           <button
             onClick={() => onNavigate("finance")}
-            className="text-[11px] font-bold text-slate-600 hover:text-[#FFBC45] inline-flex items-center gap-1 transition-colors"
+            className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
           >
             Ir para Financeiro <ArrowRight className="size-3" />
           </button>
         </div>
         <div className="grid grid-cols-3 gap-2.5 md:gap-3">
           <KpiCard label="Pagas" value={paidTotal} color="#10B981" emoji="✅" />
-          <KpiCard label="Pendentes" value={pendingTotal} color="#FFBC45" emoji="⏳" />
+          <KpiCard label="Pendentes" value={pendingTotal} color="var(--portal-primary)" emoji="⏳" />
           <KpiCard label="Vencidas" value={overdueTotal} color="#EF4444" emoji="🔴" />
         </div>
       </section>
@@ -1897,13 +1897,13 @@ function HomeSection({
         <section>
           <div className="flex items-center justify-between mb-3 px-1">
             <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
-              <CheckSquare className="size-3.5 text-[#FFBC45]" />
+              <CheckSquare className="size-3.5 text-[var(--portal-primary)]" />
               Pendente de Aprovação
             </h2>
             {pendingApprovals.length > 1 && (
               <button
                 onClick={() => onNavigate("approvals")}
-                className="text-[11px] font-bold text-slate-600 hover:text-[#FFBC45] inline-flex items-center gap-1 transition-colors"
+                className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
               >
                 Ver todas ({pendingApprovals.length}) <ArrowRight className="size-3" />
               </button>
@@ -1946,7 +1946,7 @@ function HomeSection({
                 download={lightbox.name}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold px-4 py-2 text-sm shadow-md transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[#FFAA20] text-[#0C1618] font-bold px-4 py-2 text-sm shadow-md transition-colors"
               >
                 <Download className="size-4" /> Baixar
               </a>
