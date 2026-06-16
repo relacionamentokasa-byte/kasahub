@@ -998,6 +998,18 @@ export function JobSheet({
           onClose={() => setViewerConfig(null)}
         />
       </SheetContent>
+      {approvalDialog && job.client_id && (
+        <SendForApprovalDialog
+          open={!!approvalDialog}
+          onOpenChange={(o) => !o && setApprovalDialog(null)}
+          clientId={job.client_id}
+          jobId={job.id}
+          projectId={(job as any).project_id ?? null}
+          defaultTitle={job.title}
+          defaultUrl={approvalDialog.url}
+          defaultFileName={approvalDialog.name}
+        />
+      )}
     </Sheet>
   );
 }
