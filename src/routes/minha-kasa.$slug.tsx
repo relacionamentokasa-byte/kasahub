@@ -248,10 +248,10 @@ function MinhaKasaPage() {
     <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900">
       <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
         {/* PROFILE CARD (Facebook-style) */}
-        <section className="bg-white md:rounded-b-xl shadow-sm">
-          {/* COVER — full width, only top rounded, no side clipping */}
+        <section className="bg-white md:rounded-b-xl shadow-sm overflow-visible">
+          {/* COVER — full width, only top rounded, overflow visible so avatar can spill */}
           <div
-            className="relative h-[140px] sm:h-[180px] md:h-[220px] w-full md:rounded-t-xl overflow-hidden"
+            className="relative h-[140px] sm:h-[180px] md:h-[220px] w-full md:rounded-t-xl overflow-visible"
             style={
               client.portal_cover_url
                 ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
