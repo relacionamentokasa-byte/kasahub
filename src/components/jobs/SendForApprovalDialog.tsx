@@ -176,6 +176,43 @@ export function SendForApprovalDialog({
     setSlides((s) => s.filter((_, i) => i !== idx));
   }
 
+  function attachmentKind(a: AttachmentOption): "image" | "video" {
+    const t = (a.file_type || a.file_name || "").toLowerCase();
+    if (t.startsWith("video") || /\.(mp4|mov|webm|m4v)$/i.test(t)) return "video";
+    return "image";
+  }
+  function isAttachmentMedia(a: AttachmentOption) {
+    const t = (a.file_type || a.file_name || "").toLowerCase();
+    return (
+      t.startsWith("image") ||
+      t.startsWith("video") ||
+      /\.(png|jpe?g|webp|gif|avif|svg|mp4|mov|webm|m4v)$/i.test(t)
+    );
+  }
+  function toggleAttachmentSlide(a: AttachmentOption) {
+    setSlides((curr) => {
+      const existing = curr.findIndex((s) => s.url === a.file_url);
+      if (existing >= 0) return curr.filter((_, i) => i !== existing);
+      if (curr.length >= MAX_SLIDES) {
+        toast.error(`Máximo de ${MAX_SLIDES} slides.`);
+        return curr;
+      }
+      const kind = attachmentKind(a);
+      return [
+        ...curr,
+        {
+          id: crypto.randomUUID(),
+          url: a.file_url,
+          mime_type: a.file_type || (kind === "video" ? "video/mp4" : "image/jpeg"),
+          kind,
+        },
+      ];
+    });
+  }
+
+  const mediaAttachments = attachments.filter(isAttachmentMedia);
+
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!title.trim()) throw new Error("O título é obrigatório.");
