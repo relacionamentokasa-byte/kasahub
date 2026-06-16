@@ -237,7 +237,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         const events = evRows || [];
 
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, events }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, events }),
 
           {
             status: 200,
