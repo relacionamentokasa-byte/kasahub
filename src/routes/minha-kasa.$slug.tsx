@@ -1009,6 +1009,34 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
         )}
       </div>
 
+      {/* CAPTION (legenda do post) */}
+      {item.caption && (
+        <div className="px-5 pt-4">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                📝 Legenda do post
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(item.caption || "").then(
+                    () => toast.success("Legenda copiada!"),
+                    () => toast.error("Não foi possível copiar."),
+                  );
+                }}
+                className="text-[11px] font-bold text-[#FFBC45] hover:text-[#E5A93E]"
+              >
+                📋 Copiar
+              </button>
+            </div>
+            <p className="whitespace-pre-wrap text-[13px] leading-relaxed text-slate-800 font-mono">
+              {item.caption}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* INFO + ACTIONS */}
       <div className="p-5 space-y-4">
         <div>
@@ -1019,6 +1047,7 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
             📅 Enviado {timeAgoPtBR(item.sent_for_approval_at)}
           </p>
         </div>
+
 
         {!showFeedback ? (
           <div className="grid grid-cols-2 gap-2">
