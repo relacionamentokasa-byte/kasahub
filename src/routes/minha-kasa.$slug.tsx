@@ -63,6 +63,7 @@ type ClientInfo = {
   logo_url: string | null;
   brand_primary: string | null;
   portal_cover_url: string | null;
+  created_at?: string | null;
 };
 
 type StageItem = { id: string; content: string; done: boolean; order_index: number };
@@ -231,186 +232,248 @@ function MinhaKasaPage() {
 
   const allClear = pendingApprovals.length === 0 && urgentInvoicesCount === 0;
 
+  const clientSince = client.created_at
+    ? format(new Date(client.created_at), "MMMM 'de' yyyy", { locale: ptBR })
+    : null;
+
+  const tabs: Array<{ key: typeof tab; label: string; icon: LucideIcon; badge?: number; dot?: boolean }> = [
+    { key: "home", label: "Início", icon: Home },
+    { key: "projects", label: "Projetos", icon: LayoutGrid },
+    { key: "approvals", label: "Aprovações", icon: CheckSquare, badge: pendingApprovals.length || undefined },
+    { key: "finance", label: "Financeiro", icon: Wallet, dot: urgentInvoicesCount > 0 },
+    { key: "docs", label: "Propostas", icon: FileText },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#F8F9FA] pb-24 text-slate-900">
-      {/* HERO BANNER */}
-      <header className="relative">
-        <div
-          className="relative h-[160px] md:h-[220px] w-full overflow-hidden"
-          style={
-            client.portal_cover_url
-              ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
-              : { background: "linear-gradient(135deg, #0C1618 0%, #1A2D33 55%, #FFBC45 160%)" }
-          }
-        >
-          {client.portal_cover_url && (
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0C1618]/80 via-[#0C1618]/40 to-transparent" />
-          )}
-          <div className="absolute top-3 right-4 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
-            <Sparkles className="size-3" />
-            Minha Kasa
-          </div>
-        </div>
-        <div className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8">
-          <div className="-mt-10 md:-mt-12 flex items-end gap-4">
-            {client.logo_url ? (
-              <img
-                src={client.logo_url}
-                alt={displayName}
-                className="size-20 md:size-24 rounded-full object-cover border-4 border-white bg-white shadow-lg ring-1 ring-slate-200"
-              />
-            ) : (
-              <div className="size-20 md:size-24 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-lg border-4 border-white bg-[#FFBC45]">
-                {displayName.charAt(0)}
-              </div>
-            )}
-            <div className="flex-1 min-w-0 pb-1">
-              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-slate-900 truncate">
-                Olá, {client.name.split(" ")[0]} 👋
-              </h1>
-              <p className="text-xs md:text-sm text-slate-600 font-medium">
-                Bem-vindo ao seu portal Kasa
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* QUICK ALERTS */}
-      <section className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 mt-5 md:mt-6">
-        {allClear ? (
-          <QuickAlert
-            tone="success"
-            icon={CheckCircle2}
-            title="Tudo em dia!"
-            subtitle="Nenhum item pendente no momento."
-          />
-        ) : (
-          <div className="grid gap-3 md:grid-cols-2">
-            {pendingApprovals.length > 0 && (
-              <QuickAlert
-                tone="danger"
-                icon={AlertCircle}
-                emoji="🚨"
-                title={`Você tem ${pendingApprovals.length} ${pendingApprovals.length === 1 ? "item aguardando aprovação" : "itens aguardando aprovação"}`}
-                subtitle="Toque para revisar agora"
-                onClick={() => setTab("approvals")}
-              />
-            )}
-            {urgentInvoicesCount > 0 && (
-              <QuickAlert
-                tone="warning"
-                icon={AlertTriangle}
-                emoji="⚠️"
-                title={`Você tem ${urgentInvoicesCount} ${urgentInvoicesCount === 1 ? "fatura pendente" : "faturas pendentes"}`}
-                subtitle="Vencendo em breve ou vencida"
-                onClick={() => setTab("finance")}
-              />
-            )}
-          </div>
-        )}
-      </section>
-
-      {/* FEED */}
-      <main className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-4">
-        {tab === "home" ? (
-          <HomeSection
-            data={data}
-            pendingApprovals={pendingApprovals}
-            urgentInvoicesCount={urgentInvoicesCount}
-            allClear={allClear}
-            slug={slug}
-            onNavigate={setTab}
-          />
-        ) : tab === "projects" ? (
-          jobs.length === 0 ? (
-            <EmptyState icon={Inbox} title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {jobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
-                  stages={stages?.[job.id] || []}
+    <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900">
+      <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
+        {/* PROFILE CARD (Facebook-style) */}
+        <section className="bg-white md:rounded-xl shadow-sm overflow-hidden">
+          {/* COVER */}
+          <div
+            className="relative h-[160px] sm:h-[220px] md:h-[280px] w-full overflow-hidden"
+            style={
+              client.portal_cover_url
+                ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                : {
+                    background:
+                      "linear-gradient(135deg, #0C1618 0%, #1A1A2E 60%, #2A2438 100%)",
+                  }
+            }
+          >
+            {!client.portal_cover_url && (
+              <>
+                {/* Subtle geometric gold pattern */}
+                <div
+                  className="absolute inset-0 opacity-[0.12]"
+                  style={{
+                    backgroundImage:
+                      "repeating-linear-gradient(45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px)",
+                  }}
                 />
-              ))}
+                <div className="absolute -top-16 -right-10 size-64 rounded-full bg-[#FFBC45]/15 blur-3xl" />
+                <div className="absolute -bottom-20 -left-10 size-72 rounded-full bg-[#FFBC45]/10 blur-3xl" />
+              </>
+            )}
+            <div className="absolute top-3 right-4 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+              <Sparkles className="size-3" />
+              Minha Kasa
             </div>
-          )
-        ) : tab === "approvals" ? (
-          pendingApprovals.length === 0 ? (
-            <EmptyState
+          </div>
+
+          {/* PROFILE INFO */}
+          <div className="px-5 md:px-8 pb-5 md:pb-6">
+            <div className="flex flex-col md:flex-row md:items-end md:gap-5 -mt-12 md:-mt-14">
+              {/* Avatar */}
+              <div className="flex justify-center md:justify-start">
+                {client.logo_url ? (
+                  <img
+                    src={client.logo_url}
+                    alt={displayName}
+                    className="size-24 md:size-32 rounded-full object-cover border-4 border-white bg-white shadow-md"
+                  />
+                ) : (
+                  <div className="size-24 md:size-32 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-md border-4 border-white bg-gradient-to-br from-[#FFBC45] to-[#E89B1F]">
+                    {displayName.charAt(0)}
+                  </div>
+                )}
+              </div>
+
+              {/* Name + meta */}
+              <div className="flex-1 min-w-0 text-center md:text-left mt-3 md:mt-0 md:pb-2">
+                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 truncate">
+                  {displayName}
+                </h1>
+                {clientSince && (
+                  <p className="text-[13px] md:text-sm text-slate-500 font-medium mt-0.5 capitalize">
+                    Cliente desde {clientSince}
+                  </p>
+                )}
+                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#FFBC45]/15 to-[#FFBC45]/5 border border-[#FFBC45]/30 text-[11px] font-bold text-[#9A6A00]">
+                  <span>⭐</span>
+                  <span>Cliente Premium</span>
+                </div>
+              </div>
+            </div>
+
+            {/* TAB BAR (FB-style) */}
+            <div className="mt-5 md:mt-6 -mx-5 md:-mx-8 border-t border-slate-200">
+              <div className="flex overflow-x-auto no-scrollbar px-2 md:px-4">
+                {tabs.map((t) => (
+                  <FbTabButton
+                    key={t.key}
+                    active={tab === t.key}
+                    onClick={() => setTab(t.key)}
+                    icon={<t.icon className="size-4" />}
+                    label={t.label}
+                    badge={t.badge}
+                    dot={t.dot}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* QUICK ALERTS */}
+        <section className="px-4 md:px-0 mt-4">
+          {allClear ? (
+            <QuickAlert
+              tone="success"
               icon={CheckCircle2}
-              title="Tudo aprovado!"
-              subtitle="Não há novas artes ou vídeos para revisar."
+              title="Tudo verde!"
+              subtitle="Projetos em dia, faturas pagas, sem pendências."
             />
           ) : (
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div className="text-center">
-                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-700">
-                  📱 Aprovar artes, vídeos e textos
-                </h2>
-                <p className="text-[11px] text-slate-500 mt-1">
-                  {pendingApprovals.length} {pendingApprovals.length === 1 ? "item pendente" : "itens pendentes"}
-                </p>
-              </div>
-              {pendingApprovals.map((item) => (
-                <ApprovalFeedCard key={item.id} slug={slug} item={item} />
-              ))}
+            <div className="grid gap-3 md:grid-cols-2">
+              <QuickAlert
+                tone="success"
+                icon={CheckCircle2}
+                title="Projetos em dia"
+                subtitle="Sua operação está fluindo."
+              />
+              {pendingApprovals.length > 0 && (
+                <QuickAlert
+                  tone="danger"
+                  icon={AlertCircle}
+                  emoji="🚨"
+                  title={`${pendingApprovals.length} ${pendingApprovals.length === 1 ? "item aguardando aprovação" : "itens aguardando aprovação"}`}
+                  subtitle="Toque para revisar agora"
+                  onClick={() => setTab("approvals")}
+                />
+              )}
+              {urgentInvoicesCount > 0 && (
+                <QuickAlert
+                  tone="warning"
+                  icon={AlertTriangle}
+                  emoji="⚠️"
+                  title={`${urgentInvoicesCount} ${urgentInvoicesCount === 1 ? "fatura pendente" : "faturas pendentes"}`}
+                  subtitle="Vencendo em breve ou vencida"
+                  onClick={() => setTab("finance")}
+                />
+              )}
             </div>
-          )
-        ) : tab === "finance" ? (
-          <FinanceSection invoices={invoices || []} />
-        ) : (
-          <DocsSection proposals={proposals || []} contract={currentContract} />
-        )}
+          )}
+        </section>
 
+        {/* FEED */}
+        <main className="px-4 md:px-0 py-4 space-y-4">
+          {tab === "home" ? (
+            <HomeSection
+              data={data}
+              pendingApprovals={pendingApprovals}
+              urgentInvoicesCount={urgentInvoicesCount}
+              allClear={allClear}
+              slug={slug}
+              onNavigate={setTab}
+            />
+          ) : tab === "projects" ? (
+            jobs.length === 0 ? (
+              <EmptyState icon={Inbox} title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {jobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
+                    stages={stages?.[job.id] || []}
+                  />
+                ))}
+              </div>
+            )
+          ) : tab === "approvals" ? (
+            pendingApprovals.length === 0 ? (
+              <EmptyState
+                icon={CheckCircle2}
+                title="Tudo aprovado!"
+                subtitle="Não há novas artes ou vídeos para revisar."
+              />
+            ) : (
+              <div className="max-w-2xl mx-auto space-y-6">
+                <div className="text-center">
+                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-700">
+                    📱 Aprovar artes, vídeos e textos
+                  </h2>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {pendingApprovals.length} {pendingApprovals.length === 1 ? "item pendente" : "itens pendentes"}
+                  </p>
+                </div>
+                {pendingApprovals.map((item) => (
+                  <ApprovalFeedCard key={item.id} slug={slug} item={item} />
+                ))}
+              </div>
+            )
+          ) : tab === "finance" ? (
+            <FinanceSection invoices={invoices || []} />
+          ) : (
+            <DocsSection proposals={proposals || []} contract={currentContract} />
+          )}
 
-        <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
-          <span className="inline-flex items-center justify-center size-5 rounded-md bg-[#FFBC45] text-white text-[10px] font-black">K</span>
-          <span>Powered by <span className="text-slate-700 font-bold">Kasa Marketing</span></span>
-        </footer>
-      </main>
-
-      {/* TAB BAR */}
-      <nav className="fixed bottom-0 inset-x-0 z-30 border-t border-slate-200 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-        <div className="max-w-3xl md:max-w-6xl mx-auto grid grid-cols-5">
-          <TabButton
-            active={tab === "home"}
-            onClick={() => setTab("home")}
-            icon={<Home className="size-5" />}
-            label="Início"
-          />
-          <TabButton
-            active={tab === "projects"}
-            onClick={() => setTab("projects")}
-            icon={<LayoutGrid className="size-5" />}
-            label="Projetos"
-          />
-          <TabButton
-            active={tab === "approvals"}
-            onClick={() => setTab("approvals")}
-            icon={<CheckSquare className="size-5" />}
-            label="Aprovações"
-            badge={pendingApprovals.length || undefined}
-          />
-          <TabButton
-            active={tab === "finance"}
-            onClick={() => setTab("finance")}
-            icon={<Wallet className="size-5" />}
-            label="Financeiro"
-            dot={urgentInvoicesCount > 0}
-          />
-          <TabButton
-            active={tab === "docs"}
-            onClick={() => setTab("docs")}
-            icon={<FileText className="size-5" />}
-            label="Propostas"
-          />
-        </div>
-      </nav>
-
+          <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-8 pb-4 font-semibold">
+            <span className="inline-flex items-center justify-center size-5 rounded-md bg-[#FFBC45] text-white text-[10px] font-black">K</span>
+            <span>Powered by <span className="text-slate-700 font-bold">Kasa Marketing</span></span>
+          </footer>
+        </main>
+      </div>
     </div>
+  );
+}
+
+function FbTabButton({
+  active,
+  onClick,
+  icon,
+  label,
+  badge,
+  dot,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  badge?: number;
+  dot?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`relative shrink-0 flex items-center justify-center gap-2 px-4 md:px-5 py-3 md:py-3.5 text-[13px] md:text-sm font-semibold transition-all duration-200 border-b-[3px] -mb-px ${
+        active
+          ? "text-[#9A6A00] border-[#FFBC45]"
+          : "text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-transparent"
+      }`}
+    >
+      <span className={active ? "text-[#FFBC45]" : "text-slate-500"}>{icon}</span>
+      <span>{label}</span>
+      {badge ? (
+        <span className="inline-flex min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-bold text-white items-center justify-center bg-[#EF4444]">
+          {badge}
+        </span>
+      ) : dot ? (
+        <span className="size-2 rounded-full bg-[#EF4444]" />
+      ) : null}
+    </button>
   );
 }
 
