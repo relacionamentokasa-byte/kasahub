@@ -1585,3 +1585,311 @@ function ProposalContent({ p }: { p: Proposal }) {
     </div>
   );
 }
+
+// ============= HOME / DASHBOARD =============
+
+type HomeTab = "home" | "projects" | "approvals" | "finance" | "docs";
+
+function HomeSection({
+  data,
+  pendingApprovals,
+  urgentInvoicesCount,
+  allClear,
+  slug,
+  onNavigate,
+}: {
+  data: ApiResponse;
+  pendingApprovals: ApprovalItem[];
+  urgentInvoicesCount: number;
+  allClear: boolean;
+  slug: string;
+  onNavigate: (t: HomeTab) => void;
+}) {
+  const { invoices, attachments, approvalItems } = data;
+
+  // ---- HEALTH STATUS ----
+  const hasOverdue = (invoices || []).some((i) => classifyInvoice(i) === "overdue");
+  const healthTone: "green" | "yellow" | "red" = hasOverdue
+    ? "red"
+    : allClear
+      ? "green"
+      : "yellow";
+
+  // ---- RECENT FILES (flatten all job attachments + approval items with content_url) ----
+  const recentFiles = useMemo(() => {
+    type Item = {
+      id: string;
+      url: string;
+      name: string;
+      kind: "image" | "video" | "pdf" | "other";
+      createdAt: string;
+    };
+    const items: Item[] = [];
+    Object.values(attachments || {}).forEach((arr) => {
+      (arr || []).forEach((a) => {
+        const kind: Item["kind"] = isImage(a)
+          ? "image"
+          : isVideo(a)
+            ? "video"
+            : /\.pdf$/i.test(a.file_name)
+              ? "pdf"
+              : "other";
+        items.push({
+          id: a.id,
+          url: a.file_url,
+          name: a.file_name,
+          kind,
+          createdAt: a.created_at,
+        });
+      });
+    });
+    (approvalItems || []).forEach((it) => {
+      if (!it.content_url) return;
+      const kind: Item["kind"] =
+        it.content_type === "image"
+          ? "image"
+          : it.content_type === "video"
+            ? "video"
+            : it.content_type === "pdf"
+              ? "pdf"
+              : "other";
+      items.push({
+        id: `ap-${it.id}`,
+        url: it.content_url,
+        name: it.title,
+        kind,
+        createdAt: it.created_at,
+      });
+    });
+    return items
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 8);
+  }, [attachments, approvalItems]);
+
+  // ---- FINANCE KPI (current month) ----
+  const now = new Date();
+  const monthInvoices = (invoices || []).filter((i) => {
+    if (!i.due_date) return false;
+    const d = new Date(i.due_date + "T00:00:00");
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  const paidTotal = monthInvoices.filter((i) => classifyInvoice(i) === "paid").reduce((s, i) => s + i.amount, 0);
+  const pendingTotal = monthInvoices.filter((i) => classifyInvoice(i) === "pending").reduce((s, i) => s + i.amount, 0);
+  const overdueTotal = monthInvoices.filter((i) => classifyInvoice(i) === "overdue").reduce((s, i) => s + i.amount, 0);
+
+  // ---- LIGHTBOX ----
+  const [lightbox, setLightbox] = useState<{ url: string; name: string; kind: string } | null>(null);
+
+  const teaser = pendingApprovals[0];
+
+  return (
+    <div className="space-y-5 md:space-y-6 animate-fade-in">
+      {/* HEALTH STATUS */}
+      <HealthCard tone={healthTone} pendingApprovals={pendingApprovals.length} overdue={overdueTotal > 0} />
+
+      {/* RECENT FILES */}
+      <section>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
+            <Folder className="size-3.5 text-[#FFBC45]" />
+            Últimas Entregas
+          </h2>
+          {recentFiles.length > 0 && (
+            <button
+              onClick={() => onNavigate("projects")}
+              className="text-[11px] font-bold text-slate-600 hover:text-[#FFBC45] inline-flex items-center gap-1 transition-colors"
+            >
+              Ver todos <ArrowRight className="size-3" />
+            </button>
+          )}
+        </div>
+        {recentFiles.length === 0 ? (
+          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
+            <div className="mx-auto mb-2 size-14 rounded-full bg-slate-100 flex items-center justify-center">
+              <ImageIcon className="size-7 text-slate-400" strokeWidth={1.5} />
+            </div>
+            <p className="text-sm text-slate-700 font-semibold">Sem entregas por aqui ainda.</p>
+            <p className="text-xs text-slate-500 mt-0.5">As próximas artes aparecerão aqui.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
+            {recentFiles.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setLightbox({ url: f.url, name: f.name, kind: f.kind })}
+                className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 hover:border-[#FFBC45] hover:shadow-md transition-all duration-200"
+              >
+                {f.kind === "image" ? (
+                  <img src={f.url} alt={f.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                ) : f.kind === "video" ? (
+                  <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                    <Play className="size-7 text-white" fill="white" />
+                  </div>
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                    <FileText className="size-8 text-slate-500" strokeWidth={1.5} />
+                  </div>
+                )}
+                <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded-md bg-black/60 text-white font-bold backdrop-blur-sm">
+                  {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : "📄"}
+                </span>
+                <span className="absolute inset-x-0 bottom-0 px-2 py-1 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-white font-semibold truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                  {f.name}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* FINANCE KPIs */}
+      <section>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
+            <Wallet className="size-3.5 text-[#FFBC45]" />
+            Resumo de {format(now, "MMMM", { locale: ptBR })}
+          </h2>
+          <button
+            onClick={() => onNavigate("finance")}
+            className="text-[11px] font-bold text-slate-600 hover:text-[#FFBC45] inline-flex items-center gap-1 transition-colors"
+          >
+            Ir para Financeiro <ArrowRight className="size-3" />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2.5 md:gap-3">
+          <KpiCard label="Pagas" value={paidTotal} color="#10B981" emoji="✅" />
+          <KpiCard label="Pendentes" value={pendingTotal} color="#FFBC45" emoji="⏳" />
+          <KpiCard label="Vencidas" value={overdueTotal} color="#EF4444" emoji="🔴" />
+        </div>
+      </section>
+
+      {/* PENDING APPROVAL TEASER */}
+      {teaser && (
+        <section>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
+              <CheckSquare className="size-3.5 text-[#FFBC45]" />
+              Pendente de Aprovação
+            </h2>
+            {pendingApprovals.length > 1 && (
+              <button
+                onClick={() => onNavigate("approvals")}
+                className="text-[11px] font-bold text-slate-600 hover:text-[#FFBC45] inline-flex items-center gap-1 transition-colors"
+              >
+                Ver todas ({pendingApprovals.length}) <ArrowRight className="size-3" />
+              </button>
+            )}
+          </div>
+          <div className="max-w-2xl">
+            <ApprovalFeedCard slug={slug} item={teaser} />
+          </div>
+        </section>
+      )}
+
+      {/* LIGHTBOX */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 size-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+          >
+            <X className="size-5" />
+          </button>
+          <div className="max-w-5xl w-full max-h-[85vh] flex flex-col items-center gap-4" onClick={(e) => e.stopPropagation()}>
+            {lightbox.kind === "image" ? (
+              <img src={lightbox.url} alt={lightbox.name} className="max-w-full max-h-[75vh] object-contain rounded-lg" />
+            ) : lightbox.kind === "video" ? (
+              <video src={lightbox.url} controls autoPlay className="max-w-full max-h-[75vh] rounded-lg" />
+            ) : (
+              <div className="bg-white rounded-2xl p-8 text-center max-w-md">
+                <FileText className="size-16 text-slate-400 mx-auto mb-3" strokeWidth={1.5} />
+                <p className="font-bold text-slate-900 mb-1">{lightbox.name}</p>
+                <p className="text-sm text-slate-600 mb-4">Visualização não disponível para este tipo de arquivo.</p>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <p className="text-white/80 text-sm font-medium truncate max-w-xs">{lightbox.name}</p>
+              <a
+                href={lightbox.url}
+                download={lightbox.name}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#FFAA20] text-[#0C1618] font-bold px-4 py-2 text-sm shadow-md transition-colors"
+              >
+                <Download className="size-4" /> Baixar
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HealthCard({
+  tone,
+  pendingApprovals,
+  overdue,
+}: {
+  tone: "green" | "yellow" | "red";
+  pendingApprovals: number;
+  overdue: boolean;
+}) {
+  const config =
+    tone === "green"
+      ? {
+          bg: "from-emerald-500 to-emerald-600",
+          emoji: "🟢",
+          title: "TUDO VERDE",
+          subtitle: "Projetos em dia, faturas pagas, sem pendências.",
+        }
+      : tone === "yellow"
+        ? {
+            bg: "from-amber-400 to-amber-500",
+            emoji: "🟡",
+            title: "ATENÇÃO",
+            subtitle: pendingApprovals > 0
+              ? `${pendingApprovals} item${pendingApprovals > 1 ? "s" : ""} aguardando sua aprovação.`
+              : "Faturas vencendo nos próximos dias.",
+          }
+        : {
+            bg: "from-rose-500 to-rose-600",
+            emoji: "🔴",
+            title: "AÇÃO NECESSÁRIA",
+            subtitle: overdue
+              ? "Existem faturas vencidas. Regularize para continuar tranquilo."
+              : "Itens atrasados precisam de atenção.",
+          };
+
+  return (
+    <div
+      className={`rounded-2xl p-5 md:p-6 bg-gradient-to-br ${config.bg} text-white shadow-lg transition-all duration-500`}
+    >
+      <div className="flex items-center gap-4">
+        <div className="text-4xl md:text-5xl leading-none animate-pulse">{config.emoji}</div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-base md:text-lg font-black tracking-wide uppercase">{config.title}</h3>
+          <p className="text-xs md:text-sm text-white/90 font-medium mt-0.5">{config.subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function KpiCard({ label, value, color, emoji }: { label: string; value: number; color: string; emoji: string }) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-3 md:p-4 shadow-sm hover:shadow-md transition-all duration-200">
+      <div className="text-[10px] md:text-[11px] font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1">
+        <span>{emoji}</span>
+        <span>{label}</span>
+      </div>
+      <div className="mt-1 md:mt-1.5 text-base md:text-xl font-black tabular-nums leading-tight" style={{ color }}>
+        {fmtBRL(value)}
+      </div>
+    </div>
+  );
+}
+
