@@ -2483,28 +2483,8 @@ function HomeSection({
         </div>
       </section>
 
-      {/* PENDING APPROVAL TEASER */}
-      {teaser && (
-        <section>
-          <div className="flex items-center justify-between mb-3 px-1">
-            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
-              <CheckSquare className="size-3.5 text-[var(--portal-primary)]" />
-              Pendente de Aprovação
-            </h2>
-            {pendingApprovals.length > 1 && (
-              <button
-                onClick={() => onNavigate("approvals")}
-                className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
-              >
-                Ver todas ({pendingApprovals.length}) <ArrowRight className="size-3" />
-              </button>
-            )}
-          </div>
-          <div className="max-w-2xl">
-            <ApprovalFeedCard slug={slug} item={teaser} />
-          </div>
-        </section>
-      )}
+
+
 
       {/* LIGHTBOX */}
       {lightbox && (
