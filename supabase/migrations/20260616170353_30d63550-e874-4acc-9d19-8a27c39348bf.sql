@@ -1,0 +1,1 @@
+ALTER TABLE public.approval_items ADD COLUMN IF NOT EXISTS caption TEXT;

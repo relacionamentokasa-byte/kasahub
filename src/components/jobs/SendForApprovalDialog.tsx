@@ -52,15 +52,21 @@ export function SendForApprovalDialog({
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState(defaultUrl);
   const [text, setText] = useState("");
+  const [caption, setCaption] = useState("");
   const [contentType, setContentType] = useState<ApprovalContentType>(
     defaultType ?? detectType(defaultUrl, defaultFileName),
   );
+
+  const CAPTION_LIMIT = 2200;
+  const captionOverLimit = caption.length > CAPTION_LIMIT;
+  const showCaption = contentType === "image" || contentType === "video";
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (!title.trim()) throw new Error("O título é obrigatório.");
       if (contentType === "text" && !text.trim()) throw new Error("Escreva o texto a ser aprovado.");
       if (contentType !== "text" && !url.trim()) throw new Error("Informe a URL do arquivo.");
+      if (showCaption && captionOverLimit) throw new Error(`Legenda excede ${CAPTION_LIMIT} caracteres.`);
       return createApprovalItem({
         client_id: clientId,
         job_id: jobId ?? null,
@@ -70,6 +76,7 @@ export function SendForApprovalDialog({
         content_type: contentType,
         content_url: contentType === "text" ? null : url.trim(),
         content_text: contentType === "text" ? text.trim() : null,
+        caption: showCaption && caption.trim() ? caption : null,
       });
     },
     onSuccess: () => {
@@ -80,6 +87,7 @@ export function SendForApprovalDialog({
       setDescription("");
       setUrl(defaultUrl);
       setText("");
+      setCaption("");
     },
     onError: (err: Error) => toast.error(err.message || "Erro ao enviar"),
   });
@@ -151,6 +159,28 @@ export function SendForApprovalDialog({
               )}
             </div>
           )}
+
+          {showCaption && (
+            <div>
+              <div className="flex items-baseline justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider">📝 Legenda do post (opcional)</Label>
+                <span className={`text-[10px] font-mono ${captionOverLimit ? "text-destructive" : "text-foreground/40"}`}>
+                  {caption.length} / {CAPTION_LIMIT}
+                </span>
+              </div>
+              <Textarea
+                rows={5}
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder={"Texto que vai junto com a arte na publicação.\n\nHashtags, @menções, emojis — tudo aqui."}
+                className="mt-1.5 font-mono text-[13px]"
+              />
+              <p className="text-[10px] text-foreground/50 mt-1">
+                O cliente vê a legenda junto da arte e aprova/ajusta os dois como um post.
+              </p>
+            </div>
+          )}
+
 
           <div>
             <Label className="text-xs font-bold uppercase tracking-wider">Observação (opcional)</Label>
