@@ -313,7 +313,16 @@ function MinhaKasaPage() {
 
       {/* FEED */}
       <main className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-4">
-        {tab === "projects" ? (
+        {tab === "home" ? (
+          <HomeSection
+            data={data}
+            pendingApprovals={pendingApprovals}
+            urgentInvoicesCount={urgentInvoicesCount}
+            allClear={allClear}
+            slug={slug}
+            onNavigate={setTab}
+          />
+        ) : tab === "projects" ? (
           jobs.length === 0 ? (
             <EmptyState icon={Inbox} title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
           ) : (
@@ -355,6 +364,7 @@ function MinhaKasaPage() {
         ) : (
           <DocsSection proposals={proposals || []} contract={currentContract} />
         )}
+
 
         <footer className="flex items-center justify-center gap-2 text-xs text-slate-500 pt-12 pb-6 font-semibold">
           <span className="inline-flex items-center justify-center size-5 rounded-md bg-[#FFBC45] text-white text-[10px] font-black">K</span>
