@@ -758,8 +758,10 @@ export type Database = {
           notes: string | null
           owner_id: string | null
           phone: string | null
+          portal_cover_color: string | null
           portal_cover_url: string | null
           portal_enabled: boolean
+          portal_primary_color: string | null
           portal_slug: string | null
           portal_user_id: string | null
           start_date: string | null
@@ -785,8 +787,10 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
+          portal_cover_color?: string | null
           portal_cover_url?: string | null
           portal_enabled?: boolean
+          portal_primary_color?: string | null
           portal_slug?: string | null
           portal_user_id?: string | null
           start_date?: string | null
@@ -812,8 +816,10 @@ export type Database = {
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
+          portal_cover_color?: string | null
           portal_cover_url?: string | null
           portal_enabled?: boolean
+          portal_primary_color?: string | null
           portal_slug?: string | null
           portal_user_id?: string | null
           start_date?: string | null

@@ -36,6 +36,8 @@ type Client = {
   portal_slug?: string | null;
   portal_enabled?: boolean | null;
   portal_cover_url?: string | null;
+  portal_primary_color?: string | null;
+  portal_cover_color?: string | null;
 };
 
 
@@ -68,6 +70,8 @@ export function EditClientDialog({
     portal_slug: client.portal_slug ?? "",
     portal_enabled: !!client.portal_enabled,
     portal_cover_url: (client.portal_cover_url ?? "") as string | null,
+    portal_primary_color: (client.portal_primary_color ?? "#FFBC45") as string,
+    portal_cover_color: (client.portal_cover_color ?? "#1A1A2E") as string,
   });
 
   const [form, setForm] = useState(init);
@@ -86,7 +90,9 @@ export function EditClientDialog({
         start_date: form.start_date || null,
         portal_slug: (form.portal_slug || "").trim() || null,
         portal_cover_url: form.portal_cover_url || null,
-      }),
+        portal_primary_color: form.portal_primary_color || null,
+        portal_cover_color: form.portal_cover_color || null,
+      } as any),
 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client", client.id] });
@@ -246,6 +252,66 @@ export function EditClientDialog({
                   Imagem horizontal exibida no topo do portal do cliente. Recomendado 1600×400px. Se vazio, usamos um gradiente padrão da Kasa.
                 </p>
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>🎨 Cor primária do portal</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={form.portal_primary_color || "#FFBC45"}
+                      onChange={(e) => setForm({ ...form, portal_primary_color: e.target.value })}
+                      className="h-10 w-14 rounded border border-border cursor-pointer bg-transparent"
+                    />
+                    <Input
+                      value={form.portal_primary_color || ""}
+                      onChange={(e) => setForm({ ...form, portal_primary_color: e.target.value })}
+                      placeholder="#FFBC45"
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                  <p className="text-[10px] text-foreground/40">Botões, badges e destaques.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>🖼️ Cor da capa</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={form.portal_cover_color || "#1A1A2E"}
+                      onChange={(e) => setForm({ ...form, portal_cover_color: e.target.value })}
+                      className="h-10 w-14 rounded border border-border cursor-pointer bg-transparent"
+                    />
+                    <Input
+                      value={form.portal_cover_color || ""}
+                      onChange={(e) => setForm({ ...form, portal_cover_color: e.target.value })}
+                      placeholder="#1A1A2E"
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                  <p className="text-[10px] text-foreground/40">Base do gradiente do header (ignorada se houver imagem de capa).</p>
+                </div>
+              </div>
+
+              {/* Live preview */}
+              <div className="space-y-1.5">
+                <Label>Pré-visualização</Label>
+                <div
+                  className="h-20 w-full rounded-lg border border-border overflow-hidden relative"
+                  style={{
+                    background: `linear-gradient(135deg, color-mix(in oklab, ${form.portal_cover_color || "#1A1A2E"} 92%, black) 0%, ${form.portal_cover_color || "#1A1A2E"} 60%, color-mix(in oklab, ${form.portal_cover_color || "#1A1A2E"} 85%, ${form.portal_primary_color || "#FFBC45"}) 100%)`,
+                  }}
+                >
+                  <span
+                    className="absolute bottom-2 right-2 px-3 py-1 rounded-full text-[10px] font-bold text-white shadow-md"
+                    style={{ background: form.portal_primary_color || "#FFBC45" }}
+                  >
+                    EXEMPLO
+                  </span>
+                </div>
+              </div>
+
+
+
 
 
               <div className="space-y-1.5">
