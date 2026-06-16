@@ -430,13 +430,60 @@ function TabButton({
   );
 }
 
-function EmptyState({ icon, title, subtitle }: { icon: string; title: string; subtitle: string }) {
+function EmptyState({ icon: Icon, title, subtitle }: { icon: LucideIcon; title: string; subtitle: string }) {
   return (
     <div className="text-center py-20">
-      <div className="text-5xl mb-4">{icon}</div>
+      <div className="mx-auto mb-4 flex items-center justify-center size-20 rounded-full bg-slate-100 text-slate-400">
+        <Icon className="size-10" strokeWidth={1.5} />
+      </div>
       <p className="text-slate-800 font-semibold">{title}</p>
       <p className="text-slate-600 text-sm mt-1">{subtitle}</p>
     </div>
+  );
+}
+
+function QuickAlert({
+  tone,
+  icon: Icon,
+  emoji,
+  title,
+  subtitle,
+  onClick,
+}: {
+  tone: "danger" | "warning" | "success";
+  icon: LucideIcon;
+  emoji?: string;
+  title: string;
+  subtitle?: string;
+  onClick?: () => void;
+}) {
+  const styles =
+    tone === "danger"
+      ? "bg-rose-50 border-rose-200 text-rose-900 hover:bg-rose-100"
+      : tone === "warning"
+        ? "bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100"
+        : "bg-emerald-50 border-emerald-200 text-emerald-900";
+  const iconStyles =
+    tone === "danger"
+      ? "bg-rose-500 text-white"
+      : tone === "warning"
+        ? "bg-amber-500 text-white"
+        : "bg-emerald-500 text-white";
+  const Wrapper: any = onClick ? "button" : "div";
+  return (
+    <Wrapper
+      onClick={onClick}
+      className={`w-full text-left flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm transition-all duration-200 ${styles}`}
+    >
+      <div className={`shrink-0 size-10 rounded-xl flex items-center justify-center shadow-sm ${iconStyles}`}>
+        {emoji ? <span className="text-lg leading-none">{emoji}</span> : <Icon className="size-5" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold leading-tight truncate">{title}</p>
+        {subtitle && <p className="text-xs opacity-80 mt-0.5 truncate">{subtitle}</p>}
+      </div>
+      {onClick && <ArrowRight className="size-4 opacity-60 shrink-0" />}
+    </Wrapper>
   );
 }
 
