@@ -207,8 +207,22 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           .order("created_at", { ascending: false });
         const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
 
+        // Fetch upcoming calendar events (próximos 60 dias)
+        const nowIso = new Date().toISOString();
+        const horizon = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+        const { data: evRows } = await supabaseAdmin
+          .from("calendar_events")
+          .select("id, title, description, kind, starts_at, ends_at, all_day, color")
+          .eq("client_id", client.id)
+          .gte("starts_at", nowIso)
+          .lte("starts_at", horizon)
+          .order("starts_at", { ascending: true })
+          .limit(20);
+        const events = evRows || [];
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, events }),
+
           {
             status: 200,
             headers: {
