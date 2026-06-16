@@ -2234,7 +2234,7 @@ function HomeSection({
       ? "green"
       : "yellow";
 
-  // ---- RECENT FILES (flatten all job attachments + approval items with content_url) ----
+  // ---- RECENT FILES (apenas aprovações aprovadas da última semana) ----
   const recentFiles = useMemo(() => {
     type Item = {
       id: string;
@@ -2244,26 +2244,12 @@ function HomeSection({
       createdAt: string;
     };
     const items: Item[] = [];
-    Object.values(attachments || {}).forEach((arr) => {
-      (arr || []).forEach((a) => {
-        const kind: Item["kind"] = isImage(a)
-          ? "image"
-          : isVideo(a)
-            ? "video"
-            : /\.pdf$/i.test(a.file_name)
-              ? "pdf"
-              : "other";
-        items.push({
-          id: a.id,
-          url: a.file_url,
-          name: a.file_name,
-          kind,
-          createdAt: a.created_at,
-        });
-      });
-    });
-    (approvalItems || []).forEach((it) => {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    (approvalItems || []).forEach((it: any) => {
       if (!it.content_url) return;
+      if (it.status !== "approved") return;
+      const refDate = it.approved_at || it.updated_at || it.created_at;
+      if (!refDate || new Date(refDate).getTime() < weekAgo) return;
       const kind: Item["kind"] =
         it.content_type === "image"
           ? "image"
@@ -2277,13 +2263,14 @@ function HomeSection({
         url: it.content_url,
         name: it.title,
         kind,
-        createdAt: it.created_at,
+        createdAt: refDate,
       });
     });
     return items
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 8);
-  }, [attachments, approvalItems]);
+  }, [approvalItems]);
+
 
   // ---- FINANCE KPI (current month) ----
   const now = new Date();
@@ -2306,60 +2293,51 @@ function HomeSection({
       {/* HEALTH STATUS */}
       <HealthCard tone={healthTone} pendingApprovals={pendingApprovals.length} overdue={overdueTotal > 0} />
 
-      {/* RECENT FILES */}
+      {/* RECENT FILES — aprovadas nos últimos 7 dias */}
+      {recentFiles.length > 0 && (
       <section>
         <div className="flex items-center justify-between mb-3 px-1">
           <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
             <Folder className="size-3.5 text-[var(--portal-primary)]" />
-            Últimas Entregas
+            Entregas da semana
           </h2>
-          {recentFiles.length > 0 && (
-            <button
-              onClick={() => onNavigate("projects")}
-              className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
-            >
-              Ver todos <ArrowRight className="size-3" />
-            </button>
-          )}
+          <button
+            onClick={() => onNavigate("approvals")}
+            className="text-[11px] font-bold text-slate-600 hover:text-[var(--portal-primary)] inline-flex items-center gap-1 transition-colors"
+          >
+            Ver todas <ArrowRight className="size-3" />
+          </button>
         </div>
-        {recentFiles.length === 0 ? (
-          <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center">
-            <div className="mx-auto mb-2 size-14 rounded-full bg-slate-100 flex items-center justify-center">
-              <ImageIcon className="size-7 text-slate-400" strokeWidth={1.5} />
-            </div>
-            <p className="text-sm text-slate-700 font-semibold">Sem entregas por aqui ainda.</p>
-            <p className="text-xs text-slate-500 mt-0.5">As próximas artes aparecerão aqui.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
-            {recentFiles.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setLightbox({ url: f.url, name: f.name, kind: f.kind })}
-                className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 hover:border-[var(--portal-primary)] hover:shadow-md transition-all duration-200"
-              >
-                {f.kind === "image" ? (
-                  <img src={f.url} alt={f.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                ) : f.kind === "video" ? (
-                  <div className="w-full h-full bg-slate-900 flex items-center justify-center">
-                    <Play className="size-7 text-white" fill="white" />
-                  </div>
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                    <FileText className="size-8 text-slate-500" strokeWidth={1.5} />
-                  </div>
-                )}
-                <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded-md bg-black/60 text-white font-bold backdrop-blur-sm">
-                  {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : "📄"}
-                </span>
-                <span className="absolute inset-x-0 bottom-0 px-2 py-1 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-white font-semibold truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                  {f.name}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-3 md:grid-cols-4 gap-2.5 md:gap-3">
+          {recentFiles.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setLightbox({ url: f.url, name: f.name, kind: f.kind })}
+              className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-100 hover:border-[var(--portal-primary)] hover:shadow-md transition-all duration-200"
+            >
+              {f.kind === "image" ? (
+                <img src={f.url} alt={f.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+              ) : f.kind === "video" ? (
+                <div className="w-full h-full bg-slate-900 flex items-center justify-center">
+                  <Play className="size-7 text-white" fill="white" />
+                </div>
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                  <FileText className="size-8 text-slate-500" strokeWidth={1.5} />
+                </div>
+              )}
+              <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded-md bg-black/60 text-white font-bold backdrop-blur-sm">
+                {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : "📄"}
+              </span>
+              <span className="absolute inset-x-0 bottom-0 px-2 py-1 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-white font-semibold truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                {f.name}
+              </span>
+            </button>
+          ))}
+        </div>
       </section>
+      )}
+
 
       {/* FINANCE KPIs */}
       <section>
