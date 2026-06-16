@@ -247,8 +247,24 @@ function MinhaKasaPage() {
     { key: "docs", label: "Propostas", icon: FileText },
   ];
 
+  // White-label theming: per-client portal colors with sensible defaults.
+  const primary = (client.portal_primary_color || "").trim() || "#FFBC45";
+  const coverColor = (client.portal_cover_color || "").trim() || "#1A1A2E";
+  // Build derived shades + cover gradient from the chosen colors.
+  const portalThemeVars = {
+    "--portal-primary": primary,
+    "--portal-primary-5": `color-mix(in oklab, ${primary} 5%, transparent)`,
+    "--portal-primary-10": `color-mix(in oklab, ${primary} 10%, transparent)`,
+    "--portal-primary-15": `color-mix(in oklab, ${primary} 15%, transparent)`,
+    "--portal-primary-30": `color-mix(in oklab, ${primary} 30%, transparent)`,
+    "--portal-primary-dark": `color-mix(in oklab, ${primary} 75%, black)`,
+    "--portal-primary-hover": `color-mix(in oklab, ${primary} 88%, black)`,
+    "--portal-cover": coverColor,
+  } as React.CSSProperties;
+  const coverGradient = `linear-gradient(135deg, color-mix(in oklab, ${coverColor} 92%, black) 0%, ${coverColor} 60%, color-mix(in oklab, ${coverColor} 85%, ${primary}) 100%)`;
+
   return (
-    <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900">
+    <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900" style={portalThemeVars}>
       <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
         {/* HEADER — cover + profile info as independent blocks (no clipping card) */}
         <div className="relative">
@@ -258,12 +274,10 @@ function MinhaKasaPage() {
             style={
               client.portal_cover_url
                 ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
-                : {
-                    background:
-                      "linear-gradient(135deg, #0C1618 0%, #1A1A2E 60%, #2A2438 100%)",
-                  }
+                : { background: coverGradient }
             }
           >
+
             {!client.portal_cover_url && (
               <>
                 <div
