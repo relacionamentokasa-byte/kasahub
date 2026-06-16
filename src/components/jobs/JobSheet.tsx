@@ -47,7 +47,7 @@ import {
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon } from "lucide-react";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
-import { listJobApprovalItems, archiveApprovalItem, unarchiveApprovalItem, type ApprovalItem } from "@/lib/approval-items-api";
+import { listJobApprovalItems, archiveApprovalItem, unarchiveApprovalItem, listApprovalItemComments, type ApprovalItem } from "@/lib/approval-items-api";
 import { enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
@@ -974,59 +974,65 @@ export function JobSheet({
                             return (
                               <div
                                 key={it.id}
-                                className={`flex items-center justify-between gap-2 p-2 bg-background border border-border rounded-lg group ${isArchived ? "opacity-60" : ""}`}
+                                className={`bg-background border rounded-lg group ${isArchived ? "opacity-60" : ""} ${it.status === "rejected" ? "border-orange-500/40" : "border-border"}`}
                               >
-                                <div className="flex items-center gap-3 overflow-hidden min-w-0">
-                                  <ImageIcon className="size-4 text-foreground/40 shrink-0" />
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-medium truncate text-foreground/80">{it.title}</p>
-                                    <p className={`text-[10px] uppercase tracking-wider font-bold ${statusColor}`}>
-                                      {statusLabel}
-                                    </p>
+                                <div className="flex items-center justify-between gap-2 p-2">
+                                  <div className="flex items-center gap-3 overflow-hidden min-w-0">
+                                    <ImageIcon className="size-4 text-foreground/40 shrink-0" />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-medium truncate text-foreground/80">{it.title}</p>
+                                      <p className={`text-[10px] uppercase tracking-wider font-bold ${statusColor}`}>
+                                        {statusLabel}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {it.content_url && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                        onClick={() => window.open(it.content_url!, "_blank")}
+                                        title="Abrir mídia"
+                                      >
+                                        <ExternalLink className="size-3.5" />
+                                      </Button>
+                                    )}
+                                    {isArchived ? (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                        title="Restaurar — voltar a aparecer no portal"
+                                        onClick={() => unarchiveApprovalMut.mutate(it.id)}
+                                        disabled={unarchiveApprovalMut.isPending}
+                                      >
+                                        <RotateCcw className="size-3.5" />
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-destructive"
+                                        title="Arquivar — remover do portal do cliente"
+                                        onClick={() => {
+                                          if (confirm(`Arquivar "${it.title}"?\n\nO item será removido do portal do cliente, mas fica no seu histórico interno.`)) {
+                                            archiveApprovalMut.mutate(it.id);
+                                          }
+                                        }}
+                                        disabled={archiveApprovalMut.isPending}
+                                      >
+                                        <Archive className="size-3.5" />
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  {it.content_url && (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
-                                      onClick={() => window.open(it.content_url!, "_blank")}
-                                      title="Abrir mídia"
-                                    >
-                                      <ExternalLink className="size-3.5" />
-                                    </Button>
-                                  )}
-                                  {isArchived ? (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
-                                      title="Restaurar — voltar a aparecer no portal"
-                                      onClick={() => unarchiveApprovalMut.mutate(it.id)}
-                                      disabled={unarchiveApprovalMut.isPending}
-                                    >
-                                      <RotateCcw className="size-3.5" />
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7 h-7 w-7 text-foreground/40 hover:text-destructive"
-                                      title="Arquivar — remover do portal do cliente"
-                                      onClick={() => {
-                                        if (confirm(`Arquivar "${it.title}"?\n\nO item será removido do portal do cliente, mas fica no seu histórico interno.`)) {
-                                          archiveApprovalMut.mutate(it.id);
-                                        }
-                                      }}
-                                      disabled={archiveApprovalMut.isPending}
-                                    >
-                                      <Archive className="size-3.5" />
-                                    </Button>
-                                  )}
-                                </div>
+                                {it.status === "rejected" && (
+                                  <RejectedFeedback item={it} />
+                                )}
                               </div>
                             );
+
                           })}
                         </div>
                       </div>
@@ -1129,3 +1135,61 @@ export function JobSheet({
     </Sheet>
   );
 }
+
+function RejectedFeedback({ item }: { item: ApprovalItem }) {
+  const { data: comments = [] } = useQuery({
+    queryKey: ["approval-item-comments", item.id],
+    queryFn: () => listApprovalItemComments(item.id),
+    staleTime: 30_000,
+  });
+
+  const changeRequests = comments.filter((c) => c.is_change_request);
+  const slideIndexById = new Map((item.slides ?? []).map((s, i) => [s.id, i + 1]));
+  const rejectedSlides = Object.entries(item.slide_statuses ?? {})
+    .filter(([, st]) => st === "rejected")
+    .map(([sid]) => slideIndexById.get(sid))
+    .filter((n): n is number => !!n)
+    .sort((a, b) => a - b);
+
+  if (!item.feedback && changeRequests.length === 0 && rejectedSlides.length === 0) {
+    return (
+      <div className="px-3 pb-3 -mt-1 text-[11px] text-foreground/60 italic">
+        Cliente pediu ajustes, mas não deixou observações.
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-orange-500/20 bg-orange-500/5 px-3 py-3 space-y-2 rounded-b-lg">
+      <p className="text-[10px] uppercase tracking-wider font-bold text-orange-500 flex items-center gap-1">
+        <AlertCircle className="size-3" /> Ajustes pedidos pelo cliente
+      </p>
+      {rejectedSlides.length > 0 && (
+        <p className="text-[11px] text-foreground/70">
+          Slides com ajuste: <span className="font-semibold text-foreground">{rejectedSlides.map((n) => `#${n}`).join(", ")}</span>
+        </p>
+      )}
+      {item.feedback && (
+        <div className="text-xs text-foreground/85 whitespace-pre-wrap bg-background border border-border rounded-md p-2 leading-relaxed">
+          {item.feedback}
+        </div>
+      )}
+      {changeRequests.map((c) => {
+        const slideNum = c.slide_id ? slideIndexById.get(c.slide_id) : null;
+        return (
+          <div key={c.id} className="text-xs text-foreground/85 bg-background border border-border rounded-md p-2 leading-relaxed">
+            <div className="flex items-center gap-2 mb-1 text-[10px] text-foreground/50 uppercase tracking-wider font-bold">
+              <span>{c.author_name || "Cliente"}</span>
+              {slideNum && <span className="text-orange-500">· Slide #{slideNum}</span>}
+              <span className="ml-auto normal-case tracking-normal font-normal text-foreground/40">
+                {format(new Date(c.created_at), "dd/MM HH:mm")}
+              </span>
+            </div>
+            <p className="whitespace-pre-wrap">{c.body}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
