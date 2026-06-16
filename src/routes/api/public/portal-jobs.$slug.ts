@@ -204,6 +204,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           .from("approval_items")
           .select("id, title, description, content_type, content_url, content_text, caption, thumbnail_url, status, feedback, sent_for_approval_at, viewed_at, approved_at, rejected_at, created_at, job_id, project_id")
           .eq("client_id", client.id)
+          .neq("status", "archived")
           .order("created_at", { ascending: false });
         const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
 
