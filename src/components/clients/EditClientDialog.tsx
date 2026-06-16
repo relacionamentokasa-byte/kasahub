@@ -35,7 +35,9 @@ type Client = {
   start_date?: string | null;
   portal_slug?: string | null;
   portal_enabled?: boolean | null;
+  portal_cover_url?: string | null;
 };
+
 
 export function EditClientDialog({
   client,
@@ -65,7 +67,9 @@ export function EditClientDialog({
     start_date: client.start_date ?? "",
     portal_slug: client.portal_slug ?? "",
     portal_enabled: !!client.portal_enabled,
+    portal_cover_url: (client.portal_cover_url ?? "") as string | null,
   });
+
   const [form, setForm] = useState(init);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -81,7 +85,9 @@ export function EditClientDialog({
         logo_url: form.logo_url || null,
         start_date: form.start_date || null,
         portal_slug: (form.portal_slug || "").trim() || null,
+        portal_cover_url: form.portal_cover_url || null,
       }),
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client", client.id] });
       qc.invalidateQueries({ queryKey: ["clients"] });
@@ -227,6 +233,20 @@ export function EditClientDialog({
                   No portal, ele verá apenas os jobs marcados com <strong>"Mostrar no Minha Kasa"</strong>.
                 </p>
               </div>
+
+              <div className="space-y-1.5">
+                <Label>Capa do Portal (banner)</Label>
+                <ImageUpload
+                  value={form.portal_cover_url}
+                  onChange={(url) => setForm({ ...form, portal_cover_url: url })}
+                  folder="clients/covers"
+                  label="Enviar capa"
+                />
+                <p className="text-[10px] text-foreground/40">
+                  Imagem horizontal exibida no topo do portal do cliente. Recomendado 1600×400px. Se vazio, usamos um gradiente padrão da Kasa.
+                </p>
+              </div>
+
 
               <div className="space-y-1.5">
                 <Label>Slug do Portal</Label>
