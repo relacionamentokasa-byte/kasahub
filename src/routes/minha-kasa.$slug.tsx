@@ -1019,43 +1019,70 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
           </p>
         </div>
 
-        {showFeedback ? (
-          <textarea
-            value={feedback}
-            onChange={(e) => setFeedback(e.target.value)}
-            rows={3}
-            placeholder="💬 Descreva os ajustes necessários..."
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFBC45] focus:border-[#FFBC45]"
-          />
+        {!showFeedback ? (
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              onClick={() => mutation.mutate("approve")}
+              disabled={mutation.isPending}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10B981] hover:bg-[#0EA371] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
+            >
+              <CheckCircle2 className="size-4" /> Aprovar
+            </button>
+            <button
+              onClick={() => setShowFeedback(true)}
+              disabled={mutation.isPending}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#FFBC45] hover:bg-[#E5A93E] disabled:opacity-50 text-slate-900 font-bold py-3 text-sm transition-colors shadow-md"
+            >
+              ✏️ Ajustar
+            </button>
+          </div>
         ) : (
-          <button
-            type="button"
-            onClick={() => setShowFeedback(true)}
-            className="text-xs text-slate-600 hover:text-slate-900 font-semibold underline"
-          >
-            💬 Adicionar feedback (opcional)
-          </button>
+          <div className="space-y-3">
+            <label className="block text-sm font-bold text-slate-800">
+              ✏️ O que precisa ser ajustado?
+            </label>
+            <textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={4}
+              autoFocus
+              placeholder="Descreva os ajustes necessários..."
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFBC45] focus:border-[#FFBC45]"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => {
+                  if (!feedback.trim()) {
+                    toast.error("Descreva o ajuste antes de enviar.");
+                    return;
+                  }
+                  mutation.mutate("reject", {
+                    onSuccess: () => {
+                      toast.success("Ajuste enviado! A equipe vai revisar.");
+                      setShowFeedback(false);
+                      setFeedback("");
+                    },
+                  });
+                }}
+                disabled={mutation.isPending}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
+              >
+                ⬆️ Enviar Ajuste
+              </button>
+              <button
+                onClick={() => {
+                  setShowFeedback(false);
+                  setFeedback("");
+                }}
+                disabled={mutation.isPending}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-bold py-3 text-sm transition-colors"
+              >
+                ↩️ Voltar
+              </button>
+            </div>
+          </div>
         )}
 
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => mutation.mutate("approve")}
-            disabled={mutation.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10B981] hover:bg-[#0EA371] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
-          >
-            <CheckCircle2 className="size-4" /> Aprovar
-          </button>
-          <button
-            onClick={() => {
-              if (!feedback.trim()) setShowFeedback(true);
-              mutation.mutate("reject");
-            }}
-            disabled={mutation.isPending}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
-          >
-            <X className="size-4" /> Recusar
-          </button>
-        </div>
       </div>
     </article>
   );
