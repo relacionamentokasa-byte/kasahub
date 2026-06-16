@@ -762,6 +762,11 @@ function FinancialPage() {
         onOpenChange={(o) => !o && setBaixaTx(null)}
         transaction={baixaTx}
       />
+      <DeleteTransactionDialog
+        open={!!deletingTx}
+        onOpenChange={(o) => !o && setDeletingTx(null)}
+        transaction={deletingTx}
+      />
     </div>
 
   );
