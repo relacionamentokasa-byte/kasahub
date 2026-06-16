@@ -47,7 +47,7 @@ import {
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon } from "lucide-react";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
-import { listJobApprovalItems, archiveApprovalItem, unarchiveApprovalItem, type ApprovalItem } from "@/lib/approval-items-api";
+import { listJobApprovalItems, archiveApprovalItem, unarchiveApprovalItem, listApprovalItemComments, type ApprovalItem } from "@/lib/approval-items-api";
 import { enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
