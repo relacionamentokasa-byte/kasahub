@@ -470,10 +470,9 @@ function FinancialPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} color="text-blue-500" />
         <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} color="text-emerald-500" />
-        <StatCard title="Parcelas Futuras" value={stats?.parcelasFuturas} icon={Calendar} color="text-primary" />
         <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} color="text-amber-500" />
         <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-500" />
         <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-500" />
