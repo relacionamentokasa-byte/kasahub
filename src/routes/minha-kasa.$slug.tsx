@@ -117,6 +117,24 @@ type Contract = {
   number_display: string | null;
 };
 
+type ApprovalItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  content_type: "image" | "video" | "pdf" | "text";
+  content_url: string | null;
+  content_text: string | null;
+  thumbnail_url: string | null;
+  status: "pending" | "approved" | "rejected";
+  feedback: string | null;
+  sent_for_approval_at: string;
+  viewed_at: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  created_at: string;
+  job_id: string | null;
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -127,6 +145,7 @@ type ApiResponse = {
   invoices: Invoice[];
   proposals: Proposal[];
   currentContract: Contract | null;
+  approvalItems: ApprovalItem[];
 };
 
 // High-contrast status pills: solid colored bg + white text
