@@ -208,6 +208,37 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           .order("created_at", { ascending: false });
         const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
 
+        // Refresh signed URLs (originals expire after ~1h). Parse bucket+path
+        // from existing signed URLs and re-sign for 24h.
+        const SIGN_RE = /\/storage\/v1\/object\/sign\/([^/]+)\/([^?]+)/;
+        async function refreshUrl(url: unknown): Promise<string | null> {
+          if (typeof url !== "string" || !url) return (url as string) ?? null;
+          const m = url.match(SIGN_RE);
+          if (!m) return url; // public URL or external — leave as is
+          const bucket = decodeURIComponent(m[1]);
+          const path = decodeURIComponent(m[2]);
+          const { data } = await (supabaseAdmin as any).storage
+            .from(bucket)
+            .createSignedUrl(path, 60 * 60 * 24);
+          return data?.signedUrl ?? url;
+        }
+        await Promise.all(
+          approvalItems.map(async (it: any) => {
+            it.content_url = await refreshUrl(it.content_url);
+            it.thumbnail_url = await refreshUrl(it.thumbnail_url);
+            if (Array.isArray(it.slides)) {
+              await Promise.all(
+                it.slides.map(async (s: any) => {
+                  if (s && typeof s === "object") {
+                    s.url = await refreshUrl(s.url);
+                    if (s.thumbnail_url) s.thumbnail_url = await refreshUrl(s.thumbnail_url);
+                  }
+                }),
+              );
+            }
+          }),
+        );
+
         // Fetch comments for those items
         const itemIds = approvalItems.map((i) => i.id as string);
         const approvalComments: Record<string, Array<Record<string, unknown>>> = {};
