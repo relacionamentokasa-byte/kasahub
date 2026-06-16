@@ -90,7 +90,9 @@ export function EditClientDialog({
         start_date: form.start_date || null,
         portal_slug: (form.portal_slug || "").trim() || null,
         portal_cover_url: form.portal_cover_url || null,
-      }),
+        portal_primary_color: form.portal_primary_color || null,
+        portal_cover_color: form.portal_cover_color || null,
+      } as any),
 
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client", client.id] });
