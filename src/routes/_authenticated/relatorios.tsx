@@ -48,7 +48,8 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  
+  Pencil,
+  CreditCard,
 } from "lucide-react";
 
 
