@@ -1042,7 +1042,7 @@ function FinanceSection({ invoices }: { invoices: Invoice[] }) {
 
       {/* LISTA DE FATURAS */}
       {sorted.length === 0 ? (
-        <EmptyState icon="🧾" title="Nenhuma fatura por aqui." subtitle="Quando houver lançamentos, eles aparecerão aqui." />
+        <EmptyState icon={Receipt} title="Nenhuma fatura por aqui." subtitle="Seu financeiro está em dia." />
       ) : (
         <>
           {/* MOBILE: cards */}
