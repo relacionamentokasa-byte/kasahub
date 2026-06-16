@@ -381,7 +381,7 @@ function MinhaKasaPage() {
             onClick={() => setTab("finance")}
             icon={<Wallet className="size-5" />}
             label="Financeiro"
-            badge={pendingInvoicesCount || undefined}
+            dot={urgentInvoicesCount > 0}
           />
           <TabButton
             active={tab === "docs"}
