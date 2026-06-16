@@ -292,6 +292,7 @@ export type Database = {
       approval_items: {
         Row: {
           approved_at: string | null
+          archived_at: string | null
           caption: string | null
           client_id: string
           content_text: string | null
@@ -315,6 +316,7 @@ export type Database = {
         }
         Insert: {
           approved_at?: string | null
+          archived_at?: string | null
           caption?: string | null
           client_id: string
           content_text?: string | null
@@ -338,6 +340,7 @@ export type Database = {
         }
         Update: {
           approved_at?: string | null
+          archived_at?: string | null
           caption?: string | null
           client_id?: string
           content_text?: string | null
