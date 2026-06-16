@@ -42,6 +42,15 @@ function ApprovalsPage() {
         </Button>
       </header>
 
+      <ApprovalStoriesRow
+        onPickClient={(cid, first) => {
+          setClientId(cid);
+          setStatus("pending");
+          setSelected(first);
+        }}
+      />
+
+
       <div className="flex flex-wrap gap-3 sticky top-0 z-10 bg-background/95 backdrop-blur py-2">
         <Select value={clientId} onValueChange={setClientId}>
           <SelectTrigger className="w-56 bg-surface border-border"><SelectValue /></SelectTrigger>
