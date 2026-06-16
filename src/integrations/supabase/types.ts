@@ -289,6 +289,97 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_items: {
+        Row: {
+          approved_at: string | null
+          client_id: string
+          content_text: string | null
+          content_type: string
+          content_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          feedback: string | null
+          id: string
+          job_id: string | null
+          project_id: string | null
+          rejected_at: string | null
+          sent_for_approval_at: string
+          sort_order: number
+          status: string
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          viewed_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          client_id: string
+          content_text?: string | null
+          content_type: string
+          content_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          feedback?: string | null
+          id?: string
+          job_id?: string | null
+          project_id?: string | null
+          rejected_at?: string | null
+          sent_for_approval_at?: string
+          sort_order?: number
+          status?: string
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          client_id?: string
+          content_text?: string | null
+          content_type?: string
+          content_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          feedback?: string | null
+          id?: string
+          job_id?: string | null
+          project_id?: string | null
+          rejected_at?: string | null
+          sent_for_approval_at?: string
+          sort_order?: number
+          status?: string
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_items_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string

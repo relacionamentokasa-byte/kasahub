@@ -117,6 +117,24 @@ type Contract = {
   number_display: string | null;
 };
 
+type ApprovalItem = {
+  id: string;
+  title: string;
+  description: string | null;
+  content_type: "image" | "video" | "pdf" | "text";
+  content_url: string | null;
+  content_text: string | null;
+  thumbnail_url: string | null;
+  status: "pending" | "approved" | "rejected";
+  feedback: string | null;
+  sent_for_approval_at: string;
+  viewed_at: string | null;
+  approved_at: string | null;
+  rejected_at: string | null;
+  created_at: string;
+  job_id: string | null;
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -127,6 +145,7 @@ type ApiResponse = {
   invoices: Invoice[];
   proposals: Proposal[];
   currentContract: Contract | null;
+  approvalItems: ApprovalItem[];
 };
 
 // High-contrast status pills: solid colored bg + white text
@@ -184,12 +203,10 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles, stages, attachments, approvals, invoices, proposals, currentContract } = data;
+  const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [] } = data;
   const displayName = client.company || client.name;
 
-  const approvalsJobs = jobs.filter(
-    (j) => j.status === "review" && (attachments?.[j.id]?.length || 0) > 0,
-  );
+  const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
 
   const pendingInvoicesCount = (invoices || []).filter(
     (i) => (i.status || "").toLowerCase() !== "paid" && (i.status || "").toLowerCase() !== "pago",
@@ -252,22 +269,24 @@ function MinhaKasaPage() {
             </div>
           )
         ) : tab === "approvals" ? (
-          approvalsJobs.length === 0 ? (
+          pendingApprovals.length === 0 ? (
             <EmptyState
               icon="✅"
               title="Nada para aprovar agora."
               subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
             />
           ) : (
-            <div className="max-w-2xl mx-auto space-y-4">
-              {approvalsJobs.map((job) => (
-                <ApprovalCard
-                  key={job.id}
-                  slug={slug}
-                  job={job}
-                  attachments={attachments[job.id] || []}
-                  approvals={approvals?.[job.id] || []}
-                />
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="text-center">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-700">
+                  📱 Aprovar artes, vídeos e textos
+                </h2>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {pendingApprovals.length} {pendingApprovals.length === 1 ? "item pendente" : "itens pendentes"}
+                </p>
+              </div>
+              {pendingApprovals.map((item) => (
+                <ApprovalFeedCard key={item.id} slug={slug} item={item} />
               ))}
             </div>
           )
@@ -297,7 +316,7 @@ function MinhaKasaPage() {
             onClick={() => setTab("approvals")}
             icon={<CheckSquare className="size-5" />}
             label="Aprovações"
-            badge={approvalsJobs.length || undefined}
+            badge={pendingApprovals.length || undefined}
           />
           <TabButton
             active={tab === "finance"}
@@ -705,6 +724,139 @@ function ApprovalCard({
           </div>
         </div>
       )}
+    </article>
+  );
+}
+
+// ============= FEED DE APROVAÇÕES (Instagram-style) =============
+
+function timeAgoPtBR(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const day = 24 * 60 * 60 * 1000;
+  if (diff < day) return "hoje";
+  if (diff < 2 * day) return "ontem";
+  const days = Math.floor(diff / day);
+  if (days < 30) return `${days} dias atrás`;
+  return format(new Date(iso), "dd 'de' MMM", { locale: ptBR });
+}
+
+function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) {
+  const qc = useQueryClient();
+  const [feedback, setFeedback] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  const mutation = useMutation({
+    mutationFn: async (action: "approve" | "reject") => {
+      const res = await fetch(`/api/public/portal-approval-action/${slug}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item_id: item.id, action, feedback: feedback.trim() || null }),
+      });
+      if (!res.ok) throw new Error("action_failed");
+      return { action };
+    },
+    onSuccess: ({ action }) => {
+      qc.invalidateQueries({ queryKey: ["minha-kasa", slug] });
+      if (action === "approve") toast.success("Aprovado! ✅");
+      else toast.success("Recusado. Feedback enviado à equipe.");
+    },
+    onError: () => toast.error("Não foi possível registrar agora. Tente novamente."),
+  });
+
+  const typeBadge =
+    item.content_type === "image" ? "🖼️"
+    : item.content_type === "video" ? "🎬"
+    : item.content_type === "pdf" ? "📄"
+    : "📝";
+
+  return (
+    <article className="bg-white border border-slate-200 rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] overflow-hidden">
+      {/* HEADER */}
+      <div className="px-5 pt-4 pb-3 flex items-center gap-2 text-xs font-semibold text-slate-700 border-b border-slate-100">
+        <span className="text-base">{typeBadge}</span>
+        <span className="truncate flex-1">{item.title}</span>
+        <span className="text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full bg-[#FFBC45]/15 text-[#B47A00]">
+          Pendente
+        </span>
+      </div>
+
+      {/* PREVIEW */}
+      <div className="bg-slate-900 flex items-center justify-center overflow-hidden">
+        {item.content_type === "image" && item.content_url ? (
+          <img src={item.content_url} alt={item.title} className="w-full max-h-[70vh] object-contain" />
+        ) : item.content_type === "video" && item.content_url ? (
+          <video src={item.content_url} controls className="w-full max-h-[70vh] object-contain" />
+        ) : item.content_type === "pdf" && item.content_url ? (
+          <a
+            href={item.content_url}
+            target="_blank"
+            rel="noreferrer"
+            className="w-full aspect-[4/3] flex flex-col items-center justify-center gap-3 text-white hover:text-[#FFBC45]"
+          >
+            <FileText className="size-16" />
+            <span className="text-sm font-bold">Visualizar PDF</span>
+            <span className="text-xs text-white/70">Abre em nova aba</span>
+          </a>
+        ) : item.content_type === "text" && item.content_text ? (
+          <div className="w-full bg-white text-slate-900 p-6 max-h-[70vh] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed">
+            {item.content_text}
+          </div>
+        ) : (
+          <div className="w-full aspect-[4/3] flex items-center justify-center text-white/50 text-sm">
+            Conteúdo indisponível
+          </div>
+        )}
+      </div>
+
+      {/* INFO + ACTIONS */}
+      <div className="p-5 space-y-4">
+        <div>
+          {item.description && (
+            <p className="text-sm text-slate-700 mb-2">{item.description}</p>
+          )}
+          <p className="text-[11px] text-slate-500 font-medium">
+            📅 Enviado {timeAgoPtBR(item.sent_for_approval_at)}
+          </p>
+        </div>
+
+        {showFeedback ? (
+          <textarea
+            value={feedback}
+            onChange={(e) => setFeedback(e.target.value)}
+            rows={3}
+            placeholder="💬 Descreva os ajustes necessários..."
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#FFBC45] focus:border-[#FFBC45]"
+          />
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowFeedback(true)}
+            className="text-xs text-slate-600 hover:text-slate-900 font-semibold underline"
+          >
+            💬 Adicionar feedback (opcional)
+          </button>
+        )}
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => mutation.mutate("approve")}
+            disabled={mutation.isPending}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10B981] hover:bg-[#0EA371] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
+          >
+            <CheckCircle2 className="size-4" /> Aprovar
+          </button>
+          <button
+            onClick={() => {
+              if (!feedback.trim()) setShowFeedback(true);
+              mutation.mutate("reject");
+            }}
+            disabled={mutation.isPending}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 text-white font-bold py-3 text-sm transition-colors shadow-md"
+          >
+            <X className="size-4" /> Recusar
+          </button>
+        </div>
+      </div>
     </article>
   );
 }

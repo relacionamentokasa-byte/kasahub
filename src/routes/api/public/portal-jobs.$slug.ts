@@ -199,8 +199,16 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           }
         }
 
+        // Fetch approval_items (Feed estilo Instagram)
+        const { data: itemRows } = await (supabaseAdmin as any)
+          .from("approval_items")
+          .select("id, title, description, content_type, content_url, content_text, thumbnail_url, status, feedback, sent_for_approval_at, viewed_at, approved_at, rejected_at, created_at, job_id, project_id")
+          .eq("client_id", client.id)
+          .order("created_at", { ascending: false });
+        const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems }),
           {
             status: 200,
             headers: {

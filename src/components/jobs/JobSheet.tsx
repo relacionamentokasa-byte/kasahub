@@ -45,7 +45,8 @@ import {
   updateChecklistItem,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy } from "lucide-react";
+import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send } from "lucide-react";
+import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
 import { enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
@@ -83,6 +84,7 @@ export function JobSheet({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
+  const [approvalDialog, setApprovalDialog] = useState<{ url: string; name: string } | null>(null);
 
 
   const { data: checklist = [] } = useQuery({
@@ -857,6 +859,17 @@ export function JobSheet({
                               <span className="text-xs font-medium truncate text-foreground/80">{file.file_name}</span>
                             </div>
                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {job.client_id && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                  title="Enviar para aprovação do cliente"
+                                  onClick={() => setApprovalDialog({ url: file.file_url, name: file.file_name })}
+                                >
+                                  <Send className="size-3.5" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -985,6 +998,18 @@ export function JobSheet({
           onClose={() => setViewerConfig(null)}
         />
       </SheetContent>
+      {approvalDialog && job.client_id && (
+        <SendForApprovalDialog
+          open={!!approvalDialog}
+          onOpenChange={(o) => !o && setApprovalDialog(null)}
+          clientId={job.client_id}
+          jobId={job.id}
+          projectId={(job as any).project_id ?? null}
+          defaultTitle={job.title}
+          defaultUrl={approvalDialog.url}
+          defaultFileName={approvalDialog.name}
+        />
+      )}
     </Sheet>
   );
 }
