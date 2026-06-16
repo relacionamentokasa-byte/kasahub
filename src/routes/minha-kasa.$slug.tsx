@@ -501,6 +501,7 @@ function MinhaKasaPage() {
               slug={slug}
               client={client}
               items={approvalItems}
+              commentsByItem={approvalComments}
             />
 
           ) : tab === "finance" ? (
