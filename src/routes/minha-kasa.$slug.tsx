@@ -190,6 +190,22 @@ function isVideo(att: Attachment) {
 function MinhaKasaPage() {
   const { slug } = Route.useParams();
   const [tab, setTab] = useState<"home" | "projects" | "approvals" | "finance" | "docs">("home");
+  const themeStorageKey = `kasa.minha-kasa.theme.${slug}`;
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(themeStorageKey);
+      if (saved === "dark" || saved === "light") setTheme(saved);
+    } catch { /* noop */ }
+  }, [themeStorageKey]);
+  const toggleTheme = () => {
+    setTheme((t) => {
+      const next = t === "dark" ? "light" : "dark";
+      try { window.localStorage.setItem(themeStorageKey, next); } catch { /* noop */ }
+      return next;
+    });
+  };
+
 
   const { data, isLoading, error } = useQuery<ApiResponse>({
     queryKey: ["minha-kasa", slug],
