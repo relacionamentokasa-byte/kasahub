@@ -304,7 +304,7 @@ function MinhaKasaPage() {
       style={{ ...portalThemeVars, background: isDark ? "#0b0f1a" : "#F0F2F5", color: isDark ? "#e2e8f0" : "#0f172a" }}
     >
       <MinhaKasaDarkStyles />
-      <div className="max-w-[960px] lg:max-w-[1280px] mx-auto px-0 md:px-4 lg:px-6 pt-0 md:pt-5">
+      <div className="max-w-[960px] lg:max-w-none lg:mx-0 mx-auto px-0 md:px-4 lg:px-10 xl:px-16 pt-0 md:pt-5">
         {/* HEADER — cover + profile info as independent blocks (no clipping card) */}
         <div className="relative">
           {/* 1. COVER — full width, only top rounded, no overflow clipping */}
