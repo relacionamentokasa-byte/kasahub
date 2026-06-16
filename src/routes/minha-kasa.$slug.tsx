@@ -337,16 +337,9 @@ function MinhaKasaPage() {
           </div>
         </section>
 
-        {/* QUICK ALERTS */}
-        <section className="px-4 md:px-0 mt-4">
-          {allClear ? (
-            <QuickAlert
-              tone="success"
-              icon={CheckCircle2}
-              title="Tudo verde!"
-              subtitle="Projetos em dia, faturas pagas, sem pendências."
-            />
-          ) : (
+        {/* QUICK ALERTS — only when there is something pending (big "TUDO VERDE" hero covers the all-clear case) */}
+        {!allClear && (
+          <section className="px-4 md:px-0 mt-4">
             <div className="grid gap-3 md:grid-cols-2">
               <QuickAlert
                 tone="success"
@@ -375,8 +368,9 @@ function MinhaKasaPage() {
                 />
               )}
             </div>
-          )}
-        </section>
+          </section>
+        )}
+
 
         {/* FEED */}
         <main className="px-4 md:px-0 py-4 space-y-4">
