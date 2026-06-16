@@ -974,59 +974,65 @@ export function JobSheet({
                             return (
                               <div
                                 key={it.id}
-                                className={`flex items-center justify-between gap-2 p-2 bg-background border border-border rounded-lg group ${isArchived ? "opacity-60" : ""}`}
+                                className={`bg-background border rounded-lg group ${isArchived ? "opacity-60" : ""} ${it.status === "rejected" ? "border-orange-500/40" : "border-border"}`}
                               >
-                                <div className="flex items-center gap-3 overflow-hidden min-w-0">
-                                  <ImageIcon className="size-4 text-foreground/40 shrink-0" />
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-medium truncate text-foreground/80">{it.title}</p>
-                                    <p className={`text-[10px] uppercase tracking-wider font-bold ${statusColor}`}>
-                                      {statusLabel}
-                                    </p>
+                                <div className="flex items-center justify-between gap-2 p-2">
+                                  <div className="flex items-center gap-3 overflow-hidden min-w-0">
+                                    <ImageIcon className="size-4 text-foreground/40 shrink-0" />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-medium truncate text-foreground/80">{it.title}</p>
+                                      <p className={`text-[10px] uppercase tracking-wider font-bold ${statusColor}`}>
+                                        {statusLabel}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {it.content_url && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                        onClick={() => window.open(it.content_url!, "_blank")}
+                                        title="Abrir mídia"
+                                      >
+                                        <ExternalLink className="size-3.5" />
+                                      </Button>
+                                    )}
+                                    {isArchived ? (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                        title="Restaurar — voltar a aparecer no portal"
+                                        onClick={() => unarchiveApprovalMut.mutate(it.id)}
+                                        disabled={unarchiveApprovalMut.isPending}
+                                      >
+                                        <RotateCcw className="size-3.5" />
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-destructive"
+                                        title="Arquivar — remover do portal do cliente"
+                                        onClick={() => {
+                                          if (confirm(`Arquivar "${it.title}"?\n\nO item será removido do portal do cliente, mas fica no seu histórico interno.`)) {
+                                            archiveApprovalMut.mutate(it.id);
+                                          }
+                                        }}
+                                        disabled={archiveApprovalMut.isPending}
+                                      >
+                                        <Archive className="size-3.5" />
+                                      </Button>
+                                    )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-1 shrink-0">
-                                  {it.content_url && (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
-                                      onClick={() => window.open(it.content_url!, "_blank")}
-                                      title="Abrir mídia"
-                                    >
-                                      <ExternalLink className="size-3.5" />
-                                    </Button>
-                                  )}
-                                  {isArchived ? (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
-                                      title="Restaurar — voltar a aparecer no portal"
-                                      onClick={() => unarchiveApprovalMut.mutate(it.id)}
-                                      disabled={unarchiveApprovalMut.isPending}
-                                    >
-                                      <RotateCcw className="size-3.5" />
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7 h-7 w-7 text-foreground/40 hover:text-destructive"
-                                      title="Arquivar — remover do portal do cliente"
-                                      onClick={() => {
-                                        if (confirm(`Arquivar "${it.title}"?\n\nO item será removido do portal do cliente, mas fica no seu histórico interno.`)) {
-                                          archiveApprovalMut.mutate(it.id);
-                                        }
-                                      }}
-                                      disabled={archiveApprovalMut.isPending}
-                                    >
-                                      <Archive className="size-3.5" />
-                                    </Button>
-                                  )}
-                                </div>
+                                {it.status === "rejected" && (
+                                  <RejectedFeedback item={it} />
+                                )}
                               </div>
                             );
+
                           })}
                         </div>
                       </div>
