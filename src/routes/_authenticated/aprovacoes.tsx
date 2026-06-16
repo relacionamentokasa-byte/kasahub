@@ -8,6 +8,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { ApprovalsGrid } from "@/components/approvals/ApprovalsGrid";
 import { ApprovalSheet } from "@/components/approvals/ApprovalSheet";
 import { NewApprovalDialog } from "@/components/approvals/NewApprovalDialog";
+import { ApprovalStoriesRow } from "@/components/approvals/ApprovalStoriesRow";
 import { fetchClients } from "@/lib/ops-api";
 import { type Approval, type ApprovalStatus } from "@/lib/approvals-api";
 
