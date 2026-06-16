@@ -29,6 +29,13 @@ import {
 } from "@/lib/approval-items-api";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface AttachmentOption {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type?: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,6 +46,8 @@ interface Props {
   defaultUrl?: string;
   defaultType?: ApprovalContentType;
   defaultFileName?: string;
+  /** Existing job attachments — used to pick slides for carrossel/story without re-uploading. */
+  attachments?: AttachmentOption[];
 }
 
 const TYPE_OPTIONS: { value: ApprovalContentType; label: string; icon: typeof ImageIcon }[] = [
