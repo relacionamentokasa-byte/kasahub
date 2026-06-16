@@ -380,6 +380,33 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   return data;
 }
 
+// Bi-directional sync helpers between Kanban stage_id and job status field.
+function stageToStatus(stage: { name?: string | null; is_done?: boolean | null } | undefined | null): string | null {
+  if (!stage) return null;
+  if (stage.is_done) return 'done';
+  const n = (stage.name || '').toLowerCase();
+  if (n.includes('revis')) return 'review';
+  if (n.includes('aguardando')) return 'paused';
+  if (n.includes('andamento')) return 'in_progress';
+  if (n.includes('nova') || n.includes('demanda')) return 'not_started';
+  return null;
+}
+function statusToStageId(status: string, stages: Array<{ id: string; name: string | null; is_done: boolean | null; order_index: number | null }>): string | null {
+  if (!stages?.length) return null;
+  const find = (pred: (s: typeof stages[number]) => boolean) => stages.find(pred)?.id ?? null;
+  switch (status) {
+    case 'done': return find(s => !!s.is_done);
+    case 'review': return find(s => (s.name || '').toLowerCase().includes('revis'));
+    case 'paused': return find(s => (s.name || '').toLowerCase().includes('aguardando'));
+    case 'in_progress': return find(s => (s.name || '').toLowerCase().includes('andamento'));
+    case 'not_started': {
+      const sorted = [...stages].filter(s => !s.is_done).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0));
+      return sorted[0]?.id ?? null;
+    }
+    default: return null;
+  }
+}
+
 export async function updateJob(
   id: string,
   patch: Database["public"]["Tables"]["jobs"]["Update"],
@@ -396,6 +423,19 @@ export async function updateJob(
   }
 
   const { data: originalJob } = await supabase.from("jobs").select("status, assignee_id, title, team_involved").eq("id", id).single();
+
+  // Bi-directional sync: if caller updated stage_id but not status (or vice-versa), fill the counterpart.
+  if (patch.stage_id && patch.status === undefined) {
+    const { data: stage } = await supabase.from("job_stages").select("name, is_done").eq("id", patch.stage_id).maybeSingle();
+    const mapped = stageToStatus(stage);
+    if (mapped) (patch as any).status = mapped;
+    if (stage?.is_done && patch.done_at === undefined) (patch as any).done_at = new Date().toISOString();
+    if (stage && !stage.is_done && patch.done_at === undefined) (patch as any).done_at = null;
+  } else if (patch.status && patch.stage_id === undefined) {
+    const { data: stages } = await supabase.from("job_stages").select("id, name, is_done, order_index");
+    const mappedId = statusToStageId(patch.status as string, stages ?? []);
+    if (mappedId) (patch as any).stage_id = mappedId;
+  }
 
   const { data, error } = await supabase.from("jobs").update(patch).eq("id", id).select().single();
   if (error) throw error;
