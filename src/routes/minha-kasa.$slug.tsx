@@ -164,6 +164,18 @@ type ApiResponse = {
   proposals: Proposal[];
   currentContract: Contract | null;
   approvalItems: ApprovalItem[];
+  events?: CalendarEventRow[];
+};
+
+type CalendarEventRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  kind: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  all_day: boolean | null;
+  color: string | null;
 };
 
 // High-contrast status pills: solid colored bg + white text
