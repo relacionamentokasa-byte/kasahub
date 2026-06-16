@@ -13,6 +13,7 @@ export interface ApprovalItem {
   content_type: ApprovalContentType;
   content_url: string | null;
   content_text: string | null;
+  caption: string | null;
   thumbnail_url: string | null;
   status: ApprovalItemStatus;
   feedback: string | null;
