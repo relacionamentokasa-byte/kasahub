@@ -235,19 +235,21 @@ function MinhaKasaPage() {
       </header>
 
       {/* FEED */}
-      <main className="max-w-3xl mx-auto px-5 sm:px-8 py-6 space-y-4">
+      <main className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-4">
         {tab === "projects" ? (
           jobs.length === 0 ? (
             <EmptyState icon="📭" title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
           ) : (
-            jobs.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
-                stages={stages?.[job.id] || []}
-              />
-            ))
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {jobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
+                  stages={stages?.[job.id] || []}
+                />
+              ))}
+            </div>
           )
         ) : tab === "approvals" ? (
           approvalsJobs.length === 0 ? (
@@ -257,15 +259,17 @@ function MinhaKasaPage() {
               subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
             />
           ) : (
-            approvalsJobs.map((job) => (
-              <ApprovalCard
-                key={job.id}
-                slug={slug}
-                job={job}
-                attachments={attachments[job.id] || []}
-                approvals={approvals?.[job.id] || []}
-              />
-            ))
+            <div className="max-w-2xl mx-auto space-y-4">
+              {approvalsJobs.map((job) => (
+                <ApprovalCard
+                  key={job.id}
+                  slug={slug}
+                  job={job}
+                  attachments={attachments[job.id] || []}
+                  approvals={approvals?.[job.id] || []}
+                />
+              ))}
+            </div>
           )
         ) : tab === "finance" ? (
           <FinanceSection invoices={invoices || []} />
