@@ -213,9 +213,6 @@ function MinhaKasaPage() {
 
   const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
 
-  const pendingInvoicesCount = (invoices || []).filter(
-    (i) => (i.status || "").toLowerCase() !== "paid" && (i.status || "").toLowerCase() !== "pago",
-  ).length;
 
   // Urgent: overdue OR due in less than 5 days
   const urgentInvoicesCount = (invoices || []).filter((i) => {
