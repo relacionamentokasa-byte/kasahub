@@ -99,6 +99,7 @@ export function SendForApprovalDialog({
   defaultUrl = "",
   defaultType,
   defaultFileName,
+  attachments = [],
 }: Props) {
   const qc = useQueryClient();
   const [title, setTitle] = useState(defaultTitle);
