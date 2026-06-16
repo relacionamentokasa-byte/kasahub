@@ -2236,7 +2236,7 @@ function HomeSection({
   slug: string;
   onNavigate: (t: HomeTab) => void;
 }) {
-  const { invoices, attachments, approvalItems } = data;
+  const { invoices, attachments, approvalItems, events } = data;
 
   // ---- HEALTH STATUS ----
   const hasOverdue = (invoices || []).some((i) => classifyInvoice(i) === "overdue");
