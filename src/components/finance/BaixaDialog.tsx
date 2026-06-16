@@ -50,7 +50,7 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
       const ref =
         transaction.valor_real ?? transaction.valor_previsto ?? transaction.amount ?? 0;
       setPaidValue(String(ref));
-      setPaidDate(new Date().toISOString().split("T")[0]);
+      setPaidDate(todayLocal());
       setMethod(transaction.payment_method || "PIX");
       setNotes(transaction.notes || "");
     }
