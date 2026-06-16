@@ -329,9 +329,9 @@ function MinhaKasaPage() {
         ) : tab === "approvals" ? (
           pendingApprovals.length === 0 ? (
             <EmptyState
-              icon="✅"
-              title="Nada para aprovar agora."
-              subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
+              icon={CheckCircle2}
+              title="Tudo aprovado!"
+              subtitle="Não há novas artes ou vídeos para revisar."
             />
           ) : (
             <div className="max-w-2xl mx-auto space-y-6">
