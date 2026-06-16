@@ -452,7 +452,7 @@ export function JobSheet({
                       { id: 'in_progress', label: 'Em Andamento', color: 'bg-[#3b82f6]/20 text-[#3b82f6] border-[#3b82f6]/50', active: 'bg-[#3b82f6] text-white border-[#3b82f6]' },
                       { id: 'review', label: 'Em Revisão', color: 'bg-[#ffbc45]/20 text-[#ffbc45] border-[#ffbc45]/50', active: 'bg-[#ffbc45] text-white border-[#ffbc45]' },
                       { id: 'done', label: 'Concluído', color: 'bg-[#22c55e]/20 text-[#22c55e] border-[#22c55e]/50', active: 'bg-[#22c55e] text-white border-[#22c55e]' },
-                      { id: 'paused', label: 'Pausado', color: 'bg-[#f97316]/20 text-[#f97316] border-[#f97316]/50', active: 'bg-[#f97316] text-white border-[#f97316]' }
+                      { id: 'paused', label: 'Aguardando Cliente', color: 'bg-[#f97316]/20 text-[#f97316] border-[#f97316]/50', active: 'bg-[#f97316] text-white border-[#f97316]' }
                     ].map((s) => {
                       const isActive = (job as any).status === s.id;
                       return (

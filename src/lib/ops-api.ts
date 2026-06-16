@@ -200,7 +200,7 @@ export const JOB_STATUS_LABELS: Record<string, { label: string, color: string }>
   in_progress: { label: 'Em Andamento', color: '#3b82f6' },
   review: { label: 'Em Revisão', color: '#ffbc45' },
   done: { label: 'Concluído', color: '#22c55e' },
-  paused: { label: 'Pausado', color: '#f97316' },
+  paused: { label: 'Aguardando Cliente', color: '#f97316' },
 };
 
 
