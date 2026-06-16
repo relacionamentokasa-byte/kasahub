@@ -175,7 +175,7 @@ export function ResumoFinanceiroSection() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <DashboardKPI
             icon={TrendingUp}
             label="Receitas Previstas"
@@ -189,13 +189,6 @@ export function ResumoFinanceiroSection() {
             value={brl(m.receitasRecebidas)}
             subValue="Já pagas"
             color="emerald-500"
-          />
-          <DashboardKPI
-            icon={Receipt}
-            label="Ticket Médio"
-            value={brl(m.ticketMedio)}
-            subValue={`${m.clientesPagantesCount} cliente(s) pagantes`}
-            color="indigo-500"
           />
           <DashboardKPI
             icon={Clock}
