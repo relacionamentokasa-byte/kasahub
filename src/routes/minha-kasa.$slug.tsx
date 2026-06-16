@@ -2227,7 +2227,31 @@ function HomeSection({
   slug: string;
   onNavigate: (t: HomeTab) => void;
 }) {
-  const { invoices, attachments, approvalItems, events } = data;
+  const { invoices, attachments, approvalItems, events, jobs } = data;
+
+  // ---- WRAPPED DO MÊS (resumo simples) ----
+  const monthStats = useMemo(() => {
+    const now = new Date();
+    const m = now.getMonth();
+    const y = now.getFullYear();
+    const inMonth = (iso?: string | null) => {
+      if (!iso) return false;
+      const d = new Date(iso);
+      return d.getMonth() === m && d.getFullYear() === y;
+    };
+    const artesEntregues = (approvalItems || []).filter(
+      (it: any) => it.status === "approved" && inMonth(it.approved_at || it.updated_at),
+    ).length;
+    const jobsConcluidos = (jobs || []).filter(
+      (j: any) => j.status === "done" && inMonth(j.updated_at),
+    ).length;
+    const reunioes = (events || []).filter(
+      (e) => (e.kind || "").toLowerCase() === "meeting" && inMonth(e.starts_at),
+    ).length;
+    return { artesEntregues, jobsConcluidos, reunioes };
+  }, [approvalItems, jobs, events]);
+
+  const monthName = new Date().toLocaleDateString("pt-BR", { month: "long" });
 
   // ---- HEALTH STATUS ----
   const hasOverdue = (invoices || []).some((i) => classifyInvoice(i) === "overdue");
