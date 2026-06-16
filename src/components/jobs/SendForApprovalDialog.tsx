@@ -29,6 +29,13 @@ import {
 } from "@/lib/approval-items-api";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface AttachmentOption {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type?: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -39,6 +46,8 @@ interface Props {
   defaultUrl?: string;
   defaultType?: ApprovalContentType;
   defaultFileName?: string;
+  /** Existing job attachments — used to pick slides for carrossel/story without re-uploading. */
+  attachments?: AttachmentOption[];
 }
 
 const TYPE_OPTIONS: { value: ApprovalContentType; label: string; icon: typeof ImageIcon }[] = [
@@ -90,6 +99,7 @@ export function SendForApprovalDialog({
   defaultUrl = "",
   defaultType,
   defaultFileName,
+  attachments = [],
 }: Props) {
   const qc = useQueryClient();
   const [title, setTitle] = useState(defaultTitle);
@@ -165,6 +175,43 @@ export function SendForApprovalDialog({
   function removeSlide(idx: number) {
     setSlides((s) => s.filter((_, i) => i !== idx));
   }
+
+  function attachmentKind(a: AttachmentOption): "image" | "video" {
+    const t = (a.file_type || a.file_name || "").toLowerCase();
+    if (t.startsWith("video") || /\.(mp4|mov|webm|m4v)$/i.test(t)) return "video";
+    return "image";
+  }
+  function isAttachmentMedia(a: AttachmentOption) {
+    const t = (a.file_type || a.file_name || "").toLowerCase();
+    return (
+      t.startsWith("image") ||
+      t.startsWith("video") ||
+      /\.(png|jpe?g|webp|gif|avif|svg|mp4|mov|webm|m4v)$/i.test(t)
+    );
+  }
+  function toggleAttachmentSlide(a: AttachmentOption) {
+    setSlides((curr) => {
+      const existing = curr.findIndex((s) => s.url === a.file_url);
+      if (existing >= 0) return curr.filter((_, i) => i !== existing);
+      if (curr.length >= MAX_SLIDES) {
+        toast.error(`Máximo de ${MAX_SLIDES} slides.`);
+        return curr;
+      }
+      const kind = attachmentKind(a);
+      return [
+        ...curr,
+        {
+          id: crypto.randomUUID(),
+          url: a.file_url,
+          mime_type: a.file_type || (kind === "video" ? "video/mp4" : "image/jpeg"),
+          kind,
+        },
+      ];
+    });
+  }
+
+  const mediaAttachments = attachments.filter(isAttachmentMedia);
+
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -344,6 +391,53 @@ export function SendForApprovalDialog({
                   ))}
                 </div>
               )}
+
+              {mediaAttachments.length > 0 && (
+                <div className="rounded-lg border border-border bg-muted/30 p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-foreground/60">
+                      📎 Anexos do job — toque para usar como slide
+                    </p>
+                    <span className="text-[10px] font-mono text-foreground/40">
+                      {mediaAttachments.length} disponível{mediaAttachments.length > 1 ? "is" : ""}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {mediaAttachments.map((a) => {
+                      const selectedIdx = slides.findIndex((s) => s.url === a.file_url);
+                      const selected = selectedIdx >= 0;
+                      const kind = attachmentKind(a);
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => toggleAttachmentSlide(a)}
+                          title={a.file_name}
+                          className={`relative aspect-square rounded-md overflow-hidden border-2 transition-all ${
+                            selected
+                              ? "border-primary ring-2 ring-primary/30"
+                              : "border-border hover:border-primary/50"
+                          }`}
+                        >
+                          {kind === "image" ? (
+                            <img src={a.file_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full grid place-items-center bg-muted">
+                              <Film className="size-5 text-foreground/40" />
+                            </div>
+                          )}
+                          {selected && (
+                            <div className="absolute top-0.5 right-0.5 size-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black grid place-items-center shadow">
+                              {selectedIdx + 1}
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
 
               <input
                 ref={fileRef}

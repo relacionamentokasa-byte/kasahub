@@ -1118,6 +1118,12 @@ export function JobSheet({
           defaultTitle={job.title}
           defaultUrl={approvalDialog.url}
           defaultFileName={approvalDialog.name}
+          attachments={attachments.map((a: any) => ({
+            id: a.id,
+            file_name: a.file_name,
+            file_url: a.file_url,
+            file_type: a.file_type,
+          }))}
         />
       )}
     </Sheet>
