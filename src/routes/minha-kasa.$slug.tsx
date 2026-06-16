@@ -272,7 +272,7 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [] } = data;
+  const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [], approvalComments = {} } = data;
   const displayName = client.company || client.name;
 
   const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
