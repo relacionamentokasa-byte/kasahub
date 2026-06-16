@@ -2551,8 +2551,11 @@ function HomeSection({
           <KpiCard label="Vencidas" value={overdueTotal} color="#EF4444" emoji="🔴" />
         </div>
       </section>
-
-
+      </div>
+      {/* SIDEBAR (desktop only renders as side column; mobile flows naturally) */}
+      <aside className="lg:col-span-4 space-y-5 md:space-y-6">
+        <AgendaSection events={events || []} />
+      </aside>
 
 
       {/* LIGHTBOX */}
