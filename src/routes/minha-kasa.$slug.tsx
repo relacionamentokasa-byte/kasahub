@@ -231,42 +231,83 @@ function MinhaKasaPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-24 text-slate-900">
-      {/* HEADER */}
-      <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-[#0C1618] to-[#1A2D33]">
-        <div className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-8">
-          <div className="flex items-center gap-4">
+      {/* HERO BANNER */}
+      <header className="relative">
+        <div
+          className="relative h-[160px] md:h-[220px] w-full overflow-hidden"
+          style={
+            client.portal_cover_url
+              ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+              : { background: "linear-gradient(135deg, #0C1618 0%, #1A2D33 55%, #FFBC45 160%)" }
+          }
+        >
+          {client.portal_cover_url && (
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0C1618]/80 via-[#0C1618]/40 to-transparent" />
+          )}
+          <div className="absolute top-3 right-4 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+            <Sparkles className="size-3" />
+            Minha Kasa
+          </div>
+        </div>
+        <div className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8">
+          <div className="-mt-10 md:-mt-12 flex items-end gap-4">
             {client.logo_url ? (
               <img
                 src={client.logo_url}
                 alt={displayName}
-                className="size-14 rounded-2xl object-cover border-2 border-white/20 bg-white shadow-md"
+                className="size-20 md:size-24 rounded-full object-cover border-4 border-white bg-white shadow-lg ring-1 ring-slate-200"
               />
             ) : (
-              <div className="size-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md bg-[#FFBC45]">
+              <div className="size-20 md:size-24 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-lg border-4 border-white bg-[#FFBC45]">
                 {displayName.charAt(0)}
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
-                <Sparkles className="size-3" />
-                Minha Kasa
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-0.5 text-white">
-                Olá, {client.name.split(" ")[0]}!
+            <div className="flex-1 min-w-0 pb-1">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-slate-900 truncate">
+                Olá, {client.name.split(" ")[0]} 👋
               </h1>
-              <p className="text-xs text-white/80 mt-1 font-medium">
-                {tab === "projects"
-                  ? "Acompanhe seus projetos em tempo real."
-                  : tab === "approvals"
-                    ? "Materiais aguardando sua aprovação."
-                    : tab === "finance"
-                      ? "Suas faturas e pagamentos."
-                      : "Propostas aprovadas e contrato vigente."}
+              <p className="text-xs md:text-sm text-slate-600 font-medium">
+                Bem-vindo ao seu portal Kasa
               </p>
             </div>
           </div>
         </div>
       </header>
+
+      {/* QUICK ALERTS */}
+      <section className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 mt-5 md:mt-6">
+        {allClear ? (
+          <QuickAlert
+            tone="success"
+            icon={CheckCircle2}
+            title="Tudo em dia!"
+            subtitle="Nenhum item pendente no momento."
+          />
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {pendingApprovals.length > 0 && (
+              <QuickAlert
+                tone="danger"
+                icon={AlertCircle}
+                emoji="🚨"
+                title={`Você tem ${pendingApprovals.length} ${pendingApprovals.length === 1 ? "item aguardando aprovação" : "itens aguardando aprovação"}`}
+                subtitle="Toque para revisar agora"
+                onClick={() => setTab("approvals")}
+              />
+            )}
+            {urgentInvoicesCount > 0 && (
+              <QuickAlert
+                tone="warning"
+                icon={AlertTriangle}
+                emoji="⚠️"
+                title={`Você tem ${urgentInvoicesCount} ${urgentInvoicesCount === 1 ? "fatura pendente" : "faturas pendentes"}`}
+                subtitle="Vencendo em breve ou vencida"
+                onClick={() => setTab("finance")}
+              />
+            )}
+          </div>
+        )}
+      </section>
 
       {/* FEED */}
       <main className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-4">
