@@ -321,8 +321,11 @@ function FinancialPage() {
   }).replace(/^\w/, (c) => c.toUpperCase());
 
   const statusMut = useMutation({
-    mutationFn: ({ id, status }: { id: string, status: string }) => 
-      updateTransaction(id, { status: status as any, payment_date: status === "paid" ? new Date().toISOString().split("T")[0] : null }),
+    mutationFn: ({ id, status }: { id: string, status: string }) => {
+      const d = new Date();
+      const todayLocal = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split("T")[0];
+      return updateTransaction(id, { status: status as any, payment_date: status === "paid" ? todayLocal : null });
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
       qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
