@@ -798,19 +798,28 @@ export type Database = {
       clients: {
         Row: {
           address: string | null
+          address_number: string | null
           banner_url: string | null
           brand_primary: string | null
           brand_secondary: string | null
+          city: string | null
+          commercial_contact_email: string | null
+          commercial_contact_name: string | null
+          commercial_contact_phone: string | null
           company: string | null
           contract_type: string | null
           contract_value: number
           created_at: string
           document: string | null
           email: string | null
+          financial_contact_email: string | null
+          financial_contact_name: string | null
+          financial_contact_phone: string | null
           id: string
           lead_id: string | null
           logo_url: string | null
           name: string
+          neighborhood: string | null
           notes: string | null
           owner_id: string | null
           phone: string | null
@@ -821,25 +830,36 @@ export type Database = {
           portal_slug: string | null
           portal_user_id: string | null
           start_date: string | null
+          state: string | null
           status: string
           updated_at: string
           website: string | null
+          zip_code: string | null
         }
         Insert: {
           address?: string | null
+          address_number?: string | null
           banner_url?: string | null
           brand_primary?: string | null
           brand_secondary?: string | null
+          city?: string | null
+          commercial_contact_email?: string | null
+          commercial_contact_name?: string | null
+          commercial_contact_phone?: string | null
           company?: string | null
           contract_type?: string | null
           contract_value?: number
           created_at?: string
           document?: string | null
           email?: string | null
+          financial_contact_email?: string | null
+          financial_contact_name?: string | null
+          financial_contact_phone?: string | null
           id?: string
           lead_id?: string | null
           logo_url?: string | null
           name: string
+          neighborhood?: string | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
@@ -850,25 +870,36 @@ export type Database = {
           portal_slug?: string | null
           portal_user_id?: string | null
           start_date?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
           website?: string | null
+          zip_code?: string | null
         }
         Update: {
           address?: string | null
+          address_number?: string | null
           banner_url?: string | null
           brand_primary?: string | null
           brand_secondary?: string | null
+          city?: string | null
+          commercial_contact_email?: string | null
+          commercial_contact_name?: string | null
+          commercial_contact_phone?: string | null
           company?: string | null
           contract_type?: string | null
           contract_value?: number
           created_at?: string
           document?: string | null
           email?: string | null
+          financial_contact_email?: string | null
+          financial_contact_name?: string | null
+          financial_contact_phone?: string | null
           id?: string
           lead_id?: string | null
           logo_url?: string | null
           name?: string
+          neighborhood?: string | null
           notes?: string | null
           owner_id?: string | null
           phone?: string | null
@@ -879,9 +910,11 @@ export type Database = {
           portal_slug?: string | null
           portal_user_id?: string | null
           start_date?: string | null
+          state?: string | null
           status?: string
           updated_at?: string
           website?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }
