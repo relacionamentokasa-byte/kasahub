@@ -1083,9 +1083,6 @@ function ApprovalsInstagramSection({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <h2 className="font-bold text-lg md:text-xl text-slate-900 truncate">{displayName}</h2>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[var(--portal-primary-15)] to-[var(--portal-primary-5)] border border-[var(--portal-primary-30)] text-[10px] font-bold text-[#9A6A00]">
-                ⭐ Premium
-              </span>
             </div>
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-600 font-medium mb-2">
               <span><b className="text-slate-900">{approved}</b> Aprovadas</span>
