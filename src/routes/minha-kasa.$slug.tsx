@@ -247,79 +247,91 @@ function MinhaKasaPage() {
   return (
     <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900">
       <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
-        {/* PROFILE CARD (Facebook-style) */}
-        <section className="bg-white md:rounded-b-xl shadow-sm overflow-visible">
-          {/* COVER — full width, top rounded; outer overflow-visible so avatar can spill */}
-          <div className="relative h-[140px] sm:h-[180px] md:h-[220px] w-full overflow-visible">
-            {/* Inner clipped layer for background + decorations */}
-            <div
-              className="absolute inset-0 md:rounded-t-xl overflow-hidden"
-              style={
-                client.portal_cover_url
-                  ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
-                  : {
-                      background:
-                        "linear-gradient(135deg, #0C1618 0%, #1A1A2E 60%, #2A2438 100%)",
-                    }
-              }
-            >
-              {!client.portal_cover_url && (
-                <>
-                  <div
-                    className="absolute inset-0 opacity-[0.12]"
-                    style={{
-                      backgroundImage:
-                        "repeating-linear-gradient(45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px)",
-                    }}
-                  />
-                  <div className="absolute top-4 right-12 size-40 rounded-full bg-[#FFBC45]/15 blur-3xl" />
-                  <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[#FFBC45]/10 blur-3xl" />
-                </>
-              )}
-            </div>
+        {/* HEADER — cover + profile info as independent blocks (no clipping card) */}
+        <div className="relative">
+          {/* 1. COVER — full width, only top rounded, no overflow clipping */}
+          <div
+            className="relative h-[140px] sm:h-[180px] md:h-[220px] w-full md:rounded-t-xl overflow-hidden shadow-sm"
+            style={
+              client.portal_cover_url
+                ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                : {
+                    background:
+                      "linear-gradient(135deg, #0C1618 0%, #1A1A2E 60%, #2A2438 100%)",
+                  }
+            }
+          >
+            {!client.portal_cover_url && (
+              <>
+                <div
+                  className="absolute inset-0 opacity-[0.12]"
+                  style={{
+                    backgroundImage:
+                      "repeating-linear-gradient(45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px)",
+                  }}
+                />
+                <div className="absolute top-4 right-12 size-40 rounded-full bg-[#FFBC45]/15 blur-3xl" />
+                <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[#FFBC45]/10 blur-3xl" />
+              </>
+            )}
             <div className="absolute top-3 right-4 z-10 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
               <Sparkles className="size-3" />
               Minha Kasa
             </div>
           </div>
 
-          {/* PROFILE INFO */}
-          <div className="px-5 md:px-8 pb-5 md:pb-6">
-            <div className="flex flex-col md:flex-row md:items-end md:gap-5 -mt-12 md:-mt-14">
-              {/* Avatar */}
-              <div className="flex justify-center md:justify-start">
-                {client.logo_url ? (
-                  <img
-                    src={client.logo_url}
-                    alt={displayName}
-                    className="size-24 md:size-32 rounded-full object-cover border-4 border-white bg-white shadow-md"
-                  />
-                ) : (
-                  <div className="size-24 md:size-32 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-md border-4 border-white bg-gradient-to-br from-[#FFBC45] to-[#E89B1F]">
-                    {displayName.charAt(0)}
-                  </div>
-                )}
-              </div>
+          {/* 2. AVATAR — overflows the cover, half above / half below */}
+          <div className="relative h-0">
+            <div className="absolute left-5 md:left-8 -translate-y-1/2 z-20 md:block hidden">
+              {client.logo_url ? (
+                <img
+                  src={client.logo_url}
+                  alt={displayName}
+                  className="size-32 rounded-full object-cover border-4 border-white bg-white shadow-lg"
+                />
+              ) : (
+                <div className="size-32 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg border-4 border-white bg-gradient-to-br from-[#FFBC45] to-[#E89B1F]">
+                  {displayName.charAt(0)}
+                </div>
+              )}
+            </div>
+            {/* Mobile avatar — centered, overlapping the cover */}
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+              {client.logo_url ? (
+                <img
+                  src={client.logo_url}
+                  alt={displayName}
+                  className="size-24 rounded-full object-cover border-4 border-white bg-white shadow-lg"
+                />
+              ) : (
+                <div className="size-24 rounded-full flex items-center justify-center text-white text-3xl font-bold shadow-lg border-4 border-white bg-gradient-to-br from-[#FFBC45] to-[#E89B1F]">
+                  {displayName.charAt(0)}
+                </div>
+              )}
+            </div>
+          </div>
 
-              {/* Name + meta */}
-              <div className="flex-1 min-w-0 text-center md:text-left mt-3 md:mt-0 md:pb-2">
-                <h1 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 truncate">
-                  {displayName}
-                </h1>
-                {clientSince && (
-                  <p className="text-[13px] md:text-sm text-slate-500 font-medium mt-0.5 capitalize">
-                    Cliente desde {clientSince}
-                  </p>
-                )}
-                <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#FFBC45]/15 to-[#FFBC45]/5 border border-[#FFBC45]/30 text-[11px] font-bold text-[#9A6A00]">
+          {/* 3. PROFILE INFO — desktop: ao lado do avatar; mobile: centralizado abaixo */}
+          <div className="bg-white md:rounded-b-xl shadow-sm">
+            <div className="px-5 md:px-8 pt-16 md:pt-4 md:pl-[168px] pb-4 md:pb-5">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 truncate text-center md:text-left">
+                {displayName}
+              </h1>
+              {clientSince && (
+                <p className="text-[13px] md:text-sm text-slate-500 font-medium mt-0.5 capitalize text-center md:text-left">
+                  Cliente desde {clientSince}
+                </p>
+              )}
+              <div className="mt-2 flex justify-center md:justify-start">
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[#FFBC45]/15 to-[#FFBC45]/5 border border-[#FFBC45]/30 text-[11px] font-bold text-[#9A6A00]">
                   <span>⭐</span>
                   <span>Cliente Premium</span>
-                </div>
+                </span>
               </div>
             </div>
 
-            {/* TAB BAR (FB-style) */}
-            <div className="mt-5 md:mt-6 -mx-5 md:-mx-8 border-t border-slate-200">
+            {/* 4. TAB BAR */}
+            <div className="border-t border-slate-200">
               <div className="flex overflow-x-auto no-scrollbar px-2 md:px-4">
                 {tabs.map((t) => (
                   <FbTabButton
@@ -335,7 +347,8 @@ function MinhaKasaPage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+
 
         {/* QUICK ALERTS — only when there is something pending (big "TUDO VERDE" hero covers the all-clear case) */}
         {!allClear && (
