@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export type ApprovalContentType = "image" | "video" | "pdf" | "text";
-export type ApprovalItemStatus = "pending" | "approved" | "rejected";
+export type ApprovalItemStatus = "pending" | "approved" | "rejected" | "archived";
 
 export interface ApprovalItem {
   id: string;
