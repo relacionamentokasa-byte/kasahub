@@ -313,7 +313,7 @@ function MinhaKasaPage() {
       <main className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-4">
         {tab === "projects" ? (
           jobs.length === 0 ? (
-            <EmptyState icon="📭" title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
+            <EmptyState icon={Inbox} title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {jobs.map((job) => (
