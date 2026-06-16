@@ -468,27 +468,12 @@ function MinhaKasaPage() {
               </div>
             )
           ) : tab === "approvals" ? (
-            pendingApprovals.length === 0 ? (
-              <EmptyState
-                icon={CheckCircle2}
-                title="Tudo aprovado!"
-                subtitle="Não há novas artes ou vídeos para revisar."
-              />
-            ) : (
-              <div className="max-w-2xl mx-auto space-y-6">
-                <div className="text-center">
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-700">
-                    📱 Aprovar artes, vídeos e textos
-                  </h2>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    {pendingApprovals.length} {pendingApprovals.length === 1 ? "item pendente" : "itens pendentes"}
-                  </p>
-                </div>
-                {pendingApprovals.map((item) => (
-                  <ApprovalFeedCard key={item.id} slug={slug} item={item} />
-                ))}
-              </div>
-            )
+            <ApprovalsInstagramSection
+              slug={slug}
+              client={client}
+              items={approvalItems}
+            />
+
           ) : tab === "finance" ? (
             <FinanceSection invoices={invoices || []} />
           ) : (
