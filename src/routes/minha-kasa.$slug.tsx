@@ -316,7 +316,7 @@ function MinhaKasaPage() {
             onClick={() => setTab("approvals")}
             icon={<CheckSquare className="size-5" />}
             label="Aprovações"
-            badge={approvalsJobs.length || undefined}
+            badge={pendingApprovals.length || undefined}
           />
           <TabButton
             active={tab === "finance"}
