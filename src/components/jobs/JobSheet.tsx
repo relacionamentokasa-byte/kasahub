@@ -1046,12 +1046,12 @@ export function JobSheet({
                         <Label className="text-xs font-bold uppercase tracking-wider">Briefing</Label>
                       </div>
                       <Textarea
-                        rows={4}
+                        rows={14}
                         value={observations}
                         onChange={(e) => setObservations(e.target.value)}
                         onBlur={() => observations !== (job as any).operational_observations && updateMut.mutate({ operational_observations: observations } as any)}
-                        placeholder="Registros internos da equipe..."
-                        className="bg-background text-sm leading-relaxed border-border min-h-[100px] text-foreground placeholder:text-foreground/50"
+                        placeholder="Registros internos da equipe, contexto da demanda, referências, observações estratégicas..."
+                        className="bg-background text-base leading-relaxed border-border min-h-[320px] text-foreground placeholder:text-foreground/50 p-4 resize-y"
                       />
                     </div>
                   </AccordionContent>
