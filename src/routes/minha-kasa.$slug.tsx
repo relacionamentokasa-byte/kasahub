@@ -2517,6 +2517,14 @@ function MinhaKasaDarkStyles() {
 [data-mk-theme="dark"] .shadow,
 [data-mk-theme="dark"] .shadow-md,
 [data-mk-theme="dark"] .shadow-lg { box-shadow: 0 4px 14px rgba(0,0,0,0.45) !important; }
+
+/* Override hardcoded brand-dark (#0C1618) — invisible on dark surfaces */
+[data-mk-theme="dark"] .text-\\[\\#0C1618\\] { color: #f8fafc !important; }
+[data-mk-theme="dark"] .border-\\[\\#0C1618\\] { border-color: rgba(255,255,255,0.25) !important; }
+[data-mk-theme="dark"] .bg-\\[\\#0C1618\\] { background-color: #1f2638 !important; }
+[data-mk-theme="dark"] .hover\\:bg-\\[\\#0C1618\\]:hover { background-color: #1f2638 !important; }
+[data-mk-theme="dark"] .hover\\:text-\\[\\#0C1618\\]:hover { color: #f8fafc !important; }
 `;
+
   return <style dangerouslySetInnerHTML={{ __html: css }} />;
 }
