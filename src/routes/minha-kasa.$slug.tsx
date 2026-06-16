@@ -468,27 +468,12 @@ function MinhaKasaPage() {
               </div>
             )
           ) : tab === "approvals" ? (
-            pendingApprovals.length === 0 ? (
-              <EmptyState
-                icon={CheckCircle2}
-                title="Tudo aprovado!"
-                subtitle="Não há novas artes ou vídeos para revisar."
-              />
-            ) : (
-              <div className="max-w-2xl mx-auto space-y-6">
-                <div className="text-center">
-                  <h2 className="text-xs font-bold uppercase tracking-widest text-slate-700">
-                    📱 Aprovar artes, vídeos e textos
-                  </h2>
-                  <p className="text-[11px] text-slate-500 mt-1">
-                    {pendingApprovals.length} {pendingApprovals.length === 1 ? "item pendente" : "itens pendentes"}
-                  </p>
-                </div>
-                {pendingApprovals.map((item) => (
-                  <ApprovalFeedCard key={item.id} slug={slug} item={item} />
-                ))}
-              </div>
-            )
+            <ApprovalsInstagramSection
+              slug={slug}
+              client={client}
+              items={approvalItems}
+            />
+
           ) : tab === "finance" ? (
             <FinanceSection invoices={invoices || []} />
           ) : (
@@ -996,7 +981,457 @@ function timeAgoPtBR(iso: string): string {
   return format(new Date(iso), "dd 'de' MMM", { locale: ptBR });
 }
 
+
+// ============= APROVAÇÕES — ESTILO INSTAGRAM =============
+
+function approvalFormatLabel(item: ApprovalItem): string {
+  // Try to infer a short format label from the title; fall back to content type.
+  const t = (item.title || "").toLowerCase();
+  if (/(reels?|tiktok|short)/.test(t)) return "Reels";
+  if (/story|stories/.test(t)) return "Story";
+  if (/carrossel|carousel/.test(t)) return "Carrossel";
+  if (/feed|post/.test(t)) return "Post Feed";
+  if (item.content_type === "video") return "Vídeo";
+  if (item.content_type === "pdf") return "PDF";
+  if (item.content_type === "text") return "Legenda";
+  return "Post";
+}
+
+function ApprovalsInstagramSection({
+  slug,
+  client,
+  items,
+}: {
+  slug: string;
+  client: ClientInfo;
+  items: ApprovalItem[];
+}) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [visible, setVisible] = useState(12);
+
+  const displayName = client.company || client.name;
+  const approved = items.filter((i) => i.status === "approved").length;
+  const pending = items.filter((i) => i.status === "pending").length;
+  const rejected = items.filter((i) => i.status === "rejected").length;
+
+  const filtered = useMemo(() => {
+    const sorted = [...items].sort((a, b) => {
+      // Pending first, then most recent
+      if (a.status === "pending" && b.status !== "pending") return -1;
+      if (b.status === "pending" && a.status !== "pending") return 1;
+      return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
+    });
+    if (filter === "all") return sorted;
+    return sorted.filter((i) => i.status === filter);
+  }, [items, filter]);
+
+  const shown = filtered.slice(0, visible);
+  const hasMore = filtered.length > visible;
+
+  // Infinite scroll sentinel
+  useEffect(() => {
+    if (!hasMore) return;
+    const onScroll = () => {
+      if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 600) {
+        setVisible((v) => v + 12);
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [hasMore]);
+
+  const activeItem = activeId ? items.find((i) => i.id === activeId) || null : null;
+
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={CheckCircle2}
+        title="Ainda não há artes para revisar."
+        subtitle="Quando sua equipe enviar artes, vídeos ou legendas, eles aparecerão aqui."
+      />
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto">
+      {/* INSTAGRAM-STYLE PROFILE HEADER */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-5 md:p-6 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+        <div className="flex items-center gap-5 md:gap-8">
+          {/* Avatar */}
+          <div className="shrink-0">
+            {client.logo_url ? (
+              <img
+                src={client.logo_url}
+                alt={displayName}
+                className="size-20 md:size-24 rounded-full object-cover border-2 border-slate-200 bg-white"
+              />
+            ) : (
+              <div className="size-20 md:size-24 rounded-full flex items-center justify-center text-white text-3xl font-bold border-2 border-slate-200 bg-gradient-to-br from-[var(--portal-primary)] to-[var(--portal-primary-dark)]">
+                {displayName.charAt(0)}
+              </div>
+            )}
+          </div>
+
+          {/* Info + stats */}
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <h2 className="font-bold text-lg md:text-xl text-slate-900 truncate">{displayName}</h2>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-[var(--portal-primary-15)] to-[var(--portal-primary-5)] border border-[var(--portal-primary-30)] text-[10px] font-bold text-[#9A6A00]">
+                ⭐ Premium
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-slate-600 font-medium mb-2">
+              <span><b className="text-slate-900">{approved}</b> Aprovadas</span>
+              <span className="text-slate-300">•</span>
+              <span><b className="text-slate-900">{pending}</b> Pendentes</span>
+              <span className="text-slate-300">•</span>
+              <span><b className="text-slate-900">{rejected}</b> Ajustes</span>
+            </div>
+            <p className="text-[13px] text-slate-700">
+              <span className="font-semibold">Campanhas ativas</span>
+              <span className="text-slate-400"> • </span>
+              <span>Marketing Digital</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Filter tabs */}
+        <div className="mt-5 -mx-5 md:-mx-6 border-t border-slate-200">
+          <div className="flex justify-around text-[11px] font-bold uppercase tracking-wider">
+            {([
+              { k: "all", label: `Tudo (${items.length})` },
+              { k: "pending", label: `⏳ Pendentes (${pending})` },
+              { k: "approved", label: `✅ Aprovadas (${approved})` },
+              { k: "rejected", label: `✏️ Ajustes (${rejected})` },
+            ] as const).map((f) => {
+              const active = filter === f.k;
+              return (
+                <button
+                  key={f.k}
+                  type="button"
+                  onClick={() => { setFilter(f.k); setVisible(12); }}
+                  className={`flex-1 py-3 px-2 border-t-2 transition-colors ${
+                    active
+                      ? "border-slate-900 text-slate-900"
+                      : "border-transparent text-slate-400 hover:text-slate-600"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* INSTAGRAM GRID — 3 columns, 4px gap */}
+      <div className="mt-3 md:mt-4 grid grid-cols-3 gap-1">
+        {shown.map((item) => (
+          <ApprovalGridTile
+            key={item.id}
+            item={item}
+            onClick={() => setActiveId(item.id)}
+          />
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center py-12 text-sm text-slate-500">
+          Nenhum item neste filtro.
+        </div>
+      )}
+
+      {hasMore && (
+        <div className="text-center py-6 text-xs text-slate-400">
+          Carregando mais…
+        </div>
+      )}
+
+      {/* MODAL */}
+      {activeItem && (
+        <ApprovalFullscreenModal
+          slug={slug}
+          item={activeItem}
+          onClose={() => setActiveId(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ApprovalGridTile({ item, onClick }: { item: ApprovalItem; onClick: () => void }) {
+  const isImg = item.content_type === "image" && item.content_url;
+  const isVid = item.content_type === "video" && item.content_url;
+
+  const badge =
+    item.status === "approved"
+      ? { emoji: "✅", cls: "bg-emerald-500 text-white", title: "Aprovada" }
+      : item.status === "rejected"
+      ? { emoji: "✏️", cls: "bg-amber-400 text-amber-950", title: "Ajuste solicitado" }
+      : { emoji: "⏳", cls: "bg-orange-500 text-white", title: "Pendente" };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative block aspect-square w-full overflow-hidden bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary)] focus:z-10"
+      title={item.title}
+    >
+      {isImg ? (
+        <img
+          src={item.thumbnail_url || item.content_url!}
+          alt={item.title}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+        />
+      ) : isVid ? (
+        <>
+          {item.thumbnail_url ? (
+            <img
+              src={item.thumbnail_url}
+              alt={item.title}
+              loading="lazy"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : (
+            <video
+              src={item.content_url!}
+              muted
+              playsInline
+              preload="metadata"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          )}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="size-10 rounded-full bg-black/45 backdrop-blur flex items-center justify-center text-white">
+              <Play className="size-5 fill-current" />
+            </div>
+          </div>
+        </>
+      ) : item.content_type === "pdf" ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 gap-1.5">
+          <FileText className="size-8" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">PDF</span>
+        </div>
+      ) : (
+        <div className="absolute inset-0 p-3 bg-white text-slate-800 text-[10px] leading-tight overflow-hidden">
+          <div className="font-bold uppercase tracking-wider text-[9px] text-slate-400 mb-1">📝 Legenda</div>
+          <p className="line-clamp-[9] whitespace-pre-wrap">{item.content_text || item.caption || item.title}</p>
+        </div>
+      )}
+
+      {/* Status badge */}
+      <div
+        className={`absolute top-1.5 right-1.5 z-10 inline-flex items-center justify-center size-6 rounded-full text-[11px] font-bold shadow-md ${badge.cls}`}
+        title={badge.title}
+      >
+        {badge.emoji}
+      </div>
+
+      {/* Label overlay */}
+      <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/70 to-transparent">
+        <p className="text-[10px] md:text-[11px] font-bold text-white truncate leading-tight">
+          {approvalFormatLabel(item)}
+        </p>
+      </div>
+    </button>
+  );
+}
+
+function ApprovalFullscreenModal({
+  slug,
+  item,
+  onClose,
+}: {
+  slug: string;
+  item: ApprovalItem;
+  onClose: () => void;
+}) {
+  const qc = useQueryClient();
+  const [feedback, setFeedback] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [onClose]);
+
+  const mutation = useMutation({
+    mutationFn: async (action: "approve" | "reject") => {
+      const res = await fetch(`/api/public/portal-approval-action/${slug}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ item_id: item.id, action, feedback: feedback.trim() || null }),
+      });
+      if (!res.ok) throw new Error("action_failed");
+      return { action };
+    },
+    onSuccess: ({ action }) => {
+      qc.invalidateQueries({ queryKey: ["minha-kasa", slug] });
+      if (action === "approve") {
+        toast.success("Aprovado! ✅");
+        onClose();
+      } else {
+        toast.success("Ajuste enviado! A equipe vai revisar.");
+        setShowFeedback(false);
+        setFeedback("");
+        onClose();
+      }
+    },
+    onError: () => toast.error("Não foi possível registrar agora. Tente novamente."),
+  });
+
+  const isPending = item.status === "pending";
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-stretch sm:items-center justify-center"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full h-full sm:h-auto sm:max-h-[95vh] sm:max-w-md sm:rounded-2xl bg-black overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-gradient-to-b from-black/80 to-transparent">
+          <div className="text-white min-w-0">
+            <p className="text-xs font-bold uppercase tracking-wider opacity-80">{approvalFormatLabel(item)}</p>
+            <p className="text-sm font-semibold truncate">{item.title}</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar"
+            className="shrink-0 inline-flex items-center justify-center size-9 rounded-full bg-white/15 hover:bg-white/25 text-white"
+          >
+            <X className="size-5" />
+          </button>
+        </div>
+
+        {/* Media */}
+        <div className="flex-1 flex items-center justify-center overflow-auto bg-black">
+          {item.content_type === "image" && item.content_url ? (
+            <img src={item.content_url} alt={item.title} className="w-full h-full object-contain" />
+          ) : item.content_type === "video" && item.content_url ? (
+            <video src={item.content_url} controls autoPlay className="w-full h-full object-contain" />
+          ) : item.content_type === "pdf" && item.content_url ? (
+            <a
+              href={item.content_url}
+              target="_blank"
+              rel="noreferrer"
+              className="flex flex-col items-center justify-center gap-3 text-white hover:text-[var(--portal-primary)] p-10"
+            >
+              <FileText className="size-20" />
+              <span className="text-base font-bold">Abrir PDF</span>
+              <span className="text-xs text-white/60">Abre em nova aba</span>
+            </a>
+          ) : item.content_type === "text" && item.content_text ? (
+            <div className="w-full max-h-full overflow-y-auto bg-white text-slate-900 p-6 whitespace-pre-wrap text-sm leading-relaxed">
+              {item.content_text}
+            </div>
+          ) : (
+            <div className="text-white/60 text-sm">Conteúdo indisponível</div>
+          )}
+        </div>
+
+        {/* Caption */}
+        {item.caption && (
+          <div className="px-4 py-3 bg-black/85 border-t border-white/10 max-h-32 overflow-y-auto">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-white/60">📝 Legenda</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(item.caption || "").then(
+                    () => toast.success("Legenda copiada!"),
+                    () => toast.error("Não foi possível copiar."),
+                  );
+                }}
+                className="text-[11px] font-bold text-[var(--portal-primary)] hover:opacity-80"
+              >
+                📋 Copiar
+              </button>
+            </div>
+            <p className="whitespace-pre-wrap text-[12px] leading-relaxed text-white/90 font-mono">
+              {item.caption}
+            </p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="bg-white p-4 space-y-3">
+          {!isPending ? (
+            <div className="text-center text-sm font-semibold text-slate-600 py-2">
+              {item.status === "approved" ? "✅ Já aprovada" : "✏️ Ajuste já solicitado"}
+            </div>
+          ) : !showFeedback ? (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => mutation.mutate("approve")}
+                disabled={mutation.isPending}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#10B981] hover:bg-[#0EA371] disabled:opacity-50 text-white font-bold py-3 text-sm shadow-md"
+              >
+                <CheckCircle2 className="size-4" /> APROVAR
+              </button>
+              <button
+                onClick={() => setShowFeedback(true)}
+                disabled={mutation.isPending}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)] disabled:opacity-50 text-slate-900 font-bold py-3 text-sm shadow-md"
+              >
+                ✏️ AJUSTAR
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <label className="block text-sm font-bold text-slate-800">
+                ✏️ O que precisa ser ajustado?
+              </label>
+              <textarea
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                rows={3}
+                autoFocus
+                placeholder="Descreva os ajustes necessários..."
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--portal-primary)]"
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    if (!feedback.trim()) {
+                      toast.error("Descreva o ajuste antes de enviar.");
+                      return;
+                    }
+                    mutation.mutate("reject");
+                  }}
+                  disabled={mutation.isPending}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#EF4444] hover:bg-[#DC2626] disabled:opacity-50 text-white font-bold py-3 text-sm shadow-md"
+                >
+                  ⬆️ Enviar Ajuste
+                </button>
+                <button
+                  onClick={() => { setShowFeedback(false); setFeedback(""); }}
+                  disabled={mutation.isPending}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 font-bold py-3 text-sm"
+                >
+                  ↩️ Voltar
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) {
+
   const qc = useQueryClient();
   const [feedback, setFeedback] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
