@@ -2227,7 +2227,31 @@ function HomeSection({
   slug: string;
   onNavigate: (t: HomeTab) => void;
 }) {
-  const { invoices, attachments, approvalItems, events } = data;
+  const { invoices, attachments, approvalItems, events, jobs } = data;
+
+  // ---- WRAPPED DO MÊS (resumo simples) ----
+  const monthStats = useMemo(() => {
+    const now = new Date();
+    const m = now.getMonth();
+    const y = now.getFullYear();
+    const inMonth = (iso?: string | null) => {
+      if (!iso) return false;
+      const d = new Date(iso);
+      return d.getMonth() === m && d.getFullYear() === y;
+    };
+    const artesEntregues = (approvalItems || []).filter(
+      (it: any) => it.status === "approved" && inMonth(it.approved_at || it.updated_at),
+    ).length;
+    const jobsConcluidos = (jobs || []).filter(
+      (j: any) => j.status === "done" && inMonth(j.updated_at),
+    ).length;
+    const reunioes = (events || []).filter(
+      (e) => (e.kind || "").toLowerCase() === "meeting" && inMonth(e.starts_at),
+    ).length;
+    return { artesEntregues, jobsConcluidos, reunioes };
+  }, [approvalItems, jobs, events]);
+
+  const monthName = new Date().toLocaleDateString("pt-BR", { month: "long" });
 
   // ---- HEALTH STATUS ----
   const hasOverdue = (invoices || []).some((i) => classifyInvoice(i) === "overdue");
@@ -2399,6 +2423,58 @@ function HomeSection({
           </ul>
         </section>
       )}
+
+      {/* WRAPPED — resumo do mês */}
+      {(monthStats.artesEntregues + monthStats.jobsConcluidos + monthStats.reunioes) > 0 && (
+        <section className="rounded-2xl p-4 md:p-5 bg-gradient-to-br from-[var(--portal-primary)]/10 via-white to-[var(--portal-primary)]/5 border border-[var(--portal-primary)]/20">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="size-4 text-[var(--portal-primary)]" />
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700">
+              Seu {monthName} até agora
+            </h2>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-slate-800">
+            {monthStats.artesEntregues > 0 && (
+              <span className="inline-flex items-baseline gap-1.5">
+                <span className="text-2xl md:text-3xl font-black text-[var(--portal-primary)] leading-none">
+                  {monthStats.artesEntregues}
+                </span>
+                <span className="text-sm font-semibold">
+                  {monthStats.artesEntregues === 1 ? "arte entregue" : "artes entregues"}
+                </span>
+              </span>
+            )}
+            {monthStats.jobsConcluidos > 0 && (
+              <>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-baseline gap-1.5">
+                  <span className="text-2xl md:text-3xl font-black text-[var(--portal-primary)] leading-none">
+                    {monthStats.jobsConcluidos}
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {monthStats.jobsConcluidos === 1 ? "job concluído" : "jobs concluídos"}
+                  </span>
+                </span>
+              </>
+            )}
+            {monthStats.reunioes > 0 && (
+              <>
+                <span className="text-slate-300">•</span>
+                <span className="inline-flex items-baseline gap-1.5">
+                  <span className="text-2xl md:text-3xl font-black text-[var(--portal-primary)] leading-none">
+                    {monthStats.reunioes}
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {monthStats.reunioes === 1 ? "reunião" : "reuniões"}
+                  </span>
+                </span>
+              </>
+            )}
+          </div>
+        </section>
+      )}
+
+
 
 
 
