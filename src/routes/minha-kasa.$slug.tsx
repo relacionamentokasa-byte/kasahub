@@ -1160,7 +1160,7 @@ function ApprovalsInstagramSection({
         <div className="mt-5 -mx-5 md:-mx-6 border-t border-slate-200">
           <div className="flex justify-around text-[11px] font-bold uppercase tracking-wider">
             {([
-              { k: "all", label: `Tudo (${items.length})` },
+              { k: "all", label: `Tudo (${feedItems.length})` },
               { k: "pending", label: `⏳ Pendentes (${pending})` },
               { k: "approved", label: `✅ Aprovadas (${approved})` },
               { k: "rejected", label: `✏️ Ajustes (${rejected})` },
