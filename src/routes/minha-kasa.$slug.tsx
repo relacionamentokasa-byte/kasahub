@@ -1058,12 +1058,27 @@ function ApprovalsInstagramSection({
   const [visible, setVisible] = useState(12);
 
   const displayName = client.company || client.name;
-  const approved = items.filter((i) => i.status === "approved").length;
-  const pending = items.filter((i) => i.status === "pending").length;
-  const rejected = items.filter((i) => i.status === "rejected").length;
+
+  // Stories go to the bubble row at the top, not into the grid
+  const storyItems = useMemo(
+    () =>
+      items
+        .filter((i) => i.format === "story")
+        .sort((a, b) => {
+          if (a.status === "pending" && b.status !== "pending") return -1;
+          if (b.status === "pending" && a.status !== "pending") return 1;
+          return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
+        }),
+    [items],
+  );
+  const feedItems = useMemo(() => items.filter((i) => i.format !== "story"), [items]);
+
+  const approved = feedItems.filter((i) => i.status === "approved").length;
+  const pending = feedItems.filter((i) => i.status === "pending").length;
+  const rejected = feedItems.filter((i) => i.status === "rejected").length;
 
   const filtered = useMemo(() => {
-    const sorted = [...items].sort((a, b) => {
+    const sorted = [...feedItems].sort((a, b) => {
       // Pending first, then most recent
       if (a.status === "pending" && b.status !== "pending") return -1;
       if (b.status === "pending" && a.status !== "pending") return 1;
@@ -1071,7 +1086,8 @@ function ApprovalsInstagramSection({
     });
     if (filter === "all") return sorted;
     return sorted.filter((i) => i.status === filter);
-  }, [items, filter]);
+  }, [feedItems, filter]);
+
 
   const shown = filtered.slice(0, visible);
   const hasMore = filtered.length > visible;
