@@ -289,6 +289,50 @@ export type Database = {
         }
         Relationships: []
       }
+      approval_item_comments: {
+        Row: {
+          approval_item_id: string
+          author_id: string | null
+          author_name: string | null
+          author_type: string
+          body: string
+          created_at: string
+          id: string
+          is_change_request: boolean
+          slide_id: string | null
+        }
+        Insert: {
+          approval_item_id: string
+          author_id?: string | null
+          author_name?: string | null
+          author_type: string
+          body: string
+          created_at?: string
+          id?: string
+          is_change_request?: boolean
+          slide_id?: string | null
+        }
+        Update: {
+          approval_item_id?: string
+          author_id?: string | null
+          author_name?: string | null
+          author_type?: string
+          body?: string
+          created_at?: string
+          id?: string
+          is_change_request?: boolean
+          slide_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_item_comments_approval_item_id_fkey"
+            columns: ["approval_item_id"]
+            isOneToOne: false
+            referencedRelation: "approval_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approval_items: {
         Row: {
           approved_at: string | null
@@ -302,11 +346,14 @@ export type Database = {
           created_by: string | null
           description: string | null
           feedback: string | null
+          format: string
           id: string
           job_id: string | null
           project_id: string | null
           rejected_at: string | null
           sent_for_approval_at: string
+          slide_statuses: Json
+          slides: Json
           sort_order: number
           status: string
           thumbnail_url: string | null
@@ -326,11 +373,14 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           feedback?: string | null
+          format?: string
           id?: string
           job_id?: string | null
           project_id?: string | null
           rejected_at?: string | null
           sent_for_approval_at?: string
+          slide_statuses?: Json
+          slides?: Json
           sort_order?: number
           status?: string
           thumbnail_url?: string | null
@@ -350,11 +400,14 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           feedback?: string | null
+          format?: string
           id?: string
           job_id?: string | null
           project_id?: string | null
           rejected_at?: string | null
           sent_for_approval_at?: string
+          slide_statuses?: Json
+          slides?: Json
           sort_order?: number
           status?: string
           thumbnail_url?: string | null
