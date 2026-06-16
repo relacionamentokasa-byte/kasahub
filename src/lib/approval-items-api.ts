@@ -38,6 +38,7 @@ export async function createApprovalItem(input: {
   content_type: ApprovalContentType;
   content_url?: string | null;
   content_text?: string | null;
+  caption?: string | null;
   thumbnail_url?: string | null;
 }): Promise<ApprovalItem> {
   const { data: u } = await supabase.auth.getUser();
