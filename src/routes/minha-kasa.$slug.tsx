@@ -2234,7 +2234,7 @@ function HomeSection({
       ? "green"
       : "yellow";
 
-  // ---- RECENT FILES (flatten all job attachments + approval items with content_url) ----
+  // ---- RECENT FILES (apenas aprovações aprovadas da última semana) ----
   const recentFiles = useMemo(() => {
     type Item = {
       id: string;
@@ -2244,26 +2244,12 @@ function HomeSection({
       createdAt: string;
     };
     const items: Item[] = [];
-    Object.values(attachments || {}).forEach((arr) => {
-      (arr || []).forEach((a) => {
-        const kind: Item["kind"] = isImage(a)
-          ? "image"
-          : isVideo(a)
-            ? "video"
-            : /\.pdf$/i.test(a.file_name)
-              ? "pdf"
-              : "other";
-        items.push({
-          id: a.id,
-          url: a.file_url,
-          name: a.file_name,
-          kind,
-          createdAt: a.created_at,
-        });
-      });
-    });
-    (approvalItems || []).forEach((it) => {
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    (approvalItems || []).forEach((it: any) => {
       if (!it.content_url) return;
+      if (it.status !== "approved") return;
+      const refDate = it.approved_at || it.updated_at || it.created_at;
+      if (!refDate || new Date(refDate).getTime() < weekAgo) return;
       const kind: Item["kind"] =
         it.content_type === "image"
           ? "image"
@@ -2277,13 +2263,14 @@ function HomeSection({
         url: it.content_url,
         name: it.title,
         kind,
-        createdAt: it.created_at,
+        createdAt: refDate,
       });
     });
     return items
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       .slice(0, 8);
-  }, [attachments, approvalItems]);
+  }, [approvalItems]);
+
 
   // ---- FINANCE KPI (current month) ----
   const now = new Date();
