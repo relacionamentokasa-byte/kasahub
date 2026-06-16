@@ -250,6 +250,15 @@ export function JobsBoard({
     const m = new Map<string, Job[]>();
     for (const s of stages) m.set(s.id, []);
     for (const j of filtered) if (j.stage_id && m.has(j.stage_id)) m.get(j.stage_id)!.push(j);
+    // Ordena cada coluna por data de entrega (cronológica, mais próxima primeiro; sem data ao final)
+    for (const [k, list] of m) {
+      list.sort((a, b) => {
+        const da = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
+        const db = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+        return da - db;
+      });
+      m.set(k, list);
+    }
     return m;
   }, [stages, filtered]);
 
@@ -687,8 +696,8 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                 <div 
                   data-testid="client-link"
                   className={cn(
-                    "flex items-center gap-1 text-[9px] font-medium px-1 transition-colors w-fit",
-                    job.client_id ? "text-foreground/40 hover:text-primary hover:underline cursor-pointer" : "text-foreground/40"
+                    "flex items-center gap-1.5 text-xs font-semibold px-1 transition-colors w-fit",
+                    job.client_id ? "text-foreground/80 hover:text-primary hover:underline cursor-pointer" : "text-foreground/50"
                   )}
                   onClick={(e) => {
                     if (job.client_id) {
@@ -701,7 +710,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                     }
                   }}
                 >
-                   <Building2 className="size-2.5 shrink-0 opacity-40" />
+                   <Building2 className="size-3.5 shrink-0 opacity-60" />
                    <span className="truncate">
                      {(job as any).clients?.company || (job as any).clients?.name || "Sem Cliente"}
                    </span>
