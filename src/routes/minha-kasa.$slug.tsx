@@ -199,7 +199,7 @@ function MinhaKasaPage() {
     <div className="min-h-screen bg-[#F8F9FA] pb-24 text-slate-900">
       {/* HEADER */}
       <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-[#0C1618] to-[#1A2D33]">
-        <div className="max-w-3xl mx-auto px-5 sm:px-8 py-8">
+        <div className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-8">
           <div className="flex items-center gap-4">
             {client.logo_url ? (
               <img
