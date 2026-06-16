@@ -2290,8 +2290,6 @@ function HomeSection({
 
   return (
     <div className="space-y-5 md:space-y-6 animate-fade-in">
-      {/* HEALTH STATUS */}
-      <HealthCard tone={healthTone} pendingApprovals={pendingApprovals.length} overdue={overdueTotal > 0} />
 
       {/* RECENT FILES — aprovadas nos últimos 7 dias */}
       {recentFiles.length > 0 && (
