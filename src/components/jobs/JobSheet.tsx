@@ -1206,3 +1206,214 @@ function RejectedFeedback({ item }: { item: ApprovalItem }) {
   );
 }
 
+function InternalNotesSection({
+  jobId,
+  team,
+  currentUser,
+}: {
+  jobId: string;
+  team: any[];
+  currentUser: any;
+}) {
+  const qc = useQueryClient();
+  const [body, setBody] = useState("");
+  const [mentions, setMentions] = useState<Array<{ id: string; name: string }>>([]);
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const { data: notes = [] } = useQuery({
+    queryKey: ["job-internal-notes", jobId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("job_comments")
+        .select("id, content, mentions, created_at, user_id, is_internal")
+        .eq("job_id", jobId)
+        .eq("is_internal", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const addMut = useMutation({
+    mutationFn: async () => {
+      if (!body.trim()) throw new Error("Escreva uma observação");
+      const mentionIds = mentions.map((m) => m.id);
+      const { error } = await supabase.from("job_comments").insert({
+        job_id: jobId,
+        user_id: currentUser?.id,
+        content: body.trim(),
+        mentions: mentionIds,
+        is_internal: true,
+        type: "internal_note",
+      } as any);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setBody("");
+      setMentions([]);
+      qc.invalidateQueries({ queryKey: ["job-internal-notes", jobId] });
+      toast.success(mentions.length > 0 ? `Observação registrada — ${mentions.length} usuário(s) notificado(s)` : "Observação registrada");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const delMut = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("job_comments").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["job-internal-notes", jobId] }),
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  function toggleMention(p: any) {
+    const name = p.display_name || p.full_name || "usuário";
+    setMentions((prev) => {
+      if (prev.some((m) => m.id === p.id)) return prev.filter((m) => m.id !== p.id);
+      // also append @name to body if not present
+      setBody((b) => (b.includes(`@${name}`) ? b : (b ? b + " " : "") + `@${name} `));
+      return [...prev, { id: p.id, name }];
+    });
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Textarea
+          ref={textareaRef}
+          rows={3}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Escreva uma observação interna (somente equipe)..."
+          className="bg-background text-sm border-border min-h-[80px] text-foreground placeholder:text-foreground/50"
+        />
+        {mentions.length > 0 && (
+          <div className="flex flex-wrap gap-1.5">
+            {mentions.map((m) => (
+              <span
+                key={m.id}
+                className="inline-flex items-center gap-1 text-[11px] bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5"
+              >
+                <AtSign className="size-3" /> {m.name}
+                <button
+                  type="button"
+                  onClick={() => setMentions((prev) => prev.filter((x) => x.id !== m.id))}
+                  className="ml-1 hover:text-destructive"
+                >
+                  <X className="size-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+        <div className="flex items-center justify-between gap-2">
+          <Popover open={mentionOpen} onOpenChange={setMentionOpen}>
+            <PopoverTrigger asChild>
+              <Button type="button" variant="outline" size="sm" className="h-8 gap-2 text-xs">
+                <AtSign className="size-3.5" /> Mencionar usuário
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-0 bg-surface border-border" align="start">
+              <Command>
+                <CommandInput placeholder="Buscar pessoa..." className="h-9" />
+                <CommandList>
+                  <CommandEmpty>Ninguém encontrado.</CommandEmpty>
+                  <CommandGroup>
+                    {team.map((p: any) => {
+                      const checked = mentions.some((m) => m.id === p.id);
+                      return (
+                        <CommandItem
+                          key={p.id}
+                          onSelect={() => toggleMention(p)}
+                          className="gap-2"
+                        >
+                          <Avatar className="size-5">
+                            <AvatarImage src={p.avatar_url || ""} />
+                            <AvatarFallback className="text-[9px] bg-primary/20 text-primary">
+                              {(p.display_name || p.full_name || "?").charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs flex-1 truncate">{p.display_name || p.full_name}</span>
+                          {checked && <Check className="size-3.5 text-primary" />}
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+          <Button
+            type="button"
+            size="sm"
+            onClick={() => addMut.mutate()}
+            disabled={!body.trim() || addMut.isPending}
+            className="h-8 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 text-xs"
+          >
+            <Send className="size-3.5" /> Registrar
+          </Button>
+        </div>
+      </div>
+
+      <Separator />
+
+      <div className="space-y-3">
+        {notes.length === 0 && (
+          <p className="text-[10px] text-foreground/40 uppercase font-bold tracking-widest text-center py-4">
+            Nenhuma observação interna ainda
+          </p>
+        )}
+        {notes.map((n: any) => {
+          const author = team.find((t) => t.id === n.user_id);
+          const mentionIds: string[] = Array.isArray(n.mentions) ? n.mentions.map((m: any) => (typeof m === "string" ? m : m?.user_id || m?.id)).filter(Boolean) : [];
+          const mentionedUsers = mentionIds
+            .map((id) => team.find((t) => t.id === id))
+            .filter(Boolean);
+          return (
+            <div key={n.id} className="border border-border bg-background/40 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Avatar className="size-6 shrink-0">
+                    <AvatarImage src={author?.avatar_url || ""} />
+                    <AvatarFallback className="text-[9px] bg-primary/20 text-primary">
+                      {(author?.display_name || author?.full_name || "?").charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-semibold truncate">{author?.display_name || author?.full_name || "Usuário"}</span>
+                  <span className="text-[10px] text-foreground/40 font-mono">
+                    {format(new Date(n.created_at), "dd/MM · HH:mm", { locale: ptBR })}
+                  </span>
+                </div>
+                {n.user_id === currentUser?.id && (
+                  <button
+                    type="button"
+                    onClick={() => confirm("Excluir esta observação?") && delMut.mutate(n.id)}
+                    className="text-foreground/30 hover:text-destructive transition"
+                    aria-label="Excluir"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </button>
+                )}
+              </div>
+              <p className="text-sm whitespace-pre-wrap text-foreground/90">{n.content}</p>
+              {mentionedUsers.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {mentionedUsers.map((u: any) => (
+                    <span
+                      key={u.id}
+                      className="inline-flex items-center gap-1 text-[10px] bg-primary/10 text-primary border border-primary/20 rounded-full px-2 py-0.5"
+                    >
+                      <AtSign className="size-2.5" /> {u.display_name || u.full_name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
