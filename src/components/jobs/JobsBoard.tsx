@@ -781,8 +781,8 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
           <div className="flex items-center gap-2">
             {job.due_date && (
               <div className={cn(
-                "text-[9px] font-bold px-1.5 py-0.5 rounded bg-muted/30",
-                new Date(job.due_date) < new Date() && !job.done_at ? "text-rose-500 bg-rose-500/10" : "text-foreground/40"
+                "text-xs font-bold px-2 py-1 rounded-md bg-muted/30",
+                new Date(job.due_date) < new Date() && !job.done_at ? "text-rose-500 bg-rose-500/10" : "text-foreground/70"
               )}>
                 {format(new Date(job.due_date), "dd/MM")}
               </div>
