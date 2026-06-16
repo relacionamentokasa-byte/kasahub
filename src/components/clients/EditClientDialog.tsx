@@ -249,7 +249,8 @@ export function EditClientDialog({
                   label="Enviar capa"
                 />
                 <p className="text-[10px] text-foreground/40">
-                  Imagem horizontal exibida no topo do portal do cliente. Recomendado 1600×400px. Se vazio, usamos um gradiente padrão da Kasa.
+                  Imagem horizontal exibida no topo do portal do cliente.<br/>
+                  <strong>Recomendado: 1920×480px</strong> (proporção 4:1), JPG ou PNG até 2MB. Mantenha elementos importantes no centro — as bordas podem ser cortadas em telas menores. Se vazio, usamos o gradiente das cores definidas abaixo.
                 </p>
               </div>
 
