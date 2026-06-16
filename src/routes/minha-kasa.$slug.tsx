@@ -1274,10 +1274,21 @@ function ApprovalGridTile({ item, onClick }: { item: ApprovalItem; onClick: () =
         {badge.emoji}
       </div>
 
+      {/* Multi-slide indicator (carousel/story) */}
+      {item.format && item.format !== "single" && (item.slides?.length ?? 0) > 1 && (
+        <div className="absolute top-1.5 left-1.5 z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/60 backdrop-blur text-white text-[10px] font-bold shadow-md">
+          {item.format === "story" ? "📱" : "🎠"}
+          <span>{item.slides!.length}</span>
+        </div>
+      )}
+
       {/* Label overlay */}
       <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-gradient-to-t from-black/70 to-transparent">
         <p className="text-[10px] md:text-[11px] font-bold text-white truncate leading-tight">
           {approvalFormatLabel(item)}
+          {approvalSlideSummary(item) && (
+            <span className="font-normal opacity-80"> · {approvalSlideSummary(item)}</span>
+          )}
         </p>
       </div>
     </button>
