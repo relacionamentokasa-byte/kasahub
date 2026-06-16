@@ -248,10 +248,10 @@ function MinhaKasaPage() {
     <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900">
       <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
         {/* PROFILE CARD (Facebook-style) */}
-        <section className="bg-white md:rounded-xl shadow-sm overflow-hidden">
-          {/* COVER */}
+        <section className="bg-white md:rounded-b-xl shadow-sm">
+          {/* COVER — full width, only top rounded, no side clipping */}
           <div
-            className="relative h-[160px] sm:h-[220px] md:h-[280px] w-full overflow-hidden"
+            className="relative h-[140px] sm:h-[180px] md:h-[220px] w-full md:rounded-t-xl overflow-hidden"
             style={
               client.portal_cover_url
                 ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
@@ -271,8 +271,8 @@ function MinhaKasaPage() {
                       "repeating-linear-gradient(45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px)",
                   }}
                 />
-                <div className="absolute -top-16 -right-10 size-64 rounded-full bg-[#FFBC45]/15 blur-3xl" />
-                <div className="absolute -bottom-20 -left-10 size-72 rounded-full bg-[#FFBC45]/10 blur-3xl" />
+                <div className="absolute top-4 right-12 size-40 rounded-full bg-[#FFBC45]/15 blur-3xl" />
+                <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[#FFBC45]/10 blur-3xl" />
               </>
             )}
             <div className="absolute top-3 right-4 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
