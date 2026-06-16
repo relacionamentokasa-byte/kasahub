@@ -26,6 +26,17 @@ type Client = {
   document: string | null;
   website?: string | null;
   address?: string | null;
+  address_number?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zip_code?: string | null;
+  commercial_contact_name?: string | null;
+  commercial_contact_phone?: string | null;
+  commercial_contact_email?: string | null;
+  financial_contact_name?: string | null;
+  financial_contact_phone?: string | null;
+  financial_contact_email?: string | null;
   notes: string | null;
   logo_url: string | null;
   brand_primary: string | null;
@@ -60,6 +71,17 @@ export function EditClientDialog({
     document: client.document ?? "",
     website: client.website ?? "",
     address: client.address ?? "",
+    address_number: client.address_number ?? "",
+    neighborhood: client.neighborhood ?? "",
+    city: client.city ?? "",
+    state: client.state ?? "",
+    zip_code: client.zip_code ?? "",
+    commercial_contact_name: client.commercial_contact_name ?? "",
+    commercial_contact_phone: client.commercial_contact_phone ?? "",
+    commercial_contact_email: client.commercial_contact_email ?? "",
+    financial_contact_name: client.financial_contact_name ?? "",
+    financial_contact_phone: client.financial_contact_phone ?? "",
+    financial_contact_email: client.financial_contact_email ?? "",
     notes: client.notes ?? "",
     logo_url: (client.logo_url ?? "") as string | null,
     brand_primary: client.brand_primary ?? "#FFBC45",
