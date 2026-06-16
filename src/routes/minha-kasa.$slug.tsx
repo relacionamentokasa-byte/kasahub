@@ -269,22 +269,24 @@ function MinhaKasaPage() {
             </div>
           )
         ) : tab === "approvals" ? (
-          approvalsJobs.length === 0 ? (
+          pendingApprovals.length === 0 ? (
             <EmptyState
               icon="✅"
               title="Nada para aprovar agora."
               subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
             />
           ) : (
-            <div className="max-w-2xl mx-auto space-y-4">
-              {approvalsJobs.map((job) => (
-                <ApprovalCard
-                  key={job.id}
-                  slug={slug}
-                  job={job}
-                  attachments={attachments[job.id] || []}
-                  approvals={approvals?.[job.id] || []}
-                />
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="text-center">
+                <h2 className="text-xs font-bold uppercase tracking-widest text-slate-700">
+                  📱 Aprovar artes, vídeos e textos
+                </h2>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  {pendingApprovals.length} {pendingApprovals.length === 1 ? "item pendente" : "itens pendentes"}
+                </p>
+              </div>
+              {pendingApprovals.map((item) => (
+                <ApprovalFeedCard key={item.id} slug={slug} item={item} />
               ))}
             </div>
           )
