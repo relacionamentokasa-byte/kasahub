@@ -2701,7 +2701,10 @@ export type Database = {
           id: string
           is_recurring: boolean | null
           kind: string | null
+          motivo_diferenca: string | null
           notes: string | null
+          observacao_diferenca: string | null
+          paid_value: number | null
           payment_date: string | null
           payment_method: string | null
           project_id: string | null
@@ -2709,6 +2712,8 @@ export type Database = {
           status: string
           type: string
           updated_at: string | null
+          valor_previsto: number
+          valor_real: number | null
         }
         Insert: {
           amount: number
@@ -2723,7 +2728,10 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           kind?: string | null
+          motivo_diferenca?: string | null
           notes?: string | null
+          observacao_diferenca?: string | null
+          paid_value?: number | null
           payment_date?: string | null
           payment_method?: string | null
           project_id?: string | null
@@ -2731,6 +2739,8 @@ export type Database = {
           status: string
           type: string
           updated_at?: string | null
+          valor_previsto?: number
+          valor_real?: number | null
         }
         Update: {
           amount?: number
@@ -2745,7 +2755,10 @@ export type Database = {
           id?: string
           is_recurring?: boolean | null
           kind?: string | null
+          motivo_diferenca?: string | null
           notes?: string | null
+          observacao_diferenca?: string | null
+          paid_value?: number | null
           payment_date?: string | null
           payment_method?: string | null
           project_id?: string | null
@@ -2753,6 +2766,8 @@ export type Database = {
           status?: string
           type?: string
           updated_at?: string | null
+          valor_previsto?: number
+          valor_real?: number | null
         }
         Relationships: [
           {
