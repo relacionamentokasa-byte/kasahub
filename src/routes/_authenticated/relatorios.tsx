@@ -565,17 +565,19 @@ function FinancialPage() {
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Vencimento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Descrição / Cliente</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Categoria</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Valor</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Previsto</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Real</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Diferença</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-center">Status</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={6} className="h-32 text-center text-foreground/30 italic">Carregando...</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="h-32 text-center text-foreground/30 italic">Carregando...</TableCell></TableRow>
             ) : filteredTransactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-64 text-center">
+                <TableCell colSpan={9} className="h-64 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
                     <div className="size-16 rounded-full bg-muted flex items-center justify-center">
                       <Wallet className="size-8" />
@@ -585,7 +587,14 @@ function FinancialPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTransactions.map((t) => (
+              filteredTransactions.map((t: any) => {
+                const previsto = Number(t.valor_previsto ?? t.amount ?? 0);
+                const real = t.valor_real != null ? Number(t.valor_real) : null;
+                const diff = real != null ? real - previsto : 0;
+                const hasDiff = real != null && Math.abs(diff) > 0.005;
+                const sign = t.type === "income" ? "+" : "-";
+                const typeColor = t.type === "income" ? "text-emerald-500" : "text-red-500";
+                return (
                 <TableRow key={t.id} className="group hover:bg-muted/10 transition-colors">
                   <TableCell className="py-4">
                     <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
@@ -609,8 +618,38 @@ function FinancialPage() {
                       transactionType={t.type}
                     />
                   </TableCell>
-                  <TableCell className={cn("py-4 text-right font-bold text-sm", t.type === "income" ? "text-emerald-500" : "text-red-500")}>
-                    {t.type === "income" ? "+" : "-"} {brl(Number(t.amount))}
+                  <TableCell className={cn("py-4 text-right font-semibold text-sm tabular-nums", typeColor)}>
+                    {sign} {brl(previsto)}
+                  </TableCell>
+                  <TableCell className={cn("py-4 text-right text-sm tabular-nums", real != null ? typeColor : "text-foreground/30")}>
+                    {real != null ? `${sign} ${brl(real)}` : "—"}
+                  </TableCell>
+                  <TableCell className="py-4 text-right">
+                    {hasDiff ? (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Badge
+                              className={cn(
+                                "rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums",
+                                diff > 0 ? "bg-orange-500 text-white" : "bg-emerald-500 text-white"
+                              )}
+                            >
+                              {diff > 0 ? "+" : ""}
+                              {brl(diff)}
+                            </Badge>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="text-xs">
+                              <div className="font-semibold">{t.motivo_diferenca || "Sem motivo informado"}</div>
+                              {t.observacao_diferenca && <div className="text-muted-foreground mt-1 max-w-[240px]">{t.observacao_diferenca}</div>}
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    ) : (
+                      <span className="text-foreground/20 text-xs">—</span>
+                    )}
                   </TableCell>
                   <TableCell className="py-4 text-center">
                     <StatusBadge status={t.status} />
@@ -624,8 +663,16 @@ function FinancialPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         {t.status !== "paid" && (
+                          <DropdownMenuItem onClick={() => setBaixaTx(t)} className="text-emerald-600 gap-2">
+                            <CreditCard className="size-4" /> Dar Baixa
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem onClick={() => setEditingTx(t)} className="gap-2">
+                          <Pencil className="size-4" /> Editar
+                        </DropdownMenuItem>
+                        {t.status !== "paid" && (
                           <DropdownMenuItem onClick={() => statusMut.mutate({ id: t.id, status: "paid" })} className="text-emerald-500 gap-2">
-                            <CheckCircle2 className="size-4" /> Marcar como Pago
+                            <CheckCircle2 className="size-4" /> Marcar como Pago (rápido)
                           </DropdownMenuItem>
                         )}
                         {t.status === "paid" && (
@@ -640,7 +687,8 @@ function FinancialPage() {
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>
