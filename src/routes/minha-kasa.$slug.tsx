@@ -2506,6 +2506,91 @@ function KpiCard({ label, value, color, emoji }: { label: string; value: number;
 }
 
 
+function AgendaSection({ events }: { events: CalendarEventRow[] }) {
+  if (!events.length) return null;
+
+  const grouped = useMemo(() => {
+    const map = new Map<string, CalendarEventRow[]>();
+    events.forEach((ev) => {
+      const d = new Date(ev.starts_at);
+      const key = d.toISOString().slice(0, 10);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(ev);
+    });
+    return Array.from(map.entries()).slice(0, 8);
+  }, [events]);
+
+  const KIND_META: Record<string, { emoji: string; label: string }> = {
+    meeting: { emoji: "📞", label: "Reunião" },
+    post: { emoji: "📱", label: "Publicação" },
+    delivery: { emoji: "🚀", label: "Entrega" },
+    deadline: { emoji: "⏰", label: "Prazo" },
+    other: { emoji: "📌", label: "Evento" },
+  };
+
+  return (
+    <section>
+      <div className="flex items-center justify-between mb-3 px-1">
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
+          <Calendar className="size-3.5 text-[var(--portal-primary)]" />
+          Próximas datas
+        </h2>
+        <span className="text-[11px] font-bold text-slate-500">
+          {events.length} {events.length === 1 ? "evento" : "eventos"}
+        </span>
+      </div>
+
+      <div className="bg-white border border-slate-200 rounded-2xl divide-y divide-slate-100 overflow-hidden">
+        {grouped.map(([dateKey, dayEvents]) => {
+          const d = new Date(dateKey + "T12:00:00");
+          const day = d.getDate();
+          const month = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+          const weekday = d.toLocaleDateString("pt-BR", { weekday: "short" }).replace(".", "");
+          const isToday = dateKey === new Date().toISOString().slice(0, 10);
+          return (
+            <div key={dateKey} className="flex gap-3 p-3.5">
+              {/* date pill */}
+              <div
+                className={`flex-shrink-0 w-14 rounded-xl flex flex-col items-center justify-center py-2 ${
+                  isToday
+                    ? "bg-[var(--portal-primary)] text-white"
+                    : "bg-slate-50 text-slate-700"
+                }`}
+              >
+                <span className="text-[9px] font-bold uppercase tracking-wider opacity-70">{weekday}</span>
+                <span className="text-xl font-black leading-none mt-0.5">{day}</span>
+                <span className="text-[9px] font-bold uppercase mt-0.5 opacity-70">{month}</span>
+              </div>
+
+              {/* events */}
+              <div className="flex-1 min-w-0 space-y-1.5">
+                {dayEvents.map((ev) => {
+                  const kindKey = (ev.kind || "other").toLowerCase();
+                  const meta = KIND_META[kindKey] || KIND_META.other;
+                  const time = ev.all_day
+                    ? "Dia todo"
+                    : new Date(ev.starts_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+                  return (
+                    <div key={ev.id} className="flex items-start gap-2">
+                      <span className="text-base leading-tight mt-0.5">{meta.emoji}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 leading-tight truncate">{ev.title}</p>
+                        <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                          {time} • {meta.label}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
 function MinhaKasaDarkStyles() {
   // Scoped dark-mode overrides for the minha-kasa portal.
   // Maps slate/white utility classes used in this file to dark equivalents
