@@ -36,6 +36,8 @@ type Client = {
   portal_slug?: string | null;
   portal_enabled?: boolean | null;
   portal_cover_url?: string | null;
+  portal_primary_color?: string | null;
+  portal_cover_color?: string | null;
 };
 
 
