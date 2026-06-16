@@ -1442,6 +1442,7 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_internal: boolean
           is_system: boolean | null
           job_id: string
           mentions: Json
@@ -1455,6 +1456,7 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_internal?: boolean
           is_system?: boolean | null
           job_id: string
           mentions?: Json
@@ -1468,6 +1470,7 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_internal?: boolean
           is_system?: boolean | null
           job_id?: string
           mentions?: Json
