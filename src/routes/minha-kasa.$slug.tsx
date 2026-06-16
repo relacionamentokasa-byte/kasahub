@@ -248,34 +248,36 @@ function MinhaKasaPage() {
     <div className="min-h-screen bg-[#F0F2F5] pb-12 text-slate-900">
       <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
         {/* PROFILE CARD (Facebook-style) */}
-        <section className="bg-white md:rounded-b-xl shadow-sm">
-          {/* COVER — full width, only top rounded, no side clipping */}
-          <div
-            className="relative h-[140px] sm:h-[180px] md:h-[220px] w-full md:rounded-t-xl overflow-hidden"
-            style={
-              client.portal_cover_url
-                ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
-                : {
-                    background:
-                      "linear-gradient(135deg, #0C1618 0%, #1A1A2E 60%, #2A2438 100%)",
-                  }
-            }
-          >
-            {!client.portal_cover_url && (
-              <>
-                {/* Subtle geometric gold pattern */}
-                <div
-                  className="absolute inset-0 opacity-[0.12]"
-                  style={{
-                    backgroundImage:
-                      "repeating-linear-gradient(45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px)",
-                  }}
-                />
-                <div className="absolute top-4 right-12 size-40 rounded-full bg-[#FFBC45]/15 blur-3xl" />
-                <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[#FFBC45]/10 blur-3xl" />
-              </>
-            )}
-            <div className="absolute top-3 right-4 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+        <section className="bg-white md:rounded-b-xl shadow-sm overflow-visible">
+          {/* COVER — full width, top rounded; outer overflow-visible so avatar can spill */}
+          <div className="relative h-[140px] sm:h-[180px] md:h-[220px] w-full overflow-visible">
+            {/* Inner clipped layer for background + decorations */}
+            <div
+              className="absolute inset-0 md:rounded-t-xl overflow-hidden"
+              style={
+                client.portal_cover_url
+                  ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                  : {
+                      background:
+                        "linear-gradient(135deg, #0C1618 0%, #1A1A2E 60%, #2A2438 100%)",
+                    }
+              }
+            >
+              {!client.portal_cover_url && (
+                <>
+                  <div
+                    className="absolute inset-0 opacity-[0.12]"
+                    style={{
+                      backgroundImage:
+                        "repeating-linear-gradient(45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px), repeating-linear-gradient(-45deg, #FFBC45 0, #FFBC45 1px, transparent 1px, transparent 22px)",
+                    }}
+                  />
+                  <div className="absolute top-4 right-12 size-40 rounded-full bg-[#FFBC45]/15 blur-3xl" />
+                  <div className="absolute bottom-4 left-12 size-48 rounded-full bg-[#FFBC45]/10 blur-3xl" />
+                </>
+              )}
+            </div>
+            <div className="absolute top-3 right-4 z-10 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
               <Sparkles className="size-3" />
               Minha Kasa
             </div>
