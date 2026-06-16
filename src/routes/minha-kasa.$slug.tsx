@@ -742,6 +742,7 @@ function FinanceSection({ invoices }: { invoices: Invoice[] }) {
   const paidTotal = monthInvoices.filter((i) => classifyInvoice(i) === "paid").reduce((s, i) => s + i.amount, 0);
   const pendingTotal = monthInvoices.filter((i) => classifyInvoice(i) === "pending").reduce((s, i) => s + i.amount, 0);
   const overdueTotal = monthInvoices.filter((i) => classifyInvoice(i) === "overdue").reduce((s, i) => s + i.amount, 0);
+  const remainingTotal = pendingTotal + overdueTotal;
 
   // Show: overdue first, then pending sorted by due_date, then paid recent
   const sorted = [...invoices].sort((a, b) => {
@@ -755,22 +756,30 @@ function FinanceSection({ invoices }: { invoices: Invoice[] }) {
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 md:space-y-6">
       {/* RESUMO DO MÊS */}
-      <section className="rounded-2xl p-5 sm:p-6 bg-[#0C1618] text-white shadow-[0_8px_24px_rgba(12,22,24,0.25)] border border-[#1A2D33]">
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
-          <TrendingUp className="size-3.5" />
-          Resumo do mês · {format(now, "MMMM 'de' yyyy", { locale: ptBR })}
+      <section className="rounded-2xl p-5 sm:p-6 md:p-8 bg-[#0C1618] text-white shadow-[0_8px_24px_rgba(12,22,24,0.25)] border border-[#1A2D33]">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+            <TrendingUp className="size-3.5" />
+            Resumo do mês · {format(now, "MMMM 'de' yyyy", { locale: ptBR })}
+          </div>
+          <div className="hidden md:flex items-baseline gap-2">
+            <span className="text-2xl font-black text-[#FFBC45] tracking-tight tabular-nums">{fmtBRL(monthTotal)}</span>
+            <span className="text-[10px] uppercase tracking-widest text-white/60 font-bold">total faturado</span>
+          </div>
         </div>
-        <div className="mt-2 flex items-baseline gap-2">
+        <div className="md:hidden mt-2 flex items-baseline gap-2">
           <span className="text-3xl sm:text-4xl font-black text-[#FFBC45] tracking-tight">{fmtBRL(monthTotal)}</span>
           <span className="text-xs text-white/60 font-medium">total faturado</span>
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-2">
+        <div className="mt-5 md:mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-3">
           <FinanceStat label="✅ Pagas" value={paidTotal} color="#10B981" />
           <FinanceStat label="⏳ Pendentes" value={pendingTotal} color="#FFBC45" />
           <FinanceStat label="🔴 Vencidas" value={overdueTotal} color="#EF4444" />
+          <FinanceStat label="💰 Restante" value={remainingTotal} color="#F97316" />
+          <FinanceStat label="📊 Total mês" value={monthTotal} color="#FFBC45" />
         </div>
       </section>
 
@@ -778,7 +787,33 @@ function FinanceSection({ invoices }: { invoices: Invoice[] }) {
       {sorted.length === 0 ? (
         <EmptyState icon="🧾" title="Nenhuma fatura por aqui." subtitle="Quando houver lançamentos, eles aparecerão aqui." />
       ) : (
-        sorted.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)
+        <>
+          {/* MOBILE: cards */}
+          <div className="md:hidden space-y-4">
+            {sorted.map((inv) => <InvoiceCard key={inv.id} invoice={inv} />)}
+          </div>
+          {/* DESKTOP: tabela */}
+          <div className="hidden md:block bg-white border border-slate-200 rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-widest text-slate-800">📋 Faturas</h2>
+              <span className="text-xs font-semibold text-slate-600">{sorted.length} {sorted.length === 1 ? "lançamento" : "lançamentos"}</span>
+            </div>
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 text-[10px] uppercase tracking-widest font-bold text-slate-600">
+                <tr>
+                  <th className="text-left px-6 py-3">Vencimento</th>
+                  <th className="text-left px-6 py-3">Descrição</th>
+                  <th className="text-right px-6 py-3">Valor</th>
+                  <th className="text-center px-6 py-3">Status</th>
+                  <th className="text-right px-6 py-3">Ação</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {sorted.map((inv) => <InvoiceRow key={inv.id} invoice={inv} />)}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );
@@ -786,12 +821,72 @@ function FinanceSection({ invoices }: { invoices: Invoice[] }) {
 
 function FinanceStat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
+    <div className="rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 md:px-4 md:py-3">
       <div className="text-[10px] font-bold uppercase tracking-wider text-white/70">{label}</div>
-      <div className="mt-1 text-sm sm:text-base font-bold tabular-nums" style={{ color }}>
+      <div className="mt-1 text-sm sm:text-base md:text-lg font-bold tabular-nums" style={{ color }}>
         {fmtBRL(value)}
       </div>
     </div>
+  );
+}
+
+function InvoiceRow({ invoice }: { invoice: Invoice }) {
+  const state = classifyInvoice(invoice);
+  const badge =
+    state === "paid"
+      ? { cls: "bg-[#10B981] text-white", label: "✅ Pago" }
+      : state === "overdue"
+        ? { cls: "bg-[#EF4444] text-white", label: "❌ Vencido" }
+        : { cls: "bg-[#FFBC45] text-white", label: "💛 Pendente" };
+
+  const dateLabel = invoice.due_date
+    ? format(new Date(invoice.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })
+    : "—";
+
+  return (
+    <tr className={state === "overdue" ? "bg-rose-50/40" : "hover:bg-slate-50/50 transition-colors"}>
+      <td className="px-6 py-4 align-top">
+        <div className="text-sm font-bold text-slate-900 tabular-nums">{dateLabel}</div>
+        {state === "paid" && invoice.payment_date && (
+          <div className="text-[11px] text-[#10B981] font-semibold mt-0.5">
+            Pago em {format(new Date(invoice.payment_date + "T00:00:00"), "dd/MM", { locale: ptBR })}
+          </div>
+        )}
+      </td>
+      <td className="px-6 py-4 align-top">
+        <div className="font-semibold text-slate-900">{invoice.description || "Fatura"}</div>
+      </td>
+      <td className="px-6 py-4 align-top text-right">
+        <span className="font-black text-slate-900 tabular-nums text-base">{fmtBRL(invoice.amount)}</span>
+      </td>
+      <td className="px-6 py-4 align-top text-center">
+        <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm inline-flex ${badge.cls}`}>
+          {badge.label}
+        </span>
+      </td>
+      <td className="px-6 py-4 align-top text-right">
+        {state !== "paid" ? (
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.alert("Em breve: pagamento online. Por enquanto, entre em contato com sua gestora.");
+              }
+            }}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-white shadow-sm transition-colors ${
+              state === "overdue" ? "bg-[#EF4444] hover:bg-[#DC2626]" : "bg-[#FFBC45] hover:bg-[#E5A93E]"
+            }`}
+          >
+            🔗 Pagar
+          </button>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs font-bold text-[#10B981]">
+            <CheckCircle2 className="size-3.5" />
+            Quitada
+          </span>
+        )}
+      </td>
+    </tr>
   );
 }
 
