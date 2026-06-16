@@ -180,13 +180,6 @@ export function ResumoFinanceiroSection() {
             color="emerald-500"
           />
           <DashboardKPI
-            icon={CalendarClock}
-            label="Parcelas Futuras"
-            value={brl(m.parcelasFuturas)}
-            subValue="Vencimento > hoje"
-            color="blue-500"
-          />
-          <DashboardKPI
             icon={Clock}
             label="Despesas Previstas"
             value={brl(m.despesasPrevistas)}
