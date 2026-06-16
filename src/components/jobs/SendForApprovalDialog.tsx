@@ -217,7 +217,13 @@ export function SendForApprovalDialog({
     mutationFn: async () => {
       if (!title.trim()) throw new Error("O título é obrigatório.");
       if (isMulti) {
-        if (slides.length < 2) throw new Error("Adicione pelo menos 2 slides.");
+        const minSlides = format === "story" ? 1 : 2;
+        if (slides.length < minSlides)
+          throw new Error(
+            format === "story"
+              ? "Adicione pelo menos 1 slide."
+              : "Adicione pelo menos 2 slides.",
+          );
       } else {
         if (contentType === "text" && !text.trim()) throw new Error("Escreva o texto a ser aprovado.");
         if (contentType !== "text" && !url.trim()) throw new Error("Informe a URL do arquivo.");
