@@ -390,12 +390,6 @@ function MinhaKasaPage() {
                   Cliente desde {clientSince}
                 </p>
               )}
-              <div className="mt-2 flex justify-center md:justify-start">
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-[var(--portal-primary-15)] to-[var(--portal-primary-5)] border border-[var(--portal-primary-30)] text-[11px] font-bold text-[#9A6A00]">
-                  <span>⭐</span>
-                  <span>Cliente Premium</span>
-                </span>
-              </div>
             </div>
 
             {/* 4. TAB BAR */}
