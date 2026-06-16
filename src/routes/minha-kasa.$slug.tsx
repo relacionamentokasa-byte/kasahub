@@ -63,6 +63,7 @@ type ClientInfo = {
   logo_url: string | null;
   brand_primary: string | null;
   portal_cover_url: string | null;
+  created_at?: string | null;
 };
 
 type StageItem = { id: string; content: string; done: boolean; order_index: number };
