@@ -2386,7 +2386,9 @@ function HomeSection({
   }, [pendingApprovals, invoices, onNavigate]);
 
   return (
-    <div className="space-y-5 md:space-y-6 animate-fade-in">
+    <div className="space-y-5 md:space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-6 animate-fade-in">
+      <div className="lg:col-span-8 space-y-5 md:space-y-6">
+
 
       {/* O QUE PRECISA DE VOCÊ */}
       {actionItems.length > 0 && (
