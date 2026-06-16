@@ -486,14 +486,20 @@ function MinhaKasaPage() {
               <EmptyState icon={Inbox} title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {jobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
-                    stages={stages?.[job.id] || []}
-                  />
-                ))}
+                {[...jobs]
+                  .sort((a, b) => {
+                    const ta = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
+                    const tb = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+                    return ta - tb;
+                  })
+                  .map((job) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      responsible={job.main_responsible_id ? responsibles[job.main_responsible_id] : null}
+                      stages={stages?.[job.id] || []}
+                    />
+                  ))}
               </div>
             )
           ) : tab === "approvals" ? (
