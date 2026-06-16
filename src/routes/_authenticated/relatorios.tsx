@@ -17,6 +17,7 @@ import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerD
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { EditTransactionDialog } from "@/components/finance/EditTransactionDialog";
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
+import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
