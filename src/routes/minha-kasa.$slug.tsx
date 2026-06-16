@@ -134,6 +134,25 @@ type Contract = {
   number_display: string | null;
 };
 
+type ApprovalSlide = {
+  id: string;
+  url: string;
+  mime_type?: string | null;
+  thumbnail_url?: string | null;
+  kind?: "image" | "video";
+};
+
+type ApprovalItemComment = {
+  id: string;
+  approval_item_id: string;
+  slide_id: string | null;
+  author_type: "client" | "team";
+  author_name: string | null;
+  body: string;
+  is_change_request: boolean;
+  created_at: string;
+};
+
 type ApprovalItem = {
   id: string;
   title: string;
@@ -151,6 +170,9 @@ type ApprovalItem = {
   rejected_at: string | null;
   created_at: string;
   job_id: string | null;
+  format?: "single" | "carousel" | "story";
+  slides?: ApprovalSlide[];
+  slide_statuses?: Record<string, "pending" | "approved" | "rejected">;
 };
 
 type ApiResponse = {
@@ -164,6 +186,7 @@ type ApiResponse = {
   proposals: Proposal[];
   currentContract: Contract | null;
   approvalItems: ApprovalItem[];
+  approvalComments?: Record<string, ApprovalItemComment[]>;
   events?: CalendarEventRow[];
 };
 
