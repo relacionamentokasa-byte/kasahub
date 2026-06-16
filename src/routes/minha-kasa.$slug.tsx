@@ -63,6 +63,8 @@ type ClientInfo = {
   logo_url: string | null;
   brand_primary: string | null;
   portal_cover_url: string | null;
+  portal_primary_color: string | null;
+  portal_cover_color: string | null;
   created_at?: string | null;
 };
 
