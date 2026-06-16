@@ -1057,6 +1057,18 @@ export function JobSheet({
                   </AccordionContent>
                 </AccordionItem>
 
+                <AccordionItem value="internal-notes" className="border border-border rounded-xl px-4 bg-muted/5 overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-2">
+                      <Lock className="size-4 text-primary" />
+                      <span className="text-sm font-bold uppercase tracking-wider">Observações Internas</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-6">
+                    <InternalNotesSection jobId={job.id} team={team} currentUser={currentUser} />
+                  </AccordionContent>
+                </AccordionItem>
+
                 <AccordionItem value="history" className="border border-border rounded-xl px-4 bg-muted/5 overflow-hidden">
                   <AccordionTrigger className="hover:no-underline py-4">
                     <div className="flex items-center gap-2">
