@@ -304,7 +304,7 @@ function MinhaKasaPage() {
       style={{ ...portalThemeVars, background: isDark ? "#0b0f1a" : "#F0F2F5", color: isDark ? "#e2e8f0" : "#0f172a" }}
     >
       <MinhaKasaDarkStyles />
-      <div className="max-w-[960px] mx-auto px-0 md:px-4 pt-0 md:pt-5">
+      <div className="max-w-[960px] lg:max-w-[1280px] mx-auto px-0 md:px-4 lg:px-6 pt-0 md:pt-5">
         {/* HEADER — cover + profile info as independent blocks (no clipping card) */}
         <div className="relative">
           {/* 1. COVER — full width, only top rounded, no overflow clipping */}
@@ -2386,7 +2386,9 @@ function HomeSection({
   }, [pendingApprovals, invoices, onNavigate]);
 
   return (
-    <div className="space-y-5 md:space-y-6 animate-fade-in">
+    <div className="space-y-5 md:space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-6 animate-fade-in">
+      <div className="lg:col-span-8 space-y-5 md:space-y-6">
+
 
       {/* O QUE PRECISA DE VOCÊ */}
       {actionItems.length > 0 && (
@@ -2523,8 +2525,7 @@ function HomeSection({
       </section>
       )}
 
-      {/* AGENDA — próximos eventos */}
-      <AgendaSection events={events || []} />
+
 
 
 
@@ -2549,8 +2550,11 @@ function HomeSection({
           <KpiCard label="Vencidas" value={overdueTotal} color="#EF4444" emoji="🔴" />
         </div>
       </section>
-
-
+      </div>
+      {/* SIDEBAR (desktop only renders as side column; mobile flows naturally) */}
+      <aside className="lg:col-span-4 space-y-5 md:space-y-6">
+        <AgendaSection events={events || []} />
+      </aside>
 
 
       {/* LIGHTBOX */}
