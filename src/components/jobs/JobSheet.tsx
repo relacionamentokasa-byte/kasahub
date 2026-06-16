@@ -83,6 +83,7 @@ export function JobSheet({
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
+  const [approvalDialog, setApprovalDialog] = useState<{ url: string; name: string } | null>(null);
 
 
   const { data: checklist = [] } = useQuery({
