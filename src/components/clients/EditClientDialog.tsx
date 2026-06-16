@@ -235,6 +235,20 @@ export function EditClientDialog({
               </div>
 
               <div className="space-y-1.5">
+                <Label>Capa do Portal (banner)</Label>
+                <ImageUpload
+                  value={form.portal_cover_url}
+                  onChange={(url) => setForm({ ...form, portal_cover_url: url })}
+                  folder="clients/covers"
+                  label="Enviar capa"
+                />
+                <p className="text-[10px] text-foreground/40">
+                  Imagem horizontal exibida no topo do portal do cliente. Recomendado 1600×400px. Se vazio, usamos um gradiente padrão da Kasa.
+                </p>
+              </div>
+
+
+              <div className="space-y-1.5">
                 <Label>Slug do Portal</Label>
                 <Input
                   value={form.portal_slug ?? ""}
