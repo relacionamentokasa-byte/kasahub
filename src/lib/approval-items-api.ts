@@ -70,3 +70,29 @@ export async function deleteApprovalItem(id: string) {
   const { error } = await sb.from("approval_items").delete().eq("id", id);
   if (error) throw error;
 }
+
+export async function archiveApprovalItem(id: string) {
+  const { error } = await sb
+    .from("approval_items")
+    .update({ status: "archived", archived_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function unarchiveApprovalItem(id: string) {
+  const { error } = await sb
+    .from("approval_items")
+    .update({ status: "pending", archived_at: null })
+    .eq("id", id);
+  if (error) throw error;
+}
+
+export async function listJobApprovalItems(jobId: string): Promise<ApprovalItem[]> {
+  const { data, error } = await sb
+    .from("approval_items")
+    .select("*")
+    .eq("job_id", jobId)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as ApprovalItem[];
+}
