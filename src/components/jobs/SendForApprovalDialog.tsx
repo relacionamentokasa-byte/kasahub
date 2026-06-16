@@ -160,6 +160,28 @@ export function SendForApprovalDialog({
             </div>
           )}
 
+          {showCaption && (
+            <div>
+              <div className="flex items-baseline justify-between">
+                <Label className="text-xs font-bold uppercase tracking-wider">📝 Legenda do post (opcional)</Label>
+                <span className={`text-[10px] font-mono ${captionOverLimit ? "text-destructive" : "text-foreground/40"}`}>
+                  {caption.length} / {CAPTION_LIMIT}
+                </span>
+              </div>
+              <Textarea
+                rows={5}
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder={"Texto que vai junto com a arte na publicação.\n\nHashtags, @menções, emojis — tudo aqui."}
+                className="mt-1.5 font-mono text-[13px]"
+              />
+              <p className="text-[10px] text-foreground/50 mt-1">
+                O cliente vê a legenda junto da arte e aprova/ajusta os dois como um post.
+              </p>
+            </div>
+          )}
+
+
           <div>
             <Label className="text-xs font-bold uppercase tracking-wider">Observação (opcional)</Label>
             <Textarea
