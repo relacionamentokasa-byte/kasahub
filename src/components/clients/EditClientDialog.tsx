@@ -67,7 +67,9 @@ export function EditClientDialog({
     start_date: client.start_date ?? "",
     portal_slug: client.portal_slug ?? "",
     portal_enabled: !!client.portal_enabled,
+    portal_cover_url: (client.portal_cover_url ?? "") as string | null,
   });
+
   const [form, setForm] = useState(init);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
