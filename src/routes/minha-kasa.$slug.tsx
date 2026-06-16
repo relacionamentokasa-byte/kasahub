@@ -203,12 +203,10 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs, responsibles, stages, attachments, approvals, invoices, proposals, currentContract } = data;
+  const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [] } = data;
   const displayName = client.company || client.name;
 
-  const approvalsJobs = jobs.filter(
-    (j) => j.status === "review" && (attachments?.[j.id]?.length || 0) > 0,
-  );
+  const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
 
   const pendingInvoicesCount = (invoices || []).filter(
     (i) => (i.status || "").toLowerCase() !== "paid" && (i.status || "").toLowerCase() !== "pago",
