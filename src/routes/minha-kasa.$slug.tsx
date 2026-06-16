@@ -217,6 +217,18 @@ function MinhaKasaPage() {
     (i) => (i.status || "").toLowerCase() !== "paid" && (i.status || "").toLowerCase() !== "pago",
   ).length;
 
+  // Urgent: overdue OR due in less than 5 days
+  const urgentInvoicesCount = (invoices || []).filter((i) => {
+    const c = classifyInvoice(i);
+    if (c === "paid") return false;
+    if (c === "overdue") return true;
+    if (!i.due_date) return false;
+    const diff = (new Date(i.due_date + "T00:00:00").getTime() - Date.now()) / 86400000;
+    return diff < 5;
+  }).length;
+
+  const allClear = pendingApprovals.length === 0 && urgentInvoicesCount === 0;
+
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-24 text-slate-900">
       {/* HEADER */}
