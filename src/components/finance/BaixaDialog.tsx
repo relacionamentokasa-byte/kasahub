@@ -56,26 +56,24 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
     }
   }, [transaction, open]);
 
-  if (!transaction) {
-    return null;
-  }
-
-  const previsto = Number(transaction.valor_previsto ?? transaction.amount ?? 0);
-  const real = transaction.valor_real != null ? Number(transaction.valor_real) : null;
+  const previsto = Number(transaction?.valor_previsto ?? transaction?.amount ?? 0);
+  const real = transaction?.valor_real != null ? Number(transaction.valor_real) : null;
   const pago = parseFloat(paidValue.replace(",", ".")) || 0;
   const diffBoleto = real != null ? real - previsto : 0;
   const diffPago = pago - previsto;
 
   const mutation = useMutation({
-    mutationFn: async () =>
-      updateTransaction(transaction.id, {
+    mutationFn: async () => {
+      if (!transaction) return;
+      return updateTransaction(transaction.id, {
         status: "paid" as any,
         payment_date: paidDate,
         paid_value: pago,
         amount: pago,
         payment_method: method,
         notes: notes || null,
-      } as any),
+      } as any);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["transactions"] });
       qc.invalidateQueries({ queryKey: ["finance-stats"] });
@@ -85,6 +83,10 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
     },
     onError: (e: any) => toast.error(e?.message || "Erro ao dar baixa."),
   });
+
+  if (!transaction) {
+    return null;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
