@@ -2525,8 +2525,7 @@ function HomeSection({
       </section>
       )}
 
-      {/* AGENDA — próximos eventos */}
-      <AgendaSection events={events || []} />
+
 
 
 
