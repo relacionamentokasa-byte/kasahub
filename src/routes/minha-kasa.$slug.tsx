@@ -135,6 +135,7 @@ type ApprovalItem = {
   content_type: "image" | "video" | "pdf" | "text";
   content_url: string | null;
   content_text: string | null;
+  caption: string | null;
   thumbnail_url: string | null;
   status: "pending" | "approved" | "rejected";
   feedback: string | null;
