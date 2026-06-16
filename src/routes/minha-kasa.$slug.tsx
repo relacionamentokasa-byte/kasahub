@@ -401,26 +401,30 @@ function TabButton({
   icon,
   label,
   badge,
+  dot,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   badge?: number;
+  dot?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center justify-center gap-0.5 py-3 transition-colors ${
+      className={`relative flex flex-col items-center justify-center gap-0.5 py-3 transition-all duration-200 ${
         active ? "text-[#FFBC45]" : "text-slate-600 hover:text-slate-900"
       }`}
     >
       <div className="relative">
         {icon}
         {badge ? (
-          <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center bg-[#F97316]">
+          <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center bg-[#EF4444] ring-2 ring-white">
             {badge}
           </span>
+        ) : dot ? (
+          <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-[#EF4444] ring-2 ring-white" />
         ) : null}
       </div>
       <span className="text-[10px] font-bold uppercase tracking-wider">
