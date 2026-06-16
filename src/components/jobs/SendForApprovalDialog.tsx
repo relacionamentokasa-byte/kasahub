@@ -52,15 +52,21 @@ export function SendForApprovalDialog({
   const [description, setDescription] = useState("");
   const [url, setUrl] = useState(defaultUrl);
   const [text, setText] = useState("");
+  const [caption, setCaption] = useState("");
   const [contentType, setContentType] = useState<ApprovalContentType>(
     defaultType ?? detectType(defaultUrl, defaultFileName),
   );
+
+  const CAPTION_LIMIT = 2200;
+  const captionOverLimit = caption.length > CAPTION_LIMIT;
+  const showCaption = contentType === "image" || contentType === "video";
 
   const mutation = useMutation({
     mutationFn: async () => {
       if (!title.trim()) throw new Error("O título é obrigatório.");
       if (contentType === "text" && !text.trim()) throw new Error("Escreva o texto a ser aprovado.");
       if (contentType !== "text" && !url.trim()) throw new Error("Informe a URL do arquivo.");
+      if (showCaption && captionOverLimit) throw new Error(`Legenda excede ${CAPTION_LIMIT} caracteres.`);
       return createApprovalItem({
         client_id: clientId,
         job_id: jobId ?? null,
@@ -70,6 +76,7 @@ export function SendForApprovalDialog({
         content_type: contentType,
         content_url: contentType === "text" ? null : url.trim(),
         content_text: contentType === "text" ? text.trim() : null,
+        caption: showCaption && caption.trim() ? caption : null,
       });
     },
     onSuccess: () => {
