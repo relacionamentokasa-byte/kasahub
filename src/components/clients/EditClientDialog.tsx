@@ -85,7 +85,9 @@ export function EditClientDialog({
         logo_url: form.logo_url || null,
         start_date: form.start_date || null,
         portal_slug: (form.portal_slug || "").trim() || null,
+        portal_cover_url: form.portal_cover_url || null,
       }),
+
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["client", client.id] });
       qc.invalidateQueries({ queryKey: ["clients"] });
