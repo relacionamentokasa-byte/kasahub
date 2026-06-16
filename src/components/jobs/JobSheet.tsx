@@ -859,6 +859,17 @@ export function JobSheet({
                               <span className="text-xs font-medium truncate text-foreground/80">{file.file_name}</span>
                             </div>
                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              {job.client_id && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                  title="Enviar para aprovação do cliente"
+                                  onClick={() => setApprovalDialog({ url: file.file_url, name: file.file_name })}
+                                >
+                                  <Send className="size-3.5" />
+                                </Button>
+                              )}
                               <Button
                                 variant="ghost"
                                 size="icon"
