@@ -1185,7 +1185,51 @@ function ApprovalsInstagramSection({
         </div>
       </div>
 
+      {/* INSTAGRAM-STYLE STORIES ROW */}
+      {storyItems.length > 0 && (
+        <div className="mt-3 md:mt-4 bg-white border border-slate-200 rounded-2xl px-3 py-4 shadow-[0_4px_16px_rgba(15,23,42,0.06)]">
+          <div className="flex items-start gap-4 overflow-x-auto pb-1 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
+            {storyItems.map((s) => {
+              const isPending = s.status === "pending";
+              const cover = s.thumbnail_url || s.content_url || s.slides?.[0]?.thumbnail_url || s.slides?.[0]?.url || null;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => setActiveId(s.id)}
+                  className={`group flex flex-col items-center gap-1.5 shrink-0 cursor-pointer ${!isPending ? "opacity-70 hover:opacity-100 transition-opacity" : ""}`}
+                  title={s.title}
+                >
+                  <div
+                    className={`relative w-[72px] h-[72px] rounded-full transition-transform group-hover:scale-105 ${
+                      isPending
+                        ? "p-[3px] bg-gradient-to-tr from-[#ec4899] via-[#f43f5e] to-[#f59e0b]"
+                        : "p-[2px] bg-slate-300"
+                    }`}
+                  >
+                    <div className="w-full h-full rounded-full border-[3px] border-white overflow-hidden bg-slate-100 flex items-center justify-center">
+                      {cover ? (
+                        <img src={cover} alt={s.title} loading="lazy" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-slate-400 text-xs font-bold">📱</span>
+                      )}
+                    </div>
+                    {(s.slides?.length ?? 0) > 1 && (
+                      <div className="absolute -bottom-1 -right-1 bg-slate-900 text-white text-[10px] font-bold min-w-5 h-5 px-1 flex items-center justify-center rounded-full border-2 border-white">
+                        {s.slides!.length}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-[11px] w-[72px] text-center truncate text-slate-700">{s.title}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* INSTAGRAM GRID — 3 columns, 4px gap */}
+
       <div className="mt-3 md:mt-4 grid grid-cols-3 gap-1">
         {shown.map((item) => (
           <ApprovalGridTile
