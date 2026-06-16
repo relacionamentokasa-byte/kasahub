@@ -107,6 +107,32 @@ export function JobSheet({
     enabled: !!job,
   });
 
+  const { data: approvalItems = [] } = useQuery({
+    queryKey: ["job-approval-items", job?.id],
+    queryFn: () => listJobApprovalItems(job!.id),
+    enabled: !!job,
+  });
+
+  const archiveApprovalMut = useMutation({
+    mutationFn: (id: string) => archiveApprovalItem(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-approval-items", job?.id] });
+      qc.invalidateQueries({ queryKey: ["approval-items"] });
+      toast.success("Item arquivado — não aparece mais no portal do cliente");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const unarchiveApprovalMut = useMutation({
+    mutationFn: (id: string) => unarchiveApprovalItem(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["job-approval-items", job?.id] });
+      qc.invalidateQueries({ queryKey: ["approval-items"] });
+      toast.success("Item restaurado — voltou ao portal do cliente");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: projects = [] } = useQuery({ queryKey: ["projects"], queryFn: () => fetchProjects() });
