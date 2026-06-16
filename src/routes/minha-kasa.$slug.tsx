@@ -19,6 +19,11 @@ import {
   Wallet,
   AlertCircle,
   TrendingUp,
+  Inbox,
+  Receipt,
+  AlertTriangle,
+  ArrowRight,
+  type LucideIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -208,54 +213,104 @@ function MinhaKasaPage() {
 
   const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
 
-  const pendingInvoicesCount = (invoices || []).filter(
-    (i) => (i.status || "").toLowerCase() !== "paid" && (i.status || "").toLowerCase() !== "pago",
-  ).length;
+
+  // Urgent: overdue OR due in less than 5 days
+  const urgentInvoicesCount = (invoices || []).filter((i) => {
+    const c = classifyInvoice(i);
+    if (c === "paid") return false;
+    if (c === "overdue") return true;
+    if (!i.due_date) return false;
+    const diff = (new Date(i.due_date + "T00:00:00").getTime() - Date.now()) / 86400000;
+    return diff < 5;
+  }).length;
+
+  const allClear = pendingApprovals.length === 0 && urgentInvoicesCount === 0;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA] pb-24 text-slate-900">
-      {/* HEADER */}
-      <header className="relative overflow-hidden border-b border-slate-200 bg-gradient-to-br from-[#0C1618] to-[#1A2D33]">
-        <div className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-8">
-          <div className="flex items-center gap-4">
+      {/* HERO BANNER */}
+      <header className="relative">
+        <div
+          className="relative h-[160px] md:h-[220px] w-full overflow-hidden"
+          style={
+            client.portal_cover_url
+              ? { backgroundImage: `url(${client.portal_cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+              : { background: "linear-gradient(135deg, #0C1618 0%, #1A2D33 55%, #FFBC45 160%)" }
+          }
+        >
+          {client.portal_cover_url && (
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0C1618]/80 via-[#0C1618]/40 to-transparent" />
+          )}
+          <div className="absolute top-3 right-4 flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
+            <Sparkles className="size-3" />
+            Minha Kasa
+          </div>
+        </div>
+        <div className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8">
+          <div className="-mt-10 md:-mt-12 flex items-end gap-4">
             {client.logo_url ? (
               <img
                 src={client.logo_url}
                 alt={displayName}
-                className="size-14 rounded-2xl object-cover border-2 border-white/20 bg-white shadow-md"
+                className="size-20 md:size-24 rounded-full object-cover border-4 border-white bg-white shadow-lg ring-1 ring-slate-200"
               />
             ) : (
-              <div className="size-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md bg-[#FFBC45]">
+              <div className="size-20 md:size-24 rounded-full flex items-center justify-center text-white text-3xl md:text-4xl font-bold shadow-lg border-4 border-white bg-[#FFBC45]">
                 {displayName.charAt(0)}
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold text-[#FFBC45]">
-                <Sparkles className="size-3" />
-                Minha Kasa
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-0.5 text-white">
-                Olá, {client.name.split(" ")[0]}!
+            <div className="flex-1 min-w-0 pb-1">
+              <h1 className="text-xl md:text-3xl font-bold tracking-tight text-slate-900 truncate">
+                Olá, {client.name.split(" ")[0]} 👋
               </h1>
-              <p className="text-xs text-white/80 mt-1 font-medium">
-                {tab === "projects"
-                  ? "Acompanhe seus projetos em tempo real."
-                  : tab === "approvals"
-                    ? "Materiais aguardando sua aprovação."
-                    : tab === "finance"
-                      ? "Suas faturas e pagamentos."
-                      : "Propostas aprovadas e contrato vigente."}
+              <p className="text-xs md:text-sm text-slate-600 font-medium">
+                Bem-vindo ao seu portal Kasa
               </p>
             </div>
           </div>
         </div>
       </header>
 
+      {/* QUICK ALERTS */}
+      <section className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 mt-5 md:mt-6">
+        {allClear ? (
+          <QuickAlert
+            tone="success"
+            icon={CheckCircle2}
+            title="Tudo em dia!"
+            subtitle="Nenhum item pendente no momento."
+          />
+        ) : (
+          <div className="grid gap-3 md:grid-cols-2">
+            {pendingApprovals.length > 0 && (
+              <QuickAlert
+                tone="danger"
+                icon={AlertCircle}
+                emoji="🚨"
+                title={`Você tem ${pendingApprovals.length} ${pendingApprovals.length === 1 ? "item aguardando aprovação" : "itens aguardando aprovação"}`}
+                subtitle="Toque para revisar agora"
+                onClick={() => setTab("approvals")}
+              />
+            )}
+            {urgentInvoicesCount > 0 && (
+              <QuickAlert
+                tone="warning"
+                icon={AlertTriangle}
+                emoji="⚠️"
+                title={`Você tem ${urgentInvoicesCount} ${urgentInvoicesCount === 1 ? "fatura pendente" : "faturas pendentes"}`}
+                subtitle="Vencendo em breve ou vencida"
+                onClick={() => setTab("finance")}
+              />
+            )}
+          </div>
+        )}
+      </section>
+
       {/* FEED */}
       <main className="max-w-3xl md:max-w-6xl mx-auto px-5 sm:px-8 py-6 space-y-4">
         {tab === "projects" ? (
           jobs.length === 0 ? (
-            <EmptyState icon="📭" title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
+            <EmptyState icon={Inbox} title="Nenhum projeto liberado no momento." subtitle="Em breve, novidades aparecerão por aqui." />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {jobs.map((job) => (
@@ -271,9 +326,9 @@ function MinhaKasaPage() {
         ) : tab === "approvals" ? (
           pendingApprovals.length === 0 ? (
             <EmptyState
-              icon="✅"
-              title="Nada para aprovar agora."
-              subtitle="Quando a equipe enviar materiais para sua revisão, eles aparecerão aqui."
+              icon={CheckCircle2}
+              title="Tudo aprovado!"
+              subtitle="Não há novas artes ou vídeos para revisar."
             />
           ) : (
             <div className="max-w-2xl mx-auto space-y-6">
@@ -323,7 +378,7 @@ function MinhaKasaPage() {
             onClick={() => setTab("finance")}
             icon={<Wallet className="size-5" />}
             label="Financeiro"
-            badge={pendingInvoicesCount || undefined}
+            dot={urgentInvoicesCount > 0}
           />
           <TabButton
             active={tab === "docs"}
@@ -343,26 +398,30 @@ function TabButton({
   icon,
   label,
   badge,
+  dot,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   badge?: number;
+  dot?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`relative flex flex-col items-center justify-center gap-0.5 py-3 transition-colors ${
+      className={`relative flex flex-col items-center justify-center gap-0.5 py-3 transition-all duration-200 ${
         active ? "text-[#FFBC45]" : "text-slate-600 hover:text-slate-900"
       }`}
     >
       <div className="relative">
         {icon}
         {badge ? (
-          <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center bg-[#F97316]">
+          <span className="absolute -top-1.5 -right-2 min-w-[16px] h-4 px-1 rounded-full text-[9px] font-bold text-white flex items-center justify-center bg-[#EF4444] ring-2 ring-white">
             {badge}
           </span>
+        ) : dot ? (
+          <span className="absolute -top-0.5 -right-0.5 size-2.5 rounded-full bg-[#EF4444] ring-2 ring-white" />
         ) : null}
       </div>
       <span className="text-[10px] font-bold uppercase tracking-wider">
@@ -372,13 +431,60 @@ function TabButton({
   );
 }
 
-function EmptyState({ icon, title, subtitle }: { icon: string; title: string; subtitle: string }) {
+function EmptyState({ icon: Icon, title, subtitle }: { icon: LucideIcon; title: string; subtitle: string }) {
   return (
     <div className="text-center py-20">
-      <div className="text-5xl mb-4">{icon}</div>
+      <div className="mx-auto mb-4 flex items-center justify-center size-20 rounded-full bg-slate-100 text-slate-400">
+        <Icon className="size-10" strokeWidth={1.5} />
+      </div>
       <p className="text-slate-800 font-semibold">{title}</p>
       <p className="text-slate-600 text-sm mt-1">{subtitle}</p>
     </div>
+  );
+}
+
+function QuickAlert({
+  tone,
+  icon: Icon,
+  emoji,
+  title,
+  subtitle,
+  onClick,
+}: {
+  tone: "danger" | "warning" | "success";
+  icon: LucideIcon;
+  emoji?: string;
+  title: string;
+  subtitle?: string;
+  onClick?: () => void;
+}) {
+  const styles =
+    tone === "danger"
+      ? "bg-rose-50 border-rose-200 text-rose-900 hover:bg-rose-100"
+      : tone === "warning"
+        ? "bg-amber-50 border-amber-200 text-amber-900 hover:bg-amber-100"
+        : "bg-emerald-50 border-emerald-200 text-emerald-900";
+  const iconStyles =
+    tone === "danger"
+      ? "bg-rose-500 text-white"
+      : tone === "warning"
+        ? "bg-amber-500 text-white"
+        : "bg-emerald-500 text-white";
+  const Wrapper: any = onClick ? "button" : "div";
+  return (
+    <Wrapper
+      onClick={onClick}
+      className={`w-full text-left flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-sm transition-all duration-200 ${styles}`}
+    >
+      <div className={`shrink-0 size-10 rounded-xl flex items-center justify-center shadow-sm ${iconStyles}`}>
+        {emoji ? <span className="text-lg leading-none">{emoji}</span> : <Icon className="size-5" />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold leading-tight truncate">{title}</p>
+        {subtitle && <p className="text-xs opacity-80 mt-0.5 truncate">{subtitle}</p>}
+      </div>
+      {onClick && <ArrowRight className="size-4 opacity-60 shrink-0" />}
+    </Wrapper>
   );
 }
 
@@ -937,7 +1043,7 @@ function FinanceSection({ invoices }: { invoices: Invoice[] }) {
 
       {/* LISTA DE FATURAS */}
       {sorted.length === 0 ? (
-        <EmptyState icon="🧾" title="Nenhuma fatura por aqui." subtitle="Quando houver lançamentos, eles aparecerão aqui." />
+        <EmptyState icon={Receipt} title="Nenhuma fatura por aqui." subtitle="Seu financeiro está em dia." />
       ) : (
         <>
           {/* MOBILE: cards */}
