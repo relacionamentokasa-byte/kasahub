@@ -128,7 +128,8 @@ function ProposalsPage() {
     installments: 1,
     payment_method: "boleto",
     first_due_date: new Date().toISOString().split("T")[0],
-    valid_until: "",
+    valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+
     intro: "Olá! É um prazer apresentar nossa proposta comercial. Nossa equipe está focada em entregar resultados excepcionais para sua marca.",
     notes: "",
     scope: "",
@@ -190,7 +191,7 @@ function ProposalsPage() {
         client_email: form.client_email || null,
         intro: form.intro || null,
         service_ids: form.service_ids,
-        valid_until: form.valid_until || null,
+        valid_until: form.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         monthly_investment: form.contract_type === "mensal" ? form.monthly_investment : 0,
         one_time_investment: form.contract_type === "avulso" ? form.one_time_investment : 0,
         total: form.contract_type === "mensal" ? form.monthly_investment : form.one_time_investment,
@@ -677,7 +678,11 @@ function ProposalsPage() {
                         value={form.valid_until}
                         onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Padrão: 7 dias a partir da emissão.
+                      </p>
                     </Field>
+
                   </div>
                 </div>
               </div>
