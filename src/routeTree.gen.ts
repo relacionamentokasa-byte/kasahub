@@ -17,6 +17,7 @@ import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
 import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as MinhaKasaSlugRouteImport } from './routes/minha-kasa.$slug'
+import { Route as LpDeltaPlusRouteImport } from './routes/lp.delta-plus'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -89,6 +90,11 @@ const PTokenRoute = PTokenRouteImport.update({
 const MinhaKasaSlugRoute = MinhaKasaSlugRouteImport.update({
   id: '/minha-kasa/$slug',
   path: '/minha-kasa/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LpDeltaPlusRoute = LpDeltaPlusRouteImport.update({
+  id: '/lp/delta-plus',
+  path: '/lp/delta-plus',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DmeTokenRoute = DmeTokenRouteImport.update({
@@ -291,6 +297,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/lp/delta-plus': typeof LpDeltaPlusRoute
   '/minha-kasa/$slug': typeof MinhaKasaSlugRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -333,6 +340,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/lp/delta-plus': typeof LpDeltaPlusRoute
   '/minha-kasa/$slug': typeof MinhaKasaSlugRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -378,6 +386,7 @@ export interface FileRoutesById {
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
+  '/lp/delta-plus': typeof LpDeltaPlusRoute
   '/minha-kasa/$slug': typeof MinhaKasaSlugRoute
   '/p/$token': typeof PTokenRoute
   '/proposal/$token': typeof ProposalTokenRoute
@@ -424,6 +433,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/lp/delta-plus'
     | '/minha-kasa/$slug'
     | '/p/$token'
     | '/proposal/$token'
@@ -466,6 +476,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/lp/delta-plus'
     | '/minha-kasa/$slug'
     | '/p/$token'
     | '/proposal/$token'
@@ -510,6 +521,7 @@ export interface FileRouteTypes {
     | '/_authenticated/relatorios'
     | '/approve/$token'
     | '/dme/$token'
+    | '/lp/delta-plus'
     | '/minha-kasa/$slug'
     | '/p/$token'
     | '/proposal/$token'
@@ -543,6 +555,7 @@ export interface RootRouteChildren {
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
+  LpDeltaPlusRoute: typeof LpDeltaPlusRoute
   MinhaKasaSlugRoute: typeof MinhaKasaSlugRoute
   PTokenRoute: typeof PTokenRoute
   ProposalTokenRoute: typeof ProposalTokenRoute
@@ -619,6 +632,13 @@ declare module '@tanstack/react-router' {
       path: '/minha-kasa/$slug'
       fullPath: '/minha-kasa/$slug'
       preLoaderRoute: typeof MinhaKasaSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lp/delta-plus': {
+      id: '/lp/delta-plus'
+      path: '/lp/delta-plus'
+      fullPath: '/lp/delta-plus'
+      preLoaderRoute: typeof LpDeltaPlusRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dme/$token': {
@@ -915,6 +935,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
+  LpDeltaPlusRoute: LpDeltaPlusRoute,
   MinhaKasaSlugRoute: MinhaKasaSlugRoute,
   PTokenRoute: PTokenRoute,
   ProposalTokenRoute: ProposalTokenRoute,
