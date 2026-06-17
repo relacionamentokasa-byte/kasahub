@@ -91,11 +91,11 @@ export function InstallPromoCard() {
             <Download className="size-4" /> Instalar
           </Button>
         ) : (
-          <Link to="/config" search={{ tab: "install" }} className="w-full sm:w-auto">
+          <a href="/config?tab=install" className="w-full sm:w-auto">
             <Button size="sm" variant="outline" className="gap-2 w-full">
               Ver como instalar
             </Button>
-          </Link>
+          </a>
         )}
       </div>
     </div>
