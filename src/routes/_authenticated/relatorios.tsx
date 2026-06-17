@@ -596,7 +596,7 @@ function FinancialPage() {
               </TableRow>
             ) : (
               filteredTransactions.map((t: any) => {
-                const previsto = Number(t.valor_previsto ?? t.amount ?? 0);
+                const previsto = Number(t.valor_previsto) || Number(t.amount) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
                 const diff = real != null ? real - previsto : 0;
                 const hasDiff = real != null && Math.abs(diff) > 0.005;
