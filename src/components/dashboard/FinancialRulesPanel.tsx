@@ -90,10 +90,10 @@ export function FinancialRulesPanel({
       dentroDaMeta,
       pctTeto,
     };
-  }, [totalFaturamento, despesasReais, investimentoRealizado]);
+  }, [faturamentoBase, despesasReais, investimentoRealizado]);
 
   const pct = (v: number) =>
-    totalFaturamento > 0 ? (v / totalFaturamento) * 100 : 0;
+    faturamentoBase > 0 ? (v / faturamentoBase) * 100 : 0;
 
   const chartData = [
     { name: "Despesas Reais", value: calc.despesasReais, color: calc.dentroDaMeta ? "#10b981" : "#ef4444" },
