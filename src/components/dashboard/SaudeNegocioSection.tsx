@@ -115,6 +115,7 @@ async function fetchSaudeNegocio(refDate: Date) {
     avulsa,
     receitaEfetivada,
     clientesAtivos: clientesAtivos || 0,
+    clientesFaturadosMes,
     propostasPendentes: propostasPendentes || 0,
     jobsConcluidos: jobsConcluidos || 0,
     meta,
