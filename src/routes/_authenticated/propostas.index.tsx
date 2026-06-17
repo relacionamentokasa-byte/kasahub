@@ -191,7 +191,7 @@ function ProposalsPage() {
         client_email: form.client_email || null,
         intro: form.intro || null,
         service_ids: form.service_ids,
-        valid_until: form.valid_until || null,
+        valid_until: form.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         monthly_investment: form.contract_type === "mensal" ? form.monthly_investment : 0,
         one_time_investment: form.contract_type === "avulso" ? form.one_time_investment : 0,
         total: form.contract_type === "mensal" ? form.monthly_investment : form.one_time_investment,
