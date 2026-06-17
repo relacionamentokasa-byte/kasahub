@@ -17,7 +17,7 @@ export function KasaLogo({
 }: KasaLogoProps) {
   // URLs fixas no Supabase Storage
   const FIXED_LOGOS = {
-    white: "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-white.png?v=2",
+    white: "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-white.png?v=3",
     yellow: "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png",
   };
 
