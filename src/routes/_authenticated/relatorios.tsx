@@ -15,6 +15,7 @@ import { FinancialImportDialog } from "@/components/finance/FinancialImportDialo
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
+import { SuppliersManagerDialog } from "@/components/finance/SuppliersManagerDialog";
 import { EditTransactionDialog } from "@/components/finance/EditTransactionDialog";
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
