@@ -8,15 +8,16 @@ export const Route = createFileRoute("/api/public/manifest")({
         const { data } = await supabaseAdmin
           .from("agency_settings")
           .select(
-            "name, pwa_name, pwa_short_name, pwa_description, pwa_theme_color, pwa_background_color, pwa_icon_192_url, pwa_icon_512_url, splash_screen_url",
+            "name, pwa_name, pwa_short_name, pwa_description, pwa_theme_color, pwa_background_color, pwa_icon_192_url, pwa_icon_512_url, splash_screen_url, logo_yellow_url",
           )
           .order("created_at", { ascending: true })
           .limit(1)
           .maybeSingle();
 
         const a = (data ?? {}) as Record<string, string | null>;
-        const icon512 = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
-        const icon192 = icon512;
+        const fallback = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+        const icon512 = a.pwa_icon_512_url || a.logo_yellow_url || fallback;
+        const icon192 = a.pwa_icon_192_url || a.logo_yellow_url || fallback;
 
         const manifest = {
           name: a.pwa_name || a.name || "KASA HUB",
