@@ -199,7 +199,7 @@ function ClientsPage() {
                   </TableCell>
                   <TableCell className="text-right py-4">
                     <div className="flex items-center justify-end gap-1">
-                      {client.portal_enabled && client.portal_slug && (
+                      {client.portal_slug && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -236,7 +236,7 @@ function ClientsPage() {
                               <ExternalLink className="size-4" /> Ver detalhes
                             </Link>
                           </DropdownMenuItem>
-                          {client.portal_enabled && client.portal_slug && (
+                          {client.portal_slug && (
                             <DropdownMenuItem asChild>
                               <a
                                 href={`/minha-kasa/${client.portal_slug}`}
