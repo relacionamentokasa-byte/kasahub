@@ -31,7 +31,7 @@ async function fetchSaudeNegocio(refDate: Date) {
   const { data: txData, error: txErr } = await supabase
     .from("transactions")
     .select(
-      "amount, type, kind, is_recurring, due_date, status, contract_id, proposal_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
+      "amount, type, kind, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
     )
     .gte("due_date", monthStartDate)
     .lte("due_date", monthEndDate);
