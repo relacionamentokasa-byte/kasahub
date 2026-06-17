@@ -1,21 +1,36 @@
-## Atualizar "Clientes Ativos" na Saúde do Negócio
+# Instalação do KASA HUB no celular e no PC
 
-**Objetivo:** Contar como cliente ativo também quem teve apenas job avulso no mês, sem duplicar quem fez vários jobs.
+Objetivo: permitir que qualquer pessoa instale o KASA HUB como app no Android, iPhone e desktop (Windows/Mac/Linux), com ícone próprio e abertura em janela cheia — sem precisar de loja de aplicativos.
 
-### Nova regra
-`Clientes Ativos = nº de clientes distintos com:`
-- contrato/projeto recorrente ativo no mês, **OU**
-- pelo menos 1 receita avulsa no mês
+## O que o app já tem
+- Manifesto dinâmico em `/api/public/manifest` com nome, cores e ícones.
+- `<link rel="manifest">`, `theme-color`, favicon e `apple-touch-icon` no `__root.tsx`.
+- Botão "Instalar KASA HUB" no topo (`InstallPWAButton`) que aparece quando o navegador oferece a instalação.
+- Service worker (`/sw.js`) já registrado em produção.
 
-Cada cliente conta **uma única vez**, mesmo com múltiplos jobs avulsos ou contrato + avulso.
+## O que falta para ficar redondo
 
-### Mudanças em `src/components/dashboard/SaudeNegocioSection.tsx`
-1. Em `fetchSaudeNegocio`, montar um `Set<string>` unindo:
-   - `client_id` dos `projects` com `status='active'` (já buscados)
-   - `client_id` das `transactions` de receita avulsa do mês (já temos via `clientesFaturadosMes`)
-2. Retornar `clientesAtivos = set.size` no objeto `m`.
-3. Card "Clientes Ativos" passa a usar esse valor; subtítulo atualizado para "Recorrentes + avulsos do mês (distintos)".
+1. **Página/aba "Instalar o app"** dentro de Configurações, explicando passo a passo para cada plataforma:
+   - **Android (Chrome/Edge)**: banner automático ou menu ⋮ → "Instalar app".
+   - **iPhone/iPad (Safari)**: botão Compartilhar → "Adicionar à Tela de Início" (Safari não suporta prompt automático — precisa de instrução visual).
+   - **Windows/Mac/Linux (Chrome/Edge)**: ícone de instalação na barra de endereço ou menu ⋮ → "Instalar KASA HUB".
+   - Mostrar o botão de instalação automática quando o navegador disponibilizar, e o estado "✅ Já instalado" quando aplicável.
 
-### Impacto
-- "Ticket Médio" continua usando `clientesFaturadosMes` (clientes que faturaram), sem alteração.
-- "Clientes Ativos" agora reflete a base real de clientes do mês.
+2. **CTA de instalação mais visível para quem ainda não instalou**: um card discreto no dashboard (dispensável) sugerindo instalar o app, exibido só em navegador (não dentro do app já instalado) e respeitando "dispensar para sempre".
+
+3. **Garantir ícones definitivos do PWA**: hoje o manifesto serve o logo amarelo da Kasa como 192/512 e maskable. Confirmar que o PNG tem fundo sólido nas bordas (senão alguns sistemas cortam). Se necessário, gerar uma versão "maskable" com área de segurança.
+
+4. **Splash screen iOS** (opcional, mas melhora muito a sensação de app no iPhone): adicionar `<link rel="apple-touch-startup-image">` com a tela de abertura nas resoluções principais.
+
+## Detalhes técnicos
+
+- Manter o padrão **manifest-only** (sem mexer em cache offline) — o app continuará exigindo internet para abrir, conforme combinado.
+- Novo arquivo: `src/routes/_authenticated/config.instalar.tsx` (ou nova aba dentro de `config.tsx`) com o guia + botão de instalação.
+- Novo componente: `src/components/pwa/InstallPromoCard.tsx` para o CTA no dashboard, usando `localStorage` para lembrar dispensa.
+- Ajustar `InstallPWAButton` para também detectar iOS/Safari e mostrar instruções (já que `beforeinstallprompt` não dispara lá).
+- Ícone maskable: se preciso, gerar `/icon-maskable-512.png` com padding interno de ~10% e referenciar no manifesto.
+
+## Fora do escopo
+- Modo offline / cache de páginas.
+- Publicação nas lojas Google Play / App Store (precisaria de Capacitor/TWA — caminho separado).
+- Push notifications (já existem na aba PWA atual e não serão alteradas).
