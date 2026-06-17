@@ -44,6 +44,7 @@ export function FinancialRulesPanel({
   periodoLabel,
 }: FinancialRulesPanelProps) {
   const [simulacaoAtiva, setSimulacaoAtiva] = useState(false);
+  const [aberto, setAberto] = useState(true);
   const [simValor, setSimValor] = useState<number>(
     faturamentoPrevisto ?? totalFaturamento,
   );
