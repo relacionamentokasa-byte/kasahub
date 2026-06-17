@@ -514,6 +514,7 @@ export function FinancialRulesPanel({
           </ul>
         </div>
       </div>
+      </>)}
     </section>
   );
 }
