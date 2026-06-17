@@ -85,7 +85,9 @@ export function ResumoFinanceiroSection() {
     let despesasPrevistas = 0;
     let despesasPagas = 0;
     let despesasOperacionaisPagas = 0;
+    let despesasOperacionaisPrevistas = 0;
     let investimentoRealizado = 0;
+    let investimentoPrevisto = 0;
     const clientesPagantes = new Set<string>();
 
     for (const t of transactions) {
@@ -105,6 +107,8 @@ export function ResumoFinanceiroSection() {
         if (!isPaid && t.due_date > todayStr) parcelasFuturas += amount;
       } else if (isExpense) {
         despesasPrevistas += amount;
+        if (invest) investimentoPrevisto += amount;
+        else if (!proLab) despesasOperacionaisPrevistas += amount;
         if (isPaid) {
           despesasPagas += amount;
           if (invest) investimentoRealizado += amount;
@@ -123,7 +127,9 @@ export function ResumoFinanceiroSection() {
       despesasPrevistas,
       despesasPagas,
       despesasOperacionaisPagas,
+      despesasOperacionaisPrevistas,
       investimentoRealizado,
+      investimentoPrevisto,
       ticketMedio,
       clientesPagantesCount: clientesPagantes.size,
       saldo: receitasRecebidas - despesasPagas,
