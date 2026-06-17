@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   TrendingUp,
   PiggyBank,
@@ -9,11 +9,17 @@ import {
   Sparkles,
   CheckCircle2,
   AlertTriangle,
+  FlaskConical,
+  RotateCcw,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { brl } from "@/lib/utils-format";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 const PRO_LABORE_POR_SOCIO = 1621;
@@ -22,7 +28,8 @@ const SOCIOS_COM_DISTRIBUICAO = 3;
 const PRO_LABORE_FIXO = PRO_LABORE_POR_SOCIO * TOTAL_SOCIOS; // 4 sócios x R$ 1.621,00
 
 interface FinancialRulesPanelProps {
-  totalFaturamento: number;
+  totalFaturamento: number; // realizado/atual (recebido até o momento)
+  faturamentoPrevisto?: number; // previsto/planejado para o mês
   despesasReais?: number;
   investimentoRealizado?: number;
   periodoLabel?: string;
@@ -30,11 +37,26 @@ interface FinancialRulesPanelProps {
 
 export function FinancialRulesPanel({
   totalFaturamento,
+  faturamentoPrevisto,
   despesasReais = 0,
   investimentoRealizado = 0,
   periodoLabel,
 }: FinancialRulesPanelProps) {
+  const [simulacaoAtiva, setSimulacaoAtiva] = useState(false);
+  const [simValor, setSimValor] = useState<number>(
+    faturamentoPrevisto ?? totalFaturamento,
+  );
+
+  useEffect(() => {
+    if (!simulacaoAtiva) {
+      setSimValor(faturamentoPrevisto ?? totalFaturamento);
+    }
+  }, [totalFaturamento, faturamentoPrevisto, simulacaoAtiva]);
+
+  const faturamentoBase = simulacaoAtiva ? simValor : totalFaturamento;
+
   const calc = useMemo(() => {
+    const totalFaturamento = faturamentoBase;
     const tetoDespesas = totalFaturamento * 0.25;
     const reservaInvestimento = totalFaturamento * 0.10;
     const totalProLabore = PRO_LABORE_FIXO;
