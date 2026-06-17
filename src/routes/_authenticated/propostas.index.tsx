@@ -678,7 +678,11 @@ function ProposalsPage() {
                         value={form.valid_until}
                         onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
                       />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Padrão: 7 dias a partir da emissão.
+                      </p>
                     </Field>
+
                   </div>
                 </div>
               </div>
