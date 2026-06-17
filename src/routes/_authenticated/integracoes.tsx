@@ -21,6 +21,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { sendEmail } from "@/lib/email.functions";
 import { listGoogleEvents } from "@/lib/calendar-google.functions";
+import { pingInter, registrarWebhookInter, listBoletosInter } from "@/lib/inter/boletos.functions";
+import { Barcode } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/integracoes")({
   head: () => ({ meta: [{ title: "Integrações — KASA HUB" }] }),
@@ -44,12 +46,14 @@ function IntegrationsPage() {
         <TabsList>
           <TabsTrigger value="email" className="gap-2"><Mail className="size-3.5" /> Resend</TabsTrigger>
           <TabsTrigger value="gcal" className="gap-2"><CalendarRange className="size-3.5" /> Google Agenda</TabsTrigger>
+          <TabsTrigger value="inter" className="gap-2"><Barcode className="size-3.5" /> Banco Inter</TabsTrigger>
           <TabsTrigger value="wa" className="gap-2">WhatsApp</TabsTrigger>
           <TabsTrigger value="pwa" className="gap-2"><Smartphone className="size-3.5" /> PWA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="email"><ResendPanel /></TabsContent>
         <TabsContent value="gcal"><GCalPanel /></TabsContent>
+        <TabsContent value="inter"><InterPanel /></TabsContent>
         <TabsContent value="wa"><WhatsAppPanel /></TabsContent>
         <TabsContent value="pwa"><PWAPanel /></TabsContent>
       </Tabs>
@@ -218,6 +222,119 @@ function WhatsAppPanel() {
         WhatsApp Cloud API). Quando tiver, me passe que eu plugo a integração e habilito
         avisos automáticos de aprovação e cobrança.
       </p>
+    </Card>
+  );
+}
+
+function InterPanel() {
+  const ping = useServerFn(pingInter);
+  const registrar = useServerFn(registrarWebhookInter);
+  const list = useServerFn(listBoletosInter);
+  const [pinging, setPinging] = useState(false);
+  const [registrando, setRegistrando] = useState(false);
+  const webhookUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin.replace("id-preview--", "")}/api/public/webhooks/inter?secret=SUBSTITUIR_PELO_SECRET`
+      : "";
+
+  const { data: boletos = [], isLoading, refetch } = useQuery({
+    queryKey: ["boletos_inter"],
+    queryFn: () => list({}),
+  });
+
+  return (
+    <Card>
+      <Header
+        title="Banco Inter — Cobrança"
+        status="conectado"
+        right={
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-2"
+            onClick={async () => {
+              setPinging(true);
+              try {
+                await ping({});
+                toast.success("Conexão com Inter OK!");
+              } catch (e) {
+                toast.error((e as Error).message);
+              } finally {
+                setPinging(false);
+              }
+            }}
+            disabled={pinging}
+          >
+            {pinging ? <Loader2 className="size-3.5 animate-spin" /> : <RefreshCw className="size-3.5" />}
+            Testar conexão
+          </Button>
+        }
+      />
+
+      <div className="space-y-4">
+        <div className="p-3 rounded-lg bg-background border border-border space-y-2">
+          <p className="text-xs font-semibold">Webhook de pagamentos</p>
+          <p className="text-xs text-foreground/60">
+            Registre esta URL no Banco Inter para baixa automática. Substitua{" "}
+            <code className="text-primary">SUBSTITUIR_PELO_SECRET</code> pelo valor que você
+            configurou em <code>INTER_WEBHOOK_SECRET</code>.
+          </p>
+          <code className="block text-[10px] p-2 rounded bg-muted/40 break-all">{webhookUrl}</code>
+          <Button
+            size="sm"
+            className="gap-2"
+            onClick={async () => {
+              const url = prompt("Cole a URL completa do webhook (com ?secret=...)", webhookUrl);
+              if (!url) return;
+              setRegistrando(true);
+              try {
+                await registrar({ data: { webhookUrl: url } });
+                toast.success("Webhook registrado no Inter!");
+              } catch (e) {
+                toast.error((e as Error).message);
+              } finally {
+                setRegistrando(false);
+              }
+            }}
+            disabled={registrando}
+          >
+            {registrando ? <Loader2 className="size-3.5 animate-spin" /> : null}
+            Registrar webhook no Inter
+          </Button>
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold">Últimos boletos emitidos</p>
+            <Button size="sm" variant="ghost" onClick={() => refetch()}>
+              <RefreshCw className="size-3.5" />
+            </Button>
+          </div>
+          {isLoading ? (
+            <div className="py-6 flex justify-center"><Loader2 className="size-4 animate-spin" /></div>
+          ) : boletos.length === 0 ? (
+            <p className="text-xs text-foreground/50 py-4 text-center">Nenhum boleto emitido ainda.</p>
+          ) : (
+            <ul className="divide-y divide-border border border-border rounded-lg max-h-72 overflow-y-auto">
+              {boletos.map((b: any) => (
+                <li key={b.id} className="p-3 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="font-medium">
+                      {b.clients?.company || b.clients?.name || "—"}
+                    </div>
+                    <div className="text-foreground/50">
+                      R$ {Number(b.valor_nominal).toFixed(2)} · vence {b.data_vencimento}
+                    </div>
+                  </div>
+                  <span className="font-mono-kasa text-[10px] uppercase px-2 py-0.5 rounded bg-muted">
+                    {b.situacao}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </Card>
   );
 }

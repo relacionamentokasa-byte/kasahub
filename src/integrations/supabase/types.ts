@@ -472,6 +472,96 @@ export type Database = {
         }
         Relationships: []
       }
+      boletos_inter: {
+        Row: {
+          cancelado_em: string | null
+          client_id: string | null
+          codigo_barras: string | null
+          codigo_solicitacao: string
+          created_at: string
+          data_vencimento: string
+          emitido_em: string
+          id: string
+          linha_digitavel: string | null
+          motivo_cancelamento: string | null
+          nosso_numero: string | null
+          owner_id: string | null
+          pago_em: string | null
+          pdf_path: string | null
+          pix_copia_cola: string | null
+          pix_txid: string | null
+          raw: Json | null
+          seu_numero: string | null
+          situacao: string
+          transaction_id: string
+          updated_at: string
+          valor_nominal: number
+        }
+        Insert: {
+          cancelado_em?: string | null
+          client_id?: string | null
+          codigo_barras?: string | null
+          codigo_solicitacao: string
+          created_at?: string
+          data_vencimento: string
+          emitido_em?: string
+          id?: string
+          linha_digitavel?: string | null
+          motivo_cancelamento?: string | null
+          nosso_numero?: string | null
+          owner_id?: string | null
+          pago_em?: string | null
+          pdf_path?: string | null
+          pix_copia_cola?: string | null
+          pix_txid?: string | null
+          raw?: Json | null
+          seu_numero?: string | null
+          situacao?: string
+          transaction_id: string
+          updated_at?: string
+          valor_nominal: number
+        }
+        Update: {
+          cancelado_em?: string | null
+          client_id?: string | null
+          codigo_barras?: string | null
+          codigo_solicitacao?: string
+          created_at?: string
+          data_vencimento?: string
+          emitido_em?: string
+          id?: string
+          linha_digitavel?: string | null
+          motivo_cancelamento?: string | null
+          nosso_numero?: string | null
+          owner_id?: string | null
+          pago_em?: string | null
+          pdf_path?: string | null
+          pix_copia_cola?: string | null
+          pix_txid?: string | null
+          raw?: Json | null
+          seu_numero?: string | null
+          situacao?: string
+          transaction_id?: string
+          updated_at?: string
+          valor_nominal?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boletos_inter_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boletos_inter_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           all_day: boolean | null

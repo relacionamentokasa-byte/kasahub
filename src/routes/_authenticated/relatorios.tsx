@@ -18,6 +18,7 @@ import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancari
 import { EditTransactionDialog } from "@/components/finance/EditTransactionDialog";
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
+import { EmitirBoletoDialog } from "@/components/finance/EmitirBoletoDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
@@ -51,6 +52,7 @@ import {
   ChevronRight,
   Pencil,
   CreditCard,
+  Barcode,
 } from "lucide-react";
 
 
@@ -112,6 +114,7 @@ function FinancialPage() {
   const [editingTx, setEditingTx] = useState<any | null>(null);
   const [baixaTx, setBaixaTx] = useState<any | null>(null);
   const [deletingTx, setDeletingTx] = useState<any | null>(null);
+  const [boletoTx, setBoletoTx] = useState<any | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -679,6 +682,23 @@ function FinancialPage() {
                           </Tooltip>
                         </TooltipProvider>
                       )}
+                      {t.type === "income" && t.client_id && (t.status === "pending" || t.status === "overdue") && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setBoletoTx(t)}
+                                className="h-8 w-8 rounded-lg text-orange-600 hover:text-orange-700 hover:bg-orange-500/10"
+                              >
+                                <Barcode className="size-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Emitir boleto (Inter)</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       {t.status === "paid" && (
                         <TooltipProvider>
                           <Tooltip>
@@ -765,6 +785,11 @@ function FinancialPage() {
         open={!!deletingTx}
         onOpenChange={(o) => !o && setDeletingTx(null)}
         transaction={deletingTx}
+      />
+      <EmitirBoletoDialog
+        open={!!boletoTx}
+        onOpenChange={(o) => !o && setBoletoTx(null)}
+        transaction={boletoTx}
       />
     </div>
 
