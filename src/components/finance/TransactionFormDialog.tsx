@@ -460,6 +460,10 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
           </form>
         </Form>
       </DialogContent>
+      <SuppliersManagerDialog
+        open={suppliersManagerOpen}
+        onOpenChange={setSuppliersManagerOpen}
+      />
     </Dialog>
   );
 }
