@@ -121,24 +121,106 @@ export function FinancialRulesPanel({
         </div>
         <div className="text-right">
           <div className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold">
-            Faturamento Total
+            {simulacaoAtiva ? "Faturamento Simulado" : "Faturamento Atual"}
           </div>
-          <div className="text-2xl font-bold text-primary">
-            {brl(totalFaturamento)}
+          <div className={cn("text-2xl font-bold", simulacaoAtiva ? "text-amber-600" : "text-primary")}>
+            {brl(faturamentoBase)}
+          </div>
+          <div className="text-[10px] text-foreground/40 tabular-nums mt-0.5">
+            Atual: {brl(totalFaturamento)}
+            {faturamentoPrevisto !== undefined && faturamentoPrevisto !== totalFaturamento && (
+              <> · Previsto: {brl(faturamentoPrevisto)}</>
+            )}
           </div>
         </div>
       </header>
+
+      {/* Simulador de Faturamento */}
+      <div
+        className={cn(
+          "rounded-2xl border p-4 space-y-3",
+          simulacaoAtiva
+            ? "bg-amber-50 border-amber-200"
+            : "bg-surface border-border",
+        )}
+      >
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <FlaskConical className={cn("size-4", simulacaoAtiva ? "text-amber-700" : "text-foreground/50")} />
+            <Label htmlFor="sim-toggle" className="text-xs font-bold uppercase tracking-wider cursor-pointer">
+              Simular Faturamento
+            </Label>
+            <Switch
+              id="sim-toggle"
+              checked={simulacaoAtiva}
+              onCheckedChange={setSimulacaoAtiva}
+            />
+          </div>
+          {simulacaoAtiva && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 text-xs"
+              onClick={() => {
+                setSimValor(faturamentoPrevisto ?? totalFaturamento);
+              }}
+            >
+              <RotateCcw className="size-3" /> Resetar
+            </Button>
+          )}
+        </div>
+        {simulacaoAtiva && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-amber-700">R$</span>
+              <Input
+                type="number"
+                min={0}
+                step={100}
+                value={simValor}
+                onChange={(e) => setSimValor(Number(e.target.value) || 0)}
+                className="max-w-[200px] h-9 text-base font-bold tabular-nums"
+              />
+              <span className="text-[11px] text-foreground/50">
+                mantendo as despesas atuais ({brl(despesasReais)})
+              </span>
+            </div>
+            <div className="flex gap-2 flex-wrap">
+              {[
+                { label: "Atual", v: totalFaturamento },
+                ...(faturamentoPrevisto !== undefined
+                  ? [{ label: "Previsto", v: faturamentoPrevisto }]
+                  : []),
+                { label: "+10%", v: Math.round((faturamentoPrevisto ?? totalFaturamento) * 1.1) },
+                { label: "+25%", v: Math.round((faturamentoPrevisto ?? totalFaturamento) * 1.25) },
+                { label: "+50%", v: Math.round((faturamentoPrevisto ?? totalFaturamento) * 1.5) },
+              ].map((s) => (
+                <Button
+                  key={s.label}
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => setSimValor(s.v)}
+                >
+                  {s.label} · {brl(s.v)}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="grid lg:grid-cols-[1fr_320px] gap-6">
         <div className="space-y-4">
           <BlockCard
             icon={TrendingUp}
-            label="Faturamento Bruto (100%)"
-            value={totalFaturamento}
+            label={simulacaoAtiva ? "Faturamento Simulado (100%)" : "Faturamento Bruto (100%)"}
+            value={faturamentoBase}
             percentage={100}
             tone="primary"
             big
           />
+
 
           <div className="grid sm:grid-cols-2 gap-3">
             {/* Despesas: Realizado vs Teto */}
