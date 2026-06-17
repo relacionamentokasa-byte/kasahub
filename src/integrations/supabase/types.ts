@@ -2852,6 +2852,42 @@ export type Database = {
           },
         ]
       }
+      suppliers: {
+        Row: {
+          created_at: string
+          document: string | null
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          document?: string | null
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       suppressed_emails: {
         Row: {
           created_at: string
@@ -2992,6 +3028,7 @@ export type Database = {
           project_id: string | null
           proposal_id: string | null
           status: string
+          supplier_id: string | null
           type: string
           updated_at: string | null
           valor_previsto: number
@@ -3019,6 +3056,7 @@ export type Database = {
           project_id?: string | null
           proposal_id?: string | null
           status: string
+          supplier_id?: string | null
           type: string
           updated_at?: string | null
           valor_previsto?: number
@@ -3046,6 +3084,7 @@ export type Database = {
           project_id?: string | null
           proposal_id?: string | null
           status?: string
+          supplier_id?: string | null
           type?: string
           updated_at?: string | null
           valor_previsto?: number
@@ -3092,6 +3131,13 @@ export type Database = {
             columns: ["proposal_id"]
             isOneToOne: false
             referencedRelation: "proposals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]

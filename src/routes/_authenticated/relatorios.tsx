@@ -15,6 +15,7 @@ import { FinancialImportDialog } from "@/components/finance/FinancialImportDialo
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
+import { SuppliersManagerDialog } from "@/components/finance/SuppliersManagerDialog";
 import { EditTransactionDialog } from "@/components/finance/EditTransactionDialog";
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
@@ -111,6 +112,7 @@ function FinancialPage() {
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [contasOpen, setContasOpen] = useState(false);
+  const [suppliersOpen, setSuppliersOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<any | null>(null);
   const [baixaTx, setBaixaTx] = useState<any | null>(null);
   const [deletingTx, setDeletingTx] = useState<any | null>(null);
@@ -409,6 +411,9 @@ function FinancialPage() {
           </Button>
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setContasOpen(true)}>
             <Landmark className="size-4" /> Contas
+          </Button>
+          <Button variant="outline" className="rounded-full gap-2" onClick={() => setSuppliersOpen(true)}>
+            <Settings className="size-4" /> Fornecedores
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -770,6 +775,7 @@ function FinancialPage() {
       <TransactionFormDialog open={transactionOpen} onOpenChange={setTransactionOpen} />
       <CategoriesManagerDialog open={categoriesOpen} onOpenChange={setCategoriesOpen} />
       <ContasBancariasManagerDialog open={contasOpen} onOpenChange={setContasOpen} />
+      <SuppliersManagerDialog open={suppliersOpen} onOpenChange={setSuppliersOpen} />
       <EditTransactionDialog
         open={!!editingTx}
         onOpenChange={(o) => !o && setEditingTx(null)}

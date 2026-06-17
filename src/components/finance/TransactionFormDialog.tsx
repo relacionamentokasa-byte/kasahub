@@ -42,6 +42,10 @@ import {
 import { cn } from "@/lib/utils";
 import { createTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
+import { fetchSuppliers } from "@/lib/suppliers-api";
+import { SuppliersManagerDialog } from "./SuppliersManagerDialog";
+import { useState } from "react";
+import { Building2 } from "lucide-react";
 
 const transactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer", "adjustment"]),
@@ -53,6 +57,7 @@ const transactionSchema = z.object({
   }),
   status: z.enum(["pending", "paid"]),
   client_id: z.string().optional(),
+  supplier_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
 });
 
@@ -65,6 +70,7 @@ interface TransactionFormDialogProps {
 
 export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDialogProps) {
   const queryClient = useQueryClient();
+  const [suppliersManagerOpen, setSuppliersManagerOpen] = useState(false);
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
@@ -79,6 +85,11 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
   const { data: contas = [] } = useQuery({
     queryKey: ["contas_bancarias"],
     queryFn: fetchContasBancarias,
+  });
+
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ["suppliers"],
+    queryFn: fetchSuppliers,
   });
 
   const form = useForm<TransactionFormValues>({
@@ -97,6 +108,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
         due_date: format(values.due_date, "yyyy-MM-dd"),
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
         client_id: values.client_id === "none" ? null : values.client_id,
+        supplier_id: values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id,
       };
       return createTransaction(payload as any);
     },
@@ -296,31 +308,107 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="client_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente (Opcional)</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um cliente" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.company || client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {form.watch("type") !== "expense" && (
+              <FormField
+                control={form.control}
+                name="client_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cliente (Opcional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um cliente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum</SelectItem>
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.company || client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {form.watch("type") === "expense" && (
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="client_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cliente (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum</SelectItem>
+                          {clients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.company || client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="supplier_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center justify-between gap-2">
+                        <span>Fornecedor / Órgão</span>
+                        <button
+                          type="button"
+                          onClick={() => setSuppliersManagerOpen(true)}
+                          className="text-[10px] text-primary hover:underline font-normal"
+                        >
+                          + gerenciar
+                        </button>
+                      </FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum</SelectItem>
+                          {suppliers.length === 0 ? (
+                            <div className="px-3 py-2 text-xs text-muted-foreground">
+                              Nenhum cadastrado.
+                            </div>
+                          ) : (
+                            suppliers.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <Building2 className="size-3" />
+                                  {s.name}
+                                </span>
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <FormField
               control={form.control}
@@ -372,6 +460,10 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
           </form>
         </Form>
       </DialogContent>
+      <SuppliersManagerDialog
+        open={suppliersManagerOpen}
+        onOpenChange={setSuppliersManagerOpen}
+      />
     </Dialog>
   );
 }
