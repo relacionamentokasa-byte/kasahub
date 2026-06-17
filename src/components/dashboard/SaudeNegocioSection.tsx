@@ -31,7 +31,7 @@ async function fetchSaudeNegocio(refDate: Date) {
   const { data: txData, error: txErr } = await supabase
     .from("transactions")
     .select(
-      "amount, type, kind, is_recurring, due_date, status, contract_id, proposal_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
+      "amount, type, kind, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
     )
     .gte("due_date", monthStartDate)
     .lte("due_date", monthEndDate);
@@ -72,6 +72,11 @@ async function fetchSaudeNegocio(refDate: Date) {
     .filter((t) => PAID_STATUSES.has(String(t.status || "").toLowerCase()))
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
+  // Clientes distintos que tiveram qualquer receita no mês (recorrente ou avulsa)
+  const clientesFaturadosMes = new Set(
+    incomes.map((t) => t.client_id).filter(Boolean)
+  ).size;
+
 
   // Clientes Ativos
   const { count: clientesAtivos } = await supabase
@@ -110,6 +115,7 @@ async function fetchSaudeNegocio(refDate: Date) {
     avulsa,
     receitaEfetivada,
     clientesAtivos: clientesAtivos || 0,
+    clientesFaturadosMes,
     propostasPendentes: propostasPendentes || 0,
     jobsConcluidos: jobsConcluidos || 0,
     meta,
@@ -131,6 +137,7 @@ export function SaudeNegocioSection() {
   const mrr = data?.mrr || 0;
   const avulsa = data?.avulsa || 0;
   const clientesAtivos = data?.clientesAtivos || 0;
+  const clientesFaturadosMes = data?.clientesFaturadosMes || 0;
   const propostasPendentes = data?.propostasPendentes || 0;
   const meta = data?.meta || 0;
   // Apenas receita efetivamente recebida no mês alimenta a Meta de Faturamento.
@@ -226,8 +233,8 @@ export function SaudeNegocioSection() {
         <DashboardKPI
           icon={Receipt}
           label="Ticket Médio"
-          value={brl(clientesAtivos > 0 ? (mrr + avulsa) / clientesAtivos : 0)}
-          subValue="(MRR + Avulsa) ÷ clientes ativos"
+          value={brl(clientesFaturadosMes > 0 ? (mrr + avulsa) / clientesFaturadosMes : 0)}
+          subValue="(MRR + Avulsa) ÷ clientes que faturaram no mês"
           color="indigo-500"
         />
         <DashboardKPI
