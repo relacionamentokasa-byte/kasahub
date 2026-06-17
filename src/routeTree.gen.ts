@@ -42,6 +42,7 @@ import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_aut
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as ApiPublicWebhooksInterRouteImport } from './routes/api/public/webhooks/inter'
 import { Route as ApiPublicPropostaTokenRouteImport } from './routes/api/public/proposta.$token'
 import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
 import { Route as ApiPublicPortalJobsSlugRouteImport } from './routes/api/public/portal-jobs.$slug'
@@ -223,6 +224,11 @@ const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   path: '/lovable/email/auth/preview',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWebhooksInterRoute = ApiPublicWebhooksInterRouteImport.update({
+  id: '/api/public/webhooks/inter',
+  path: '/api/public/webhooks/inter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPropostaTokenRoute = ApiPublicPropostaTokenRouteImport.update({
   id: '/api/public/proposta/$token',
   path: '/api/public/proposta/$token',
@@ -305,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
+  '/api/public/webhooks/inter': typeof ApiPublicWebhooksInterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByTo {
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
+  '/api/public/webhooks/inter': typeof ApiPublicWebhooksInterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -391,6 +399,7 @@ export interface FileRoutesById {
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
   '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
+  '/api/public/webhooks/inter': typeof ApiPublicWebhooksInterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
@@ -435,6 +444,7 @@ export interface FileRouteTypes {
     | '/api/public/portal-jobs/$slug'
     | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
+    | '/api/public/webhooks/inter'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -477,6 +487,7 @@ export interface FileRouteTypes {
     | '/api/public/portal-jobs/$slug'
     | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
+    | '/api/public/webhooks/inter'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -520,6 +531,7 @@ export interface FileRouteTypes {
     | '/api/public/portal-jobs/$slug'
     | '/api/public/proposal/$token'
     | '/api/public/proposta/$token'
+    | '/api/public/webhooks/inter'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
@@ -545,6 +557,7 @@ export interface RootRouteChildren {
   ApiPublicPortalJobsSlugRoute: typeof ApiPublicPortalJobsSlugRoute
   ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
   ApiPublicPropostaTokenRoute: typeof ApiPublicPropostaTokenRoute
+  ApiPublicWebhooksInterRoute: typeof ApiPublicWebhooksInterRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
@@ -783,6 +796,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/webhooks/inter': {
+      id: '/api/public/webhooks/inter'
+      path: '/api/public/webhooks/inter'
+      fullPath: '/api/public/webhooks/inter'
+      preLoaderRoute: typeof ApiPublicWebhooksInterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/proposta/$token': {
       id: '/api/public/proposta/$token'
       path: '/api/public/proposta/$token'
@@ -910,6 +930,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPortalJobsSlugRoute: ApiPublicPortalJobsSlugRoute,
   ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
   ApiPublicPropostaTokenRoute: ApiPublicPropostaTokenRoute,
+  ApiPublicWebhooksInterRoute: ApiPublicWebhooksInterRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
