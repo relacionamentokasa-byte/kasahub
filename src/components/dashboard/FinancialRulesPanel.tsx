@@ -16,7 +16,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const PRO_LABORE_FIXO = 6484; // 4 sócios x R$ 1.621,00
+const PRO_LABORE_POR_SOCIO = 1621;
+const TOTAL_SOCIOS = 4;
+const SOCIOS_COM_DISTRIBUICAO = 3;
+const PRO_LABORE_FIXO = PRO_LABORE_POR_SOCIO * TOTAL_SOCIOS; // 4 sócios x R$ 1.621,00
 
 interface FinancialRulesPanelProps {
   totalFaturamento: number;
