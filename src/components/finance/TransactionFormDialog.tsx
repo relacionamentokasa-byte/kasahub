@@ -42,6 +42,10 @@ import {
 import { cn } from "@/lib/utils";
 import { createTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
+import { fetchSuppliers } from "@/lib/suppliers-api";
+import { SuppliersManagerDialog } from "./SuppliersManagerDialog";
+import { useState } from "react";
+import { Building2 } from "lucide-react";
 
 const transactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer", "adjustment"]),
@@ -53,6 +57,7 @@ const transactionSchema = z.object({
   }),
   status: z.enum(["pending", "paid"]),
   client_id: z.string().optional(),
+  supplier_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
 });
 
@@ -65,6 +70,7 @@ interface TransactionFormDialogProps {
 
 export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDialogProps) {
   const queryClient = useQueryClient();
+  const [suppliersManagerOpen, setSuppliersManagerOpen] = useState(false);
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
