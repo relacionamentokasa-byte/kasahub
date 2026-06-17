@@ -16,7 +16,10 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const PRO_LABORE_FIXO = 6484; // 4 sócios x R$ 1.621,00
+const PRO_LABORE_POR_SOCIO = 1621;
+const TOTAL_SOCIOS = 4;
+const SOCIOS_COM_DISTRIBUICAO = 3;
+const PRO_LABORE_FIXO = PRO_LABORE_POR_SOCIO * TOTAL_SOCIOS; // 4 sócios x R$ 1.621,00
 
 interface FinancialRulesPanelProps {
   totalFaturamento: number;
@@ -280,6 +283,58 @@ export function FinancialRulesPanel({
                 percentage={pct(calc.caixaEmpresa)}
                 tone="sky"
               />
+            </div>
+
+            <div className="rounded-2xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-100 via-emerald-50 to-white p-5 space-y-4">
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <Wallet className="size-5 text-emerald-700" />
+                  <div>
+                    <div className="text-[10px] uppercase tracking-widest font-bold text-emerald-700/70">
+                      Salário Projetado por Sócio
+                    </div>
+                    <div className="text-[11px] text-foreground/60">
+                      Se o mês fechar conforme planejado · Pró-labore + Distribuição
+                    </div>
+                  </div>
+                </div>
+                <Badge variant="secondary" className="bg-emerald-200/60 text-emerald-800 border-emerald-300 text-[10px]">
+                  Projeção
+                </Badge>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="rounded-xl bg-white/70 border border-emerald-200 p-4 space-y-1">
+                  <div className="text-[10px] uppercase tracking-wider font-bold text-emerald-700/80">
+                    3 Sócios (com distribuição)
+                  </div>
+                  <div className="text-2xl font-bold tabular-nums text-emerald-700">
+                    {brl(PRO_LABORE_POR_SOCIO + calc.distribuicaoSocios / SOCIOS_COM_DISTRIBUICAO)}
+                  </div>
+                  <div className="text-[11px] text-foreground/60 tabular-nums">
+                    {brl(PRO_LABORE_POR_SOCIO)} pró-labore + {brl(calc.distribuicaoSocios / SOCIOS_COM_DISTRIBUICAO)} distribuição
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-white/70 border border-purple-200 p-4 space-y-1">
+                  <div className="text-[10px] uppercase tracking-wider font-bold text-purple-700/80">
+                    1 Sócio (somente pró-labore)
+                  </div>
+                  <div className="text-2xl font-bold tabular-nums text-purple-700">
+                    {brl(PRO_LABORE_POR_SOCIO)}
+                  </div>
+                  <div className="text-[11px] text-foreground/60">
+                    Pró-labore fixo mensal
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-[11px] pt-2 border-t border-emerald-200">
+                <span className="text-foreground/60">Total saindo do caixa para sócios</span>
+                <span className="font-bold tabular-nums text-emerald-800">
+                  {brl(calc.totalProLabore + calc.distribuicaoSocios)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
