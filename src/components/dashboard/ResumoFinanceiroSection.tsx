@@ -214,9 +214,9 @@ export function ResumoFinanceiroSection() {
       )}
 
       <FinancialRulesPanel
-        totalFaturamento={m.receitasRecebidas}
-        despesasReais={m.despesasOperacionaisPagas}
-        investimentoRealizado={m.investimentoRealizado}
+        totalFaturamento={m.receitasPrevistas}
+        despesasReais={m.despesasOperacionaisPrevistas}
+        investimentoRealizado={m.investimentoPrevisto}
         periodoLabel={periodoLabel}
       />
     </div>
