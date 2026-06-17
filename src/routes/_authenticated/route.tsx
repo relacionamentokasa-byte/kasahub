@@ -12,19 +12,24 @@ import { PresenceProvider } from "@/contexts/PresenceContext";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async ({ location }) => {
-    
     // Explicitly allow public routes if for some reason they hit this layout
     const publicPrefixes = ["/p/", "/proposta/", "/proposal/", "/approve/", "/dme/", "/auth", "/api/public/", "/lovable/"];
     if (publicPrefixes.some(prefix => location.pathname.startsWith(prefix))) {
       return;
     }
 
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data.user) {
-      
+    // Use getSession() — reads from local storage instantly and never hangs on the network.
+    // Falls back with a 3s timeout safety net just in case the auth client is wedged.
+    const sessionPromise = supabase.auth.getSession();
+    const timeout = new Promise<{ data: { session: null }; error: null }>((resolve) =>
+      setTimeout(() => resolve({ data: { session: null }, error: null }), 3000),
+    );
+    const { data } = (await Promise.race([sessionPromise, timeout])) as Awaited<typeof sessionPromise>;
+
+    if (!data.session?.user) {
       throw redirect({ to: "/auth" });
     }
-    return { user: data.user };
+    return { user: data.session.user };
   },
   component: ShellLayout,
 });
