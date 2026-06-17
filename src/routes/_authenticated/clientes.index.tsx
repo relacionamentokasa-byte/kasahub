@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2, Globe } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
