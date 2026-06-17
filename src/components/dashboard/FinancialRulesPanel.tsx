@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   FlaskConical,
   RotateCcw,
+  ChevronDown,
 } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { brl } from "@/lib/utils-format";
