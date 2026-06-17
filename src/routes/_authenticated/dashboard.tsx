@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
+import { InstallPromoCard } from "@/components/pwa/InstallPromoCard";
 
 import { checkDailyNotifications } from "@/lib/notifications-cron";
 
@@ -52,6 +53,8 @@ function DashboardPage() {
           </Link>
         </div>
       </header>
+
+      <InstallPromoCard />
 
       <ExecutiveDashboard />
       

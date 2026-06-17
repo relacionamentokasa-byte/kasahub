@@ -21,7 +21,8 @@ import {
   Mail,
   ChevronRight,
   Menu,
-  Smartphone
+  Smartphone,
+  Download
 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
@@ -38,6 +39,7 @@ import { SignatureTab } from "@/components/config/SignatureTab";
 import { IntegrationsTab } from "@/components/config/IntegrationsTab";
 import { PreferencesTab } from "@/components/config/PreferencesTab";
 import { PwaSettingsTab } from "@/components/config/PwaSettingsTab";
+import { InstallAppTab } from "@/components/config/InstallAppTab";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/hooks/use-permissions";
@@ -131,6 +133,7 @@ function ConfigPage() {
     { id: "email", label: "E-mail", icon: Mail, group: "Integrações", component: <IntegrationsTab form={form} /> },
     
     { id: "licensing", label: "Licenciamento", icon: CreditCard, component: <div className="p-12 text-center text-foreground/40 border-2 border-dashed rounded-xl">Módulo de licenciamento em breve.</div> },
+    { id: "install", label: "Instalar o App", icon: Download, group: "Sistema", component: <InstallAppTab /> },
     { id: "pwa", label: "Aplicativo (PWA)", icon: Smartphone, group: "Sistema", component: <PwaSettingsTab form={form} set={set} canEdit={canEdit} /> },
     { id: "prefs", label: "Preferências do Sistema", icon: UserCog, group: "Sistema", component: <PreferencesTab /> },
   ];
