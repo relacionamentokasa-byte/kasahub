@@ -710,7 +710,15 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                     }
                   }}
                 >
-                   <Building2 className="size-3.5 shrink-0 opacity-60" />
+                   {(job as any).clients?.logo_url ? (
+                     <img
+                       src={(job as any).clients.logo_url}
+                       alt=""
+                       className="size-4 shrink-0 rounded-sm object-cover border border-border/40"
+                     />
+                   ) : (
+                     <Building2 className="size-3.5 shrink-0 opacity-60" />
+                   )}
                    <span className="truncate">
                      {(job as any).clients?.company || (job as any).clients?.name || "Sem Cliente"}
                    </span>
