@@ -112,6 +112,7 @@ function FinancialPage() {
   const [transactionOpen, setTransactionOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [contasOpen, setContasOpen] = useState(false);
+  const [suppliersOpen, setSuppliersOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<any | null>(null);
   const [baixaTx, setBaixaTx] = useState<any | null>(null);
   const [deletingTx, setDeletingTx] = useState<any | null>(null);
