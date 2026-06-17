@@ -233,8 +233,8 @@ export function SaudeNegocioSection() {
         <DashboardKPI
           icon={Receipt}
           label="Ticket Médio"
-          value={brl(clientesAtivos > 0 ? (mrr + avulsa) / clientesAtivos : 0)}
-          subValue="(MRR + Avulsa) ÷ clientes ativos"
+          value={brl(clientesFaturadosMes > 0 ? (mrr + avulsa) / clientesFaturadosMes : 0)}
+          subValue="(MRR + Avulsa) ÷ clientes que faturaram no mês"
           color="indigo-500"
         />
         <DashboardKPI
