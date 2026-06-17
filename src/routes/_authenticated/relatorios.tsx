@@ -22,6 +22,7 @@ import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionD
 import { EmitirBoletoDialog } from "@/components/finance/EmitirBoletoDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
+import { InlineSupplierPicker } from "@/components/finance/InlineSupplierPicker";
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
 import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
 import {
