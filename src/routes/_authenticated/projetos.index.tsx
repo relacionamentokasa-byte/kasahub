@@ -28,7 +28,7 @@ type ProjectRow = {
   color: string | null;
   total_jobs: number;
   client_id: string;
-  clients: { name: string | null; company: string | null } | null;
+  clients: { name: string | null; company: string | null; logo_url: string | null } | null;
   [key: string]: unknown;
 };
 
