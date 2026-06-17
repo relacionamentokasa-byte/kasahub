@@ -304,24 +304,28 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Dia de Cobrança (1-31)</Label>
-              <Input
-                type="number"
-                min={1}
-                max={31}
-                placeholder="Ex: 5"
-                value={(form as any).billing_day ?? ""}
-                onChange={e => {
-                  const v = e.target.value;
-                  const num = v === "" ? null : Math.min(31, Math.max(1, Number(v)));
-                  setForm({ ...form, billing_day: num } as any);
+              <Label>Dia de Cobrança</Label>
+              <Select
+                value={(form as any).billing_day ? String((form as any).billing_day) : ""}
+                onValueChange={(v) => {
+                  setForm({ ...form, billing_day: Number(v) } as any);
                   setIsDirty(true);
                 }}
-              />
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o dia" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[5, 10, 15, 20, 25].map((d) => (
+                    <SelectItem key={d} value={String(d)}>Dia {d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-muted-foreground">
-                Dia do mês em que a cobrança será gerada.
+                Datas padrão de cobrança da empresa: 5, 10, 15, 20 e 25.
               </p>
             </div>
+
           </div>
         </div>
       </section>
