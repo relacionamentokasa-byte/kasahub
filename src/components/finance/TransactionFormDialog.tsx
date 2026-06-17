@@ -87,6 +87,11 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
     queryFn: fetchContasBancarias,
   });
 
+  const { data: suppliers = [] } = useQuery({
+    queryKey: ["suppliers"],
+    queryFn: fetchSuppliers,
+  });
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
@@ -103,6 +108,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
         due_date: format(values.due_date, "yyyy-MM-dd"),
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
         client_id: values.client_id === "none" ? null : values.client_id,
+        supplier_id: values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id,
       };
       return createTransaction(payload as any);
     },
