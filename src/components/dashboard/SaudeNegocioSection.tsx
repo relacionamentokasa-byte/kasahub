@@ -72,6 +72,11 @@ async function fetchSaudeNegocio(refDate: Date) {
     .filter((t) => PAID_STATUSES.has(String(t.status || "").toLowerCase()))
     .reduce((acc, t) => acc + Number(t.amount || 0), 0);
 
+  // Clientes distintos que tiveram qualquer receita no mês (recorrente ou avulsa)
+  const clientesFaturadosMes = new Set(
+    incomes.map((t) => t.client_id).filter(Boolean)
+  ).size;
+
 
   // Clientes Ativos
   const { count: clientesAtivos } = await supabase
