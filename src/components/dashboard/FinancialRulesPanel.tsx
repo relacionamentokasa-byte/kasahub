@@ -121,21 +121,35 @@ export function FinancialRulesPanel({
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <div className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold">
-            {simulacaoAtiva ? "Faturamento Simulado" : "Faturamento Atual"}
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="text-[10px] uppercase tracking-widest text-foreground/40 font-bold">
+              {simulacaoAtiva ? "Faturamento Simulado" : "Faturamento Atual"}
+            </div>
+            <div className={cn("text-2xl font-bold", simulacaoAtiva ? "text-amber-600" : "text-primary")}>
+              {brl(faturamentoBase)}
+            </div>
+            <div className="text-[10px] text-foreground/40 tabular-nums mt-0.5">
+              Atual: {brl(totalFaturamento)}
+              {faturamentoPrevisto !== undefined && faturamentoPrevisto !== totalFaturamento && (
+                <> · Previsto: {brl(faturamentoPrevisto)}</>
+              )}
+            </div>
           </div>
-          <div className={cn("text-2xl font-bold", simulacaoAtiva ? "text-amber-600" : "text-primary")}>
-            {brl(faturamentoBase)}
-          </div>
-          <div className="text-[10px] text-foreground/40 tabular-nums mt-0.5">
-            Atual: {brl(totalFaturamento)}
-            {faturamentoPrevisto !== undefined && faturamentoPrevisto !== totalFaturamento && (
-              <> · Previsto: {brl(faturamentoPrevisto)}</>
-            )}
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-9 rounded-full"
+            onClick={() => setAberto((v) => !v)}
+            aria-label={aberto ? "Recolher" : "Expandir"}
+          >
+            <ChevronDown className={cn("size-5 transition-transform", aberto ? "" : "-rotate-90")} />
+          </Button>
         </div>
       </header>
+
+      {aberto && (<>
+
 
       {/* Simulador de Faturamento */}
       <div
