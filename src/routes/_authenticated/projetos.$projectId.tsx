@@ -55,8 +55,13 @@ function ProjectDetail() {
             <div>
               <h1 className="font-display text-3xl font-bold tracking-tight">{project.name}</h1>
               {client && (
-                <p className="text-xs text-foreground/50 mt-1 flex items-center gap-1">
-                  <CheckCircle2 className="size-3" /> {client.company || client.name}
+                <p className="text-xs text-foreground/50 mt-1 flex items-center gap-1.5">
+                  {(client as any).logo_url ? (
+                    <img src={(client as any).logo_url} alt={client.company || client.name || ""} className="size-4 rounded object-cover" />
+                  ) : (
+                    <CheckCircle2 className="size-3" />
+                  )}
+                  {client.company || client.name}
                 </p>
               )}
             </div>

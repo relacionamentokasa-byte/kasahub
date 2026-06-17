@@ -28,7 +28,7 @@ type ProjectRow = {
   color: string | null;
   total_jobs: number;
   client_id: string;
-  clients: { name: string | null; company: string | null } | null;
+  clients: { name: string | null; company: string | null; logo_url: string | null } | null;
   [key: string]: unknown;
 };
 
@@ -48,7 +48,7 @@ function ProjetosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, clients(name, company)")
+        .select("*, clients(name, company, logo_url)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as ProjectRow[];
@@ -149,7 +149,15 @@ function ProjetosPage() {
 
                   {clientName && (
                     <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <Building2 className="size-3.5 shrink-0" />
+                      {p.clients?.logo_url ? (
+                        <img
+                          src={p.clients.logo_url}
+                          alt={clientName}
+                          className="size-4 rounded object-cover shrink-0"
+                        />
+                      ) : (
+                        <Building2 className="size-3.5 shrink-0 opacity-60" />
+                      )}
                       <span className="truncate">{clientName}</span>
                     </div>
                   )}
