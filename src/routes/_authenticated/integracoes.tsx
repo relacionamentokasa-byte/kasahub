@@ -338,15 +338,6 @@ function InterPanel() {
     </Card>
   );
 }
-      <Header title="WhatsApp" status="pendente" />
-      <p className="text-sm text-foreground/60">
-        Para ativar, precisamos do endpoint e token da sua instância (UAZAPI, Z-API ou
-        WhatsApp Cloud API). Quando tiver, me passe que eu plugo a integração e habilito
-        avisos automáticos de aprovação e cobrança.
-      </p>
-    </Card>
-  );
-}
 
 function PWAPanel() {
   return (
