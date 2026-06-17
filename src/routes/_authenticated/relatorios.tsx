@@ -480,7 +480,7 @@ function FinancialPage() {
       </div>
 
       <FinancialRulesPanel
-        totalFaturamento={stats?.previstasReceitas ?? 0}
+        totalFaturamento={(stats?.previstasReceitas ?? 0) + (stats?.recebidasReceitas ?? 0)}
         despesasReais={despesasReaisOperacionais}
         investimentoRealizado={investimentoRealizado}
         periodoLabel={currentMonthLabel}
