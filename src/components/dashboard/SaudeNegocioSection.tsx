@@ -137,6 +137,7 @@ export function SaudeNegocioSection() {
   const mrr = data?.mrr || 0;
   const avulsa = data?.avulsa || 0;
   const clientesAtivos = data?.clientesAtivos || 0;
+  const clientesFaturadosMes = data?.clientesFaturadosMes || 0;
   const propostasPendentes = data?.propostasPendentes || 0;
   const meta = data?.meta || 0;
   // Apenas receita efetivamente recebida no mês alimenta a Meta de Faturamento.
