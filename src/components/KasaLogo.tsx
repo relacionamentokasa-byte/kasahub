@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import { fetchAgencySettings } from "@/lib/settings-api";
+import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
 
 interface KasaLogoProps {
   collapsed?: boolean;
