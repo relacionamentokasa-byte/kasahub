@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2, Globe } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -197,32 +198,71 @@ function ClientsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right py-4">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
-                          <MoreVertical className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-40">
-                        <DropdownMenuItem asChild>
-                          <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="flex items-center gap-2 cursor-pointer">
-                            <ExternalLink className="size-4" /> Ver detalhes
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => setEditClient(client)}
-                          className="flex items-center gap-2 cursor-pointer"
-                        >
-                          <Pencil className="size-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={() => setDeleteClientId(client.id)}
-                          className="flex items-center gap-2 cursor-pointer text-destructive"
-                        >
-                          <Trash2 className="size-4" /> Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-1">
+                      {client.portal_enabled && client.portal_slug && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                asChild
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-lg text-primary hover:bg-primary/10"
+                              >
+                                <a
+                                  href={`/minha-kasa/${client.portal_slug}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label="Abrir portal do cliente"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Globe className="size-4" />
+                                </a>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Abrir portal do cliente</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
+                            <MoreVertical className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-44">
+                          <DropdownMenuItem asChild>
+                            <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="flex items-center gap-2 cursor-pointer">
+                              <ExternalLink className="size-4" /> Ver detalhes
+                            </Link>
+                          </DropdownMenuItem>
+                          {client.portal_enabled && client.portal_slug && (
+                            <DropdownMenuItem asChild>
+                              <a
+                                href={`/minha-kasa/${client.portal_slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 cursor-pointer"
+                              >
+                                <Globe className="size-4" /> Abrir portal
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => setEditClient(client)}
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
+                            <Pencil className="size-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => setDeleteClientId(client.id)}
+                            className="flex items-center gap-2 cursor-pointer text-destructive"
+                          >
+                            <Trash2 className="size-4" /> Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                  </TableRow>
                 );
