@@ -363,15 +363,14 @@ function FinancialPage() {
     .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
-  // Despesas reais operacionais: exclui Pró-labore e Investimento
-  // (ambos contabilizados em blocos separados) e considera apenas as pagas.
+  // Projeção: considera tudo que está previsto no mês (pagos + pendentes),
+  // excluindo Pró-labore e Investimento (contabilizados em blocos separados).
   const despesasReaisOperacionais = transactions
     .filter(
       (t: any) =>
         t.type === "expense" &&
         !isProLabore(getCatName(t)) &&
-        !isInvestimento(getCatName(t)) &&
-        t.status === "paid",
+        !isInvestimento(getCatName(t)),
     )
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
@@ -379,8 +378,7 @@ function FinancialPage() {
     .filter(
       (t: any) =>
         t.type === "expense" &&
-        isInvestimento(getCatName(t)) &&
-        t.status === "paid",
+        isInvestimento(getCatName(t)),
     )
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
@@ -482,7 +480,7 @@ function FinancialPage() {
       </div>
 
       <FinancialRulesPanel
-        totalFaturamento={stats?.recebidasReceitas ?? 0}
+        totalFaturamento={(stats?.previstasReceitas ?? 0) + (stats?.recebidasReceitas ?? 0)}
         despesasReais={despesasReaisOperacionais}
         investimentoRealizado={investimentoRealizado}
         periodoLabel={currentMonthLabel}
