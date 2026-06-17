@@ -616,13 +616,22 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="font-semibold text-sm">{t.description}</div>
-                    <InlineClientPicker
-                      transactionId={t.id}
-                      currentClientId={t.client_id}
-                      currentClientName={
-                        (t.clients as any)?.company || (t.clients as any)?.name || null
-                      }
-                    />
+                    <div className="flex flex-col gap-0.5">
+                      <InlineClientPicker
+                        transactionId={t.id}
+                        currentClientId={t.client_id}
+                        currentClientName={
+                          (t.clients as any)?.company || (t.clients as any)?.name || null
+                        }
+                      />
+                      {t.type === "expense" && (
+                        <InlineSupplierPicker
+                          transactionId={t.id}
+                          currentSupplierId={t.supplier_id}
+                          currentSupplierName={(t.suppliers as any)?.name || null}
+                        />
+                      )}
+                    </div>
                   </TableCell>
 
                   <TableCell className="py-4">
