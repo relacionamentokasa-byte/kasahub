@@ -412,6 +412,9 @@ function FinancialPage() {
           <Button variant="outline" className="rounded-full gap-2" onClick={() => setContasOpen(true)}>
             <Landmark className="size-4" /> Contas
           </Button>
+          <Button variant="outline" className="rounded-full gap-2" onClick={() => setSuppliersOpen(true)}>
+            <Settings className="size-4" /> Fornecedores
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="rounded-full gap-2">
