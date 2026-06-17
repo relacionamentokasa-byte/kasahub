@@ -128,7 +128,8 @@ function ProposalsPage() {
     installments: 1,
     payment_method: "boleto",
     first_due_date: new Date().toISOString().split("T")[0],
-    valid_until: "",
+    valid_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+
     intro: "Olá! É um prazer apresentar nossa proposta comercial. Nossa equipe está focada em entregar resultados excepcionais para sua marca.",
     notes: "",
     scope: "",
