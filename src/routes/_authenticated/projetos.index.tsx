@@ -48,7 +48,7 @@ function ProjetosPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("projects")
-        .select("*, clients(name, company)")
+        .select("*, clients(name, company, logo_url)")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []) as unknown as ProjectRow[];
