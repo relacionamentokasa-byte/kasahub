@@ -253,7 +253,7 @@ export function SaudeNegocioSection() {
           icon={Users}
           label="Clientes Ativos"
           value={clientesAtivos}
-          subValue="Projetos em andamento"
+          subValue="Recorrentes + avulsos do mês (distintos)"
           color="blue-500"
         />
         <DashboardKPI
