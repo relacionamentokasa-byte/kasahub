@@ -78,11 +78,23 @@ async function fetchSaudeNegocio(refDate: Date) {
   ).size;
 
 
-  // Clientes Ativos
-  const { count: clientesAtivos } = await supabase
+  // Clientes Ativos = união distinta de:
+  //  - clientes com projeto ativo (recorrentes)
+  //  - clientes com qualquer receita no mês (cobre avulsos)
+  const { data: activeProjects } = await supabase
     .from("projects")
-    .select("*", { count: "exact", head: true })
+    .select("client_id")
     .eq("status", "active");
+
+  const clientesAtivosSet = new Set<string>();
+  (activeProjects || []).forEach((p: any) => {
+    if (p.client_id) clientesAtivosSet.add(p.client_id);
+  });
+  incomes.forEach((t) => {
+    if (t.client_id) clientesAtivosSet.add(t.client_id);
+  });
+  const clientesAtivos = clientesAtivosSet.size;
+
 
   // Propostas Pendentes
   const { count: propostasPendentes } = await supabase
