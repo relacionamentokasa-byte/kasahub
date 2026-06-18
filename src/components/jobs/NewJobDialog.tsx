@@ -37,6 +37,12 @@ export function NewJobDialog({
   defaultProjectId,
   defaultClientId,
   defaultPeriod,
+  defaultDmeId,
+  defaultContractId,
+  defaultTitle,
+  defaultDescription,
+  defaultDueDate,
+  onCreated,
 }: {
   stage: JobStage | null;
   open: boolean;
@@ -44,6 +50,12 @@ export function NewJobDialog({
   defaultProjectId?: string;
   defaultClientId?: string;
   defaultPeriod?: string;
+  defaultDmeId?: string;
+  defaultContractId?: string;
+  defaultTitle?: string;
+  defaultDescription?: string;
+  defaultDueDate?: string;
+  onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
@@ -52,13 +64,13 @@ export function NewJobDialog({
 
 
   const [form, setForm] = useState({
-    title: "",
-    description: "",
+    title: defaultTitle ?? "",
+    description: defaultDescription ?? "",
     priority: "normal",
-    due_date: "",
+    due_date: defaultDueDate ?? "",
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
-    contract_id: "",
+    contract_id: defaultContractId ?? "",
     service_id: "",
     period: defaultPeriod ?? "",
     main_responsible_id: "",
@@ -165,6 +177,7 @@ export function NewJobDialog({
         period: form.period || null,
         main_responsible_id: form.main_responsible_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
+        dme_id: defaultDmeId || null,
       };
 
       const data = await createJob(payload as any);
@@ -207,12 +220,15 @@ export function NewJobDialog({
 
       return { prev, prevGlobal, qk, globalQk };
     },
-    onSuccess: (_, __, ctx) => {
+    onSuccess: (job, __, ctx) => {
       // Invalidate both keys to ensure we get real data from DB
       qc.invalidateQueries({ queryKey: ctx?.qk });
       qc.invalidateQueries({ queryKey: ctx?.globalQk });
-      
+      qc.invalidateQueries({ queryKey: ["extra_demands"] });
+      qc.invalidateQueries({ queryKey: ["jobs-by-dme"] });
+
       toast.success("Job criado");
+      onCreated?.(job as Job);
       onOpenChange(false);
       setForm({
         title: "",

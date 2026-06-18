@@ -3,12 +3,14 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter,
+  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase,
 } from "lucide-react";
 import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
+import { supabase } from "@/integrations/supabase/client";
+import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
@@ -49,14 +51,32 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
 
 function DmesPage() {
   const { clientId: prefClientId } = useSearch({ from: "/_authenticated/dmes" });
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
+  const [jobForDme, setJobForDme] = useState<any | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
 
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
     queryFn: () => fetchExtraDemands({ status: statusFilter, clientId: prefClientId }),
+  });
+
+  const dmeIds = useMemo(() => dmes.map((d: any) => d.id), [dmes]);
+  const { data: jobsByDme = {} } = useQuery({
+    queryKey: ["jobs-by-dme", dmeIds],
+    enabled: dmeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, dme_id, title")
+        .in("dme_id", dmeIds);
+      if (error) throw error;
+      const map: Record<string, { id: string; title: string }> = {};
+      (data ?? []).forEach((j: any) => { if (j.dme_id) map[j.dme_id] = { id: j.id, title: j.title }; });
+      return map;
+    },
   });
 
   const filtered = useMemo(
@@ -178,6 +198,32 @@ function DmesPage() {
                   <TableCell><Badge variant="outline" className={st.cls}>{st.label}</Badge></TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {(() => {
+                        const linkedJob = jobsByDme[d.id];
+                        if (linkedJob) {
+                          return (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-blue-500"
+                              onClick={() => navigate({ to: "/jobs", search: { openJobId: linkedJob.id } })}
+                              title={`Abrir Job: ${linkedJob.title}`}
+                            >
+                              <Briefcase className="size-4" />
+                            </Button>
+                          );
+                        }
+                        return (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setJobForDme(d)}
+                            title="Criar Job a partir desta DME"
+                          >
+                            <Briefcase className="size-4" />
+                          </Button>
+                        );
+                      })()}
                       {d.public_token && (
                         <Button size="icon" variant="ghost" onClick={() => copyLink(d.public_token)} title="Copiar link de aprovação">
                           <LinkIcon className="size-4" />
@@ -206,6 +252,22 @@ function DmesPage() {
       </div>
 
       <NewDmeDialog open={openNew} onOpenChange={setOpenNew} defaultClientId={prefClientId} />
+
+      <NewJobDialog
+        stage={null}
+        open={!!jobForDme}
+        onOpenChange={(o) => { if (!o) setJobForDme(null); }}
+        defaultClientId={jobForDme?.client_id}
+        defaultDmeId={jobForDme?.id}
+        defaultContractId={jobForDme?.contract_id ?? undefined}
+        defaultTitle={jobForDme?.title ?? ""}
+        defaultDescription={jobForDme?.description ?? ""}
+        defaultDueDate={jobForDme?.due_date ?? ""}
+        onCreated={(job) => {
+          setJobForDme(null);
+          navigate({ to: "/jobs", search: { openJobId: (job as any).id } });
+        }}
+      />
     </div>
   );
 }

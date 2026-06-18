@@ -61,6 +61,7 @@ export function JobsBoard({
   title = "Tarefas",
   eyebrow = "Operação · Tarefas",
   showPeriodFilter = false,
+  initialOpenId,
 }: {
   projectId?: string;
   clientId?: string;
@@ -68,6 +69,7 @@ export function JobsBoard({
   title?: string;
   eyebrow?: string;
   showPeriodFilter?: boolean;
+  initialOpenId?: string;
 }) {
   const qc = useQueryClient();
   const [period, setPeriod] = useState<string>("all");
@@ -125,7 +127,8 @@ export function JobsBoard({
   });
 
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(initialOpenId ?? null);
+  useEffect(() => { if (initialOpenId) setOpenId(initialOpenId); }, [initialOpenId]);
   const openJob = useMemo(() => jobs.find(j => j.id === openId) || null, [jobs, openId]);
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
