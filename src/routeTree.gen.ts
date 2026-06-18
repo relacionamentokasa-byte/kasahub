@@ -19,6 +19,7 @@ import { Route as PTokenRouteImport } from './routes/p.$token'
 import { Route as MinhaKasaSlugRouteImport } from './routes/minha-kasa.$slug'
 import { Route as LpDeltaPlusRouteImport } from './routes/lp.delta-plus'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
+import { Route as DmeLoteTokenRouteImport } from './routes/dme-lote.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedValesRouteImport } from './routes/_authenticated/vales'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -103,6 +104,11 @@ const LpDeltaPlusRoute = LpDeltaPlusRouteImport.update({
 const DmeTokenRoute = DmeTokenRouteImport.update({
   id: '/dme/$token',
   path: '/dme/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DmeLoteTokenRoute = DmeLoteTokenRouteImport.update({
+  id: '/dme-lote/$token',
+  path: '/dme-lote/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApproveTokenRoute = ApproveTokenRouteImport.update({
@@ -318,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
+  '/dme-lote/$token': typeof DmeLoteTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
   '/minha-kasa/$slug': typeof MinhaKasaSlugRoute
@@ -364,6 +371,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
+  '/dme-lote/$token': typeof DmeLoteTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
   '/minha-kasa/$slug': typeof MinhaKasaSlugRoute
@@ -413,6 +421,7 @@ export interface FileRoutesById {
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
+  '/dme-lote/$token': typeof DmeLoteTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
   '/minha-kasa/$slug': typeof MinhaKasaSlugRoute
@@ -463,6 +472,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/vales'
     | '/approve/$token'
+    | '/dme-lote/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
     | '/minha-kasa/$slug'
@@ -509,6 +519,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/vales'
     | '/approve/$token'
+    | '/dme-lote/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
     | '/minha-kasa/$slug'
@@ -557,6 +568,7 @@ export interface FileRouteTypes {
     | '/_authenticated/relatorios'
     | '/_authenticated/vales'
     | '/approve/$token'
+    | '/dme-lote/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
     | '/minha-kasa/$slug'
@@ -591,6 +603,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
+  DmeLoteTokenRoute: typeof DmeLoteTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
   LpDeltaPlusRoute: typeof LpDeltaPlusRoute
   MinhaKasaSlugRoute: typeof MinhaKasaSlugRoute
@@ -683,6 +696,13 @@ declare module '@tanstack/react-router' {
       path: '/dme/$token'
       fullPath: '/dme/$token'
       preLoaderRoute: typeof DmeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dme-lote/$token': {
+      id: '/dme-lote/$token'
+      path: '/dme-lote/$token'
+      fullPath: '/dme-lote/$token'
+      preLoaderRoute: typeof DmeLoteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/approve/$token': {
@@ -998,6 +1018,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
+  DmeLoteTokenRoute: DmeLoteTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
   LpDeltaPlusRoute: LpDeltaPlusRoute,
   MinhaKasaSlugRoute: MinhaKasaSlugRoute,

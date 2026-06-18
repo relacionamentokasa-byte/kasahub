@@ -3,16 +3,18 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase,
+  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase, Layers,
 } from "lucide-react";
 import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
+import { createDmeBatch, getDmeBatchPublicUrl } from "@/lib/dme-batches-api";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProfiles } from "@/lib/profile-api";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +59,8 @@ function DmesPage() {
   const [jobForDme, setJobForDme] = useState<any | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [creatingBatch, setCreatingBatch] = useState(false);
 
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
@@ -119,6 +123,53 @@ function DmesPage() {
     toast.success("Link copiado!");
   }
 
+  // Batch selection helpers
+  const ELIGIBLE = ["draft", "pending", "sent", "pending_approval"];
+  const selectedDmes = useMemo(
+    () => dmes.filter((d: any) => selectedIds.has(d.id)),
+    [dmes, selectedIds]
+  );
+  const lockedClientId = selectedDmes[0]?.client_id ?? null;
+  const selectedTotal = selectedDmes.reduce((acc: number, d: any) => acc + Number(d.value || 0), 0);
+
+  function toggleOne(d: any) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(d.id)) next.delete(d.id);
+      else next.add(d.id);
+      return next;
+    });
+  }
+
+  function isSelectable(d: any) {
+    if (!ELIGIBLE.includes(d.status)) return false;
+    if (lockedClientId && d.client_id !== lockedClientId) return false;
+    return true;
+  }
+
+  async function handleCreateBatch() {
+    if (selectedDmes.length < 2) {
+      toast.error("Selecione ao menos 2 DMEs para gerar o lote.");
+      return;
+    }
+    setCreatingBatch(true);
+    try {
+      const batch = await createDmeBatch({
+        client_id: lockedClientId!,
+        extra_demand_ids: selectedDmes.map((d: any) => d.id),
+      });
+      const url = getDmeBatchPublicUrl(batch.public_token);
+      await navigator.clipboard.writeText(url);
+      toast.success(`Link do lote copiado! (${selectedDmes.length} DMEs · ${brl(selectedTotal)})`);
+      setSelectedIds(new Set());
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao criar lote.");
+    } finally {
+      setCreatingBatch(false);
+    }
+  }
+
+
   return (
     <div className="p-6 lg:p-10 max-w-[1500px] mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -157,10 +208,34 @@ function DmesPage() {
         </Select>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 text-sm">
+            <Layers className="size-5 text-primary" />
+            <span className="font-medium">
+              {selectedIds.size} DME{selectedIds.size > 1 ? "s" : ""} selecionada{selectedIds.size > 1 ? "s" : ""}
+            </span>
+            <span className="text-muted-foreground">
+              · Total <span className="font-mono font-semibold text-foreground">{brl(selectedTotal)}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
+              Limpar
+            </Button>
+            <Button size="sm" onClick={handleCreateBatch} disabled={creatingBatch || selectedIds.size < 2} className="gap-2">
+              {creatingBatch ? <Loader2 className="size-4 animate-spin" /> : <LinkIcon className="size-4" />}
+              Gerar link de aprovação em lote
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"></TableHead>
               <TableHead>Nº</TableHead>
               <TableHead>Demanda</TableHead>
               <TableHead>Cliente</TableHead>
@@ -173,9 +248,9 @@ function DmesPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-10"><Loader2 className="size-5 animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-10"><Loader2 className="size-5 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-12">
+              <TableRow><TableCell colSpan={9} className="text-center py-12">
                 <div className="flex flex-col items-center gap-3 text-muted-foreground">
                   <Sparkles className="size-10 opacity-30" />
                   <div>
@@ -190,8 +265,24 @@ function DmesPage() {
             ) : filtered.map((d: any) => {
               const st = STATUS_LABEL[d.status] ?? { label: d.status, cls: "bg-muted text-muted-foreground" };
               const isPending = d.status !== "approved" && d.status !== "rejected" && d.status !== "completed";
+              const selectable = isSelectable(d);
+              const checked = selectedIds.has(d.id);
               return (
-                <TableRow key={d.id}>
+                <TableRow key={d.id} className={checked ? "bg-primary/5" : ""}>
+                  <TableCell>
+                    <Checkbox
+                      checked={checked}
+                      disabled={!selectable && !checked}
+                      onCheckedChange={() => toggleOne(d)}
+                      title={
+                        !selectable
+                          ? lockedClientId && d.client_id !== lockedClientId
+                            ? "Apenas DMEs do mesmo cliente"
+                            : "Só é possível agrupar DMEs ainda não aprovadas"
+                          : "Incluir no lote"
+                      }
+                    />
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">{d.number_display}</TableCell>
                   <TableCell>
                     <div className="font-medium">{d.title}</div>
