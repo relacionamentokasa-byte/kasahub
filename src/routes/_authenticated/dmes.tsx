@@ -3,16 +3,18 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase,
+  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase, Layers,
 } from "lucide-react";
 import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
+import { createDmeBatch, getDmeBatchPublicUrl } from "@/lib/dme-batches-api";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProfiles } from "@/lib/profile-api";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
