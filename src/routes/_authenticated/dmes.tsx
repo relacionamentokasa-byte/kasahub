@@ -198,6 +198,32 @@ function DmesPage() {
                   <TableCell><Badge variant="outline" className={st.cls}>{st.label}</Badge></TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
+                      {(() => {
+                        const linkedJob = jobsByDme[d.id];
+                        if (linkedJob) {
+                          return (
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="text-blue-500"
+                              onClick={() => navigate({ to: "/jobs", search: { openJobId: linkedJob.id } })}
+                              title={`Abrir Job: ${linkedJob.title}`}
+                            >
+                              <Briefcase className="size-4" />
+                            </Button>
+                          );
+                        }
+                        return (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setJobForDme(d)}
+                            title="Criar Job a partir desta DME"
+                          >
+                            <Briefcase className="size-4" />
+                          </Button>
+                        );
+                      })()}
                       {d.public_token && (
                         <Button size="icon" variant="ghost" onClick={() => copyLink(d.public_token)} title="Copiar link de aprovação">
                           <LinkIcon className="size-4" />
