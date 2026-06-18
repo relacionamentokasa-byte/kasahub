@@ -71,6 +71,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     label: "Gestão",
     items: [
       { title: "Financeiro", url: "/relatorios", icon: Wallet, module: "financeiro" as any },
+      { title: "Vales de Sócios", url: "/vales", icon: Wallet, module: "financeiro" as any },
     ],
   },
 

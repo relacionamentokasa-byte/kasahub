@@ -59,6 +59,7 @@ const transactionSchema = z.object({
   client_id: z.string().optional(),
   supplier_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
+  nature: z.enum(["operacional", "nao_operacional"]).default("operacional"),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -98,6 +99,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
       type: "income",
       status: "pending",
       due_date: new Date(),
+      nature: "operacional",
     },
   });
 
