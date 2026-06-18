@@ -1,7 +1,8 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { CheckCircle2, Clock, AlertCircle, FileText, Calendar, DollarSign, Download, Share2, MessageSquare, Check } from "lucide-react";
+import { CheckCircle2, AlertCircle, Calendar, DollarSign, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dme/$token")({
@@ -13,11 +14,11 @@ function PublicDmeView() {
   const { token } = useParams({ from: "/dme/$token" });
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [approving, setApproving] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [showReject, setShowReject] = useState(false);
+  const [reason, setReason] = useState("");
 
-  useEffect(() => {
-    fetchDme();
-  }, [token]);
+  useEffect(() => { fetchDme(); }, [token]);
 
   async function fetchDme() {
     try {
@@ -33,17 +34,22 @@ function PublicDmeView() {
     }
   }
 
-  async function handleApprove() {
-    setApproving(true);
+  async function decide(action: "approve" | "reject") {
+    setBusy(true);
     try {
-      const res = await fetch(`/api/public/dme/${token}`, { method: "POST" });
-      if (!res.ok) throw new Error("Erro ao aprovar");
-      toast.success("Demanda aprovada com sucesso!");
-      fetchDme(); // refresh
-    } catch (e) {
-      toast.error("Erro ao aprovar demanda");
+      const res = await fetch(`/api/public/dme/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, reason: action === "reject" ? reason : undefined }),
+      });
+      if (!res.ok) throw new Error("Erro");
+      toast.success(action === "approve" ? "Demanda aprovada!" : "Demanda recusada.");
+      setShowReject(false);
+      fetchDme();
+    } catch {
+      toast.error("Erro ao registrar sua resposta");
     } finally {
-      setApproving(false);
+      setBusy(false);
     }
   }
 
