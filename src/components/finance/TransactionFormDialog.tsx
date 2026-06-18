@@ -96,6 +96,11 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
     queryFn: fetchSuppliers,
   });
 
+  const { data: companyPartners = [] } = useQuery({
+    queryKey: ["company_partners"],
+    queryFn: fetchCompanyPartners,
+  });
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
