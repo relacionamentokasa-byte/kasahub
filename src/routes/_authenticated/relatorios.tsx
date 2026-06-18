@@ -716,6 +716,21 @@ function FinancialPage() {
                           </Tooltip>
                         </TooltipProvider>
                       )}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setReciboTx(t)}
+                              className="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
+                            >
+                              <Receipt className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Gerar recibo</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       {t.status === "paid" && (
                         <TooltipProvider>
                           <Tooltip>
