@@ -25,7 +25,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { ModuleEmpty } from "@/components/ModuleEmpty";
+
 
 export const Route = createFileRoute("/_authenticated/dmes")({
   head: () => ({ meta: [{ title: "Demandas Extras — KASA HUB" }] }),
