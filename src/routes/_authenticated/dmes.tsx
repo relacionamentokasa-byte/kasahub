@@ -212,6 +212,7 @@ function DmesPage() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-10"></TableHead>
               <TableHead>Nº</TableHead>
               <TableHead>Demanda</TableHead>
               <TableHead>Cliente</TableHead>
@@ -224,9 +225,9 @@ function DmesPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-10"><Loader2 className="size-5 animate-spin inline" /></TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center py-10"><Loader2 className="size-5 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center py-12">
+              <TableRow><TableCell colSpan={9} className="text-center py-12">
                 <div className="flex flex-col items-center gap-3 text-muted-foreground">
                   <Sparkles className="size-10 opacity-30" />
                   <div>
@@ -241,8 +242,24 @@ function DmesPage() {
             ) : filtered.map((d: any) => {
               const st = STATUS_LABEL[d.status] ?? { label: d.status, cls: "bg-muted text-muted-foreground" };
               const isPending = d.status !== "approved" && d.status !== "rejected" && d.status !== "completed";
+              const selectable = isSelectable(d);
+              const checked = selectedIds.has(d.id);
               return (
-                <TableRow key={d.id}>
+                <TableRow key={d.id} className={checked ? "bg-primary/5" : ""}>
+                  <TableCell>
+                    <Checkbox
+                      checked={checked}
+                      disabled={!selectable && !checked}
+                      onCheckedChange={() => toggleOne(d)}
+                      title={
+                        !selectable
+                          ? lockedClientId && d.client_id !== lockedClientId
+                            ? "Apenas DMEs do mesmo cliente"
+                            : "Só é possível agrupar DMEs ainda não aprovadas"
+                          : "Incluir no lote"
+                      }
+                    />
+                  </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">{d.number_display}</TableCell>
                   <TableCell>
                     <div className="font-medium">{d.title}</div>
