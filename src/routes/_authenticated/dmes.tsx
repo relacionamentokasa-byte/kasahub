@@ -61,23 +61,29 @@ function DmesPage() {
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
     queryFn: () => fetchExtraDemands({ status: statusFilter, clientId: prefClientId }),
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
   });
 
-  const dmeIds = useMemo(() => dmes.map((d: any) => d.id), [dmes]);
+  const dmeIdsKey = useMemo(() => dmes.map((d: any) => d.id).sort().join(","), [dmes]);
   const { data: jobsByDme = {} } = useQuery({
-    queryKey: ["jobs-by-dme", dmeIds],
-    enabled: dmeIds.length > 0,
+    queryKey: ["jobs-by-dme", dmeIdsKey],
+    enabled: dmeIdsKey.length > 0,
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
     queryFn: async () => {
+      const ids = dmeIdsKey.split(",");
       const { data, error } = await supabase
         .from("jobs")
         .select("id, dme_id, title")
-        .in("dme_id", dmeIds);
+        .in("dme_id", ids);
       if (error) throw error;
       const map: Record<string, { id: string; title: string }> = {};
       (data ?? []).forEach((j: any) => { if (j.dme_id) map[j.dme_id] = { id: j.id, title: j.title }; });
       return map;
     },
   });
+
 
   const filtered = useMemo(
     () => dmes.filter((d: any) => !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.number_display?.toLowerCase().includes(search.toLowerCase())),
