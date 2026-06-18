@@ -120,6 +120,7 @@ function FinancialPage() {
   const [baixaTx, setBaixaTx] = useState<any | null>(null);
   const [deletingTx, setDeletingTx] = useState<any | null>(null);
   const [boletoTx, setBoletoTx] = useState<any | null>(null);
+  const [reciboTx, setReciboTx] = useState<any | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
