@@ -59,6 +59,7 @@ const transactionSchema = z.object({
   client_id: z.string().optional(),
   supplier_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
+  nature: z.enum(["operacional", "nao_operacional"]),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -98,6 +99,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
       type: "income",
       status: "pending",
       due_date: new Date(),
+      nature: "operacional",
     },
   });
 
@@ -186,6 +188,35 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                 )}
               />
             </div>
+
+            {form.watch("type") === "income" && (
+              <FormField
+                control={form.control}
+                name="nature"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Natureza da receita</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="operacional">
+                          Operacional (entra na distribuição aos sócios)
+                        </SelectItem>
+                        <SelectItem value="nao_operacional">
+                          Não-operacional (consórcio, venda de ativo, reembolso…)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
 
             <FormField
               control={form.control}
