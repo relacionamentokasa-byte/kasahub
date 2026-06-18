@@ -43,6 +43,8 @@ import { cn } from "@/lib/utils";
 import { createTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchSuppliers } from "@/lib/suppliers-api";
+import { fetchCompanyPartners } from "@/lib/partners-finance-api";
+import { supabase } from "@/integrations/supabase/client";
 import { SuppliersManagerDialog } from "./SuppliersManagerDialog";
 import { useState } from "react";
 import { Building2 } from "lucide-react";
