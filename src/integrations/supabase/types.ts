@@ -1312,61 +1312,76 @@ export type Database = {
       extra_demands: {
         Row: {
           approved_at: string | null
+          approved_by_client: boolean
           client_id: string
           contract_id: string | null
           conversion_alert_dismissed: boolean | null
           created_at: string
           deadline_days: number | null
           description: string | null
+          due_date: string | null
           id: string
           is_billable: boolean
           number_display: string
           origin: string | null
           owner_id: string | null
           public_token: string | null
+          rejected_at: string | null
+          rejection_reason: string | null
           responsible_id: string | null
           status: string
           title: string
+          transaction_id: string | null
           updated_at: string
           value: number
         }
         Insert: {
           approved_at?: string | null
+          approved_by_client?: boolean
           client_id: string
           contract_id?: string | null
           conversion_alert_dismissed?: boolean | null
           created_at?: string
           deadline_days?: number | null
           description?: string | null
+          due_date?: string | null
           id?: string
           is_billable?: boolean
           number_display?: string
           origin?: string | null
           owner_id?: string | null
           public_token?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
           responsible_id?: string | null
           status?: string
           title: string
+          transaction_id?: string | null
           updated_at?: string
           value?: number
         }
         Update: {
           approved_at?: string | null
+          approved_by_client?: boolean
           client_id?: string
           contract_id?: string | null
           conversion_alert_dismissed?: boolean | null
           created_at?: string
           deadline_days?: number | null
           description?: string | null
+          due_date?: string | null
           id?: string
           is_billable?: boolean
           number_display?: string
           origin?: string | null
           owner_id?: string | null
           public_token?: string | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
           responsible_id?: string | null
           status?: string
           title?: string
+          transaction_id?: string | null
           updated_at?: string
           value?: number
         }
@@ -1376,6 +1391,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extra_demands_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -3016,6 +3038,7 @@ export type Database = {
           created_at: string | null
           description: string
           due_date: string
+          extra_demand_id: string | null
           id: string
           is_recurring: boolean | null
           kind: string | null
@@ -3044,6 +3067,7 @@ export type Database = {
           created_at?: string | null
           description: string
           due_date: string
+          extra_demand_id?: string | null
           id?: string
           is_recurring?: boolean | null
           kind?: string | null
@@ -3072,6 +3096,7 @@ export type Database = {
           created_at?: string | null
           description?: string
           due_date?: string
+          extra_demand_id?: string | null
           id?: string
           is_recurring?: boolean | null
           kind?: string | null
@@ -3117,6 +3142,13 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_extra_demand_id_fkey"
+            columns: ["extra_demand_id"]
+            isOneToOne: false
+            referencedRelation: "extra_demands"
             referencedColumns: ["id"]
           },
           {
