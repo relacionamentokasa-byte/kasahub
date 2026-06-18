@@ -20,6 +20,7 @@ import { EditTransactionDialog } from "@/components/finance/EditTransactionDialo
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
 import { EmitirBoletoDialog } from "@/components/finance/EmitirBoletoDialog";
+import { ReciboDialog } from "@/components/finance/ReciboDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
 import { InlineSupplierPicker } from "@/components/finance/InlineSupplierPicker";
