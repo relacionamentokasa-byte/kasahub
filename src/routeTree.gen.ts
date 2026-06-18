@@ -20,6 +20,7 @@ import { Route as MinhaKasaSlugRouteImport } from './routes/minha-kasa.$slug'
 import { Route as LpDeltaPlusRouteImport } from './routes/lp.delta-plus'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
+import { Route as AuthenticatedValesRouteImport } from './routes/_authenticated/vales'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
 import { Route as AuthenticatedParceirosRouteImport } from './routes/_authenticated/parceiros'
@@ -107,6 +108,11 @@ const ApproveTokenRoute = ApproveTokenRouteImport.update({
   id: '/approve/$token',
   path: '/approve/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedValesRoute = AuthenticatedValesRouteImport.update({
+  id: '/vales',
+  path: '/vales',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   id: '/relatorios',
@@ -302,6 +308,7 @@ export interface FileRoutesByFullPath {
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
@@ -346,6 +353,7 @@ export interface FileRoutesByTo {
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
@@ -393,6 +401,7 @@ export interface FileRoutesById {
   '/_authenticated/parceiros': typeof AuthenticatedParceirosRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
@@ -441,6 +450,7 @@ export interface FileRouteTypes {
     | '/parceiros'
     | '/portal'
     | '/relatorios'
+    | '/vales'
     | '/approve/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
@@ -485,6 +495,7 @@ export interface FileRouteTypes {
     | '/parceiros'
     | '/portal'
     | '/relatorios'
+    | '/vales'
     | '/approve/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
@@ -531,6 +542,7 @@ export interface FileRouteTypes {
     | '/_authenticated/parceiros'
     | '/_authenticated/portal'
     | '/_authenticated/relatorios'
+    | '/_authenticated/vales'
     | '/approve/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
@@ -666,6 +678,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/approve/$token'
       preLoaderRoute: typeof ApproveTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/vales': {
+      id: '/_authenticated/vales'
+      path: '/vales'
+      fullPath: '/vales'
+      preLoaderRoute: typeof AuthenticatedValesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/relatorios': {
       id: '/_authenticated/relatorios'
@@ -915,6 +934,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedParceirosRoute: typeof AuthenticatedParceirosRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedValesRoute: typeof AuthenticatedValesRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedClientesClientIdRoute: typeof AuthenticatedClientesClientIdRoute
   AuthenticatedProjetosProjectIdRoute: typeof AuthenticatedProjetosProjectIdRoute
@@ -938,6 +958,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedParceirosRoute: AuthenticatedParceirosRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedValesRoute: AuthenticatedValesRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedClientesClientIdRoute: AuthenticatedClientesClientIdRoute,
   AuthenticatedProjetosProjectIdRoute: AuthenticatedProjetosProjectIdRoute,
