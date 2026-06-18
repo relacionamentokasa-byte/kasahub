@@ -386,6 +386,10 @@ function ClientDetail() {
                </div>
             </TabsContent>
 
+            <TabsContent value="dmes" className="m-0 animate-reveal">
+              <ClientDmesTab clientId={clientId} />
+            </TabsContent>
+
             <TabsContent value="servicos" className="m-0 animate-reveal">
               <ClientServicesManager clientId={clientId} />
             </TabsContent>
