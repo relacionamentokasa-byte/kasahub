@@ -7,8 +7,9 @@ import {
 } from "lucide-react";
 import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
-  approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients, fetchContracts,
+  approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
+import { fetchContracts } from "@/lib/finance-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
