@@ -149,13 +149,17 @@ function DmesPage() {
             {isLoading ? (
               <TableRow><TableCell colSpan={8} className="text-center py-10"><Loader2 className="size-5 animate-spin inline" /></TableCell></TableRow>
             ) : filtered.length === 0 ? (
-              <TableRow><TableCell colSpan={8}>
-                <ModuleEmpty
-                  title="Nenhuma DME cadastrada"
-                  description="Crie sua primeira demanda extra para um cliente."
-                  actionLabel="Nova DME"
-                  onAction={() => setOpenNew(true)}
-                />
+              <TableRow><TableCell colSpan={8} className="text-center py-12">
+                <div className="flex flex-col items-center gap-3 text-muted-foreground">
+                  <Sparkles className="size-10 opacity-30" />
+                  <div>
+                    <div className="font-medium text-foreground">Nenhuma DME cadastrada</div>
+                    <div className="text-xs">Crie sua primeira demanda extra.</div>
+                  </div>
+                  <Button onClick={() => setOpenNew(true)} size="sm" className="gap-2 mt-2">
+                    <Plus className="size-3.5" /> Nova DME
+                  </Button>
+                </div>
               </TableCell></TableRow>
             ) : filtered.map((d: any) => {
               const st = STATUS_LABEL[d.status] ?? { label: d.status, cls: "bg-muted text-muted-foreground" };
