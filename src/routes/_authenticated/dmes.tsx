@@ -51,14 +51,32 @@ const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
 
 function DmesPage() {
   const { clientId: prefClientId } = useSearch({ from: "/_authenticated/dmes" });
+  const navigate = useNavigate();
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
+  const [jobForDme, setJobForDme] = useState<any | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
 
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
     queryFn: () => fetchExtraDemands({ status: statusFilter, clientId: prefClientId }),
+  });
+
+  const dmeIds = useMemo(() => dmes.map((d: any) => d.id), [dmes]);
+  const { data: jobsByDme = {} } = useQuery({
+    queryKey: ["jobs-by-dme", dmeIds],
+    enabled: dmeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, dme_id, title")
+        .in("dme_id", dmeIds);
+      if (error) throw error;
+      const map: Record<string, { id: string; title: string }> = {};
+      (data ?? []).forEach((j: any) => { if (j.dme_id) map[j.dme_id] = { id: j.id, title: j.title }; });
+      return map;
+    },
   });
 
   const filtered = useMemo(
