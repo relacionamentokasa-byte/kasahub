@@ -208,6 +208,29 @@ function DmesPage() {
         </Select>
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 text-sm">
+            <Layers className="size-5 text-primary" />
+            <span className="font-medium">
+              {selectedIds.size} DME{selectedIds.size > 1 ? "s" : ""} selecionada{selectedIds.size > 1 ? "s" : ""}
+            </span>
+            <span className="text-muted-foreground">
+              · Total <span className="font-mono font-semibold text-foreground">{brl(selectedTotal)}</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
+              Limpar
+            </Button>
+            <Button size="sm" onClick={handleCreateBatch} disabled={creatingBatch || selectedIds.size < 2} className="gap-2">
+              {creatingBatch ? <Loader2 className="size-4 animate-spin" /> : <LinkIcon className="size-4" />}
+              Gerar link de aprovação em lote
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
