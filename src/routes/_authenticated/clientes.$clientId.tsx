@@ -4,7 +4,7 @@ import {
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
-  FileSignature
+  FileSignature, Sparkles, Link as LinkIcon, Plus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -16,7 +16,8 @@ import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 import { fetchProposals } from "@/lib/crm-api";
 import { fetchTransactions, fetchContracts } from "@/lib/finance-api";
-import { fetchProjects } from "@/lib/ops-api";
+import { fetchProjects, fetchExtraDemands, getDmePublicUrl } from "@/lib/ops-api";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -170,6 +171,7 @@ function ClientDetail() {
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
                 { v: "financeiro", label: "Financeiro", icon: Wallet },
+                { v: "dmes", label: "Demandas Extras", icon: Sparkles },
                 { v: "servicos", label: "Serviços", icon: Handshake },
                 { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
               ].map((tab) => (
@@ -384,6 +386,10 @@ function ClientDetail() {
                </div>
             </TabsContent>
 
+            <TabsContent value="dmes" className="m-0 animate-reveal">
+              <ClientDmesTab clientId={clientId} />
+            </TabsContent>
+
             <TabsContent value="servicos" className="m-0 animate-reveal">
               <ClientServicesManager clientId={clientId} />
             </TabsContent>
@@ -413,5 +419,86 @@ function QuickStatCard({ title, value, icon: Icon, color, isText = false }: { ti
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ClientDmesTab({ clientId }: { clientId: string }) {
+  const { data: dmes = [], isLoading } = useQuery({
+    queryKey: ["extra_demands", { clientId }],
+    queryFn: () => fetchExtraDemands({ clientId }),
+  });
+
+  function copy(token: string) {
+    navigator.clipboard.writeText(getDmePublicUrl(token));
+    toast.success("Link de aprovação copiado!");
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-display font-bold">Demandas Extras</h3>
+          <p className="text-xs text-muted-foreground">Solicitações fora do escopo do contrato. Cada aprovação gera lançamento financeiro automático.</p>
+        </div>
+        <Link to="/dmes" search={{ clientId }}>
+          <Button size="sm" className="gap-2"><Plus className="size-3.5" /> Nova DME</Button>
+        </Link>
+      </div>
+
+      {isLoading ? (
+        <div className="flex justify-center py-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+      ) : dmes.length === 0 ? (
+        <Card className="border-dashed">
+          <CardContent className="py-10 text-center text-muted-foreground">
+            <Sparkles className="size-8 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">Nenhuma demanda extra registrada para este cliente.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="rounded-xl border border-border overflow-hidden bg-card">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nº</TableHead>
+                <TableHead>Demanda</TableHead>
+                <TableHead>Contrato</TableHead>
+                <TableHead className="text-right">Valor</TableHead>
+                <TableHead>Vence</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Link</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {dmes.map((d: any) => (
+                <TableRow key={d.id}>
+                  <TableCell className="font-mono text-xs">{d.number_display}</TableCell>
+                  <TableCell>
+                    <div className="font-medium">{d.title}</div>
+                    {d.description && <div className="text-xs text-muted-foreground line-clamp-1">{d.description}</div>}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">{d.contracts?.title || "Avulsa"}</TableCell>
+                  <TableCell className="text-right font-mono">{brl(Number(d.value))}</TableCell>
+                  <TableCell className="text-sm">{d.due_date ? new Date(d.due_date + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className={
+                      d.status === "approved" ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
+                      d.status === "rejected" ? "bg-red-500/10 text-red-500 border-red-500/20" :
+                      "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                    }>{d.status}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {d.public_token && (
+                      <Button size="icon" variant="ghost" onClick={() => copy(d.public_token)} title="Copiar link público">
+                        <LinkIcon className="size-4" />
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
   );
 }

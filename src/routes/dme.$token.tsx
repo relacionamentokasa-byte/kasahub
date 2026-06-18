@@ -1,7 +1,8 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { CheckCircle2, Clock, AlertCircle, FileText, Calendar, DollarSign, Download, Share2, MessageSquare, Check } from "lucide-react";
+import { CheckCircle2, AlertCircle, Calendar, DollarSign, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/dme/$token")({
@@ -13,11 +14,11 @@ function PublicDmeView() {
   const { token } = useParams({ from: "/dme/$token" });
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [approving, setApproving] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [showReject, setShowReject] = useState(false);
+  const [reason, setReason] = useState("");
 
-  useEffect(() => {
-    fetchDme();
-  }, [token]);
+  useEffect(() => { fetchDme(); }, [token]);
 
   async function fetchDme() {
     try {
@@ -33,17 +34,22 @@ function PublicDmeView() {
     }
   }
 
-  async function handleApprove() {
-    setApproving(true);
+  async function decide(action: "approve" | "reject") {
+    setBusy(true);
     try {
-      const res = await fetch(`/api/public/dme/${token}`, { method: "POST" });
-      if (!res.ok) throw new Error("Erro ao aprovar");
-      toast.success("Demanda aprovada com sucesso!");
-      fetchDme(); // refresh
-    } catch (e) {
-      toast.error("Erro ao aprovar demanda");
+      const res = await fetch(`/api/public/dme/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, reason: action === "reject" ? reason : undefined }),
+      });
+      if (!res.ok) throw new Error("Erro");
+      toast.success(action === "approve" ? "Demanda aprovada!" : "Demanda recusada.");
+      setShowReject(false);
+      fetchDme();
+    } catch {
+      toast.error("Erro ao registrar sua resposta");
     } finally {
-      setApproving(false);
+      setBusy(false);
     }
   }
 
@@ -69,6 +75,7 @@ function PublicDmeView() {
 
   const { dme, agency } = data;
   const isApproved = dme.status === "approved" || dme.status === "aprovada" || dme.status === "in_production" || dme.status === "completed";
+  const isRejected = dme.status === "rejected";
   const brandPrimary = agency?.brand_primary || "#FFBC45";
   const brandSecondary = agency?.brand_secondary || "#000000";
 
@@ -147,24 +154,62 @@ function PublicDmeView() {
                   </div>
                 )}
               </div>
+            ) : isRejected ? (
+              <div className="text-center">
+                <div className="size-16 rounded-full bg-red-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <X className="size-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">Demanda Recusada</h3>
+                {dme.rejection_reason && (
+                  <p className="text-slate-500 mt-2 text-sm italic">"{dme.rejection_reason}"</p>
+                )}
+              </div>
+            ) : showReject ? (
+              <div className="w-full max-w-sm">
+                <label className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2 block">
+                  Motivo (opcional)
+                </label>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  rows={3}
+                  placeholder="Conte rapidamente o motivo..."
+                  className="mb-4"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <Button variant="outline" onClick={() => setShowReject(false)} disabled={busy}>
+                    Voltar
+                  </Button>
+                  <Button onClick={() => decide("reject")} disabled={busy} className="bg-red-600 hover:bg-red-700 text-white gap-2">
+                    <X className="size-4" /> Confirmar recusa
+                  </Button>
+                </div>
+              </div>
             ) : (
               <div className="w-full max-w-sm text-center">
                 <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-                  Ao clicar em aprovar, você confirma que está de acordo com o escopo, valor e prazo descritos acima.
+                  Ao aprovar, você confirma o escopo, valor e prazo descritos acima.
                 </p>
-                <Button 
-                  onClick={handleApprove} 
-                  disabled={approving}
-                  className="w-full h-14 rounded-2xl text-base font-bold uppercase tracking-widest shadow-xl gap-3 text-white border-0"
+                <Button
+                  onClick={() => decide("approve")}
+                  disabled={busy}
+                  className="w-full h-14 rounded-2xl text-base font-bold uppercase tracking-widest shadow-xl gap-3 text-white border-0 mb-3"
                   style={{ backgroundColor: brandPrimary, boxShadow: `0 20px 25px -5px ${brandPrimary}33` }}
                 >
-                  {approving ? (
+                  {busy ? (
                     <div className="size-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                   ) : (
                     <CheckCircle2 className="size-5" />
                   )}
                   Aprovar Demanda
                 </Button>
+                <button
+                  onClick={() => setShowReject(true)}
+                  disabled={busy}
+                  className="text-xs uppercase tracking-widest text-slate-400 hover:text-red-600 font-bold"
+                >
+                  Recusar demanda
+                </button>
               </div>
             )}
           </div>

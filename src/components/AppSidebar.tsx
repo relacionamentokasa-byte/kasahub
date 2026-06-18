@@ -17,6 +17,7 @@ import {
   Wallet,
   UsersRound,
   MessageSquare,
+  Sparkles,
 
 
   Loader2,
@@ -59,6 +60,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
       { title: "Clientes", url: "/clientes", icon: Users, module: "clientes" },
       { title: "Projetos", url: "/projetos", icon: FolderKanban, module: "projetos" },
       { title: "Jobs", url: "/jobs", icon: CheckSquare, module: "jobs" },
+      { title: "Demandas Extras", url: "/dmes", icon: Sparkles, module: "jobs" },
       { title: "Parceiros", url: "/parceiros", icon: Handshake, module: "parceiros" },
       { title: "Agenda", url: "/calendario", icon: CalendarRange, module: "dashboard" },
       { title: "Chat", url: "/chat", icon: MessageSquare, module: "dashboard" },
