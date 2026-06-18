@@ -37,6 +37,12 @@ export function NewJobDialog({
   defaultProjectId,
   defaultClientId,
   defaultPeriod,
+  defaultDmeId,
+  defaultContractId,
+  defaultTitle,
+  defaultDescription,
+  defaultDueDate,
+  onCreated,
 }: {
   stage: JobStage | null;
   open: boolean;
@@ -44,6 +50,12 @@ export function NewJobDialog({
   defaultProjectId?: string;
   defaultClientId?: string;
   defaultPeriod?: string;
+  defaultDmeId?: string;
+  defaultContractId?: string;
+  defaultTitle?: string;
+  defaultDescription?: string;
+  defaultDueDate?: string;
+  onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
@@ -52,13 +64,13 @@ export function NewJobDialog({
 
 
   const [form, setForm] = useState({
-    title: "",
-    description: "",
+    title: defaultTitle ?? "",
+    description: defaultDescription ?? "",
     priority: "normal",
-    due_date: "",
+    due_date: defaultDueDate ?? "",
     project_id: defaultProjectId ?? "",
     client_id: defaultClientId ?? "",
-    contract_id: "",
+    contract_id: defaultContractId ?? "",
     service_id: "",
     period: defaultPeriod ?? "",
     main_responsible_id: "",
