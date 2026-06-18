@@ -654,37 +654,16 @@ export function priorityLabel(p: string) {
 export async function fetchExtraDemands(filters: { clientId?: string; contractId?: string; status?: string } = {}) {
   let q = supabase
     .from("extra_demands")
-    .select("*, clients(id, name, company)")
+    .select("*, clients(id, name, company), contracts!extra_demands_contract_id_fkey(id, title), responsible:profiles!extra_demands_responsible_profile_fkey(id, display_name, full_name)")
     .order("created_at", { ascending: false });
   if (filters.clientId) q = q.eq("client_id", filters.clientId);
   if (filters.contractId) q = q.eq("contract_id", filters.contractId);
   if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
   const { data, error } = await q;
   if (error) throw error;
-  const rows = (data ?? []) as any[];
-
-  // Hydrate responsible (profiles) and contracts separately — there are no FK-based embeds available
-  const responsibleIds = Array.from(new Set(rows.map(r => r.responsible_id).filter(Boolean)));
-  const contractIds = Array.from(new Set(rows.map(r => r.contract_id).filter(Boolean)));
-
-  const [profilesRes, contractsRes] = await Promise.all([
-    responsibleIds.length
-      ? supabase.from("profiles").select("id, display_name, full_name").in("id", responsibleIds)
-      : Promise.resolve({ data: [], error: null } as any),
-    contractIds.length
-      ? supabase.from("contracts").select("id, title").in("id", contractIds)
-      : Promise.resolve({ data: [], error: null } as any),
-  ]);
-
-  const profilesMap = new Map<string, any>((profilesRes.data ?? []).map((p: any) => [p.id, p]));
-  const contractsMap = new Map<string, any>((contractsRes.data ?? []).map((c: any) => [c.id, c]));
-
-  return rows.map(r => ({
-    ...r,
-    responsible: r.responsible_id ? profilesMap.get(r.responsible_id) ?? null : null,
-    contracts: r.contract_id ? contractsMap.get(r.contract_id) ?? null : null,
-  }));
+  return data ?? [];
 }
+
 
 
 export async function createExtraDemand(input: Database["public"]["Tables"]["extra_demands"]["Insert"]) {
