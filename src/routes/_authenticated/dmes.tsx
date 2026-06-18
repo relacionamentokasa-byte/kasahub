@@ -123,6 +123,53 @@ function DmesPage() {
     toast.success("Link copiado!");
   }
 
+  // Batch selection helpers
+  const ELIGIBLE = ["draft", "pending", "sent", "pending_approval"];
+  const selectedDmes = useMemo(
+    () => dmes.filter((d: any) => selectedIds.has(d.id)),
+    [dmes, selectedIds]
+  );
+  const lockedClientId = selectedDmes[0]?.client_id ?? null;
+  const selectedTotal = selectedDmes.reduce((acc: number, d: any) => acc + Number(d.value || 0), 0);
+
+  function toggleOne(d: any) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(d.id)) next.delete(d.id);
+      else next.add(d.id);
+      return next;
+    });
+  }
+
+  function isSelectable(d: any) {
+    if (!ELIGIBLE.includes(d.status)) return false;
+    if (lockedClientId && d.client_id !== lockedClientId) return false;
+    return true;
+  }
+
+  async function handleCreateBatch() {
+    if (selectedDmes.length < 2) {
+      toast.error("Selecione ao menos 2 DMEs para gerar o lote.");
+      return;
+    }
+    setCreatingBatch(true);
+    try {
+      const batch = await createDmeBatch({
+        client_id: lockedClientId!,
+        extra_demand_ids: selectedDmes.map((d: any) => d.id),
+      });
+      const url = getDmeBatchPublicUrl(batch.public_token);
+      await navigator.clipboard.writeText(url);
+      toast.success(`Link do lote copiado! (${selectedDmes.length} DMEs · ${brl(selectedTotal)})`);
+      setSelectedIds(new Set());
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao criar lote.");
+    } finally {
+      setCreatingBatch(false);
+    }
+  }
+
+
   return (
     <div className="p-6 lg:p-10 max-w-[1500px] mx-auto space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
