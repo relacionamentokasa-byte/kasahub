@@ -75,6 +75,7 @@ function PublicDmeView() {
 
   const { dme, agency } = data;
   const isApproved = dme.status === "approved" || dme.status === "aprovada" || dme.status === "in_production" || dme.status === "completed";
+  const isRejected = dme.status === "rejected";
   const brandPrimary = agency?.brand_primary || "#FFBC45";
   const brandSecondary = agency?.brand_secondary || "#000000";
 
