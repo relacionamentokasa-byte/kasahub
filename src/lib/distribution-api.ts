@@ -158,7 +158,6 @@ export async function confirmDistribution(input: ConfirmDistributionInput) {
         conta_id: input.conta_id,
         nature: "operacional",
         notes: `Sócio: ${line.partner_name} | Mês: ${monthLabel} | Bruto: ${line.gross.toFixed(2)} | Vales abatidos: ${line.advances_total.toFixed(2)} | Líquido: ${net.toFixed(2)}`,
-        created_by: user?.id ?? null,
       } as any)
       .select("id")
       .single();
