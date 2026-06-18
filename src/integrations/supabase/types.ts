@@ -1008,6 +1008,54 @@ export type Database = {
         }
         Relationships: []
       }
+      company_partners: {
+        Row: {
+          created_at: string
+          distribution_type: string
+          document: string | null
+          email: string | null
+          full_name: string
+          id: string
+          is_active: boolean
+          notes: string | null
+          phone: string | null
+          pro_labore_amount: number | null
+          share_percentage: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          distribution_type?: string
+          document?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          pro_labore_amount?: number | null
+          share_percentage?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          distribution_type?: string
+          document?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_active?: boolean
+          notes?: string | null
+          phone?: string | null
+          pro_labore_amount?: number | null
+          share_percentage?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       contas_bancarias: {
         Row: {
           created_at: string
@@ -2144,6 +2192,66 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_advances: {
+        Row: {
+          advance_date: string
+          amount: number
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          notes: string | null
+          partner_id: string
+          settled_amount: number
+          status: string
+          transaction_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          advance_date?: string
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          partner_id: string
+          settled_amount?: number
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          advance_date?: string
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          settled_amount?: number
+          status?: string
+          transaction_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_advances_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "company_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_advances_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           availability: string | null
@@ -3040,6 +3148,7 @@ export type Database = {
           is_recurring: boolean | null
           kind: string | null
           motivo_diferenca: string | null
+          nature: string
           notes: string | null
           observacao_diferenca: string | null
           paid_value: number | null
@@ -3069,6 +3178,7 @@ export type Database = {
           is_recurring?: boolean | null
           kind?: string | null
           motivo_diferenca?: string | null
+          nature?: string
           notes?: string | null
           observacao_diferenca?: string | null
           paid_value?: number | null
@@ -3098,6 +3208,7 @@ export type Database = {
           is_recurring?: boolean | null
           kind?: string | null
           motivo_diferenca?: string | null
+          nature?: string
           notes?: string | null
           observacao_diferenca?: string | null
           paid_value?: number | null
