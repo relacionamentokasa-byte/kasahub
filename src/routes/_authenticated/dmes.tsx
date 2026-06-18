@@ -59,6 +59,8 @@ function DmesPage() {
   const [jobForDme, setJobForDme] = useState<any | null>(null);
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [creatingBatch, setCreatingBatch] = useState(false);
 
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
