@@ -651,10 +651,14 @@ export function priorityLabel(p: string) {
 }
 
 // ---------- Extra Demands (DME) ----------
-export async function fetchExtraDemands(filters: { clientId?: string; contractId?: string } = {}) {
-  let q = supabase.from("extra_demands").select("*").order("created_at", { ascending: false });
+export async function fetchExtraDemands(filters: { clientId?: string; contractId?: string; status?: string } = {}) {
+  let q = supabase
+    .from("extra_demands")
+    .select("*, clients(id, name, company), contracts(id, title), responsible:profiles!extra_demands_responsible_id_fkey(id, display_name, full_name)")
+    .order("created_at", { ascending: false });
   if (filters.clientId) q = q.eq("client_id", filters.clientId);
   if (filters.contractId) q = q.eq("contract_id", filters.contractId);
+  if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
   const { data, error } = await q;
   if (error) throw error;
   return data ?? [];
@@ -662,24 +666,30 @@ export async function fetchExtraDemands(filters: { clientId?: string; contractId
 
 export async function createExtraDemand(input: Database["public"]["Tables"]["extra_demands"]["Insert"]) {
   if (!input.client_id) throw new Error("Uma DME deve estar vinculada a um cliente.");
-  
   const client = await fetchClient(input.client_id);
-  if (client.status === 'inactive') throw new Error("Não é possível criar DMEs para clientes inativos.");
-
-  if (input.is_billable && (!input.value || Number(input.value) <= 0)) {
-    throw new Error("DMEs cobráveis devem ter um valor definido.");
+  if (client.status === "inactive") throw new Error("Não é possível criar DMEs para clientes inativos.");
+  if (!input.value || Number(input.value) <= 0) {
+    throw new Error("Toda DME precisa ter um valor.");
+  }
+  if (!input.due_date) {
+    throw new Error("Informe a data de vencimento da cobrança.");
   }
 
   const { data: u } = await supabase.auth.getUser();
   const { data, error } = await supabase
     .from("extra_demands")
-    .insert({ ...input, owner_id: u.user?.id ?? null })
+    .insert({ ...input, is_billable: true, owner_id: u.user?.id ?? null })
     .select()
     .single();
   if (error) throw error;
-  
   await logAudit("create", "dme", data.id, null, data);
   return data;
+}
+
+export async function createExtraDemandsBatch(items: Database["public"]["Tables"]["extra_demands"]["Insert"][]) {
+  const results: any[] = [];
+  for (const it of items) results.push(await createExtraDemand(it));
+  return results;
 }
 
 export async function updateExtraDemand(id: string, patch: Database["public"]["Tables"]["extra_demands"]["Update"]) {
@@ -694,7 +704,15 @@ export async function deleteExtraDemand(id: string) {
 }
 
 export async function approveExtraDemand(id: string) {
-  return;
+  return updateExtraDemand(id, { status: "approved" });
+}
+
+export async function rejectExtraDemand(id: string, reason?: string) {
+  return updateExtraDemand(id, { status: "rejected", rejection_reason: reason ?? null });
+}
+
+export function getDmePublicUrl(token: string) {
+  return `${window.location.origin}/dme/${token}`;
 }
 
 async function logAudit(action: string, entity_type: string, entity_id: string, old_data: any, new_data: any) {
