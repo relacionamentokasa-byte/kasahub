@@ -62,6 +62,7 @@ const transactionSchema = z.object({
   supplier_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
   nature: z.enum(["operacional", "nao_operacional"]),
+  partner_id: z.string().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
