@@ -171,6 +171,7 @@ function ClientDetail() {
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
                 { v: "financeiro", label: "Financeiro", icon: Wallet },
+                { v: "dmes", label: "Demandas Extras", icon: Sparkles },
                 { v: "servicos", label: "Serviços", icon: Handshake },
                 { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
               ].map((tab) => (
