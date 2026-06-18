@@ -18,6 +18,8 @@ import {
   Loader2,
 } from "lucide-react";
 import heroImg from "@/assets/delta-plus-hero.jpg";
+import deltaLogoAsset from "@/assets/delta-plus-logo.png.asset.json";
+const deltaLogo = deltaLogoAsset.url;
 import {
   Accordion,
   AccordionContent,
@@ -151,11 +153,9 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 bg-[#11263B] text-white border-b border-white/10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg bg-[#FFBC45] grid place-items-center text-[#11263B] font-black">
-            D+
-          </div>
-          <span className="font-bold tracking-tight">Distribuidor Delta Plus</span>
+        <div className="flex items-center gap-3">
+          <img src={deltaLogo} alt="Delta Plus" className="h-9 w-auto object-contain" />
+          <span className="hidden sm:inline text-sm text-white/70 border-l border-white/20 pl-3">Distribuidor Autorizado</span>
         </div>
         <nav className="hidden md:flex items-center gap-6 text-sm text-white/80">
           <a href="#produtos" className="hover:text-[#FFBC45]">Produtos</a>
@@ -662,11 +662,9 @@ function Footer() {
   return (
     <footer className="bg-[#0a1a2c] text-white/70 py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#FFBC45] grid place-items-center text-[#11263B] font-black text-xs">
-            D+
-          </div>
-          <span>Distribuidor Autorizado Delta Plus</span>
+        <div className="flex items-center gap-3">
+          <img src={deltaLogo} alt="Delta Plus" className="h-8 w-auto object-contain" />
+          <span>Distribuidor Autorizado</span>
         </div>
         <p>© {new Date().getFullYear()} Kasa. Todos os direitos reservados.</p>
       </div>
