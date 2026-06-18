@@ -154,8 +154,11 @@ function Header() {
     <header className="sticky top-0 z-40 bg-[#11263B] text-white border-b border-white/10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <img src={deltaLogo} alt="Delta Plus" className="h-9 w-auto object-contain" />
-          <span className="hidden sm:inline text-sm text-white/70 border-l border-white/20 pl-3">Distribuidor Autorizado</span>
+          <img src={deltaIcon} alt="Delta Plus" className="h-9 w-auto object-contain" />
+          <span className="font-extrabold tracking-tight text-white text-lg leading-none">
+            DELTA<span className="text-[#FFBC45]">PLUS</span>
+          </span>
+          <span className="hidden sm:inline text-xs text-white/60 border-l border-white/20 pl-3">Distribuidor Autorizado</span>
         </div>
         <nav className="hidden md:flex items-center gap-6 text-sm text-white/80">
           <a href="#produtos" className="hover:text-[#FFBC45]">Produtos</a>
