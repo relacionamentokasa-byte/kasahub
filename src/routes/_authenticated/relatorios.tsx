@@ -824,6 +824,11 @@ function FinancialPage() {
         onOpenChange={(o) => !o && setBoletoTx(null)}
         transaction={boletoTx}
       />
+      <ReciboDialog
+        open={!!reciboTx}
+        onOpenChange={(o) => !o && setReciboTx(null)}
+        transaction={reciboTx}
+      />
     </div>
 
   );
