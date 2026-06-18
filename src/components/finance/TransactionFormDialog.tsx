@@ -43,6 +43,8 @@ import { cn } from "@/lib/utils";
 import { createTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchSuppliers } from "@/lib/suppliers-api";
+import { fetchCompanyPartners } from "@/lib/partners-finance-api";
+import { supabase } from "@/integrations/supabase/client";
 import { SuppliersManagerDialog } from "./SuppliersManagerDialog";
 import { useState } from "react";
 import { Building2 } from "lucide-react";
@@ -60,6 +62,7 @@ const transactionSchema = z.object({
   supplier_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
   nature: z.enum(["operacional", "nao_operacional"]),
+  partner_id: z.string().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -93,6 +96,11 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
     queryFn: fetchSuppliers,
   });
 
+  const { data: companyPartners = [] } = useQuery({
+    queryKey: ["company_partners"],
+    queryFn: fetchCompanyPartners,
+  });
+
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
@@ -104,20 +112,38 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
   });
 
   const mutation = useMutation({
-    mutationFn: (values: TransactionFormValues) => {
-      const payload = {
-        ...values,
+    mutationFn: async (values: TransactionFormValues) => {
+      const partnerId = values.partner_id && values.partner_id !== "none" ? values.partner_id : null;
+      const { partner_id: _omit, ...rest } = values;
+      const payload: any = {
+        ...rest,
         due_date: format(values.due_date, "yyyy-MM-dd"),
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
         client_id: values.client_id === "none" ? null : values.client_id,
         supplier_id: values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id,
       };
-      return createTransaction(payload as any);
+      if (partnerId && values.type === "expense") {
+        payload.category = payload.category || "Vale Sócio";
+      }
+      const tx = await createTransaction(payload);
+      if (partnerId && values.type === "expense") {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from("partner_advances" as any).insert({
+          partner_id: partnerId,
+          amount: values.amount,
+          advance_date: format(values.due_date, "yyyy-MM-dd"),
+          description: values.description,
+          transaction_id: (tx as any)?.id ?? null,
+          created_by: user?.id ?? null,
+        });
+      }
+      return tx;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["contas_bancarias"] });
       queryClient.invalidateQueries({ queryKey: ["finance-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["partner_advances"] });
       toast.success("Lançamento registrado com sucesso!");
       form.reset();
       onOpenChange(false);
@@ -440,6 +466,36 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                 />
               </div>
             )}
+
+            {form.watch("type") === "expense" && (
+              <FormField
+                control={form.control}
+                name="partner_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vale de Sócio (Opcional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um sócio para descontar da distribuição" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum (despesa comum)</SelectItem>
+                        {companyPartners.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+
 
             <FormField
               control={form.control}
