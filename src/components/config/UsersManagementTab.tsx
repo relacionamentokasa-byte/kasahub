@@ -2,7 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Trash2, UserPlus, ShieldAlert, RefreshCw, Mail, Eye, EyeOff, KeyRound, Send } from "lucide-react";
+import { Loader2, Trash2, UserPlus, ShieldAlert, RefreshCw, Mail, KeyRound, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -230,14 +230,6 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
   const { isAdmin } = usePermissions();
   const [isSendingTest, setIsSendingTest] = useState(false);
 
-  const [visiblePasswords, setVisiblePasswords] = useState<Record<string, boolean>>({});
-
-  const togglePasswordVisibility = (userId: string) => {
-    setVisiblePasswords(prev => ({
-      ...prev,
-      [userId]: !prev[userId]
-    }));
-  };
 
   const qc = useQueryClient();
   const { data: usersData, isLoading: usersLoading } = useQuery({
@@ -349,18 +341,6 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       <div>
                         <p className="font-medium">{u.display_name || u.full_name || "Sem nome"}</p>
                         <p className="text-[10px] text-foreground/40">{u.email}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <p className="text-[10px] font-mono text-primary/70">
-                            {visiblePasswords[u.id] ? (u.plain_password || "Senha não disponível") : "••••••••"}
-                          </p>
-                          <button
-                            onClick={() => togglePasswordVisibility(u.id)}
-                            className="text-foreground/40 hover:text-primary transition-colors p-1"
-                            title={visiblePasswords[u.id] ? "Ocultar senha" : "Ver senha"}
-                          >
-                            {visiblePasswords[u.id] ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
-                          </button>
-                        </div>
                       </div>
                     </div>
                   </td>
