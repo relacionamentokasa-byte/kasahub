@@ -177,6 +177,7 @@ export function NewJobDialog({
         period: form.period || null,
         main_responsible_id: form.main_responsible_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
+        dme_id: defaultDmeId || null,
       };
 
       const data = await createJob(payload as any);
