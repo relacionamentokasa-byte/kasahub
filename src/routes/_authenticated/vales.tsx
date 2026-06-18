@@ -36,7 +36,7 @@ import { Badge } from "@/components/ui/badge";
 
 export const Route = createFileRoute("/_authenticated/vales")({
   component: ValesPage,
-  errorComponent: ({ error, reset }) => <ErrorComponent error={error} reset={reset} />,
+  errorComponent: ({ error }) => <ErrorComponent error={error} />,
   notFoundComponent: () => <div className="p-6">Página não encontrada</div>,
 });
 
