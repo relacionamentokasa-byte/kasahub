@@ -1231,6 +1231,111 @@ export type Database = {
         }
         Relationships: []
       }
+      dme_batch_items: {
+        Row: {
+          batch_id: string
+          created_at: string
+          extra_demand_id: string
+          id: string
+        }
+        Insert: {
+          batch_id: string
+          created_at?: string
+          extra_demand_id: string
+          id?: string
+        }
+        Update: {
+          batch_id?: string
+          created_at?: string
+          extra_demand_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dme_batch_items_batch_id_fkey"
+            columns: ["batch_id"]
+            isOneToOne: false
+            referencedRelation: "dme_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dme_batch_items_extra_demand_id_fkey"
+            columns: ["extra_demand_id"]
+            isOneToOne: false
+            referencedRelation: "extra_demands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dme_batches: {
+        Row: {
+          approved_at: string | null
+          client_id: string
+          consolidated_transaction_id: string | null
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          id: string
+          notes: string | null
+          public_token: string
+          rejected_at: string | null
+          rejection_reason: string | null
+          signature_client: string | null
+          status: string
+          total_value: number
+          updated_at: string
+        }
+        Insert: {
+          approved_at?: string | null
+          client_id: string
+          consolidated_transaction_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          public_token?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          signature_client?: string | null
+          status?: string
+          total_value?: number
+          updated_at?: string
+        }
+        Update: {
+          approved_at?: string | null
+          client_id?: string
+          consolidated_transaction_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          id?: string
+          notes?: string | null
+          public_token?: string
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          signature_client?: string | null
+          status?: string
+          total_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dme_batches_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dme_batches_consolidated_transaction_id_fkey"
+            columns: ["consolidated_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -1362,6 +1467,7 @@ export type Database = {
           approved_at: string | null
           approved_by_client: boolean
           client_id: string
+          consolidated_transaction_id: string | null
           contract_id: string | null
           conversion_alert_dismissed: boolean | null
           created_at: string
@@ -1387,6 +1493,7 @@ export type Database = {
           approved_at?: string | null
           approved_by_client?: boolean
           client_id: string
+          consolidated_transaction_id?: string | null
           contract_id?: string | null
           conversion_alert_dismissed?: boolean | null
           created_at?: string
@@ -1412,6 +1519,7 @@ export type Database = {
           approved_at?: string | null
           approved_by_client?: boolean
           client_id?: string
+          consolidated_transaction_id?: string | null
           contract_id?: string | null
           conversion_alert_dismissed?: boolean | null
           created_at?: string
@@ -1439,6 +1547,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "extra_demands_consolidated_transaction_id_fkey"
+            columns: ["consolidated_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
             referencedColumns: ["id"]
           },
           {
@@ -3367,6 +3482,10 @@ export type Database = {
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
+      approve_dme_batch: {
+        Args: { p_signature: string; p_token: string }
+        Returns: string
+      }
       check_upcoming_deadlines: { Args: never; Returns: undefined }
       delete_email: {
         Args: { message_id: number; queue_name: string }
@@ -3421,6 +3540,10 @@ export type Database = {
           msg_id: number
           read_ct: number
         }[]
+      }
+      reject_dme_batch: {
+        Args: { p_reason: string; p_token: string }
+        Returns: undefined
       }
     }
     Enums: {
