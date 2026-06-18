@@ -56,6 +56,7 @@ import {
   Pencil,
   CreditCard,
   Barcode,
+  Receipt,
 } from "lucide-react";
 
 
