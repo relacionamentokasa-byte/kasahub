@@ -467,6 +467,36 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               </div>
             )}
 
+            {form.watch("type") === "expense" && (
+              <FormField
+                control={form.control}
+                name="partner_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vale de Sócio (Opcional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um sócio para descontar da distribuição" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">Nenhum (despesa comum)</SelectItem>
+                        {companyPartners.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
+
+
             <FormField
               control={form.control}
               name="conta_id"
