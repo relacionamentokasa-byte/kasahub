@@ -27,6 +27,7 @@ import { Route as AuthenticatedParceirosRouteImport } from './routes/_authentica
 import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
 import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
 import { Route as AuthenticatedDmesRouteImport } from './routes/_authenticated/dmes'
+import { Route as AuthenticatedDistribuicaoRouteImport } from './routes/_authenticated/distribuicao'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
@@ -145,6 +146,12 @@ const AuthenticatedDmesRoute = AuthenticatedDmesRouteImport.update({
   path: '/dmes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDistribuicaoRoute =
+  AuthenticatedDistribuicaoRouteImport.update({
+    id: '/distribuicao',
+    path: '/distribuicao',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -302,6 +309,7 @@ export interface FileRoutesByFullPath {
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/distribuicao': typeof AuthenticatedDistribuicaoRoute
   '/dmes': typeof AuthenticatedDmesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -347,6 +355,7 @@ export interface FileRoutesByTo {
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/distribuicao': typeof AuthenticatedDistribuicaoRoute
   '/dmes': typeof AuthenticatedDmesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
@@ -395,6 +404,7 @@ export interface FileRoutesById {
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/distribuicao': typeof AuthenticatedDistribuicaoRoute
   '/_authenticated/dmes': typeof AuthenticatedDmesRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
@@ -444,6 +454,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/crm'
     | '/dashboard'
+    | '/distribuicao'
     | '/dmes'
     | '/integracoes'
     | '/jobs'
@@ -489,6 +500,7 @@ export interface FileRouteTypes {
     | '/config'
     | '/crm'
     | '/dashboard'
+    | '/distribuicao'
     | '/dmes'
     | '/integracoes'
     | '/jobs'
@@ -536,6 +548,7 @@ export interface FileRouteTypes {
     | '/_authenticated/config'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
+    | '/_authenticated/distribuicao'
     | '/_authenticated/dmes'
     | '/_authenticated/integracoes'
     | '/_authenticated/jobs'
@@ -726,6 +739,13 @@ declare module '@tanstack/react-router' {
       path: '/dmes'
       fullPath: '/dmes'
       preLoaderRoute: typeof AuthenticatedDmesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/distribuicao': {
+      id: '/_authenticated/distribuicao'
+      path: '/distribuicao'
+      fullPath: '/distribuicao'
+      preLoaderRoute: typeof AuthenticatedDistribuicaoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dashboard': {
@@ -928,6 +948,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDistribuicaoRoute: typeof AuthenticatedDistribuicaoRoute
   AuthenticatedDmesRoute: typeof AuthenticatedDmesRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
@@ -952,6 +973,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDistribuicaoRoute: AuthenticatedDistribuicaoRoute,
   AuthenticatedDmesRoute: AuthenticatedDmesRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
