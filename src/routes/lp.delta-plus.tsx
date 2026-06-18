@@ -666,8 +666,11 @@ function Footer() {
     <footer className="bg-[#0a1a2c] text-white/70 py-10">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 text-sm">
         <div className="flex items-center gap-3">
-          <img src={deltaLogo} alt="Delta Plus" className="h-8 w-auto object-contain" />
-          <span>Distribuidor Autorizado</span>
+          <img src={deltaIcon} alt="Delta Plus" className="h-8 w-auto object-contain" />
+          <span className="font-extrabold tracking-tight text-white">
+            DELTA<span className="text-[#FFBC45]">PLUS</span>
+          </span>
+          <span className="text-white/60">· Distribuidor Autorizado</span>
         </div>
         <p>© {new Date().getFullYear()} Kasa. Todos os direitos reservados.</p>
       </div>
