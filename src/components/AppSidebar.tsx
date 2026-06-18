@@ -17,6 +17,7 @@ import {
   Wallet,
   UsersRound,
   MessageSquare,
+  Sparkles,
 
 
   Loader2,
