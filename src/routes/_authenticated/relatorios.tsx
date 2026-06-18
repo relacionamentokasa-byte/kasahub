@@ -20,6 +20,7 @@ import { EditTransactionDialog } from "@/components/finance/EditTransactionDialo
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
 import { EmitirBoletoDialog } from "@/components/finance/EmitirBoletoDialog";
+import { ReciboDialog } from "@/components/finance/ReciboDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
 import { InlineSupplierPicker } from "@/components/finance/InlineSupplierPicker";
@@ -55,6 +56,7 @@ import {
   Pencil,
   CreditCard,
   Barcode,
+  Receipt,
 } from "lucide-react";
 
 
@@ -118,6 +120,7 @@ function FinancialPage() {
   const [baixaTx, setBaixaTx] = useState<any | null>(null);
   const [deletingTx, setDeletingTx] = useState<any | null>(null);
   const [boletoTx, setBoletoTx] = useState<any | null>(null);
+  const [reciboTx, setReciboTx] = useState<any | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -713,6 +716,21 @@ function FinancialPage() {
                           </Tooltip>
                         </TooltipProvider>
                       )}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => setReciboTx(t)}
+                              className="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
+                            >
+                              <Receipt className="size-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Gerar recibo</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       {t.status === "paid" && (
                         <TooltipProvider>
                           <Tooltip>
@@ -805,6 +823,11 @@ function FinancialPage() {
         open={!!boletoTx}
         onOpenChange={(o) => !o && setBoletoTx(null)}
         transaction={boletoTx}
+      />
+      <ReciboDialog
+        open={!!reciboTx}
+        onOpenChange={(o) => !o && setReciboTx(null)}
+        transaction={reciboTx}
       />
     </div>
 
