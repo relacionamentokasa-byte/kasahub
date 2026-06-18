@@ -18,8 +18,8 @@ import {
   Loader2,
 } from "lucide-react";
 import heroImg from "@/assets/delta-plus-hero.jpg";
-import deltaLogoAsset from "@/assets/delta-plus-logo.png.asset.json";
-const deltaLogo = deltaLogoAsset.url;
+import deltaIconAsset from "@/assets/delta-plus-icon.png.asset.json";
+const deltaIcon = deltaIconAsset.url;
 import {
   Accordion,
   AccordionContent,
