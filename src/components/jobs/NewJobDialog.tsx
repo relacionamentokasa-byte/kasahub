@@ -220,12 +220,15 @@ export function NewJobDialog({
 
       return { prev, prevGlobal, qk, globalQk };
     },
-    onSuccess: (_, __, ctx) => {
+    onSuccess: (job, __, ctx) => {
       // Invalidate both keys to ensure we get real data from DB
       qc.invalidateQueries({ queryKey: ctx?.qk });
       qc.invalidateQueries({ queryKey: ctx?.globalQk });
-      
+      qc.invalidateQueries({ queryKey: ["extra_demands"] });
+      qc.invalidateQueries({ queryKey: ["jobs-by-dme"] });
+
       toast.success("Job criado");
+      onCreated?.(job as Job);
       onOpenChange(false);
       setForm({
         title: "",
