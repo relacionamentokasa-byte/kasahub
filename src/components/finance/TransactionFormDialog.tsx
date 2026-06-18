@@ -112,20 +112,38 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
   });
 
   const mutation = useMutation({
-    mutationFn: (values: TransactionFormValues) => {
-      const payload = {
-        ...values,
+    mutationFn: async (values: TransactionFormValues) => {
+      const partnerId = values.partner_id && values.partner_id !== "none" ? values.partner_id : null;
+      const { partner_id: _omit, ...rest } = values;
+      const payload: any = {
+        ...rest,
         due_date: format(values.due_date, "yyyy-MM-dd"),
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
         client_id: values.client_id === "none" ? null : values.client_id,
         supplier_id: values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id,
       };
-      return createTransaction(payload as any);
+      if (partnerId && values.type === "expense") {
+        payload.category = payload.category || "Vale Sócio";
+      }
+      const tx = await createTransaction(payload);
+      if (partnerId && values.type === "expense") {
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase.from("partner_advances" as any).insert({
+          partner_id: partnerId,
+          amount: values.amount,
+          advance_date: format(values.due_date, "yyyy-MM-dd"),
+          description: values.description,
+          transaction_id: (tx as any)?.id ?? null,
+          created_by: user?.id ?? null,
+        });
+      }
+      return tx;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["contas_bancarias"] });
       queryClient.invalidateQueries({ queryKey: ["finance-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["partner_advances"] });
       toast.success("Lançamento registrado com sucesso!");
       form.reset();
       onOpenChange(false);
