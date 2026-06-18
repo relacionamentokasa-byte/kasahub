@@ -13,7 +13,7 @@ export interface UserProfile extends ProfileWithRole {
   status: UserStatus;
   last_access: string | null;
   created_at: string;
-  plain_password?: string | null;
+  
 }
 
 export interface UserInvite {

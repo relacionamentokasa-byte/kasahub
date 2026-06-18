@@ -306,15 +306,7 @@ export const updateUserPasswordServer = createServerFn({ method: "POST" })
 
     if (authError) throw authError;
 
-    // Update plain_password in Profile for visibility (if it exists)
-    const { error: profileError } = await adminClient
-      .from("profiles")
-      .update({ plain_password: data.password })
-      .eq("id", data.userId);
-    
-    if (profileError) {
-      console.warn("Could not update plain_password in profile:", profileError.message);
-    }
+    // Password is stored only in Supabase Auth (hashed). No plaintext copy is kept.
 
     return { success: true };
   });
