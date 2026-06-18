@@ -252,6 +252,22 @@ function DmesPage() {
       </div>
 
       <NewDmeDialog open={openNew} onOpenChange={setOpenNew} defaultClientId={prefClientId} />
+
+      <NewJobDialog
+        stage={null}
+        open={!!jobForDme}
+        onOpenChange={(o) => { if (!o) setJobForDme(null); }}
+        defaultClientId={jobForDme?.client_id}
+        defaultDmeId={jobForDme?.id}
+        defaultContractId={jobForDme?.contract_id ?? undefined}
+        defaultTitle={jobForDme?.title ?? ""}
+        defaultDescription={jobForDme?.description ?? ""}
+        defaultDueDate={jobForDme?.due_date ?? ""}
+        onCreated={(job) => {
+          setJobForDme(null);
+          navigate({ to: "/jobs", search: { openJobId: (job as any).id } });
+        }}
+      />
     </div>
   );
 }
