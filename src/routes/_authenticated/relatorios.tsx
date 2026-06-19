@@ -896,12 +896,12 @@ function TotalCell({ label, value, className }: { label: string; value: number; 
   );
 }
 
-function StatCard({ title, value, icon: Icon, color }: { title: string, value?: number, icon: any, color: string }) {
+function StatCard({ title, value, icon: Icon, color, bg }: { title: string, value?: number, icon: any, color: string, bg?: string }) {
   return (
     <Card className="bg-surface border-border shadow-sm overflow-hidden group hover:border-primary/50 transition-colors">
       <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
         <div className="flex items-center justify-between">
-          <div className="size-8 rounded-xl bg-muted flex items-center justify-center">
+          <div className={cn("size-8 rounded-xl flex items-center justify-center", bg || "bg-muted")}>
             <Icon className={cn("size-4", color)} />
           </div>
           {title !== 'PARCELAS FUTURAS' && (
