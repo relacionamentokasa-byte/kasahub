@@ -311,7 +311,7 @@ export function SaudeNegocioSection() {
               <Target className="size-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-[#334155]">
+              <p className="text-sm font-semibold text-foreground">
                 Meta de Faturamento (Mês)
               </p>
               <div className="text-xs text-foreground/40 flex items-center gap-1.5 flex-wrap">
