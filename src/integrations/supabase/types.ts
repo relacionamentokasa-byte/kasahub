@@ -3276,6 +3276,7 @@ export type Database = {
           description: string
           due_date: string
           extra_demand_id: string | null
+          freelancer_id: string | null
           id: string
           is_recurring: boolean | null
           kind: string | null
@@ -3310,6 +3311,7 @@ export type Database = {
           description: string
           due_date: string
           extra_demand_id?: string | null
+          freelancer_id?: string | null
           id?: string
           is_recurring?: boolean | null
           kind?: string | null
@@ -3344,6 +3346,7 @@ export type Database = {
           description?: string
           due_date?: string
           extra_demand_id?: string | null
+          freelancer_id?: string | null
           id?: string
           is_recurring?: boolean | null
           kind?: string | null
@@ -3398,6 +3401,13 @@ export type Database = {
             columns: ["extra_demand_id"]
             isOneToOne: false
             referencedRelation: "extra_demands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_freelancer_id_fkey"
+            columns: ["freelancer_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
             referencedColumns: ["id"]
           },
           {

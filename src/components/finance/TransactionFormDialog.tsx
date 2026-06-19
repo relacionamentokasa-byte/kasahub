@@ -46,6 +46,7 @@ import { brl } from "@/lib/utils-format";
 import { createTransaction, updateTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchSuppliers } from "@/lib/suppliers-api";
+import { fetchPartners } from "@/lib/partners-api";
 import { fetchCompanyPartners } from "@/lib/partners-finance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { SuppliersManagerDialog } from "./SuppliersManagerDialog";
@@ -68,6 +69,7 @@ const transactionSchema = z.object({
   status: z.enum(["pending", "paid"]),
   client_id: z.string().optional(),
   supplier_id: z.string().optional(),
+  freelancer_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
   nature: z.enum(["operacional", "nao_operacional"]),
   partner_id: z.string().optional(),
@@ -97,6 +99,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
   const { data: categorias = [] } = useQuery({ queryKey: ["categorias_financeiras"], queryFn: fetchCategoriasFinanceiras });
   const { data: contas = [] } = useQuery({ queryKey: ["contas_bancarias"], queryFn: fetchContasBancarias });
   const { data: suppliers = [] } = useQuery({ queryKey: ["suppliers"], queryFn: fetchSuppliers });
+  const { data: freelancers = [] } = useQuery({ queryKey: ["partners", "freelancer"], queryFn: () => fetchPartners("freelancer") });
   const { data: companyPartners = [] } = useQuery({ queryKey: ["company_partners"], queryFn: fetchCompanyPartners });
 
   const form = useForm<TransactionFormValues>({
@@ -122,6 +125,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         status: (transaction.status === "paid" ? "paid" : "pending") as any,
         client_id: transaction.client_id || "none",
         supplier_id: transaction.supplier_id || "none",
+        freelancer_id: transaction.freelancer_id || "none",
         conta_id: transaction.conta_id || "",
         nature: (transaction.nature as any) || "operacional",
         partner_id: transaction.partner_id || "none",
@@ -144,6 +148,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
   }, [open, transaction]);
 
   const watchType = form.watch("type");
+  const watchCategory = form.watch("category");
+  const isFreelancerCategory = watchCategory === "Freelancers e Terceirizados";
   const watchAmount = Number(form.watch("amount") || 0);
   const watchValorReal = form.watch("valor_real");
   const real = watchValorReal === "" || watchValorReal == null ? null : parseFloat(String(watchValorReal).replace(",", ".")) || 0;
@@ -155,6 +161,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       const partnerId = values.partner_id && values.partner_id !== "none" ? values.partner_id : null;
       const clientId = values.client_id === "none" || !values.client_id ? null : values.client_id;
       const supplierId = values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id;
+      const freelancerId = values.freelancer_id === "none" || !values.freelancer_id ? null : values.freelancer_id;
+      const useFreelancer = values.category === "Freelancers e Terceirizados";
 
       if (isEdit) {
         const realNum = values.valor_real === "" || values.valor_real == null
@@ -176,7 +184,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
             ? (transaction?.payment_date || format(new Date(), "yyyy-MM-dd"))
             : null,
           client_id: clientId,
-          supplier_id: supplierId,
+          supplier_id: useFreelancer ? null : supplierId,
+          freelancer_id: useFreelancer ? freelancerId : null,
           conta_id: values.conta_id,
           nature: values.nature,
           boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
@@ -199,7 +208,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         due_date: format(values.due_date, "yyyy-MM-dd"),
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
         client_id: clientId,
-        supplier_id: supplierId,
+        supplier_id: useFreelancer ? null : supplierId,
+        freelancer_id: useFreelancer ? freelancerId : null,
         conta_id: values.conta_id,
         nature: values.nature,
         boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
@@ -590,49 +600,83 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="supplier_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex items-center justify-between gap-2">
-                        <span>Fornecedor / Órgão</span>
-                        <button
-                          type="button"
-                          onClick={() => setSuppliersManagerOpen(true)}
-                          className="text-[10px] text-primary hover:underline font-normal"
-                        >
-                          + gerenciar
-                        </button>
-                      </FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="none">Nenhum</SelectItem>
-                          {suppliers.length === 0 ? (
-                            <div className="px-3 py-2 text-xs text-muted-foreground">
-                              Nenhum cadastrado.
-                            </div>
-                          ) : (
-                            suppliers.map((s) => (
-                              <SelectItem key={s.id} value={s.id}>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <Building2 className="size-3" />
-                                  {s.name}
-                                </span>
-                              </SelectItem>
-                            ))
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {isFreelancerCategory ? (
+                  <FormField
+                    control={form.control}
+                    name="freelancer_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Freelancer</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione um freelancer" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum</SelectItem>
+                            {freelancers.length === 0 ? (
+                              <div className="px-3 py-2 text-xs text-muted-foreground">
+                                Nenhum cadastrado em Parceiros → Freelancers.
+                              </div>
+                            ) : (
+                              freelancers.map((f) => (
+                                <SelectItem key={f.id} value={f.id}>
+                                  {f.name}{f.specialty ? ` — ${f.specialty}` : ""}
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={form.control}
+                    name="supplier_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center justify-between gap-2">
+                          <span>Fornecedor / Órgão</span>
+                          <button
+                            type="button"
+                            onClick={() => setSuppliersManagerOpen(true)}
+                            className="text-[10px] text-primary hover:underline font-normal"
+                          >
+                            + gerenciar
+                          </button>
+                        </FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Selecione" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Nenhum</SelectItem>
+                            {suppliers.length === 0 ? (
+                              <div className="px-3 py-2 text-xs text-muted-foreground">
+                                Nenhum cadastrado.
+                              </div>
+                            ) : (
+                              suppliers.map((s) => (
+                                <SelectItem key={s.id} value={s.id}>
+                                  <span className="inline-flex items-center gap-1.5">
+                                    <Building2 className="size-3" />
+                                    {s.name}
+                                  </span>
+                                </SelectItem>
+                              ))
+                            )}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
             )}
 
