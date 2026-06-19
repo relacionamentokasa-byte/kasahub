@@ -24,6 +24,7 @@ import { ReciboDialog } from "@/components/finance/ReciboDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
 import { InlineSupplierPicker } from "@/components/finance/InlineSupplierPicker";
+import { InlineFreelancerPicker } from "@/components/finance/InlineFreelancerPicker";
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
 import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
 import {
@@ -695,11 +696,19 @@ function FinancialPage() {
                         }
                       />
                       {t.type === "expense" && (
-                        <InlineSupplierPicker
-                          transactionId={t.id}
-                          currentSupplierId={t.supplier_id}
-                          currentSupplierName={(t.suppliers as any)?.name || null}
-                        />
+                        (t.category === "Freelancers e Terceirizados" || t.freelancer_id) ? (
+                          <InlineFreelancerPicker
+                            transactionId={t.id}
+                            currentFreelancerId={t.freelancer_id}
+                            currentFreelancerName={(t.freelancer as any)?.name || null}
+                          />
+                        ) : (
+                          <InlineSupplierPicker
+                            transactionId={t.id}
+                            currentSupplierId={t.supplier_id}
+                            currentSupplierName={(t.suppliers as any)?.name || null}
+                          />
+                        )
                       )}
                     </div>
                   </TableCell>

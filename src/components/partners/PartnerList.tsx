@@ -25,7 +25,7 @@ export function PartnerList({ type }: Props) {
 
   const { data: partners = [], isLoading } = useQuery({
     queryKey: ["partners", type],
-    queryFn: () => fetchPartners(),
+    queryFn: () => fetchPartners(type),
   });
 
   const filtered = partners.filter((p: any) => 
