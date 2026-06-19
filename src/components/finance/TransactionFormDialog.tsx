@@ -99,6 +99,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
   const { data: categorias = [] } = useQuery({ queryKey: ["categorias_financeiras"], queryFn: fetchCategoriasFinanceiras });
   const { data: contas = [] } = useQuery({ queryKey: ["contas_bancarias"], queryFn: fetchContasBancarias });
   const { data: suppliers = [] } = useQuery({ queryKey: ["suppliers"], queryFn: fetchSuppliers });
+  const { data: freelancers = [] } = useQuery({ queryKey: ["partners", "freelancer"], queryFn: () => fetchPartners("freelancer") });
   const { data: companyPartners = [] } = useQuery({ queryKey: ["company_partners"], queryFn: fetchCompanyPartners });
 
   const form = useForm<TransactionFormValues>({
@@ -124,6 +125,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         status: (transaction.status === "paid" ? "paid" : "pending") as any,
         client_id: transaction.client_id || "none",
         supplier_id: transaction.supplier_id || "none",
+        freelancer_id: transaction.freelancer_id || "none",
         conta_id: transaction.conta_id || "",
         nature: (transaction.nature as any) || "operacional",
         partner_id: transaction.partner_id || "none",
