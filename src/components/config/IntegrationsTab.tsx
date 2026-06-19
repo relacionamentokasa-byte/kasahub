@@ -1,58 +1,46 @@
 import type { AgencySettings } from "@/lib/settings-api";
 import { GoogleCalendarIntegration } from "./GoogleCalendarIntegration";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MessageSquare, Mail } from "lucide-react";
 
-export function IntegrationsTab({ form }: { form: Partial<AgencySettings> }) {
+export function IntegrationsTab({ form: _form }: { form: Partial<AgencySettings> }) {
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="google" className="w-full">
-        <TabsList className="bg-surface border border-border p-1">
-          <TabsTrigger value="google">Google Calendar</TabsTrigger>
-          <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-          <TabsTrigger value="general">Geral</TabsTrigger>
-        </TabsList>
+      <GoogleCalendarIntegration />
 
-        <TabsContent value="general" className="mt-6">
-          <div className="rounded-xl border border-border bg-surface p-6">
-            <div className="space-y-3">
-              {[
-                { id: "google_calendar", name: "Google Agenda", desc: "Sincronizar calendário editorial." },
-                { id: "resend", name: "Resend", desc: "Disparo transacional de e-mails." },
-                { id: "whatsapp", name: "WhatsApp Business", desc: "Aprovações e avisos para clientes." },
-                { id: "stripe", name: "Stripe", desc: "Cobrança recorrente (futuro)." },
-              ].map((it) => {
-                const integ = (form.integrations as Record<string, { connected?: boolean }> | undefined) ?? {};
-                const connected = it.id === 'whatsapp' ? true : (integ[it.id]?.connected ?? false);
-                return (
-                  <div key={it.id} className="flex items-center justify-between border border-border rounded-lg p-4 bg-background/40">
-                    <div>
-                      <p className="font-medium text-sm">{it.name}</p>
-                      <p className="text-xs text-foreground/50">{it.desc}</p>
-                    </div>
-                    <span className={`text-[10px] font-mono-kasa capitalize px-2 py-1 rounded ${connected ? "bg-emerald-500/15 text-emerald-300" : "bg-muted text-muted-foreground"}`}>
-                      {connected ? "Conectado" : "Desconectado"}
-                    </span>
-                  </div>
-                );
-              })}
+      <div className="rounded-xl border border-border bg-surface p-6 space-y-4">
+        <div>
+          <h3 className="font-display text-lg font-semibold">Outras integrações</h3>
+          <p className="text-xs text-foreground/50 mt-1">Conexões em desenvolvimento — disponíveis em breve.</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="flex items-center gap-3 border border-border rounded-lg p-4 bg-background/40 opacity-70">
+            <div className="size-10 rounded-md bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <MessageSquare className="size-4" />
             </div>
-            <p className="text-xs text-foreground/40 mt-4">
-              Comunicação direta via WhatsApp Web ativada para o CRM.
-            </p>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm">WhatsApp Business</p>
+              <p className="text-xs text-foreground/50">Aprovações e avisos para clientes.</p>
+            </div>
+            <span className="text-[10px] font-mono-kasa uppercase px-2 py-1 rounded bg-muted text-muted-foreground shrink-0">
+              Em breve
+            </span>
           </div>
-        </TabsContent>
 
-        <TabsContent value="google" className="mt-6">
-          <GoogleCalendarIntegration />
-        </TabsContent>
-
-        <TabsContent value="whatsapp" className="mt-6">
-          <div className="p-8 text-center rounded-xl border border-border bg-surface">
-            <p className="text-sm text-foreground/60">Configurações avançadas do WhatsApp Business.</p>
+          <div className="flex items-center gap-3 border border-border rounded-lg p-4 bg-background/40 opacity-70">
+            <div className="size-10 rounded-md bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+              <Mail className="size-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm">E-mail transacional</p>
+              <p className="text-xs text-foreground/50">Disparos automáticos (Resend).</p>
+            </div>
+            <span className="text-[10px] font-mono-kasa uppercase px-2 py-1 rounded bg-muted text-muted-foreground shrink-0">
+              Em breve
+            </span>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 }
-
