@@ -107,8 +107,14 @@ function RelatoriosGestaoPage() {
     months.forEach((k) => map.set(k, { mes: monthLabel(k), receita: 0, receitaNaoOp: 0, despesaOp: 0, despesaProLabore: 0, despesaNaoOp: 0, lucro: 0 }));
 
     transactions.forEach((t: any) => {
-      const ref = t.payment_date || t.due_date;
+      const isPaid = t.status === "paid" || !!t.payment_date;
+      // Receita: SÓ conta o que foi efetivamente recebido (pago)
+      // Despesa: usa data de pagamento se houver, senão vencimento (regime de competência)
+      const ref = t.type === "income"
+        ? t.payment_date
+        : (t.payment_date || t.due_date);
       if (!ref) return;
+      if (t.type === "income" && !isPaid) return;
       const key = ref.slice(0, 7);
       const bucket = map.get(key);
       if (!bucket) return;
@@ -172,6 +178,8 @@ function RelatoriosGestaoPage() {
       const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
       const bucket = ensure(t.client_id);
       if (t.type === "income") {
+        const isPaid = t.status === "paid" || !!t.payment_date;
+        if (!isPaid) return; // só conta receita efetivamente recebida
         if (t.nature === "nao_operacional" && !includeNonOp) return;
         bucket.receita += amount;
       }
