@@ -684,7 +684,12 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               )}
             />
 
+            {watchType === "income" && (
+              <BoletoAttachmentSection form={form} />
+            )}
+
             <DialogFooter className="pt-4">
+
               <Button
                 type="button"
                 variant="outline"
