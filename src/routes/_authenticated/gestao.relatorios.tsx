@@ -98,8 +98,8 @@ function RelatoriosGestaoPage() {
 
   // ── Evolução mensal ────────────────────────────────────────────────
   const monthly = useMemo(() => {
-    const map = new Map<string, { mes: string; receita: number; despesaOp: number; despesaProLabore: number; despesaNaoOp: number; lucro: number }>();
-    months.forEach((k) => map.set(k, { mes: monthLabel(k), receita: 0, despesaOp: 0, despesaProLabore: 0, despesaNaoOp: 0, lucro: 0 }));
+    const map = new Map<string, { mes: string; receita: number; receitaNaoOp: number; despesaOp: number; despesaProLabore: number; despesaNaoOp: number; lucro: number }>();
+    months.forEach((k) => map.set(k, { mes: monthLabel(k), receita: 0, receitaNaoOp: 0, despesaOp: 0, despesaProLabore: 0, despesaNaoOp: 0, lucro: 0 }));
 
     transactions.forEach((t: any) => {
       const ref = t.payment_date || t.due_date;
@@ -110,7 +110,8 @@ function RelatoriosGestaoPage() {
       const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
       const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
       if (t.type === "income") {
-        bucket.receita += amount;
+        if (t.nature === "nao_operacional") bucket.receitaNaoOp += amount;
+        else bucket.receita += amount;
       } else {
         if (t.nature === "nao_operacional") bucket.despesaNaoOp += amount;
         else if (isProLabore) bucket.despesaProLabore += amount;
@@ -119,6 +120,7 @@ function RelatoriosGestaoPage() {
     });
 
     map.forEach((b) => {
+      if (includeNonOp) b.receita += b.receitaNaoOp;
       const desp = b.despesaOp + (includeProLabore ? b.despesaProLabore : 0) + (includeNonOp ? b.despesaNaoOp : 0);
       b.lucro = b.receita - desp;
     });
@@ -157,7 +159,10 @@ function RelatoriosGestaoPage() {
     transactions.forEach((t: any) => {
       const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
       const bucket = ensure(t.client_id);
-      if (t.type === "income") bucket.receita += amount;
+      if (t.type === "income") {
+        if (t.nature === "nao_operacional" && !includeNonOp) return;
+        bucket.receita += amount;
+      }
       else {
         if (t.nature === "nao_operacional" && !includeNonOp) return;
         const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
