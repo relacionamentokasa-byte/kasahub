@@ -78,8 +78,8 @@ export async function fetchContracts(filters: { clientId?: string } = {}) {
 export async function fetchFinanceStats(filters: { startDate?: string; endDate?: string } = {}) {
   let q = supabase
     .from("transactions")
-    .select("amount, type, status, due_date");
-    
+    .select("amount, type, status, due_date, nature");
+
   if (filters.startDate) q = q.gte("due_date", filters.startDate);
   if (filters.endDate) q = q.lte("due_date", filters.endDate);
 
@@ -92,18 +92,30 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     previstasDespesas: 0,
     pagasDespesas: 0,
     parcelasFuturas: 0,
+    naoOperacionalReceitas: 0,
+    naoOperacionalDespesas: 0,
   };
 
   const today = new Date().toISOString().split("T")[0];
 
-  trans?.forEach((t) => {
+  trans?.forEach((t: any) => {
     const amount = Number(t.amount);
+    const isNaoOp = t.nature === "nao_operacional";
+
     if (t.type === "income") {
+      if (isNaoOp) {
+        stats.naoOperacionalReceitas += amount;
+        return; // não entra em faturamento/previsto
+      }
       if (t.status === "paid") stats.recebidasReceitas += amount;
       else stats.previstasReceitas += amount;
-      
+
       if (t.due_date > today) stats.parcelasFuturas += amount;
     } else {
+      if (isNaoOp) {
+        stats.naoOperacionalDespesas += amount;
+        return;
+      }
       if (t.status === "paid") stats.pagasDespesas += amount;
       else stats.previstasDespesas += amount;
     }
