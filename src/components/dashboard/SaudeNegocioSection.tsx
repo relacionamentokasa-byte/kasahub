@@ -122,6 +122,32 @@ async function fetchSaudeNegocio(refDate: Date) {
 
   const meta = Number(goalData?.target_value || 0);
 
+  // Meta anual (Jan–Dez do ano corrente)
+  const year = refDate.getFullYear();
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+
+  const { data: annualGoalData } = await supabase
+    .from("agency_goals")
+    .select("target_value")
+    .eq("type", "revenue")
+    .eq("period", "yearly")
+    .eq("year", year)
+    .is("owner_id", null)
+    .maybeSingle();
+
+  const metaAnual = Number(annualGoalData?.target_value || 0);
+
+  const { data: yearIncomes } = await supabase
+    .from("transactions")
+    .select("amount, status, kind, type")
+    .gte("due_date", yearStart)
+    .lte("due_date", yearEnd);
+
+  const faturadoAnual = (yearIncomes || [])
+    .filter((t: any) => (t.kind || t.type) === "income" && PAID_STATUSES.has(String(t.status || "").toLowerCase()))
+    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
   return {
     mrr,
     avulsa,
@@ -131,8 +157,11 @@ async function fetchSaudeNegocio(refDate: Date) {
     propostasPendentes: propostasPendentes || 0,
     jobsConcluidos: jobsConcluidos || 0,
     meta,
+    metaAnual,
+    faturadoAnual,
   };
 }
+
 
 
 export function SaudeNegocioSection() {
@@ -156,6 +185,15 @@ export function SaudeNegocioSection() {
   const faturado = data?.receitaEfetivada || 0;
   const progressoRaw = meta > 0 ? (faturado / meta) * 100 : 0;
   const progresso = Math.min(progressoRaw, 100);
+
+  // Meta anual
+  const metaAnual = data?.metaAnual || 0;
+  const faturadoAnual = data?.faturadoAnual || 0;
+  const progressoAnualRaw = metaAnual > 0 ? (faturadoAnual / metaAnual) * 100 : 0;
+  const progressoAnual = Math.min(progressoAnualRaw, 100);
+  const faltaAnual = Math.max(0, metaAnual - faturadoAnual);
+  const anoRef = new Date().getFullYear();
+
 
 
   const [editing, setEditing] = useState(false);
@@ -314,6 +352,38 @@ export function SaudeNegocioSection() {
         </div>
         <Progress value={progresso} className="h-2" />
       </div>
+
+      {/* Meta Anual (Jan–Dez) */}
+      <div className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors">
+        <div className="flex items-start justify-between mb-3 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+              <Target className="size-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                Meta Anual de Faturamento · {anoRef}
+              </p>
+              <div className="text-xs text-foreground/50">
+                {metaAnual > 0 ? (
+                  <>
+                    {brl(faturadoAnual)} de <span className="font-medium">{brl(metaAnual)}</span>
+                    {" · "}
+                    {progressoAnualRaw >= 100 ? "Meta batida 🎉" : `Faltam ${brl(faltaAnual)}`}
+                  </>
+                ) : (
+                  "Defina a meta anual em agency_goals (period: yearly)"
+                )}
+              </div>
+            </div>
+          </div>
+          <p className={`text-2xl font-bold tracking-tight ${progressoAnualRaw >= 100 ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
+            {metaAnual > 0 ? `${progressoAnual.toFixed(0)}%` : "—"}
+          </p>
+        </div>
+        <Progress value={progressoAnual} className="h-2" />
+      </div>
     </div>
+
   );
 }

@@ -23,9 +23,8 @@ import {
   Users,
   AlertTriangle,
   Percent,
-  Target,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 
 import { fetchTransactions } from "@/lib/finance-api";
 import { PRO_LABORE_CATEGORY, DISTRIBUTION_CATEGORY } from "@/lib/distribution-api";
@@ -99,36 +98,8 @@ function RelatoriosGestaoPage() {
     queryFn: fetchClients,
   });
 
-  // ── Meta anual ─────────────────────────────────────────────────────
-  const currentYear = new Date().getFullYear();
-  const { data: annualGoal } = useQuery({
-    queryKey: ["agency_goals", "yearly", currentYear],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agency_goals")
-        .select("target_value")
-        .eq("year", currentYear)
-        .eq("period", "yearly")
-        .eq("type", "revenue")
-        .is("owner_id", null)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
 
-  const { data: ytdReceita = 0 } = useQuery({
-    queryKey: ["gestao-relatorios", "ytd-receita", currentYear, includeNonOp],
-    queryFn: async () => {
-      const start = `${currentYear}-01-01`;
-      const end = `${currentYear}-12-31`;
-      const rows = await fetchTransactions({ startDate: start, endDate: end, type: "income" });
-      return rows.reduce((s: number, t: any) => {
-        if (!includeNonOp && t.nature === "nao_operacional") return s;
-        return s + (Number(t.paid_value ?? t.valor_real ?? t.amount) || 0);
-      }, 0);
-    },
-  });
+
 
   // ── Evolução mensal ────────────────────────────────────────────────
   const monthly = useMemo(() => {
@@ -306,40 +277,8 @@ function RelatoriosGestaoPage() {
                  color={totals.margem >= 30 ? "emerald" : totals.margem >= 15 ? "amber" : "rose"} />
       </div>
 
-      {/* Meta anual */}
-      {(() => {
-        const meta = Number(annualGoal?.target_value || 0);
-        const pct = meta > 0 ? (ytdReceita / meta) * 100 : 0;
-        const falta = Math.max(0, meta - ytdReceita);
-        const barColor = pct >= 100 ? "bg-emerald-500" : pct >= 70 ? "bg-blue-500" : pct >= 40 ? "bg-amber-500" : "bg-rose-500";
-        return (
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2">
-                <div className="size-9 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center">
-                  <Target className="size-4 text-primary" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">Meta anual de faturamento · {currentYear}</div>
-                  <div className="text-xs text-foreground/60">
-                    {meta > 0
-                      ? `${brl(ytdReceita)} de ${brl(meta)} · ${pct >= 100 ? "Meta batida 🎉" : `Faltam ${brl(falta)}`}`
-                      : "Defina a meta anual no painel de Saúde do Negócio."}
-                  </div>
-                </div>
-              </div>
-              <div className={`text-2xl font-bold ${pct >= 100 ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
-                {meta > 0 ? `${pct.toFixed(1)}%` : "—"}
-              </div>
-            </div>
-            {meta > 0 && (
-              <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
-                <div className={`h-full ${barColor} transition-all`} style={{ width: `${Math.min(100, pct)}%` }} />
-              </div>
-            )}
-          </div>
-        );
-      })()}
+
+
 
 
 
