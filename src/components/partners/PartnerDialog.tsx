@@ -59,19 +59,6 @@ export function PartnerDialog({
     });
   }, [open, partner]);
 
-  useEffect(() => {
-    if (!open) return;
-    setForm({
-      name: partner?.name ?? "",
-      email: partner?.email ?? "",
-      phone: partner?.phone ?? "",
-      document: partner?.document ?? "",
-      pix_key: partner?.pix_key ?? "",
-      specialty: partner?.specialty ?? "",
-      hourly_rate: partner?.hourly_rate != null ? String(partner.hourly_rate) : "",
-      observations: partner?.observations ?? "",
-    });
-  }, [open, partner]);
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -86,6 +73,7 @@ export function PartnerDialog({
         specialty: form.specialty.trim() || null,
         hourly_rate: form.hourly_rate ? parseFloat(form.hourly_rate.replace(",", ".")) : null,
         observations: form.observations.trim() || null,
+        photo_url: form.photo_url || null,
       };
       if (isEdit) return updatePartner(partner.id, payload);
       return createPartner(payload);
