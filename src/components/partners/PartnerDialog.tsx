@@ -41,7 +41,23 @@ export function PartnerDialog({
     specialty: "",
     hourly_rate: "",
     observations: "",
+    photo_url: "" as string | null | "",
   });
+
+  useEffect(() => {
+    if (!open) return;
+    setForm({
+      name: partner?.name ?? "",
+      email: partner?.email ?? "",
+      phone: partner?.phone ?? "",
+      document: partner?.document ?? "",
+      pix_key: partner?.pix_key ?? "",
+      specialty: partner?.specialty ?? "",
+      hourly_rate: partner?.hourly_rate != null ? String(partner.hourly_rate) : "",
+      observations: partner?.observations ?? "",
+      photo_url: partner?.photo_url ?? "",
+    });
+  }, [open, partner]);
 
   useEffect(() => {
     if (!open) return;
