@@ -74,7 +74,11 @@ const transactionSchema = z.object({
   valor_real: z.string().optional(),
   motivo_diferenca: z.string().optional(),
   observacao_diferenca: z.string().optional(),
+  boleto_pdf_path: z.string().nullable().optional(),
+  boleto_linha_digitavel: z.string().max(200).nullable().optional(),
+  boleto_pix_copia_cola: z.string().max(2000).nullable().optional(),
 });
+
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
