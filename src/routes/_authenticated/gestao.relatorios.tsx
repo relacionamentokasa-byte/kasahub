@@ -62,6 +62,7 @@ function monthLabel(key: string) {
 function RelatoriosGestaoPage() {
   const [range, setRange] = useState<RangeKey>("12m");
   const [includeNonOp, setIncludeNonOp] = useState(false);
+  const [includeProLabore, setIncludeProLabore] = useState(true);
 
   const { startDate, endDate, months } = useMemo(() => {
     const now = new Date();
