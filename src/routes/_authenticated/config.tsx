@@ -1,28 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  Save, 
-  Loader2, 
-  Bell, 
-  Building2, 
-  Palette, 
-  Plug, 
-  UserCog, 
-  Shield, 
-  Briefcase, 
-  FileText, 
-  User, 
-  Target, 
-  Pencil, 
-  Users, 
-  CreditCard, 
-  MessageSquare, 
-  Mail,
+import {
+  Save,
+  Loader2,
+  Bell,
+  Building2,
+  Palette,
+  Plug,
+  Shield,
+  Briefcase,
+  FileText,
+  User,
+  Pencil,
+  Users,
   ChevronRight,
   Menu,
-  Smartphone,
-  Download
+  Download,
+  SunMoon,
 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
@@ -38,7 +33,6 @@ import { BrandTab } from "@/components/config/BrandTab";
 import { SignatureTab } from "@/components/config/SignatureTab";
 import { IntegrationsTab } from "@/components/config/IntegrationsTab";
 import { PreferencesTab } from "@/components/config/PreferencesTab";
-import { PwaSettingsTab } from "@/components/config/PwaSettingsTab";
 import { InstallAppTab } from "@/components/config/InstallAppTab";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -113,29 +107,23 @@ function ConfigPage() {
   // displayData já definido no topo
 
   const sections: ConfigSection[] = [
-    { id: "profile", label: "Meu Perfil", icon: User, group: "Meu Perfil", component: <UserProfileTab canEdit={canEdit} /> },
-    
+    { id: "profile", label: "Meu Perfil", icon: User, group: "Conta", component: <UserProfileTab canEdit={canEdit} /> },
+    { id: "notif", label: "Notificações", icon: Bell, group: "Conta", component: <NotificationPreferencesTab /> },
+    { id: "prefs", label: "Aparência", icon: SunMoon, group: "Conta", component: <PreferencesTab /> },
+
     { id: "agency", label: "Identidade", icon: Building2, group: "Agência", component: <IdentityTab form={form} set={set} canEdit={canEdit} /> },
     { id: "brand", label: "Cores do Sistema", icon: Palette, group: "Agência", component: <BrandTab form={form} set={set} canEdit={canEdit} /> },
     { id: "signature", label: "Assinatura da Empresa", icon: Pencil, group: "Agência", component: <SignatureTab form={form} set={set} /> },
-    
+
     { id: "users", label: "Gestão de Usuários", icon: Users, group: "Usuários e Permissões", component: <UsersManagementTab canEdit={canEdit} /> },
     { id: "perms", label: "Perfis e Permissões", icon: Shield, group: "Usuários e Permissões", component: <PermissionsManager canEdit={canEdit} /> },
-    
-    { id: "services", label: "Serviços", icon: Briefcase, group: "Operação", component: <ServicesManager canEdit={canEdit} /> },
-    { id: "contracts", label: "Templates de Contratos", icon: FileText, group: "Operação", component: <ContractTemplatesManager canEdit={canEdit} /> },
-    { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Operação", component: <ScopeTemplatesManager canEdit={canEdit} /> },
-    
-    { id: "notif", label: "Notificações", icon: Bell, group: "Comunicação", component: <NotificationPreferencesTab /> },
-    { id: "whatsapp", label: "WhatsApp", icon: MessageSquare, group: "Comunicação", component: <IntegrationsTab form={form} /> },
-    
-    { id: "integr", label: "Google Calendar", icon: Plug, group: "Integrações", component: <IntegrationsTab form={form} /> },
-    { id: "email", label: "E-mail", icon: Mail, group: "Integrações", component: <IntegrationsTab form={form} /> },
-    
-    { id: "licensing", label: "Licenciamento", icon: CreditCard, component: <div className="p-12 text-center text-foreground/40 border-2 border-dashed rounded-xl">Módulo de licenciamento em breve.</div> },
+
+    { id: "services", label: "Serviços", icon: Briefcase, group: "Catálogos", component: <ServicesManager canEdit={canEdit} /> },
+    { id: "contracts", label: "Templates de Contratos", icon: FileText, group: "Catálogos", component: <ContractTemplatesManager canEdit={canEdit} /> },
+    { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Catálogos", component: <ScopeTemplatesManager canEdit={canEdit} /> },
+
+    { id: "integr", label: "Integrações", icon: Plug, group: "Sistema", component: <IntegrationsTab form={form} /> },
     { id: "install", label: "Instalar o App", icon: Download, group: "Sistema", component: <InstallAppTab /> },
-    { id: "pwa", label: "Aplicativo (PWA)", icon: Smartphone, group: "Sistema", component: <PwaSettingsTab form={form} set={set} canEdit={canEdit} /> },
-    { id: "prefs", label: "Preferências do Sistema", icon: UserCog, group: "Sistema", component: <PreferencesTab /> },
   ];
 
   const currentSection = sections.find(s => s.id === activeTab) || sections[0];
@@ -215,7 +203,7 @@ function ConfigPage() {
               </span>
               <h2 className="font-display text-3xl font-bold mt-1">{currentSection.label}</h2>
             </div>
-            {activeTab !== "licensing" && activeTab !== "perms" && activeTab !== "users" && activeTab !== "services" && activeTab !== "contracts" && activeTab !== "scope-templates" && (
+            {!["profile", "notif", "prefs", "perms", "users", "services", "contracts", "scope-templates", "integr", "install"].includes(activeTab) && (
               <Button
                 onClick={() => mut.mutate()}
                 disabled={!canEdit || mut.isPending}
