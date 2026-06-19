@@ -283,7 +283,12 @@ function RelatoriosGestaoPage() {
               <RTooltip formatter={(v: any) => brl(Number(v))} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="despesaOp" stackId="d" name="Operacional" fill="hsl(0 72% 51%)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="despesaNaoOp" stackId="d" name="Não-operacional" fill="hsl(25 80% 60%)" radius={[6, 6, 0, 0]} />
+              {includeProLabore && (
+                <Bar dataKey="despesaProLabore" stackId="d" name="Pró-labore / Distribuição" fill="hsl(280 65% 55%)" radius={[0, 0, 0, 0]} />
+              )}
+              {includeNonOp && (
+                <Bar dataKey="despesaNaoOp" stackId="d" name="Não-operacional" fill="hsl(25 80% 60%)" radius={[6, 6, 0, 0]} />
+              )}
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
