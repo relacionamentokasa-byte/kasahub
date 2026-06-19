@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarIcon, Loader2, Building2 } from "lucide-react";
+import { CalendarIcon, Loader2, Building2, Paperclip, Upload, X, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchCategoriasFinanceiras } from "@/lib/categorias-financeiras-api";
