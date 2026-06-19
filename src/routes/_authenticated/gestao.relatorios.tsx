@@ -170,7 +170,12 @@ function RelatoriosGestaoPage() {
       }
       else {
         if (t.nature === "nao_operacional" && !includeNonOp) return;
-        const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
+        const desc = String(t.description || "").toLowerCase();
+        const isProLabore =
+          t.category === PRO_LABORE_CATEGORY ||
+          t.category === DISTRIBUTION_CATEGORY ||
+          desc.includes("labore") ||
+          desc.includes("distribui");
         if (isProLabore && !includeProLabore) return;
         bucket.despesa += amount;
       }
