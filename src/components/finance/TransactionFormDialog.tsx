@@ -251,7 +251,14 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Editar Lançamento" : "Novo Lançamento Financeiro"}</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {isEdit ? "Editar Lançamento" : "Novo Lançamento Financeiro"}
+            {isEdit && (transaction as any)?.number_display && (
+              <span className="text-xs font-mono-kasa font-bold text-muted-foreground bg-muted/40 border border-border/60 rounded px-2 py-0.5">
+                {(transaction as any).number_display}
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>

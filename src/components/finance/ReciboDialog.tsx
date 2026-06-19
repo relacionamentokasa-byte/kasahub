@@ -121,7 +121,7 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
             <Printer className="size-5 text-primary" /> Gerar recibo
           </DialogTitle>
           <DialogDescription>
-            {transaction.description} · {brl(valor)}
+            {(transaction as any).number_display ? `${(transaction as any).number_display} · ` : ""}{transaction.description} · {brl(valor)}
           </DialogDescription>
         </DialogHeader>
 
