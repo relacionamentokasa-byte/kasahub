@@ -46,6 +46,7 @@ import { brl } from "@/lib/utils-format";
 import { createTransaction, updateTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchSuppliers } from "@/lib/suppliers-api";
+import { fetchPartners } from "@/lib/partners-api";
 import { fetchCompanyPartners } from "@/lib/partners-finance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { SuppliersManagerDialog } from "./SuppliersManagerDialog";
@@ -68,6 +69,7 @@ const transactionSchema = z.object({
   status: z.enum(["pending", "paid"]),
   client_id: z.string().optional(),
   supplier_id: z.string().optional(),
+  freelancer_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
   nature: z.enum(["operacional", "nao_operacional"]),
   partner_id: z.string().optional(),
