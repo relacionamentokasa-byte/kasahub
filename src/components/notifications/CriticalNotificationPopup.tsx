@@ -10,6 +10,7 @@ import {
   type CriticalNotif,
 } from "@/lib/critical-notification-bus";
 import { marcarComoLida } from "@/lib/notifications-api";
+import { navigateToNotificationLink } from "@/lib/notification-navigation";
 
 function iconFor(tipo: string) {
   if (tipo === "mention" || tipo === "at")
@@ -55,15 +56,7 @@ export function CriticalNotificationPopup() {
 
   const handleGo = () => {
     readMut.mutate(current.id);
-    if (current.link) {
-      try {
-        const url = new URL(current.link, window.location.origin);
-        const search = Object.fromEntries(url.searchParams.entries());
-        navigate({ to: url.pathname as any, search: search as any });
-      } catch {
-        navigate({ to: current.link as any });
-      }
-    }
+    navigateToNotificationLink(navigate, current.link);
     criticalBus.shift();
   };
 

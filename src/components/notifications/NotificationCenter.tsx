@@ -31,6 +31,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { navigateToNotificationLink } from "@/lib/notification-navigation";
 
 export function NotificationCenter() {
   const qc = useQueryClient();
@@ -61,15 +62,7 @@ export function NotificationCenter() {
 
   const handleAction = (n: Notificacao) => {
     if (!n.lido) readMut.mutate(n.id);
-    if (n.link) {
-      try {
-        const url = new URL(n.link, window.location.origin);
-        const search = Object.fromEntries(url.searchParams.entries());
-        navigate({ to: url.pathname as any, search: search as any });
-      } catch {
-        navigate({ to: n.link as any });
-      }
-    }
+    navigateToNotificationLink(navigate, n.link);
   };
 
   return (
