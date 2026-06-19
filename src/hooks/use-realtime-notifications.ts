@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { criticalBus, playCriticalSound, startTitleFlash } from "@/lib/critical-notification-bus";
+import { navigateToNotificationLink } from "@/lib/notification-navigation";
 
 const NOTIFICATION_SOUND_URL = "https://lovable-pre-project.lovable.app/lovable-uploads/notification-chime.mp3";
 
@@ -135,7 +136,7 @@ export function useRealtimeNotifications() {
               ),
               action: newNotif.link ? {
                 label: "Ver",
-                onClick: () => navigate({ to: newNotif.link as any })
+                onClick: () => navigateToNotificationLink(navigate, newNotif.link)
               } : undefined,
             });
 
