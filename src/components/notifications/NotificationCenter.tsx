@@ -62,7 +62,13 @@ export function NotificationCenter() {
   const handleAction = (n: Notificacao) => {
     if (!n.lido) readMut.mutate(n.id);
     if (n.link) {
-      navigate({ to: n.link as any });
+      try {
+        const url = new URL(n.link, window.location.origin);
+        const search = Object.fromEntries(url.searchParams.entries());
+        navigate({ to: url.pathname as any, search: search as any });
+      } catch {
+        navigate({ to: n.link as any });
+      }
     }
   };
 
