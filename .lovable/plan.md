@@ -1,79 +1,39 @@
-## Objetivo
+## 1. Unificar "Novo lançamento" e "Editar lançamento"
 
-Permitir enviar várias DMEs juntas para o cliente: ele abre **um único link**, vê todas, aprova tudo de uma vez, e o sistema gera **uma única cobrança consolidada** no financeiro.
+Hoje existem dois componentes diferentes:
+- `TransactionFormDialog` (novo) — formulário completo com tipo, categoria, conta, natureza, cliente, fornecedor, sócio, etc.
+- `EditTransactionDialog` (editar) — formulário minimalista só com descrição, valor previsto, valor real e motivo da diferença.
 
-## Regras de negócio
+**Mudança:** transformar `TransactionFormDialog` em dialog único que suporta criação E edição:
+- Aceitar prop opcional `transaction` — quando presente, entra em modo edição (título "Editar lançamento", preenche todos os campos, faz `updateTransaction` no submit).
+- Manter os campos extras do antigo `EditTransactionDialog` (valor previsto x valor real, motivo da diferença) como uma seção condicional dentro do mesmo form.
+- Remover o arquivo `EditTransactionDialog.tsx` e ajustar `src/routes/_authenticated/relatorios.tsx` para reutilizar o `TransactionFormDialog` passando a transação selecionada.
 
-- Agrupamento sempre **por cliente** (não mistura clientes diferentes).
-- Só entram no lote DMEs com status `draft` ou `pending` (ainda não aprovadas/recusadas).
-- Cada DME continua existindo individualmente (status, job, histórico). O "lote" é uma camada por cima.
-- Aprovação é **tudo ou nada**: o cliente aprova o lote inteiro ou recusa. Não há aprovação parcial.
-- Ao aprovar:
-  - Cada DME do lote vira `approved` (dispara o trigger atual `handle_extra_demand_approval`, que já cria a transação individual).
-  - Logo em seguida, as N transações individuais são **substituídas por 1 transação consolidada** com a soma dos valores, vencimento = maior `due_date` do lote, descrição "Cobrança consolidada — N DMEs".
-- Recusa do lote marca todas como `rejected` com o mesmo motivo.
+## 2. Recibo apenas para transações pagas
 
-## Fluxo do usuário (interno)
+- Em `relatorios.tsx`, esconder/desabilitar a ação "Gerar recibo" quando `transaction.status !== 'paid'` (com tooltip "Disponível somente para lançamentos pagos").
+- Em `ReciboDialog`, guard inicial: se a transação não estiver paga, mostrar aviso e bloquear a impressão.
 
-1. Em `/dmes`, ativar modo seleção (checkbox por linha) — só aparecem checkboxes nas DMEs elegíveis (`draft`/`pending`) e bloqueia seleção de clientes diferentes.
-2. Barra de ação no rodapé: "X DMEs selecionadas · R$ Y · [Gerar link de aprovação em lote]".
-3. Ao confirmar, gera um `dme_batch` com token público e copia o link.
+## 3. Natureza da despesa
 
-## Fluxo do cliente (público)
+Hoje o campo `nature` (`operacional` / `nao_operacional`) só aparece para receitas e é usado em `distribution-api.ts` para definir o que entra na distribuição aos sócios.
 
-Rota pública nova `/dme-lote/$token`:
-- Lista todas as DMEs do lote (título, descrição, valor, prazo).
-- Total geral em destaque.
-- Botões "Aprovar todas" e "Recusar" (com campo de motivo).
-- Após aprovar: tela de confirmação + status "aguardando cobrança".
+**Mudança:**
+- Mostrar o seletor "Natureza da despesa" também quando `type === 'expense'` no `TransactionFormDialog` unificado:
+  - Operacional (entra no cálculo de lucro/distribuição)
+  - Não-operacional (investimento, aporte, compra de ativo, despesa de sócio… não impacta resultado operacional)
+- Default da despesa: `operacional`.
+- Ajustar `src/lib/distribution-api.ts` e os agregadores em `src/routes/_authenticated/relatorios.tsx` (KPIs/relatórios de resultado) para considerar somente despesas com `nature = 'operacional'` no cálculo de lucro/base de distribuição, mantendo o total bruto de despesas separado quando já exibido.
+- Sem migration: a coluna `nature` já existe em `transactions` e aceita os mesmos valores.
 
-## Mudanças no banco
+## Arquivos afetados
 
-Nova tabela `dme_batches`:
-- `client_id`, `public_token` (UUID único), `status` (`pending` / `approved` / `rejected` / `cancelled`)
-- `total_value`, `consolidated_transaction_id` (FK para `transactions`)
-- `approved_at`, `rejected_at`, `rejection_reason`, `signature_client`, `created_by`
+- `src/components/finance/TransactionFormDialog.tsx` — aceitar modo edição + campo natureza para despesa.
+- `src/components/finance/EditTransactionDialog.tsx` — remover.
+- `src/components/finance/ReciboDialog.tsx` — guard para `status === 'paid'`.
+- `src/routes/_authenticated/relatorios.tsx` — usar dialog unificado, gate do recibo, ajuste de KPIs por natureza.
+- `src/lib/distribution-api.ts` — excluir despesas não-operacionais do cálculo.
 
-Nova tabela de ligação `dme_batch_items`:
-- `batch_id`, `extra_demand_id` (unique together)
+## Pergunta antes de implementar
 
-Função `approve_dme_batch(batch_token, signature)`:
-- Atualiza cada DME para `approved` (trigger gera as transações individuais).
-- Cancela as N transações geradas (`status = 'cancelled'`).
-- Cria 1 nova transação consolidada `pending` com a soma, vincula no `dme_batches.consolidated_transaction_id` e nas DMEs (campo novo `consolidated_transaction_id` em `extra_demands`).
-- Marca batch como `approved`.
-
-RLS:
-- `dme_batches` / `dme_batch_items`: `authenticated` faz tudo; `anon` lê apenas pelo `public_token` (igual à página pública de DME individual hoje).
-
-## Mudanças no código
-
-### Backend
-- `supabase/migrations/...sql` — tabelas, FKs, índices, RLS, função `approve_dme_batch`.
-- `src/lib/dme-batches-api.ts` — `createBatch`, `fetchBatchByToken`, `approveBatch`, `rejectBatch`, `cancelBatch`.
-
-### Interno (`/dmes`)
-- `src/routes/_authenticated/dmes.tsx`:
-  - Estado `selectedIds: Set<string>` + checkbox por linha (desabilitado se status ≠ draft/pending ou cliente diferente do primeiro selecionado).
-  - Barra fixa no rodapé com total, contagem e botão "Gerar link em lote".
-  - Diálogo de confirmação mostra resumo + ao confirmar copia o link `/dme-lote/<token>`.
-  - Coluna mostra badge "Em lote #X" quando a DME já pertence a um batch ativo.
-
-### Público
-- `src/routes/dme-lote.$token.tsx` (rota pública, fora de `_authenticated`):
-  - Loader carrega o batch + DMEs via `public_token`.
-  - Componente lista DMEs, total, assinatura simples (input nome), aprovar/recusar.
-  - Reutiliza visual da página pública de DME individual existente.
-
-## Detalhes técnicos
-
-- A função `approve_dme_batch` roda em transação Postgres para garantir atomicidade (todas DMEs viram approved + transações individuais canceladas + consolidada criada, ou nada).
-- O link público é `https://<dominio>/dme-lote/<uuid>` — gerado no client com `window.location.origin`.
-- Índices: `dme_batches(public_token)`, `dme_batches(client_id, status)`, `dme_batch_items(batch_id)`, `dme_batch_items(extra_demand_id)`.
-- Política RLS para `anon` em `dme_batches`: `USING (true)` apenas no SELECT (igual ao padrão da DME pública), mas exposto somente via filtro por token na query do cliente.
-
-## Fora de escopo (próximas iterações)
-
-- Boleto/PIX automático na transação consolidada (hoje a cobrança fica `pending`; geração de boleto continua manual no financeiro).
-- Aprovação parcial item-a-item.
-- Edição do lote depois de criado (por enquanto: cancelar e criar de novo).
+Sobre a parte de KPIs/relatórios financeiros: você quer que despesas **não-operacionais** fiquem completamente fora do total de despesas exibido no dashboard/relatório, ou prefere que apareçam destacadas em uma linha separada ("Despesas não-operacionais") e só sejam excluídas do cálculo de lucro/distribuição? Se não responder, sigo com a segunda opção (mais transparente).
