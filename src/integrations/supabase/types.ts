@@ -3264,6 +3264,9 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          boleto_linha_digitavel: string | null
+          boleto_pdf_path: string | null
+          boleto_pix_copia_cola: string | null
           category: string | null
           category_id: string | null
           client_id: string | null
@@ -3294,6 +3297,9 @@ export type Database = {
         }
         Insert: {
           amount: number
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_path?: string | null
+          boleto_pix_copia_cola?: string | null
           category?: string | null
           category_id?: string | null
           client_id?: string | null
@@ -3324,6 +3330,9 @@ export type Database = {
         }
         Update: {
           amount?: number
+          boleto_linha_digitavel?: string | null
+          boleto_pdf_path?: string | null
+          boleto_pix_copia_cola?: string | null
           category?: string | null
           category_id?: string | null
           client_id?: string | null

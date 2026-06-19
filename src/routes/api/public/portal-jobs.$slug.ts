@@ -127,21 +127,37 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         // Fetch invoices (transações de receita do cliente)
         const { data: txRows } = await supabaseAdmin
           .from("transactions")
-          .select("id, description, amount, due_date, payment_date, status, kind, type, payment_method, created_at")
+          .select("id, description, amount, due_date, payment_date, status, kind, type, payment_method, created_at, boleto_pdf_path, boleto_linha_digitavel, boleto_pix_copia_cola")
           .eq("client_id", client.id)
           .or("kind.eq.income,type.eq.income")
           .order("due_date", { ascending: true });
 
-        const invoices = (txRows || []).map((t: any) => ({
-          id: t.id,
-          description: t.description,
-          amount: Number(t.amount) || 0,
-          due_date: t.due_date,
-          payment_date: t.payment_date,
-          status: t.status,
-          payment_method: t.payment_method,
-          created_at: t.created_at,
-        }));
+        // Generate signed URLs for boletos
+        const invoices = await Promise.all(
+          (txRows || []).map(async (t: any) => {
+            let boleto_pdf_url: string | null = null;
+            if (t.boleto_pdf_path) {
+              const { data: signed } = await supabaseAdmin.storage
+                .from("boletos")
+                .createSignedUrl(t.boleto_pdf_path, 3600);
+              boleto_pdf_url = signed?.signedUrl ?? null;
+            }
+            return {
+              id: t.id,
+              description: t.description,
+              amount: Number(t.amount) || 0,
+              due_date: t.due_date,
+              payment_date: t.payment_date,
+              status: t.status,
+              payment_method: t.payment_method,
+              created_at: t.created_at,
+              boleto_pdf_url,
+              boleto_linha_digitavel: t.boleto_linha_digitavel ?? null,
+              boleto_pix_copia_cola: t.boleto_pix_copia_cola ?? null,
+            };
+          })
+        );
+
 
         // Fetch proposals (aprovadas/aceitas) do cliente
         const { data: propRows } = await supabaseAdmin

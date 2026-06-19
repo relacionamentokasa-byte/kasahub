@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarIcon, Loader2, Building2 } from "lucide-react";
+import { CalendarIcon, Loader2, Building2, Paperclip, Upload, X, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchCategoriasFinanceiras } from "@/lib/categorias-financeiras-api";
@@ -74,7 +74,11 @@ const transactionSchema = z.object({
   valor_real: z.string().optional(),
   motivo_diferenca: z.string().optional(),
   observacao_diferenca: z.string().optional(),
+  boleto_pdf_path: z.string().nullable().optional(),
+  boleto_linha_digitavel: z.string().max(200).nullable().optional(),
+  boleto_pix_copia_cola: z.string().max(2000).nullable().optional(),
 });
+
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
 
@@ -124,7 +128,11 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         valor_real: transaction.valor_real != null ? String(transaction.valor_real) : "",
         motivo_diferenca: transaction.motivo_diferenca || "",
         observacao_diferenca: transaction.observacao_diferenca || "",
+        boleto_pdf_path: transaction.boleto_pdf_path || null,
+        boleto_linha_digitavel: transaction.boleto_linha_digitavel || "",
+        boleto_pix_copia_cola: transaction.boleto_pix_copia_cola || "",
       });
+
     } else {
       form.reset({
         type: "income",
@@ -171,9 +179,13 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
           supplier_id: supplierId,
           conta_id: values.conta_id,
           nature: values.nature,
+          boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
+          boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
+          boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
         };
         return updateTransaction(transaction.id, patch);
       }
+
 
       // CREATE
       const payload: any = {
@@ -190,7 +202,11 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         supplier_id: supplierId,
         conta_id: values.conta_id,
         nature: values.nature,
+        boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
+        boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
+        boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
       };
+
       if (partnerId && values.type === "expense") {
         payload.category = payload.category || "Vale Sócio";
       }
@@ -668,7 +684,12 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               )}
             />
 
+            {watchType === "income" && (
+              <BoletoAttachmentSection form={form} />
+            )}
+
             <DialogFooter className="pt-4">
+
               <Button
                 type="button"
                 variant="outline"
@@ -692,3 +713,129 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
     </Dialog>
   );
 }
+
+function BoletoAttachmentSection({ form }: { form: any }) {
+  const [uploading, setUploading] = useState(false);
+  const pdfPath: string | null = form.watch("boleto_pdf_path") || null;
+
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      toast.error("Envie um arquivo PDF.");
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx 10MB).");
+      return;
+    }
+    setUploading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const safeName = file.name.replace(/[^\w.\-]+/g, "_");
+      const path = `manual/${user?.id || "anon"}/${Date.now()}-${safeName}`;
+      const { error } = await supabase.storage.from("boletos").upload(path, file, {
+        contentType: "application/pdf",
+        upsert: false,
+      });
+      if (error) throw error;
+      form.setValue("boleto_pdf_path", path, { shouldDirty: true });
+      toast.success("Boleto anexado!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.message || "Falha ao enviar boleto.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  async function handleRemove() {
+    if (!pdfPath) return;
+    try {
+      await supabase.storage.from("boletos").remove([pdfPath]);
+    } catch {
+      /* ignore */
+    }
+    form.setValue("boleto_pdf_path", null, { shouldDirty: true });
+  }
+
+  const fileName = pdfPath?.split("/").pop() || "boleto.pdf";
+
+  return (
+    <div className="rounded-xl border border-dashed border-border bg-surface/40 p-3 space-y-3">
+      <div className="flex items-center gap-2 text-xs font-mono-kasa uppercase tracking-wider text-muted-foreground">
+        <Paperclip className="size-3.5" /> Boleto do cliente (aparece no portal)
+      </div>
+
+      <FormField
+        control={form.control}
+        name="boleto_pdf_path"
+        render={() => (
+          <FormItem>
+            <FormLabel className="text-xs">PDF do boleto</FormLabel>
+            {pdfPath ? (
+              <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-2 py-1.5">
+                <FileText className="size-4 text-primary" />
+                <span className="text-xs truncate flex-1">{fileName}</span>
+                <Button type="button" size="icon" variant="ghost" onClick={handleRemove}>
+                  <X className="size-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <label className={cn(
+                "flex items-center justify-center gap-2 rounded-lg border border-dashed border-border bg-background px-3 py-3 text-xs cursor-pointer hover:bg-muted/40 transition-colors",
+                uploading && "opacity-60 pointer-events-none"
+              )}>
+                {uploading ? (
+                  <><Loader2 className="size-4 animate-spin" /> Enviando…</>
+                ) : (
+                  <><Upload className="size-4" /> Anexar PDF (máx 10MB)</>
+                )}
+                <input type="file" accept="application/pdf" className="hidden" onChange={handleUpload} />
+              </label>
+            )}
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="boleto_linha_digitavel"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-xs">Linha digitável (opcional)</FormLabel>
+            <FormControl>
+              <Input
+                placeholder="00000.00000 00000.000000 00000.000000 0 00000000000000"
+                {...field}
+                value={field.value || ""}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="boleto_pix_copia_cola"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel className="text-xs">PIX copia e cola (opcional)</FormLabel>
+            <FormControl>
+              <Textarea
+                rows={2}
+                placeholder="00020126..."
+                {...field}
+                value={field.value || ""}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+  );
+}
+

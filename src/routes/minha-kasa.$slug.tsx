@@ -26,7 +26,9 @@ import {
   ArrowRight,
   Home,
   Download,
+  Copy,
   Image as ImageIcon,
+
   Folder,
   Sun,
   Moon,
@@ -100,7 +102,11 @@ type Invoice = {
   status: string | null;
   payment_method: string | null;
   created_at: string;
+  boleto_pdf_url?: string | null;
+  boleto_linha_digitavel?: string | null;
+  boleto_pix_copia_cola?: string | null;
 };
+
 
 type Proposal = {
   id: string;
@@ -2157,10 +2163,12 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
       </td>
       <td className="px-6 py-4 align-top">
         <div className="font-semibold text-slate-900">{invoice.description || "Fatura"}</div>
+        <BoletoBlock invoice={invoice} />
       </td>
       <td className="px-6 py-4 align-top text-right">
         <span className="font-black text-slate-900 tabular-nums text-base">{fmtBRL(invoice.amount)}</span>
       </td>
+
       <td className="px-6 py-4 align-top text-center">
         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm inline-flex ${badge.cls}`}>
           {badge.label}
@@ -2265,10 +2273,89 @@ function InvoiceCard({ invoice }: { invoice: Invoice }) {
             </span>
           )}
         </div>
+        <BoletoBlock invoice={invoice} />
       </div>
     </article>
   );
 }
+
+function BoletoBlock({ invoice }: { invoice: Invoice }) {
+  const hasAny =
+    !!invoice.boleto_pdf_url ||
+    !!invoice.boleto_linha_digitavel ||
+    !!invoice.boleto_pix_copia_cola;
+  if (!hasAny) return null;
+
+  function copy(text: string, label: string) {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      toast.success(`${label} copiado!`);
+    }
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-2">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">
+        💳 Boleto / PIX
+      </div>
+
+      {invoice.boleto_pdf_url && (
+        <a
+          href={invoice.boleto_pdf_url}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-white shadow-sm bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)] transition-colors"
+        >
+          <Download className="size-3.5" /> Baixar boleto (PDF)
+        </a>
+      )}
+
+      {invoice.boleto_linha_digitavel && (
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+            Linha digitável
+          </div>
+          <div className="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-2 py-1.5">
+            <code className="flex-1 text-[11px] text-slate-800 break-all">
+              {invoice.boleto_linha_digitavel}
+            </code>
+            <button
+              type="button"
+              onClick={() => copy(invoice.boleto_linha_digitavel!, "Linha digitável")}
+              className="shrink-0 rounded-md p-1 text-slate-600 hover:bg-slate-100"
+              aria-label="Copiar linha digitável"
+            >
+              <Copy className="size-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {invoice.boleto_pix_copia_cola && (
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">
+            PIX copia e cola
+          </div>
+          <div className="flex items-center gap-2 rounded-lg bg-white border border-slate-200 px-2 py-1.5">
+            <code className="flex-1 text-[11px] text-slate-800 break-all line-clamp-2">
+              {invoice.boleto_pix_copia_cola}
+            </code>
+            <button
+              type="button"
+              onClick={() => copy(invoice.boleto_pix_copia_cola!, "Código PIX")}
+              className="shrink-0 rounded-md p-1 text-slate-600 hover:bg-slate-100"
+              aria-label="Copiar PIX"
+            >
+              <Copy className="size-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 
 // ============= PROPOSTAS & CONTRATOS =============
 
