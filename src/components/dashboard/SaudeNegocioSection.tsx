@@ -122,6 +122,32 @@ async function fetchSaudeNegocio(refDate: Date) {
 
   const meta = Number(goalData?.target_value || 0);
 
+  // Meta anual (Jan–Dez do ano corrente)
+  const year = refDate.getFullYear();
+  const yearStart = `${year}-01-01`;
+  const yearEnd = `${year}-12-31`;
+
+  const { data: annualGoalData } = await supabase
+    .from("agency_goals")
+    .select("target_value")
+    .eq("type", "revenue")
+    .eq("period", "yearly")
+    .eq("year", year)
+    .is("owner_id", null)
+    .maybeSingle();
+
+  const metaAnual = Number(annualGoalData?.target_value || 0);
+
+  const { data: yearIncomes } = await supabase
+    .from("transactions")
+    .select("amount, status, kind, type")
+    .gte("due_date", yearStart)
+    .lte("due_date", yearEnd);
+
+  const faturadoAnual = (yearIncomes || [])
+    .filter((t: any) => (t.kind || t.type) === "income" && PAID_STATUSES.has(String(t.status || "").toLowerCase()))
+    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
   return {
     mrr,
     avulsa,
@@ -131,8 +157,11 @@ async function fetchSaudeNegocio(refDate: Date) {
     propostasPendentes: propostasPendentes || 0,
     jobsConcluidos: jobsConcluidos || 0,
     meta,
+    metaAnual,
+    faturadoAnual,
   };
 }
+
 
 
 export function SaudeNegocioSection() {
