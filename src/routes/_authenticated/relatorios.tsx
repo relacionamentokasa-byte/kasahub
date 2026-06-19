@@ -896,9 +896,9 @@ function TotalCell({ label, value, className }: { label: string; value: number; 
   );
 }
 
-function StatCard({ title, value, icon: Icon, color, bg }: { title: string, value?: number, icon: any, color: string, bg?: string }) {
+function StatCard({ title, value, icon: Icon, color, bg, cardBg }: { title: string, value?: number, icon: any, color: string, bg?: string, cardBg?: string }) {
   return (
-    <Card className="bg-surface border-border shadow-sm overflow-hidden group hover:border-primary/50 transition-colors">
+    <Card className={cn("shadow-sm overflow-hidden group hover:border-primary/50 transition-colors", cardBg || "bg-surface border-border")}>
       <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
         <div className="flex items-center justify-between">
           <div className={cn("size-8 rounded-xl flex items-center justify-center", bg || "bg-muted")}>
