@@ -227,6 +227,10 @@ function RelatoriosGestaoPage() {
             <Switch id="non-op" checked={includeNonOp} onCheckedChange={setIncludeNonOp} />
             <Label htmlFor="non-op" className="text-xs cursor-pointer">Incluir despesas não-operacionais</Label>
           </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-surface">
+            <Switch id="pro-labore" checked={includeProLabore} onCheckedChange={setIncludeProLabore} />
+            <Label htmlFor="pro-labore" className="text-xs cursor-pointer">Incluir pró-labore / distribuição</Label>
+          </div>
           <Select value={range} onValueChange={(v: any) => setRange(v)}>
             <SelectTrigger className="w-full sm:w-[180px] h-10"><SelectValue /></SelectTrigger>
             <SelectContent>
