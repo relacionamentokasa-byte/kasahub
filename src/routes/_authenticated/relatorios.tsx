@@ -695,8 +695,17 @@ function FinancialPage() {
                           (t.clients as any)?.company || (t.clients as any)?.name || null
                         }
                       />
-                      {t.type === "expense" && (
-                        (t.category === "Freelancers e Terceirizados" || t.freelancer_id) ? (
+                      {t.type === "expense" && (() => {
+                        const catName = ((t.categorias_financeiras as any)?.nome || t.category || "")
+                          .toString()
+                          .toLowerCase()
+                          .normalize("NFD")
+                          .replace(/[\u0300-\u036f]/g, "");
+                        const isFreelaCat =
+                          catName.includes("freelancer") ||
+                          catName.includes("freela") ||
+                          catName.includes("terceiriz");
+                        return (isFreelaCat || t.freelancer_id) ? (
                           <InlineFreelancerPicker
                             transactionId={t.id}
                             currentFreelancerId={t.freelancer_id}
@@ -708,8 +717,8 @@ function FinancialPage() {
                             currentSupplierId={t.supplier_id}
                             currentSupplierName={(t.suppliers as any)?.name || null}
                           />
-                        )
-                      )}
+                        );
+                      })()}
                     </div>
                   </TableCell>
 
