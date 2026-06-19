@@ -32,6 +32,7 @@ type Tx = {
   status: string | null;
   amount: number | string | null;
   due_date: string;
+  nature?: string | null;
   client_id?: string | null;
   categorias_financeiras?: { nome: string | null } | null;
 };
@@ -68,7 +69,7 @@ export function ResumoFinanceiroSection() {
       const { data, error } = await supabase
         .from("transactions")
         .select(
-          "id, type, kind, status, amount, due_date, client_id, categorias_financeiras(nome)",
+          "id, type, kind, status, amount, due_date, nature, client_id, categorias_financeiras(nome)",
         )
         .gte("due_date", monthStart)
         .lte("due_date", monthEnd);
@@ -95,6 +96,7 @@ export function ResumoFinanceiroSection() {
       const isIncome = (t.type ?? t.kind) === "income";
       const isExpense = (t.type ?? t.kind) === "expense";
       const isPaid = PAID_STATUSES.has((t.status || "").toLowerCase());
+      const isNaoOp = t.nature === "nao_operacional";
       const proLab = isProLaboreCat(t.categorias_financeiras?.nome);
       const invest = isInvestimentoCat(t.categorias_financeiras?.nome);
 
@@ -107,12 +109,16 @@ export function ResumoFinanceiroSection() {
         if (!isPaid && t.due_date > todayStr) parcelasFuturas += amount;
       } else if (isExpense) {
         despesasPrevistas += amount;
-        if (invest) investimentoPrevisto += amount;
-        else if (!proLab) despesasOperacionaisPrevistas += amount;
+        if (!isNaoOp) {
+          if (invest) investimentoPrevisto += amount;
+          else if (!proLab) despesasOperacionaisPrevistas += amount;
+        }
         if (isPaid) {
           despesasPagas += amount;
-          if (invest) investimentoRealizado += amount;
-          else if (!proLab) despesasOperacionaisPagas += amount;
+          if (!isNaoOp) {
+            if (invest) investimentoRealizado += amount;
+            else if (!proLab) despesasOperacionaisPagas += amount;
+          }
         }
       }
     }

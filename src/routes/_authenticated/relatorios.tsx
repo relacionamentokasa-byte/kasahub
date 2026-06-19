@@ -379,6 +379,7 @@ function FinancialPage() {
     .filter(
       (t: any) =>
         t.type === "expense" &&
+        t.nature !== "nao_operacional" &&
         !isProLabore(getCatName(t)) &&
         !isInvestimento(getCatName(t)),
     )
