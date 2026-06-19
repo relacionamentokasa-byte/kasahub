@@ -148,6 +148,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
   }, [open, transaction]);
 
   const watchType = form.watch("type");
+  const watchCategory = form.watch("category");
+  const isFreelancerCategory = watchCategory === "Freelancers e Terceirizados";
   const watchAmount = Number(form.watch("amount") || 0);
   const watchValorReal = form.watch("valor_real");
   const real = watchValorReal === "" || watchValorReal == null ? null : parseFloat(String(watchValorReal).replace(",", ".")) || 0;
@@ -159,6 +161,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       const partnerId = values.partner_id && values.partner_id !== "none" ? values.partner_id : null;
       const clientId = values.client_id === "none" || !values.client_id ? null : values.client_id;
       const supplierId = values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id;
+      const freelancerId = values.freelancer_id === "none" || !values.freelancer_id ? null : values.freelancer_id;
+      const useFreelancer = values.category === "Freelancers e Terceirizados";
 
       if (isEdit) {
         const realNum = values.valor_real === "" || values.valor_real == null
@@ -180,7 +184,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
             ? (transaction?.payment_date || format(new Date(), "yyyy-MM-dd"))
             : null,
           client_id: clientId,
-          supplier_id: supplierId,
+          supplier_id: useFreelancer ? null : supplierId,
+          freelancer_id: useFreelancer ? freelancerId : null,
           conta_id: values.conta_id,
           nature: values.nature,
           boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
@@ -203,7 +208,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         due_date: format(values.due_date, "yyyy-MM-dd"),
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
         client_id: clientId,
-        supplier_id: supplierId,
+        supplier_id: useFreelancer ? null : supplierId,
+        freelancer_id: useFreelancer ? freelancerId : null,
         conta_id: values.conta_id,
         nature: values.nature,
         boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
