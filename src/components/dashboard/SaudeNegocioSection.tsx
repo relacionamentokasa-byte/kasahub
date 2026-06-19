@@ -352,6 +352,38 @@ export function SaudeNegocioSection() {
         </div>
         <Progress value={progresso} className="h-2" />
       </div>
+
+      {/* Meta Anual (Jan–Dez) */}
+      <div className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors">
+        <div className="flex items-start justify-between mb-3 gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
+              <Target className="size-5 text-primary" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                Meta Anual de Faturamento · {anoRef}
+              </p>
+              <div className="text-xs text-foreground/50">
+                {metaAnual > 0 ? (
+                  <>
+                    {brl(faturadoAnual)} de <span className="font-medium">{brl(metaAnual)}</span>
+                    {" · "}
+                    {progressoAnualRaw >= 100 ? "Meta batida 🎉" : `Faltam ${brl(faltaAnual)}`}
+                  </>
+                ) : (
+                  "Defina a meta anual em agency_goals (period: yearly)"
+                )}
+              </div>
+            </div>
+          </div>
+          <p className={`text-2xl font-bold tracking-tight ${progressoAnualRaw >= 100 ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
+            {metaAnual > 0 ? `${progressoAnual.toFixed(0)}%` : "—"}
+          </p>
+        </div>
+        <Progress value={progressoAnual} className="h-2" />
+      </div>
     </div>
+
   );
 }
