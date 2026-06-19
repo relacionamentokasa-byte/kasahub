@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AtSign, AlertCircle, CheckCircle2, Bell } from "lucide-react";
+import { AtSign, AlertCircle, CheckCircle2, Bell, UserPlus } from "lucide-react";
 import {
   criticalBus,
   stopTitleFlash,
@@ -18,6 +18,8 @@ function iconFor(tipo: string) {
     return { Icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10", label: "Alerta crítico" };
   if (tipo === "approval")
     return { Icon: CheckCircle2, color: "text-amber-500", bg: "bg-amber-500/10", label: "Aprovação pendente" };
+  if (tipo === "assignment")
+    return { Icon: UserPlus, color: "text-violet-500", bg: "bg-violet-500/10", label: "Nova responsabilidade" };
   return { Icon: Bell, color: "text-primary", bg: "bg-primary/10", label: "Notificação" };
 }
 

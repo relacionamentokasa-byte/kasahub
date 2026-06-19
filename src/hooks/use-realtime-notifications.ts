@@ -101,7 +101,7 @@ export function useRealtimeNotifications() {
           qc.invalidateQueries({ queryKey: ["notificacoes"] });
 
           const tipo = newNotif.tipo;
-          const isCritical = tipo === 'mention' || tipo === 'at' || tipo === 'critical' || tipo === 'approval';
+          const isCritical = tipo === 'mention' || tipo === 'at' || tipo === 'critical' || tipo === 'approval' || tipo === 'assignment';
 
           if (isCritical) {
             // 2a. Popup central + som marcante + flash no título da aba
@@ -122,7 +122,7 @@ export function useRealtimeNotifications() {
             if (shouldPlay) playCriticalSound();
 
             if (typeof document !== "undefined" && document.hidden) {
-              const prefix = tipo === 'critical' ? '🚨' : tipo === 'approval' ? '✅' : '💬';
+              const prefix = tipo === 'critical' ? '🚨' : tipo === 'approval' ? '✅' : tipo === 'assignment' ? '📌' : '💬';
               startTitleFlash(`${prefix} ${newNotif.titulo}`);
             }
           } else {
