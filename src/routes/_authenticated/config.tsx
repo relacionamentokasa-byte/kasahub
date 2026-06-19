@@ -1,28 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  Save, 
-  Loader2, 
-  Bell, 
-  Building2, 
-  Palette, 
-  Plug, 
-  UserCog, 
-  Shield, 
-  Briefcase, 
-  FileText, 
-  User, 
-  Target, 
-  Pencil, 
-  Users, 
-  CreditCard, 
-  MessageSquare, 
-  Mail,
+import {
+  Save,
+  Loader2,
+  Bell,
+  Building2,
+  Palette,
+  Plug,
+  Shield,
+  Briefcase,
+  FileText,
+  User,
+  Pencil,
+  Users,
   ChevronRight,
   Menu,
-  Smartphone,
-  Download
+  Download,
+  SunMoon,
 } from "lucide-react";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
@@ -38,7 +33,6 @@ import { BrandTab } from "@/components/config/BrandTab";
 import { SignatureTab } from "@/components/config/SignatureTab";
 import { IntegrationsTab } from "@/components/config/IntegrationsTab";
 import { PreferencesTab } from "@/components/config/PreferencesTab";
-import { PwaSettingsTab } from "@/components/config/PwaSettingsTab";
 import { InstallAppTab } from "@/components/config/InstallAppTab";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
