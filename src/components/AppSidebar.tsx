@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Sparkles,
   PiggyBank,
+  TrendingUp,
 
 
   Loader2,
@@ -72,6 +73,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     label: "Gestão",
     items: [
       { title: "Financeiro", url: "/relatorios", icon: Wallet, module: "financeiro" as any },
+      { title: "Relatórios", url: "/gestao/relatorios", icon: TrendingUp, module: "financeiro" as any },
     ],
   },
 

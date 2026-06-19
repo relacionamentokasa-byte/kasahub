@@ -43,6 +43,7 @@ import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manif
 import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
+import { Route as AuthenticatedGestaoRelatoriosRouteImport } from './routes/_authenticated/gestao.relatorios'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
@@ -233,6 +234,12 @@ const AuthenticatedProjetosProjectIdRoute =
     path: '/projetos/$projectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedGestaoRelatoriosRoute =
+  AuthenticatedGestaoRelatoriosRouteImport.update({
+    id: '/gestao/relatorios',
+    path: '/gestao/relatorios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientesClientIdRoute =
   AuthenticatedClientesClientIdRouteImport.update({
     id: '/clientes/$clientId',
@@ -332,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
@@ -380,6 +388,7 @@ export interface FileRoutesByTo {
   '/proposta/$token': typeof PropostaTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
@@ -430,6 +439,7 @@ export interface FileRoutesById {
   '/proposta/$token': typeof PropostaTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/_authenticated/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/proposal/$token'
     | '/proposta/$token'
     | '/clientes/$clientId'
+    | '/gestao/relatorios'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
     | '/api/public/favicon'
@@ -528,6 +539,7 @@ export interface FileRouteTypes {
     | '/proposta/$token'
     | '/'
     | '/clientes/$clientId'
+    | '/gestao/relatorios'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
     | '/api/public/favicon'
@@ -577,6 +589,7 @@ export interface FileRouteTypes {
     | '/proposta/$token'
     | '/_authenticated/'
     | '/_authenticated/clientes/$clientId'
+    | '/_authenticated/gestao/relatorios'
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
     | '/api/public/favicon'
@@ -866,6 +879,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjetosProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/gestao/relatorios': {
+      id: '/_authenticated/gestao/relatorios'
+      path: '/gestao/relatorios'
+      fullPath: '/gestao/relatorios'
+      preLoaderRoute: typeof AuthenticatedGestaoRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clientes/$clientId': {
       id: '/_authenticated/clientes/$clientId'
       path: '/clientes/$clientId'
@@ -978,6 +998,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedValesRoute: typeof AuthenticatedValesRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedClientesClientIdRoute: typeof AuthenticatedClientesClientIdRoute
+  AuthenticatedGestaoRelatoriosRoute: typeof AuthenticatedGestaoRelatoriosRoute
   AuthenticatedProjetosProjectIdRoute: typeof AuthenticatedProjetosProjectIdRoute
   AuthenticatedPropostasProposalIdRoute: typeof AuthenticatedPropostasProposalIdRoute
   AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
@@ -1003,6 +1024,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedValesRoute: AuthenticatedValesRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedClientesClientIdRoute: AuthenticatedClientesClientIdRoute,
+  AuthenticatedGestaoRelatoriosRoute: AuthenticatedGestaoRelatoriosRoute,
   AuthenticatedProjetosProjectIdRoute: AuthenticatedProjetosProjectIdRoute,
   AuthenticatedPropostasProposalIdRoute: AuthenticatedPropostasProposalIdRoute,
   AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
