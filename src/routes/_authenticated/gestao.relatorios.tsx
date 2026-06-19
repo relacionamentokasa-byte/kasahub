@@ -25,6 +25,7 @@ import {
   Percent,
 } from "lucide-react";
 import { fetchTransactions } from "@/lib/finance-api";
+import { PRO_LABORE_CATEGORY, DISTRIBUTION_CATEGORY } from "@/lib/distribution-api";
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
