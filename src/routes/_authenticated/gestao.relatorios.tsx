@@ -306,40 +306,8 @@ function RelatoriosGestaoPage() {
                  color={totals.margem >= 30 ? "emerald" : totals.margem >= 15 ? "amber" : "rose"} />
       </div>
 
-      {/* Meta anual */}
-      {(() => {
-        const meta = Number(annualGoal?.target_value || 0);
-        const pct = meta > 0 ? (ytdReceita / meta) * 100 : 0;
-        const falta = Math.max(0, meta - ytdReceita);
-        const barColor = pct >= 100 ? "bg-emerald-500" : pct >= 70 ? "bg-blue-500" : pct >= 40 ? "bg-amber-500" : "bg-rose-500";
-        return (
-          <div className="rounded-2xl border border-border bg-card p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
-              <div className="flex items-center gap-2">
-                <div className="size-9 rounded-lg bg-primary/15 border border-primary/30 flex items-center justify-center">
-                  <Target className="size-4 text-primary" />
-                </div>
-                <div>
-                  <div className="text-sm font-semibold">Meta anual de faturamento · {currentYear}</div>
-                  <div className="text-xs text-foreground/60">
-                    {meta > 0
-                      ? `${brl(ytdReceita)} de ${brl(meta)} · ${pct >= 100 ? "Meta batida 🎉" : `Faltam ${brl(falta)}`}`
-                      : "Defina a meta anual no painel de Saúde do Negócio."}
-                  </div>
-                </div>
-              </div>
-              <div className={`text-2xl font-bold ${pct >= 100 ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
-                {meta > 0 ? `${pct.toFixed(1)}%` : "—"}
-              </div>
-            </div>
-            {meta > 0 && (
-              <div className="h-2.5 w-full rounded-full bg-muted overflow-hidden">
-                <div className={`h-full ${barColor} transition-all`} style={{ width: `${Math.min(100, pct)}%` }} />
-              </div>
-            )}
-          </div>
-        );
-      })()}
+
+
 
 
 
