@@ -642,14 +642,19 @@ function FinancialPage() {
                 const sign = t.type === "income" ? "+" : "-";
                 const typeColor = t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
                 const isNaoOp = t.nature === "nao_operacional";
+                const todayStr = new Date().toISOString().slice(0, 10);
+                const effectiveStatus =
+                  t.status === "pending" && t.due_date && t.due_date < todayStr
+                    ? "overdue"
+                    : t.status;
                 return (
                 <TableRow
                   key={t.id}
                   className={cn(
                     "group transition-colors",
-                    t.status === "paid"
+                    effectiveStatus === "paid"
                       ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
-                      : t.status === "overdue"
+                      : effectiveStatus === "overdue"
                       ? "bg-red-500/10 hover:bg-red-500/15 border-l-2 border-l-red-600"
                       : isNaoOp
                       ? "bg-amber-500/5 hover:bg-amber-500/10 border-l-2 border-l-amber-500/60"
