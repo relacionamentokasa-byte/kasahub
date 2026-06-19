@@ -494,11 +494,11 @@ function FinancialPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} color="text-blue-500" />
-        <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} color="text-emerald-500" />
-        <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} color="text-amber-500" />
-        <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-500" />
-        <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-500" />
+        <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} color="text-blue-600 dark:text-blue-400" />
+        <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} color="text-emerald-600 dark:text-emerald-400" />
+        <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} color="text-amber-600 dark:text-amber-400" />
+        <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-600 dark:text-red-400" />
+        <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-600 dark:text-indigo-400" />
       </div>
 
       <FinancialRulesPanel
@@ -640,7 +640,7 @@ function FinancialPage() {
                 const diff = real != null ? real - previsto : 0;
                 const hasDiff = real != null && Math.abs(diff) > 0.005;
                 const sign = t.type === "income" ? "+" : "-";
-                const typeColor = t.type === "income" ? "text-emerald-500" : "text-red-500";
+                const typeColor = t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
                 const isNaoOp = t.nature === "nao_operacional";
                 return (
                 <TableRow
@@ -658,7 +658,7 @@ function FinancialPage() {
                 >
                   <TableCell className="py-4">
                     <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
-                    {t.payment_date && <div className="text-[10px] text-emerald-500 font-mono-kasa uppercase mt-1">Pago em {formatDateOnlyBR(t.payment_date)}</div>}
+                    {t.payment_date && <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono-kasa uppercase mt-1">Pago em {formatDateOnlyBR(t.payment_date)}</div>}
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center gap-2">
@@ -822,7 +822,7 @@ function FinancialPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => setDeletingTx(t)}
-                              className="h-8 w-8 rounded-lg text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                              className="h-8 w-8 rounded-lg text-red-600 dark:text-red-400 hover:text-red-600 hover:bg-red-500/10"
                             >
                               <Trash2 className="size-4" />
                             </Button>
@@ -919,7 +919,7 @@ function StatCard({ title, value, icon: Icon, color }: { title: string, value?: 
 
 function StatusBadge({ status }: { status: string }) {
   const configs: Record<string, { label: string, cls: string }> = {
-    pending: { label: "Pendente", cls: "border-blue-500/20 text-blue-500 bg-blue-500/5" },
+    pending: { label: "Pendente", cls: "border-blue-500/20 text-blue-600 dark:text-blue-400 bg-blue-500/5" },
     paid: { label: "Pago", cls: "border-emerald-600 text-white bg-emerald-600" },
     overdue: { label: "Atrasado", cls: "border-red-600 text-white bg-red-600" },
     cancelled: { label: "Cancelado", cls: "border-foreground/10 text-foreground/40 bg-foreground/5" }
