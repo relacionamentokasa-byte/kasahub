@@ -4,7 +4,8 @@ export function notificationNavigationTarget(link: string | null | undefined) {
   if (!link) return null;
 
   try {
-    const url = new URL(link, window.location.origin);
+    const origin = globalThis.location?.origin || "http://localhost";
+    const url = new URL(link, origin);
     const search = Object.fromEntries(url.searchParams.entries());
 
     if (url.pathname === "/jobs") {
