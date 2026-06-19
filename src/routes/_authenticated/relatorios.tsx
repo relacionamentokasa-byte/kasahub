@@ -295,6 +295,7 @@ function FinancialPage() {
     search: ""
   });
   const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
+  const [showCancelled, setShowCancelled] = useState(false);
 
   const periodFilters = useMemo(() => {
     const year = selectedDate.getFullYear();
