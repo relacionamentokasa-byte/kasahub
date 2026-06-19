@@ -642,7 +642,7 @@ export function priorityColor(p: string) {
     case "low":
       return "#22c55e"; // Verde
     default:
-      return "#ffbc45"; // Amarelo (Normal)
+      return "#3b82f6"; // Azul (Normal)
   }
 }
 
