@@ -733,7 +733,7 @@ function FinancialPage() {
                     )}
                   </TableCell>
                   <TableCell className="py-4 text-center">
-                    <StatusBadge status={t.status} />
+                    <StatusBadge status={effectiveStatus} />
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center justify-end gap-1">
