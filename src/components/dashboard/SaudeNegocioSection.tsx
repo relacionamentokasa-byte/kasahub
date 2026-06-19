@@ -186,6 +186,15 @@ export function SaudeNegocioSection() {
   const progressoRaw = meta > 0 ? (faturado / meta) * 100 : 0;
   const progresso = Math.min(progressoRaw, 100);
 
+  // Meta anual
+  const metaAnual = data?.metaAnual || 0;
+  const faturadoAnual = data?.faturadoAnual || 0;
+  const progressoAnualRaw = metaAnual > 0 ? (faturadoAnual / metaAnual) * 100 : 0;
+  const progressoAnual = Math.min(progressoAnualRaw, 100);
+  const faltaAnual = Math.max(0, metaAnual - faturadoAnual);
+  const anoRef = new Date().getFullYear();
+
+
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<string>("");
