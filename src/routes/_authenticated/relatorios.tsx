@@ -915,8 +915,8 @@ function StatCard({ title, value, icon: Icon, color }: { title: string, value?: 
 function StatusBadge({ status }: { status: string }) {
   const configs: Record<string, { label: string, cls: string }> = {
     pending: { label: "Pendente", cls: "border-blue-500/20 text-blue-500 bg-blue-500/5" },
-    paid: { label: "Pago", cls: "border-emerald-500/20 text-emerald-500 bg-emerald-500/5" },
-    overdue: { label: "Atrasado", cls: "border-red-500/20 text-red-500 bg-red-500/5" },
+    paid: { label: "Pago", cls: "border-emerald-600 text-white bg-emerald-600" },
+    overdue: { label: "Atrasado", cls: "border-red-600 text-white bg-red-600" },
     cancelled: { label: "Cancelado", cls: "border-foreground/10 text-foreground/40 bg-foreground/5" }
   };
   const config = configs[status] || configs.pending;
