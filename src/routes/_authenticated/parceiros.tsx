@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PartnerList } from "@/components/partners/PartnerList";
+import { SupplierList } from "@/components/partners/SupplierList";
 import { Users, Code, Truck, Star } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/parceiros")({
