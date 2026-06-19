@@ -203,7 +203,7 @@ function ConfigPage() {
               </span>
               <h2 className="font-display text-3xl font-bold mt-1">{currentSection.label}</h2>
             </div>
-            {activeTab !== "licensing" && activeTab !== "perms" && activeTab !== "users" && activeTab !== "services" && activeTab !== "contracts" && activeTab !== "scope-templates" && (
+            {!["profile", "notif", "prefs", "perms", "users", "services", "contracts", "scope-templates", "integr", "install"].includes(activeTab) && (
               <Button
                 onClick={() => mut.mutate()}
                 disabled={!canEdit || mut.isPending}
