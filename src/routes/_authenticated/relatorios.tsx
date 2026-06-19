@@ -354,6 +354,7 @@ function FinancialPage() {
   const getCatName = (t: any) => (t.categorias_financeiras as any)?.nome || t.category || "";
 
   const filteredTransactions = transactions.filter((t: any) => {
+    if (!showCancelled && t.status === "cancelled") return false;
     const matchSearch =
       t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
       (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
@@ -365,6 +366,8 @@ function FinancialPage() {
     if (quickFilter === "pro_labore") return proLab;
     return true;
   });
+
+  const cancelledCount = transactions.filter((t: any) => t.status === "cancelled").length;
 
   const proLaboreMes = transactions
     .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
