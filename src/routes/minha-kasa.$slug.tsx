@@ -100,7 +100,11 @@ type Invoice = {
   status: string | null;
   payment_method: string | null;
   created_at: string;
+  boleto_pdf_url?: string | null;
+  boleto_linha_digitavel?: string | null;
+  boleto_pix_copia_cola?: string | null;
 };
+
 
 type Proposal = {
   id: string;
