@@ -160,6 +160,8 @@ function RelatoriosGestaoPage() {
       if (t.type === "income") bucket.receita += amount;
       else {
         if (t.nature === "nao_operacional" && !includeNonOp) return;
+        const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
+        if (isProLabore && !includeProLabore) return;
         bucket.despesa += amount;
       }
     });
