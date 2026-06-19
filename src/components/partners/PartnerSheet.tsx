@@ -85,7 +85,7 @@ export function PartnerSheet({ partner, onClose }: Props) {
               <InfoItem label="CPF/CNPJ" value={partner.document} />
               <InfoItem label="Chave PIX" value={partner.pix_key} />
               <div className="col-span-2">
-                <InfoItem label="Dados Bancários" value={partner.bank_info} />
+                <InfoItem label="Dados Bancários" value={(partner as any).bank_info} />
               </div>
             </div>
           </section>
