@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchSuppliers,
@@ -216,19 +216,16 @@ function SupplierDialog({
     notes: "",
   });
 
-  useState(() => {
-    // initial - replaced by effect below
-  });
-
-  // sync form when opening
-  if (open && supplier && form.name === "" && supplier.name) {
-    // initialize once per open
-  }
-
-  // Use a key reset pattern via effect
-  // (kept simple to avoid extra imports)
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  useStateEffect(open, supplier, setForm);
+  useEffect(() => {
+    if (!open) return;
+    setForm({
+      name: supplier?.name ?? "",
+      document: supplier?.document ?? "",
+      email: supplier?.email ?? "",
+      phone: supplier?.phone ?? "",
+      notes: supplier?.notes ?? "",
+    });
+  }, [open, supplier]);
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -318,23 +315,4 @@ function SupplierDialog({
       </DialogContent>
     </Dialog>
   );
-}
-
-// helper to sync form with supplier when dialog opens
-import { useEffect } from "react";
-function useStateEffect(
-  open: boolean,
-  supplier: Supplier | null,
-  setForm: (f: any) => void,
-) {
-  useEffect(() => {
-    if (!open) return;
-    setForm({
-      name: supplier?.name ?? "",
-      document: supplier?.document ?? "",
-      email: supplier?.email ?? "",
-      phone: supplier?.phone ?? "",
-      notes: supplier?.notes ?? "",
-    });
-  }, [open, supplier, setForm]);
 }
