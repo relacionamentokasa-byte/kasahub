@@ -173,7 +173,7 @@ function RelatoriosGestaoPage() {
         return { ...c, margemAbs, margemPct };
       })
       .sort((a, b) => b.receita - a.receita);
-  }, [transactions, clients, includeNonOp]);
+  }, [transactions, clients, includeNonOp, includeProLabore]);
 
   // ── Concentração / Clientes ────────────────────────────────────────
   const clientStats = useMemo(() => {
