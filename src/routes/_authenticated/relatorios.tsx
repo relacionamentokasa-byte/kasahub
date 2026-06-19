@@ -667,6 +667,11 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center gap-2">
+                      {(t as any).number_display && (
+                        <span className="text-[10px] font-mono-kasa font-bold text-muted-foreground bg-muted/40 border border-border/60 rounded px-1.5 py-0.5 shrink-0">
+                          {(t as any).number_display}
+                        </span>
+                      )}
                       <button
                         type="button"
                         onClick={() => setEditingTx(t)}
