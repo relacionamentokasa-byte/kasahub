@@ -365,7 +365,8 @@ function FinancialPage() {
     if (quickFilter === "expense_op") return t.type === "expense" && !proLab;
     if (quickFilter === "pro_labore") return proLab;
     return true;
-  });
+  }).sort((a: any, b: any) => (a.due_date || "").localeCompare(b.due_date || ""));
+
 
   const cancelledCount = transactions.filter((t: any) => t.status === "cancelled").length;
 
