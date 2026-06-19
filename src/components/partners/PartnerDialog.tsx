@@ -103,6 +103,16 @@ export function PartnerDialog({
 
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           <div className="space-y-1.5">
+            <Label>Foto</Label>
+            <ImageUpload
+              value={form.photo_url || null}
+              onChange={(url) => setForm({ ...form, photo_url: url ?? "" })}
+              folder="partners"
+              label="Foto"
+            />
+          </div>
+
+          <div className="space-y-1.5">
             <Label>Nome *</Label>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </div>
