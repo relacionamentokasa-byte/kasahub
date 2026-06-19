@@ -528,6 +528,23 @@ function FinancialPage() {
             Pró-labore
           </ToggleGroupItem>
         </ToggleGroup>
+
+        {cancelledCount > 0 && (
+          <button
+            type="button"
+            onClick={() => setShowCancelled((v) => !v)}
+            className={cn(
+              "ml-auto inline-flex items-center gap-2 text-xs px-3 h-9 rounded-full border transition-colors",
+              showCancelled
+                ? "border-foreground/20 bg-foreground/5 text-foreground/70"
+                : "border-border text-foreground/50 hover:text-foreground hover:border-foreground/30",
+            )}
+            title={showCancelled ? "Ocultar cancelados" : "Mostrar cancelados"}
+          >
+            <span className={cn("size-1.5 rounded-full", showCancelled ? "bg-foreground/40" : "bg-foreground/20")} />
+            {showCancelled ? "Ocultar" : "Mostrar"} cancelados ({cancelledCount})
+          </button>
+        )}
       </div>
 
       {/* Filters */}
