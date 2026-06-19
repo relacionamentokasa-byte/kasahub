@@ -159,7 +159,10 @@ function RelatoriosGestaoPage() {
     transactions.forEach((t: any) => {
       const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
       const bucket = ensure(t.client_id);
-      if (t.type === "income") bucket.receita += amount;
+      if (t.type === "income") {
+        if (t.nature === "nao_operacional" && !includeNonOp) return;
+        bucket.receita += amount;
+      }
       else {
         if (t.nature === "nao_operacional" && !includeNonOp) return;
         const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
