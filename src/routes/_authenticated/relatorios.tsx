@@ -618,14 +618,30 @@ function FinancialPage() {
                 const hasDiff = real != null && Math.abs(diff) > 0.005;
                 const sign = t.type === "income" ? "+" : "-";
                 const typeColor = t.type === "income" ? "text-emerald-500" : "text-red-500";
+                const isNaoOp = t.nature === "nao_operacional";
                 return (
-                <TableRow key={t.id} className="group hover:bg-muted/10 transition-colors">
+                <TableRow
+                  key={t.id}
+                  className={cn(
+                    "group transition-colors",
+                    isNaoOp
+                      ? "bg-amber-500/5 hover:bg-amber-500/10 border-l-2 border-l-amber-500/60"
+                      : "hover:bg-muted/10",
+                  )}
+                >
                   <TableCell className="py-4">
                     <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
                     {t.payment_date && <div className="text-[10px] text-emerald-500 font-mono-kasa uppercase mt-1">Pago em {formatDateOnlyBR(t.payment_date)}</div>}
                   </TableCell>
                   <TableCell className="py-4">
-                    <div className="font-semibold text-sm">{t.description}</div>
+                    <div className="flex items-center gap-2">
+                      <div className="font-semibold text-sm">{t.description}</div>
+                      {isNaoOp && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                          Não-op
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-col gap-0.5">
                       <InlineClientPicker
                         transactionId={t.id}
