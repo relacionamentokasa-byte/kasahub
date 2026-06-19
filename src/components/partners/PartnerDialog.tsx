@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 const TYPE_LABEL: Record<PartnerType, string> = {
   representative: "Representante",
@@ -40,6 +41,7 @@ export function PartnerDialog({
     specialty: "",
     hourly_rate: "",
     observations: "",
+    photo_url: "" as string | null | "",
   });
 
   useEffect(() => {
@@ -53,8 +55,10 @@ export function PartnerDialog({
       specialty: partner?.specialty ?? "",
       hourly_rate: partner?.hourly_rate != null ? String(partner.hourly_rate) : "",
       observations: partner?.observations ?? "",
+      photo_url: partner?.photo_url ?? "",
     });
   }, [open, partner]);
+
 
   const mut = useMutation({
     mutationFn: async () => {
@@ -69,6 +73,7 @@ export function PartnerDialog({
         specialty: form.specialty.trim() || null,
         hourly_rate: form.hourly_rate ? parseFloat(form.hourly_rate.replace(",", ".")) : null,
         observations: form.observations.trim() || null,
+        photo_url: form.photo_url || null,
       };
       if (isEdit) return updatePartner(partner.id, payload);
       return createPartner(payload);
@@ -97,6 +102,16 @@ export function PartnerDialog({
         </DialogHeader>
 
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-1.5">
+            <Label>Foto</Label>
+            <ImageUpload
+              value={form.photo_url || null}
+              onChange={(url) => setForm({ ...form, photo_url: url ?? "" })}
+              folder="partners"
+              label="Foto"
+            />
+          </div>
+
           <div className="space-y-1.5">
             <Label>Nome *</Label>
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />

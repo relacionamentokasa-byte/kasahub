@@ -45,6 +45,7 @@ export async function createPartner(input: {
   specialty?: string | null;
   hourly_rate?: number | null;
   observations?: string | null;
+  photo_url?: string | null;
 }): Promise<Partner> {
   const { data: { user } } = await supabase.auth.getUser();
   const { data, error } = await (supabase as any)
