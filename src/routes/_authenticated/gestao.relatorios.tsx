@@ -178,6 +178,8 @@ function RelatoriosGestaoPage() {
       const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
       const bucket = ensure(t.client_id);
       if (t.type === "income") {
+        const isPaid = t.status === "paid" || !!t.payment_date;
+        if (!isPaid) return; // só conta receita efetivamente recebida
         if (t.nature === "nao_operacional" && !includeNonOp) return;
         bucket.receita += amount;
       }
