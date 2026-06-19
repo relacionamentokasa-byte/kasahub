@@ -25,6 +25,7 @@ import {
   Percent,
 } from "lucide-react";
 import { fetchTransactions } from "@/lib/finance-api";
+import { PRO_LABORE_CATEGORY, DISTRIBUTION_CATEGORY } from "@/lib/distribution-api";
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ function monthLabel(key: string) {
 function RelatoriosGestaoPage() {
   const [range, setRange] = useState<RangeKey>("12m");
   const [includeNonOp, setIncludeNonOp] = useState(false);
+  const [includeProLabore, setIncludeProLabore] = useState(true);
 
   const { startDate, endDate, months } = useMemo(() => {
     const now = new Date();
@@ -96,8 +98,8 @@ function RelatoriosGestaoPage() {
 
   // ── Evolução mensal ────────────────────────────────────────────────
   const monthly = useMemo(() => {
-    const map = new Map<string, { mes: string; receita: number; despesaOp: number; despesaNaoOp: number; lucro: number }>();
-    months.forEach((k) => map.set(k, { mes: monthLabel(k), receita: 0, despesaOp: 0, despesaNaoOp: 0, lucro: 0 }));
+    const map = new Map<string, { mes: string; receita: number; despesaOp: number; despesaProLabore: number; despesaNaoOp: number; lucro: number }>();
+    months.forEach((k) => map.set(k, { mes: monthLabel(k), receita: 0, despesaOp: 0, despesaProLabore: 0, despesaNaoOp: 0, lucro: 0 }));
 
     transactions.forEach((t: any) => {
       const ref = t.payment_date || t.due_date;
@@ -106,20 +108,22 @@ function RelatoriosGestaoPage() {
       const bucket = map.get(key);
       if (!bucket) return;
       const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
+      const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
       if (t.type === "income") {
         bucket.receita += amount;
       } else {
         if (t.nature === "nao_operacional") bucket.despesaNaoOp += amount;
+        else if (isProLabore) bucket.despesaProLabore += amount;
         else bucket.despesaOp += amount;
       }
     });
 
     map.forEach((b) => {
-      const desp = b.despesaOp + (includeNonOp ? b.despesaNaoOp : 0);
+      const desp = b.despesaOp + (includeProLabore ? b.despesaProLabore : 0) + (includeNonOp ? b.despesaNaoOp : 0);
       b.lucro = b.receita - desp;
     });
     return Array.from(map.values());
-  }, [transactions, months, includeNonOp]);
+  }, [transactions, months, includeNonOp, includeProLabore]);
 
   // ── Totais do período ──────────────────────────────────────────────
   const totals = useMemo(() => {
@@ -127,11 +131,12 @@ function RelatoriosGestaoPage() {
       (acc, m) => {
         acc.receita += m.receita;
         acc.despesaOp += m.despesaOp;
+        acc.despesaProLabore += m.despesaProLabore;
         acc.despesaNaoOp += m.despesaNaoOp;
         acc.lucro += m.lucro;
         return acc;
       },
-      { receita: 0, despesaOp: 0, despesaNaoOp: 0, lucro: 0 }
+      { receita: 0, despesaOp: 0, despesaProLabore: 0, despesaNaoOp: 0, lucro: 0 }
     );
     const margem = t.receita > 0 ? (t.lucro / t.receita) * 100 : 0;
     return { ...t, margem };
@@ -155,6 +160,8 @@ function RelatoriosGestaoPage() {
       if (t.type === "income") bucket.receita += amount;
       else {
         if (t.nature === "nao_operacional" && !includeNonOp) return;
+        const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
+        if (isProLabore && !includeProLabore) return;
         bucket.despesa += amount;
       }
     });
@@ -166,7 +173,7 @@ function RelatoriosGestaoPage() {
         return { ...c, margemAbs, margemPct };
       })
       .sort((a, b) => b.receita - a.receita);
-  }, [transactions, clients, includeNonOp]);
+  }, [transactions, clients, includeNonOp, includeProLabore]);
 
   // ── Concentração / Clientes ────────────────────────────────────────
   const clientStats = useMemo(() => {
@@ -220,6 +227,10 @@ function RelatoriosGestaoPage() {
             <Switch id="non-op" checked={includeNonOp} onCheckedChange={setIncludeNonOp} />
             <Label htmlFor="non-op" className="text-xs cursor-pointer">Incluir despesas não-operacionais</Label>
           </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-surface">
+            <Switch id="pro-labore" checked={includeProLabore} onCheckedChange={setIncludeProLabore} />
+            <Label htmlFor="pro-labore" className="text-xs cursor-pointer">Incluir pró-labore / distribuição</Label>
+          </div>
           <Select value={range} onValueChange={(v: any) => setRange(v)}>
             <SelectTrigger className="w-full sm:w-[180px] h-10"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -272,7 +283,12 @@ function RelatoriosGestaoPage() {
               <RTooltip formatter={(v: any) => brl(Number(v))} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="despesaOp" stackId="d" name="Operacional" fill="hsl(0 72% 51%)" radius={[0, 0, 0, 0]} />
-              <Bar dataKey="despesaNaoOp" stackId="d" name="Não-operacional" fill="hsl(25 80% 60%)" radius={[6, 6, 0, 0]} />
+              {includeProLabore && (
+                <Bar dataKey="despesaProLabore" stackId="d" name="Pró-labore / Distribuição" fill="hsl(280 65% 55%)" radius={[0, 0, 0, 0]} />
+              )}
+              {includeNonOp && (
+                <Bar dataKey="despesaNaoOp" stackId="d" name="Não-operacional" fill="hsl(25 80% 60%)" radius={[6, 6, 0, 0]} />
+              )}
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
