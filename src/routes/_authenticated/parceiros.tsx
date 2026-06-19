@@ -48,7 +48,7 @@ function PartnersPage() {
           <PartnerList type="freelancer" />
         </TabsContent>
         <TabsContent value="supplier">
-          <PartnerList type="supplier" />
+          <SupplierList />
         </TabsContent>
         <TabsContent value="strategic">
           <PartnerList type="strategic" />
