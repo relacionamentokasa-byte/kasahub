@@ -55,7 +55,15 @@ export function CriticalNotificationPopup() {
 
   const handleGo = () => {
     readMut.mutate(current.id);
-    if (current.link) navigate({ to: current.link as any });
+    if (current.link) {
+      try {
+        const url = new URL(current.link, window.location.origin);
+        const search = Object.fromEntries(url.searchParams.entries());
+        navigate({ to: url.pathname as any, search: search as any });
+      } catch {
+        navigate({ to: current.link as any });
+      }
+    }
     criticalBus.shift();
   };
 
