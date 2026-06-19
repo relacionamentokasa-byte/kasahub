@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { registerPWA } from "@/lib/pwa-register";
+import { CriticalNotificationPopup } from "@/components/notifications/CriticalNotificationPopup";
 
 const CookieConsent = lazy(() => import("@/components/CookieConsent").then(m => ({ default: m.CookieConsent })));
 
@@ -204,6 +205,7 @@ function RootComponent() {
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
 
         <Outlet />
+        <ClientOnly fallback={null}><CriticalNotificationPopup /></ClientOnly>
         <Suspense fallback={null}><CookieConsent /></Suspense>
         <ThemedToaster />
       </ThemeProvider>

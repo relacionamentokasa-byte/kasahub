@@ -31,7 +31,10 @@ export function CriticalNotificationPopup() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["notificacoes"] }),
   });
 
-  useEffect(() => criticalBus.subscribe(setQueue), []);
+  useEffect(() => {
+    const unsub = criticalBus.subscribe(setQueue);
+    return () => { unsub(); };
+  }, []);
 
   const current = queue[0];
   const open = !!current;
