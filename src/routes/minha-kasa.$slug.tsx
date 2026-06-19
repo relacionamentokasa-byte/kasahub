@@ -26,7 +26,9 @@ import {
   ArrowRight,
   Home,
   Download,
+  Copy,
   Image as ImageIcon,
+
   Folder,
   Sun,
   Moon,
@@ -2161,10 +2163,12 @@ function InvoiceRow({ invoice }: { invoice: Invoice }) {
       </td>
       <td className="px-6 py-4 align-top">
         <div className="font-semibold text-slate-900">{invoice.description || "Fatura"}</div>
+        <BoletoBlock invoice={invoice} />
       </td>
       <td className="px-6 py-4 align-top text-right">
         <span className="font-black text-slate-900 tabular-nums text-base">{fmtBRL(invoice.amount)}</span>
       </td>
+
       <td className="px-6 py-4 align-top text-center">
         <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shadow-sm inline-flex ${badge.cls}`}>
           {badge.label}
