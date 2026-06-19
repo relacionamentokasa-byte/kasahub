@@ -265,7 +265,7 @@ function RelatoriosGestaoPage() {
       </header>
 
       {/* KPIs gerais do período */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <KpiCard icon={TrendingUp} label="Faturamento" value={brl(totals.receita)} color="emerald" />
         <KpiCard icon={TrendingDown} label="Despesa operacional" value={brl(totals.despesaOp)} color="rose"
                  sub={includeNonOp ? `Não-op: ${brl(totals.despesaNaoOp)}` : undefined} />
@@ -273,10 +273,8 @@ function RelatoriosGestaoPage() {
         <KpiCard icon={Percent} label="Margem do período" value={`${totals.margem.toFixed(1)}%`}
                  sub="Lucro total ÷ Receita total"
                  color={totals.margem >= 30 ? "emerald" : totals.margem >= 15 ? "amber" : "rose"} />
-        <KpiCard icon={Percent} label="Margem média mensal" value={`${totals.margemMensalMedia.toFixed(1)}%`}
-                 sub="Média aritmética dos meses"
-                 color={totals.margemMensalMedia >= 30 ? "emerald" : totals.margemMensalMedia >= 15 ? "amber" : "rose"} />
       </div>
+
 
 
       {/* Gráficos de evolução */}
