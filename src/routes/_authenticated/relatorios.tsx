@@ -494,11 +494,11 @@ function FinancialPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} color="text-blue-600 dark:text-blue-400" />
-        <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} color="text-emerald-600 dark:text-emerald-400" />
-        <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} color="text-amber-600 dark:text-amber-400" />
-        <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-600 dark:text-red-400" />
-        <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-600 dark:text-indigo-400" />
+        <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} color="text-blue-600 dark:text-blue-400" bg="bg-blue-500/10" />
+        <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} color="text-emerald-600 dark:text-emerald-400" bg="bg-emerald-500/10" />
+        <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} color="text-amber-600 dark:text-amber-400" bg="bg-amber-500/10" />
+        <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-600 dark:text-red-400" bg="bg-red-500/10" />
+        <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-600 dark:text-indigo-400" bg="bg-indigo-500/10" />
       </div>
 
       <FinancialRulesPanel
@@ -896,12 +896,12 @@ function TotalCell({ label, value, className }: { label: string; value: number; 
   );
 }
 
-function StatCard({ title, value, icon: Icon, color }: { title: string, value?: number, icon: any, color: string }) {
+function StatCard({ title, value, icon: Icon, color, bg }: { title: string, value?: number, icon: any, color: string, bg?: string }) {
   return (
     <Card className="bg-surface border-border shadow-sm overflow-hidden group hover:border-primary/50 transition-colors">
       <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
         <div className="flex items-center justify-between">
-          <div className="size-8 rounded-xl bg-muted flex items-center justify-center">
+          <div className={cn("size-8 rounded-xl flex items-center justify-center", bg || "bg-muted")}>
             <Icon className={cn("size-4", color)} />
           </div>
           {title !== 'PARCELAS FUTURAS' && (
