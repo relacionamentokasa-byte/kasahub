@@ -19,6 +19,7 @@ import {
   MessageSquare,
   Sparkles,
   PiggyBank,
+  TrendingUp,
 
 
   Loader2,
