@@ -3,9 +3,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { 
-  Bell, 
-  CheckCheck, 
+import {
+  Bell,
+  CheckCheck,
   Inbox,
   AlertCircle,
   AlertTriangle,
@@ -15,6 +15,7 @@ import {
   AtSign
 } from "lucide-react";
 import React from "react";
+import { criticalBus, playCriticalSound, startTitleFlash } from "@/lib/critical-notification-bus";
 
 const NOTIFICATION_SOUND_URL = "https://lovable-pre-project.lovable.app/lovable-uploads/notification-chime.mp3";
 
@@ -99,34 +100,53 @@ export function useRealtimeNotifications() {
           // 1. Invalida as queries para atualizar badge e lista
           qc.invalidateQueries({ queryKey: ["notificacoes"] });
 
-          // 2. Mostra o Toast Visual
-          toast(newNotif.titulo, {
-            description: newNotif.mensagem,
-            duration: 5000,
-            icon: React.createElement("div", { className: "size-8 rounded-full bg-primary/10 flex items-center justify-center" }, 
-              React.createElement(IconForCategory, { tipo: newNotif.tipo })
-            ),
-            action: newNotif.link ? {
-              label: "Ver",
-              onClick: () => navigate({ to: newNotif.link as any })
-            } : undefined,
-          });
+          const tipo = newNotif.tipo;
+          const isCritical = tipo === 'mention' || tipo === 'at' || tipo === 'critical' || tipo === 'approval';
 
-          // 3. Toca o Som
-          const soundEnabled = prefs ? prefs.sound_enabled !== false : true;
-          if (soundEnabled) {
-            let shouldPlay = true;
-            const tipo = newNotif.tipo;
+          if (isCritical) {
+            // 2a. Popup central + som marcante + flash no título da aba
+            criticalBus.push({
+              id: newNotif.id,
+              titulo: newNotif.titulo,
+              mensagem: newNotif.mensagem,
+              tipo: newNotif.tipo,
+              link: newNotif.link,
+            });
 
+            const soundEnabled = prefs ? prefs.sound_enabled !== false : true;
+            let shouldPlay = soundEnabled;
             if (prefs) {
               if (tipo === 'mention' && prefs.sound_mentions === false) shouldPlay = false;
               if (tipo === 'approval' && prefs.sound_approvals === false) shouldPlay = false;
-              if (tipo === 'job' && prefs.sound_jobs === false) shouldPlay = false;
-              if (tipo === 'agenda' && prefs.sound_agenda === false) shouldPlay = false;
             }
+            if (shouldPlay) playCriticalSound();
 
-            if (shouldPlay) {
-              playSound(prefs?.sound_volume as any || 'medium');
+            if (typeof document !== "undefined" && document.hidden) {
+              const prefix = tipo === 'critical' ? '🚨' : tipo === 'approval' ? '✅' : '💬';
+              startTitleFlash(`${prefix} ${newNotif.titulo}`);
+            }
+          } else {
+            // 2b. Toast normal para tipos não-críticos
+            toast(newNotif.titulo, {
+              description: newNotif.mensagem,
+              duration: 5000,
+              icon: React.createElement("div", { className: "size-8 rounded-full bg-primary/10 flex items-center justify-center" },
+                React.createElement(IconForCategory, { tipo: newNotif.tipo })
+              ),
+              action: newNotif.link ? {
+                label: "Ver",
+                onClick: () => navigate({ to: newNotif.link as any })
+              } : undefined,
+            });
+
+            const soundEnabled = prefs ? prefs.sound_enabled !== false : true;
+            if (soundEnabled) {
+              let shouldPlay = true;
+              if (prefs) {
+                if (tipo === 'job' && prefs.sound_jobs === false) shouldPlay = false;
+                if (tipo === 'agenda' && prefs.sound_agenda === false) shouldPlay = false;
+              }
+              if (shouldPlay) playSound(prefs?.sound_volume as any || 'medium');
             }
           }
         }
