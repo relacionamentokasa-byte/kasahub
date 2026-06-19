@@ -646,7 +646,11 @@ function FinancialPage() {
                   key={t.id}
                   className={cn(
                     "group transition-colors",
-                    isNaoOp
+                    t.status === "paid"
+                      ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
+                      : t.status === "overdue"
+                      ? "bg-red-500/10 hover:bg-red-500/15 border-l-2 border-l-red-600"
+                      : isNaoOp
                       ? "bg-amber-500/5 hover:bg-amber-500/10 border-l-2 border-l-amber-500/60"
                       : "hover:bg-muted/10",
                   )}
