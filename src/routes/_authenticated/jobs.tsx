@@ -4,7 +4,8 @@ import { JobsBoard } from "@/components/jobs/JobsBoard";
 export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({ meta: [{ title: "Jobs — KASA HUB" }] }),
   validateSearch: (s: Record<string, unknown>) => ({
-    openJobId: (s.openJobId as string) || undefined,
+    openJobId: (s.openJobId as string) || (s.jobId as string) || undefined,
+    jobId: (s.jobId as string) || undefined,
   }),
   component: JobsRoute,
 });
