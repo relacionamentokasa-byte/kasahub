@@ -184,7 +184,7 @@ function DistribuicaoPage() {
         <>
           {summary.alreadyDistributed && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 flex items-start gap-3 text-sm">
-              <AlertCircle className="size-5 text-amber-500 mt-0.5" />
+              <AlertCircle className="size-5 text-amber-600 dark:text-amber-400 mt-0.5" />
               <div>
                 <div className="font-medium text-foreground">Já existe distribuição confirmada para {month}.</div>
                 <div className="text-muted-foreground">Confirmar novamente vai gerar novos lançamentos. Verifique antes para não duplicar.</div>
@@ -193,9 +193,9 @@ function DistribuicaoPage() {
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <SummaryCard label="Receitas operacionais" value={summary.income_operational} className="text-emerald-500" />
-            <SummaryCard label="Despesas operacionais" value={-summary.expense_operational} className="text-red-500" />
-            <SummaryCard label="Resultado do mês" value={summary.net_result} className={summary.net_result >= 0 ? "text-emerald-500" : "text-red-500"} />
+            <SummaryCard label="Receitas operacionais" value={summary.income_operational} className="text-emerald-600 dark:text-emerald-400" />
+            <SummaryCard label="Despesas operacionais" value={-summary.expense_operational} className="text-red-600 dark:text-red-400" />
+            <SummaryCard label="Resultado do mês" value={summary.net_result} className={summary.net_result >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"} />
             <SummaryCard label="Base de distribuição" value={base} className="text-primary" />
           </div>
 
@@ -261,11 +261,11 @@ function DistribuicaoPage() {
                         </div>
                         <div>
                           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Vales abatidos</div>
-                          <div className="font-mono text-amber-500">- {brl(l.advances_total)}</div>
+                          <div className="font-mono text-amber-600 dark:text-amber-400">- {brl(l.advances_total)}</div>
                         </div>
                         <div>
                           <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Líquido a pagar</div>
-                          <div className="font-mono font-bold text-emerald-500">{brl(l.net)}</div>
+                          <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{brl(l.net)}</div>
                         </div>
                       </div>
                     </div>
@@ -285,7 +285,7 @@ function DistribuicaoPage() {
                               <span className="flex-1">
                                 {new Date(a.advance_date + "T00:00:00").toLocaleDateString("pt-BR")} · {a.description || "Vale"}
                               </span>
-                              <span className="font-mono text-amber-500">{brl(open)}</span>
+                              <span className="font-mono text-amber-600 dark:text-amber-400">{brl(open)}</span>
                             </label>
                           );
                         })}
@@ -309,11 +309,11 @@ function DistribuicaoPage() {
                       </div>
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Vales abatidos</div>
-                        <div className="font-mono text-amber-500">- {brl(l.advances_total)}</div>
+                        <div className="font-mono text-amber-600 dark:text-amber-400">- {brl(l.advances_total)}</div>
                       </div>
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Líquido a pagar</div>
-                        <div className="font-mono font-bold text-emerald-500">{brl(l.net)}</div>
+                        <div className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{brl(l.net)}</div>
                       </div>
                     </div>
                   </div>
