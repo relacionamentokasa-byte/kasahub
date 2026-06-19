@@ -3282,6 +3282,7 @@ export type Database = {
           motivo_diferenca: string | null
           nature: string
           notes: string | null
+          number_display: string | null
           observacao_diferenca: string | null
           paid_value: number | null
           payment_date: string | null
@@ -3315,6 +3316,7 @@ export type Database = {
           motivo_diferenca?: string | null
           nature?: string
           notes?: string | null
+          number_display?: string | null
           observacao_diferenca?: string | null
           paid_value?: number | null
           payment_date?: string | null
@@ -3348,6 +3350,7 @@ export type Database = {
           motivo_diferenca?: string | null
           nature?: string
           notes?: string | null
+          number_display?: string | null
           observacao_diferenca?: string | null
           paid_value?: number | null
           payment_date?: string | null
