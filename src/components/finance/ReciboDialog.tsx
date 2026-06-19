@@ -79,6 +79,24 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
 
   if (!transaction) return null;
 
+  if (transaction.status !== "paid") {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle>Recibo indisponível</DialogTitle>
+            <DialogDescription>
+              O recibo só pode ser gerado depois que o lançamento estiver marcado como pago/recebido.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button onClick={() => onOpenChange(false)}>Entendi</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   const valor = Number(transaction.amount || 0);
   const dataPg = transaction.payment_date || transaction.due_date;
 
