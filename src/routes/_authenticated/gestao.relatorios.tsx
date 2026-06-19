@@ -146,12 +146,9 @@ function RelatoriosGestaoPage() {
       { receita: 0, despesaOp: 0, despesaProLabore: 0, despesaNaoOp: 0, lucro: 0 }
     );
     const margem = t.receita > 0 ? (t.lucro / t.receita) * 100 : 0;
-    const mesesComReceita = monthly.filter((m) => m.receita > 0);
-    const margemMensalMedia = mesesComReceita.length > 0
-      ? mesesComReceita.reduce((s, m) => s + (m.lucro / m.receita) * 100, 0) / mesesComReceita.length
-      : 0;
-    return { ...t, margem, margemMensalMedia };
+    return { ...t, margem };
   }, [monthly]);
+
 
 
   // ── Por cliente: receita, custo, margem ────────────────────────────
