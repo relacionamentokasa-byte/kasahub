@@ -108,7 +108,12 @@ function RelatoriosGestaoPage() {
       const bucket = map.get(key);
       if (!bucket) return;
       const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
-      const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
+      const desc = String(t.description || "").toLowerCase();
+      const isProLabore =
+        t.category === PRO_LABORE_CATEGORY ||
+        t.category === DISTRIBUTION_CATEGORY ||
+        desc.includes("labore") ||
+        desc.includes("distribui");
       if (t.type === "income") {
         if (t.nature === "nao_operacional") bucket.receitaNaoOp += amount;
         else bucket.receita += amount;
@@ -165,7 +170,12 @@ function RelatoriosGestaoPage() {
       }
       else {
         if (t.nature === "nao_operacional" && !includeNonOp) return;
-        const isProLabore = t.category === PRO_LABORE_CATEGORY || t.category === DISTRIBUTION_CATEGORY;
+        const desc = String(t.description || "").toLowerCase();
+        const isProLabore =
+          t.category === PRO_LABORE_CATEGORY ||
+          t.category === DISTRIBUTION_CATEGORY ||
+          desc.includes("labore") ||
+          desc.includes("distribui");
         if (isProLabore && !includeProLabore) return;
         bucket.despesa += amount;
       }
