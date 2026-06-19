@@ -23,9 +23,8 @@ import {
   Users,
   AlertTriangle,
   Percent,
-  Target,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+
 
 import { fetchTransactions } from "@/lib/finance-api";
 import { PRO_LABORE_CATEGORY, DISTRIBUTION_CATEGORY } from "@/lib/distribution-api";
