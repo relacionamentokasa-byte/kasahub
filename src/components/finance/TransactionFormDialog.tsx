@@ -1,9 +1,10 @@
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Building2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchCategoriasFinanceiras } from "@/lib/categorias-financeiras-api";
@@ -32,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -40,29 +42,38 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { createTransaction } from "@/lib/finance-api";
+import { brl } from "@/lib/utils-format";
+import { createTransaction, updateTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchSuppliers } from "@/lib/suppliers-api";
 import { fetchCompanyPartners } from "@/lib/partners-finance-api";
 import { supabase } from "@/integrations/supabase/client";
 import { SuppliersManagerDialog } from "./SuppliersManagerDialog";
-import { useState } from "react";
-import { Building2 } from "lucide-react";
+
+const MOTIVO_OPTIONS = [
+  { value: "multa", label: "Multa" },
+  { value: "juros", label: "Juros" },
+  { value: "multa_juros", label: "Multa + Juros" },
+  { value: "desconto", label: "Desconto" },
+  { value: "reajuste", label: "Reajuste" },
+  { value: "outro", label: "Outro" },
+];
 
 const transactionSchema = z.object({
   type: z.enum(["income", "expense", "transfer", "adjustment"]),
   category: z.string().min(1, "A categoria é obrigatória"),
   description: z.string().min(1, "A descrição é obrigatória"),
   amount: z.coerce.number().min(0.01, "O valor deve ser maior que zero"),
-  due_date: z.date({
-    required_error: "A data é obrigatória",
-  }),
+  due_date: z.date({ required_error: "A data é obrigatória" }),
   status: z.enum(["pending", "paid"]),
   client_id: z.string().optional(),
   supplier_id: z.string().optional(),
   conta_id: z.string().min(1, "A conta bancária é obrigatória"),
   nature: z.enum(["operacional", "nao_operacional"]),
   partner_id: z.string().optional(),
+  valor_real: z.string().optional(),
+  motivo_diferenca: z.string().optional(),
+  observacao_diferenca: z.string().optional(),
 });
 
 type TransactionFormValues = z.infer<typeof transactionSchema>;
@@ -70,36 +81,19 @@ type TransactionFormValues = z.infer<typeof transactionSchema>;
 interface TransactionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  transaction?: any | null;
 }
 
-export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDialogProps) {
+export function TransactionFormDialog({ open, onOpenChange, transaction }: TransactionFormDialogProps) {
   const queryClient = useQueryClient();
   const [suppliersManagerOpen, setSuppliersManagerOpen] = useState(false);
+  const isEdit = !!transaction;
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients"],
-    queryFn: fetchClients,
-  });
-
-  const { data: categorias = [] } = useQuery({
-    queryKey: ["categorias_financeiras"],
-    queryFn: fetchCategoriasFinanceiras,
-  });
-
-  const { data: contas = [] } = useQuery({
-    queryKey: ["contas_bancarias"],
-    queryFn: fetchContasBancarias,
-  });
-
-  const { data: suppliers = [] } = useQuery({
-    queryKey: ["suppliers"],
-    queryFn: fetchSuppliers,
-  });
-
-  const { data: companyPartners = [] } = useQuery({
-    queryKey: ["company_partners"],
-    queryFn: fetchCompanyPartners,
-  });
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
+  const { data: categorias = [] } = useQuery({ queryKey: ["categorias_financeiras"], queryFn: fetchCategoriasFinanceiras });
+  const { data: contas = [] } = useQuery({ queryKey: ["contas_bancarias"], queryFn: fetchContasBancarias });
+  const { data: suppliers = [] } = useQuery({ queryKey: ["suppliers"], queryFn: fetchSuppliers });
+  const { data: companyPartners = [] } = useQuery({ queryKey: ["company_partners"], queryFn: fetchCompanyPartners });
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema),
@@ -111,16 +105,91 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
     },
   });
 
+  // Hydrate form when editing
+  useEffect(() => {
+    if (!open) return;
+    if (transaction) {
+      form.reset({
+        type: (transaction.type as any) || "income",
+        category: transaction.category || "",
+        description: transaction.description || "",
+        amount: Number(transaction.valor_previsto ?? transaction.amount ?? 0),
+        due_date: transaction.due_date ? new Date(transaction.due_date + "T00:00:00") : new Date(),
+        status: (transaction.status === "paid" ? "paid" : "pending") as any,
+        client_id: transaction.client_id || "none",
+        supplier_id: transaction.supplier_id || "none",
+        conta_id: transaction.conta_id || "",
+        nature: (transaction.nature as any) || "operacional",
+        partner_id: transaction.partner_id || "none",
+        valor_real: transaction.valor_real != null ? String(transaction.valor_real) : "",
+        motivo_diferenca: transaction.motivo_diferenca || "",
+        observacao_diferenca: transaction.observacao_diferenca || "",
+      });
+    } else {
+      form.reset({
+        type: "income",
+        status: "pending",
+        due_date: new Date(),
+        nature: "operacional",
+      });
+    }
+  }, [open, transaction]);
+
+  const watchType = form.watch("type");
+  const watchAmount = Number(form.watch("amount") || 0);
+  const watchValorReal = form.watch("valor_real");
+  const real = watchValorReal === "" || watchValorReal == null ? null : parseFloat(String(watchValorReal).replace(",", ".")) || 0;
+  const diff = real != null ? real - watchAmount : 0;
+  const hasDiff = real != null && Math.abs(diff) > 0.005;
+
   const mutation = useMutation({
     mutationFn: async (values: TransactionFormValues) => {
       const partnerId = values.partner_id && values.partner_id !== "none" ? values.partner_id : null;
-      const { partner_id: _omit, ...rest } = values;
+      const clientId = values.client_id === "none" || !values.client_id ? null : values.client_id;
+      const supplierId = values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id;
+
+      if (isEdit) {
+        const realNum = values.valor_real === "" || values.valor_real == null
+          ? null
+          : parseFloat(String(values.valor_real).replace(",", ".")) || 0;
+        const patch: any = {
+          type: values.type,
+          kind: values.type === "income" ? "income" : values.type === "expense" ? "expense" : values.type,
+          status: values.status,
+          category: values.category,
+          description: values.description,
+          amount: realNum != null ? realNum : values.amount,
+          valor_previsto: values.amount,
+          valor_real: realNum,
+          motivo_diferenca: hasDiff ? values.motivo_diferenca || null : null,
+          observacao_diferenca: hasDiff ? values.observacao_diferenca || null : null,
+          due_date: format(values.due_date, "yyyy-MM-dd"),
+          payment_date: values.status === "paid"
+            ? (transaction?.payment_date || format(new Date(), "yyyy-MM-dd"))
+            : null,
+          client_id: clientId,
+          supplier_id: supplierId,
+          conta_id: values.conta_id,
+          nature: values.nature,
+        };
+        return updateTransaction(transaction.id, patch);
+      }
+
+      // CREATE
       const payload: any = {
-        ...rest,
+        type: values.type,
+        kind: values.type === "income" ? "income" : values.type === "expense" ? "expense" : values.type,
+        status: values.status,
+        category: values.category,
+        description: values.description,
+        amount: values.amount,
+        valor_previsto: values.amount,
         due_date: format(values.due_date, "yyyy-MM-dd"),
         payment_date: values.status === "paid" ? format(new Date(), "yyyy-MM-dd") : null,
-        client_id: values.client_id === "none" ? null : values.client_id,
-        supplier_id: values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id,
+        client_id: clientId,
+        supplier_id: supplierId,
+        conta_id: values.conta_id,
+        nature: values.nature,
       };
       if (partnerId && values.type === "expense") {
         payload.category = payload.category || "Vale Sócio";
@@ -144,25 +213,29 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
       queryClient.invalidateQueries({ queryKey: ["contas_bancarias"] });
       queryClient.invalidateQueries({ queryKey: ["finance-stats"] });
       queryClient.invalidateQueries({ queryKey: ["partner_advances"] });
-      toast.success("Lançamento registrado com sucesso!");
+      toast.success(isEdit ? "Lançamento atualizado." : "Lançamento registrado com sucesso!");
       form.reset();
       onOpenChange(false);
     },
-    onError: (error) => {
-      console.error("Error creating transaction:", error);
-      toast.error("Erro ao registrar lançamento financeiro.");
+    onError: (error: any) => {
+      console.error("Error saving transaction:", error);
+      toast.error(error?.message || "Erro ao salvar lançamento.");
     },
   });
 
   const onSubmit = (values: TransactionFormValues) => {
+    if (isEdit && hasDiff && !values.motivo_diferenca) {
+      toast.error("Selecione o motivo da diferença entre valor previsto e valor real.");
+      return;
+    }
     mutation.mutate(values);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Lançamento Financeiro</DialogTitle>
+          <DialogTitle>{isEdit ? "Editar Lançamento" : "Novo Lançamento Financeiro"}</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -174,7 +247,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o tipo" />
@@ -198,7 +271,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione o status" />
@@ -215,13 +288,15 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               />
             </div>
 
-            {form.watch("type") === "income" && (
+            {(watchType === "income" || watchType === "expense") && (
               <FormField
                 control={form.control}
                 name="nature"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Natureza da receita</FormLabel>
+                    <FormLabel>
+                      {watchType === "income" ? "Natureza da receita" : "Natureza da despesa"}
+                    </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -229,12 +304,25 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="operacional">
-                          Operacional (entra na distribuição aos sócios)
-                        </SelectItem>
-                        <SelectItem value="nao_operacional">
-                          Não-operacional (consórcio, venda de ativo, reembolso…)
-                        </SelectItem>
+                        {watchType === "income" ? (
+                          <>
+                            <SelectItem value="operacional">
+                              Operacional (entra na distribuição aos sócios)
+                            </SelectItem>
+                            <SelectItem value="nao_operacional">
+                              Não-operacional (consórcio, venda de ativo, reembolso…)
+                            </SelectItem>
+                          </>
+                        ) : (
+                          <>
+                            <SelectItem value="operacional">
+                              Operacional (entra no cálculo de lucro)
+                            </SelectItem>
+                            <SelectItem value="nao_operacional">
+                              Não-operacional (investimento, aporte, despesa de sócio…)
+                            </SelectItem>
+                          </>
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -243,16 +331,12 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               />
             )}
 
-
             <FormField
               control={form.control}
               name="category"
               render={({ field }) => {
-                const currentType = form.watch("type");
-                const tipoFiltro = currentType === "income" ? "Receita" : currentType === "expense" ? "Despesa" : null;
-                const filtered = tipoFiltro
-                  ? categorias.filter((c) => c.tipo === tipoFiltro)
-                  : categorias;
+                const tipoFiltro = watchType === "income" ? "Receita" : watchType === "expense" ? "Despesa" : null;
+                const filtered = tipoFiltro ? categorias.filter((c) => c.tipo === tipoFiltro) : categorias;
                 return (
                   <FormItem>
                     <FormLabel>Categoria</FormLabel>
@@ -260,9 +344,9 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder={
-                            currentType === "income"
+                            watchType === "income"
                               ? "Selecione uma categoria de receita..."
-                              : currentType === "expense"
+                              : watchType === "expense"
                               ? "Selecione uma categoria de despesa..."
                               : "Selecione uma categoria..."
                           } />
@@ -308,14 +392,9 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor (R$)</FormLabel>
+                    <FormLabel>{isEdit ? "Valor previsto (R$)" : "Valor (R$)"}</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        step="0.01" 
-                        placeholder="0,00" 
-                        {...field} 
-                      />
+                      <Input type="number" step="0.01" placeholder="0,00" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -335,14 +414,10 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                             variant={"outline"}
                             className={cn(
                               "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
+                              !field.value && "text-muted-foreground",
                             )}
                           >
-                            {field.value ? (
-                              format(field.value, "PPP", { locale: ptBR })
-                            ) : (
-                              <span>Selecione uma data</span>
-                            )}
+                            {field.value ? format(field.value, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
                         </FormControl>
@@ -352,9 +427,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) =>
-                            date < new Date("1900-01-01")
-                          }
+                          disabled={(date) => date < new Date("1900-01-01")}
                           initialFocus
                         />
                       </PopoverContent>
@@ -365,14 +438,87 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               />
             </div>
 
-            {form.watch("type") !== "expense" && (
+            {isEdit && (
+              <div className="space-y-3 rounded-xl border border-dashed border-border bg-surface/40 p-3">
+                <FormField
+                  control={form.control}
+                  name="valor_real"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-xs">💵 Valor real do boleto/recebimento (R$)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="Deixe vazio se o valor real é igual ao previsto"
+                          {...field}
+                        />
+                      </FormControl>
+                      <p className="text-[11px] text-muted-foreground">
+                        Preencha quando o valor pago/recebido for diferente do previsto.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {hasDiff && (
+                  <div className="rounded-lg border-2 border-orange-500/30 bg-orange-500/5 p-3 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-mono-kasa uppercase tracking-wider text-orange-600">
+                        📊 Diferença
+                      </span>
+                      <span className={cn("text-sm font-bold tabular-nums", diff > 0 ? "text-orange-600" : "text-emerald-600")}>
+                        {diff > 0 ? "+" : ""}{brl(diff)}
+                      </span>
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name="motivo_diferenca"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Motivo *</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione o motivo..." />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {MOTIVO_OPTIONS.map((m) => (
+                                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="observacao_diferenca"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Observação</FormLabel>
+                          <FormControl>
+                            <Textarea rows={2} placeholder="Ex: Multa de 2% por atraso..." {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {watchType !== "expense" && (
               <FormField
                 control={form.control}
                 name="client_id"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Cliente (Opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecione um cliente" />
@@ -393,7 +539,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               />
             )}
 
-            {form.watch("type") === "expense" && (
+            {watchType === "expense" && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -467,7 +613,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
               </div>
             )}
 
-            {form.watch("type") === "expense" && (
+            {watchType === "expense" && !isEdit && (
               <FormField
                 control={form.control}
                 name="partner_id"
@@ -483,9 +629,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                       <SelectContent>
                         <SelectItem value="none">Nenhum (despesa comum)</SelectItem>
                         {companyPartners.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.full_name}
-                          </SelectItem>
+                          <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -494,8 +638,6 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                 )}
               />
             )}
-
-
 
             <FormField
               control={form.control}
@@ -516,9 +658,7 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                         </div>
                       ) : (
                         contas.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.nome}
-                          </SelectItem>
+                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
                         ))
                       )}
                     </SelectContent>
@@ -538,10 +678,8 @@ export function TransactionFormDialog({ open, onOpenChange }: TransactionFormDia
                 Cancelar
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Salvar Lançamento
+                {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEdit ? "Salvar alterações" : "Salvar Lançamento"}
               </Button>
             </DialogFooter>
           </form>
