@@ -131,11 +131,12 @@ function RelatoriosGestaoPage() {
       (acc, m) => {
         acc.receita += m.receita;
         acc.despesaOp += m.despesaOp;
+        acc.despesaProLabore += m.despesaProLabore;
         acc.despesaNaoOp += m.despesaNaoOp;
         acc.lucro += m.lucro;
         return acc;
       },
-      { receita: 0, despesaOp: 0, despesaNaoOp: 0, lucro: 0 }
+      { receita: 0, despesaOp: 0, despesaProLabore: 0, despesaNaoOp: 0, lucro: 0 }
     );
     const margem = t.receita > 0 ? (t.lucro / t.receita) * 100 : 0;
     return { ...t, margem };
