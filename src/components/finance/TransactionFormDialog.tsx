@@ -128,7 +128,11 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         valor_real: transaction.valor_real != null ? String(transaction.valor_real) : "",
         motivo_diferenca: transaction.motivo_diferenca || "",
         observacao_diferenca: transaction.observacao_diferenca || "",
+        boleto_pdf_path: transaction.boleto_pdf_path || null,
+        boleto_linha_digitavel: transaction.boleto_linha_digitavel || "",
+        boleto_pix_copia_cola: transaction.boleto_pix_copia_cola || "",
       });
+
     } else {
       form.reset({
         type: "income",
@@ -175,9 +179,13 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
           supplier_id: supplierId,
           conta_id: values.conta_id,
           nature: values.nature,
+          boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
+          boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
+          boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
         };
         return updateTransaction(transaction.id, patch);
       }
+
 
       // CREATE
       const payload: any = {
@@ -194,7 +202,11 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         supplier_id: supplierId,
         conta_id: values.conta_id,
         nature: values.nature,
+        boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
+        boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
+        boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
       };
+
       if (partnerId && values.type === "expense") {
         payload.category = payload.category || "Vale Sócio";
       }
