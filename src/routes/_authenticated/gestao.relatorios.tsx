@@ -99,36 +99,8 @@ function RelatoriosGestaoPage() {
     queryFn: fetchClients,
   });
 
-  // ── Meta anual ─────────────────────────────────────────────────────
-  const currentYear = new Date().getFullYear();
-  const { data: annualGoal } = useQuery({
-    queryKey: ["agency_goals", "yearly", currentYear],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agency_goals")
-        .select("target_value")
-        .eq("year", currentYear)
-        .eq("period", "yearly")
-        .eq("type", "revenue")
-        .is("owner_id", null)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
 
-  const { data: ytdReceita = 0 } = useQuery({
-    queryKey: ["gestao-relatorios", "ytd-receita", currentYear, includeNonOp],
-    queryFn: async () => {
-      const start = `${currentYear}-01-01`;
-      const end = `${currentYear}-12-31`;
-      const rows = await fetchTransactions({ startDate: start, endDate: end, type: "income" });
-      return rows.reduce((s: number, t: any) => {
-        if (!includeNonOp && t.nature === "nao_operacional") return s;
-        return s + (Number(t.paid_value ?? t.valor_real ?? t.amount) || 0);
-      }, 0);
-    },
-  });
+
 
   // ── Evolução mensal ────────────────────────────────────────────────
   const monthly = useMemo(() => {
