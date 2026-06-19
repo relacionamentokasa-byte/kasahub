@@ -104,14 +104,14 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || "/";
+  const targetUrl = new URL(event.notification.data?.url || "/", self.location.origin).href;
   event.waitUntil(
     (async () => {
       const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       const existing = all.find((c) => c.url.includes(self.location.origin));
       if (existing) {
-        existing.focus();
-        existing.navigate(targetUrl).catch(() => {});
+        await existing.navigate(targetUrl).catch(() => existing.focus());
+        await existing.focus();
         return;
       }
       await self.clients.openWindow(targetUrl);
