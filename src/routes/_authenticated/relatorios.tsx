@@ -16,7 +16,7 @@ import { TransactionFormDialog } from "@/components/finance/TransactionFormDialo
 import { CategoriesManagerDialog } from "@/components/finance/CategoriesManagerDialog";
 import { ContasBancariasManagerDialog } from "@/components/finance/ContasBancariasManagerDialog";
 import { SuppliersManagerDialog } from "@/components/finance/SuppliersManagerDialog";
-import { EditTransactionDialog } from "@/components/finance/EditTransactionDialog";
+
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
 import { EmitirBoletoDialog } from "@/components/finance/EmitirBoletoDialog";
@@ -389,15 +389,22 @@ function FinancialPage() {
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
   const totals = filteredTransactions.reduce(
-    (acc: { receitas: number; despesas: number; proLabore: number }, t: any) => {
+    (acc: { receitas: number; despesas: number; proLabore: number; naoOperacional: number }, t: any) => {
       const v = Number(t.amount || 0);
       const proLab = isProLabore(getCatName(t));
-      if (t.type === "income") acc.receitas += v;
-      else if (t.type === "expense" && proLab) acc.proLabore += v;
-      else if (t.type === "expense") acc.despesas += v;
+      const isNaoOp = t.nature === "nao_operacional";
+      if (t.type === "income") {
+        if (isNaoOp) acc.naoOperacional += v;
+        else acc.receitas += v;
+      } else if (t.type === "expense" && proLab) {
+        acc.proLabore += v;
+      } else if (t.type === "expense") {
+        if (isNaoOp) acc.naoOperacional += v;
+        else acc.despesas += v;
+      }
       return acc;
     },
-    { receitas: 0, despesas: 0, proLabore: 0 },
+    { receitas: 0, despesas: 0, proLabore: 0, naoOperacional: 0 },
   );
   const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
 
@@ -716,21 +723,23 @@ function FinancialPage() {
                           </Tooltip>
                         </TooltipProvider>
                       )}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => setReciboTx(t)}
-                              className="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
-                            >
-                              <Receipt className="size-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Gerar recibo</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      {t.status === "paid" && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setReciboTx(t)}
+                                className="h-8 w-8 rounded-lg text-blue-600 hover:text-blue-700 hover:bg-blue-500/10"
+                              >
+                                <Receipt className="size-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Gerar recibo</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       {t.status === "paid" && (
                         <TooltipProvider>
                           <Tooltip>
@@ -801,14 +810,14 @@ function FinancialPage() {
 
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <TransactionFormDialog open={transactionOpen} onOpenChange={setTransactionOpen} />
+      <TransactionFormDialog
+        open={!!editingTx}
+        onOpenChange={(o: boolean) => !o && setEditingTx(null)}
+        transaction={editingTx}
+      />
       <CategoriesManagerDialog open={categoriesOpen} onOpenChange={setCategoriesOpen} />
       <ContasBancariasManagerDialog open={contasOpen} onOpenChange={setContasOpen} />
       <SuppliersManagerDialog open={suppliersOpen} onOpenChange={setSuppliersOpen} />
-      <EditTransactionDialog
-        open={!!editingTx}
-        onOpenChange={(o) => !o && setEditingTx(null)}
-        transaction={editingTx}
-      />
       <BaixaDialog
         open={!!baixaTx}
         onOpenChange={(o) => !o && setBaixaTx(null)}
