@@ -25,7 +25,7 @@ interface SplashScreenProps {
   onDone: () => void;
 }
 
-const TOTAL_MS = 3600;
+const TOTAL_MS = 6500;
 
 export function SplashScreen({ userId, onDone }: SplashScreenProps) {
   const [name, setName] = useState<string | null>(null);
