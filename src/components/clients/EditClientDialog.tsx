@@ -95,6 +95,7 @@ export function EditClientDialog({
     portal_cover_url: (client.portal_cover_url ?? "") as string | null,
     portal_primary_color: (client.portal_primary_color ?? "#FFBC45") as string,
     portal_cover_color: (client.portal_cover_color ?? "#1A1A2E") as string,
+    portal_text_color: (client.portal_text_color ?? "") as string,
   });
 
   const [form, setForm] = useState(init);
