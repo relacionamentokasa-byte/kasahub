@@ -68,6 +68,7 @@ export function ClientOnboardingPanel({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
   const [createOpen, setCreateOpen] = useState(false);
   const [templateId, setTemplateId] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date>(new Date());
 
   const { data: onboardings = [], isLoading } = useQuery({
     queryKey: ["onboardings", clientId],
@@ -81,7 +82,11 @@ export function ClientOnboardingPanel({ clientId }: { clientId: string }) {
 
   const createMut = useMutation({
     mutationFn: () =>
-      createOnboardingFromTemplate({ client_id: clientId, template_id: templateId }),
+      createOnboardingFromTemplate({
+        client_id: clientId,
+        template_id: templateId,
+        start_date: format(startDate, "yyyy-MM-dd"),
+      }),
     onSuccess: () => {
       toast.success("Onboarding iniciado");
       qc.invalidateQueries({ queryKey: ["onboardings", clientId] });
@@ -155,21 +160,47 @@ export function ClientOnboardingPanel({ clientId }: { clientId: string }) {
               Escolha um modelo. As etapas serão geradas automaticamente com os prazos.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 py-2">
-            <Select value={templateId} onValueChange={setTemplateId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um modelo..." />
-              </SelectTrigger>
-              <SelectContent>
-                {templates
-                  .filter((t) => t.is_active)
-                  .map((t) => (
-                    <SelectItem key={t.id} value={t.id}>
-                      {t.name} {t.is_default && "(padrão)"}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60">Modelo</Label>
+              <Select value={templateId} onValueChange={setTemplateId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um modelo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates
+                    .filter((t) => t.is_active)
+                    .map((t) => (
+                      <SelectItem key={t.id} value={t.id}>
+                        {t.name} {t.is_default && "(padrão)"}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/60">Data de início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start text-left font-normal gap-2">
+                    <CalendarIcon className="size-4" />
+                    {format(startDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={startDate}
+                    onSelect={(d) => d && setStartDate(d)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+              <p className="text-[10px] text-foreground/40">
+                Os prazos de cada etapa serão calculados a partir desta data.
+              </p>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
