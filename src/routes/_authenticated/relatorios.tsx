@@ -687,6 +687,108 @@ function FinancialPage() {
         </div>
       </div>
 
+      {/* Quick chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { id: "none", label: "Tudo" },
+          { id: "today", label: "Hoje" },
+          { id: "week", label: "Próx. 7 dias" },
+          { id: "overdue", label: "Atrasados" },
+          { id: "paid_month", label: "Pagos do mês" },
+        ].map((c) => {
+          const active = quickChip === (c.id as any);
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setQuickChip(c.id as any)}
+              className={cn(
+                "text-xs px-3 h-8 rounded-full border transition-colors font-medium",
+                active
+                  ? c.id === "overdue"
+                    ? "bg-red-600 text-white border-red-600"
+                    : c.id === "paid_month"
+                    ? "bg-emerald-600 text-white border-emerald-600"
+                    : "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-foreground/60 hover:text-foreground hover:border-foreground/30 bg-surface",
+              )}
+            >
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-2 z-20 flex flex-wrap items-center gap-3 bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-lg animate-reveal">
+          <span className="text-sm font-semibold">
+            {selectedIds.size} selecionado(s)
+          </span>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="rounded-full gap-1.5 h-8"
+              onClick={() => bulkBaixaMut.mutate(Array.from(selectedIds))}
+              disabled={bulkBaixaMut.isPending}
+            >
+              <CheckCircle2 className="size-4" /> Dar baixa
+            </Button>
+            <Popover open={bulkCategoryOpen} onOpenChange={setBulkCategoryOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="secondary" className="rounded-full gap-1.5 h-8">
+                  <Filter className="size-4" /> Categoria
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-2">
+                <div className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-2 pb-2">
+                  Aplicar categoria
+                </div>
+                <div className="max-h-64 overflow-auto space-y-0.5">
+                  {(categories as any[]).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() =>
+                        bulkCategoryMut.mutate({
+                          ids: Array.from(selectedIds),
+                          categoryId: c.id,
+                        })
+                      }
+                      className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-muted transition-colors"
+                    >
+                      {c.nome || c.name}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="rounded-full gap-1.5 h-8"
+              onClick={() => {
+                if (confirm(`Cancelar ${selectedIds.size} lançamento(s)?`))
+                  bulkCancelMut.mutate(Array.from(selectedIds));
+              }}
+              disabled={bulkCancelMut.isPending}
+            >
+              <Trash2 className="size-4" /> Cancelar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="rounded-full h-8 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Limpar
+            </Button>
+          </div>
+        </div>
+      )}
+
+
       {/* Transactions Table */}
       <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
         <Table>
