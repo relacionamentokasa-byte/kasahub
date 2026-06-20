@@ -255,6 +255,25 @@ export function SlideView({
       );
     }
 
+    case "chart":
+      return shell(
+        <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
+          {p.title ? heading(p.title, "sm") : null}
+          <div className="flex-1 mt-8">
+            <ChartRender
+              chartType={p.chartType ?? "bar"}
+              categories={p.chartCategories ?? []}
+              series={(p.chartSeries ?? []) as ChartSeries[]}
+              brandColor={color}
+            />
+          </div>
+          {p.chartNote ? (
+            <p className="mt-4 text-[24px] text-neutral-500">{p.chartNote}</p>
+          ) : null}
+        </div>,
+      );
+
+
     case "deliverables": {
       const items = (p.items || []) as DeliverableItem[];
       return shell(
