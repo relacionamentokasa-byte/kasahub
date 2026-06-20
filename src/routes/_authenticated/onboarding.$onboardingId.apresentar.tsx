@@ -288,7 +288,6 @@ function PresentOnboardingPage() {
             style={{
               width: `${((idx + 1) / slides.length) * 100}%`,
               backgroundColor: brand,
-              boxShadow: `0 0 12px var(--brand-glow)`,
             }}
           />
         </div>
