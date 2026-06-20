@@ -134,8 +134,8 @@ export function SlideView({
           />
           <div className="flex items-center justify-between">
             {clientLogoUrl ? (
-              <img src={clientLogoUrl} alt="" className="h-16 w-auto object-contain" />
-            ) : <span className="text-[24px] font-medium text-neutral-500">{clientName || ""}</span>}
+              <img src={clientLogoUrl} alt="" className="h-28 w-auto object-contain" />
+            ) : <span className="text-[34px] font-medium text-neutral-500">{clientName || ""}</span>}
             {p.period ? (
               <span
                 className="px-6 py-3 rounded-full text-[22px] font-medium"
