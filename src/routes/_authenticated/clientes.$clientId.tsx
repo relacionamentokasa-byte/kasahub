@@ -73,6 +73,54 @@ function ClientDetail() {
     enabled: !!client
   });
 
+  const { data: jobs = [] } = useQuery({
+    queryKey: ["client-jobs-summary", clientId],
+    enabled: !!client,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, title, status, done_at, created_at")
+        .eq("client_id", clientId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: dmes = [] } = useQuery({
+    queryKey: ["client-dmes-summary", clientId],
+    queryFn: () => fetchExtraDemands({ clientId }),
+    enabled: !!client,
+  });
+
+  const { data: onboardings = [] } = useQuery({
+    queryKey: ["client-onboardings", clientId],
+    enabled: !!client,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("onboardings")
+        .select("id, title, status, start_date, completed_at, created_at")
+        .eq("client_id", clientId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: timelineEvents = [] } = useQuery({
+    queryKey: ["client-timeline-events", clientId],
+    enabled: !!client,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_timeline_events")
+        .select("created_at")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+
   if (clientLoading) return (
     <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-4">
       <div className="relative">
