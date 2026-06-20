@@ -73,7 +73,12 @@ export function InlineFreelancerPicker({
         >
           {currentFreelancerId ? (
             <>
-              <UserRound className="size-2.5 text-foreground/40" />
+              <Avatar className="size-4">
+                {currentFreelancerPhotoUrl ? <AvatarImage src={currentFreelancerPhotoUrl} alt={currentFreelancerName || ""} /> : null}
+                <AvatarFallback className="text-[8px] font-bold">
+                  {(currentFreelancerName || "?").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <span className="text-[10px] text-foreground/40 font-bold uppercase truncate max-w-[200px]">
                 {currentFreelancerName || "—"}
               </span>
