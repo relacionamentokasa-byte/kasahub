@@ -182,10 +182,8 @@ function ClientDetail() {
   }
   const lastContact = lastContactCandidates.sort((a, b) => (a.ts < b.ts ? 1 : -1))[0];
 
-  const unifiedEvents = useMemo(
-    () => buildUnifiedEvents({ proposals, contracts, projects, jobs, dmes, transactions, onboardings }),
-    [proposals, contracts, projects, jobs, dmes, transactions, onboardings],
-  );
+
+
 
 
 
