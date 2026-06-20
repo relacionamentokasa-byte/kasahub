@@ -341,7 +341,8 @@ function ClientDetail() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 flex-1 overflow-y-auto">
-                    <ClientTimeline clientId={clientId} />
+                    <ClientUnifiedTimeline events={unifiedEvents} limit={8} emptyHint="Sem atividades ainda — crie uma proposta ou registre um pagamento." />
+
                   </CardContent>
                 </Card>
               </div>
