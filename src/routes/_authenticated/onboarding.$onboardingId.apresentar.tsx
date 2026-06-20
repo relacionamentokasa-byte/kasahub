@@ -166,7 +166,7 @@ function PresentOnboardingPage() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-[200] bg-black text-white grid place-items-center">
+      <div className="fixed inset-0 z-[200] bg-black text-[rgb(var(--ink-rgb))] grid place-items-center">
         <Loader2 className="size-8 animate-spin opacity-50" />
       </div>
     );
@@ -174,7 +174,7 @@ function PresentOnboardingPage() {
 
   if (!slides.length) {
     return (
-      <div className="fixed inset-0 z-[200] bg-black text-white grid place-items-center">
+      <div className="fixed inset-0 z-[200] bg-black text-[rgb(var(--ink-rgb))] grid place-items-center">
         <div className="text-center space-y-3">
           <p>Onboarding sem etapas.</p>
           <button
@@ -192,7 +192,7 @@ function PresentOnboardingPage() {
 
   return (
     <div
-      className="fixed inset-0 z-[200] overflow-hidden text-white select-none"
+      className="fixed inset-0 z-[200] overflow-hidden text-[rgb(var(--ink-rgb))] select-none"
       style={
         {
           backgroundColor: cover,
@@ -242,7 +242,7 @@ function PresentOnboardingPage() {
             </span>
           )}
           <span className="h-5 w-px bg-white/20" />
-          <span className="text-[10px] uppercase tracking-[0.22em] text-white/50 font-bold">
+          <span className="text-[10px] uppercase tracking-[0.22em] text-[rgb(var(--ink-rgb)/0.50)] font-bold">
             Onboarding
           </span>
         </div>
@@ -299,7 +299,7 @@ function PresentOnboardingPage() {
             }}
           />
         </div>
-        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.22em] font-bold text-white/40">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.22em] font-bold text-[rgb(var(--ink-rgb)/0.40)]">
           <div className="flex items-center gap-2">
             <span>Powered by</span>
             {agency?.logo_white_url || agency?.logo_url ? (
@@ -309,12 +309,12 @@ function PresentOnboardingPage() {
                 className="h-3.5 w-auto object-contain opacity-70"
               />
             ) : (
-              <span className="text-white/70">{agency?.name || "KASA"}</span>
+              <span className="text-[rgb(var(--ink-rgb)/0.70)]">{agency?.name || "KASA"}</span>
             )}
           </div>
           <div className="flex items-center gap-3">
             <span>← → para navegar · ESC para sair</span>
-            <span className="text-white/70">
+            <span className="text-[rgb(var(--ink-rgb)/0.70)]">
               {String(idx + 1).padStart(2, "0")} /{" "}
               {String(slides.length).padStart(2, "0")}
             </span>
@@ -408,9 +408,9 @@ function CoverSlide({
             {cleanTitle}
           </span>
         </h1>
-        <p className="text-xl text-white/60 font-light pt-2">
+        <p className="text-xl text-[rgb(var(--ink-rgb)/0.60)] font-light pt-2">
           Para{" "}
-          <span className="text-white font-semibold">
+          <span className="text-[rgb(var(--ink-rgb))] font-semibold">
             {client.company || client.name}
           </span>
         </p>
@@ -427,7 +427,7 @@ function CoverSlide({
         />
         {onb.expected_end_date && (
           <>
-            <span className="text-white/20 text-2xl">→</span>
+            <span className="text-[rgb(var(--ink-rgb)/0.20)] text-2xl">→</span>
             <DateBlock
               label="Go Live"
               value={format(
@@ -510,7 +510,7 @@ function OverviewSlide({
               stroke="currentColor"
               strokeWidth="10"
               fill="transparent"
-              className="text-white/10"
+              className="text-[rgb(var(--ink-rgb)/0.10)]"
             />
             <circle
               cx="80"
@@ -562,10 +562,10 @@ function OverviewSlide({
 function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white/5 border border-white/10 px-5 py-4 backdrop-blur-sm">
-      <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40 mb-1.5">
+      <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[rgb(var(--ink-rgb)/0.40)] mb-1.5">
         {label}
       </div>
-      <div className="text-2xl font-bold text-white">{value}</div>
+      <div className="text-2xl font-bold text-[rgb(var(--ink-rgb))]">{value}</div>
     </div>
   );
 }
@@ -627,7 +627,7 @@ function RolesSlide({ steps }: { steps: OnboardingStep[] }) {
                   >
                     {r.label}
                   </div>
-                  <div className="text-sm text-white/50 mt-1">{r.sub}</div>
+                  <div className="text-sm text-[rgb(var(--ink-rgb)/0.50)] mt-1">{r.sub}</div>
                 </div>
                 <div className="text-4xl font-black">{r.count}</div>
               </div>
@@ -637,7 +637,7 @@ function RolesSlide({ steps }: { steps: OnboardingStep[] }) {
                   style={{ width: `${pct}%`, backgroundColor: "var(--brand)" }}
                 />
               </div>
-              <div className="text-[10px] uppercase tracking-[0.22em] text-white/40 font-bold">
+              <div className="text-[10px] uppercase tracking-[0.22em] text-[rgb(var(--ink-rgb)/0.40)] font-bold">
                 {pct}% das etapas
               </div>
             </div>
@@ -669,7 +669,7 @@ function StepsSlide({
           <SlideEyebrow>Etapas</SlideEyebrow>
           <h2 className="text-4xl font-black tracking-tight mt-3">
             {startIdx + 1}–{startIdx + chunk.length}{" "}
-            <span className="text-white/30 text-2xl font-light">
+            <span className="text-[rgb(var(--ink-rgb)/0.30)] text-2xl font-light">
               de {total}
             </span>
           </h2>
@@ -722,7 +722,7 @@ function StepsSlide({
                     />
                   </div>
                 ) : (
-                  <div className="size-11 rounded-xl border border-white/10 grid place-items-center text-white/40">
+                  <div className="size-11 rounded-xl border border-white/10 grid place-items-center text-[rgb(var(--ink-rgb)/0.40)]">
                     <span className="text-sm font-black">
                       {String(num).padStart(2, "0")}
                     </span>
@@ -755,13 +755,13 @@ function StepsSlide({
                 </div>
                 <h3
                   className={`text-lg font-bold leading-tight ${
-                    isDone ? "line-through text-white/40" : "text-white"
+                    isDone ? "line-through text-[rgb(var(--ink-rgb)/0.40)]" : "text-[rgb(var(--ink-rgb))]"
                   }`}
                 >
                   {step.title}
                 </h3>
                 {step.description && (
-                  <p className="text-sm text-white/55 leading-relaxed line-clamp-3">
+                  <p className="text-sm text-[rgb(var(--ink-rgb)/0.55)] leading-relaxed line-clamp-3">
                     {step.description}
                   </p>
                 )}
@@ -812,7 +812,7 @@ function DeadlinesSlide({
       </h2>
 
       {upcoming.length === 0 ? (
-        <p className="text-xl text-white/60">
+        <p className="text-xl text-[rgb(var(--ink-rgb)/0.60)]">
           Nenhum prazo pendente — estamos em dia! 🎉
         </p>
       ) : (
@@ -854,7 +854,7 @@ function DeadlinesSlide({
                 <div className="h-12 w-px bg-white/10" />
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-bold truncate">{s.title}</h3>
-                  <p className="text-xs text-white/50 mt-0.5">
+                  <p className="text-xs text-[rgb(var(--ink-rgb)/0.50)] mt-0.5">
                     Responsável: {RESP_LABEL[s.responsible_type]} ·{" "}
                     {isOverdue
                       ? `${Math.abs(daysFromNow)} dias atrasado`
@@ -880,7 +880,7 @@ function DeadlinesSlide({
         >
           <Rocket className="size-5" style={{ color: "var(--brand)" }} />
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/50">
+            <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[rgb(var(--ink-rgb)/0.50)]">
               Data prevista para o Go Live
             </div>
             <div
@@ -915,10 +915,10 @@ function ClosingSlide({
         <br />
         <span style={{ color: "var(--brand)" }}>juntos.</span>
       </h2>
-      <p className="text-xl text-white/60 max-w-2xl mx-auto">
+      <p className="text-xl text-[rgb(var(--ink-rgb)/0.60)] max-w-2xl mx-auto">
         Este onboarding é só o começo. A cada etapa concluída, estamos mais
         perto de transformar resultado em rotina para{" "}
-        <span className="text-white font-semibold">
+        <span className="text-[rgb(var(--ink-rgb))] font-semibold">
           {client.company || client.name}
         </span>
         .
@@ -932,8 +932,8 @@ function ClosingSlide({
             className="h-12 w-auto object-contain"
           />
         )}
-        <div className="text-2xl text-white/30">×</div>
-        <div className="text-sm font-bold tracking-[0.22em] uppercase text-white/60">
+        <div className="text-2xl text-[rgb(var(--ink-rgb)/0.30)]">×</div>
+        <div className="text-sm font-bold tracking-[0.22em] uppercase text-[rgb(var(--ink-rgb)/0.60)]">
           Sua agência
         </div>
       </div>
