@@ -731,7 +731,9 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
   const completedSteps = (job as any).completed_steps || 0;
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
-  const teamInvolved = (job as any).team_involved || [];
+  const teamInvolvedRaw = (job as any).team_involved || [];
+  // Evita duplicar o responsável principal na lista de equipe
+  const teamInvolved = teamInvolvedRaw.filter((m: any) => m?.user_id && m.user_id !== mainRespId);
 
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
   const deadline = useMemo(() => {
