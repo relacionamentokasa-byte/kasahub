@@ -175,12 +175,11 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
 
   const mutation = useMutation({
     mutationFn: async (values: TransactionFormValues) => {
-      const isInternal = !!values.is_internal;
-      const partnerId = isInternal ? null : (values.partner_id && values.partner_id !== "none" ? values.partner_id : null);
-      const clientId = isInternal ? null : (values.client_id === "none" || !values.client_id ? null : values.client_id);
-      const supplierId = isInternal ? null : (values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id);
-      const freelancerId = isInternal ? null : (values.freelancer_id === "none" || !values.freelancer_id ? null : values.freelancer_id);
-      const useFreelancer = !isInternal && values.category === "Freelancers e Terceirizados";
+      const partnerId = values.partner_id && values.partner_id !== "none" ? values.partner_id : null;
+      const clientId = values.client_id === "none" || !values.client_id ? null : values.client_id;
+      const supplierId = values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id;
+      const freelancerId = values.freelancer_id === "none" || !values.freelancer_id ? null : values.freelancer_id;
+      const useFreelancer = values.category === "Freelancers e Terceirizados";
 
       if (isEdit) {
         const realNum = values.valor_real === "" || values.valor_real == null
