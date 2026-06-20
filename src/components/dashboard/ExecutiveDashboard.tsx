@@ -183,14 +183,9 @@ export function ExecutiveDashboard() {
     };
   }, [jobs, clients, transactions, dateInterval]);
 
-  if (isLoading) {
-    return (
-      <div className="p-12 flex flex-col items-center justify-center space-y-4">
-        <Loader2 className="size-8 animate-spin text-primary" />
-        <p className="text-sm text-foreground/40 font-mono-kasa animate-pulse">Carregando dashboard operacional...</p>
-      </div>
-    );
-  }
+  // Render immediately; individual sections show their own loading states.
+  // Avoids blocking the entire dashboard on heavy queries (jobs/clients).
+
 
   const isManager = isAdmin || roles.some((r: any) => r === 'ceo' || r === 'gestor');
 
