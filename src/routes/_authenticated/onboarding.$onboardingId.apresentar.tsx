@@ -514,9 +514,6 @@ function OverviewSlide({
               fill="transparent"
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
-              style={{
-                filter: "drop-shadow(0 0 10px var(--brand-glow))",
-              }}
             />
           </svg>
           <div className="absolute text-center">
