@@ -195,7 +195,7 @@ function PresentOnboardingPage() {
 
   return (
     <div
-      className="fixed inset-0 z-[200] overflow-hidden text-[rgb(var(--ink-rgb))] select-none"
+      className="kasa-present fixed inset-0 z-[200] overflow-hidden text-[rgb(var(--ink-rgb))] select-none"
       style={
         {
           backgroundColor: stage,
@@ -205,10 +205,20 @@ function PresentOnboardingPage() {
           ["--accent-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
           ["--ink-rgb" as any]: inkRgb,
           fontFamily:
-            "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
+            "'Onest', ui-sans-serif, system-ui, -apple-system, sans-serif",
         } as React.CSSProperties
       }
     >
+      {/* Typography scope: títulos em Funnel Display, corpo em Onest */}
+      <style>{`
+        .kasa-present h1,
+        .kasa-present h2,
+        .kasa-present h3 {
+          font-family: 'Funnel Display', 'Onest', ui-sans-serif, system-ui, sans-serif;
+          letter-spacing: -0.02em;
+        }
+      `}</style>
+
       {/* Subtle dot grid */}
       <div
         aria-hidden
@@ -293,15 +303,8 @@ function PresentOnboardingPage() {
         </div>
         <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.22em] font-bold text-[rgb(var(--ink-rgb)/0.40)]">
           <div className="flex items-center gap-2">
-            <span>Powered by</span>
-            {agency?.logo_white_url || agency?.logo_url ? (
-              <img
-                src={(agency.logo_white_url || agency.logo_url) as string}
-                alt={agency.name}
-                className="h-3.5 w-auto object-contain opacity-70"
-              />
-            ) : (
-              <span className="text-[rgb(var(--ink-rgb)/0.70)]">{agency?.name || "KASA"}</span>
+            {agency?.name && (
+              <span className="text-[rgb(var(--ink-rgb)/0.70)]">{agency.name}</span>
             )}
           </div>
           <div className="flex items-center gap-3">
@@ -421,7 +424,7 @@ function CoverSlide({
           <>
             <span className="text-[rgb(var(--ink-rgb)/0.20)] text-2xl">→</span>
             <DateBlock
-              label="Go Live"
+              label="Lançamento"
               value={format(
                 new Date(onb.expected_end_date + "T00:00:00"),
                 "dd 'de' MMM",
@@ -488,7 +491,7 @@ function OverviewSlide({
     <div className="space-y-12">
       <SlideEyebrow>Visão Geral</SlideEyebrow>
       <h2 className="text-5xl font-black tracking-tight">
-        O caminho até o Go Live.
+        O caminho até o lançamento.
       </h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-12 items-center">
@@ -870,7 +873,7 @@ function DeadlinesSlide({
           <Rocket className="size-5" style={{ color: "var(--brand)" }} />
           <div>
             <div className="text-[10px] font-bold uppercase tracking-[0.22em] text-[rgb(var(--ink-rgb)/0.50)]">
-              Data prevista para o Go Live
+              Data prevista para o lançamento
             </div>
             <div
               className="text-2xl font-bold"
