@@ -381,6 +381,35 @@ export function EditClientDialog({
                 </div>
               </div>
 
+              <div className="space-y-1.5">
+                <Label>🔤 Cor do texto (apresentação)</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={form.portal_text_color || "#FFFFFF"}
+                    onChange={(e) => setForm({ ...form, portal_text_color: e.target.value })}
+                    className="h-10 w-14 rounded border border-border cursor-pointer bg-transparent"
+                  />
+                  <Input
+                    value={form.portal_text_color || ""}
+                    onChange={(e) => setForm({ ...form, portal_text_color: e.target.value })}
+                    placeholder="auto (contraste)"
+                    className="font-mono text-xs"
+                  />
+                  {form.portal_text_color && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, portal_text_color: "" })}
+                      className="text-[10px] text-foreground/50 hover:text-foreground px-2"
+                    >
+                      limpar
+                    </button>
+                  )}
+                </div>
+                <p className="text-[10px] text-foreground/40">Cor dos textos no Modo Apresentação. Vazio = automático (branco em palco escuro, preto em palco claro).</p>
+              </div>
+
+
               {/* Live preview */}
               <div className="space-y-1.5">
                 <Label>Pré-visualização</Label>
