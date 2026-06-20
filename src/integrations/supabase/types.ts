@@ -2102,6 +2102,149 @@ export type Database = {
           },
         ]
       }
+      lead_source_submissions: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          ip: string | null
+          lead_id: string | null
+          payload: Json
+          source_id: string | null
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip?: string | null
+          lead_id?: string | null
+          payload?: Json
+          source_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          ip?: string | null
+          lead_id?: string | null
+          payload?: Json
+          source_id?: string | null
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_source_submissions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_source_submissions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_sources: {
+        Row: {
+          created_at: string
+          default_stage_id: string | null
+          gtag_id: string | null
+          id: string
+          is_active: boolean
+          landing_accent_color: string | null
+          landing_benefits: Json
+          landing_bg_color: string | null
+          landing_cta_label: string | null
+          landing_description: string | null
+          landing_form_fields: Json
+          landing_headline: string | null
+          landing_hero_image_url: string | null
+          landing_logo_url: string | null
+          landing_redirect_url: string | null
+          landing_subheadline: string | null
+          landing_success_message: string | null
+          landing_testimonials: Json
+          name: string
+          notify_user_ids: string[]
+          owner_id: string | null
+          pixel_meta_id: string | null
+          secret: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_stage_id?: string | null
+          gtag_id?: string | null
+          id?: string
+          is_active?: boolean
+          landing_accent_color?: string | null
+          landing_benefits?: Json
+          landing_bg_color?: string | null
+          landing_cta_label?: string | null
+          landing_description?: string | null
+          landing_form_fields?: Json
+          landing_headline?: string | null
+          landing_hero_image_url?: string | null
+          landing_logo_url?: string | null
+          landing_redirect_url?: string | null
+          landing_subheadline?: string | null
+          landing_success_message?: string | null
+          landing_testimonials?: Json
+          name: string
+          notify_user_ids?: string[]
+          owner_id?: string | null
+          pixel_meta_id?: string | null
+          secret?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_stage_id?: string | null
+          gtag_id?: string | null
+          id?: string
+          is_active?: boolean
+          landing_accent_color?: string | null
+          landing_benefits?: Json
+          landing_bg_color?: string | null
+          landing_cta_label?: string | null
+          landing_description?: string | null
+          landing_form_fields?: Json
+          landing_headline?: string | null
+          landing_hero_image_url?: string | null
+          landing_logo_url?: string | null
+          landing_redirect_url?: string | null
+          landing_subheadline?: string | null
+          landing_success_message?: string | null
+          landing_testimonials?: Json
+          name?: string
+          notify_user_ids?: string[]
+          owner_id?: string | null
+          pixel_meta_id?: string | null
+          secret?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_sources_default_stage_id_fkey"
+            columns: ["default_stage_id"]
+            isOneToOne: false
+            referencedRelation: "lead_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_stages: {
         Row: {
           color: string
@@ -2141,6 +2284,7 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          landing_page_url: string | null
           lost_reason: string | null
           name: string
           notes: string | null
@@ -2148,9 +2292,16 @@ export type Database = {
           origin_partner_id: string | null
           owner_id: string | null
           phone: string | null
+          referrer_url: string | null
           source: string | null
+          source_id: string | null
           stage_id: string | null
           updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
           value: number
           won_at: string | null
         }
@@ -2159,6 +2310,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          landing_page_url?: string | null
           lost_reason?: string | null
           name: string
           notes?: string | null
@@ -2166,9 +2318,16 @@ export type Database = {
           origin_partner_id?: string | null
           owner_id?: string | null
           phone?: string | null
+          referrer_url?: string | null
           source?: string | null
+          source_id?: string | null
           stage_id?: string | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           value?: number
           won_at?: string | null
         }
@@ -2177,6 +2336,7 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          landing_page_url?: string | null
           lost_reason?: string | null
           name?: string
           notes?: string | null
@@ -2184,9 +2344,16 @@ export type Database = {
           origin_partner_id?: string | null
           owner_id?: string | null
           phone?: string | null
+          referrer_url?: string | null
           source?: string | null
+          source_id?: string | null
           stage_id?: string | null
           updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
           value?: number
           won_at?: string | null
         }
@@ -2196,6 +2363,13 @@ export type Database = {
             columns: ["origin_partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources"
             referencedColumns: ["id"]
           },
           {
@@ -3839,6 +4013,23 @@ export type Database = {
           p_type: string
         }
         Returns: string
+      }
+      fn_upsert_lead_from_source: {
+        Args: {
+          p_company?: string
+          p_email: string
+          p_ip?: string
+          p_landing_url?: string
+          p_message?: string
+          p_name: string
+          p_phone: string
+          p_raw_payload?: Json
+          p_referrer?: string
+          p_source_id: string
+          p_user_agent?: string
+          p_utm?: Json
+        }
+        Returns: Json
       }
       force_generate_contract_transactions: {
         Args: { p_contract_id: string }
