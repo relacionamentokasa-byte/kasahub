@@ -417,6 +417,8 @@ function FinancialPage() {
     onError: (e: any) => toast.error("Erro: " + (e?.message || "")),
   });
 
+  const getCatName = (t: any) => (t.categorias_financeiras as any)?.nome || t.category || "";
+
   const filteredTransactions = transactions.filter((t: any) => {
     if (!showCancelled && t.status === "cancelled") return false;
     const matchSearch =
