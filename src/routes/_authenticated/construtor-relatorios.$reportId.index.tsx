@@ -15,7 +15,7 @@ import { ScaledSlide } from "@/components/reports/ScaledSlide";
 import { SlideEditor } from "@/components/reports/SlideEditor";
 import { BLOCK_LABELS, newSlide, type Slide, type SlideType } from "@/components/reports/types";
 
-export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId")({
+export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/")({
   head: () => ({ meta: [{ title: "Editor — Construtor de Relatórios" }] }),
   component: ReportEditorPage,
 });
