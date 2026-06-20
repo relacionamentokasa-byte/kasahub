@@ -715,6 +715,7 @@ function FinancialPage() {
                               currentClientName={
                                 (t.clients as any)?.company || (t.clients as any)?.name || null
                               }
+                              currentClientPhotoUrl={(t.clients as any)?.logo_url || null}
                             />
                             {t.type === "expense" && (
                               (isFreelaCat || t.freelancer_id) ? (
@@ -722,6 +723,7 @@ function FinancialPage() {
                                   transactionId={t.id}
                                   currentFreelancerId={t.freelancer_id}
                                   currentFreelancerName={(t.freelancer as any)?.name || null}
+                                  currentFreelancerPhotoUrl={(t.freelancer as any)?.photo_url || null}
                                 />
                               ) : (
                                 <InlineSupplierPicker
