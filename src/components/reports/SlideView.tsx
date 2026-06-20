@@ -69,6 +69,18 @@ export function SlideView({
         </div>
       )}
       {children}
+      {/* Footer accent + Kasa mark */}
+      {slide.type !== "cover" && slide.type !== "closing" && (
+        <>
+          <div
+            className="absolute bottom-0 left-0 h-[6px]"
+            style={{ width: 220, backgroundColor: KASA_YELLOW }}
+          />
+          <div className="absolute bottom-10 right-16">
+            <KasaMark size={28} />
+          </div>
+        </>
+      )}
     </div>
   );
 
