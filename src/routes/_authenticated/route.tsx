@@ -85,6 +85,8 @@ function ShellLayout() {
     </PresenceProvider>
   );
 }
+
+function ShellInner() {
   const { focusMode } = useFocusMode();
   return (
     <div className="min-h-screen flex w-full bg-background text-foreground relative">
