@@ -419,6 +419,12 @@ function FinancialPage() {
 
   const getCatName = (t: any) => (t.categorias_financeiras as any)?.nome || t.category || "";
 
+  const weekFromTodayStr = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  })();
+
   const filteredTransactions = transactions.filter((t: any) => {
     if (!showCancelled && t.status === "cancelled") return false;
     const matchSearch =
@@ -427,9 +433,20 @@ function FinancialPage() {
       (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase());
     if (!matchSearch) return false;
     const proLab = isProLabore(getCatName(t));
-    if (quickFilter === "income") return t.type === "income";
-    if (quickFilter === "expense_op") return t.type === "expense" && !proLab;
-    if (quickFilter === "pro_labore") return proLab;
+    if (quickFilter === "income" && t.type !== "income") return false;
+    if (quickFilter === "expense_op" && !(t.type === "expense" && !proLab)) return false;
+    if (quickFilter === "pro_labore" && !proLab) return false;
+
+    if (quickChip === "today") {
+      if ((t.due_date || "").slice(0, 10) !== todayStrLocal) return false;
+    } else if (quickChip === "week") {
+      const d = (t.due_date || "").slice(0, 10);
+      if (!d || d < todayStrLocal || d > weekFromTodayStr) return false;
+    } else if (quickChip === "overdue") {
+      if (t.status !== "pending" || !t.due_date || t.due_date >= todayStrLocal) return false;
+    } else if (quickChip === "paid_month") {
+      if (t.status !== "paid") return false;
+    }
     return true;
   }).sort((a: any, b: any) => (a.due_date || "").localeCompare(b.due_date || ""));
 
