@@ -7,7 +7,7 @@ import { fetchClient } from "@/lib/ops-api";
 import { ScaledSlide } from "@/components/reports/ScaledSlide";
 import type { Slide } from "@/components/reports/types";
 
-export const Route = createFileRoute("/_authenticated/relatorios/construtor/$reportId/apresentar")({
+export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/apresentar")({
   component: PresentReportPage,
 });
 
@@ -28,7 +28,7 @@ function PresentReportPage() {
   const prev = useCallback(() => setIdx((i) => Math.max(i - 1, 0)), []);
   const exit = useCallback(() => {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-    navigate({ to: "/relatorios/construtor/$reportId", params: { reportId } });
+    navigate({ to: "/construtor-relatorios/$reportId", params: { reportId } });
   }, [navigate, reportId]);
 
   useEffect(() => {

@@ -15,7 +15,7 @@ import { ScaledSlide } from "@/components/reports/ScaledSlide";
 import { SlideEditor } from "@/components/reports/SlideEditor";
 import { BLOCK_LABELS, newSlide, type Slide, type SlideType } from "@/components/reports/types";
 
-export const Route = createFileRoute("/_authenticated/relatorios/construtor/$reportId")({
+export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId")({
   head: () => ({ meta: [{ title: "Editor — Construtor de Relatórios" }] }),
   component: ReportEditorPage,
 });
@@ -109,7 +109,7 @@ function ReportEditorPage() {
       {/* Top bar */}
       <header className="h-14 border-b border-border flex items-center justify-between px-4 gap-3 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          <Link to="/relatorios/construtor" className="text-foreground/50 hover:text-foreground">
+          <Link to="/construtor-relatorios" className="text-foreground/50 hover:text-foreground">
             <ArrowLeft className="size-4" />
           </Link>
           <Input
@@ -122,10 +122,10 @@ function ReportEditorPage() {
           <span className="text-xs text-foreground/50 flex items-center gap-1.5">
             {saving ? (<><Save className="size-3 animate-pulse" /> Salvando…</>) : savedAt ? (<><Check className="size-3 text-emerald-600" /> Salvo</>) : null}
           </span>
-          <Button variant="outline" size="sm" onClick={() => window.open(`/relatorios/construtor/${reportId}/pdf`, "_blank")}>
+          <Button variant="outline" size="sm" onClick={() => window.open(`/construtor-relatorios/${reportId}/pdf`, "_blank")}>
             <FileDown className="size-3.5 mr-1.5" /> Exportar PDF
           </Button>
-          <Button size="sm" onClick={() => navigate({ to: "/relatorios/construtor/$reportId/apresentar", params: { reportId } })}>
+          <Button size="sm" onClick={() => navigate({ to: "/construtor-relatorios/$reportId/apresentar", params: { reportId } })}>
             <Presentation className="size-3.5 mr-1.5" /> Apresentar
           </Button>
         </div>

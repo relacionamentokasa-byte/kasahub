@@ -74,7 +74,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     items: [
       { title: "Financeiro", url: "/relatorios", icon: Wallet, module: "financeiro" as any },
       { title: "Relatórios", url: "/gestao/relatorios", icon: TrendingUp, module: "financeiro" as any },
-      { title: "Construtor de Relatórios", url: "/relatorios/construtor", icon: FileText, module: "financeiro" as any },
+      { title: "Construtor de Relatórios", url: "/construtor-relatorios", icon: FileText, module: "financeiro" as any },
     ],
   },
 

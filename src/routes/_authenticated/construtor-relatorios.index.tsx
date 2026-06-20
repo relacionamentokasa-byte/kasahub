@@ -64,7 +64,7 @@ function ReportBuilderListPage() {
               <Card key={r.id} className="p-5 rounded-2xl flex flex-col gap-3 hover:shadow-md transition-all group">
                 <div className="flex items-start justify-between gap-3">
                   <Link
-                    to="/relatorios/construtor/$reportId"
+                    to="/construtor-relatorios/$reportId"
                     params={{ reportId: r.id }}
                     className="flex-1 min-w-0"
                   >
@@ -82,12 +82,12 @@ function ReportBuilderListPage() {
                   {(r.slides as unknown as Slide[])?.length ?? 0} slides
                 </p>
                 <div className="flex items-center gap-2 pt-2 border-t border-border">
-                  <Link to="/relatorios/construtor/$reportId" params={{ reportId: r.id }} className="flex-1">
+                  <Link to="/construtor-relatorios/$reportId" params={{ reportId: r.id }} className="flex-1">
                     <Button variant="outline" size="sm" className="w-full">
                       <FileText className="size-3.5 mr-1.5" /> Editar
                     </Button>
                   </Link>
-                  <Link to="/relatorios/construtor/$reportId/apresentar" params={{ reportId: r.id }}>
+                  <Link to="/construtor-relatorios/$reportId/apresentar" params={{ reportId: r.id }}>
                     <Button variant="outline" size="sm">
                       <Presentation className="size-3.5" />
                     </Button>
@@ -145,7 +145,7 @@ function NewReportDialog({ open, onOpenChange }: { open: boolean; onOpenChange: 
       qc.invalidateQueries({ queryKey: ["reports"] });
       onOpenChange(false);
       setTitle(""); setClientId(""); setTemplateId("");
-      navigate({ to: "/relatorios/construtor/$reportId", params: { reportId: r.id } });
+      navigate({ to: "/construtor-relatorios/$reportId", params: { reportId: r.id } });
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao criar"),
   });

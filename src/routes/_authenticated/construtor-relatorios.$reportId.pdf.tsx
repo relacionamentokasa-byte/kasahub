@@ -6,7 +6,7 @@ import { fetchClient } from "@/lib/ops-api";
 import { SlideView } from "@/components/reports/SlideView";
 import type { Slide } from "@/components/reports/types";
 
-export const Route = createFileRoute("/_authenticated/relatorios/construtor/$reportId/pdf")({
+export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/pdf")({
   component: ReportPdfPage,
 });
 
