@@ -177,7 +177,17 @@ function GCalPanel() {
         </p>
       </div>
       {isLoading ? (
-        <div className="py-10 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>
+        <div className="py-2 space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 py-2">
+              <Skeleton className="size-8 rounded-md" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3.5 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : isError ? (
         <p className="text-sm text-red-400">{(error as Error).message}</p>
       ) : !data?.length ? (
