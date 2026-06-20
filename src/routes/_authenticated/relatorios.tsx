@@ -862,6 +862,20 @@ function FinancialPage() {
                       : "hover:bg-muted/10",
                   )}
                 >
+                  <TableCell className="py-4 w-10">
+                    <Checkbox
+                      checked={selectedIds.has(t.id)}
+                      onCheckedChange={(c) => {
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (c) next.add(t.id);
+                          else next.delete(t.id);
+                          return next;
+                        });
+                      }}
+                      aria-label="Selecionar"
+                    />
+                  </TableCell>
                   <TableCell className="py-4">
                     <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
                     {t.payment_date && <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono-kasa uppercase mt-1">Pago em {formatDateOnlyBR(t.payment_date)}</div>}
