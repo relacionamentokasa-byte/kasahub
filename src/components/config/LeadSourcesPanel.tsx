@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Plus, Copy, ExternalLink, RefreshCw, Trash2, Eye, EyeOff,
-  Loader2, CheckCircle2, XCircle, Globe, Code2, Pencil,
+  Loader2, CheckCircle2, XCircle, Globe, Code2, Pencil, Upload, X,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -361,11 +361,19 @@ function SourceEditor({
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="URL do logo">
-                <Input value={f.landing_logo_url || ""} onChange={(e) => setF((p) => ({ ...p, landing_logo_url: e.target.value }))} />
+              <Field label="Logo da landing">
+                <ImageUploadField
+                  value={f.landing_logo_url || ""}
+                  onChange={(url) => setF((p) => ({ ...p, landing_logo_url: url }))}
+                  folder="lead-sources/logos"
+                />
               </Field>
-              <Field label="URL da imagem (OG)">
-                <Input value={f.landing_hero_image_url || ""} onChange={(e) => setF((p) => ({ ...p, landing_hero_image_url: e.target.value }))} />
+              <Field label="Imagem de capa / OG">
+                <ImageUploadField
+                  value={f.landing_hero_image_url || ""}
+                  onChange={(url) => setF((p) => ({ ...p, landing_hero_image_url: url }))}
+                  folder="lead-sources/hero"
+                />
               </Field>
             </div>
 
@@ -602,6 +610,90 @@ function SubmissionHistory({ sourceId }: { sourceId: string }) {
           )}
         </div>
       ))}
+    </div>
+  );
+}
+
+function ImageUploadField({
+  value,
+  onChange,
+  folder,
+}: {
+  value: string;
+  onChange: (url: string) => void;
+  folder: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  const handleFile = async (file: File) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx 5MB)");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("logos")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed, error: signErr } = await supabase.storage
+        .from("logos")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (signErr) throw signErr;
+      onChange(signed.signedUrl);
+      toast.success("Imagem enviada");
+    } catch (e: any) {
+      toast.error(e.message || "Falha no upload");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      {value ? (
+        <div className="relative inline-block">
+          <img
+            src={value}
+            alt="preview"
+            className="h-20 w-auto max-w-[200px] object-contain rounded-md border border-border bg-muted/30 p-2"
+          />
+          <button
+            type="button"
+            onClick={() => onChange("")}
+            className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center hover:scale-110 transition"
+            aria-label="Remover"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      ) : (
+        <label className="flex items-center justify-center gap-2 h-20 border-2 border-dashed border-border rounded-md cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition text-sm text-muted-foreground">
+          {uploading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" /> Enviando...
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4" /> Clique para enviar imagem
+            </>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            disabled={uploading}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleFile(file);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      )}
     </div>
   );
 }
