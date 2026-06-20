@@ -136,6 +136,11 @@ function PresentOnboardingPage() {
     client?.brand_primary ||
     agency?.brand_primary ||
     "#FFBC45";
+  const secondary =
+    client?.portal_secondary_color ||
+    client?.brand_secondary ||
+    agency?.brand_secondary ||
+    primary;
 
   // Luminância para decidir se o cover do cliente serve como palco escuro.
   // Apresentação precisa de fundo escuro p/ contraste do texto branco.
@@ -150,10 +155,13 @@ function PresentOnboardingPage() {
     agency?.brand_primary ||
     "#0F0F1A";
   // Se o cover for claro demais (ex.: amarelo), gera um palco escuro tingido
-  // pela cor da marca em vez de usar literal.
+  // pela cor da marca em vez de usar literal. Se a secundária for escura,
+  // ela vira o palco — combo natural primária x secundária do cliente.
   const cover =
     hexLum(rawCover) > 0.45
-      ? `color-mix(in oklab, ${primary} 14%, #0B0B14)`
+      ? hexLum(secondary) < 0.35
+        ? secondary
+        : `color-mix(in oklab, ${primary} 14%, #0B0B14)`
       : rawCover;
 
   if (loading) {
@@ -191,6 +199,8 @@ function PresentOnboardingPage() {
           ["--brand" as any]: primary,
           ["--brand-soft" as any]: `color-mix(in oklab, ${primary} 18%, transparent)`,
           ["--brand-glow" as any]: `color-mix(in oklab, ${primary} 35%, transparent)`,
+          ["--accent" as any]: secondary,
+          ["--accent-soft" as any]: `color-mix(in oklab, ${secondary} 18%, transparent)`,
           fontFamily:
             "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
         } as React.CSSProperties
@@ -204,8 +214,8 @@ function PresentOnboardingPage() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-15"
-        style={{ backgroundColor: primary }}
+        className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-20"
+        style={{ backgroundColor: secondary }}
       />
       <div
         aria-hidden
