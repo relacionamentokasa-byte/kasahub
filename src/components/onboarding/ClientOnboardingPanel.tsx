@@ -14,6 +14,7 @@ import {
   Plus,
   Trash2,
   Loader2,
+  CalendarIcon,
 } from "lucide-react";
 import {
   fetchOnboardings,
@@ -27,6 +28,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
