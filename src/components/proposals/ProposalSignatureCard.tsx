@@ -1,5 +1,26 @@
 import { CheckCircle2, FileSignature, Clock, Mail, Globe, Calendar, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+async function openExternalSignature(url: string) {
+  try {
+    // Extract path after the bucket name
+    const match = url.match(/\/storage\/v1\/object\/(?:public|sign)\/signatures\/(.+?)(?:\?|$)/);
+    const path = match ? decodeURIComponent(match[1]) : null;
+    if (!path) {
+      window.open(url, "_blank");
+      return;
+    }
+    const { data, error } = await supabase.storage
+      .from("signatures")
+      .createSignedUrl(path, 60 * 10);
+    if (error || !data?.signedUrl) throw error;
+    window.open(data.signedUrl, "_blank");
+  } catch (e: any) {
+    toast.error("Não foi possível abrir o comprovante: " + (e?.message || "erro"));
+  }
+}
 
 interface ProposalSignatureCardProps {
   status?: string | null;
@@ -146,11 +167,10 @@ export function ProposalSignatureCard({
         </div>
 
         {externalSignatureUrl && (
-          <a
-            href={externalSignatureUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center gap-3 rounded-xl border border-emerald-300 bg-white/80 px-4 py-3 text-sm text-emerald-900 hover:bg-white transition-colors"
+          <button
+            type="button"
+            onClick={() => openExternalSignature(externalSignatureUrl)}
+            className="w-full flex items-center gap-3 rounded-xl border border-emerald-300 bg-white/80 px-4 py-3 text-sm text-emerald-900 hover:bg-white transition-colors text-left"
           >
             <Paperclip className="size-4 text-emerald-600" />
             <div className="flex-1 min-w-0">
@@ -162,7 +182,7 @@ export function ProposalSignatureCard({
               </div>
             </div>
             <span className="text-xs font-semibold text-emerald-700 underline">Abrir</span>
-          </a>
+          </button>
         )}
 
         <div className="text-[10px] text-emerald-700/60 border-t border-emerald-100 pt-3">
