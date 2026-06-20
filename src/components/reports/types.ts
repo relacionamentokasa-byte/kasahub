@@ -11,7 +11,7 @@ export type SlideType =
   | "next-steps"
   | "closing";
 
-export type KpiItem = { label: string; value: string; delta?: string };
+export type KpiItem = { label: string; value: string; delta?: string; platform?: string };
 export type DeliverableItem = { label: string; done: boolean };
 
 export type ChartType = "bar" | "line" | "area" | "pie";
@@ -39,6 +39,7 @@ export type SlideProps = {
   // chart
   chartType?: ChartType;
   chartCategories?: string[];
+  chartCategoryPlatforms?: string[]; // parallel to chartCategories; platform id per category (optional)
   chartSeries?: ChartSeries[];
   chartNote?: string;
 };

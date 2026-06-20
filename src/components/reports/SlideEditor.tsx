@@ -1,5 +1,7 @@
 import { useRef } from "react";
 import type { Slide, KpiItem, DeliverableItem, ChartType, ChartSeries } from "./types";
+import { PLATFORMS } from "./platform-icons";
+import { PlatformIcon } from "./PlatformIcon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -97,14 +99,21 @@ export function SlideEditor({
         <ListEditor
           label="Indicadores"
           items={(p.items || []) as KpiItem[]}
-          empty={{ label: "Indicador", value: "0", delta: "" }}
+          empty={{ label: "Indicador", value: "0", delta: "", platform: "" }}
           max={4}
           onChange={(items) => update({ items })}
           renderItem={(it, set) => (
-            <div className="grid grid-cols-3 gap-2">
-              <Input placeholder="Label" value={it.label} onChange={(e) => set({ ...it, label: e.target.value })} />
-              <Input placeholder="Valor" value={it.value} onChange={(e) => set({ ...it, value: e.target.value })} />
-              <Input placeholder="Variação" value={it.delta ?? ""} onChange={(e) => set({ ...it, delta: e.target.value })} />
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <Input placeholder="Label" value={it.label} onChange={(e) => set({ ...it, label: e.target.value })} />
+                <Input placeholder="Valor" value={it.value} onChange={(e) => set({ ...it, value: e.target.value })} />
+                <Input placeholder="Variação" value={it.delta ?? ""} onChange={(e) => set({ ...it, delta: e.target.value })} />
+              </div>
+              <PlatformPicker
+                value={it.platform ?? ""}
+                onChange={(v) => set({ ...it, platform: v })}
+                placeholder="Plataforma (opcional)"
+              />
             </div>
           )}
         />
@@ -114,6 +123,7 @@ export function SlideEditor({
         <ChartEditor
           chartType={p.chartType ?? "bar"}
           categories={p.chartCategories ?? []}
+          categoryPlatforms={p.chartCategoryPlatforms ?? []}
           series={p.chartSeries ?? []}
           note={p.chartNote ?? ""}
           onChange={(patch) => update(patch)}
@@ -296,22 +306,36 @@ const CHART_OPTIONS: { type: ChartType; label: string; Icon: typeof BarChart3 }[
 function ChartEditor({
   chartType,
   categories,
+  categoryPlatforms,
   series,
   note,
   onChange,
 }: {
   chartType: ChartType;
   categories: string[];
+  categoryPlatforms: string[];
   series: ChartSeries[];
   note: string;
-  onChange: (patch: { chartType?: ChartType; chartCategories?: string[]; chartSeries?: ChartSeries[]; chartNote?: string }) => void;
+  onChange: (patch: {
+    chartType?: ChartType;
+    chartCategories?: string[];
+    chartCategoryPlatforms?: string[];
+    chartSeries?: ChartSeries[];
+    chartNote?: string;
+  }) => void;
 }) {
   const setCategories = (next: string[]) => {
     const fixed = series.map((s) => ({
       ...s,
       values: Array.from({ length: next.length }, (_, i) => s.values[i] ?? 0),
     }));
-    onChange({ chartCategories: next, chartSeries: fixed });
+    const fixedPlatforms = Array.from({ length: next.length }, (_, i) => categoryPlatforms[i] ?? "");
+    onChange({ chartCategories: next, chartCategoryPlatforms: fixedPlatforms, chartSeries: fixed });
+  };
+  const setCategoryPlatform = (i: number, v: string) => {
+    const next = Array.from({ length: categories.length }, (_, j) => categoryPlatforms[j] ?? "");
+    next[i] = v;
+    onChange({ chartCategoryPlatforms: next });
   };
   const setSeries = (next: ChartSeries[]) => onChange({ chartSeries: next });
 
@@ -338,20 +362,27 @@ function ChartEditor({
       <Field label={chartType === "pie" ? "Fatias" : "Categorias (eixo X)"}>
         <div className="space-y-2">
           {categories.map((cat, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <Input
-                value={cat}
-                placeholder={`Item ${i + 1}`}
-                onChange={(e) => setCategories(categories.map((c, j) => (j === i ? e.target.value : c)))}
+            <div key={i} className="space-y-1.5 rounded-lg border border-border/60 p-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={cat}
+                  placeholder={`Item ${i + 1}`}
+                  onChange={(e) => setCategories(categories.map((c, j) => (j === i ? e.target.value : c)))}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0"
+                  onClick={() => setCategories(categories.filter((_, j) => j !== i))}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+              <PlatformPicker
+                value={categoryPlatforms[i] ?? ""}
+                onChange={(v) => setCategoryPlatform(i, v)}
+                placeholder="Plataforma (opcional)"
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0"
-                onClick={() => setCategories(categories.filter((_, j) => j !== i))}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
             </div>
           ))}
           <Button variant="outline" size="sm" className="w-full" onClick={() => setCategories([...categories, ""])}>
@@ -359,6 +390,7 @@ function ChartEditor({
           </Button>
         </div>
       </Field>
+
 
       <Field label={chartType === "pie" ? "Valores" : `Séries (${series.length})`}>
         <div className="space-y-3">
@@ -423,6 +455,36 @@ function ChartEditor({
       <Field label="Legenda / observação (opcional)">
         <Input value={note} onChange={(e) => onChange({ chartNote: e.target.value })} />
       </Field>
+    </div>
+  );
+}
+
+function PlatformPicker({
+  value,
+  onChange,
+  placeholder = "Plataforma (opcional)",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center size-9 rounded-md border border-border bg-muted/40 text-foreground/70 shrink-0">
+        {value ? <PlatformIcon id={value} size={16} /> : <ImageIcon className="size-4 opacity-40" />}
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="flex-1 h-9 rounded-md border border-input bg-background px-2 text-sm"
+      >
+        <option value="">{placeholder}</option>
+        {PLATFORMS.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.label}
+          </option>
+        ))}
+      </select>
     </div>
   );
 }
