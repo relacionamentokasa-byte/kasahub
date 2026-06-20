@@ -201,7 +201,6 @@ function PresentOnboardingPage() {
           backgroundColor: stage,
           ["--brand" as any]: brand,
           ["--brand-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
-          ["--brand-glow" as any]: `color-mix(in oklab, ${brand} 35%, transparent)`,
           ["--accent" as any]: brand,
           ["--accent-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
           ["--ink-rgb" as any]: inkRgb,
@@ -210,23 +209,13 @@ function PresentOnboardingPage() {
         } as React.CSSProperties
       }
     >
-      {/* Background glows */}
+      {/* Subtle dot grid */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -left-40 size-[600px] rounded-full blur-[140px] opacity-30"
-        style={{ backgroundColor: brand }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-20"
-        style={{ backgroundColor: brand }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+            "radial-gradient(circle at 1px 1px, var(--brand) 1px, transparent 0)",
           backgroundSize: "32px 32px",
         }}
       />
@@ -299,7 +288,6 @@ function PresentOnboardingPage() {
             style={{
               width: `${((idx + 1) / slides.length) * 100}%`,
               backgroundColor: brand,
-              boxShadow: `0 0 12px var(--brand-glow)`,
             }}
           />
         </div>
@@ -526,9 +514,6 @@ function OverviewSlide({
               fill="transparent"
               strokeDasharray={circumference}
               strokeDashoffset={dashOffset}
-              style={{
-                filter: "drop-shadow(0 0 10px var(--brand-glow))",
-              }}
             />
           </svg>
           <div className="absolute text-center">
