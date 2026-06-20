@@ -548,7 +548,7 @@ function ClientDmesTab({ clientId }: { clientId: string }) {
       </div>
 
       {isLoading ? (
-        <div className="flex justify-center py-10"><Loader2 className="size-5 animate-spin text-muted-foreground" /></div>
+        <CardListSkeleton count={3} />
       ) : dmes.length === 0 ? (
         <Card className="border-dashed">
           <CardContent className="py-10 text-center text-muted-foreground">
