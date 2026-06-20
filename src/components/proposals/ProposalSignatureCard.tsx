@@ -42,9 +42,11 @@ export function ProposalSignatureCard({
   clientSignedEmail,
   clientEmail,
   clientName,
+  externalSignatureUrl,
+  externalSignatureFilename,
 }: ProposalSignatureCardProps) {
   const hasSignature = Boolean(
-    signatureClient || clientSignatureData || acceptedAt || signedAtClient
+    signatureClient || clientSignatureData || acceptedAt || signedAtClient || externalSignatureUrl
   );
 
   if (!hasSignature) {
