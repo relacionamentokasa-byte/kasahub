@@ -174,6 +174,7 @@ function ClientDetail() {
                 { v: "financeiro", label: "Financeiro", icon: Wallet },
                 { v: "dmes", label: "Demandas Extras", icon: Sparkles },
                 { v: "servicos", label: "Serviços", icon: Handshake },
+                { v: "onboarding", label: "Onboarding", icon: Rocket },
                 { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
               ].map((tab) => (
                 <TabsTrigger
