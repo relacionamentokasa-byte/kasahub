@@ -57,6 +57,7 @@ import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
+import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
 
 const ConviteRoute = ConviteRouteImport.update({
   id: '/convite',
@@ -310,6 +311,12 @@ const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
   path: '/api/public/approve/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedOnboardingOnboardingIdApresentarRoute =
+  AuthenticatedOnboardingOnboardingIdApresentarRouteImport.update({
+    id: '/onboarding/$onboardingId/apresentar',
+    path: '/onboarding/$onboardingId/apresentar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -347,6 +354,7 @@ export interface FileRoutesByFullPath {
   '/clientes/': typeof AuthenticatedClientesIndexRoute
   '/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/propostas/': typeof AuthenticatedPropostasIndexRoute
+  '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -396,6 +404,7 @@ export interface FileRoutesByTo {
   '/clientes': typeof AuthenticatedClientesIndexRoute
   '/projetos': typeof AuthenticatedProjetosIndexRoute
   '/propostas': typeof AuthenticatedPropostasIndexRoute
+  '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -447,6 +456,7 @@ export interface FileRoutesById {
   '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
   '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
+  '/_authenticated/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -498,6 +508,7 @@ export interface FileRouteTypes {
     | '/clientes/'
     | '/projetos/'
     | '/propostas/'
+    | '/onboarding/$onboardingId/apresentar'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/projetos'
     | '/propostas'
+    | '/onboarding/$onboardingId/apresentar'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -597,6 +609,7 @@ export interface FileRouteTypes {
     | '/_authenticated/clientes/'
     | '/_authenticated/projetos/'
     | '/_authenticated/propostas/'
+    | '/_authenticated/onboarding/$onboardingId/apresentar'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -977,6 +990,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicApproveTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/onboarding/$onboardingId/apresentar': {
+      id: '/_authenticated/onboarding/$onboardingId/apresentar'
+      path: '/onboarding/$onboardingId/apresentar'
+      fullPath: '/onboarding/$onboardingId/apresentar'
+      preLoaderRoute: typeof AuthenticatedOnboardingOnboardingIdApresentarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -1004,6 +1024,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
   AuthenticatedProjetosIndexRoute: typeof AuthenticatedProjetosIndexRoute
   AuthenticatedPropostasIndexRoute: typeof AuthenticatedPropostasIndexRoute
+  AuthenticatedOnboardingOnboardingIdApresentarRoute: typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -1030,6 +1051,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
   AuthenticatedProjetosIndexRoute: AuthenticatedProjetosIndexRoute,
   AuthenticatedPropostasIndexRoute: AuthenticatedPropostasIndexRoute,
+  AuthenticatedOnboardingOnboardingIdApresentarRoute:
+    AuthenticatedOnboardingOnboardingIdApresentarRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

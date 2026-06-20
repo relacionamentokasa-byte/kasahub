@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
+
 import { toast } from "sonner";
 import {
   CheckCircle2,
@@ -15,7 +17,9 @@ import {
   Trash2,
   Loader2,
   CalendarIcon,
+  Presentation,
 } from "lucide-react";
+
 import {
   fetchOnboardings,
   fetchOnboardingSteps,
@@ -293,11 +297,29 @@ function OnboardingCard({
                   ? "Pausado"
                   : "Cancelado"}
           </Badge>
+          {!readOnly && (
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              title="Abrir modo apresentação (reunião de kickoff)"
+            >
+              <Link
+                to="/onboarding/$onboardingId/apresentar"
+                params={{ onboardingId }}
+              >
+                <Presentation className="size-3.5" />
+                Apresentar
+              </Link>
+            </Button>
+          )}
           {!readOnly && onDelete && (
             <Button variant="ghost" size="icon" onClick={onDelete} className="size-8">
               <Trash2 className="size-3.5 text-rose-500/70" />
             </Button>
           )}
+
         </div>
       </div>
 
