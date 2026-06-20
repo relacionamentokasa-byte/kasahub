@@ -8,6 +8,8 @@ import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { FloatingActions } from "@/components/FloatingActions";
 import { GlobalChatWidget } from "@/components/GlobalChatWidget";
 import { PresenceProvider } from "@/contexts/PresenceContext";
+import { FocusModeProvider, useFocusMode } from "@/contexts/FocusModeContext";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -61,21 +63,31 @@ function ShellLayout() {
 
   return (
     <PresenceProvider userId={user?.id}>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background text-foreground relative">
-          <AppSidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            <AppTopbar />
-            <main className="flex-1 min-w-0">
-              <Outlet />
-            </main>
-          </div>
-          <OnboardingWizard />
-          <FloatingActions />
-          <GlobalChatWidget />
-        </div>
-      </SidebarProvider>
+      <FocusModeProvider>
+        <SidebarProvider>
+          <ShellInner />
+        </SidebarProvider>
+      </FocusModeProvider>
     </PresenceProvider>
+  );
+}
+
+function ShellInner() {
+  const { focusMode } = useFocusMode();
+  return (
+    <div className="min-h-screen flex w-full bg-background text-foreground relative">
+      {!focusMode && <AppSidebar />}
+      <div className="flex-1 flex flex-col min-w-0">
+        {!focusMode && <AppTopbar />}
+        {!focusMode && <Breadcrumbs />}
+        <main className="flex-1 min-w-0">
+          <Outlet />
+        </main>
+      </div>
+      {!focusMode && <OnboardingWizard />}
+      {!focusMode && <FloatingActions />}
+      {!focusMode && <GlobalChatWidget />}
+    </div>
   );
 }
 
