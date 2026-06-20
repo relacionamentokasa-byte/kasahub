@@ -4,6 +4,7 @@ export type PlatformId =
   | "facebook"
   | "tiktok"
   | "youtube"
+  | "linkedin"
   | "x"
   | "threads"
   | "pinterest"
