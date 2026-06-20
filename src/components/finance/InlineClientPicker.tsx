@@ -13,18 +13,21 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 interface InlineClientPickerProps {
   transactionId: string;
   currentClientId: string | null | undefined;
   currentClientName: string | null | undefined;
+  currentClientPhotoUrl?: string | null;
 }
 
 export function InlineClientPicker({
   transactionId,
   currentClientId,
   currentClientName,
+  currentClientPhotoUrl,
 }: InlineClientPickerProps) {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
@@ -77,6 +80,12 @@ export function InlineClientPicker({
         >
           {currentClientId ? (
             <>
+              <Avatar className="size-4">
+                {currentClientPhotoUrl ? <AvatarImage src={currentClientPhotoUrl} alt={currentClientName || ""} /> : null}
+                <AvatarFallback className="text-[8px] font-bold">
+                  {(currentClientName || "?").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <span className="text-[10px] text-foreground/40 font-bold uppercase truncate max-w-[200px]">
                 {currentClientName || "—"}
               </span>
