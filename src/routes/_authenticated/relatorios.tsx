@@ -995,7 +995,7 @@ function FinancialPage() {
                     )}
                   </TableCell>
                   <TableCell className="py-4 text-center">
-                    <StatusBadge status={effectiveStatus} />
+                    <StatusBadge status={effectiveStatus} dueDate={t.due_date} />
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center justify-end gap-1">
