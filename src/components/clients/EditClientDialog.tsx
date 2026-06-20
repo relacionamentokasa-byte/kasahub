@@ -49,6 +49,7 @@ type Client = {
   portal_cover_url?: string | null;
   portal_primary_color?: string | null;
   portal_cover_color?: string | null;
+  portal_text_color?: string | null;
 };
 
 
@@ -94,6 +95,7 @@ export function EditClientDialog({
     portal_cover_url: (client.portal_cover_url ?? "") as string | null,
     portal_primary_color: (client.portal_primary_color ?? "#FFBC45") as string,
     portal_cover_color: (client.portal_cover_color ?? "#1A1A2E") as string,
+    portal_text_color: (client.portal_text_color ?? "") as string,
   });
 
   const [form, setForm] = useState(init);
@@ -114,6 +116,7 @@ export function EditClientDialog({
         portal_cover_url: form.portal_cover_url || null,
         portal_primary_color: form.portal_primary_color || null,
         portal_cover_color: form.portal_cover_color || null,
+        portal_text_color: form.portal_text_color || null,
       } as any),
 
     onSuccess: () => {
@@ -377,6 +380,35 @@ export function EditClientDialog({
                   <p className="text-[10px] text-foreground/40">Base do gradiente do header (ignorada se houver imagem de capa).</p>
                 </div>
               </div>
+
+              <div className="space-y-1.5">
+                <Label>🔤 Cor do texto (apresentação)</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={form.portal_text_color || "#FFFFFF"}
+                    onChange={(e) => setForm({ ...form, portal_text_color: e.target.value })}
+                    className="h-10 w-14 rounded border border-border cursor-pointer bg-transparent"
+                  />
+                  <Input
+                    value={form.portal_text_color || ""}
+                    onChange={(e) => setForm({ ...form, portal_text_color: e.target.value })}
+                    placeholder="auto (contraste)"
+                    className="font-mono text-xs"
+                  />
+                  {form.portal_text_color && (
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, portal_text_color: "" })}
+                      className="text-[10px] text-foreground/50 hover:text-foreground px-2"
+                    >
+                      limpar
+                    </button>
+                  )}
+                </div>
+                <p className="text-[10px] text-foreground/40">Cor dos textos no Modo Apresentação. Vazio = automático (branco em palco escuro, preto em palco claro).</p>
+              </div>
+
 
               {/* Live preview */}
               <div className="space-y-1.5">
