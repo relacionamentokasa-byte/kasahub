@@ -1,5 +1,22 @@
-import type { Slide, KpiItem, DeliverableItem } from "./types";
+import type { Slide, KpiItem, DeliverableItem, ChartSeries } from "./types";
 import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
+import {
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 
 const KASA_YELLOW = "#FFBC45";
 
