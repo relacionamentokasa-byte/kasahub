@@ -80,6 +80,12 @@ export function InlineClientPicker({
         >
           {currentClientId ? (
             <>
+              <Avatar className="size-4">
+                {currentClientPhotoUrl ? <AvatarImage src={currentClientPhotoUrl} alt={currentClientName || ""} /> : null}
+                <AvatarFallback className="text-[8px] font-bold">
+                  {(currentClientName || "?").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <span className="text-[10px] text-foreground/40 font-bold uppercase truncate max-w-[200px]">
                 {currentClientName || "—"}
               </span>
