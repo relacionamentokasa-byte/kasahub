@@ -1012,6 +1012,8 @@ function ProposalsPage() {
           <div className="md:hidden space-y-3">
                 {filteredProposals.map((p: Proposal) => {
                     const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
+                    const summary = eventSummary.get(p.id);
+
 
               return (
                 <div
