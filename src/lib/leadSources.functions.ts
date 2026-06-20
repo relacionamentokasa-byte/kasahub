@@ -23,7 +23,7 @@ const LeadSourceInput = z.object({
   landing_testimonials: z.array(z.object({ author: z.string(), text: z.string(), role: z.string().optional() })).default([]),
   landing_form_fields: z.array(z.enum(["name", "email", "phone", "company", "message", "budget"])).default(["name", "email", "phone", "message"]),
   landing_success_message: z.string().max(500).nullable().optional(),
-  landing_redirect_url: z.string().url().nullable().optional().or(z.literal("")),
+  landing_redirect_url: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().nullable().optional()),
   pixel_meta_id: z.string().max(50).nullable().optional(),
   gtag_id: z.string().max(50).nullable().optional(),
 });
