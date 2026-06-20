@@ -182,7 +182,7 @@ function PresentOnboardingPage() {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-[200] bg-black text-[rgb(var(--ink-rgb))] grid place-items-center">
+      <div className="fixed inset-0 z-[200] bg-black text-white grid place-items-center">
         <Loader2 className="size-8 animate-spin opacity-50" />
       </div>
     );
@@ -190,7 +190,7 @@ function PresentOnboardingPage() {
 
   if (!slides.length) {
     return (
-      <div className="fixed inset-0 z-[200] bg-black text-[rgb(var(--ink-rgb))] grid place-items-center">
+      <div className="fixed inset-0 z-[200] bg-black text-white grid place-items-center">
         <div className="text-center space-y-3">
           <p>Onboarding sem etapas.</p>
           <button
