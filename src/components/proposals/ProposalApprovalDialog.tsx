@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, ScrollText, AlertCircle } from "lucide-react";
+import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, ScrollText, AlertCircle, Upload, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProposal, fetchProposalItems, formatCurrency } from "@/lib/crm-api";
 import { approveProposal } from "@/lib/proposal-approval";
@@ -26,6 +26,8 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [signature, setSignature] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadingExt, setUploadingExt] = useState(false);
 
   const { data: proposal } = useQuery({
     queryKey: ["proposal", proposalId],
@@ -97,6 +99,49 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
       toast.error(`Erro crítico: ${e.message}`);
     },
   });
+
+  async function handleExternalUpload(file: File) {
+    if (!proposalId) return;
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx. 20MB).");
+      return;
+    }
+    setUploadingExt(true);
+    try {
+      const ext = file.name.split(".").pop() || "pdf";
+      const path = `external/${proposalId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("signatures")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed } = await supabase.storage
+        .from("signatures")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      const url = signed?.signedUrl;
+      if (!url) throw new Error("Falha ao gerar URL do anexo.");
+
+      const { error: updErr } = await supabase
+        .from("proposals")
+        .update({
+          external_signature_url: url,
+          external_signature_filename: file.name,
+          signature_client: "Assinado externamente (importado)",
+          signed_at_client: new Date().toISOString(),
+        })
+        .eq("id", proposalId);
+      if (updErr) throw updErr;
+
+      toast.success("Comprovante de assinatura externa anexado.");
+      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Erro ao anexar comprovante.");
+    } finally {
+      setUploadingExt(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -213,7 +258,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                   Assinatura do Cliente
                 </Label>
                 {proposal.signature_client ? (
-                  <div className="mt-2 rounded-md border border-border bg-green-500/5 h-20 flex flex-col items-center justify-center text-center p-2">
+                  <div className="mt-2 rounded-md border border-border bg-green-500/5 min-h-20 flex flex-col items-center justify-center text-center p-2">
                     <span className="text-sm font-medium text-green-600 flex items-center gap-1.5">
                       <CheckCircle2 className="size-4" /> Proposta Assinada
                     </span>
@@ -223,15 +268,47 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                         em {new Date(proposal.signed_at_client).toLocaleString('pt-BR')}
                       </span>
                     )}
+                    {(proposal as any).external_signature_url && (
+                      <a
+                        href={(proposal as any).external_signature_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary underline"
+                      >
+                        <Paperclip className="size-3" />
+                        {(proposal as any).external_signature_filename || "Ver comprovante"}
+                      </a>
+                    )}
                   </div>
                 ) : (
-                  <div className="mt-2 rounded-md border border-dashed border-destructive bg-destructive/5 h-20 flex flex-col items-center justify-center text-center p-3">
+                  <div className="mt-2 rounded-md border border-dashed border-destructive bg-destructive/5 min-h-20 flex flex-col items-center justify-center text-center p-3 gap-2">
                     <span className="text-sm font-bold text-destructive flex items-center gap-1.5">
                       <AlertCircle className="size-4" /> Assinatura Obrigatória
                     </span>
-                    <p className="text-[10px] text-foreground/70 mt-1 font-medium">
-                      O bloqueio é definitivo. O cliente deve obrigatoriamente assinar pelo link público para liberar a conversão.
+                    <p className="text-[10px] text-foreground/70 font-medium">
+                      O cliente deve assinar pelo link público — ou anexe o comprovante de assinatura externa (Operand, contrato em PDF, etc).
                     </p>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleExternalUpload(f);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[11px]"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploadingExt}
+                    >
+                      {uploadingExt ? <Loader2 className="size-3 animate-spin mr-1" /> : <Upload className="size-3 mr-1" />}
+                      Assinado externamente — anexar comprovante
+                    </Button>
                   </div>
                 )}
               </div>

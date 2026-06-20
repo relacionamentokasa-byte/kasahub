@@ -2991,6 +2991,8 @@ export type Database = {
           created_at: string
           currency: string
           deleted_at: string | null
+          external_signature_filename: string | null
+          external_signature_url: string | null
           first_due_date: string | null
           generated_contract_id: string | null
           generated_project_id: string | null
@@ -3064,6 +3066,8 @@ export type Database = {
           created_at?: string
           currency?: string
           deleted_at?: string | null
+          external_signature_filename?: string | null
+          external_signature_url?: string | null
           first_due_date?: string | null
           generated_contract_id?: string | null
           generated_project_id?: string | null
@@ -3137,6 +3141,8 @@ export type Database = {
           created_at?: string
           currency?: string
           deleted_at?: string | null
+          external_signature_filename?: string | null
+          external_signature_url?: string | null
           first_due_date?: string | null
           generated_contract_id?: string | null
           generated_project_id?: string | null
