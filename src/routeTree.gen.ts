@@ -60,6 +60,8 @@ import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
 import { Route as AuthenticatedRelatoriosConstrutorReportIdRouteImport } from './routes/_authenticated/relatorios.construtor.$reportId'
 import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
+import { Route as AuthenticatedRelatoriosConstrutorReportIdPdfRouteImport } from './routes/_authenticated/relatorios.construtor.$reportId.pdf'
+import { Route as AuthenticatedRelatoriosConstrutorReportIdApresentarRouteImport } from './routes/_authenticated/relatorios.construtor.$reportId.apresentar'
 
 const ConviteRoute = ConviteRouteImport.update({
   id: '/convite',
@@ -331,6 +333,18 @@ const AuthenticatedOnboardingOnboardingIdApresentarRoute =
     path: '/onboarding/$onboardingId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRelatoriosConstrutorReportIdPdfRoute =
+  AuthenticatedRelatoriosConstrutorReportIdPdfRouteImport.update({
+    id: '/pdf',
+    path: '/pdf',
+    getParentRoute: () => AuthenticatedRelatoriosConstrutorReportIdRoute,
+  } as any)
+const AuthenticatedRelatoriosConstrutorReportIdApresentarRoute =
+  AuthenticatedRelatoriosConstrutorReportIdApresentarRouteImport.update({
+    id: '/apresentar',
+    path: '/apresentar',
+    getParentRoute: () => AuthenticatedRelatoriosConstrutorReportIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -369,7 +383,7 @@ export interface FileRoutesByFullPath {
   '/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
-  '/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRoute
+  '/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRouteWithChildren
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -383,6 +397,8 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/relatorios/construtor/': typeof AuthenticatedRelatoriosConstrutorIndexRoute
+  '/relatorios/construtor/$reportId/apresentar': typeof AuthenticatedRelatoriosConstrutorReportIdApresentarRoute
+  '/relatorios/construtor/$reportId/pdf': typeof AuthenticatedRelatoriosConstrutorReportIdPdfRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -421,7 +437,7 @@ export interface FileRoutesByTo {
   '/projetos': typeof AuthenticatedProjetosIndexRoute
   '/propostas': typeof AuthenticatedPropostasIndexRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
-  '/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRoute
+  '/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRouteWithChildren
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -435,6 +451,8 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/relatorios/construtor': typeof AuthenticatedRelatoriosConstrutorIndexRoute
+  '/relatorios/construtor/$reportId/apresentar': typeof AuthenticatedRelatoriosConstrutorReportIdApresentarRoute
+  '/relatorios/construtor/$reportId/pdf': typeof AuthenticatedRelatoriosConstrutorReportIdPdfRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -475,7 +493,7 @@ export interface FileRoutesById {
   '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/_authenticated/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
-  '/_authenticated/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRoute
+  '/_authenticated/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRouteWithChildren
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -489,6 +507,8 @@ export interface FileRoutesById {
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/relatorios/construtor/': typeof AuthenticatedRelatoriosConstrutorIndexRoute
+  '/_authenticated/relatorios/construtor/$reportId/apresentar': typeof AuthenticatedRelatoriosConstrutorReportIdApresentarRoute
+  '/_authenticated/relatorios/construtor/$reportId/pdf': typeof AuthenticatedRelatoriosConstrutorReportIdPdfRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -543,6 +563,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/relatorios/construtor/'
+    | '/relatorios/construtor/$reportId/apresentar'
+    | '/relatorios/construtor/$reportId/pdf'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -595,6 +617,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/relatorios/construtor'
+    | '/relatorios/construtor/$reportId/apresentar'
+    | '/relatorios/construtor/$reportId/pdf'
   id:
     | '__root__'
     | '/_authenticated'
@@ -648,6 +672,8 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/_authenticated/relatorios/construtor/'
+    | '/_authenticated/relatorios/construtor/$reportId/apresentar'
+    | '/_authenticated/relatorios/construtor/$reportId/pdf'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1037,18 +1063,50 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOnboardingOnboardingIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios/construtor/$reportId/pdf': {
+      id: '/_authenticated/relatorios/construtor/$reportId/pdf'
+      path: '/pdf'
+      fullPath: '/relatorios/construtor/$reportId/pdf'
+      preLoaderRoute: typeof AuthenticatedRelatoriosConstrutorReportIdPdfRouteImport
+      parentRoute: typeof AuthenticatedRelatoriosConstrutorReportIdRoute
+    }
+    '/_authenticated/relatorios/construtor/$reportId/apresentar': {
+      id: '/_authenticated/relatorios/construtor/$reportId/apresentar'
+      path: '/apresentar'
+      fullPath: '/relatorios/construtor/$reportId/apresentar'
+      preLoaderRoute: typeof AuthenticatedRelatoriosConstrutorReportIdApresentarRouteImport
+      parentRoute: typeof AuthenticatedRelatoriosConstrutorReportIdRoute
+    }
   }
 }
 
+interface AuthenticatedRelatoriosConstrutorReportIdRouteChildren {
+  AuthenticatedRelatoriosConstrutorReportIdApresentarRoute: typeof AuthenticatedRelatoriosConstrutorReportIdApresentarRoute
+  AuthenticatedRelatoriosConstrutorReportIdPdfRoute: typeof AuthenticatedRelatoriosConstrutorReportIdPdfRoute
+}
+
+const AuthenticatedRelatoriosConstrutorReportIdRouteChildren: AuthenticatedRelatoriosConstrutorReportIdRouteChildren =
+  {
+    AuthenticatedRelatoriosConstrutorReportIdApresentarRoute:
+      AuthenticatedRelatoriosConstrutorReportIdApresentarRoute,
+    AuthenticatedRelatoriosConstrutorReportIdPdfRoute:
+      AuthenticatedRelatoriosConstrutorReportIdPdfRoute,
+  }
+
+const AuthenticatedRelatoriosConstrutorReportIdRouteWithChildren =
+  AuthenticatedRelatoriosConstrutorReportIdRoute._addFileChildren(
+    AuthenticatedRelatoriosConstrutorReportIdRouteChildren,
+  )
+
 interface AuthenticatedRelatoriosRouteChildren {
-  AuthenticatedRelatoriosConstrutorReportIdRoute: typeof AuthenticatedRelatoriosConstrutorReportIdRoute
+  AuthenticatedRelatoriosConstrutorReportIdRoute: typeof AuthenticatedRelatoriosConstrutorReportIdRouteWithChildren
   AuthenticatedRelatoriosConstrutorIndexRoute: typeof AuthenticatedRelatoriosConstrutorIndexRoute
 }
 
 const AuthenticatedRelatoriosRouteChildren: AuthenticatedRelatoriosRouteChildren =
   {
     AuthenticatedRelatoriosConstrutorReportIdRoute:
-      AuthenticatedRelatoriosConstrutorReportIdRoute,
+      AuthenticatedRelatoriosConstrutorReportIdRouteWithChildren,
     AuthenticatedRelatoriosConstrutorIndexRoute:
       AuthenticatedRelatoriosConstrutorIndexRoute,
   }
