@@ -920,6 +920,7 @@ export type Database = {
           portal_slug: string | null
           portal_text_color: string | null
           portal_user_id: string | null
+          segment: string | null
           start_date: string | null
           state: string | null
           status: string
@@ -961,6 +962,7 @@ export type Database = {
           portal_slug?: string | null
           portal_text_color?: string | null
           portal_user_id?: string | null
+          segment?: string | null
           start_date?: string | null
           state?: string | null
           status?: string
@@ -1002,6 +1004,7 @@ export type Database = {
           portal_slug?: string | null
           portal_text_color?: string | null
           portal_user_id?: string | null
+          segment?: string | null
           start_date?: string | null
           state?: string | null
           status?: string
