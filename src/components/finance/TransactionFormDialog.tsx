@@ -150,6 +150,14 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
   const watchType = form.watch("type");
   const watchCategory = form.watch("category");
   const isFreelancerCategory = watchCategory === "Freelancers e Terceirizados";
+  const isProLaboreCategory =
+    (watchCategory || "")
+      .toString()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim() === "pro-labore"
+    || (watchCategory || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === "pro labore";
   const watchAmount = Number(form.watch("amount") || 0);
   const watchValorReal = form.watch("valor_real");
   const real = watchValorReal === "" || watchValorReal == null ? null : parseFloat(String(watchValorReal).replace(",", ".")) || 0;
