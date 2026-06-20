@@ -191,6 +191,19 @@ export function NewClientDialog({
                 <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://" />
               </div>
               <div className="space-y-1.5">
+                <Label>Segmento</Label>
+                <select
+                  value={form.segment}
+                  onChange={(e) => setForm({ ...form, segment: e.target.value })}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">— Não definido —</option>
+                  {CLIENT_SEGMENTS.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
                 <Label>E-mail</Label>
                 <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@cliente.com" />
               </div>
