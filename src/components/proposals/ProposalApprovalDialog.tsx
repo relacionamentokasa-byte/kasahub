@@ -100,6 +100,49 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
     },
   });
 
+  async function handleExternalUpload(file: File) {
+    if (!proposalId) return;
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("Arquivo muito grande (máx. 20MB).");
+      return;
+    }
+    setUploadingExt(true);
+    try {
+      const ext = file.name.split(".").pop() || "pdf";
+      const path = `external/${proposalId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("signatures")
+        .upload(path, file, { upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: signed } = await supabase.storage
+        .from("signatures")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      const url = signed?.signedUrl;
+      if (!url) throw new Error("Falha ao gerar URL do anexo.");
+
+      const { error: updErr } = await supabase
+        .from("proposals")
+        .update({
+          external_signature_url: url,
+          external_signature_filename: file.name,
+          signature_client: "Assinado externamente (importado)",
+          signed_at_client: new Date().toISOString(),
+        })
+        .eq("id", proposalId);
+      if (updErr) throw updErr;
+
+      toast.success("Comprovante de assinatura externa anexado.");
+      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e.message || "Erro ao anexar comprovante.");
+    } finally {
+      setUploadingExt(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  }
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
