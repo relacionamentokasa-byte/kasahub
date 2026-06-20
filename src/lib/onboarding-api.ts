@@ -178,7 +178,7 @@ export async function createOnboardingFromTemplate(opts: {
 
   if (tplSteps.length > 0) {
     const rows = tplSteps.map((s) => {
-      const due = new Date(today);
+      const due = new Date(start);
       due.setDate(due.getDate() + s.days_after_start);
       return {
         onboarding_id: onb.id,
