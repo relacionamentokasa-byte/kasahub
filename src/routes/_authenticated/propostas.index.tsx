@@ -1069,10 +1069,18 @@ function ProposalsPage() {
                   ) : (
                     <p className="text-xs text-foreground/60 mt-1">{p.client_name}</p>
                   )}
+                  <div className="mt-1">
+                    <ProposalStatusLine status={p.status} summary={summary} createdAt={p.created_at} />
+                  </div>
                   <div className="flex items-center justify-between mt-3">
-                    <Badge className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                    <Badge className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                      <span className={cn("size-1.5 rounded-full", s.dot)} />
                       {s.label}
+                      {summary && summary.viewCount > 0 && p.status === "Enviada" && (
+                        <Eye className="size-3 ml-0.5" />
+                      )}
                     </Badge>
+
                     <div className="text-right">
                       <p className="text-[10px] text-foreground/40">{p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}</p>
                       <p className="text-sm font-semibold text-primary">
