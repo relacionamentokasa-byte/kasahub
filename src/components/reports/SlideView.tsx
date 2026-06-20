@@ -1,5 +1,28 @@
 import type { Slide, KpiItem, DeliverableItem } from "./types";
 
+const KASA_YELLOW = "#FFD60A";
+const KASA_LOGO_YELLOW =
+  "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+
+function KasaMark({ size = 28 }: { size?: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className="font-mono uppercase tracking-[0.22em] text-neutral-400"
+        style={{ fontSize: size * 0.55 }}
+      >
+        produzido por
+      </span>
+      <img
+        src={KASA_LOGO_YELLOW}
+        alt="Kasa Hub"
+        style={{ height: size, width: "auto" }}
+        className="object-contain"
+      />
+    </div>
+  );
+}
+
 /**
  * Renders a slide at fixed 1920x1080 resolution. The caller is responsible for
  * scaling it to fit the available space via `transform: scale(...)`.
