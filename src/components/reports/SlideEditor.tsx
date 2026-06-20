@@ -1,5 +1,7 @@
 import { useRef } from "react";
 import type { Slide, KpiItem, DeliverableItem, ChartType, ChartSeries } from "./types";
+import { PLATFORMS } from "./platform-icons";
+import { PlatformIcon } from "./PlatformIcon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
