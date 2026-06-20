@@ -266,6 +266,59 @@ export function JobsBoard({
     return m;
   }, [stages, filtered]);
 
+  // Flat ordered list of visible jobs (column order, then due_date within column)
+  const flatJobs = useMemo(() => {
+    const arr: Job[] = [];
+    for (const s of stages) {
+      const list = byStage.get(s.id) ?? [];
+      arr.push(...list);
+    }
+    return arr;
+  }, [stages, byStage]);
+
+  // Keyboard shortcuts: J/K navigate, E/Enter edit, C comment
+  useEffect(() => {
+    const isTyping = (el: EventTarget | null) => {
+      const t = el as HTMLElement | null;
+      if (!t) return false;
+      const tag = t.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable;
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+      if (openId) return; // não interfere com sheet aberto
+      if (flatJobs.length === 0) return;
+      const key = e.key.toLowerCase();
+      if (key !== "j" && key !== "k" && key !== "c" && key !== "e" && e.key !== "Enter") return;
+
+      const currentIdx = focusedId ? flatJobs.findIndex(j => j.id === focusedId) : -1;
+
+      if (key === "j") {
+        e.preventDefault();
+        const next = currentIdx < 0 ? 0 : Math.min(currentIdx + 1, flatJobs.length - 1);
+        setFocusedId(flatJobs[next].id);
+      } else if (key === "k") {
+        e.preventDefault();
+        const prev = currentIdx <= 0 ? 0 : currentIdx - 1;
+        setFocusedId(flatJobs[prev].id);
+      } else if (key === "e" || e.key === "Enter") {
+        if (focusedId) { e.preventDefault(); setOpenId(focusedId); }
+      } else if (key === "c") {
+        if (focusedId) { e.preventDefault(); setOpenId(focusedId); }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flatJobs, focusedId, openId]);
+
+  // Scroll focused card into view
+  useEffect(() => {
+    if (!focusedId) return;
+    const el = document.querySelector(`[data-job-id="${focusedId}"]`);
+    if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+  }, [focusedId]);
+
   function onDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
   }
