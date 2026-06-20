@@ -1,4 +1,4 @@
-import { CheckCircle2, FileSignature, Clock, Mail, Globe, Calendar } from "lucide-react";
+import { CheckCircle2, FileSignature, Clock, Mail, Globe, Calendar, Paperclip } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ProposalSignatureCardProps {
@@ -12,6 +12,8 @@ interface ProposalSignatureCardProps {
   clientSignedEmail?: string | null;
   clientEmail?: string | null;
   clientName?: string | null;
+  externalSignatureUrl?: string | null;
+  externalSignatureFilename?: string | null;
 }
 
 function formatDateTime(date?: string | null) {
