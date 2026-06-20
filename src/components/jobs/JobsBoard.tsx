@@ -128,6 +128,7 @@ export function JobsBoard({
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(initialOpenId ?? null);
+  const [focusedId, setFocusedId] = useState<string | null>(null);
   useEffect(() => { if (initialOpenId) setOpenId(initialOpenId); }, [initialOpenId]);
   const openJob = useMemo(() => jobs.find(j => j.id === openId) || null, [jobs, openId]);
   const [newStage, setNewStage] = useState<JobStage | null>(null);
@@ -264,6 +265,59 @@ export function JobsBoard({
     }
     return m;
   }, [stages, filtered]);
+
+  // Flat ordered list of visible jobs (column order, then due_date within column)
+  const flatJobs = useMemo(() => {
+    const arr: Job[] = [];
+    for (const s of stages) {
+      const list = byStage.get(s.id) ?? [];
+      arr.push(...list);
+    }
+    return arr;
+  }, [stages, byStage]);
+
+  // Keyboard shortcuts: J/K navigate, E/Enter edit, C comment
+  useEffect(() => {
+    const isTyping = (el: EventTarget | null) => {
+      const t = el as HTMLElement | null;
+      if (!t) return false;
+      const tag = t.tagName;
+      return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable;
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTyping(e.target)) return;
+      if (openId) return; // não interfere com sheet aberto
+      if (flatJobs.length === 0) return;
+      const key = e.key.toLowerCase();
+      if (key !== "j" && key !== "k" && key !== "c" && key !== "e" && e.key !== "Enter") return;
+
+      const currentIdx = focusedId ? flatJobs.findIndex(j => j.id === focusedId) : -1;
+
+      if (key === "j") {
+        e.preventDefault();
+        const next = currentIdx < 0 ? 0 : Math.min(currentIdx + 1, flatJobs.length - 1);
+        setFocusedId(flatJobs[next].id);
+      } else if (key === "k") {
+        e.preventDefault();
+        const prev = currentIdx <= 0 ? 0 : currentIdx - 1;
+        setFocusedId(flatJobs[prev].id);
+      } else if (key === "e" || e.key === "Enter") {
+        if (focusedId) { e.preventDefault(); setOpenId(focusedId); }
+      } else if (key === "c") {
+        if (focusedId) { e.preventDefault(); setOpenId(focusedId); }
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [flatJobs, focusedId, openId]);
+
+  // Scroll focused card into view
+  useEffect(() => {
+    if (!focusedId) return;
+    const el = document.querySelector(`[data-job-id="${focusedId}"]`);
+    if (el) (el as HTMLElement).scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+  }, [focusedId]);
 
   function onDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
@@ -497,8 +551,9 @@ export function JobsBoard({
                       key={j.id} 
                       job={j} 
                       profiles={profiles} 
-                      onClick={() => setOpenId(j.id)}
+                      onClick={() => { setFocusedId(j.id); setOpenId(j.id); }}
                       queryKey={queryKey}
+                      focused={focusedId === j.id}
                     />
                   ))}
                 </Column>
@@ -585,7 +640,7 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[] }) {
+function JobCard({ job, profiles, onClick, queryKey, focused }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   
@@ -618,7 +673,15 @@ function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any
   });
 
   return (
-    <div className={`relative group ${isDragging ? "opacity-30" : ""} ${isOptimistic ? "opacity-60" : ""}`}>
+    <div
+      data-job-id={job.id}
+      className={cn(
+        "relative group rounded-lg",
+        isDragging ? "opacity-30" : "",
+        isOptimistic ? "opacity-60" : "",
+        focused ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+      )}
+    >
       <div
         ref={setNodeRef}
         {...(isOptimistic ? {} : listeners)}
@@ -669,6 +732,43 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
   const teamInvolved = (job as any).team_involved || [];
+
+  // Deadline health: based on remaining time vs total window (created_at -> due_date)
+  const deadline = useMemo(() => {
+    if (!job.due_date) return null;
+    const due = new Date(job.due_date).getTime();
+    const now = Date.now();
+    const created = job.created_at ? new Date(job.created_at).getTime() : now - 7 * 86400000;
+    const isDone = !!job.done_at;
+    const msLeft = due - now;
+    const daysLeft = Math.ceil(msLeft / 86400000);
+    const total = Math.max(due - created, 86400000);
+    const elapsed = Math.min(Math.max(now - created, 0), total);
+    const usedPct = Math.round((elapsed / total) * 100);
+
+    let color = "bg-emerald-500";
+    let textColor = "text-emerald-600";
+    let label = `${daysLeft}d restantes`;
+
+    if (isDone) {
+      color = "bg-emerald-500/40";
+      textColor = "text-foreground/50";
+      label = "Concluído";
+    } else if (msLeft < 0) {
+      color = "bg-rose-500";
+      textColor = "text-rose-500";
+      const overdue = Math.abs(daysLeft);
+      label = overdue === 0 ? "Vence hoje" : `Atrasado ${overdue}d`;
+    } else if (usedPct >= 75 || daysLeft <= 1) {
+      color = "bg-rose-500";
+      textColor = "text-rose-500";
+    } else if (usedPct >= 50 || daysLeft <= 3) {
+      color = "bg-amber-500";
+      textColor = "text-amber-600";
+    }
+    return { color, textColor, label, usedPct: Math.min(usedPct, 100), isDone, isOverdue: msLeft < 0 && !isDone };
+  }, [job.due_date, job.created_at, job.done_at]);
+
 
   return (
     <div
@@ -742,22 +842,27 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
 
         <div className="flex items-center justify-between mt-1">
           <div className="flex items-center gap-1.5">
-            {/* Responsável Principal */}
-            {mainResp && (
-              <div 
-                className="size-6 rounded-full bg-primary/10 border border-primary/20 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-surface"
-                title={`Responsável: ${mainResp.display_name || mainResp.full_name}`}
-              >
-                {mainResp.avatar_url ? (
+            {/* Responsável Principal — sempre visível */}
+            <div
+              className={cn(
+                "size-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-surface",
+                mainResp ? "bg-primary/10 border border-primary/20" : "bg-muted border border-dashed border-border"
+              )}
+              title={mainResp ? `Responsável: ${mainResp.display_name || mainResp.full_name}` : "Sem responsável"}
+            >
+              {mainResp ? (
+                mainResp.avatar_url ? (
                   <img src={mainResp.avatar_url} alt="" className="size-full object-cover" />
                 ) : (
                   <span className="text-[8px] font-bold text-primary">
                     {(mainResp.display_name || mainResp.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </span>
-                )}
-              </div>
-            )}
-            
+                )
+              ) : (
+                <span className="text-[10px] font-bold text-foreground/30">?</span>
+              )}
+            </div>
+
             {/* Equipe Envolvida */}
             {teamInvolved.length > 0 && (
               <div className="flex -space-x-2">
@@ -800,6 +905,26 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
             )}
           </div>
         </div>
+
+        {/* Deadline health bar */}
+        {deadline && (
+          <div className="space-y-1 pt-1">
+            <div className="flex justify-between text-[9px] font-mono-kasa">
+              <span className={cn("font-semibold", deadline.textColor)}>{deadline.label}</span>
+              <span className="text-foreground/40">{deadline.usedPct}% do prazo</span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-muted/40 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all rounded-full",
+                  deadline.color,
+                  deadline.isOverdue ? "animate-pulse" : ""
+                )}
+                style={{ width: `${deadline.usedPct}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
