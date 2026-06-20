@@ -3250,6 +3250,87 @@ export type Database = {
         }
         Relationships: []
       }
+      report_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_default: boolean
+          name: string
+          slides: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name: string
+          slides?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_default?: boolean
+          name?: string
+          slides?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          slides: Json
+          status: string
+          template_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          slides?: Json
+          status?: string
+          template_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          slides?: Json
+          status?: string
+          template_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scope_templates: {
         Row: {
           category: string | null
