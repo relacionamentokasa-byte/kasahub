@@ -916,6 +916,7 @@ function ProposalsPage() {
               <tbody>
                 {filteredProposals.map((p: Proposal) => {
                   const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
+                  const summary = eventSummary.get(p.id);
 
                   return (
                     <tr
@@ -933,7 +934,11 @@ function ProposalsPage() {
                           {p.title}
                           <ArrowUpRight className="size-3.5 opacity-60" />
                         </button>
+                        <div className="mt-0.5">
+                          <ProposalStatusLine status={p.status} summary={summary} createdAt={p.created_at} />
+                        </div>
                       </td>
+
                       <td className="px-5 py-3">
                         {p.client_id ? (
                           <Link 
