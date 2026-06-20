@@ -965,10 +965,15 @@ function ProposalsPage() {
                         {formatCurrency(Number(p.total || 0))}
                       </td>
                       <td className="px-5 py-3">
-                        <Badge className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                        <Badge className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                          <span className={cn("size-1.5 rounded-full", s.dot)} />
                           {s.label}
+                          {summary && summary.viewCount > 0 && p.status === "Enviada" && (
+                            <Eye className="size-3 ml-0.5" />
+                          )}
                         </Badge>
                       </td>
+
                       <td className="px-5 py-3 text-right">
                         <ActionsMenu
                           proposal={p}
