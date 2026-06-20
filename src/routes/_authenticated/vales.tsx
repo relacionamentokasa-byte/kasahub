@@ -13,6 +13,7 @@ import {
   type PartnerAdvance,
 } from "@/lib/partners-finance-api";
 import { fetchContasBancarias } from "@/lib/contas-bancarias-api";
+import { RawTableRowsSkeleton } from "@/components/ui/loading-skeletons";
 import {
   Dialog,
   DialogContent,
