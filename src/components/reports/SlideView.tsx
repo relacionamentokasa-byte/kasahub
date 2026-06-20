@@ -272,6 +272,7 @@ export function SlideView({
             <ChartRender
               chartType={p.chartType ?? "bar"}
               categories={p.chartCategories ?? []}
+              categoryPlatforms={p.chartCategoryPlatforms ?? []}
               series={(p.chartSeries ?? []) as ChartSeries[]}
               brandColor={color}
             />
