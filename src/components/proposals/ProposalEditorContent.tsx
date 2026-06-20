@@ -135,6 +135,8 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
         clientSignedEmail={(form as any).client_signed_email}
         clientEmail={form.client_email}
         clientName={form.client_name}
+        externalSignatureUrl={(form as any).external_signature_url}
+        externalSignatureFilename={(form as any).external_signature_filename}
       />
 
       {/* Status Banner */}
