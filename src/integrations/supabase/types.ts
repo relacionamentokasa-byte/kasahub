@@ -3764,6 +3764,8 @@ export type Database = {
           extra_demand_id: string | null
           freelancer_id: string | null
           id: string
+          is_internal: boolean
+          is_investment: boolean
           is_recurring: boolean | null
           kind: string | null
           motivo_diferenca: string | null
@@ -3799,6 +3801,8 @@ export type Database = {
           extra_demand_id?: string | null
           freelancer_id?: string | null
           id?: string
+          is_internal?: boolean
+          is_investment?: boolean
           is_recurring?: boolean | null
           kind?: string | null
           motivo_diferenca?: string | null
@@ -3834,6 +3838,8 @@ export type Database = {
           extra_demand_id?: string | null
           freelancer_id?: string | null
           id?: string
+          is_internal?: boolean
+          is_investment?: boolean
           is_recurring?: boolean | null
           kind?: string | null
           motivo_diferenca?: string | null
