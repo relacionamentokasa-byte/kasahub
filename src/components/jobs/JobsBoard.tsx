@@ -551,8 +551,9 @@ export function JobsBoard({
                       key={j.id} 
                       job={j} 
                       profiles={profiles} 
-                      onClick={() => setOpenId(j.id)}
+                      onClick={() => { setFocusedId(j.id); setOpenId(j.id); }}
                       queryKey={queryKey}
+                      focused={focusedId === j.id}
                     />
                   ))}
                 </Column>
