@@ -49,6 +49,7 @@ type Client = {
   portal_cover_url?: string | null;
   portal_primary_color?: string | null;
   portal_cover_color?: string | null;
+  portal_text_color?: string | null;
 };
 
 
