@@ -90,21 +90,14 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
       }}
     >
       <div className="flex flex-col items-center gap-10 px-6 text-center max-w-2xl">
-        {/* Logo tipográfico */}
-        <div className="flex items-baseline gap-1 animate-[splash-logo_900ms_ease-out_both]">
-          <span
-            className="font-display font-black tracking-tighter leading-none text-primary"
-            style={{ fontSize: "clamp(4rem, 12vw, 8rem)" }}
-          >
-            kasa
-          </span>
-          <span
-            className="font-display font-black leading-none text-primary"
-            style={{ fontSize: "clamp(4rem, 12vw, 8rem)" }}
-          >
-            .
-          </span>
-        </div>
+        {/* Logo Kasa */}
+        <img
+          src="https://api.freelovable.com.br/storage/v1/object/public/anexos/754fd88b-89a4-425f-a86f-f4ed2fe6a542.png"
+          alt="Kasa"
+          className="animate-[splash-logo_900ms_ease-out_both] w-auto h-auto object-contain"
+          style={{ maxWidth: "min(70vw, 28rem)", maxHeight: "40vh" }}
+        />
+
 
         {/* Saudação */}
         <div
