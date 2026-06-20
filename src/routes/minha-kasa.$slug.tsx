@@ -181,6 +181,29 @@ type ApprovalItem = {
   slide_statuses?: Record<string, "pending" | "approved" | "rejected">;
 };
 
+type OnboardingStepRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  responsible_type: "agency" | "client" | "both" | string;
+  status: "pending" | "in_progress" | "done" | "blocked" | "skipped" | string;
+  due_date: string | null;
+  completed_at: string | null;
+  order_index: number;
+};
+
+type OnboardingRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  progress_percentage: number;
+  start_date: string;
+  expected_end_date: string | null;
+  completed_at: string | null;
+  steps: OnboardingStepRow[];
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -194,6 +217,7 @@ type ApiResponse = {
   approvalItems: ApprovalItem[];
   approvalComments?: Record<string, ApprovalItemComment[]>;
   events?: CalendarEventRow[];
+  onboardings?: OnboardingRow[];
 };
 
 type CalendarEventRow = {
