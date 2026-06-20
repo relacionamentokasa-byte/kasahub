@@ -136,10 +136,25 @@ function PresentOnboardingPage() {
     client?.brand_primary ||
     agency?.brand_primary ||
     "#FFBC45";
-  const cover =
+
+  // Luminância para decidir se o cover do cliente serve como palco escuro.
+  // Apresentação precisa de fundo escuro p/ contraste do texto branco.
+  const hexLum = (hex: string): number => {
+    const m = hex.replace("#", "").match(/.{2}/g);
+    if (!m || m.length < 3) return 0;
+    const [r, g, b] = m.slice(0, 3).map((h) => parseInt(h, 16) / 255);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const rawCover =
     client?.portal_cover_color ||
     agency?.brand_primary ||
     "#0F0F1A";
+  // Se o cover for claro demais (ex.: amarelo), gera um palco escuro tingido
+  // pela cor da marca em vez de usar literal.
+  const cover =
+    hexLum(rawCover) > 0.45
+      ? `color-mix(in oklab, ${primary} 14%, #0B0B14)`
+      : rawCover;
 
   if (loading) {
     return (
