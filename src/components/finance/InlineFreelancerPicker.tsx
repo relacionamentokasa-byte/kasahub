@@ -27,6 +27,7 @@ export function InlineFreelancerPicker({
   transactionId,
   currentFreelancerId,
   currentFreelancerName,
+  currentFreelancerPhotoUrl,
 }: Props) {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
