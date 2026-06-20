@@ -281,34 +281,13 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                     )}
                   </div>
                 ) : (
-                  <div className="mt-2 rounded-md border border-dashed border-destructive bg-destructive/5 min-h-20 flex flex-col items-center justify-center text-center p-3 gap-2">
+                  <div className="mt-2 rounded-md border border-dashed border-destructive bg-destructive/5 min-h-20 flex flex-col items-center justify-center text-center p-3">
                     <span className="text-sm font-bold text-destructive flex items-center gap-1.5">
                       <AlertCircle className="size-4" /> Assinatura Obrigatória
                     </span>
-                    <p className="text-[10px] text-foreground/70 font-medium">
-                      O cliente deve assinar pelo link público — ou anexe o comprovante de assinatura externa (Operand, contrato em PDF, etc).
+                    <p className="text-[10px] text-foreground/70 mt-1 font-medium">
+                      O bloqueio é definitivo. O cliente deve obrigatoriamente assinar pelo link público para liberar a conversão.
                     </p>
-                    <input
-                      ref={fileRef}
-                      type="file"
-                      accept="application/pdf,image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) handleExternalUpload(f);
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 text-[11px]"
-                      onClick={() => fileRef.current?.click()}
-                      disabled={uploadingExt}
-                    >
-                      {uploadingExt ? <Loader2 className="size-3 animate-spin mr-1" /> : <Upload className="size-3 mr-1" />}
-                      Assinado externamente — anexar comprovante
-                    </Button>
                   </div>
                 )}
               </div>
