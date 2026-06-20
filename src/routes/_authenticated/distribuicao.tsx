@@ -180,7 +180,7 @@ function DistribuicaoPage() {
       </div>
 
       {isLoading || !summary ? (
-        <div className="py-20 text-center text-muted-foreground"><Loader2 className="size-6 animate-spin inline" /></div>
+        <CardListSkeleton count={4} className="py-4" />
       ) : (
         <>
           {summary.alreadyDistributed && (
