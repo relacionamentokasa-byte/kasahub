@@ -31,16 +31,18 @@ async function fetchSaudeNegocio(refDate: Date) {
   const { data: txData, error: txErr } = await supabase
     .from("transactions")
     .select(
-      "amount, type, kind, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
+      "amount, type, kind, nature, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
     )
     .gte("due_date", monthStartDate)
     .lte("due_date", monthEndDate);
   if (txErr) console.error("transactions fetch error", txErr);
 
   const txs = (txData || []) as any[];
-  // Receitas do mês — INDEPENDENTE de status (Pendente, Atrasado, Recebido).
-  // MRR precisa refletir a previsibilidade de faturamento, incluindo parcelas vincendas.
-  const incomes = txs.filter((t) => (t.kind || t.type) === "income");
+  // Receitas operacionais do mês — INDEPENDENTE de status (Pendente, Atrasado, Recebido).
+  // Receitas não-operacionais (aporte, consórcio, investimento) NÃO entram em faturamento.
+  const incomes = txs.filter(
+    (t) => (t.kind || t.type) === "income" && t.nature !== "nao_operacional"
+  );
 
   const isRecurringTx = (t: any) => {
     if (matchesKeyword(t.categorias_financeiras?.nome, MRR_KEYWORDS)) return true;
@@ -140,12 +142,18 @@ async function fetchSaudeNegocio(refDate: Date) {
 
   const { data: yearIncomes } = await supabase
     .from("transactions")
-    .select("amount, status, kind, type")
+    .select("amount, status, kind, type, nature")
     .gte("due_date", yearStart)
     .lte("due_date", yearEnd);
 
+  // Faturamento anual = só receita OPERACIONAL e efetivamente recebida.
+  // Receitas não-operacionais (aporte, consórcio, investimento) NÃO compõem o faturamento.
   const faturadoAnual = (yearIncomes || [])
-    .filter((t: any) => (t.kind || t.type) === "income" && PAID_STATUSES.has(String(t.status || "").toLowerCase()))
+    .filter((t: any) =>
+      (t.kind || t.type) === "income"
+      && t.nature !== "nao_operacional"
+      && PAID_STATUSES.has(String(t.status || "").toLowerCase())
+    )
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
   return {
