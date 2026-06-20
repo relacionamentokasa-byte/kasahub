@@ -1,11 +1,11 @@
 import { useRef } from "react";
-import type { Slide, KpiItem, DeliverableItem } from "./types";
+import type { Slide, KpiItem, DeliverableItem, ChartType, ChartSeries } from "./types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Upload, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Upload, ImageIcon, BarChart3, LineChart as LineIcon, AreaChart as AreaIcon, PieChart as PieIcon } from "lucide-react";
 import { uploadReportImage } from "@/lib/reports-api";
 import { toast } from "sonner";
 
@@ -107,6 +107,16 @@ export function SlideEditor({
               <Input placeholder="Variação" value={it.delta ?? ""} onChange={(e) => set({ ...it, delta: e.target.value })} />
             </div>
           )}
+        />
+      )}
+
+      {slide.type === "chart" && (
+        <ChartEditor
+          chartType={p.chartType ?? "bar"}
+          categories={p.chartCategories ?? []}
+          series={p.chartSeries ?? []}
+          note={p.chartNote ?? ""}
+          onChange={(patch) => update(patch)}
         />
       )}
 
@@ -267,10 +277,152 @@ function hasField(type: Slide["type"], field: string): boolean {
     image: ["title"],
     gallery: ["title"],
     kpis: ["title"],
+    chart: ["title"],
     deliverables: ["title"],
     comparison: ["title"],
     "next-steps": ["title"],
     closing: ["title", "subtitle"],
   };
   return map[type]?.includes(field) ?? false;
+}
+
+const CHART_OPTIONS: { type: ChartType; label: string; Icon: typeof BarChart3 }[] = [
+  { type: "bar", label: "Barras", Icon: BarChart3 },
+  { type: "line", label: "Linha", Icon: LineIcon },
+  { type: "area", label: "Área", Icon: AreaIcon },
+  { type: "pie", label: "Pizza", Icon: PieIcon },
+];
+
+function ChartEditor({
+  chartType,
+  categories,
+  series,
+  note,
+  onChange,
+}: {
+  chartType: ChartType;
+  categories: string[];
+  series: ChartSeries[];
+  note: string;
+  onChange: (patch: { chartType?: ChartType; chartCategories?: string[]; chartSeries?: ChartSeries[]; chartNote?: string }) => void;
+}) {
+  const setCategories = (next: string[]) => {
+    const fixed = series.map((s) => ({
+      ...s,
+      values: Array.from({ length: next.length }, (_, i) => s.values[i] ?? 0),
+    }));
+    onChange({ chartCategories: next, chartSeries: fixed });
+  };
+  const setSeries = (next: ChartSeries[]) => onChange({ chartSeries: next });
+
+  return (
+    <div className="space-y-4">
+      <Field label="Tipo de gráfico">
+        <div className="grid grid-cols-4 gap-2">
+          {CHART_OPTIONS.map(({ type, label, Icon }) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => onChange({ chartType: type })}
+              className={`flex flex-col items-center gap-1.5 rounded-lg border p-3 text-xs transition ${
+                chartType === type ? "border-primary bg-primary/5 text-primary" : "border-border text-foreground/70 hover:bg-muted"
+              }`}
+            >
+              <Icon className="size-5" />
+              {label}
+            </button>
+          ))}
+        </div>
+      </Field>
+
+      <Field label={chartType === "pie" ? "Fatias" : "Categorias (eixo X)"}>
+        <div className="space-y-2">
+          {categories.map((cat, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Input
+                value={cat}
+                placeholder={`Item ${i + 1}`}
+                onChange={(e) => setCategories(categories.map((c, j) => (j === i ? e.target.value : c)))}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                onClick={() => setCategories(categories.filter((_, j) => j !== i))}
+              >
+                <Trash2 className="size-3.5" />
+              </Button>
+            </div>
+          ))}
+          <Button variant="outline" size="sm" className="w-full" onClick={() => setCategories([...categories, ""])}>
+            <Plus className="size-3.5 mr-1.5" /> Adicionar item
+          </Button>
+        </div>
+      </Field>
+
+      <Field label={chartType === "pie" ? "Valores" : `Séries (${series.length})`}>
+        <div className="space-y-3">
+          {series.map((s, si) => (
+            <div key={si} className="rounded-lg border border-border p-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={s.name}
+                  placeholder="Nome da série (ex.: 2025)"
+                  onChange={(e) => setSeries(series.map((x, j) => (j === si ? { ...x, name: e.target.value } : x)))}
+                />
+                {chartType !== "pie" && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 shrink-0"
+                    onClick={() => setSeries(series.filter((_, j) => j !== si))}
+                    disabled={series.length <= 1}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {categories.map((cat, ci) => (
+                  <div key={ci} className="flex items-center gap-1.5">
+                    <span className="text-[11px] text-foreground/50 w-16 truncate">{cat || `#${ci + 1}`}</span>
+                    <Input
+                      type="number"
+                      value={Number.isFinite(s.values[ci]) ? s.values[ci] : 0}
+                      onChange={(e) => {
+                        const v = Number(e.target.value);
+                        const newVals = [...s.values];
+                        newVals[ci] = Number.isFinite(v) ? v : 0;
+                        setSeries(series.map((x, j) => (j === si ? { ...x, values: newVals } : x)));
+                      }}
+                      className="h-8"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+          {chartType !== "pie" && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full"
+              onClick={() =>
+                setSeries([
+                  ...series,
+                  { name: `Série ${series.length + 1}`, values: Array.from({ length: categories.length }, () => 0) },
+                ])
+              }
+            >
+              <Plus className="size-3.5 mr-1.5" /> Adicionar série (comparativo)
+            </Button>
+          )}
+        </div>
+      </Field>
+
+      <Field label="Legenda / observação (opcional)">
+        <Input value={note} onChange={(e) => onChange({ chartNote: e.target.value })} />
+      </Field>
+    </div>
+  );
 }
