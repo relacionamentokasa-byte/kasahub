@@ -159,6 +159,40 @@ function ClientDetail() {
     .filter(t => t.type === "income" && t.status === "pending")
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const mrr = contracts
+    .filter((c: any) => c.status === "active")
+    .reduce((sum: number, c: any) => sum + Number(c.monthly_value || 0), 0);
+  const overdueIncomeCount = transactions.filter(
+    (t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && t.due_date && t.due_date < todayIso,
+  ).length;
+  const paidIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "paid").length;
+  const pendingIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending").length;
+  const activeJobsCount = (jobs as any[]).filter(
+    (j) => !j.done_at && !["done", "cancelled", "archived"].includes(j.status),
+  ).length;
+
+  const lastContactCandidates: Array<{ ts: string; source: string }> = [];
+  if (timelineEvents[0]?.created_at) lastContactCandidates.push({ ts: timelineEvents[0].created_at, source: "Evento na timeline" });
+  for (const p of proposals) {
+    if (p.created_at) lastContactCandidates.push({ ts: p.created_at, source: "Proposta criada" });
+    if ((p as any).sent_at) lastContactCandidates.push({ ts: (p as any).sent_at, source: "Proposta enviada" });
+  }
+  for (const t of transactions) {
+    if (t.status === "paid" && (t as any).paid_at) lastContactCandidates.push({ ts: (t as any).paid_at, source: "Pagamento recebido" });
+  }
+  for (const d of dmes as any[]) {
+    if (d.created_at) lastContactCandidates.push({ ts: d.created_at, source: "DME criada" });
+  }
+  const lastContact = lastContactCandidates.sort((a, b) => (a.ts < b.ts ? 1 : -1))[0];
+
+  const unifiedEvents = useMemo(
+    () => buildUnifiedEvents({ proposals, contracts, projects, jobs, dmes, transactions, onboardings }),
+    [proposals, contracts, projects, jobs, dmes, transactions, onboardings],
+  );
+
+
+
   return (
     <div className="flex flex-col h-full bg-background/50 animate-reveal">
       {/* Header / Resumo Rápido */}
