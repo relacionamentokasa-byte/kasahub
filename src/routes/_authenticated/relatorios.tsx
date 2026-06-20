@@ -73,6 +73,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { TableRowsSkeleton } from "@/components/ui/loading-skeletons";
 import { 
   Select, 
   SelectContent, 
