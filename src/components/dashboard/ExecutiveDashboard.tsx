@@ -67,17 +67,19 @@ export function ExecutiveDashboard() {
     setVisibleSections(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const { data: clients = [], isLoading: clientsLoading } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const { data: jobs = [], isLoading: jobsLoading } = useQuery({ queryKey: ["jobs"], queryFn: () => fetchJobs() });
-  const { data: jobStages = [] } = useQuery({ queryKey: ["job_stages"], queryFn: fetchJobStages });
+  const { data: clients = [], isLoading: clientsLoading } = useQuery({ queryKey: ["clients"], queryFn: fetchClients, staleTime: 60_000 });
+  const { data: jobs = [], isLoading: jobsLoading } = useQuery({ queryKey: ["jobs"], queryFn: () => fetchJobs(), staleTime: 60_000 });
+  const { data: jobStages = [] } = useQuery({ queryKey: ["job_stages"], queryFn: fetchJobStages, staleTime: 5 * 60_000 });
   const { data: transactions = [] } = useQuery({
     queryKey: ["transactions", "dashboard-ranking"],
     queryFn: () => fetchTransactions({ type: "receita" }),
+    staleTime: 60_000,
   });
 
   const { data: approvals = [] } = useQuery({
     queryKey: ["approvals", "all"],
-    queryFn: () => fetchApprovals()
+    queryFn: () => fetchApprovals(),
+    staleTime: 60_000,
   });
 
   const { data: calendarEvents = [] } = useQuery({
@@ -87,8 +89,10 @@ export function ExecutiveDashboard() {
       const start = new Date(today.setHours(0, 0, 0, 0)).toISOString();
       const end = new Date(today.setHours(23, 59, 59, 999)).toISOString();
       return fetchCalendarEvents({ from: start, to: end });
-    }
+    },
+    staleTime: 5 * 60_000,
   });
+
 
   const isLoading = clientsLoading || jobsLoading;
 
