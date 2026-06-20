@@ -688,39 +688,55 @@ function FinancialPage() {
                       )}
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      <InlineClientPicker
-                        transactionId={t.id}
-                        currentClientId={t.client_id}
-                        currentClientName={
-                          (t.clients as any)?.company || (t.clients as any)?.name || null
-                        }
-                      />
-                      {t.type === "expense" && (() => {
+                      {(() => {
                         const catName = ((t.categorias_financeiras as any)?.nome || t.category || "")
                           .toString()
                           .toLowerCase()
                           .normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "");
+                          .replace(/[\u0300-\u036f]/g, "")
+                          .trim();
+                        const isProLabore = catName === "pro-labore" || catName === "pro labore";
+                        if (isProLabore) {
+                          return (
+                            <span className="text-[10px] text-foreground/40 italic">
+                              Direcionado aos sócios
+                            </span>
+                          );
+                        }
                         const isFreelaCat =
                           catName.includes("freelancer") ||
                           catName.includes("freela") ||
                           catName.includes("terceiriz");
-                        return (isFreelaCat || t.freelancer_id) ? (
-                          <InlineFreelancerPicker
-                            transactionId={t.id}
-                            currentFreelancerId={t.freelancer_id}
-                            currentFreelancerName={(t.freelancer as any)?.name || null}
-                          />
-                        ) : (
-                          <InlineSupplierPicker
-                            transactionId={t.id}
-                            currentSupplierId={t.supplier_id}
-                            currentSupplierName={(t.suppliers as any)?.name || null}
-                          />
+                        return (
+                          <>
+                            <InlineClientPicker
+                              transactionId={t.id}
+                              currentClientId={t.client_id}
+                              currentClientName={
+                                (t.clients as any)?.company || (t.clients as any)?.name || null
+                              }
+                            />
+                            {t.type === "expense" && (
+                              (isFreelaCat || t.freelancer_id) ? (
+                                <InlineFreelancerPicker
+                                  transactionId={t.id}
+                                  currentFreelancerId={t.freelancer_id}
+                                  currentFreelancerName={(t.freelancer as any)?.name || null}
+                                />
+                              ) : (
+                                <InlineSupplierPicker
+                                  transactionId={t.id}
+                                  currentSupplierId={t.supplier_id}
+                                  currentSupplierName={(t.suppliers as any)?.name || null}
+                                />
+                              )
+                            )}
+                          </>
                         );
                       })()}
                     </div>
                   </TableCell>
+
 
                   <TableCell className="py-4">
                     <InlineCategoryPicker
