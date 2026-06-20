@@ -138,6 +138,7 @@ export async function createOnboardingFromTemplate(opts: {
   client_id: string;
   template_id: string;
   title?: string;
+  start_date?: string; // YYYY-MM-DD
 }) {
   const tplRes = await (supabase as any)
     .from("onboarding_templates")
@@ -156,8 +157,9 @@ export async function createOnboardingFromTemplate(opts: {
   const tplSteps = stepsRes.data as OnboardingTemplateStep[];
 
   const maxDays = tplSteps.reduce((m, s) => Math.max(m, s.days_after_start), 0);
-  const today = new Date();
-  const end = new Date(today);
+  const startStr = opts.start_date || new Date().toISOString().slice(0, 10);
+  const start = new Date(startStr + "T00:00:00");
+  const end = new Date(start);
   end.setDate(end.getDate() + maxDays);
 
   const { data: onb, error: onbErr } = await (supabase as any)
@@ -167,7 +169,7 @@ export async function createOnboardingFromTemplate(opts: {
       template_id: opts.template_id,
       title: opts.title || `Onboarding: ${tpl.name}`,
       description: tpl.description,
-      start_date: today.toISOString().slice(0, 10),
+      start_date: startStr,
       expected_end_date: end.toISOString().slice(0, 10),
     })
     .select()
