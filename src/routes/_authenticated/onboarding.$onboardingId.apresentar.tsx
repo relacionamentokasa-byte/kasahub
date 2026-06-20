@@ -136,6 +136,11 @@ function PresentOnboardingPage() {
     client?.brand_primary ||
     agency?.brand_primary ||
     "#FFBC45";
+  const secondary =
+    client?.portal_secondary_color ||
+    client?.brand_secondary ||
+    agency?.brand_secondary ||
+    primary;
 
   // Luminância para decidir se o cover do cliente serve como palco escuro.
   // Apresentação precisa de fundo escuro p/ contraste do texto branco.
@@ -150,10 +155,13 @@ function PresentOnboardingPage() {
     agency?.brand_primary ||
     "#0F0F1A";
   // Se o cover for claro demais (ex.: amarelo), gera um palco escuro tingido
-  // pela cor da marca em vez de usar literal.
+  // pela cor da marca em vez de usar literal. Se a secundária for escura,
+  // ela vira o palco — combo natural primária x secundária do cliente.
   const cover =
     hexLum(rawCover) > 0.45
-      ? `color-mix(in oklab, ${primary} 14%, #0B0B14)`
+      ? hexLum(secondary) < 0.35
+        ? secondary
+        : `color-mix(in oklab, ${primary} 14%, #0B0B14)`
       : rawCover;
 
   if (loading) {
