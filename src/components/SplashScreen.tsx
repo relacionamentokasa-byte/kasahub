@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const BRAND_PHRASES = [
@@ -49,6 +49,11 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
     };
   }, [userId]);
 
+  const onDoneRef = useRef(onDone);
+  useEffect(() => {
+    onDoneRef.current = onDone;
+  }, [onDone]);
+
   useEffect(() => {
     const reduced =
       typeof window !== "undefined" &&
@@ -69,11 +74,11 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
     }, 1400);
 
     const endTimer = setTimeout(() => setOut(true), total);
-    const doneTimer = setTimeout(() => onDone(), total + 500);
+    const doneTimer = setTimeout(() => onDoneRef.current(), total + 500);
 
     const skip = () => {
       setOut(true);
-      setTimeout(onDone, 300);
+      setTimeout(() => onDoneRef.current(), 300);
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" || e.key === "Enter" || e.key === " ") skip();
@@ -89,7 +94,7 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("click", skip);
     };
-  }, [onDone]);
+  }, []);
 
   return (
     <div
