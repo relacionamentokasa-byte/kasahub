@@ -71,7 +71,11 @@ export function InlineSupplierPicker({
         >
           {currentSupplierId ? (
             <>
-              <Building2 className="size-2.5 text-foreground/40" />
+              <Avatar className="size-4">
+                <AvatarFallback className="text-[8px] font-bold bg-amber-500/15 text-amber-700">
+                  {(currentSupplierName || "?").slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
               <span className="text-[10px] text-foreground/40 font-bold uppercase truncate max-w-[200px]">
                 {currentSupplierName || "—"}
               </span>
