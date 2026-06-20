@@ -142,12 +142,18 @@ async function fetchSaudeNegocio(refDate: Date) {
 
   const { data: yearIncomes } = await supabase
     .from("transactions")
-    .select("amount, status, kind, type")
+    .select("amount, status, kind, type, nature")
     .gte("due_date", yearStart)
     .lte("due_date", yearEnd);
 
+  // Faturamento anual = só receita OPERACIONAL e efetivamente recebida.
+  // Receitas não-operacionais (aporte, consórcio, investimento) NÃO compõem o faturamento.
   const faturadoAnual = (yearIncomes || [])
-    .filter((t: any) => (t.kind || t.type) === "income" && PAID_STATUSES.has(String(t.status || "").toLowerCase()))
+    .filter((t: any) =>
+      (t.kind || t.type) === "income"
+      && t.nature !== "nao_operacional"
+      && PAID_STATUSES.has(String(t.status || "").toLowerCase())
+    )
     .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
 
   return {
