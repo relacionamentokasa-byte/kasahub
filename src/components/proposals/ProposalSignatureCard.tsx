@@ -145,6 +145,26 @@ export function ProposalSignatureCard({
           )}
         </div>
 
+        {externalSignatureUrl && (
+          <a
+            href={externalSignatureUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="flex items-center gap-3 rounded-xl border border-emerald-300 bg-white/80 px-4 py-3 text-sm text-emerald-900 hover:bg-white transition-colors"
+          >
+            <Paperclip className="size-4 text-emerald-600" />
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/70">
+                Comprovante (assinada externamente)
+              </div>
+              <div className="font-medium truncate">
+                {externalSignatureFilename || "Ver comprovante"}
+              </div>
+            </div>
+            <span className="text-xs font-semibold text-emerald-700 underline">Abrir</span>
+          </a>
+        )}
+
         <div className="text-[10px] text-emerald-700/60 border-t border-emerald-100 pt-3">
           Este aceite digital tem validade jurídica conforme MP 2.200-2/2001. Alterar o
           conteúdo da proposta após o aceite invalidará a assinatura registrada.
