@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import {
   Plus, Copy, ExternalLink, RefreshCw, Trash2, Eye, EyeOff,
-  Loader2, CheckCircle2, XCircle, Globe, Code2, Pencil,
+  Loader2, CheckCircle2, XCircle, Globe, Code2, Pencil, Upload, X,
 } from "lucide-react";
 import { toast } from "sonner";
 
