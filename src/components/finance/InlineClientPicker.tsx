@@ -27,6 +27,7 @@ export function InlineClientPicker({
   transactionId,
   currentClientId,
   currentClientName,
+  currentClientPhotoUrl,
 }: InlineClientPickerProps) {
   const [open, setOpen] = useState(false);
   const qc = useQueryClient();
