@@ -38,9 +38,7 @@ export function ProposalDetailSheet({
             <ProposalEditorContent proposalId={proposalId} />
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="size-8 animate-spin text-primary/20" />
-          </div>
+          <SheetContentSkeleton />
         )}
       </SheetContent>
     </Sheet>
