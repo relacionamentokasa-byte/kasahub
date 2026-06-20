@@ -1,11 +1,11 @@
 import { useRef } from "react";
-import type { Slide, KpiItem, DeliverableItem } from "./types";
+import type { Slide, KpiItem, DeliverableItem, ChartType, ChartSeries } from "./types";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Upload, ImageIcon } from "lucide-react";
+import { Plus, Trash2, Upload, ImageIcon, BarChart3, LineChart as LineIcon, AreaChart as AreaIcon, PieChart as PieIcon } from "lucide-react";
 import { uploadReportImage } from "@/lib/reports-api";
 import { toast } from "sonner";
 
