@@ -256,6 +256,16 @@ function OnboardingCard({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const dueMut = useMutation({
+    mutationFn: ({ id, due_date }: { id: string; due_date: string | null }) =>
+      updateOnboardingStep(id, { due_date }),
+    onSuccess: () => {
+      toast.success("Prazo atualizado");
+      qc.invalidateQueries({ queryKey: ["onboarding-steps", onboardingId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="bg-surface border border-border rounded-2xl p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
@@ -339,10 +349,35 @@ function OnboardingCard({
                         <p className="text-xs text-foreground/50 mt-1">{step.description}</p>
                       )}
                       {step.due_date && (
-                        <p className="text-[10px] text-foreground/40 mt-1">
-                          Prazo:{" "}
-                          {format(new Date(step.due_date), "dd 'de' MMM", { locale: ptBR })}
-                        </p>
+                        readOnly ? (
+                          <p className="text-[10px] text-foreground/40 mt-1">
+                            Prazo: {format(new Date(step.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
+                          </p>
+                        ) : (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="text-[10px] text-foreground/40 mt-1 inline-flex items-center gap-1 hover:text-primary transition">
+                                <CalendarIcon className="size-2.5" />
+                                Prazo: {format(new Date(step.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={new Date(step.due_date + "T00:00:00")}
+                                onSelect={(d) =>
+                                  d &&
+                                  dueMut.mutate({
+                                    id: step.id,
+                                    due_date: format(d, "yyyy-MM-dd"),
+                                  })
+                                }
+                                initialFocus
+                                className={cn("p-3 pointer-events-auto")}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        )
                       )}
                     </div>
                     {!readOnly && (
