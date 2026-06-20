@@ -110,6 +110,16 @@ export function SlideEditor({
         />
       )}
 
+      {slide.type === "chart" && (
+        <ChartEditor
+          chartType={p.chartType ?? "bar"}
+          categories={p.chartCategories ?? []}
+          series={p.chartSeries ?? []}
+          note={p.chartNote ?? ""}
+          onChange={(patch) => update(patch)}
+        />
+      )}
+
       {slide.type === "deliverables" && (
         <ListEditor
           label="Entregas"
