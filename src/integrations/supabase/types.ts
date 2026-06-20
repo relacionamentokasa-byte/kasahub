@@ -918,6 +918,7 @@ export type Database = {
           portal_enabled: boolean
           portal_primary_color: string | null
           portal_slug: string | null
+          portal_text_color: string | null
           portal_user_id: string | null
           start_date: string | null
           state: string | null
@@ -958,6 +959,7 @@ export type Database = {
           portal_enabled?: boolean
           portal_primary_color?: string | null
           portal_slug?: string | null
+          portal_text_color?: string | null
           portal_user_id?: string | null
           start_date?: string | null
           state?: string | null
@@ -998,6 +1000,7 @@ export type Database = {
           portal_enabled?: boolean
           portal_primary_color?: string | null
           portal_slug?: string | null
+          portal_text_color?: string | null
           portal_user_id?: string | null
           start_date?: string | null
           state?: string | null
