@@ -1,8 +1,7 @@
 import type { Slide, KpiItem, DeliverableItem } from "./types";
+import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
 
 const KASA_YELLOW = "#FFBC45";
-const KASA_LOGO_YELLOW =
-  "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
 
 function KasaMark({ size = 28 }: { size?: number }) {
   return (
@@ -13,11 +12,21 @@ function KasaMark({ size = 28 }: { size?: number }) {
       >
         produzido por
       </span>
-      <img
-        src={KASA_LOGO_YELLOW}
-        alt="Kasa Hub"
-        style={{ height: size, width: "auto" }}
-        className="object-contain"
+      <div
+        aria-label="Kasa Hub"
+        style={{
+          height: size,
+          width: size * 3.2,
+          backgroundColor: KASA_YELLOW,
+          WebkitMaskImage: `url(${logoWhiteAsset.url})`,
+          maskImage: `url(${logoWhiteAsset.url})`,
+          WebkitMaskRepeat: "no-repeat",
+          maskRepeat: "no-repeat",
+          WebkitMaskPosition: "left center",
+          maskPosition: "left center",
+          WebkitMaskSize: "contain",
+          maskSize: "contain",
+        }}
       />
     </div>
   );
