@@ -26,6 +26,8 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [signature, setSignature] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploadingExt, setUploadingExt] = useState(false);
 
   const { data: proposal } = useQuery({
     queryKey: ["proposal", proposalId],
