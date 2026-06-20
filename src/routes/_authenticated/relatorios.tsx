@@ -1184,17 +1184,37 @@ function StatCard({ title, value, icon: Icon, color, bg, cardBg }: { title: stri
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const configs: Record<string, { label: string, cls: string }> = {
-    pending: { label: "Pendente", cls: "border-blue-500/20 text-blue-600 dark:text-blue-400 bg-blue-500/5" },
-    paid: { label: "Pago", cls: "border-emerald-600 text-white bg-emerald-600" },
-    overdue: { label: "Atrasado", cls: "border-red-600 text-white bg-red-600" },
-    cancelled: { label: "Cancelado", cls: "border-foreground/10 text-foreground/40 bg-foreground/5" }
-  };
-  const config = configs[status] || configs.pending;
+function StatusBadge({ status, dueDate }: { status: string; dueDate?: string | null }) {
+  let label = "";
+  let cls = "";
+  if (status === "paid") {
+    label = "Pago";
+    cls = "border-emerald-600 text-white bg-emerald-600";
+  } else if (status === "cancelled") {
+    label = "Cancelado";
+    cls = "border-foreground/10 text-foreground/40 bg-foreground/5";
+  } else if (status === "overdue") {
+    let days = 0;
+    if (dueDate) {
+      const d = new Date(`${dueDate.slice(0, 10)}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      days = Math.max(0, Math.floor((today.getTime() - d.getTime()) / 86400000));
+    }
+    label = days > 0 ? `Atrasado · ${days}d` : "Atrasado";
+    cls =
+      days >= 30
+        ? "border-red-800 text-white bg-red-800 animate-pulse"
+        : days >= 7
+        ? "border-red-600 text-white bg-red-600"
+        : "border-orange-500 text-white bg-orange-500";
+  } else {
+    label = "Pendente";
+    cls = "border-blue-500/20 text-blue-600 dark:text-blue-400 bg-blue-500/5";
+  }
   return (
-    <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2", config.cls)}>
-      {config.label}
+    <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2", cls)}>
+      {label}
     </Badge>
   );
 }
