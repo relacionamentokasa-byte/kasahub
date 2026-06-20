@@ -13,12 +13,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 interface Props {
   transactionId: string;
   currentFreelancerId: string | null | undefined;
   currentFreelancerName: string | null | undefined;
+  currentFreelancerPhotoUrl?: string | null;
 }
 
 export function InlineFreelancerPicker({
