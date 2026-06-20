@@ -574,52 +574,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               </div>
             )}
 
-            {/* Custo interno da Kasa + Investimento */}
-            <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
-              <FormField
-                control={form.control}
-                name="is_internal"
-                render={({ field }) => (
-                  <FormItem className="flex items-start gap-2 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={!!field.value}
-                        onCheckedChange={(v) => {
-                          field.onChange(!!v);
-                          if (v) {
-                            form.setValue("client_id", "none");
-                            form.setValue("supplier_id", "none");
-                            form.setValue("freelancer_id", "none");
-                            form.setValue("partner_id", "none");
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <div className="leading-tight">
-                      <FormLabel className="text-sm font-medium cursor-pointer">Custo interno da Kasa</FormLabel>
-                      <p className="text-xs text-muted-foreground">Despesa da própria agência — sem cliente, fornecedor ou freelancer vinculado.</p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="is_investment"
-                render={({ field }) => (
-                  <FormItem className="flex items-start gap-2 space-y-0">
-                    <FormControl>
-                      <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
-                    </FormControl>
-                    <div className="leading-tight">
-                      <FormLabel className="text-sm font-medium cursor-pointer">É investimento</FormLabel>
-                      <p className="text-xs text-muted-foreground">Separa este lançamento dos custos operacionais nos relatórios.</p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {watchType !== "expense" && !watchIsInternal && (
+            {watchType !== "expense" && (
               <FormField
                 control={form.control}
                 name="client_id"
