@@ -18,7 +18,9 @@ import {
   Menu,
   Download,
   SunMoon,
+  Rocket,
 } from "lucide-react";
+import { OnboardingTemplatesManager } from "@/components/config/OnboardingTemplatesManager";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
 
@@ -121,6 +123,7 @@ function ConfigPage() {
     { id: "services", label: "Serviços", icon: Briefcase, group: "Catálogos", component: <ServicesManager canEdit={canEdit} /> },
     { id: "contracts", label: "Templates de Contratos", icon: FileText, group: "Catálogos", component: <ContractTemplatesManager canEdit={canEdit} /> },
     { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Catálogos", component: <ScopeTemplatesManager canEdit={canEdit} /> },
+    { id: "onboarding-templates", label: "Modelos de Onboarding", icon: Rocket, group: "Catálogos", component: <OnboardingTemplatesManager canEdit={canEdit} /> },
 
     { id: "integr", label: "Integrações", icon: Plug, group: "Sistema", component: <IntegrationsTab form={form} /> },
     { id: "install", label: "Instalar o App", icon: Download, group: "Sistema", component: <InstallAppTab /> },
