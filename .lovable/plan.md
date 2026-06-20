@@ -1,39 +1,63 @@
-## 1. Unificar "Novo lançamento" e "Editar lançamento"
+# Construtor de Relatórios
 
-Hoje existem dois componentes diferentes:
-- `TransactionFormDialog` (novo) — formulário completo com tipo, categoria, conta, natureza, cliente, fornecedor, sócio, etc.
-- `EditTransactionDialog` (editar) — formulário minimalista só com descrição, valor previsto, valor real e motivo da diferença.
+Ferramenta interna para a equipe montar relatórios de cliente partindo de **templates prontos**, em vez de abrir PPTX do zero. Conteúdo (texto + imagens) é **preenchido manualmente** — nada vem do banco automaticamente nesta v1.
 
-**Mudança:** transformar `TransactionFormDialog` em dialog único que suporta criação E edição:
-- Aceitar prop opcional `transaction` — quando presente, entra em modo edição (título "Editar lançamento", preenche todos os campos, faz `updateTransaction` no submit).
-- Manter os campos extras do antigo `EditTransactionDialog` (valor previsto x valor real, motivo da diferença) como uma seção condicional dentro do mesmo form.
-- Remover o arquivo `EditTransactionDialog.tsx` e ajustar `src/routes/_authenticated/relatorios.tsx` para reutilizar o `TransactionFormDialog` passando a transação selecionada.
+## Fluxo da equipe
 
-## 2. Recibo apenas para transações pagas
+1. Em `Relatórios → Construtor`, clica em **"Novo relatório"**.
+2. Escolhe o **cliente** + um **template** (ex.: Mensal de Performance, Sprint, Apresentação de Onboarding, Em branco).
+3. Cai no **editor**: lista de slides à esquerda, slide selecionado no centro, painel de propriedades do bloco à direita.
+4. Edita textos inline, troca imagens (upload), duplica/reordena/remove slides, adiciona novos a partir da paleta de blocos.
+5. Botões no topo: **Apresentar** (fullscreen 1920×1080) · **Exportar PDF** (A4 paisagem) · **Salvar** (autosave).
 
-- Em `relatorios.tsx`, esconder/desabilitar a ação "Gerar recibo" quando `transaction.status !== 'paid'` (com tooltip "Disponível somente para lançamentos pagos").
-- Em `ReciboDialog`, guard inicial: se a transação não estiver paga, mostrar aviso e bloquear a impressão.
+## Blocos disponíveis (MVP)
 
-## 3. Natureza da despesa
+Capa · Título de seção · Texto livre (com **markdown** simples: negrito, itálico, listas) · Imagem (1 destaque) · Galeria (até 4 imagens em grid) · KPI cards (até 4, número + label + variação opcional — preenchidos à mão) · Lista de entregas (checklist) · Comparativo "antes/depois" (2 colunas) · Próximos passos · Fechamento.
 
-Hoje o campo `nature` (`operacional` / `nao_operacional`) só aparece para receitas e é usado em `distribution-api.ts` para definir o que entra na distribuição aos sócios.
+Todos os blocos respeitam a identidade visual: tipografia **Funnel Display** (títulos) + **Onest** (corpo), cores primárias do cliente (a partir de `clients.brand_color` quando existir, senão cores Kasa).
 
-**Mudança:**
-- Mostrar o seletor "Natureza da despesa" também quando `type === 'expense'` no `TransactionFormDialog` unificado:
-  - Operacional (entra no cálculo de lucro/distribuição)
-  - Não-operacional (investimento, aporte, compra de ativo, despesa de sócio… não impacta resultado operacional)
-- Default da despesa: `operacional`.
-- Ajustar `src/lib/distribution-api.ts` e os agregadores em `src/routes/_authenticated/relatorios.tsx` (KPIs/relatórios de resultado) para considerar somente despesas com `nature = 'operacional'` no cálculo de lucro/base de distribuição, mantendo o total bruto de despesas separado quando já exibido.
-- Sem migration: a coluna `nature` já existe em `transactions` e aceita os mesmos valores.
+## Templates iniciais
 
-## Arquivos afetados
+- **Relatório Mensal** — Capa · Resumo · KPIs · Entregas do mês · Comparativo · Próximos passos · Fechamento.
+- **Relatório de Sprint** — Capa · Objetivo da sprint · Entregas · Aprendizados · Próximos passos.
+- **Em branco** — só a capa, equipe monta do zero.
 
-- `src/components/finance/TransactionFormDialog.tsx` — aceitar modo edição + campo natureza para despesa.
-- `src/components/finance/EditTransactionDialog.tsx` — remover.
-- `src/components/finance/ReciboDialog.tsx` — guard para `status === 'paid'`.
-- `src/routes/_authenticated/relatorios.tsx` — usar dialog unificado, gate do recibo, ajuste de KPIs por natureza.
-- `src/lib/distribution-api.ts` — excluir despesas não-operacionais do cálculo.
+Templates ficam editáveis em `Config → Templates de Relatório` (próximo passo, fora do MVP).
 
-## Pergunta antes de implementar
+## Modo Apresentar
 
-Sobre a parte de KPIs/relatórios financeiros: você quer que despesas **não-operacionais** fiquem completamente fora do total de despesas exibido no dashboard/relatório, ou prefere que apareçam destacadas em uma linha separada ("Despesas não-operacionais") e só sejam excluídas do cálculo de lucro/distribuição? Se não responder, sigo com a segunda opção (mais transparente).
+Mesma arquitetura do `onboarding.$onboardingId.apresentar`: renderização 1920×1080 com `transform: scale()`, fundo escuro, navegação por setas/espaço/ESC, contador de slides no canto. Sem "Powered by", sem logo da agência no rodapé final (mesma decisão do onboarding).
+
+## Exportação PDF
+
+`/relatorios/$id/pdf` → rota dedicada que renderiza todos os slides empilhados, com CSS `@page { size: 1920px 1080px landscape; margin: 0 }` e `page-break-after: always`. Usuário usa **Cmd/Ctrl + P → Salvar como PDF**. Sem dependência de libs pesadas no servidor, render fiel ao Apresentar.
+
+## Detalhes técnicos
+
+**Banco (1 migration):**
+- `report_templates` — `id, name, description, slides (jsonb), is_default, created_at, updated_at`. RLS: leitura para `authenticated`, escrita apenas para admin (via `has_role`).
+- `reports` — `id, client_id (fk clients), template_id (fk report_templates, nullable), title, status ('rascunho' | 'finalizado'), slides (jsonb — array de `{id, type, props}`), created_by (uuid), created_at, updated_at`. RLS: usuários autenticados leem/escrevem (mesmo padrão dos outros recursos internos).
+- GRANTs nas duas tabelas para `authenticated` e `service_role`.
+- Seed dos 2 templates padrão direto na migration.
+
+**Bucket de imagens:** `report-images` (público), com policy de upload para `authenticated`.
+
+**Frontend (TanStack Start):**
+- `src/routes/_authenticated/relatorios.construtor.index.tsx` — lista de relatórios + botão "Novo".
+- `src/routes/_authenticated/relatorios.construtor.$reportId.tsx` — editor (sidebar de slides + canvas + painel de bloco).
+- `src/routes/_authenticated/relatorios.construtor.$reportId.apresentar.tsx` — modo fullscreen.
+- `src/routes/_authenticated/relatorios.construtor.$reportId.pdf.tsx` — render para impressão.
+- `src/components/reports/blocks/*` — um componente por tipo de bloco, com modo `edit` (inputs inline) e modo `view` (apresentação/PDF).
+- `src/lib/reports-api.ts` — CRUD via Supabase client (`from('reports')`).
+- Link no `AppSidebar.tsx` em "Gestão → Construtor de Relatórios".
+
+**Autosave:** debounce de 800ms em qualquer alteração de slides; indicador "Salvo · agora" no topo.
+
+## Fora do escopo desta v1
+
+- Dados automáticos de jobs/financeiro (deixamos gancho no schema mas não conectamos).
+- Compartilhamento por link público com o cliente.
+- Versionamento de relatório.
+- Comentários da equipe dentro do relatório.
+
+Posso seguir e começar pela migration?
