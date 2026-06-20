@@ -38,7 +38,7 @@ function ProjectDetail() {
     enabled: !!project?.client_id,
   });
 
-  if (projectLoading) return <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
+  if (projectLoading) return <DetailHeaderSkeleton />;
   if (!project) return <div className="p-10 text-center">Projeto não encontrado.</div>;
 
   return (
