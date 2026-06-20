@@ -48,7 +48,7 @@ function ReportEditorPage() {
     queryFn: () => fetchClient(reportQ.data!.client_id!),
     enabled: !!reportQ.data?.client_id,
   });
-  const brandColor = (clientQ.data as any)?.brand_color || "#3DB6F2";
+  const brandColor = (clientQ.data as any)?.brand_primary || "#3DB6F2";
   const clientLogo = (clientQ.data as any)?.logo_url || null;
   const clientName = clientQ.data?.company || clientQ.data?.name || "";
 

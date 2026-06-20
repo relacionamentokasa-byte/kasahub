@@ -29,7 +29,7 @@ function ReportPdfPage() {
 
   if (!reportQ.data) return <div className="p-8">Carregando…</div>;
   const slides = (reportQ.data.slides as unknown as Slide[]) || [];
-  const brandColor = (clientQ.data as any)?.brand_color || "#3DB6F2";
+  const brandColor = (clientQ.data as any)?.brand_primary || "#3DB6F2";
   const clientLogo = (clientQ.data as any)?.logo_url || null;
   const clientName = clientQ.data?.company || clientQ.data?.name || "";
 
