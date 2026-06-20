@@ -283,8 +283,26 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           .limit(20);
         const events = evRows || [];
 
+        // Fetch active onboardings + steps (read-only for client portal)
+        const { data: onbRows } = await supabaseAdmin
+          .from("onboardings")
+          .select("id, title, description, status, progress_percentage, start_date, expected_end_date, completed_at")
+          .eq("client_id", client.id)
+          .neq("status", "cancelled")
+          .order("created_at", { ascending: false });
+
+        const onboardings: any[] = [];
+        for (const o of onbRows || []) {
+          const { data: stepRows } = await supabaseAdmin
+            .from("onboarding_steps")
+            .select("id, title, description, responsible_type, status, due_date, completed_at, order_index")
+            .eq("onboarding_id", o.id)
+            .order("order_index", { ascending: true });
+          onboardings.push({ ...o, steps: stepRows || [] });
+        }
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, events }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, events, onboardings }),
 
           {
             status: 200,

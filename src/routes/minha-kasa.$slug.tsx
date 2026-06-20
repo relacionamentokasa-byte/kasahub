@@ -181,6 +181,29 @@ type ApprovalItem = {
   slide_statuses?: Record<string, "pending" | "approved" | "rejected">;
 };
 
+type OnboardingStepRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  responsible_type: "agency" | "client" | "both" | string;
+  status: "pending" | "in_progress" | "done" | "blocked" | "skipped" | string;
+  due_date: string | null;
+  completed_at: string | null;
+  order_index: number;
+};
+
+type OnboardingRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string;
+  progress_percentage: number;
+  start_date: string;
+  expected_end_date: string | null;
+  completed_at: string | null;
+  steps: OnboardingStepRow[];
+};
+
 type ApiResponse = {
   client: ClientInfo;
   jobs: JobRow[];
@@ -194,6 +217,7 @@ type ApiResponse = {
   approvalItems: ApprovalItem[];
   approvalComments?: Record<string, ApprovalItemComment[]>;
   events?: CalendarEventRow[];
+  onboardings?: OnboardingRow[];
 };
 
 type CalendarEventRow = {
@@ -2714,7 +2738,8 @@ function HomeSection({
   slug: string;
   onNavigate: (t: HomeTab) => void;
 }) {
-  const { invoices, attachments, approvalItems, events, jobs } = data;
+  const { invoices, attachments, approvalItems, events, jobs, onboardings } = data;
+  const activeOnboardings = (onboardings || []).filter((o) => o.status !== "cancelled");
 
   // ---- WRAPPED DO MÊS (resumo simples) ----
   const monthStats = useMemo(() => {
@@ -2875,6 +2900,10 @@ function HomeSection({
   return (
     <div className="space-y-5 md:space-y-6 lg:space-y-0 lg:grid lg:grid-cols-12 lg:gap-6 animate-fade-in">
       <div className="lg:col-span-8 space-y-5 md:space-y-6">
+
+      {activeOnboardings.length > 0 && (
+        <OnboardingPortalCard onboardings={activeOnboardings} />
+      )}
 
 
       {/* O QUE PRECISA DE VOCÊ */}
@@ -3275,4 +3304,115 @@ function MinhaKasaDarkStyles() {
 `;
 
   return <style dangerouslySetInnerHTML={{ __html: css }} />;
+}
+
+function OnboardingPortalCard({ onboardings }: { onboardings: OnboardingRow[] }) {
+  const STATUS_ICON: Record<string, { Icon: typeof CheckCircle2; cls: string; label: string }> = {
+    done: { Icon: CheckCircle2, cls: "text-emerald-500", label: "Concluída" },
+    in_progress: { Icon: Clock, cls: "text-[var(--portal-primary)]", label: "Em andamento" },
+    blocked: { Icon: AlertCircle, cls: "text-rose-500", label: "Bloqueada" },
+    skipped: { Icon: Circle, cls: "text-slate-300", label: "Pulada" },
+    pending: { Icon: Circle, cls: "text-slate-300", label: "Pendente" },
+  };
+  const RESP_LABEL: Record<string, string> = {
+    agency: "Agência",
+    client: "Você",
+    both: "Ambos",
+  };
+
+  return (
+    <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+      <div className="px-4 py-3 bg-gradient-to-r from-[var(--portal-primary)]/15 to-transparent border-b border-slate-100 flex items-center gap-2">
+        <Play className="size-4 text-[var(--portal-primary)]" />
+        <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700">
+          Seu Onboarding
+        </h2>
+      </div>
+
+      <div className="divide-y divide-slate-100">
+        {onboardings.map((onb) => {
+          const totalDays =
+            onb.expected_end_date
+              ? Math.max(
+                  0,
+                  Math.round(
+                    (new Date(onb.expected_end_date).getTime() -
+                      new Date(onb.start_date).getTime()) /
+                      86400000,
+                  ),
+                )
+              : null;
+          return (
+            <div key={onb.id} className="p-4 space-y-4">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="min-w-0">
+                  <h3 className="font-bold text-slate-900 text-base truncate">
+                    {onb.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Início {format(new Date(onb.start_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
+                    {onb.expected_end_date &&
+                      ` · Previsão ${format(new Date(onb.expected_end_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}`}
+                    {totalDays !== null && ` · ${totalDays} dias`}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-black text-[var(--portal-primary)] leading-none">
+                    {onb.progress_percentage}%
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+                    concluído
+                  </div>
+                </div>
+              </div>
+
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--portal-primary)] transition-all"
+                  style={{ width: `${Math.min(100, Math.max(0, onb.progress_percentage))}%` }}
+                />
+              </div>
+
+              <ol className="relative space-y-3 pl-1 before:absolute before:left-[15px] before:top-3 before:bottom-3 before:w-px before:bg-slate-200">
+                {onb.steps.map((step) => {
+                  const meta = STATUS_ICON[step.status] || STATUS_ICON.pending;
+                  const SIcon = meta.Icon;
+                  return (
+                    <li key={step.id} className="relative flex gap-3">
+                      <div className="size-8 rounded-full bg-white border border-slate-200 z-10 grid place-items-center shrink-0">
+                        <SIcon className={`size-4 ${meta.cls}`} />
+                      </div>
+                      <div className="flex-1 min-w-0 pt-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p
+                            className={`text-sm font-semibold ${
+                              step.status === "done" ? "line-through text-slate-400" : "text-slate-800"
+                            }`}
+                          >
+                            {step.title}
+                          </p>
+                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
+                            {RESP_LABEL[step.responsible_type] || step.responsible_type}
+                          </span>
+                        </div>
+                        {step.description && (
+                          <p className="text-xs text-slate-500 mt-0.5">{step.description}</p>
+                        )}
+                        {step.due_date && step.status !== "done" && (
+                          <p className="text-[10px] text-slate-400 mt-0.5 inline-flex items-center gap-1">
+                            <Calendar className="size-2.5" />
+                            Prazo: {format(new Date(step.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
+                          </p>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
 }
