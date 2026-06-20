@@ -226,7 +226,7 @@ function ReportEditorPage() {
 
 function AddBlockButton({ onPick }: { onPick: (t: SlideType) => void }) {
   const [open, setOpen] = useState(false);
-  const types: SlideType[] = ["cover", "section", "text", "image", "gallery", "kpis", "deliverables", "comparison", "next-steps", "closing"];
+  const types: SlideType[] = ["cover", "section", "text", "image", "gallery", "kpis", "chart", "deliverables", "comparison", "next-steps", "closing"];
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
