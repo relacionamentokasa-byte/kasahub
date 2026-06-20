@@ -97,14 +97,21 @@ export function SlideEditor({
         <ListEditor
           label="Indicadores"
           items={(p.items || []) as KpiItem[]}
-          empty={{ label: "Indicador", value: "0", delta: "" }}
+          empty={{ label: "Indicador", value: "0", delta: "", platform: "" }}
           max={4}
           onChange={(items) => update({ items })}
           renderItem={(it, set) => (
-            <div className="grid grid-cols-3 gap-2">
-              <Input placeholder="Label" value={it.label} onChange={(e) => set({ ...it, label: e.target.value })} />
-              <Input placeholder="Valor" value={it.value} onChange={(e) => set({ ...it, value: e.target.value })} />
-              <Input placeholder="Variação" value={it.delta ?? ""} onChange={(e) => set({ ...it, delta: e.target.value })} />
+            <div className="space-y-2">
+              <div className="grid grid-cols-3 gap-2">
+                <Input placeholder="Label" value={it.label} onChange={(e) => set({ ...it, label: e.target.value })} />
+                <Input placeholder="Valor" value={it.value} onChange={(e) => set({ ...it, value: e.target.value })} />
+                <Input placeholder="Variação" value={it.delta ?? ""} onChange={(e) => set({ ...it, delta: e.target.value })} />
+              </div>
+              <PlatformPicker
+                value={it.platform ?? ""}
+                onChange={(v) => set({ ...it, platform: v })}
+                placeholder="Plataforma (opcional)"
+              />
             </div>
           )}
         />
