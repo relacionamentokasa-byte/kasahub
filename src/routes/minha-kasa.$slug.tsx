@@ -3307,13 +3307,6 @@ function MinhaKasaDarkStyles() {
 }
 
 function OnboardingPortalCard({ onboardings }: { onboardings: OnboardingRow[] }) {
-  const STATUS_ICON: Record<string, { Icon: typeof CheckCircle2; cls: string; label: string }> = {
-    done: { Icon: CheckCircle2, cls: "text-emerald-500", label: "Concluída" },
-    in_progress: { Icon: Clock, cls: "text-[var(--portal-primary)]", label: "Em andamento" },
-    blocked: { Icon: AlertCircle, cls: "text-rose-500", label: "Bloqueada" },
-    skipped: { Icon: Circle, cls: "text-slate-300", label: "Pulada" },
-    pending: { Icon: Circle, cls: "text-slate-300", label: "Pendente" },
-  };
   const RESP_LABEL: Record<string, string> = {
     agency: "Agência",
     client: "Você",
@@ -3321,98 +3314,328 @@ function OnboardingPortalCard({ onboardings }: { onboardings: OnboardingRow[] })
   };
 
   return (
-    <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
-      <div className="px-4 py-3 bg-gradient-to-r from-[var(--portal-primary)]/15 to-transparent border-b border-slate-100 flex items-center gap-2">
-        <Play className="size-4 text-[var(--portal-primary)]" />
-        <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-700">
-          Seu Onboarding
-        </h2>
-      </div>
+    <div className="space-y-5">
+      {onboardings.map((onb) => {
+        const totalDays = onb.expected_end_date
+          ? Math.max(
+              0,
+              Math.round(
+                (new Date(onb.expected_end_date).getTime() -
+                  new Date(onb.start_date).getTime()) /
+                  86400000,
+              ),
+            )
+          : null;
+        const daysLeft = onb.expected_end_date
+          ? Math.max(
+              0,
+              Math.round(
+                (new Date(onb.expected_end_date).getTime() - Date.now()) / 86400000,
+              ),
+            )
+          : null;
+        const pct = Math.min(100, Math.max(0, onb.progress_percentage));
+        const circumference = 2 * Math.PI * 40;
+        const dashOffset = circumference - (circumference * pct) / 100;
 
-      <div className="divide-y divide-slate-100">
-        {onboardings.map((onb) => {
-          const totalDays =
-            onb.expected_end_date
-              ? Math.max(
-                  0,
-                  Math.round(
-                    (new Date(onb.expected_end_date).getTime() -
-                      new Date(onb.start_date).getTime()) /
-                      86400000,
-                  ),
-                )
-              : null;
-          return (
-            <div key={onb.id} className="p-4 space-y-4">
-              <div className="flex items-start justify-between gap-3 flex-wrap">
-                <div className="min-w-0">
-                  <h3 className="font-bold text-slate-900 text-base truncate">
-                    {onb.title}
-                  </h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Início {format(new Date(onb.start_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
-                    {onb.expected_end_date &&
-                      ` · Previsão ${format(new Date(onb.expected_end_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}`}
-                    {totalDays !== null && ` · ${totalDays} dias`}
-                  </p>
+        // active step = first in_progress, else first non-done
+        const activeIdx = (() => {
+          const ip = onb.steps.findIndex((s) => s.status === "in_progress");
+          if (ip >= 0) return ip;
+          return onb.steps.findIndex((s) => s.status !== "done" && s.status !== "skipped");
+        })();
+        const totalSteps = onb.steps.length;
+        const doneCount = onb.steps.filter((s) => s.status === "done").length;
+
+        return (
+          <section
+            key={onb.id}
+            className="relative isolate overflow-hidden rounded-3xl border border-white/5 shadow-2xl shadow-black/40"
+            style={{ backgroundColor: "#1A1A2E" }}
+          >
+            {/* Decorative radial glows */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-32 -left-32 size-96 rounded-full blur-[120px] opacity-25"
+              style={{ backgroundColor: "var(--portal-primary)" }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -bottom-32 -right-32 size-96 rounded-full blur-[120px] opacity-10"
+              style={{ backgroundColor: "var(--portal-primary)" }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+                backgroundSize: "24px 24px",
+              }}
+            />
+
+            {/* Header */}
+            <div className="relative p-6 lg:p-10 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-3">
+                  <span
+                    className="size-2 rounded-full animate-pulse"
+                    style={{ backgroundColor: "var(--portal-primary)" }}
+                  />
+                  <span
+                    className="text-[11px] font-bold tracking-[0.22em] uppercase"
+                    style={{ color: "var(--portal-primary)" }}
+                  >
+                    Seu Onboarding
+                  </span>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-black text-[var(--portal-primary)] leading-none">
-                    {onb.progress_percentage}%
-                  </div>
-                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-                    concluído
-                  </div>
-                </div>
+                <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                  Onboarding:{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">
+                    {onb.title.replace(/^Onboarding:\s*/i, "")}
+                  </span>
+                </h2>
+                <p className="mt-3 text-white/45 text-xs font-medium flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span>
+                    Início{" "}
+                    {format(new Date(onb.start_date + "T00:00:00"), "dd 'de' MMM", {
+                      locale: ptBR,
+                    })}
+                  </span>
+                  {onb.expected_end_date && (
+                    <>
+                      <span className="text-white/20">·</span>
+                      <span>
+                        Previsão{" "}
+                        {format(
+                          new Date(onb.expected_end_date + "T00:00:00"),
+                          "dd 'de' MMM",
+                          { locale: ptBR },
+                        )}
+                      </span>
+                    </>
+                  )}
+                  {totalDays !== null && (
+                    <>
+                      <span className="text-white/20">·</span>
+                      <span className="text-white/70">
+                        {daysLeft !== null && daysLeft > 0
+                          ? `${daysLeft} dias restantes`
+                          : `${totalDays} dias`}
+                      </span>
+                    </>
+                  )}
+                </p>
               </div>
 
-              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[var(--portal-primary)] transition-all"
-                  style={{ width: `${Math.min(100, Math.max(0, onb.progress_percentage))}%` }}
-                />
+              {/* Donut progress */}
+              <div className="flex flex-col items-center md:items-end gap-2 shrink-0">
+                <div className="relative grid place-items-center">
+                  <svg className="size-24 -rotate-90" viewBox="0 0 96 96">
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r="40"
+                      stroke="currentColor"
+                      strokeWidth="6"
+                      fill="transparent"
+                      className="text-white/5"
+                    />
+                    <circle
+                      cx="48"
+                      cy="48"
+                      r="40"
+                      stroke="var(--portal-primary)"
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                      fill="transparent"
+                      strokeDasharray={circumference}
+                      strokeDashoffset={dashOffset}
+                      style={{
+                        filter:
+                          "drop-shadow(0 0 8px color-mix(in oklab, var(--portal-primary) 55%, transparent))",
+                        transition: "stroke-dashoffset 1.2s ease-out",
+                      }}
+                    />
+                  </svg>
+                  <span className="absolute text-2xl font-black text-white">
+                    {pct}
+                    <span
+                      className="text-xs"
+                      style={{ color: "var(--portal-primary)" }}
+                    >
+                      %
+                    </span>
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-white/40 tracking-[0.18em] uppercase">
+                  Status Atual
+                </span>
               </div>
-
-              <ol className="relative space-y-3 pl-1 before:absolute before:left-[15px] before:top-3 before:bottom-3 before:w-px before:bg-slate-200">
-                {onb.steps.map((step) => {
-                  const meta = STATUS_ICON[step.status] || STATUS_ICON.pending;
-                  const SIcon = meta.Icon;
-                  return (
-                    <li key={step.id} className="relative flex gap-3">
-                      <div className="size-8 rounded-full bg-white border border-slate-200 z-10 grid place-items-center shrink-0">
-                        <SIcon className={`size-4 ${meta.cls}`} />
-                      </div>
-                      <div className="flex-1 min-w-0 pt-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p
-                            className={`text-sm font-semibold ${
-                              step.status === "done" ? "line-through text-slate-400" : "text-slate-800"
-                            }`}
-                          >
-                            {step.title}
-                          </p>
-                          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                            {RESP_LABEL[step.responsible_type] || step.responsible_type}
-                          </span>
-                        </div>
-                        {step.description && (
-                          <p className="text-xs text-slate-500 mt-0.5">{step.description}</p>
-                        )}
-                        {step.due_date && step.status !== "done" && (
-                          <p className="text-[10px] text-slate-400 mt-0.5 inline-flex items-center gap-1">
-                            <Calendar className="size-2.5" />
-                            Prazo: {format(new Date(step.due_date + "T00:00:00"), "dd 'de' MMM", { locale: ptBR })}
-                          </p>
-                        )}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
             </div>
-          );
-        })}
-      </div>
-    </section>
+
+            {/* Bento grid of steps */}
+            <div
+              className="relative grid grid-cols-1 md:grid-cols-2"
+              style={{ backgroundColor: "rgba(255,255,255,0.06)", gap: "1px" }}
+            >
+              {onb.steps.map((step, idx) => {
+                const isDone = step.status === "done";
+                const isBlocked = step.status === "blocked";
+                const isSkipped = step.status === "skipped";
+                const isActive = idx === activeIdx;
+                const stepNum = String(idx + 1).padStart(2, "0");
+
+                return (
+                  <div
+                    key={step.id}
+                    className="relative p-5 flex gap-4 transition-colors"
+                    style={
+                      isActive
+                        ? {
+                            backgroundColor: "#23233a",
+                            borderLeft: "3px solid var(--portal-primary)",
+                          }
+                        : { backgroundColor: "#1A1A2E" }
+                    }
+                  >
+                    {/* Status node + connector */}
+                    <div className="flex flex-col items-center shrink-0">
+                      {isDone ? (
+                        <div
+                          className="size-8 rounded-full grid place-items-center"
+                          style={{
+                            backgroundColor: "var(--portal-primary)",
+                            color: "#1A1A2E",
+                            boxShadow:
+                              "0 0 15px color-mix(in oklab, var(--portal-primary) 35%, transparent)",
+                          }}
+                        >
+                          <CheckCircle2 className="size-5" strokeWidth={3} />
+                        </div>
+                      ) : isActive ? (
+                        <div
+                          className="relative size-8 rounded-full grid place-items-center border-2"
+                          style={{ borderColor: "var(--portal-primary)" }}
+                        >
+                          <span
+                            className="absolute size-3 rounded-full animate-ping opacity-60"
+                            style={{ backgroundColor: "var(--portal-primary)" }}
+                          />
+                          <span
+                            className="relative size-2 rounded-full"
+                            style={{ backgroundColor: "var(--portal-primary)" }}
+                          />
+                        </div>
+
+                      ) : isBlocked ? (
+                        <div className="size-8 rounded-full grid place-items-center border-2 border-rose-500/60">
+                          <AlertCircle className="size-4 text-rose-400" />
+                        </div>
+                      ) : isSkipped ? (
+                        <div className="size-8 rounded-full grid place-items-center border border-white/10 text-white/30">
+                          <Circle className="size-4" />
+                        </div>
+                      ) : (
+                        <div className="size-8 rounded-full grid place-items-center border border-white/10 text-white/30">
+                          <span className="text-[10px] font-bold">{stepNum}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        {isActive && !isDone && (
+                          <span
+                            className="text-[10px] font-bold uppercase tracking-[0.14em]"
+                            style={{ color: "var(--portal-primary)" }}
+                          >
+                            Próximo passo
+                          </span>
+                        )}
+                        <span
+                          className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded"
+                          style={
+                            isActive
+                              ? {
+                                  backgroundColor:
+                                    "color-mix(in oklab, var(--portal-primary) 18%, transparent)",
+                                  color: "var(--portal-primary)",
+                                }
+                              : {
+                                  backgroundColor: "rgba(255,255,255,0.06)",
+                                  color: "rgba(255,255,255,0.55)",
+                                }
+                          }
+                        >
+                          {RESP_LABEL[step.responsible_type] || step.responsible_type}
+                        </span>
+                      </div>
+                      <h3
+                        className={`font-bold leading-snug ${
+                          isActive ? "text-white text-base" : "text-sm"
+                        }`}
+                        style={
+                          isDone
+                            ? {
+                                color: "rgba(255,255,255,0.4)",
+                                textDecoration: "line-through",
+                                textDecorationColor: "rgba(255,255,255,0.2)",
+                              }
+                            : isActive
+                              ? { color: "white" }
+                              : { color: "rgba(255,255,255,0.85)" }
+                        }
+                      >
+                        {step.title}
+                      </h3>
+                      {step.description && (
+                        <p
+                          className="text-xs mt-1 leading-relaxed"
+                          style={{
+                            color: isDone
+                              ? "rgba(255,255,255,0.2)"
+                              : isActive
+                                ? "rgba(255,255,255,0.65)"
+                                : "rgba(255,255,255,0.4)",
+                          }}
+                        >
+                          {step.description}
+                        </p>
+                      )}
+                      {step.due_date && !isDone && (
+                        <p
+                          className="text-[10px] mt-2 inline-flex items-center gap-1.5 font-medium"
+                          style={{
+                            color: isActive
+                              ? "var(--portal-primary)"
+                              : "rgba(255,255,255,0.35)",
+                          }}
+                        >
+                          <Calendar className="size-3" />
+                          Prazo:{" "}
+                          {format(
+                            new Date(step.due_date + "T00:00:00"),
+                            "dd 'de' MMM",
+                            { locale: ptBR },
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Footer ribbon */}
+            <div className="relative bg-white/[0.04] px-5 py-3 flex items-center justify-center">
+              <span className="text-[10px] font-bold tracking-[0.22em] uppercase text-white/50">
+                {doneCount} de {totalSteps} etapas concluídas
+              </span>
+            </div>
+          </section>
+        );
+      })}
+    </div>
   );
 }
