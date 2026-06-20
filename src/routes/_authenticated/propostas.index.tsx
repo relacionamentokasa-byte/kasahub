@@ -82,16 +82,80 @@ export const Route = createFileRoute("/_authenticated/propostas/")({
   component: ProposalsPage,
 });
 
-const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  Rascunho: { label: "Rascunho", cls: "bg-gray-200 text-gray-800" },
-  Enviada: { label: "Enviada", cls: "bg-blue-100 text-blue-800" },
-  Aprovada: { label: "Aprovada", cls: "bg-green-100 text-green-800" },
-  Recusada: { label: "Recusada", cls: "bg-red-100 text-red-800" },
-  Encerrada: { label: "Encerrada", cls: "bg-slate-700 text-white" },
+const STATUS_LABELS: Record<string, { label: string; cls: string; dot: string }> = {
+  Rascunho: { label: "Rascunho", cls: "bg-zinc-200 text-zinc-800 ring-1 ring-zinc-300", dot: "bg-zinc-500" },
+  Enviada: { label: "Enviada", cls: "bg-blue-500 text-white shadow-sm shadow-blue-500/30", dot: "bg-white" },
+  Aprovada: { label: "Aprovada", cls: "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30", dot: "bg-white" },
+  Recusada: { label: "Recusada", cls: "bg-red-500 text-white shadow-sm shadow-red-500/30", dot: "bg-white" },
+  Encerrada: { label: "Encerrada", cls: "bg-slate-700 text-white ring-1 ring-slate-500/40", dot: "bg-slate-300" },
 };
 
 const STATUS_ORDER = ["Rascunho", "Enviada", "Aprovada", "Recusada", "Encerrada"];
 
+function timeAgo(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 0) return "agora";
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "agora";
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `há ${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `há ${d}d`;
+  const mo = Math.floor(d / 30);
+  return `há ${mo}mo`;
+}
+
+type ProposalEventSummary = {
+  lastSent?: string;
+  lastViewed?: string;
+  viewCount: number;
+  lastStatusAt?: string;
+};
+
+function ProposalStatusLine({
+  status,
+  summary,
+  createdAt,
+}: {
+  status: string;
+  summary?: ProposalEventSummary;
+  createdAt?: string | null;
+}) {
+  if (status === "Enviada") {
+    if (summary?.lastViewed) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+          <Eye className="size-3" />
+          Cliente visualizou {timeAgo(summary.lastViewed)}
+          {summary.viewCount > 1 ? ` · ${summary.viewCount} views` : ""}
+        </span>
+      );
+    }
+    const sentAt = summary?.lastSent ?? createdAt;
+    if (sentAt) {
+      return (
+        <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+          Enviada {timeAgo(sentAt)} · sem visualização
+        </span>
+      );
+    }
+  }
+  if (status === "Aprovada" && summary?.lastStatusAt) {
+    return <span className="text-[11px] text-emerald-600 dark:text-emerald-400">Aprovada {timeAgo(summary.lastStatusAt)}</span>;
+  }
+  if (status === "Recusada" && summary?.lastStatusAt) {
+    return <span className="text-[11px] text-red-600 dark:text-red-400">Recusada {timeAgo(summary.lastStatusAt)}</span>;
+  }
+  if (status === "Encerrada" && summary?.lastStatusAt) {
+    return <span className="text-[11px] text-slate-500">Encerrada {timeAgo(summary.lastStatusAt)}</span>;
+  }
+  if (status === "Rascunho" && createdAt) {
+    return <span className="text-[11px] text-foreground/40">Criada {timeAgo(createdAt)}</span>;
+  }
+  return null;
+}
 
 function publicUrl(token: string) {
   return `${window.location.origin}/proposta/${token}`;
