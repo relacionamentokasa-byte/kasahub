@@ -79,16 +79,16 @@ export function SlideView({
       {/* Chrome top */}
       {slide.type !== "cover" && slide.type !== "closing" && (
         <div className="absolute top-12 left-16 right-16 flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             {clientLogoUrl ? (
-              <img src={clientLogoUrl} alt="" className="h-10 w-auto object-contain" />
+              <img src={clientLogoUrl} alt="" className="h-16 w-auto object-contain" />
             ) : null}
-            <span className="text-[20px] font-medium tracking-tight text-neutral-500">
+            <span className="text-[26px] font-medium tracking-tight text-neutral-500">
               {clientName || ""}
             </span>
           </div>
           {pageNumber && totalPages ? (
-            <span className="text-[20px] font-medium tabular-nums text-neutral-400">
+            <span className="text-[22px] font-medium tabular-nums text-neutral-400">
               {String(pageNumber).padStart(2, "0")} / {String(totalPages).padStart(2, "0")}
             </span>
           ) : null}
@@ -100,10 +100,10 @@ export function SlideView({
         <>
           <div
             className="absolute bottom-0 left-0 h-[6px]"
-            style={{ width: 220, backgroundColor: KASA_YELLOW }}
+            style={{ width: 280, backgroundColor: KASA_YELLOW }}
           />
           <div className="absolute bottom-10 right-16">
-            <KasaMark size={28} />
+            <KasaMark size={44} />
           </div>
         </>
       )}
