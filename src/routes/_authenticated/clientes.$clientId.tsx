@@ -1,5 +1,6 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { 
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
@@ -12,6 +13,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
+import { ClientKpiHeader } from "@/components/clients/ClientKpiHeader";
+import { ClientUnifiedTimeline, buildUnifiedEvents } from "@/components/clients/ClientUnifiedTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
@@ -22,6 +25,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
   head: () => ({ meta: [{ title: "Visão 360 do Cliente — KASA HUB" }] }),
