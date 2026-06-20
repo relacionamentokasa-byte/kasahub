@@ -161,7 +161,7 @@ export function SlideView({
               <div className="h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
               <div className="h-2 w-16 rounded-full" style={{ backgroundColor: KASA_YELLOW }} />
             </div>
-            <KasaMark size={32} />
+            <KasaMark size={52} />
           </div>
         </div>,
       );
