@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -176,7 +177,17 @@ function GCalPanel() {
         </p>
       </div>
       {isLoading ? (
-        <div className="py-10 flex justify-center"><Loader2 className="size-5 animate-spin text-primary" /></div>
+        <div className="py-2 space-y-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 py-2">
+              <Skeleton className="size-8 rounded-md" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-3.5 w-2/3" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : isError ? (
         <p className="text-sm text-red-400">{(error as Error).message}</p>
       ) : !data?.length ? (
@@ -311,7 +322,11 @@ function InterPanel() {
             </Button>
           </div>
           {isLoading ? (
-            <div className="py-6 flex justify-center"><Loader2 className="size-4 animate-spin" /></div>
+            <div className="py-2 space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-md" />
+              ))}
+            </div>
           ) : boletos.length === 0 ? (
             <p className="text-xs text-foreground/50 py-4 text-center">Nenhum boleto emitido ainda.</p>
           ) : (

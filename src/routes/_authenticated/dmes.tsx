@@ -29,6 +29,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { TableRowsSkeleton } from "@/components/ui/loading-skeletons";
 
 
 export const Route = createFileRoute("/_authenticated/dmes")({
@@ -248,7 +249,7 @@ function DmesPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={9} className="text-center py-10"><Loader2 className="size-5 animate-spin inline" /></TableCell></TableRow>
+              <TableRowsSkeleton rows={5} columns={9} />
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={9} className="text-center py-12">
                 <div className="flex flex-col items-center gap-3 text-muted-foreground">

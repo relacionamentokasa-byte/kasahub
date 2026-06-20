@@ -3,6 +3,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { ProposalEditorContent } from "./ProposalEditorContent";
+import { SheetContentSkeleton } from "@/components/ui/loading-skeletons";
 
 export function ProposalDetailSheet({
   proposalId,
@@ -37,9 +38,7 @@ export function ProposalDetailSheet({
             <ProposalEditorContent proposalId={proposalId} />
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <Loader2 className="size-8 animate-spin text-primary/20" />
-          </div>
+          <SheetContentSkeleton />
         )}
       </SheetContent>
     </Sheet>

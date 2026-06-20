@@ -73,6 +73,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { TableRowsSkeleton } from "@/components/ui/loading-skeletons";
 import { 
   Select, 
   SelectContent, 
@@ -822,7 +823,7 @@ function FinancialPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRow><TableCell colSpan={9} className="h-32 text-center text-foreground/30 italic">Carregando...</TableCell></TableRow>
+              <TableRowsSkeleton rows={6} columns={9} />
             ) : filteredTransactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-64 text-center">

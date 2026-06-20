@@ -21,6 +21,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { OnboardingTemplatesManager } from "@/components/config/OnboardingTemplatesManager";
+import { DetailHeaderSkeleton } from "@/components/ui/loading-skeletons";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
 
@@ -97,12 +98,7 @@ function ConfigPage() {
 
   // Se houver erro persistente, tentamos renderizar com dados mínimos ou aviso
   if (settingsLoading || permissionsLoading) {
-    return (
-      <div className="p-12 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="size-6 animate-spin text-primary" />
-        <span className="ml-3 text-sm text-foreground/40">Carregando configurações...</span>
-      </div>
-    );
+    return <DetailHeaderSkeleton />;
   }
 
   // Fallback se os dados da agência falharem mas tivermos o resto

@@ -12,6 +12,7 @@ import { fetchContasBancarias } from "@/lib/contas-bancarias-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CardListSkeleton } from "@/components/ui/loading-skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -179,7 +180,7 @@ function DistribuicaoPage() {
       </div>
 
       {isLoading || !summary ? (
-        <div className="py-20 text-center text-muted-foreground"><Loader2 className="size-6 animate-spin inline" /></div>
+        <CardListSkeleton count={4} className="py-4" />
       ) : (
         <>
           {summary.alreadyDistributed && (
