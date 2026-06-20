@@ -64,11 +64,20 @@ export function ProfileImageUpload({
       
       if (upErr) throw upErr;
 
-      const { data: { publicUrl } } = supabase.storage
+      // Tenta URL assinada de longa duração (funciona em buckets privados).
+      // Se falhar, faz fallback para publicUrl.
+      let finalUrl: string | null = null;
+      const { data: signed, error: signErr } = await supabase.storage
         .from(bucket)
-        .getPublicUrl(path);
-      
-      onChange(publicUrl);
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (!signErr && signed?.signedUrl) {
+        finalUrl = signed.signedUrl;
+      } else {
+        const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+        finalUrl = publicUrl;
+      }
+
+      onChange(finalUrl);
       setShowCropper(false);
       setImage(null);
       toast.success("Foto atualizada");
