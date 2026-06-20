@@ -20,6 +20,7 @@ import { Route as MinhaKasaSlugRouteImport } from './routes/minha-kasa.$slug'
 import { Route as LpDeltaPlusRouteImport } from './routes/lp.delta-plus'
 import { Route as DmeTokenRouteImport } from './routes/dme.$token'
 import { Route as DmeLoteTokenRouteImport } from './routes/dme-lote.$token'
+import { Route as CaptarSlugRouteImport } from './routes/captar.$slug'
 import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
 import { Route as AuthenticatedValesRouteImport } from './routes/_authenticated/vales'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
@@ -56,12 +57,14 @@ import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/
 import { Route as ApiPublicPortalJobsSlugRouteImport } from './routes/api/public/portal-jobs.$slug'
 import { Route as ApiPublicPortalApprovalActionSlugRouteImport } from './routes/api/public/portal-approval-action.$slug'
 import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/public/portal-action.$slug'
+import { Route as ApiPublicLeadsInboundRouteImport } from './routes/api/public/leads/inbound'
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
 import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.pdf'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.apresentar'
+import { Route as ApiPublicLeadsSubmitSlugRouteImport } from './routes/api/public/leads/submit.$slug'
 
 const ConviteRoute = ConviteRouteImport.update({
   id: '/convite',
@@ -115,6 +118,11 @@ const DmeTokenRoute = DmeTokenRouteImport.update({
 const DmeLoteTokenRoute = DmeLoteTokenRouteImport.update({
   id: '/dme-lote/$token',
   path: '/dme-lote/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaptarSlugRoute = CaptarSlugRouteImport.update({
+  id: '/captar/$slug',
+  path: '/captar/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApproveTokenRoute = ApproveTokenRouteImport.update({
@@ -311,6 +319,11 @@ const ApiPublicPortalActionSlugRoute =
     path: '/api/public/portal-action/$slug',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicLeadsInboundRoute = ApiPublicLeadsInboundRouteImport.update({
+  id: '/api/public/leads/inbound',
+  path: '/api/public/leads/inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicHooksDispatchPushRoute =
   ApiPublicHooksDispatchPushRouteImport.update({
     id: '/api/public/hooks/dispatch-push',
@@ -345,6 +358,12 @@ const AuthenticatedConstrutorRelatoriosReportIdApresentarRoute =
     path: '/construtor-relatorios/$reportId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicLeadsSubmitSlugRoute =
+  ApiPublicLeadsSubmitSlugRouteImport.update({
+    id: '/api/public/leads/submit/$slug',
+    path: '/api/public/leads/submit/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -366,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
+  '/captar/$slug': typeof CaptarSlugRoute
   '/dme-lote/$token': typeof DmeLoteTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
@@ -389,6 +409,7 @@ export interface FileRoutesByFullPath {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
   '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
@@ -399,6 +420,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/construtor-relatorios/$reportId/': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
+  '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -419,6 +441,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
+  '/captar/$slug': typeof CaptarSlugRoute
   '/dme-lote/$token': typeof DmeLoteTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
@@ -443,6 +466,7 @@ export interface FileRoutesByTo {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
   '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
@@ -453,6 +477,7 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/construtor-relatorios/$reportId': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
+  '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -475,6 +500,7 @@ export interface FileRoutesById {
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/vales': typeof AuthenticatedValesRoute
   '/approve/$token': typeof ApproveTokenRoute
+  '/captar/$slug': typeof CaptarSlugRoute
   '/dme-lote/$token': typeof DmeLoteTokenRoute
   '/dme/$token': typeof DmeTokenRoute
   '/lp/delta-plus': typeof LpDeltaPlusRoute
@@ -499,6 +525,7 @@ export interface FileRoutesById {
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
+  '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
   '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
@@ -509,6 +536,7 @@ export interface FileRoutesById {
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/construtor-relatorios/$reportId/': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
+  '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -532,6 +560,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/vales'
     | '/approve/$token'
+    | '/captar/$slug'
     | '/dme-lote/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
@@ -555,6 +584,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/leads/inbound'
     | '/api/public/portal-action/$slug'
     | '/api/public/portal-approval-action/$slug'
     | '/api/public/portal-jobs/$slug'
@@ -565,6 +595,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/construtor-relatorios/$reportId/'
+    | '/api/public/leads/submit/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -585,6 +616,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/vales'
     | '/approve/$token'
+    | '/captar/$slug'
     | '/dme-lote/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
@@ -609,6 +641,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/leads/inbound'
     | '/api/public/portal-action/$slug'
     | '/api/public/portal-approval-action/$slug'
     | '/api/public/portal-jobs/$slug'
@@ -619,6 +652,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/construtor-relatorios/$reportId'
+    | '/api/public/leads/submit/$slug'
   id:
     | '__root__'
     | '/_authenticated'
@@ -640,6 +674,7 @@ export interface FileRouteTypes {
     | '/_authenticated/relatorios'
     | '/_authenticated/vales'
     | '/approve/$token'
+    | '/captar/$slug'
     | '/dme-lote/$token'
     | '/dme/$token'
     | '/lp/delta-plus'
@@ -664,6 +699,7 @@ export interface FileRouteTypes {
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
+    | '/api/public/leads/inbound'
     | '/api/public/portal-action/$slug'
     | '/api/public/portal-approval-action/$slug'
     | '/api/public/portal-jobs/$slug'
@@ -674,6 +710,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/webhook'
     | '/lovable/email/queue/process'
     | '/_authenticated/construtor-relatorios/$reportId/'
+    | '/api/public/leads/submit/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -681,6 +718,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ConviteRoute: typeof ConviteRoute
   ApproveTokenRoute: typeof ApproveTokenRoute
+  CaptarSlugRoute: typeof CaptarSlugRoute
   DmeLoteTokenRoute: typeof DmeLoteTokenRoute
   DmeTokenRoute: typeof DmeTokenRoute
   LpDeltaPlusRoute: typeof LpDeltaPlusRoute
@@ -693,6 +731,7 @@ export interface RootRouteChildren {
   ApiPublicApproveTokenRoute: typeof ApiPublicApproveTokenRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
+  ApiPublicLeadsInboundRoute: typeof ApiPublicLeadsInboundRoute
   ApiPublicPortalActionSlugRoute: typeof ApiPublicPortalActionSlugRoute
   ApiPublicPortalApprovalActionSlugRoute: typeof ApiPublicPortalApprovalActionSlugRoute
   ApiPublicPortalJobsSlugRoute: typeof ApiPublicPortalJobsSlugRoute
@@ -702,6 +741,7 @@ export interface RootRouteChildren {
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
+  ApiPublicLeadsSubmitSlugRoute: typeof ApiPublicLeadsSubmitSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -781,6 +821,13 @@ declare module '@tanstack/react-router' {
       path: '/dme-lote/$token'
       fullPath: '/dme-lote/$token'
       preLoaderRoute: typeof DmeLoteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/captar/$slug': {
+      id: '/captar/$slug'
+      path: '/captar/$slug'
+      fullPath: '/captar/$slug'
+      preLoaderRoute: typeof CaptarSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/approve/$token': {
@@ -1035,6 +1082,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPortalActionSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/leads/inbound': {
+      id: '/api/public/leads/inbound'
+      path: '/api/public/leads/inbound'
+      fullPath: '/api/public/leads/inbound'
+      preLoaderRoute: typeof ApiPublicLeadsInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/dispatch-push': {
       id: '/api/public/hooks/dispatch-push'
       path: '/api/public/hooks/dispatch-push'
@@ -1076,6 +1130,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/construtor-relatorios/$reportId/apresentar'
       preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/leads/submit/$slug': {
+      id: '/api/public/leads/submit/$slug'
+      path: '/api/public/leads/submit/$slug'
+      fullPath: '/api/public/leads/submit/$slug'
+      preLoaderRoute: typeof ApiPublicLeadsSubmitSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -1155,6 +1216,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ConviteRoute: ConviteRoute,
   ApproveTokenRoute: ApproveTokenRoute,
+  CaptarSlugRoute: CaptarSlugRoute,
   DmeLoteTokenRoute: DmeLoteTokenRoute,
   DmeTokenRoute: DmeTokenRoute,
   LpDeltaPlusRoute: LpDeltaPlusRoute,
@@ -1167,6 +1229,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicApproveTokenRoute: ApiPublicApproveTokenRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
+  ApiPublicLeadsInboundRoute: ApiPublicLeadsInboundRoute,
   ApiPublicPortalActionSlugRoute: ApiPublicPortalActionSlugRoute,
   ApiPublicPortalApprovalActionSlugRoute:
     ApiPublicPortalApprovalActionSlugRoute,
@@ -1177,6 +1240,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
+  ApiPublicLeadsSubmitSlugRoute: ApiPublicLeadsSubmitSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

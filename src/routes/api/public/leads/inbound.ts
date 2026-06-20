@@ -95,7 +95,7 @@ export const Route = createFileRoute("/api/public/leads/inbound")({
           null;
         const ua = request.headers.get("user-agent") || null;
 
-        const { data: result, error } = await supabaseAdmin.rpc("fn_upsert_lead_from_source", {
+        const { data: result, error } = await (supabaseAdmin.rpc as any)("fn_upsert_lead_from_source", {
           p_source_id: source.id,
           p_name: name,
           p_email: email,

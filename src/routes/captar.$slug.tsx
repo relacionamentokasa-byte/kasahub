@@ -221,7 +221,7 @@ function CaptarPage() {
 
             {config.landing_benefits?.length > 0 && (
               <ul className="space-y-3">
-                {config.landing_benefits.map((b, i) => (
+                {config.landing_benefits.map((b: { title: string; description?: string }, i: number) => (
                   <li key={i} className="flex items-start gap-3">
                     <div
                       className="size-6 rounded-full flex items-center justify-center shrink-0 mt-0.5"
@@ -364,7 +364,7 @@ function CaptarPage() {
             Quem confia na Kasa
           </h3>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {config.landing_testimonials.map((t, i) => (
+            {config.landing_testimonials.map((t: { author: string; text: string; role?: string }, i: number) => (
               <div key={i} className="bg-card border border-border rounded-xl p-6">
                 <p className="text-foreground/80 italic leading-relaxed mb-4">"{t.text}"</p>
                 <div className="text-sm">
