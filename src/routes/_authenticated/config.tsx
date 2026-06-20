@@ -21,6 +21,7 @@ import {
   Rocket,
 } from "lucide-react";
 import { OnboardingTemplatesManager } from "@/components/config/OnboardingTemplatesManager";
+import { DetailHeaderSkeleton } from "@/components/ui/loading-skeletons";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
 
