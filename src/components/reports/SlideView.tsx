@@ -404,17 +404,20 @@ function inline(s: string) {
 function ChartRender({
   chartType,
   categories,
+  categoryPlatforms,
   series,
   brandColor,
 }: {
   chartType: "bar" | "line" | "area" | "pie";
   categories: string[];
+  categoryPlatforms: string[];
   series: ChartSeries[];
   brandColor: string;
 }) {
   // Build a palette: brand, Kasa yellow, then desaturated companions
   const palette = [brandColor, KASA_YELLOW, "#1F2937", "#9CA3AF", "#60A5FA", "#F472B6"];
   const colorAt = (i: number) => palette[i % palette.length];
+  const hasAnyPlatformOnCategory = categoryPlatforms.some((p) => !!p);
 
   if (!categories.length || !series.length) {
     return (
@@ -439,12 +442,51 @@ function ChartRender({
   };
   const legendStyle = { fontSize: 22, paddingTop: 16, fontFamily: "Onest" };
 
+  // Custom XAxis tick: renders platform icon above the label (when configured)
+  const CategoryTick = (tickProps: any) => {
+    const { x, y, payload } = tickProps;
+    const idx = categories.findIndex((c, i) => (c || `#${i + 1}`) === payload.value);
+    const platformId = idx >= 0 ? categoryPlatforms[idx] : undefined;
+    const plat = getPlatform(platformId);
+    const iconSize = 32;
+    return (
+      <g transform={`translate(${x},${y})`}>
+        {plat ? (
+          <svg
+            x={-iconSize / 2}
+            y={4}
+            width={iconSize}
+            height={iconSize}
+            viewBox="0 0 24 24"
+          >
+            <path d={plat.path} fill={brandColor} />
+          </svg>
+        ) : null}
+        <text
+          x={0}
+          y={plat ? iconSize + 14 : 6}
+          dy={16}
+          textAnchor="middle"
+          fill="#525252"
+          fontFamily="Onest"
+          fontSize={22}
+        >
+          {payload.value}
+        </text>
+      </g>
+    );
+  };
+
+  const xAxisExtra = hasAnyPlatformOnCategory
+    ? { tick: CategoryTick as any, height: 80 }
+    : {};
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       {chartType === "bar" ? (
         <BarChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
@@ -455,7 +497,7 @@ function ChartRender({
       ) : chartType === "line" ? (
         <LineChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
@@ -481,7 +523,7 @@ function ChartRender({
             ))}
           </defs>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
@@ -498,7 +540,21 @@ function ChartRender({
       ) : (
         <PieChart>
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
-          <Legend wrapperStyle={legendStyle} />
+          <Legend
+            wrapperStyle={legendStyle}
+            formatter={(value: string) => {
+              const idx = categories.findIndex((c, i) => (c || `#${i + 1}`) === value);
+              const platformId = idx >= 0 ? categoryPlatforms[idx] : undefined;
+              const plat = getPlatform(platformId);
+              if (!plat) return value;
+              return (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8, verticalAlign: "middle" }}>
+                  <PlatformIcon id={platformId} size={20} color={brandColor} />
+                  {value}
+                </span>
+              );
+            }}
+          />
           <Pie
             data={categories.map((cat, i) => ({
               name: cat || `#${i + 1}`,
