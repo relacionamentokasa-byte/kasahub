@@ -4,8 +4,9 @@ import {
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
-  FileSignature, Sparkles, Link as LinkIcon, Plus
+  FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket
 } from "lucide-react";
+import { ClientOnboardingPanel } from "@/components/onboarding/ClientOnboardingPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
