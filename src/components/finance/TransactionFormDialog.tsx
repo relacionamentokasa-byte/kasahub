@@ -580,7 +580,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               />
             )}
 
-            {watchType === "expense" && (
+            {watchType === "expense" && !isProLaboreCategory && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
