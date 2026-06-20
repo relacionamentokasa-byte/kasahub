@@ -150,6 +150,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         nature: "operacional",
         is_internal: false,
         is_investment: false,
+      });
     }
   }, [open, transaction]);
 
