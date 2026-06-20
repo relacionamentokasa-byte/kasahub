@@ -121,6 +121,7 @@ export function SlideEditor({
         <ChartEditor
           chartType={p.chartType ?? "bar"}
           categories={p.chartCategories ?? []}
+          categoryPlatforms={p.chartCategoryPlatforms ?? []}
           series={p.chartSeries ?? []}
           note={p.chartNote ?? ""}
           onChange={(patch) => update(patch)}
