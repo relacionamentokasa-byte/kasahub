@@ -81,6 +81,8 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -89,6 +91,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const PRO_LABORE = "pro-labore";
 const normalize = (s: string | null | undefined) =>
@@ -296,7 +299,10 @@ function FinancialPage() {
     search: ""
   });
   const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
+  const [quickChip, setQuickChip] = useState<"none" | "today" | "week" | "overdue" | "paid_month">("none");
   const [showCancelled, setShowCancelled] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
 
   const periodFilters = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -351,8 +357,73 @@ function FinancialPage() {
 
   });
 
+  const todayStrLocal = (() => {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  })();
+
+  const bulkBaixaMut = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ status: "paid" as any, payment_date: todayStrLocal })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
+      qc.invalidateQueries({ queryKey: ["saude-negocio"] });
+      toast.success(`${ids.length} lançamento(s) dados como pagos`);
+      setSelectedIds(new Set());
+    },
+    onError: (e: any) => toast.error("Erro: " + (e?.message || "")),
+  });
+
+  const bulkCancelMut = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ status: "cancelled" as any })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      qc.invalidateQueries({ queryKey: ["saude-negocio"] });
+      toast.success(`${ids.length} lançamento(s) cancelados`);
+      setSelectedIds(new Set());
+    },
+    onError: (e: any) => toast.error("Erro: " + (e?.message || "")),
+  });
+
+  const bulkCategoryMut = useMutation({
+    mutationFn: async ({ ids, categoryId }: { ids: string[]; categoryId: string }) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ category_id: categoryId })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      toast.success(`Categoria aplicada a ${vars.ids.length} lançamento(s)`);
+      setSelectedIds(new Set());
+      setBulkCategoryOpen(false);
+    },
+    onError: (e: any) => toast.error("Erro: " + (e?.message || "")),
+  });
 
   const getCatName = (t: any) => (t.categorias_financeiras as any)?.nome || t.category || "";
+
+  const weekFromTodayStr = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  })();
 
   const filteredTransactions = transactions.filter((t: any) => {
     if (!showCancelled && t.status === "cancelled") return false;
@@ -362,9 +433,20 @@ function FinancialPage() {
       (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase());
     if (!matchSearch) return false;
     const proLab = isProLabore(getCatName(t));
-    if (quickFilter === "income") return t.type === "income";
-    if (quickFilter === "expense_op") return t.type === "expense" && !proLab;
-    if (quickFilter === "pro_labore") return proLab;
+    if (quickFilter === "income" && t.type !== "income") return false;
+    if (quickFilter === "expense_op" && !(t.type === "expense" && !proLab)) return false;
+    if (quickFilter === "pro_labore" && !proLab) return false;
+
+    if (quickChip === "today") {
+      if ((t.due_date || "").slice(0, 10) !== todayStrLocal) return false;
+    } else if (quickChip === "week") {
+      const d = (t.due_date || "").slice(0, 10);
+      if (!d || d < todayStrLocal || d > weekFromTodayStr) return false;
+    } else if (quickChip === "overdue") {
+      if (t.status !== "pending" || !t.due_date || t.due_date >= todayStrLocal) return false;
+    } else if (quickChip === "paid_month") {
+      if (t.status !== "paid") return false;
+    }
     return true;
   }).sort((a: any, b: any) => (a.due_date || "").localeCompare(b.due_date || ""));
 
@@ -605,11 +687,129 @@ function FinancialPage() {
         </div>
       </div>
 
+      {/* Quick chips */}
+      <div className="flex flex-wrap items-center gap-2">
+        {[
+          { id: "none", label: "Tudo" },
+          { id: "today", label: "Hoje" },
+          { id: "week", label: "Próx. 7 dias" },
+          { id: "overdue", label: "Atrasados" },
+          { id: "paid_month", label: "Pagos do mês" },
+        ].map((c) => {
+          const active = quickChip === (c.id as any);
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setQuickChip(c.id as any)}
+              className={cn(
+                "text-xs px-3 h-8 rounded-full border transition-colors font-medium",
+                active
+                  ? c.id === "overdue"
+                    ? "bg-red-600 text-white border-red-600"
+                    : c.id === "paid_month"
+                    ? "bg-emerald-600 text-white border-emerald-600"
+                    : "bg-primary text-primary-foreground border-primary"
+                  : "border-border text-foreground/60 hover:text-foreground hover:border-foreground/30 bg-surface",
+              )}
+            >
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-2 z-20 flex flex-wrap items-center gap-3 bg-primary text-primary-foreground rounded-2xl px-4 py-3 shadow-lg animate-reveal">
+          <span className="text-sm font-semibold">
+            {selectedIds.size} selecionado(s)
+          </span>
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              className="rounded-full gap-1.5 h-8"
+              onClick={() => bulkBaixaMut.mutate(Array.from(selectedIds))}
+              disabled={bulkBaixaMut.isPending}
+            >
+              <CheckCircle2 className="size-4" /> Dar baixa
+            </Button>
+            <Popover open={bulkCategoryOpen} onOpenChange={setBulkCategoryOpen}>
+              <PopoverTrigger asChild>
+                <Button size="sm" variant="secondary" className="rounded-full gap-1.5 h-8">
+                  <Filter className="size-4" /> Categoria
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-64 p-2">
+                <div className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-2 pb-2">
+                  Aplicar categoria
+                </div>
+                <div className="max-h-64 overflow-auto space-y-0.5">
+                  {(categories as any[]).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() =>
+                        bulkCategoryMut.mutate({
+                          ids: Array.from(selectedIds),
+                          categoryId: c.id,
+                        })
+                      }
+                      className="w-full text-left text-sm px-2 py-1.5 rounded-md hover:bg-muted transition-colors"
+                    >
+                      {c.nome || c.name}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="rounded-full gap-1.5 h-8"
+              onClick={() => {
+                if (confirm(`Cancelar ${selectedIds.size} lançamento(s)?`))
+                  bulkCancelMut.mutate(Array.from(selectedIds));
+              }}
+              disabled={bulkCancelMut.isPending}
+            >
+              <Trash2 className="size-4" /> Cancelar
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="rounded-full h-8 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
+              onClick={() => setSelectedIds(new Set())}
+            >
+              Limpar
+            </Button>
+          </div>
+        </div>
+      )}
+
+
       {/* Transactions Table */}
       <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
         <Table>
           <TableHeader className="bg-muted/30">
             <TableRow>
+              <TableHead className="w-10 py-4">
+                <Checkbox
+                  checked={
+                    filteredTransactions.length > 0 &&
+                    filteredTransactions.every((t: any) => selectedIds.has(t.id))
+                  }
+                  onCheckedChange={(c) => {
+                    if (c) {
+                      setSelectedIds(new Set(filteredTransactions.map((t: any) => t.id)));
+                    } else {
+                      setSelectedIds(new Set());
+                    }
+                  }}
+                  aria-label="Selecionar todos"
+                />
+              </TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Vencimento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Descrição / Cliente</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Categoria</TableHead>
@@ -662,6 +862,20 @@ function FinancialPage() {
                       : "hover:bg-muted/10",
                   )}
                 >
+                  <TableCell className="py-4 w-10">
+                    <Checkbox
+                      checked={selectedIds.has(t.id)}
+                      onCheckedChange={(c) => {
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (c) next.add(t.id);
+                          else next.delete(t.id);
+                          return next;
+                        });
+                      }}
+                      aria-label="Selecionar"
+                    />
+                  </TableCell>
                   <TableCell className="py-4">
                     <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
                     {t.payment_date && <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono-kasa uppercase mt-1">Pago em {formatDateOnlyBR(t.payment_date)}</div>}
@@ -781,7 +995,7 @@ function FinancialPage() {
                     )}
                   </TableCell>
                   <TableCell className="py-4 text-center">
-                    <StatusBadge status={effectiveStatus} />
+                    <StatusBadge status={effectiveStatus} dueDate={t.due_date} />
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center justify-end gap-1">
@@ -970,17 +1184,37 @@ function StatCard({ title, value, icon: Icon, color, bg, cardBg }: { title: stri
   );
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const configs: Record<string, { label: string, cls: string }> = {
-    pending: { label: "Pendente", cls: "border-blue-500/20 text-blue-600 dark:text-blue-400 bg-blue-500/5" },
-    paid: { label: "Pago", cls: "border-emerald-600 text-white bg-emerald-600" },
-    overdue: { label: "Atrasado", cls: "border-red-600 text-white bg-red-600" },
-    cancelled: { label: "Cancelado", cls: "border-foreground/10 text-foreground/40 bg-foreground/5" }
-  };
-  const config = configs[status] || configs.pending;
+function StatusBadge({ status, dueDate }: { status: string; dueDate?: string | null }) {
+  let label = "";
+  let cls = "";
+  if (status === "paid") {
+    label = "Pago";
+    cls = "border-emerald-600 text-white bg-emerald-600";
+  } else if (status === "cancelled") {
+    label = "Cancelado";
+    cls = "border-foreground/10 text-foreground/40 bg-foreground/5";
+  } else if (status === "overdue") {
+    let days = 0;
+    if (dueDate) {
+      const d = new Date(`${dueDate.slice(0, 10)}T00:00:00`);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      days = Math.max(0, Math.floor((today.getTime() - d.getTime()) / 86400000));
+    }
+    label = days > 0 ? `Atrasado · ${days}d` : "Atrasado";
+    cls =
+      days >= 30
+        ? "border-red-800 text-white bg-red-800 animate-pulse"
+        : days >= 7
+        ? "border-red-600 text-white bg-red-600"
+        : "border-orange-500 text-white bg-orange-500";
+  } else {
+    label = "Pendente";
+    cls = "border-blue-500/20 text-blue-600 dark:text-blue-400 bg-blue-500/5";
+  }
   return (
-    <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2", config.cls)}>
-      {config.label}
+    <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2", cls)}>
+      {label}
     </Badge>
   );
 }
