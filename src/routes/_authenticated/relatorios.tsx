@@ -357,8 +357,65 @@ function FinancialPage() {
 
   });
 
+  const todayStrLocal = (() => {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  })();
 
-  const getCatName = (t: any) => (t.categorias_financeiras as any)?.nome || t.category || "";
+  const bulkBaixaMut = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ status: "paid" as any, payment_date: todayStrLocal })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
+      qc.invalidateQueries({ queryKey: ["saude-negocio"] });
+      toast.success(`${ids.length} lançamento(s) dados como pagos`);
+      setSelectedIds(new Set());
+    },
+    onError: (e: any) => toast.error("Erro: " + (e?.message || "")),
+  });
+
+  const bulkCancelMut = useMutation({
+    mutationFn: async (ids: string[]) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ status: "cancelled" as any })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, ids) => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      qc.invalidateQueries({ queryKey: ["saude-negocio"] });
+      toast.success(`${ids.length} lançamento(s) cancelados`);
+      setSelectedIds(new Set());
+    },
+    onError: (e: any) => toast.error("Erro: " + (e?.message || "")),
+  });
+
+  const bulkCategoryMut = useMutation({
+    mutationFn: async ({ ids, categoryId }: { ids: string[]; categoryId: string }) => {
+      const { error } = await supabase
+        .from("transactions")
+        .update({ category_id: categoryId })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      toast.success(`Categoria aplicada a ${vars.ids.length} lançamento(s)`);
+      setSelectedIds(new Set());
+      setBulkCategoryOpen(false);
+    },
+    onError: (e: any) => toast.error("Erro: " + (e?.message || "")),
+  });
 
   const filteredTransactions = transactions.filter((t: any) => {
     if (!showCancelled && t.status === "cancelled") return false;
