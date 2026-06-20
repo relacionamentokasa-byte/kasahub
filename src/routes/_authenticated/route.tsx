@@ -38,20 +38,26 @@ function ShellLayout() {
   const { user } = Route.useRouteContext();
 
   useEffect(() => {
-    if (user?.id) {
-      supabase
-        .from("profiles")
-        .update({ last_access: new Date().toISOString() })
-        .eq("id", user.id)
-        .then(() => {
-          supabase.from("access_logs").insert({
-            user_id: user.id,
-            action: "login",
-            metadata: { user_agent: navigator.userAgent }
-          }).then(() => {});
-        });
-    }
+    if (!user?.id) return;
+    // Only log once per browser session to avoid hammering the DB on every
+    // shell mount (which happens on every route change inside _authenticated).
+    const sessionKey = `kasa:access-logged:${user.id}`;
+    if (typeof window === "undefined" || sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, "1");
+
+    supabase
+      .from("profiles")
+      .update({ last_access: new Date().toISOString() })
+      .eq("id", user.id)
+      .then(() => {
+        supabase.from("access_logs").insert({
+          user_id: user.id,
+          action: "login",
+          metadata: { user_agent: navigator.userAgent }
+        }).then(() => {});
+      });
   }, [user?.id]);
+
 
   return (
     <PresenceProvider userId={user?.id}>
