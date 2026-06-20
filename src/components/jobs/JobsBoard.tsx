@@ -166,11 +166,13 @@ export function JobsBoard({
       });
     }
 
-    // Filtro por Responsável Principal
+    // Filtro por Responsável (principal, assignee OU equipe envolvida)
     if (responsibleId && responsibleId !== "all") {
       result = result.filter((j) => {
         const mainRespId = (j as any).main_responsible_id || j.assignee_id;
-        return mainRespId === responsibleId;
+        if (mainRespId === responsibleId) return true;
+        const teamInvolved = (j as any).team_involved || [];
+        return teamInvolved.some((m: any) => (m?.user_id || m) === responsibleId);
       });
     }
 
