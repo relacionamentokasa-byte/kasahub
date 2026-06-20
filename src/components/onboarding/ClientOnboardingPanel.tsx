@@ -17,7 +17,9 @@ import {
   Trash2,
   Loader2,
   CalendarIcon,
+  Presentation,
 } from "lucide-react";
+
 import {
   fetchOnboardings,
   fetchOnboardingSteps,
