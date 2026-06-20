@@ -309,6 +309,20 @@ export function SlideView({
     case "closing":
       return shell(
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center" style={{ background: `linear-gradient(135deg, ${color}15 0%, #ffffff 70%)` }}>
+          {/* Horizontal Kasa pattern band — top */}
+          <div
+            className="absolute top-0 left-0 right-0 h-[100px]"
+            style={{
+              backgroundImage: `url(${KASA_PATTERN})`,
+              backgroundSize: "auto 100%",
+              backgroundRepeat: "repeat",
+              backgroundPosition: "center",
+            }}
+          />
+          <div
+            className="absolute left-0 right-0 h-[6px]"
+            style={{ top: 100, backgroundColor: KASA_YELLOW }}
+          />
           {heading(p.title, "lg")}
           {p.subtitle ? (
             <p className="mt-8 text-[36px] text-neutral-500 max-w-[1400px]">{p.subtitle}</p>
