@@ -140,21 +140,27 @@ async function fetchSaudeNegocio(refDate: Date) {
 
   const metaAnual = Number(annualGoalData?.target_value || 0);
 
+  // Faturado YTD = receitas operacionais efetivamente recebidas (payment_date)
+  // do início do ano até HOJE — mesma regra dos Relatórios de Gestão.
+  const todayISO = new Date().toISOString().slice(0, 10);
   const { data: yearIncomes } = await supabase
     .from("transactions")
-    .select("amount, status, kind, type, nature")
-    .gte("due_date", yearStart)
-    .lte("due_date", yearEnd);
+    .select("amount, paid_value, valor_real, status, kind, type, nature, payment_date")
+    .eq("type", "income")
+    .gte("payment_date", yearStart)
+    .lte("payment_date", todayISO);
 
-  // Faturamento anual = só receita OPERACIONAL e efetivamente recebida.
-  // Receitas não-operacionais (aporte, consórcio, investimento) NÃO compõem o faturamento.
   const faturadoAnual = (yearIncomes || [])
     .filter((t: any) =>
       (t.kind || t.type) === "income"
       && t.nature !== "nao_operacional"
-      && PAID_STATUSES.has(String(t.status || "").toLowerCase())
+      && (PAID_STATUSES.has(String(t.status || "").toLowerCase()) || !!t.payment_date)
     )
-    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+    .reduce(
+      (acc: number, t: any) =>
+        acc + (Number(t.paid_value ?? t.valor_real ?? t.amount) || 0),
+      0
+    );
 
   return {
     mrr,
