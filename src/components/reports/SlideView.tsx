@@ -297,7 +297,13 @@ export function SlideView({
           {p.subtitle ? (
             <p className="mt-8 text-[36px] text-neutral-500 max-w-[1400px]">{p.subtitle}</p>
           ) : null}
-          <div className="mt-16 h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+          <div className="mt-16 flex items-center gap-3">
+            <div className="h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+            <div className="h-2 w-16 rounded-full" style={{ backgroundColor: KASA_YELLOW }} />
+          </div>
+          <div className="absolute bottom-16 left-0 right-0 flex justify-center">
+            <KasaMark size={36} />
+          </div>
         </div>,
       );
   }
