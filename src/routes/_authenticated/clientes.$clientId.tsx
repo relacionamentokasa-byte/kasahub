@@ -121,6 +121,12 @@ function ClientDetail() {
     },
   });
 
+  // Todos os hooks devem ser declarados ANTES de qualquer early return
+  // para preservar a ordem entre renders (loading -> loaded).
+  const unifiedEvents = useMemo(
+    () => buildUnifiedEvents({ proposals, contracts, projects, jobs, dmes, transactions, onboardings }),
+    [proposals, contracts, projects, jobs, dmes, transactions, onboardings],
+  );
 
   if (clientLoading) return <DetailHeaderSkeleton />;
 
@@ -176,10 +182,8 @@ function ClientDetail() {
   }
   const lastContact = lastContactCandidates.sort((a, b) => (a.ts < b.ts ? 1 : -1))[0];
 
-  const unifiedEvents = useMemo(
-    () => buildUnifiedEvents({ proposals, contracts, projects, jobs, dmes, transactions, onboardings }),
-    [proposals, contracts, projects, jobs, dmes, transactions, onboardings],
-  );
+
+
 
 
 
