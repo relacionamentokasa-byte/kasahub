@@ -1,5 +1,28 @@
 import type { Slide, KpiItem, DeliverableItem } from "./types";
 
+const KASA_YELLOW = "#FFD60A";
+const KASA_LOGO_YELLOW =
+  "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+
+function KasaMark({ size = 28 }: { size?: number }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        className="font-mono uppercase tracking-[0.22em] text-neutral-400"
+        style={{ fontSize: size * 0.55 }}
+      >
+        produzido por
+      </span>
+      <img
+        src={KASA_LOGO_YELLOW}
+        alt="Kasa Hub"
+        style={{ height: size, width: "auto" }}
+        className="object-contain"
+      />
+    </div>
+  );
+}
+
 /**
  * Renders a slide at fixed 1920x1080 resolution. The caller is responsible for
  * scaling it to fit the available space via `transform: scale(...)`.
@@ -46,6 +69,18 @@ export function SlideView({
         </div>
       )}
       {children}
+      {/* Footer accent + Kasa mark */}
+      {slide.type !== "cover" && slide.type !== "closing" && (
+        <>
+          <div
+            className="absolute bottom-0 left-0 h-[6px]"
+            style={{ width: 220, backgroundColor: KASA_YELLOW }}
+          />
+          <div className="absolute bottom-10 right-16">
+            <KasaMark size={28} />
+          </div>
+        </>
+      )}
     </div>
   );
 
@@ -91,7 +126,13 @@ export function SlideView({
               </p>
             ) : null}
           </div>
-          <div className="h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+          <div className="flex items-end justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+              <div className="h-2 w-16 rounded-full" style={{ backgroundColor: KASA_YELLOW }} />
+            </div>
+            <KasaMark size={32} />
+          </div>
         </div>,
       );
 
@@ -256,7 +297,13 @@ export function SlideView({
           {p.subtitle ? (
             <p className="mt-8 text-[36px] text-neutral-500 max-w-[1400px]">{p.subtitle}</p>
           ) : null}
-          <div className="mt-16 h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+          <div className="mt-16 flex items-center gap-3">
+            <div className="h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+            <div className="h-2 w-16 rounded-full" style={{ backgroundColor: KASA_YELLOW }} />
+          </div>
+          <div className="absolute bottom-16 left-0 right-0 flex justify-center">
+            <KasaMark size={36} />
+          </div>
         </div>,
       );
   }
