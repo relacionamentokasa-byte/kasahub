@@ -199,6 +199,8 @@ function PresentOnboardingPage() {
           ["--brand" as any]: primary,
           ["--brand-soft" as any]: `color-mix(in oklab, ${primary} 18%, transparent)`,
           ["--brand-glow" as any]: `color-mix(in oklab, ${primary} 35%, transparent)`,
+          ["--accent" as any]: secondary,
+          ["--accent-soft" as any]: `color-mix(in oklab, ${secondary} 18%, transparent)`,
           fontFamily:
             "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
         } as React.CSSProperties
@@ -212,8 +214,8 @@ function PresentOnboardingPage() {
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-15"
-        style={{ backgroundColor: primary }}
+        className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-20"
+        style={{ backgroundColor: secondary }}
       />
       <div
         aria-hidden
