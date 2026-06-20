@@ -8,6 +8,8 @@ import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { FloatingActions } from "@/components/FloatingActions";
 import { GlobalChatWidget } from "@/components/GlobalChatWidget";
 import { PresenceProvider } from "@/contexts/PresenceContext";
+import { FocusModeProvider, useFocusMode } from "@/contexts/FocusModeContext";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
