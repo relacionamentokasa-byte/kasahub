@@ -103,20 +103,10 @@ export function SlideView({
   switch (slide.type) {
     case "cover":
       return shell(
-        <div className="absolute inset-0 flex flex-col justify-between p-24 pl-[140px]" style={{ background: `linear-gradient(135deg, ${color}10 0%, #ffffff 60%)` }}>
-          {/* Vertical Kasa pattern strip — slim detail */}
+        <div className="absolute inset-0 flex flex-col justify-between p-24" style={{ background: `linear-gradient(135deg, ${color}10 0%, #ffffff 60%)` }}>
           <div
-            className="absolute left-0 top-0 bottom-0 w-[56px] opacity-70"
-            style={{
-              backgroundImage: `url(${KASA_PATTERN})`,
-              backgroundSize: "56px auto",
-              backgroundRepeat: "repeat-y",
-              backgroundPosition: "left top",
-            }}
-          />
-          <div
-            className="absolute top-0 bottom-0 w-[4px]"
-            style={{ left: 56, backgroundColor: KASA_YELLOW }}
+            className="absolute left-0 top-0 bottom-0 w-[6px]"
+            style={{ backgroundColor: KASA_YELLOW }}
           />
           <div className="flex items-center justify-between">
             {clientLogoUrl ? (
