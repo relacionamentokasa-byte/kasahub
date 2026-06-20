@@ -82,16 +82,80 @@ export const Route = createFileRoute("/_authenticated/propostas/")({
   component: ProposalsPage,
 });
 
-const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
-  Rascunho: { label: "Rascunho", cls: "bg-gray-200 text-gray-800" },
-  Enviada: { label: "Enviada", cls: "bg-blue-100 text-blue-800" },
-  Aprovada: { label: "Aprovada", cls: "bg-green-100 text-green-800" },
-  Recusada: { label: "Recusada", cls: "bg-red-100 text-red-800" },
-  Encerrada: { label: "Encerrada", cls: "bg-slate-700 text-white" },
+const STATUS_LABELS: Record<string, { label: string; cls: string; dot: string }> = {
+  Rascunho: { label: "Rascunho", cls: "bg-zinc-200 text-zinc-800 ring-1 ring-zinc-300", dot: "bg-zinc-500" },
+  Enviada: { label: "Enviada", cls: "bg-blue-500 text-white shadow-sm shadow-blue-500/30", dot: "bg-white" },
+  Aprovada: { label: "Aprovada", cls: "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30", dot: "bg-white" },
+  Recusada: { label: "Recusada", cls: "bg-red-500 text-white shadow-sm shadow-red-500/30", dot: "bg-white" },
+  Encerrada: { label: "Encerrada", cls: "bg-slate-700 text-white ring-1 ring-slate-500/40", dot: "bg-slate-300" },
 };
 
 const STATUS_ORDER = ["Rascunho", "Enviada", "Aprovada", "Recusada", "Encerrada"];
 
+function timeAgo(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  if (diff < 0) return "agora";
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "agora";
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `há ${h}h`;
+  const d = Math.floor(h / 24);
+  if (d < 30) return `há ${d}d`;
+  const mo = Math.floor(d / 30);
+  return `há ${mo}mo`;
+}
+
+type ProposalEventSummary = {
+  lastSent?: string;
+  lastViewed?: string;
+  viewCount: number;
+  lastStatusAt?: string;
+};
+
+function ProposalStatusLine({
+  status,
+  summary,
+  createdAt,
+}: {
+  status: string;
+  summary?: ProposalEventSummary;
+  createdAt?: string | null;
+}) {
+  if (status === "Enviada") {
+    if (summary?.lastViewed) {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+          <Eye className="size-3" />
+          Cliente visualizou {timeAgo(summary.lastViewed)}
+          {summary.viewCount > 1 ? ` · ${summary.viewCount} views` : ""}
+        </span>
+      );
+    }
+    const sentAt = summary?.lastSent ?? createdAt;
+    if (sentAt) {
+      return (
+        <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+          Enviada {timeAgo(sentAt)} · sem visualização
+        </span>
+      );
+    }
+  }
+  if (status === "Aprovada" && summary?.lastStatusAt) {
+    return <span className="text-[11px] text-emerald-600 dark:text-emerald-400">Aprovada {timeAgo(summary.lastStatusAt)}</span>;
+  }
+  if (status === "Recusada" && summary?.lastStatusAt) {
+    return <span className="text-[11px] text-red-600 dark:text-red-400">Recusada {timeAgo(summary.lastStatusAt)}</span>;
+  }
+  if (status === "Encerrada" && summary?.lastStatusAt) {
+    return <span className="text-[11px] text-slate-500">Encerrada {timeAgo(summary.lastStatusAt)}</span>;
+  }
+  if (status === "Rascunho" && createdAt) {
+    return <span className="text-[11px] text-foreground/40">Criada {timeAgo(createdAt)}</span>;
+  }
+  return null;
+}
 
 function publicUrl(token: string) {
   return `${window.location.origin}/proposta/${token}`;
@@ -106,6 +170,40 @@ function ProposalsPage() {
   const [showTrash, setShowTrash] = useState(false);
   
   const proposalsToDisplay = showTrash ? trashedProposals.filter(p => p.deleted_at !== null) : proposals;
+
+  const proposalIds = useMemo(() => proposalsToDisplay.map((p) => p.id), [proposalsToDisplay]);
+  const { data: proposalEvents = [] } = useQuery({
+    queryKey: ["proposal_events", "summary", proposalIds],
+    enabled: proposalIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("proposal_events")
+        .select("proposal_id, type, created_at")
+        .in("proposal_id", proposalIds)
+        .in("type", ["sent", "viewed", "approved", "rejected", "cancelled"]);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const eventSummary = useMemo(() => {
+    const map = new Map<string, ProposalEventSummary>();
+    for (const e of proposalEvents) {
+      const s = map.get(e.proposal_id) ?? { viewCount: 0 };
+      if (e.type === "sent" && (!s.lastSent || e.created_at > s.lastSent)) s.lastSent = e.created_at;
+      if (e.type === "viewed") {
+        s.viewCount += 1;
+        if (!s.lastViewed || e.created_at > s.lastViewed) s.lastViewed = e.created_at;
+      }
+      if ((e.type === "approved" || e.type === "rejected" || e.type === "cancelled") &&
+          (!s.lastStatusAt || e.created_at > s.lastStatusAt)) {
+        s.lastStatusAt = e.created_at;
+      }
+      map.set(e.proposal_id, s);
+    }
+    return map;
+  }, [proposalEvents]);
+
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
   const { data: services = [] } = useQuery({
@@ -818,6 +916,7 @@ function ProposalsPage() {
               <tbody>
                 {filteredProposals.map((p: Proposal) => {
                   const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
+                  const summary = eventSummary.get(p.id);
 
                   return (
                     <tr
@@ -835,7 +934,11 @@ function ProposalsPage() {
                           {p.title}
                           <ArrowUpRight className="size-3.5 opacity-60" />
                         </button>
+                        <div className="mt-0.5">
+                          <ProposalStatusLine status={p.status} summary={summary} createdAt={p.created_at} />
+                        </div>
                       </td>
+
                       <td className="px-5 py-3">
                         {p.client_id ? (
                           <Link 
@@ -862,10 +965,15 @@ function ProposalsPage() {
                         {formatCurrency(Number(p.total || 0))}
                       </td>
                       <td className="px-5 py-3">
-                        <Badge className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                        <Badge className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                          <span className={cn("size-1.5 rounded-full", s.dot)} />
                           {s.label}
+                          {summary && summary.viewCount > 0 && p.status === "Enviada" && (
+                            <Eye className="size-3 ml-0.5" />
+                          )}
                         </Badge>
                       </td>
+
                       <td className="px-5 py-3 text-right">
                         <ActionsMenu
                           proposal={p}
@@ -904,6 +1012,8 @@ function ProposalsPage() {
           <div className="md:hidden space-y-3">
                 {filteredProposals.map((p: Proposal) => {
                     const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
+                    const summary = eventSummary.get(p.id);
+
 
               return (
                 <div
@@ -959,10 +1069,18 @@ function ProposalsPage() {
                   ) : (
                     <p className="text-xs text-foreground/60 mt-1">{p.client_name}</p>
                   )}
+                  <div className="mt-1">
+                    <ProposalStatusLine status={p.status} summary={summary} createdAt={p.created_at} />
+                  </div>
                   <div className="flex items-center justify-between mt-3">
-                    <Badge className={cn("px-2 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                    <Badge className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                      <span className={cn("size-1.5 rounded-full", s.dot)} />
                       {s.label}
+                      {summary && summary.viewCount > 0 && p.status === "Enviada" && (
+                        <Eye className="size-3 ml-0.5" />
+                      )}
                     </Badge>
+
                     <div className="text-right">
                       <p className="text-[10px] text-foreground/40">{p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}</p>
                       <p className="text-sm font-semibold text-primary">
