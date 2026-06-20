@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
 import { Lock, Package } from "lucide-react";
+import { CLIENT_SEGMENTS } from "@/lib/client-segments";
 
 export function NewClientDialog({
   open,
@@ -70,6 +71,7 @@ export function NewClientDialog({
     contract_type: "recurring",
     contract_value: 0,
     start_date: "",
+    segment: "",
   });
   const [selectedServices, setSelectedServices] = useState<string[]>([]);
 
@@ -86,7 +88,7 @@ export function NewClientDialog({
       commercial_contact_name: "", commercial_contact_phone: "", commercial_contact_email: "",
       financial_contact_name: "", financial_contact_phone: "", financial_contact_email: "",
       notes: "", logo_url: "", brand_primary: "#FFBC45", status: "active",
-      contract_type: "recurring", contract_value: 0, start_date: "",
+      contract_type: "recurring", contract_value: 0, start_date: "", segment: "",
     });
     setSelectedServices([]);
   };

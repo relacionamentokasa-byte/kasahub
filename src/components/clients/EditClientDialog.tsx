@@ -16,6 +16,7 @@ import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { toast } from "sonner";
 import { Trash2, Copy, ExternalLink } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
+import { CLIENT_SEGMENTS } from "@/lib/client-segments";
 
 type Client = {
   id: string;
@@ -50,6 +51,7 @@ type Client = {
   portal_primary_color?: string | null;
   portal_cover_color?: string | null;
   portal_text_color?: string | null;
+  segment?: string | null;
 };
 
 
@@ -96,6 +98,7 @@ export function EditClientDialog({
     portal_primary_color: (client.portal_primary_color ?? "#FFBC45") as string,
     portal_cover_color: (client.portal_cover_color ?? "#1A1A2E") as string,
     portal_text_color: (client.portal_text_color ?? "") as string,
+    segment: client.segment ?? "",
   });
 
   const [form, setForm] = useState(init);
@@ -186,6 +189,19 @@ export function EditClientDialog({
               <div className="space-y-1.5">
                 <Label>Website</Label>
                 <Input value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} placeholder="https://" />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Segmento</Label>
+                <select
+                  value={form.segment}
+                  onChange={(e) => setForm({ ...form, segment: e.target.value })}
+                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                >
+                  <option value="">— Não definido —</option>
+                  {CLIENT_SEGMENTS.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </div>
               <div className="space-y-1.5">
                 <Label>E-mail</Label>
