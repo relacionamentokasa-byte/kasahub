@@ -164,6 +164,22 @@ function PresentOnboardingPage() {
         : `color-mix(in oklab, ${primary} 14%, #0B0B14)`
       : rawCover;
 
+  // Cor do texto: usa portal_text_color se cliente definiu, senão escolhe
+  // automático pelo contraste do palco resultante.
+  const hexToRgb = (hex: string): string => {
+    const m = hex.replace("#", "").match(/.{2}/g);
+    if (!m || m.length < 3) return "255 255 255";
+    const [r, g, b] = m.slice(0, 3).map((h) => parseInt(h, 16));
+    return `${r} ${g} ${b}`;
+  };
+  // Luminância do palco "efetivo" (usa rawCover quando dark; senão é dark tingido)
+  const stageDark =
+    hexLum(rawCover) > 0.45 ? (hexLum(secondary) < 0.35 ? true : true) : hexLum(rawCover) < 0.5;
+  const inkHex =
+    client?.portal_text_color ||
+    (stageDark ? "#FFFFFF" : "#0B0B14");
+  const inkRgb = hexToRgb(inkHex);
+
   if (loading) {
     return (
       <div className="fixed inset-0 z-[200] bg-black text-[rgb(var(--ink-rgb))] grid place-items-center">
