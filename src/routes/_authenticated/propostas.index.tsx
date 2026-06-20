@@ -170,6 +170,40 @@ function ProposalsPage() {
   const [showTrash, setShowTrash] = useState(false);
   
   const proposalsToDisplay = showTrash ? trashedProposals.filter(p => p.deleted_at !== null) : proposals;
+
+  const proposalIds = useMemo(() => proposalsToDisplay.map((p) => p.id), [proposalsToDisplay]);
+  const { data: proposalEvents = [] } = useQuery({
+    queryKey: ["proposal_events", "summary", proposalIds],
+    enabled: proposalIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("proposal_events")
+        .select("proposal_id, type, created_at")
+        .in("proposal_id", proposalIds)
+        .in("type", ["sent", "viewed", "approved", "rejected", "cancelled"]);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const eventSummary = useMemo(() => {
+    const map = new Map<string, ProposalEventSummary>();
+    for (const e of proposalEvents) {
+      const s = map.get(e.proposal_id) ?? { viewCount: 0 };
+      if (e.type === "sent" && (!s.lastSent || e.created_at > s.lastSent)) s.lastSent = e.created_at;
+      if (e.type === "viewed") {
+        s.viewCount += 1;
+        if (!s.lastViewed || e.created_at > s.lastViewed) s.lastViewed = e.created_at;
+      }
+      if ((e.type === "approved" || e.type === "rejected" || e.type === "cancelled") &&
+          (!s.lastStatusAt || e.created_at > s.lastStatusAt)) {
+        s.lastStatusAt = e.created_at;
+      }
+      map.set(e.proposal_id, s);
+    }
+    return map;
+  }, [proposalEvents]);
+
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: leads = [] } = useQuery({ queryKey: ["leads"], queryFn: fetchLeads });
   const { data: services = [] } = useQuery({
