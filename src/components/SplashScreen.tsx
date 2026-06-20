@@ -6,7 +6,7 @@ const YELLOW_LOGO =
 
 const BRAND_PHRASES = [
   "Antes da meta, humanidade.",
-  "Somos muitos. Falamos em uma só voz.",
+  "Somos muitos. Mais falamos em uma só voz.",
 ];
 
 function greeting() {
