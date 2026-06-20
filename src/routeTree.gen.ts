@@ -58,6 +58,7 @@ import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/publ
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
+import { Route as AuthenticatedRelatoriosConstrutorReportIdRouteImport } from './routes/_authenticated/relatorios.construtor.$reportId'
 import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
 
 const ConviteRoute = ConviteRouteImport.update({
@@ -318,6 +319,12 @@ const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
   path: '/api/public/approve/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRelatoriosConstrutorReportIdRoute =
+  AuthenticatedRelatoriosConstrutorReportIdRouteImport.update({
+    id: '/construtor/$reportId',
+    path: '/construtor/$reportId',
+    getParentRoute: () => AuthenticatedRelatoriosRoute,
+  } as any)
 const AuthenticatedOnboardingOnboardingIdApresentarRoute =
   AuthenticatedOnboardingOnboardingIdApresentarRouteImport.update({
     id: '/onboarding/$onboardingId/apresentar',
@@ -362,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
+  '/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -413,6 +421,7 @@ export interface FileRoutesByTo {
   '/projetos': typeof AuthenticatedProjetosIndexRoute
   '/propostas': typeof AuthenticatedPropostasIndexRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
+  '/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -466,6 +475,7 @@ export interface FileRoutesById {
   '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/_authenticated/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
+  '/_authenticated/relatorios/construtor/$reportId': typeof AuthenticatedRelatoriosConstrutorReportIdRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
@@ -519,6 +529,7 @@ export interface FileRouteTypes {
     | '/projetos/'
     | '/propostas/'
     | '/onboarding/$onboardingId/apresentar'
+    | '/relatorios/construtor/$reportId'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -570,6 +581,7 @@ export interface FileRouteTypes {
     | '/projetos'
     | '/propostas'
     | '/onboarding/$onboardingId/apresentar'
+    | '/relatorios/construtor/$reportId'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -622,6 +634,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projetos/'
     | '/_authenticated/propostas/'
     | '/_authenticated/onboarding/$onboardingId/apresentar'
+    | '/_authenticated/relatorios/construtor/$reportId'
     | '/api/public/approve/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
@@ -1010,6 +1023,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicApproveTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/relatorios/construtor/$reportId': {
+      id: '/_authenticated/relatorios/construtor/$reportId'
+      path: '/construtor/$reportId'
+      fullPath: '/relatorios/construtor/$reportId'
+      preLoaderRoute: typeof AuthenticatedRelatoriosConstrutorReportIdRouteImport
+      parentRoute: typeof AuthenticatedRelatoriosRoute
+    }
     '/_authenticated/onboarding/$onboardingId/apresentar': {
       id: '/_authenticated/onboarding/$onboardingId/apresentar'
       path: '/onboarding/$onboardingId/apresentar'
@@ -1021,11 +1041,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRelatoriosRouteChildren {
+  AuthenticatedRelatoriosConstrutorReportIdRoute: typeof AuthenticatedRelatoriosConstrutorReportIdRoute
   AuthenticatedRelatoriosConstrutorIndexRoute: typeof AuthenticatedRelatoriosConstrutorIndexRoute
 }
 
 const AuthenticatedRelatoriosRouteChildren: AuthenticatedRelatoriosRouteChildren =
   {
+    AuthenticatedRelatoriosConstrutorReportIdRoute:
+      AuthenticatedRelatoriosConstrutorReportIdRoute,
     AuthenticatedRelatoriosConstrutorIndexRoute:
       AuthenticatedRelatoriosConstrutorIndexRoute,
   }
