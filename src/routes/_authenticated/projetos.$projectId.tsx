@@ -9,6 +9,7 @@ import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { Button } from "@/components/ui/button";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
+import { DetailHeaderSkeleton } from "@/components/ui/loading-skeletons";
 
 export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
   head: () => ({ meta: [{ title: "Projeto — KASA HUB" }] }),
