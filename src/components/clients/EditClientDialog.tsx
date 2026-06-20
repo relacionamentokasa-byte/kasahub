@@ -116,6 +116,7 @@ export function EditClientDialog({
         portal_cover_url: form.portal_cover_url || null,
         portal_primary_color: form.portal_primary_color || null,
         portal_cover_color: form.portal_cover_color || null,
+        portal_text_color: form.portal_text_color || null,
       } as any),
 
     onSuccess: () => {
