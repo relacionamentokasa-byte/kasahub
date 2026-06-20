@@ -156,6 +156,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
 
   const watchType = form.watch("type");
   const watchCategory = form.watch("category");
+  const watchIsInternal = !!form.watch("is_internal");
   const isFreelancerCategory = watchCategory === "Freelancers e Terceirizados";
   const isProLaboreCategory =
     (watchCategory || "")
