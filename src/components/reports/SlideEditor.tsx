@@ -304,22 +304,36 @@ const CHART_OPTIONS: { type: ChartType; label: string; Icon: typeof BarChart3 }[
 function ChartEditor({
   chartType,
   categories,
+  categoryPlatforms,
   series,
   note,
   onChange,
 }: {
   chartType: ChartType;
   categories: string[];
+  categoryPlatforms: string[];
   series: ChartSeries[];
   note: string;
-  onChange: (patch: { chartType?: ChartType; chartCategories?: string[]; chartSeries?: ChartSeries[]; chartNote?: string }) => void;
+  onChange: (patch: {
+    chartType?: ChartType;
+    chartCategories?: string[];
+    chartCategoryPlatforms?: string[];
+    chartSeries?: ChartSeries[];
+    chartNote?: string;
+  }) => void;
 }) {
   const setCategories = (next: string[]) => {
     const fixed = series.map((s) => ({
       ...s,
       values: Array.from({ length: next.length }, (_, i) => s.values[i] ?? 0),
     }));
-    onChange({ chartCategories: next, chartSeries: fixed });
+    const fixedPlatforms = Array.from({ length: next.length }, (_, i) => categoryPlatforms[i] ?? "");
+    onChange({ chartCategories: next, chartCategoryPlatforms: fixedPlatforms, chartSeries: fixed });
+  };
+  const setCategoryPlatform = (i: number, v: string) => {
+    const next = Array.from({ length: categories.length }, (_, j) => categoryPlatforms[j] ?? "");
+    next[i] = v;
+    onChange({ chartCategoryPlatforms: next });
   };
   const setSeries = (next: ChartSeries[]) => onChange({ chartSeries: next });
 
@@ -346,20 +360,27 @@ function ChartEditor({
       <Field label={chartType === "pie" ? "Fatias" : "Categorias (eixo X)"}>
         <div className="space-y-2">
           {categories.map((cat, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <Input
-                value={cat}
-                placeholder={`Item ${i + 1}`}
-                onChange={(e) => setCategories(categories.map((c, j) => (j === i ? e.target.value : c)))}
+            <div key={i} className="space-y-1.5 rounded-lg border border-border/60 p-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={cat}
+                  placeholder={`Item ${i + 1}`}
+                  onChange={(e) => setCategories(categories.map((c, j) => (j === i ? e.target.value : c)))}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0"
+                  onClick={() => setCategories(categories.filter((_, j) => j !== i))}
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+              <PlatformPicker
+                value={categoryPlatforms[i] ?? ""}
+                onChange={(v) => setCategoryPlatform(i, v)}
+                placeholder="Plataforma (opcional)"
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0"
-                onClick={() => setCategories(categories.filter((_, j) => j !== i))}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
             </div>
           ))}
           <Button variant="outline" size="sm" className="w-full" onClick={() => setCategories([...categories, ""])}>
@@ -367,6 +388,7 @@ function ChartEditor({
           </Button>
         </div>
       </Field>
+
 
       <Field label={chartType === "pie" ? "Valores" : `Séries (${series.length})`}>
         <div className="space-y-3">
