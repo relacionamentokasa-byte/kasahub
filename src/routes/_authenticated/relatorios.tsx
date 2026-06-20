@@ -794,6 +794,22 @@ function FinancialPage() {
         <Table>
           <TableHeader className="bg-muted/30">
             <TableRow>
+              <TableHead className="w-10 py-4">
+                <Checkbox
+                  checked={
+                    filteredTransactions.length > 0 &&
+                    filteredTransactions.every((t: any) => selectedIds.has(t.id))
+                  }
+                  onCheckedChange={(c) => {
+                    if (c) {
+                      setSelectedIds(new Set(filteredTransactions.map((t: any) => t.id)));
+                    } else {
+                      setSelectedIds(new Set());
+                    }
+                  }}
+                  aria-label="Selecionar todos"
+                />
+              </TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Vencimento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Descrição / Cliente</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Categoria</TableHead>
