@@ -242,6 +242,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
         boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
         boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
+        is_internal: isInternal,
+        is_investment: !!values.is_investment,
       };
 
       if (partnerId && values.type === "expense") {
