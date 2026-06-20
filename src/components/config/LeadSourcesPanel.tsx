@@ -361,11 +361,19 @@ function SourceEditor({
               </Field>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <Field label="URL do logo">
-                <Input value={f.landing_logo_url || ""} onChange={(e) => setF((p) => ({ ...p, landing_logo_url: e.target.value }))} />
+              <Field label="Logo da landing">
+                <ImageUploadField
+                  value={f.landing_logo_url || ""}
+                  onChange={(url) => setF((p) => ({ ...p, landing_logo_url: url }))}
+                  folder="lead-sources/logos"
+                />
               </Field>
-              <Field label="URL da imagem (OG)">
-                <Input value={f.landing_hero_image_url || ""} onChange={(e) => setF((p) => ({ ...p, landing_hero_image_url: e.target.value }))} />
+              <Field label="Imagem de capa / OG">
+                <ImageUploadField
+                  value={f.landing_hero_image_url || ""}
+                  onChange={(url) => setF((p) => ({ ...p, landing_hero_image_url: url }))}
+                  folder="lead-sources/hero"
+                />
               </Field>
             </div>
 
