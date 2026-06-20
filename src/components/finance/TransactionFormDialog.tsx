@@ -158,6 +158,15 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       .replace(/[\u0300-\u036f]/g, "")
       .trim() === "pro-labore"
     || (watchCategory || "").toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim() === "pro labore";
+
+  useEffect(() => {
+    if (isProLaboreCategory) {
+      form.setValue("client_id", "none");
+      form.setValue("supplier_id", "none");
+      form.setValue("freelancer_id", "none");
+      form.setValue("partner_id", "none");
+    }
+  }, [isProLaboreCategory]);
   const watchAmount = Number(form.watch("amount") || 0);
   const watchValorReal = form.watch("valor_real");
   const real = watchValorReal === "" || watchValorReal == null ? null : parseFloat(String(watchValorReal).replace(",", ".")) || 0;
