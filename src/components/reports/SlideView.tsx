@@ -1,8 +1,10 @@
 import type { Slide, KpiItem, DeliverableItem } from "./types";
+import kasaPatternAsset from "@/assets/kasa-pattern-strip.png.asset.json";
 
 const KASA_YELLOW = "#FFD60A";
 const KASA_LOGO_YELLOW =
   "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+const KASA_PATTERN = kasaPatternAsset.url;
 
 function KasaMark({ size = 28 }: { size?: number }) {
   return (
@@ -101,7 +103,21 @@ export function SlideView({
   switch (slide.type) {
     case "cover":
       return shell(
-        <div className="absolute inset-0 flex flex-col justify-between p-24" style={{ background: `linear-gradient(135deg, ${color}10 0%, #ffffff 60%)` }}>
+        <div className="absolute inset-0 flex flex-col justify-between p-24 pl-[200px]" style={{ background: `linear-gradient(135deg, ${color}10 0%, #ffffff 60%)` }}>
+          {/* Vertical Kasa pattern strip */}
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[120px]"
+            style={{
+              backgroundImage: `url(${KASA_PATTERN})`,
+              backgroundSize: "auto 100%",
+              backgroundRepeat: "repeat",
+              backgroundPosition: "left center",
+            }}
+          />
+          <div
+            className="absolute top-0 bottom-0 w-[8px]"
+            style={{ left: 120, backgroundColor: KASA_YELLOW }}
+          />
           <div className="flex items-center justify-between">
             {clientLogoUrl ? (
               <img src={clientLogoUrl} alt="" className="h-16 w-auto object-contain" />
@@ -293,6 +309,20 @@ export function SlideView({
     case "closing":
       return shell(
         <div className="absolute inset-0 flex flex-col items-center justify-center text-center" style={{ background: `linear-gradient(135deg, ${color}15 0%, #ffffff 70%)` }}>
+          {/* Horizontal Kasa pattern band — top */}
+          <div
+            className="absolute top-0 left-0 right-0 h-[100px]"
+            style={{
+              backgroundImage: `url(${KASA_PATTERN})`,
+              backgroundSize: "auto 100%",
+              backgroundRepeat: "repeat",
+              backgroundPosition: "center",
+            }}
+          />
+          <div
+            className="absolute left-0 right-0 h-[6px]"
+            style={{ top: 100, backgroundColor: KASA_YELLOW }}
+          />
           {heading(p.title, "lg")}
           {p.subtitle ? (
             <p className="mt-8 text-[36px] text-neutral-500 max-w-[1400px]">{p.subtitle}</p>
