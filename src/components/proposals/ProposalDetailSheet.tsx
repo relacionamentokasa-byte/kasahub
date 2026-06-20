@@ -3,6 +3,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Link } from "@tanstack/react-router";
 import { ExternalLink, Loader2 } from "lucide-react";
 import { ProposalEditorContent } from "./ProposalEditorContent";
+import { SheetContentSkeleton } from "@/components/ui/loading-skeletons";
 
 export function ProposalDetailSheet({
   proposalId,
