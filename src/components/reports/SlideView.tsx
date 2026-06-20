@@ -388,3 +388,125 @@ function inline(s: string) {
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>");
 }
+
+// ---------- Chart renderer ----------
+
+function ChartRender({
+  chartType,
+  categories,
+  series,
+  brandColor,
+}: {
+  chartType: "bar" | "line" | "area" | "pie";
+  categories: string[];
+  series: ChartSeries[];
+  brandColor: string;
+}) {
+  // Build a palette: brand, Kasa yellow, then desaturated companions
+  const palette = [brandColor, KASA_YELLOW, "#1F2937", "#9CA3AF", "#60A5FA", "#F472B6"];
+  const colorAt = (i: number) => palette[i % palette.length];
+
+  if (!categories.length || !series.length) {
+    return (
+      <div className="w-full h-full flex items-center justify-center text-[28px] text-neutral-400 rounded-3xl bg-neutral-50">
+        Sem dados
+      </div>
+    );
+  }
+
+  // Common data shape: [{ name: cat, "Série A": 10, "Série B": 20 }]
+  const data = categories.map((cat, i) => {
+    const row: Record<string, string | number> = { name: cat || `#${i + 1}` };
+    series.forEach((s) => {
+      row[s.name || "Série"] = Number(s.values[i] ?? 0);
+    });
+    return row;
+  });
+
+  const axisProps = {
+    tick: { fontSize: 22, fill: "#525252", fontFamily: "Onest" },
+    stroke: "#d4d4d4",
+  };
+  const legendStyle = { fontSize: 22, paddingTop: 16, fontFamily: "Onest" };
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      {chartType === "bar" ? (
+        <BarChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+          <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
+          <XAxis dataKey="name" {...axisProps} />
+          <YAxis {...axisProps} />
+          <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
+          {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
+          {series.map((s, i) => (
+            <Bar key={s.name + i} dataKey={s.name || `Série ${i + 1}`} fill={colorAt(i)} radius={[12, 12, 0, 0]} />
+          ))}
+        </BarChart>
+      ) : chartType === "line" ? (
+        <LineChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+          <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
+          <XAxis dataKey="name" {...axisProps} />
+          <YAxis {...axisProps} />
+          <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
+          {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
+          {series.map((s, i) => (
+            <Line
+              key={s.name + i}
+              dataKey={s.name || `Série ${i + 1}`}
+              stroke={colorAt(i)}
+              strokeWidth={4}
+              dot={{ r: 6, fill: colorAt(i) }}
+              activeDot={{ r: 8 }}
+            />
+          ))}
+        </LineChart>
+      ) : chartType === "area" ? (
+        <AreaChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+          <defs>
+            {series.map((s, i) => (
+              <linearGradient key={s.name + i} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={colorAt(i)} stopOpacity={0.55} />
+                <stop offset="100%" stopColor={colorAt(i)} stopOpacity={0.05} />
+              </linearGradient>
+            ))}
+          </defs>
+          <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
+          <XAxis dataKey="name" {...axisProps} />
+          <YAxis {...axisProps} />
+          <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
+          {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
+          {series.map((s, i) => (
+            <Area
+              key={s.name + i}
+              dataKey={s.name || `Série ${i + 1}`}
+              stroke={colorAt(i)}
+              strokeWidth={3}
+              fill={`url(#grad-${i})`}
+            />
+          ))}
+        </AreaChart>
+      ) : (
+        <PieChart>
+          <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
+          <Legend wrapperStyle={legendStyle} />
+          <Pie
+            data={categories.map((cat, i) => ({
+              name: cat || `#${i + 1}`,
+              value: Number(series[0]?.values[i] ?? 0),
+            }))}
+            dataKey="value"
+            nameKey="name"
+            outerRadius="75%"
+            innerRadius="40%"
+            paddingAngle={2}
+            label={{ fontSize: 22, fill: "#404040" }}
+          >
+            {categories.map((_, i) => (
+              <Cell key={i} fill={colorAt(i)} />
+            ))}
+          </Pie>
+        </PieChart>
+      )}
+    </ResponsiveContainer>
+  );
+}
