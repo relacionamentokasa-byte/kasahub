@@ -258,7 +258,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                   Assinatura do Cliente
                 </Label>
                 {proposal.signature_client ? (
-                  <div className="mt-2 rounded-md border border-border bg-green-500/5 h-20 flex flex-col items-center justify-center text-center p-2">
+                  <div className="mt-2 rounded-md border border-border bg-green-500/5 min-h-20 flex flex-col items-center justify-center text-center p-2">
                     <span className="text-sm font-medium text-green-600 flex items-center gap-1.5">
                       <CheckCircle2 className="size-4" /> Proposta Assinada
                     </span>
@@ -268,15 +268,47 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
                         em {new Date(proposal.signed_at_client).toLocaleString('pt-BR')}
                       </span>
                     )}
+                    {(proposal as any).external_signature_url && (
+                      <a
+                        href={(proposal as any).external_signature_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-[10px] text-primary underline"
+                      >
+                        <Paperclip className="size-3" />
+                        {(proposal as any).external_signature_filename || "Ver comprovante"}
+                      </a>
+                    )}
                   </div>
                 ) : (
-                  <div className="mt-2 rounded-md border border-dashed border-destructive bg-destructive/5 h-20 flex flex-col items-center justify-center text-center p-3">
+                  <div className="mt-2 rounded-md border border-dashed border-destructive bg-destructive/5 min-h-20 flex flex-col items-center justify-center text-center p-3 gap-2">
                     <span className="text-sm font-bold text-destructive flex items-center gap-1.5">
                       <AlertCircle className="size-4" /> Assinatura Obrigatória
                     </span>
-                    <p className="text-[10px] text-foreground/70 mt-1 font-medium">
-                      O bloqueio é definitivo. O cliente deve obrigatoriamente assinar pelo link público para liberar a conversão.
+                    <p className="text-[10px] text-foreground/70 font-medium">
+                      O cliente deve assinar pelo link público — ou anexe o comprovante de assinatura externa (Operand, contrato em PDF, etc).
                     </p>
+                    <input
+                      ref={fileRef}
+                      type="file"
+                      accept="application/pdf,image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleExternalUpload(f);
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-[11px]"
+                      onClick={() => fileRef.current?.click()}
+                      disabled={uploadingExt}
+                    >
+                      {uploadingExt ? <Loader2 className="size-3 animate-spin mr-1" /> : <Upload className="size-3 mr-1" />}
+                      Assinado externamente — anexar comprovante
+                    </Button>
                   </div>
                 )}
               </div>
