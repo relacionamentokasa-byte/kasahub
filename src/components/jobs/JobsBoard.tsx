@@ -640,7 +640,7 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[] }) {
+function JobCard({ job, profiles, onClick, queryKey, focused }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   
@@ -673,7 +673,15 @@ function JobCard({ job, profiles, onClick, queryKey }: { job: Job; profiles: any
   });
 
   return (
-    <div className={`relative group ${isDragging ? "opacity-30" : ""} ${isOptimistic ? "opacity-60" : ""}`}>
+    <div
+      data-job-id={job.id}
+      className={cn(
+        "relative group rounded-lg",
+        isDragging ? "opacity-30" : "",
+        isOptimistic ? "opacity-60" : "",
+        focused ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : ""
+      )}
+    >
       <div
         ref={setNodeRef}
         {...(isOptimistic ? {} : listeners)}
