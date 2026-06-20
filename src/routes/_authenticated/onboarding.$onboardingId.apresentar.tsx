@@ -210,23 +210,13 @@ function PresentOnboardingPage() {
         } as React.CSSProperties
       }
     >
-      {/* Background glows */}
+      {/* Subtle dot grid */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 -left-40 size-[600px] rounded-full blur-[140px] opacity-30"
-        style={{ backgroundColor: brand }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-20"
-        style={{ backgroundColor: brand }}
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        className="pointer-events-none absolute inset-0 opacity-[0.08]"
         style={{
           backgroundImage:
-            "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
+            "radial-gradient(circle at 1px 1px, var(--brand) 1px, transparent 0)",
           backgroundSize: "32px 32px",
         }}
       />
