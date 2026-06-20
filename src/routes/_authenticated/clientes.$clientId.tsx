@@ -243,8 +243,19 @@ function ClientDetail() {
                </div>
             </div>
           </div>
+
+          <ClientKpiHeader
+            mrr={mrr}
+            lastContactAt={lastContact?.ts ?? null}
+            lastContactSource={lastContact?.source ?? null}
+            activeJobsCount={activeJobsCount}
+            overdueIncomeCount={overdueIncomeCount}
+            paidIncomeCount={paidIncomeCount}
+            pendingIncomeCount={pendingIncomeCount}
+          />
         </div>
       </div>
+
 
       {/* Navegação 360 */}
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
