@@ -99,11 +99,7 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
   };
 
   if (isLoadingProposal) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="size-8 animate-spin text-primary" />
-      </div>
-    );
+    return <SheetContentSkeleton />;
   }
 
   const publicUrl = `${window.location.origin}/proposta/${proposal?.public_token}`;
