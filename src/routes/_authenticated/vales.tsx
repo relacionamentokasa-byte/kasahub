@@ -144,9 +144,7 @@ function ValesPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">
-                <Loader2 className="size-4 animate-spin inline mr-2" /> Carregando…
-              </td></tr>
+              <RawTableRowsSkeleton rows={5} columns={7} />
             ) : advances.length === 0 ? (
               <tr><td colSpan={7} className="text-center py-8 text-muted-foreground">
                 Nenhum vale registrado.
