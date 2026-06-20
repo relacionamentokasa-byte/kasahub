@@ -201,7 +201,6 @@ function PresentOnboardingPage() {
           backgroundColor: stage,
           ["--brand" as any]: brand,
           ["--brand-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
-          ["--brand-glow" as any]: `color-mix(in oklab, ${brand} 35%, transparent)`,
           ["--accent" as any]: brand,
           ["--accent-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
           ["--ink-rgb" as any]: inkRgb,
