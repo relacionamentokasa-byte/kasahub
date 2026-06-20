@@ -1,8 +1,10 @@
 import type { Slide, KpiItem, DeliverableItem } from "./types";
+import kasaPatternAsset from "@/assets/kasa-pattern-strip.png.asset.json";
 
 const KASA_YELLOW = "#FFD60A";
 const KASA_LOGO_YELLOW =
   "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+const KASA_PATTERN = kasaPatternAsset.url;
 
 function KasaMark({ size = 28 }: { size?: number }) {
   return (
