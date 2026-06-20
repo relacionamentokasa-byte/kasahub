@@ -126,7 +126,13 @@ export function SlideView({
               </p>
             ) : null}
           </div>
-          <div className="h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+          <div className="flex items-end justify-between">
+            <div className="flex items-center gap-4">
+              <div className="h-2 w-40 rounded-full" style={{ backgroundColor: color }} />
+              <div className="h-2 w-16 rounded-full" style={{ backgroundColor: KASA_YELLOW }} />
+            </div>
+            <KasaMark size={32} />
+          </div>
         </div>,
       );
 
