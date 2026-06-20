@@ -1,11 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const YELLOW_LOGO =
-  "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
-
 const BRAND_PHRASES = [
-  "Antes da meta, humanidade.",
+  "Humanidade Antes da Meta.",
   "Somos muitos. Mais falamos em uma só voz.",
 ];
 
@@ -54,10 +51,10 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
     const speed = reduced ? 0.4 : 1;
-    const t1 = setTimeout(() => setPhase("greet"), 900 * speed);
-    const t2 = setTimeout(() => setPhase("phrase"), 1900 * speed);
-    const t3 = setTimeout(() => setPhase("out"), 3400 * speed);
-    const t4 = setTimeout(() => onDone(), 3900 * speed);
+    const t1 = setTimeout(() => setPhase("greet"), 1100 * speed);
+    const t2 = setTimeout(() => setPhase("phrase"), 2200 * speed);
+    const t3 = setTimeout(() => setPhase("out"), 3800 * speed);
+    const t4 = setTimeout(() => onDone(), 4300 * speed);
 
     const skip = () => {
       setPhase("out");
@@ -83,33 +80,43 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-background transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center transition-opacity duration-500 ${
         phase === "out" ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       style={{
-        background:
-          "radial-gradient(circle at 50% 40%, hsl(var(--primary) / 0.08) 0%, hsl(var(--background)) 60%)",
+        backgroundColor: "hsl(var(--background))",
+        backgroundImage:
+          "radial-gradient(circle at 50% 35%, hsl(var(--primary) / 0.12) 0%, transparent 55%)",
       }}
     >
-      <div className="flex flex-col items-center gap-8 px-6 text-center max-w-xl">
-        {/* Logo */}
-        <img
-          src={YELLOW_LOGO}
-          alt="Kasa"
-          className="h-20 w-auto object-contain animate-[splash-logo_900ms_ease-out_both]"
-        />
+      <div className="flex flex-col items-center gap-10 px-6 text-center max-w-2xl">
+        {/* Logo tipográfico */}
+        <div className="flex items-baseline gap-1 animate-[splash-logo_900ms_ease-out_both]">
+          <span
+            className="font-display font-black tracking-tighter leading-none text-primary"
+            style={{ fontSize: "clamp(4rem, 12vw, 8rem)" }}
+          >
+            kasa
+          </span>
+          <span
+            className="font-display font-black leading-none text-primary"
+            style={{ fontSize: "clamp(4rem, 12vw, 8rem)" }}
+          >
+            .
+          </span>
+        </div>
 
         {/* Saudação */}
         <div
-          className={`min-h-[2.5rem] transition-all duration-500 ${
-            phase === "logo" ? "opacity-0 translate-y-2" : "opacity-100 translate-y-0"
+          className={`min-h-[3rem] transition-all duration-700 ${
+            phase === "logo" ? "opacity-0 translate-y-3" : "opacity-100 translate-y-0"
           }`}
         >
-          <p className="font-display text-2xl md:text-3xl font-medium text-foreground tracking-tight">
+          <p className="font-display text-2xl md:text-4xl font-light text-foreground tracking-tight">
             {greeting()}
             {name ? (
               <>
-                , <span className="text-primary">{name}</span>
+                , <span className="font-semibold text-primary">{name}</span>
               </>
             ) : null}
             .
@@ -120,19 +127,23 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
         <div
           className={`transition-all duration-700 ${
             phase === "logo" || phase === "greet"
-              ? "opacity-0 translate-y-2"
+              ? "opacity-0 translate-y-3"
               : "opacity-100 translate-y-0"
           }`}
         >
-          <p className="font-mono-kasa text-xs md:text-sm uppercase tracking-[0.25em] text-foreground/50">
-            {phrase}
-          </p>
+          <div className="flex items-center gap-3 justify-center">
+            <span className="block h-px w-8 bg-foreground/20" />
+            <p className="font-mono-kasa text-[11px] md:text-xs uppercase tracking-[0.3em] text-foreground/60">
+              {phrase}
+            </p>
+            <span className="block h-px w-8 bg-foreground/20" />
+          </div>
         </div>
       </div>
 
       {/* Skip hint */}
       <div
-        className={`absolute bottom-6 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-foreground/30 transition-opacity duration-500 ${
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.2em] text-foreground/30 transition-opacity duration-500 ${
           phase === "out" ? "opacity-0" : "opacity-100"
         }`}
       >
@@ -141,8 +152,8 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
 
       <style>{`
         @keyframes splash-logo {
-          0% { opacity: 0; transform: scale(0.92); filter: blur(6px); }
-          100% { opacity: 1; transform: scale(1); filter: blur(0); }
+          0% { opacity: 0; transform: scale(0.94) translateY(8px); filter: blur(8px); }
+          100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
         }
       `}</style>
     </div>
