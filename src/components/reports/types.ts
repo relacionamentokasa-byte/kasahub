@@ -39,6 +39,7 @@ export type SlideProps = {
   // chart
   chartType?: ChartType;
   chartCategories?: string[];
+  chartCategoryPlatforms?: string[]; // parallel to chartCategories; platform id per category (optional)
   chartSeries?: ChartSeries[];
   chartNote?: string;
 };
