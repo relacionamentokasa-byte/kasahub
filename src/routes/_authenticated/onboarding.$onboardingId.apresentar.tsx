@@ -217,6 +217,7 @@ function PresentOnboardingPage() {
           ["--brand-glow" as any]: `color-mix(in oklab, ${primary} 35%, transparent)`,
           ["--accent" as any]: secondary,
           ["--accent-soft" as any]: `color-mix(in oklab, ${secondary} 18%, transparent)`,
+          ["--ink-rgb" as any]: inkRgb,
           fontFamily:
             "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
         } as React.CSSProperties
