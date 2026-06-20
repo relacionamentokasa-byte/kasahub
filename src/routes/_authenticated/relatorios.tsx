@@ -81,6 +81,8 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -89,6 +91,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const PRO_LABORE = "pro-labore";
 const normalize = (s: string | null | undefined) =>
