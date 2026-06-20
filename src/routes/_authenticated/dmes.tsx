@@ -29,6 +29,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { TableRowsSkeleton } from "@/components/ui/loading-skeletons";
 
 
 export const Route = createFileRoute("/_authenticated/dmes")({
