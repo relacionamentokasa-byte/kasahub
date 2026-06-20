@@ -150,15 +150,6 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         nature: "operacional",
         is_internal: false,
         is_investment: false,
-      });
-
-    } else {
-      form.reset({
-        type: "income",
-        status: "pending",
-        due_date: new Date(),
-        nature: "operacional",
-      });
     }
   }, [open, transaction]);
 
