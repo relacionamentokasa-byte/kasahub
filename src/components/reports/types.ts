@@ -5,6 +5,7 @@ export type SlideType =
   | "image"
   | "gallery"
   | "kpis"
+  | "chart"
   | "deliverables"
   | "comparison"
   | "next-steps"
@@ -12,6 +13,9 @@ export type SlideType =
 
 export type KpiItem = { label: string; value: string; delta?: string };
 export type DeliverableItem = { label: string; done: boolean };
+
+export type ChartType = "bar" | "line" | "area" | "pie";
+export type ChartSeries = { name: string; values: number[] };
 
 export type SlideProps = {
   // common
@@ -32,6 +36,11 @@ export type SlideProps = {
   leftBody?: string;
   rightTitle?: string;
   rightBody?: string;
+  // chart
+  chartType?: ChartType;
+  chartCategories?: string[];
+  chartSeries?: ChartSeries[];
+  chartNote?: string;
 };
 
 export type Slide = {
@@ -47,6 +56,7 @@ export const BLOCK_LABELS: Record<SlideType, string> = {
   image: "Imagem destaque",
   gallery: "Galeria",
   kpis: "KPIs",
+  chart: "Gráfico",
   deliverables: "Lista de entregas",
   comparison: "Comparativo (antes/depois)",
   "next-steps": "Próximos passos",
@@ -68,6 +78,18 @@ export function newSlide(type: SlideType): Slide {
       return { id, type, props: { title: "Galeria", images: [] } };
     case "kpis":
       return { id, type, props: { title: "Indicadores", items: [{ label: "Indicador", value: "0", delta: "" }] as KpiItem[] } };
+    case "chart":
+      return {
+        id,
+        type,
+        props: {
+          title: "Desempenho",
+          chartType: "bar",
+          chartCategories: ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun"],
+          chartSeries: [{ name: "Série A", values: [120, 180, 150, 220, 260, 300] }],
+          chartNote: "",
+        },
+      };
     case "deliverables":
       return { id, type, props: { title: "Entregas", items: [{ label: "Entrega 1", done: true }] as DeliverableItem[] } };
     case "comparison":
