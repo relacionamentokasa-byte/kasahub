@@ -501,9 +501,10 @@ function ClientDetail() {
 
             <TabsContent value="timeline" className="m-0 animate-reveal">
               <div className="max-w-3xl">
-                <ClientTimeline clientId={clientId} />
+                <UnifiedTimelineTab events={unifiedEvents} />
               </div>
             </TabsContent>
+
           </div>
         </div>
       </Tabs>
