@@ -34,7 +34,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -80,8 +79,6 @@ const transactionSchema = z.object({
   boleto_pdf_path: z.string().nullable().optional(),
   boleto_linha_digitavel: z.string().max(200).nullable().optional(),
   boleto_pix_copia_cola: z.string().max(2000).nullable().optional(),
-  is_internal: z.boolean().optional(),
-  is_investment: z.boolean().optional(),
 });
 
 
@@ -138,8 +135,6 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_pdf_path: transaction.boleto_pdf_path || null,
         boleto_linha_digitavel: transaction.boleto_linha_digitavel || "",
         boleto_pix_copia_cola: transaction.boleto_pix_copia_cola || "",
-        is_internal: !!transaction.is_internal,
-        is_investment: !!transaction.is_investment,
       });
 
     } else {
@@ -148,15 +143,12 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         status: "pending",
         due_date: new Date(),
         nature: "operacional",
-        is_internal: false,
-        is_investment: false,
       });
     }
   }, [open, transaction]);
 
   const watchType = form.watch("type");
   const watchCategory = form.watch("category");
-  const watchIsInternal = !!form.watch("is_internal");
   const isFreelancerCategory = watchCategory === "Freelancers e Terceirizados";
   const isProLaboreCategory =
     (watchCategory || "")
@@ -183,12 +175,11 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
 
   const mutation = useMutation({
     mutationFn: async (values: TransactionFormValues) => {
-      const isInternal = !!values.is_internal;
-      const partnerId = isInternal ? null : (values.partner_id && values.partner_id !== "none" ? values.partner_id : null);
-      const clientId = isInternal ? null : (values.client_id === "none" || !values.client_id ? null : values.client_id);
-      const supplierId = isInternal ? null : (values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id);
-      const freelancerId = isInternal ? null : (values.freelancer_id === "none" || !values.freelancer_id ? null : values.freelancer_id);
-      const useFreelancer = !isInternal && values.category === "Freelancers e Terceirizados";
+      const partnerId = values.partner_id && values.partner_id !== "none" ? values.partner_id : null;
+      const clientId = values.client_id === "none" || !values.client_id ? null : values.client_id;
+      const supplierId = values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id;
+      const freelancerId = values.freelancer_id === "none" || !values.freelancer_id ? null : values.freelancer_id;
+      const useFreelancer = values.category === "Freelancers e Terceirizados";
 
       if (isEdit) {
         const realNum = values.valor_real === "" || values.valor_real == null
@@ -217,8 +208,6 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
           boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
           boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
           boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
-          is_internal: isInternal,
-          is_investment: !!values.is_investment,
         };
         return updateTransaction(transaction.id, patch);
       }
@@ -243,8 +232,6 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
         boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
         boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
-        is_internal: isInternal,
-        is_investment: !!values.is_investment,
       };
 
       if (partnerId && values.type === "expense") {
@@ -574,52 +561,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               </div>
             )}
 
-            {/* Custo interno da Kasa + Investimento */}
-            <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-2">
-              <FormField
-                control={form.control}
-                name="is_internal"
-                render={({ field }) => (
-                  <FormItem className="flex items-start gap-2 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={!!field.value}
-                        onCheckedChange={(v) => {
-                          field.onChange(!!v);
-                          if (v) {
-                            form.setValue("client_id", "none");
-                            form.setValue("supplier_id", "none");
-                            form.setValue("freelancer_id", "none");
-                            form.setValue("partner_id", "none");
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    <div className="leading-tight">
-                      <FormLabel className="text-sm font-medium cursor-pointer">Custo interno da Kasa</FormLabel>
-                      <p className="text-xs text-muted-foreground">Despesa da própria agência — sem cliente, fornecedor ou freelancer vinculado.</p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="is_investment"
-                render={({ field }) => (
-                  <FormItem className="flex items-start gap-2 space-y-0">
-                    <FormControl>
-                      <Checkbox checked={!!field.value} onCheckedChange={(v) => field.onChange(!!v)} />
-                    </FormControl>
-                    <div className="leading-tight">
-                      <FormLabel className="text-sm font-medium cursor-pointer">É investimento</FormLabel>
-                      <p className="text-xs text-muted-foreground">Separa este lançamento dos custos operacionais nos relatórios.</p>
-                    </div>
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {watchType !== "expense" && !watchIsInternal && (
+            {watchType !== "expense" && (
               <FormField
                 control={form.control}
                 name="client_id"
@@ -647,7 +589,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               />
             )}
 
-            {watchType === "expense" && !isProLaboreCategory && !watchIsInternal && (
+            {watchType === "expense" && !isProLaboreCategory && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -755,7 +697,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               </div>
             )}
 
-            {watchType === "expense" && !isEdit && !isProLaboreCategory && !watchIsInternal && (
+            {watchType === "expense" && !isEdit && !isProLaboreCategory && (
               <FormField
                 control={form.control}
                 name="partner_id"
