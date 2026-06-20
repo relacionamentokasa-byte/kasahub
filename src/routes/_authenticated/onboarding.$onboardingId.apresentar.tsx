@@ -916,19 +916,6 @@ function ClosingSlide({
         .
       </p>
 
-      <div className="flex items-center justify-center gap-8 pt-6">
-        {client.logo_url && (
-          <img
-            src={client.logo_url}
-            alt={client.name}
-            className="h-12 w-auto object-contain"
-          />
-        )}
-        <div className="text-2xl text-[rgb(var(--ink-rgb)/0.30)]">×</div>
-        <div className="text-sm font-bold tracking-[0.22em] uppercase text-[rgb(var(--ink-rgb)/0.60)]">
-          Sua agência
-        </div>
-      </div>
     </div>
   );
 }
