@@ -19,7 +19,9 @@ import {
   Download,
   SunMoon,
   Rocket,
+  Target,
 } from "lucide-react";
+import { LeadSourcesPanel } from "@/components/config/LeadSourcesPanel";
 import { OnboardingTemplatesManager } from "@/components/config/OnboardingTemplatesManager";
 import { DetailHeaderSkeleton } from "@/components/ui/loading-skeletons";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -121,6 +123,8 @@ function ConfigPage() {
     { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Catálogos", component: <ScopeTemplatesManager canEdit={canEdit} /> },
     { id: "onboarding-templates", label: "Modelos de Onboarding", icon: Rocket, group: "Catálogos", component: <OnboardingTemplatesManager canEdit={canEdit} /> },
 
+    { id: "lead-sources", label: "Fontes de Lead", icon: Target, group: "Captação", component: <LeadSourcesPanel /> },
+
     { id: "integr", label: "Integrações", icon: Plug, group: "Sistema", component: <IntegrationsTab form={form} /> },
     { id: "install", label: "Instalar o App", icon: Download, group: "Sistema", component: <InstallAppTab /> },
   ];
@@ -202,7 +206,7 @@ function ConfigPage() {
               </span>
               <h2 className="font-display text-3xl font-bold mt-1">{currentSection.label}</h2>
             </div>
-            {!["profile", "notif", "prefs", "perms", "users", "services", "contracts", "scope-templates", "onboarding-templates", "integr", "install"].includes(activeTab) && (
+            {!["profile", "notif", "prefs", "perms", "users", "services", "contracts", "scope-templates", "onboarding-templates", "lead-sources", "integr", "install"].includes(activeTab) && (
               <Button
                 onClick={() => mut.mutate()}
                 disabled={!canEdit || mut.isPending}
