@@ -121,18 +121,7 @@ function ClientDetail() {
   });
 
 
-  if (clientLoading) return (
-    <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-4">
-      <div className="relative">
-        <Loader2 className="size-12 animate-spin text-primary/20" />
-        <Building2 className="size-6 text-primary/40 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-      </div>
-      <div className="flex flex-col items-center gap-1">
-        <p className="text-sm font-bold font-mono-kasa uppercase tracking-widest animate-pulse text-primary/60">Carregando Perfil</p>
-        <p className="text-[10px] text-foreground/30 font-medium">Sincronizando dados 360 do cliente...</p>
-      </div>
-    </div>
-  );
+  if (clientLoading) return <DetailHeaderSkeleton />;
 
   if (clientError || !client) return (
     <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-6">
