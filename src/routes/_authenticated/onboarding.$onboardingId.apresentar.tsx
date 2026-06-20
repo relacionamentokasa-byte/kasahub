@@ -128,56 +128,43 @@ function PresentOnboardingPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [goNext, goPrev, exit, slides.length]);
 
-  // Branding (combo cliente + KASA)
+  // Sistema de cores da apresentação:
+  //   Primária  → fundo (palco)        — portal_cover_color
+  //   Secundária → marca/destaque/CTA  — portal_primary_color
+  //   Terciária → tinta do texto       — portal_text_color (auto se vazio)
   const client = clientQ.data as any;
   const agency = agencyQ.data;
-  const primary =
-    client?.portal_primary_color ||
-    client?.brand_primary ||
-    agency?.brand_primary ||
-    "#FFBC45";
-  const secondary =
-    client?.portal_secondary_color ||
-    client?.brand_secondary ||
-    agency?.brand_secondary ||
-    primary;
 
-  // Luminância para decidir se o cover do cliente serve como palco escuro.
-  // Apresentação precisa de fundo escuro p/ contraste do texto branco.
   const hexLum = (hex: string): number => {
     const m = hex.replace("#", "").match(/.{2}/g);
     if (!m || m.length < 3) return 0;
     const [r, g, b] = m.slice(0, 3).map((h) => parseInt(h, 16) / 255);
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
-  const rawCover =
-    client?.portal_cover_color ||
-    agency?.brand_primary ||
-    "#0F0F1A";
-  // Se o cover for claro demais (ex.: amarelo), gera um palco escuro tingido
-  // pela cor da marca em vez de usar literal. Se a secundária for escura,
-  // ela vira o palco — combo natural primária x secundária do cliente.
-  const cover =
-    hexLum(rawCover) > 0.45
-      ? hexLum(secondary) < 0.35
-        ? secondary
-        : `color-mix(in oklab, ${primary} 14%, #0B0B14)`
-      : rawCover;
-
-  // Cor do texto: usa portal_text_color se cliente definiu, senão escolhe
-  // automático pelo contraste do palco resultante.
   const hexToRgb = (hex: string): string => {
     const m = hex.replace("#", "").match(/.{2}/g);
     if (!m || m.length < 3) return "255 255 255";
     const [r, g, b] = m.slice(0, 3).map((h) => parseInt(h, 16));
     return `${r} ${g} ${b}`;
   };
-  // Luminância do palco "efetivo" (usa rawCover quando dark; senão é dark tingido)
-  const stageDark =
-    hexLum(rawCover) > 0.45 ? (hexLum(secondary) < 0.35 ? true : true) : hexLum(rawCover) < 0.5;
+
+  // Palco (primária)
+  const stage =
+    client?.portal_cover_color ||
+    agency?.brand_secondary ||
+    "#0F0F1A";
+
+  // Marca (secundária) — acentos, CTA, ícones, progresso, glow
+  const brand =
+    client?.portal_primary_color ||
+    client?.brand_primary ||
+    agency?.brand_primary ||
+    "#FFBC45";
+
+  // Tinta (terciária) — texto. Auto: branco sobre palco escuro, preto sobre claro.
   const inkHex =
     client?.portal_text_color ||
-    (stageDark ? "#FFFFFF" : "#0B0B14");
+    (hexLum(stage) < 0.5 ? "#FFFFFF" : "#0B0B14");
   const inkRgb = hexToRgb(inkHex);
 
   if (loading) {
@@ -211,12 +198,12 @@ function PresentOnboardingPage() {
       className="fixed inset-0 z-[200] overflow-hidden text-[rgb(var(--ink-rgb))] select-none"
       style={
         {
-          backgroundColor: cover,
-          ["--brand" as any]: primary,
-          ["--brand-soft" as any]: `color-mix(in oklab, ${primary} 18%, transparent)`,
-          ["--brand-glow" as any]: `color-mix(in oklab, ${primary} 35%, transparent)`,
-          ["--accent" as any]: secondary,
-          ["--accent-soft" as any]: `color-mix(in oklab, ${secondary} 18%, transparent)`,
+          backgroundColor: stage,
+          ["--brand" as any]: brand,
+          ["--brand-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
+          ["--brand-glow" as any]: `color-mix(in oklab, ${brand} 35%, transparent)`,
+          ["--accent" as any]: brand,
+          ["--accent-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
           ["--ink-rgb" as any]: inkRgb,
           fontFamily:
             "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
@@ -227,12 +214,12 @@ function PresentOnboardingPage() {
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 -left-40 size-[600px] rounded-full blur-[140px] opacity-30"
-        style={{ backgroundColor: primary }}
+        style={{ backgroundColor: brand }}
       />
       <div
         aria-hidden
         className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-20"
-        style={{ backgroundColor: secondary }}
+        style={{ backgroundColor: brand }}
       />
       <div
         aria-hidden
@@ -311,7 +298,7 @@ function PresentOnboardingPage() {
             className="h-full transition-all duration-500 ease-out"
             style={{
               width: `${((idx + 1) / slides.length) * 100}%`,
-              backgroundColor: primary,
+              backgroundColor: brand,
               boxShadow: `0 0 12px var(--brand-glow)`,
             }}
           />
@@ -354,7 +341,7 @@ function buildSlides(
   const slides: React.ReactNode[] = [];
 
   // Slide 1 — Cover
-  slides.push(<CoverSlide key="cover" onb={onb} client={client} />);
+  slides.push(<CoverSlide key="stage" onb={onb} client={client} />);
 
   // Slide 2 — Visão Geral
   slides.push(<OverviewSlide key="overview" onb={onb} steps={steps} />);

@@ -344,25 +344,7 @@ export function EditClientDialog({
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>🎨 Cor primária do portal</Label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={form.portal_primary_color || "#FFBC45"}
-                      onChange={(e) => setForm({ ...form, portal_primary_color: e.target.value })}
-                      className="h-10 w-14 rounded border border-border cursor-pointer bg-transparent"
-                    />
-                    <Input
-                      value={form.portal_primary_color || ""}
-                      onChange={(e) => setForm({ ...form, portal_primary_color: e.target.value })}
-                      placeholder="#FFBC45"
-                      className="font-mono text-xs"
-                    />
-                  </div>
-                  <p className="text-[10px] text-foreground/40">Botões, badges e destaques.</p>
-                </div>
-                <div className="space-y-1.5">
-                  <Label>🖼️ Cor da capa</Label>
+                  <Label>🎨 Primária — Fundo (palco)</Label>
                   <div className="flex items-center gap-2">
                     <input
                       type="color"
@@ -377,12 +359,30 @@ export function EditClientDialog({
                       className="font-mono text-xs"
                     />
                   </div>
-                  <p className="text-[10px] text-foreground/40">Base do gradiente do header (ignorada se houver imagem de capa).</p>
+                  <p className="text-[10px] text-foreground/40">Cor dominante. Fundo do portal e da apresentação.</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>✨ Secundária — Marca / Destaque</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={form.portal_primary_color || "#FFBC45"}
+                      onChange={(e) => setForm({ ...form, portal_primary_color: e.target.value })}
+                      className="h-10 w-14 rounded border border-border cursor-pointer bg-transparent"
+                    />
+                    <Input
+                      value={form.portal_primary_color || ""}
+                      onChange={(e) => setForm({ ...form, portal_primary_color: e.target.value })}
+                      placeholder="#FFBC45"
+                      className="font-mono text-xs"
+                    />
+                  </div>
+                  <p className="text-[10px] text-foreground/40">Cor viva da marca. CTA, ícones, progresso, badges, glow.</p>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <Label>🔤 Cor do texto (apresentação)</Label>
+                <Label>🔤 Terciária — Tinta (texto)</Label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
@@ -406,8 +406,9 @@ export function EditClientDialog({
                     </button>
                   )}
                 </div>
-                <p className="text-[10px] text-foreground/40">Cor dos textos no Modo Apresentação. Vazio = automático (branco em palco escuro, preto em palco claro).</p>
+                <p className="text-[10px] text-foreground/40">Cor de leitura. Vazio = automático (branco em fundo escuro, preto em fundo claro).</p>
               </div>
+
 
 
               {/* Live preview */}
