@@ -322,7 +322,11 @@ function InterPanel() {
             </Button>
           </div>
           {isLoading ? (
-            <div className="py-6 flex justify-center"><Loader2 className="size-4 animate-spin" /></div>
+            <div className="py-2 space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} className="h-10 w-full rounded-md" />
+              ))}
+            </div>
           ) : boletos.length === 0 ? (
             <p className="text-xs text-foreground/50 py-4 text-center">Nenhum boleto emitido ainda.</p>
           ) : (
