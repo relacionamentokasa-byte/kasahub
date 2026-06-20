@@ -10,7 +10,7 @@ export type UnifiedEvent = {
   id: string;
   ts: string; // ISO
   category: "proposal" | "contract" | "project" | "onboarding" | "job" | "dme" | "payment" | "other";
-  variant?: "created" | "sent" | "approved" | "rejected" | "completed" | "received";
+  variant?: "created" | "sent" | "approved" | "rejected" | "completed" | "received" | "overdue";
   title: string;
   description?: string | null;
   link?: { to: string; label?: string };
