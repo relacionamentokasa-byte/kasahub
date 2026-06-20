@@ -2738,7 +2738,8 @@ function HomeSection({
   slug: string;
   onNavigate: (t: HomeTab) => void;
 }) {
-  const { invoices, attachments, approvalItems, events, jobs } = data;
+  const { invoices, attachments, approvalItems, events, jobs, onboardings } = data;
+  const activeOnboardings = (onboardings || []).filter((o) => o.status !== "cancelled");
 
   // ---- WRAPPED DO MÊS (resumo simples) ----
   const monthStats = useMemo(() => {
