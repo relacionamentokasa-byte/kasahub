@@ -458,3 +458,33 @@ function ChartEditor({
     </div>
   );
 }
+
+function PlatformPicker({
+  value,
+  onChange,
+  placeholder = "Plataforma (opcional)",
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center justify-center size-9 rounded-md border border-border bg-muted/40 text-foreground/70 shrink-0">
+        {value ? <PlatformIcon id={value} size={16} /> : <ImageIcon className="size-4 opacity-40" />}
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="flex-1 h-9 rounded-md border border-input bg-background px-2 text-sm"
+      >
+        <option value="">{placeholder}</option>
+        {PLATFORMS.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
