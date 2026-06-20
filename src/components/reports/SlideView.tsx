@@ -238,7 +238,14 @@ export function SlideView({
           <div className="mt-12 grid gap-6" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}>
             {items.map((it, i) => (
               <div key={i} className="rounded-3xl border border-neutral-200 p-10" style={{ borderColor: `${color}40` }}>
-                <p className="text-[24px] font-medium text-neutral-500 uppercase tracking-wide">{it.label}</p>
+                <div className="flex items-center gap-3">
+                  {it.platform ? (
+                    <span style={{ color }}>
+                      <PlatformIcon id={it.platform} size={28} color="currentColor" />
+                    </span>
+                  ) : null}
+                  <p className="text-[24px] font-medium text-neutral-500 uppercase tracking-wide">{it.label}</p>
+                </div>
                 <p
                   className="mt-4 font-bold tabular-nums"
                   style={{ fontFamily: "'Funnel Display'", fontSize: 96, lineHeight: 1, color }}
