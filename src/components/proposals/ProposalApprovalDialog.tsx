@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, ScrollText, AlertCircle } from "lucide-react";
+import { CheckCircle2, FileSignature, Loader2, User, Coins, Calendar, FileText, ScrollText, AlertCircle, Upload, Paperclip, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProposal, fetchProposalItems, formatCurrency } from "@/lib/crm-api";
 import { approveProposal } from "@/lib/proposal-approval";
