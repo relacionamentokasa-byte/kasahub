@@ -842,22 +842,27 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
 
         <div className="flex items-center justify-between mt-1">
           <div className="flex items-center gap-1.5">
-            {/* Responsável Principal */}
-            {mainResp && (
-              <div 
-                className="size-6 rounded-full bg-primary/10 border border-primary/20 overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-surface"
-                title={`Responsável: ${mainResp.display_name || mainResp.full_name}`}
-              >
-                {mainResp.avatar_url ? (
+            {/* Responsável Principal — sempre visível */}
+            <div
+              className={cn(
+                "size-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-surface",
+                mainResp ? "bg-primary/10 border border-primary/20" : "bg-muted border border-dashed border-border"
+              )}
+              title={mainResp ? `Responsável: ${mainResp.display_name || mainResp.full_name}` : "Sem responsável"}
+            >
+              {mainResp ? (
+                mainResp.avatar_url ? (
                   <img src={mainResp.avatar_url} alt="" className="size-full object-cover" />
                 ) : (
                   <span className="text-[8px] font-bold text-primary">
                     {(mainResp.display_name || mainResp.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </span>
-                )}
-              </div>
-            )}
-            
+                )
+              ) : (
+                <span className="text-[10px] font-bold text-foreground/30">?</span>
+              )}
+            </div>
+
             {/* Equipe Envolvida */}
             {teamInvolved.length > 0 && (
               <div className="flex -space-x-2">
@@ -900,6 +905,26 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
             )}
           </div>
         </div>
+
+        {/* Deadline health bar */}
+        {deadline && (
+          <div className="space-y-1 pt-1">
+            <div className="flex justify-between text-[9px] font-mono-kasa">
+              <span className={cn("font-semibold", deadline.textColor)}>{deadline.label}</span>
+              <span className="text-foreground/40">{deadline.usedPct}% do prazo</span>
+            </div>
+            <div className="h-1 w-full rounded-full bg-muted/40 overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all rounded-full",
+                  deadline.color,
+                  deadline.isOverdue ? "animate-pulse" : ""
+                )}
+                style={{ width: `${deadline.usedPct}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
