@@ -3515,18 +3515,19 @@ function OnboardingPortalCard({ onboardings }: { onboardings: OnboardingRow[] })
                         </div>
                       ) : isActive ? (
                         <div
-                          className="size-8 rounded-full grid place-items-center border-2"
+                          className="relative size-8 rounded-full grid place-items-center border-2"
                           style={{ borderColor: "var(--portal-primary)" }}
                         >
                           <span
-                            className="size-2 rounded-full animate-ping"
+                            className="absolute size-3 rounded-full animate-ping opacity-60"
                             style={{ backgroundColor: "var(--portal-primary)" }}
                           />
                           <span
-                            className="absolute size-2 rounded-full"
+                            className="relative size-2 rounded-full"
                             style={{ backgroundColor: "var(--portal-primary)" }}
                           />
                         </div>
+
                       ) : isBlocked ? (
                         <div className="size-8 rounded-full grid place-items-center border-2 border-rose-500/60">
                           <AlertCircle className="size-4 text-rose-400" />
