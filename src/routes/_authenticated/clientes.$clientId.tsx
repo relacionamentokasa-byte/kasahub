@@ -512,6 +512,12 @@ function ClientDetail() {
   );
 }
 
+function UnifiedTimelineTab({ events }: { events: ReturnType<typeof buildUnifiedEvents> }) {
+  const [filter, setFilter] = useState<string>("all");
+  return <ClientUnifiedTimeline events={events} filter={filter} onFilterChange={setFilter} />;
+}
+
+
 function QuickStatCard({ title, value, icon: Icon, color, isText = false }: { title: string, value: any, icon: any, color: string, isText?: boolean }) {
   return (
     <Card className="bg-surface border-border shadow-sm hover:border-primary/20 transition-colors">
