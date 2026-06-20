@@ -733,6 +733,43 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
   const mainResp = profiles.find(p => p.id === mainRespId);
   const teamInvolved = (job as any).team_involved || [];
 
+  // Deadline health: based on remaining time vs total window (created_at -> due_date)
+  const deadline = useMemo(() => {
+    if (!job.due_date) return null;
+    const due = new Date(job.due_date).getTime();
+    const now = Date.now();
+    const created = job.created_at ? new Date(job.created_at).getTime() : now - 7 * 86400000;
+    const isDone = !!job.done_at;
+    const msLeft = due - now;
+    const daysLeft = Math.ceil(msLeft / 86400000);
+    const total = Math.max(due - created, 86400000);
+    const elapsed = Math.min(Math.max(now - created, 0), total);
+    const usedPct = Math.round((elapsed / total) * 100);
+
+    let color = "bg-emerald-500";
+    let textColor = "text-emerald-600";
+    let label = `${daysLeft}d restantes`;
+
+    if (isDone) {
+      color = "bg-emerald-500/40";
+      textColor = "text-foreground/50";
+      label = "Concluído";
+    } else if (msLeft < 0) {
+      color = "bg-rose-500";
+      textColor = "text-rose-500";
+      const overdue = Math.abs(daysLeft);
+      label = overdue === 0 ? "Vence hoje" : `Atrasado ${overdue}d`;
+    } else if (usedPct >= 75 || daysLeft <= 1) {
+      color = "bg-rose-500";
+      textColor = "text-rose-500";
+    } else if (usedPct >= 50 || daysLeft <= 3) {
+      color = "bg-amber-500";
+      textColor = "text-amber-600";
+    }
+    return { color, textColor, label, usedPct: Math.min(usedPct, 100), isDone, isOverdue: msLeft < 0 && !isDone };
+  }, [job.due_date, job.created_at, job.done_at]);
+
+
   return (
     <div
       className={cn(
