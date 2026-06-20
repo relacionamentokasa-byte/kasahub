@@ -13,12 +13,14 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 
 interface InlineClientPickerProps {
   transactionId: string;
   currentClientId: string | null | undefined;
   currentClientName: string | null | undefined;
+  currentClientPhotoUrl?: string | null;
 }
 
 export function InlineClientPicker({
