@@ -1,5 +1,7 @@
 import type { Slide, KpiItem, DeliverableItem, ChartSeries } from "./types";
 import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
+import { PlatformIcon } from "./PlatformIcon";
+import { getPlatform } from "./platform-icons";
 import {
   ResponsiveContainer,
   BarChart,
