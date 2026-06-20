@@ -17,7 +17,7 @@ import { fetchClients } from "@/lib/ops-api";
 import type { Slide } from "@/components/reports/types";
 import { newSlide } from "@/components/reports/types";
 
-export const Route = createFileRoute("/_authenticated/relatorios/construtor/")({
+export const Route = createFileRoute("/_authenticated/construtor-relatorios/")({
   head: () => ({ meta: [{ title: "Construtor de Relatórios — KASA HUB" }] }),
   component: ReportBuilderListPage,
 });
