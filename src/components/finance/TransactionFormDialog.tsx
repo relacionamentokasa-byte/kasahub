@@ -697,7 +697,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               </div>
             )}
 
-            {watchType === "expense" && !isEdit && !isProLaboreCategory && !watchIsInternal && (
+            {watchType === "expense" && !isEdit && !isProLaboreCategory && (
               <FormField
                 control={form.control}
                 name="partner_id"
