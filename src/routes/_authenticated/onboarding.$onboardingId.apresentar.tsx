@@ -198,12 +198,12 @@ function PresentOnboardingPage() {
       className="fixed inset-0 z-[200] overflow-hidden text-[rgb(var(--ink-rgb))] select-none"
       style={
         {
-          backgroundColor: cover,
-          ["--brand" as any]: primary,
-          ["--brand-soft" as any]: `color-mix(in oklab, ${primary} 18%, transparent)`,
-          ["--brand-glow" as any]: `color-mix(in oklab, ${primary} 35%, transparent)`,
-          ["--accent" as any]: secondary,
-          ["--accent-soft" as any]: `color-mix(in oklab, ${secondary} 18%, transparent)`,
+          backgroundColor: stage,
+          ["--brand" as any]: brand,
+          ["--brand-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
+          ["--brand-glow" as any]: `color-mix(in oklab, ${brand} 35%, transparent)`,
+          ["--accent" as any]: brand,
+          ["--accent-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
           ["--ink-rgb" as any]: inkRgb,
           fontFamily:
             "'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif",
@@ -214,12 +214,12 @@ function PresentOnboardingPage() {
       <div
         aria-hidden
         className="pointer-events-none absolute -top-40 -left-40 size-[600px] rounded-full blur-[140px] opacity-30"
-        style={{ backgroundColor: primary }}
+        style={{ backgroundColor: brand }}
       />
       <div
         aria-hidden
         className="pointer-events-none absolute -bottom-40 -right-40 size-[600px] rounded-full blur-[140px] opacity-20"
-        style={{ backgroundColor: secondary }}
+        style={{ backgroundColor: brand }}
       />
       <div
         aria-hidden
@@ -298,7 +298,7 @@ function PresentOnboardingPage() {
             className="h-full transition-all duration-500 ease-out"
             style={{
               width: `${((idx + 1) / slides.length) * 100}%`,
-              backgroundColor: primary,
+              backgroundColor: brand,
               boxShadow: `0 0 12px var(--brand-glow)`,
             }}
           />
@@ -341,7 +341,7 @@ function buildSlides(
   const slides: React.ReactNode[] = [];
 
   // Slide 1 — Cover
-  slides.push(<CoverSlide key="cover" onb={onb} client={client} />);
+  slides.push(<CoverSlide key="stage" onb={onb} client={client} />);
 
   // Slide 2 — Visão Geral
   slides.push(<OverviewSlide key="overview" onb={onb} steps={steps} />);
