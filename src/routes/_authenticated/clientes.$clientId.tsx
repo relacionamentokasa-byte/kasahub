@@ -1,5 +1,6 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { 
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
@@ -12,6 +13,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
+import { ClientKpiHeader } from "@/components/clients/ClientKpiHeader";
+import { ClientUnifiedTimeline, buildUnifiedEvents } from "@/components/clients/ClientUnifiedTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
 import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
@@ -22,6 +25,7 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
   head: () => ({ meta: [{ title: "Visão 360 do Cliente — KASA HUB" }] }),
@@ -69,6 +73,54 @@ function ClientDetail() {
     enabled: !!client
   });
 
+  const { data: jobs = [] } = useQuery({
+    queryKey: ["client-jobs-summary", clientId],
+    enabled: !!client,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, title, status, done_at, created_at")
+        .eq("client_id", clientId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: dmes = [] } = useQuery({
+    queryKey: ["client-dmes-summary", clientId],
+    queryFn: () => fetchExtraDemands({ clientId }),
+    enabled: !!client,
+  });
+
+  const { data: onboardings = [] } = useQuery({
+    queryKey: ["client-onboardings", clientId],
+    enabled: !!client,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("onboardings")
+        .select("id, title, status, start_date, completed_at, created_at")
+        .eq("client_id", clientId);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+  const { data: timelineEvents = [] } = useQuery({
+    queryKey: ["client-timeline-events", clientId],
+    enabled: !!client,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("client_timeline_events")
+        .select("created_at")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+
   if (clientLoading) return (
     <div className="flex flex-col items-center justify-center h-[calc(100vh-100px)] space-y-4">
       <div className="relative">
@@ -106,6 +158,40 @@ function ClientDetail() {
   const pendingRevenue = transactions
     .filter(t => t.type === "income" && t.status === "pending")
     .reduce((sum, t) => sum + Number(t.amount), 0);
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const mrr = contracts
+    .filter((c: any) => c.status === "active")
+    .reduce((sum: number, c: any) => sum + Number(c.monthly_value || 0), 0);
+  const overdueIncomeCount = transactions.filter(
+    (t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && t.due_date && t.due_date < todayIso,
+  ).length;
+  const paidIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "paid").length;
+  const pendingIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending").length;
+  const activeJobsCount = (jobs as any[]).filter(
+    (j) => !j.done_at && !["done", "cancelled", "archived"].includes(j.status),
+  ).length;
+
+  const lastContactCandidates: Array<{ ts: string; source: string }> = [];
+  if (timelineEvents[0]?.created_at) lastContactCandidates.push({ ts: timelineEvents[0].created_at, source: "Evento na timeline" });
+  for (const p of proposals) {
+    if (p.created_at) lastContactCandidates.push({ ts: p.created_at, source: "Proposta criada" });
+    if ((p as any).sent_at) lastContactCandidates.push({ ts: (p as any).sent_at, source: "Proposta enviada" });
+  }
+  for (const t of transactions) {
+    if (t.status === "paid" && (t as any).paid_at) lastContactCandidates.push({ ts: (t as any).paid_at, source: "Pagamento recebido" });
+  }
+  for (const d of dmes as any[]) {
+    if (d.created_at) lastContactCandidates.push({ ts: d.created_at, source: "DME criada" });
+  }
+  const lastContact = lastContactCandidates.sort((a, b) => (a.ts < b.ts ? 1 : -1))[0];
+
+  const unifiedEvents = useMemo(
+    () => buildUnifiedEvents({ proposals, contracts, projects, jobs, dmes, transactions, onboardings }),
+    [proposals, contracts, projects, jobs, dmes, transactions, onboardings],
+  );
+
+
 
   return (
     <div className="flex flex-col h-full bg-background/50 animate-reveal">
@@ -157,8 +243,19 @@ function ClientDetail() {
                </div>
             </div>
           </div>
+
+          <ClientKpiHeader
+            mrr={mrr}
+            lastContactAt={lastContact?.ts ?? null}
+            lastContactSource={lastContact?.source ?? null}
+            activeJobsCount={activeJobsCount}
+            overdueIncomeCount={overdueIncomeCount}
+            paidIncomeCount={paidIncomeCount}
+            pendingIncomeCount={pendingIncomeCount}
+          />
         </div>
       </div>
+
 
       {/* Navegação 360 */}
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
@@ -244,7 +341,8 @@ function ClientDetail() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 flex-1 overflow-y-auto">
-                    <ClientTimeline clientId={clientId} />
+                    <ClientUnifiedTimeline events={unifiedEvents} limit={8} emptyHint="Sem atividades ainda — crie uma proposta ou registre um pagamento." />
+
                   </CardContent>
                 </Card>
               </div>
@@ -403,15 +501,22 @@ function ClientDetail() {
 
             <TabsContent value="timeline" className="m-0 animate-reveal">
               <div className="max-w-3xl">
-                <ClientTimeline clientId={clientId} />
+                <UnifiedTimelineTab events={unifiedEvents} />
               </div>
             </TabsContent>
+
           </div>
         </div>
       </Tabs>
     </div>
   );
 }
+
+function UnifiedTimelineTab({ events }: { events: ReturnType<typeof buildUnifiedEvents> }) {
+  const [filter, setFilter] = useState<string>("all");
+  return <ClientUnifiedTimeline events={events} filter={filter} onFilterChange={setFilter} />;
+}
+
 
 function QuickStatCard({ title, value, icon: Icon, color, isText = false }: { title: string, value: any, icon: any, color: string, isText?: boolean }) {
   return (
