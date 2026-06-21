@@ -110,6 +110,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       status: "pending",
       due_date: new Date(),
       nature: "operacional",
+      is_internal: false,
     },
   });
 
