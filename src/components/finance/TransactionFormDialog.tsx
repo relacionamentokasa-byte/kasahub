@@ -613,7 +613,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               </div>
             )}
 
-            {watchType !== "expense" && (
+            {watchType !== "expense" && !watchIsInternal && (
               <FormField
                 control={form.control}
                 name="client_id"
