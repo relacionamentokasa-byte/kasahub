@@ -58,6 +58,7 @@ import {
   CreditCard,
   Barcode,
   Receipt,
+  Home,
 } from "lucide-react";
 
 
