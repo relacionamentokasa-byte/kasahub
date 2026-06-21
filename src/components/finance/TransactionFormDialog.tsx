@@ -308,6 +308,40 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="is_internal"
+              render={({ field }) => (
+                <button
+                  type="button"
+                  onClick={() => field.onChange(!field.value)}
+                  className={cn(
+                    "w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
+                    field.value
+                      ? "border-primary bg-primary/10 shadow-sm"
+                      : "border-dashed border-border bg-surface/40 hover:border-primary/50 hover:bg-primary/5"
+                  )}
+                >
+                  <div className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-lg",
+                    field.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}>
+                    <Home className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold leading-tight">
+                      {field.value ? "✓ Despesa da Kasa" : "Despesa da Kasa?"}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                      {field.value
+                        ? "Sem cliente, fornecedor ou freelancer vinculado"
+                        : "Marque se for despesa interna da agência (aluguel, software, etc.)"}
+                    </div>
+                  </div>
+                </button>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
