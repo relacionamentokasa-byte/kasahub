@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalendarIcon, Loader2, Building2, Paperclip, Upload, X, FileText } from "lucide-react";
+import { CalendarIcon, Loader2, Building2, Paperclip, Upload, X, FileText, Home } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { fetchCategoriasFinanceiras } from "@/lib/categorias-financeiras-api";
@@ -79,6 +79,7 @@ const transactionSchema = z.object({
   boleto_pdf_path: z.string().nullable().optional(),
   boleto_linha_digitavel: z.string().max(200).nullable().optional(),
   boleto_pix_copia_cola: z.string().max(2000).nullable().optional(),
+  is_internal: z.boolean().optional(),
 });
 
 
@@ -109,6 +110,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       status: "pending",
       due_date: new Date(),
       nature: "operacional",
+      is_internal: false,
     },
   });
 
@@ -135,6 +137,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_pdf_path: transaction.boleto_pdf_path || null,
         boleto_linha_digitavel: transaction.boleto_linha_digitavel || "",
         boleto_pix_copia_cola: transaction.boleto_pix_copia_cola || "",
+        is_internal: !!transaction.is_internal,
       });
 
     } else {
@@ -143,12 +146,14 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         status: "pending",
         due_date: new Date(),
         nature: "operacional",
+        is_internal: false,
       });
     }
   }, [open, transaction]);
 
   const watchType = form.watch("type");
   const watchCategory = form.watch("category");
+  const watchIsInternal = !!form.watch("is_internal");
   const isFreelancerCategory = watchCategory === "Freelancers e Terceirizados";
   const isProLaboreCategory =
     (watchCategory || "")
@@ -167,6 +172,17 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       form.setValue("partner_id", "none");
     }
   }, [isProLaboreCategory]);
+
+  // Quando marca "Despesa da Kasa", força tipo=despesa e limpa vínculos
+  useEffect(() => {
+    if (watchIsInternal) {
+      form.setValue("type", "expense");
+      form.setValue("client_id", "none");
+      form.setValue("supplier_id", "none");
+      form.setValue("freelancer_id", "none");
+      form.setValue("partner_id", "none");
+    }
+  }, [watchIsInternal]);
   const watchAmount = Number(form.watch("amount") || 0);
   const watchValorReal = form.watch("valor_real");
   const real = watchValorReal === "" || watchValorReal == null ? null : parseFloat(String(watchValorReal).replace(",", ".")) || 0;
@@ -208,6 +224,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
           boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
           boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
           boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
+          is_internal: !!values.is_internal,
         };
         return updateTransaction(transaction.id, patch);
       }
@@ -232,6 +249,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
         boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
         boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
+        is_internal: !!values.is_internal,
       };
 
       if (partnerId && values.type === "expense") {
@@ -290,6 +308,40 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="is_internal"
+              render={({ field }) => (
+                <button
+                  type="button"
+                  onClick={() => field.onChange(!field.value)}
+                  className={cn(
+                    "w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
+                    field.value
+                      ? "border-primary bg-primary/10 shadow-sm"
+                      : "border-dashed border-border bg-surface/40 hover:border-primary/50 hover:bg-primary/5"
+                  )}
+                >
+                  <div className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-lg",
+                    field.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+                  )}>
+                    <Home className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-semibold leading-tight">
+                      {field.value ? "✓ Despesa da Kasa" : "Despesa da Kasa?"}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+                      {field.value
+                        ? "Sem cliente, fornecedor ou freelancer vinculado"
+                        : "Marque se for despesa interna da agência (aluguel, software, etc.)"}
+                    </div>
+                  </div>
+                </button>
+              )}
+            />
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -561,7 +613,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               </div>
             )}
 
-            {watchType !== "expense" && (
+            {watchType !== "expense" && !watchIsInternal && (
               <FormField
                 control={form.control}
                 name="client_id"
@@ -589,7 +641,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               />
             )}
 
-            {watchType === "expense" && !isProLaboreCategory && (
+            {watchType === "expense" && !isProLaboreCategory && !watchIsInternal && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -697,7 +749,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               </div>
             )}
 
-            {watchType === "expense" && !isEdit && !isProLaboreCategory && (
+            {watchType === "expense" && !isEdit && !isProLaboreCategory && !watchIsInternal && (
               <FormField
                 control={form.control}
                 name="partner_id"
