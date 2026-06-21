@@ -1,0 +1,2 @@
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS is_internal BOOLEAN NOT NULL DEFAULT false;
+CREATE INDEX IF NOT EXISTS idx_transactions_is_internal ON public.transactions(is_internal) WHERE is_internal = true;
