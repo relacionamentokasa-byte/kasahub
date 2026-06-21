@@ -137,6 +137,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_pdf_path: transaction.boleto_pdf_path || null,
         boleto_linha_digitavel: transaction.boleto_linha_digitavel || "",
         boleto_pix_copia_cola: transaction.boleto_pix_copia_cola || "",
+        is_internal: !!transaction.is_internal,
       });
 
     } else {
@@ -145,6 +146,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         status: "pending",
         due_date: new Date(),
         nature: "operacional",
+        is_internal: false,
       });
     }
   }, [open, transaction]);
