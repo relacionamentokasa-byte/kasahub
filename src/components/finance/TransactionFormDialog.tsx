@@ -153,6 +153,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
 
   const watchType = form.watch("type");
   const watchCategory = form.watch("category");
+  const watchIsInternal = !!form.watch("is_internal");
   const isFreelancerCategory = watchCategory === "Freelancers e Terceirizados";
   const isProLaboreCategory =
     (watchCategory || "")
@@ -171,6 +172,17 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       form.setValue("partner_id", "none");
     }
   }, [isProLaboreCategory]);
+
+  // Quando marca "Despesa da Kasa", força tipo=despesa e limpa vínculos
+  useEffect(() => {
+    if (watchIsInternal) {
+      form.setValue("type", "expense");
+      form.setValue("client_id", "none");
+      form.setValue("supplier_id", "none");
+      form.setValue("freelancer_id", "none");
+      form.setValue("partner_id", "none");
+    }
+  }, [watchIsInternal]);
   const watchAmount = Number(form.watch("amount") || 0);
   const watchValorReal = form.watch("valor_real");
   const real = watchValorReal === "" || watchValorReal == null ? null : parseFloat(String(watchValorReal).replace(",", ".")) || 0;
