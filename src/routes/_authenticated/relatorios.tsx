@@ -58,6 +58,7 @@ import {
   CreditCard,
   Barcode,
   Receipt,
+  Home,
 } from "lucide-react";
 
 
@@ -903,54 +904,60 @@ function FinancialPage() {
                       )}
                     </div>
                     <div className="flex flex-col gap-0.5">
-                      {(() => {
-                        const catName = ((t.categorias_financeiras as any)?.nome || t.category || "")
-                          .toString()
-                          .toLowerCase()
-                          .normalize("NFD")
-                          .replace(/[\u0300-\u036f]/g, "")
-                          .trim();
-                        const isProLabore = catName === "pro-labore" || catName === "pro labore";
-                        if (isProLabore) {
+                      {t.is_internal ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 w-fit">
+                          <Home className="size-3" /> Despesa Kasa
+                        </span>
+                      ) : (
+                        (() => {
+                          const catName = ((t.categorias_financeiras as any)?.nome || t.category || "")
+                            .toString()
+                            .toLowerCase()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .trim();
+                          const isProLabore = catName === "pro-labore" || catName === "pro labore";
+                          if (isProLabore) {
+                            return (
+                              <span className="text-[10px] text-foreground/40 italic">
+                                Direcionado aos sócios
+                              </span>
+                            );
+                          }
+                          const isFreelaCat =
+                            catName.includes("freelancer") ||
+                            catName.includes("freela") ||
+                            catName.includes("terceiriz");
                           return (
-                            <span className="text-[10px] text-foreground/40 italic">
-                              Direcionado aos sócios
-                            </span>
+                            <>
+                              <InlineClientPicker
+                                transactionId={t.id}
+                                currentClientId={t.client_id}
+                                currentClientName={
+                                  (t.clients as any)?.company || (t.clients as any)?.name || null
+                                }
+                                currentClientPhotoUrl={(t.clients as any)?.logo_url || null}
+                              />
+                              {t.type === "expense" && (
+                                (isFreelaCat || t.freelancer_id) ? (
+                                  <InlineFreelancerPicker
+                                    transactionId={t.id}
+                                    currentFreelancerId={t.freelancer_id}
+                                    currentFreelancerName={(t.freelancer as any)?.name || null}
+                                    currentFreelancerPhotoUrl={(t.freelancer as any)?.photo_url || null}
+                                  />
+                                ) : (
+                                  <InlineSupplierPicker
+                                    transactionId={t.id}
+                                    currentSupplierId={t.supplier_id}
+                                    currentSupplierName={(t.suppliers as any)?.name || null}
+                                  />
+                                )
+                              )}
+                            </>
                           );
-                        }
-                        const isFreelaCat =
-                          catName.includes("freelancer") ||
-                          catName.includes("freela") ||
-                          catName.includes("terceiriz");
-                        return (
-                          <>
-                            <InlineClientPicker
-                              transactionId={t.id}
-                              currentClientId={t.client_id}
-                              currentClientName={
-                                (t.clients as any)?.company || (t.clients as any)?.name || null
-                              }
-                              currentClientPhotoUrl={(t.clients as any)?.logo_url || null}
-                            />
-                            {t.type === "expense" && (
-                              (isFreelaCat || t.freelancer_id) ? (
-                                <InlineFreelancerPicker
-                                  transactionId={t.id}
-                                  currentFreelancerId={t.freelancer_id}
-                                  currentFreelancerName={(t.freelancer as any)?.name || null}
-                                  currentFreelancerPhotoUrl={(t.freelancer as any)?.photo_url || null}
-                                />
-                              ) : (
-                                <InlineSupplierPicker
-                                  transactionId={t.id}
-                                  currentSupplierId={t.supplier_id}
-                                  currentSupplierName={(t.suppliers as any)?.name || null}
-                                />
-                              )
-                            )}
-                          </>
-                        );
-                      })()}
+                        })()
+                      )}
                     </div>
                   </TableCell>
 
