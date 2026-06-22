@@ -1644,16 +1644,9 @@ function ApprovalFullscreenModal({
           ) : item.content_type === "video" && item.content_url ? (
             <video src={item.content_url} controls autoPlay className="w-full h-full object-contain" />
           ) : item.content_type === "pdf" && item.content_url ? (
-            <a
-              href={item.content_url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center justify-center gap-3 text-white hover:text-[var(--portal-primary)] p-10"
-            >
-              <FileText className="size-20" />
-              <span className="text-base font-bold">Abrir PDF</span>
-              <span className="text-xs text-white/60">Abre em nova aba</span>
-            </a>
+            <div className="w-full max-h-[80vh] bg-white overflow-auto">
+              <PdfPreview url={item.content_url} name={fileNameFromUrl(item.content_url)} />
+            </div>
           ) : item.content_type === "text" && item.content_text ? (
             <div className="w-full max-h-full overflow-y-auto bg-white text-slate-900 p-6 whitespace-pre-wrap text-sm leading-relaxed">
               {item.content_text}
