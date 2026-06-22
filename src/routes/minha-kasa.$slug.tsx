@@ -3141,12 +3141,10 @@ function HomeSection({
                   <Play className="size-7 text-white" fill="white" />
                 </div>
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                  <FileText className="size-8 text-slate-500" strokeWidth={1.5} />
-                </div>
+                <FileThumb name={f.name} />
               )}
               <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded-md bg-black/60 text-white font-bold backdrop-blur-sm">
-                {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : "📄"}
+                {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : FILE_META[getFileKind(f.name)].badge}
               </span>
               <span className="absolute inset-x-0 bottom-0 px-2 py-1 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-white font-semibold truncate opacity-0 group-hover:opacity-100 transition-opacity">
                 {f.name}
