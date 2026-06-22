@@ -305,6 +305,11 @@ function MinhaKasaPage() {
   }
 
   const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [], approvalComments = {} } = data;
+  const launchGrids = ((data as any).launchGrids || []) as Array<{
+    id: string; title: string; description: string | null; cover_url: string | null; launch_date: string | null;
+    statuses: Array<{ id: string; label: string; color: string; order_index: number; is_done: boolean }>;
+    products: Array<{ id: string; name: string; description: string | null; image_url: string | null; status_id: string | null; due_date: string | null; links: any }>;
+  }>;
   const displayName = client.company || client.name;
 
   const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
