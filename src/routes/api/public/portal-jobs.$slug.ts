@@ -301,13 +301,15 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           onboardings.push({ ...o, steps: stepRows || [] });
         }
 
-        // Fetch Launch Grids (ativos) do cliente, com etapas e produtos
-        const { data: gridRows } = await supabaseAdmin
-          .from("launch_grids")
-          .select("id, title, description, cover_url, status, launch_date, created_at")
-          .eq("client_id", client.id)
-          .eq("status", "active")
-          .order("created_at", { ascending: false });
+        // Fetch Launch Grids do cliente (apenas se o módulo estiver ativado)
+        const gridRows = (client as any).has_launch_grid
+          ? (await supabaseAdmin
+              .from("launch_grids")
+              .select("id, title, description, cover_url, status, launch_date, created_at")
+              .eq("client_id", client.id)
+              .eq("status", "active")
+              .order("created_at", { ascending: false })).data
+          : [];
 
         const launchGrids: any[] = [];
         for (const g of gridRows || []) {
