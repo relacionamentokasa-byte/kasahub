@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createJob, createProject, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
+import { listProductsByClient } from "@/lib/launch-grids-api";
 
 import { JOBS_QUERY_KEY } from "./JobsBoard";
 import { fetchPartners } from "@/lib/partners-api";
