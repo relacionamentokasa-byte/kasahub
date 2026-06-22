@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Plus, Settings2, LayoutGrid, Table as TableIcon, Image as ImageIcon,
   Pencil, Trash2, Upload, Link as LinkIcon, ExternalLink, Calendar,
