@@ -173,12 +173,12 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
     }
   }, [isProLaboreCategory]);
 
-  // Quando marca "Despesa da Kasa", força tipo=despesa e limpa vínculos
+  // Quando marca "Despesa da Kasa", força tipo=despesa e limpa vínculos de cliente/freela/sócio
+  // (mantém fornecedor — despesas da Kasa normalmente têm fornecedor: Vivo, energia, etc.)
   useEffect(() => {
     if (watchIsInternal) {
       form.setValue("type", "expense");
       form.setValue("client_id", "none");
-      form.setValue("supplier_id", "none");
       form.setValue("freelancer_id", "none");
       form.setValue("partner_id", "none");
     }
