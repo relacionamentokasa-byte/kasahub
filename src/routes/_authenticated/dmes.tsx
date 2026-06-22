@@ -315,14 +315,26 @@ function DmesPage() {
                         const b = batchByDme[d.id];
                         if (!b || b.status === "cancelled") return null;
                         return (
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px]">
-                            <Layers className="size-3 mr-1" /> EM LOTE
-                          </Badge>
+                          <>
+                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px]">
+                              <Layers className="size-3 mr-1" /> EM LOTE
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setAddItemFor({ ...d, _batch: b })}
+                              className="h-6 px-2 gap-1 border-primary/40 text-primary hover:bg-primary/10 text-[11px]"
+                              title="Adicionar nova DME a este lote (soma na cobrança consolidada)"
+                            >
+                              <PlusCircle className="size-3" /> Add ao lote
+                            </Button>
+                          </>
                         );
                       })()}
                     </div>
                     {d.description && <div className="text-xs text-muted-foreground line-clamp-1">{d.description}</div>}
                   </TableCell>
+
                   <TableCell className="text-sm">{d.clients?.company || d.clients?.name || "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{d.contracts?.title || "—"}</TableCell>
                   <TableCell className="text-right font-mono">{brl(Number(d.value))}</TableCell>
