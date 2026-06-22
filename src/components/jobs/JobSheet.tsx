@@ -3,7 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-import { StorageImage } from "@/components/ui/storage-image";
   Sheet,
   SheetContent,
   SheetHeader,
@@ -68,6 +67,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { StorageImage } from "@/components/ui/storage-image";
 
 
 export function JobSheet({

@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/lib/version";
 import { fetchMyProfile } from "@/lib/profile-api";
 import {
-import { StorageImage } from "@/components/ui/storage-image";
   LayoutDashboard,
   KanbanSquare,
   FileText,
@@ -41,6 +40,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { KasaLogo } from "./KasaLogo";
+import { StorageImage } from "@/components/ui/storage-image";
 
 type SidebarItem = { title: string; url: string; icon: typeof LayoutDashboard; module: ModuleId };
 const groups: { label: string; items: SidebarItem[] }[] = [

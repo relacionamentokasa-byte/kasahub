@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ptBR } from "date-fns/locale";
 import {
-import { StorageImage } from "@/components/ui/storage-image";
   Select,
   SelectContent,
   SelectItem,
@@ -51,6 +50,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { StorageImage } from "@/components/ui/storage-image";
 
 
 export const JOBS_QUERY_KEY = (filters: any) => ["jobs", filters];

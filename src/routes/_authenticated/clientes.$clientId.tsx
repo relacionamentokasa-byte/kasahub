@@ -2,7 +2,6 @@ import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { 
-import { StorageImage } from "@/components/ui/storage-image";
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
@@ -27,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DetailHeaderSkeleton, CardListSkeleton } from "@/components/ui/loading-skeletons";
+import { StorageImage } from "@/components/ui/storage-image";
 
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({

@@ -5,7 +5,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
-import { StorageImage } from "@/components/ui/storage-image";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -19,6 +18,7 @@ import { useTheme } from "@/lib/theme";
 import { NotificationCenter } from "./notifications/NotificationCenter";
 import { InstallPWAButton } from "./pwa/InstallPWAButton";
 import { ConnectionIndicator } from "./pwa/ConnectionIndicator";
+import { StorageImage } from "@/components/ui/storage-image";
 
 type Profile = {
   display_name: string | null;

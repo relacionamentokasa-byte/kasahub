@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { brl } from "@/lib/utils-format";
 import { 
-import { StorageImage } from "@/components/ui/storage-image";
   Table, 
   TableBody, 
   TableCell, 
@@ -28,6 +27,7 @@ import { NewClientDialog } from "@/components/clients/NewClientDialog";
 import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { fetchClients } from "@/lib/ops-api";
+import { StorageImage } from "@/components/ui/storage-image";
 
 export const Route = createFileRoute("/_authenticated/clientes/")({
   head: () => ({ meta: [{ title: "Clientes — KASA HUB" }] }),
