@@ -109,29 +109,27 @@ function DmesPage() {
       return map;
     },
   });
-
-
-
+  // Todos os lotes ativos (independente dos filtros da tabela) — para permitir
+  // adicionar uma nova DME ao lote mesmo que nenhuma DME do lote esteja visível.
+  const { data: activeBatches = [] } = useQuery<any[]>({
+    queryKey: ["dme-batches-active"],
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dme_batches" as any)
+        .select("id, status, total_value, consolidated_transaction_id, client_id, created_at, clients(name, company), dme_batch_items(extra_demand_id)")
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   const filtered = useMemo(
     () => dmes.filter((d: any) => !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.number_display?.toLowerCase().includes(search.toLowerCase())),
     [dmes, search]
   );
-
-  const visibleBatchGroups = useMemo(() => {
-    const map = new Map<string, { batch: any; dme: any; count: number }>();
-    filtered.forEach((d: any) => {
-      const batch = batchByDme[d.id];
-      if (!batch || batch.status === "cancelled") return;
-      const existing = map.get(batch.id);
-      if (existing) {
-        existing.count += 1;
-        return;
-      }
-      map.set(batch.id, { batch, dme: d, count: 1 });
-    });
-    return Array.from(map.values());
-  }, [filtered, batchByDme]);
 
   const approveMut = useMutation({
     mutationFn: (id: string) => approveExtraDemand(id),
@@ -270,30 +268,39 @@ function DmesPage() {
         </div>
       )}
 
-      {visibleBatchGroups.length > 0 && (
+      {activeBatches.length > 0 && (
         <div className="rounded-2xl border-2 border-primary/50 bg-primary/10 p-4 space-y-3 shadow-sm">
           <div className="flex items-center gap-2 font-semibold text-primary">
-            <Layers className="size-5" /> Lotes consolidados nesta lista
+            <Layers className="size-5" /> Lotes ativos — adicione uma nova DME a um lote existente
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {visibleBatchGroups.map(({ batch, dme, count }) => (
-              <div key={batch.id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">{dme.clients?.company || dme.clients?.name || "Cliente"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {count} DME{count > 1 ? "s" : ""} no lote · total {brl(Number(batch.total_value || 0))}
+            {activeBatches.map((b: any) => {
+              const count = (b.dme_batch_items ?? []).length;
+              const clientName = b.clients?.company || b.clients?.name || "Cliente";
+              return (
+                <div key={b.id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{clientName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {count} DME{count !== 1 ? "s" : ""} no lote · total {brl(Number(b.total_value || 0))}
+                    </div>
                   </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setAddItemFor({
+                      client_id: b.client_id,
+                      clients: b.clients,
+                      contract_id: null,
+                      _batch: b,
+                    })}
+                    className="gap-2 shrink-0"
+                    title="Criar uma nova DME e somar na cobrança consolidada deste lote"
+                  >
+                    <PlusCircle className="size-4" /> Adicionar DME
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => setAddItemFor({ ...dme, _batch: batch })}
-                  className="gap-2 shrink-0"
-                  title="Criar uma nova DME e somar na cobrança consolidada deste lote"
-                >
-                  <PlusCircle className="size-4" /> Adicionar DME
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
