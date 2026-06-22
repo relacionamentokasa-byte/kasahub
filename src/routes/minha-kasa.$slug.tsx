@@ -334,6 +334,7 @@ function MinhaKasaPage() {
   const tabs: Array<{ key: typeof tab; label: string; icon: LucideIcon; badge?: number; dot?: boolean }> = [
     { key: "home", label: "Início", icon: Home },
     { key: "projects", label: "Projetos", icon: LayoutGrid },
+    ...(launchGrids.length > 0 ? [{ key: "launches" as typeof tab, label: "Lançamentos", icon: Rocket }] : []),
     { key: "approvals", label: "Aprovações", icon: CheckSquare, badge: pendingApprovals.length || undefined },
     { key: "finance", label: "Financeiro", icon: Wallet, dot: urgentInvoicesCount > 0 },
     { key: "docs", label: "Propostas", icon: FileText },
