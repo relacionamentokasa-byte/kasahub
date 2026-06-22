@@ -1901,7 +1901,7 @@ export type Database = {
           briefing_references: string | null
           client_id: string
           completed_steps: number | null
-          contract_id: string
+          contract_id: string | null
           created_at: string
           custom_fields: Json | null
           custom_fields_schema: Json | null
@@ -1944,7 +1944,7 @@ export type Database = {
           briefing_references?: string | null
           client_id: string
           completed_steps?: number | null
-          contract_id: string
+          contract_id?: string | null
           created_at?: string
           custom_fields?: Json | null
           custom_fields_schema?: Json | null
@@ -1987,7 +1987,7 @@ export type Database = {
           briefing_references?: string | null
           client_id?: string
           completed_steps?: number | null
-          contract_id?: string
+          contract_id?: string | null
           created_at?: string
           custom_fields?: Json | null
           custom_fields_schema?: Json | null
