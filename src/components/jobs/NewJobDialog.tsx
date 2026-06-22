@@ -378,10 +378,6 @@ export function NewJobDialog({
                 </div>
 
                 {/* Produto do grid de lançamento — só aparece se o cliente tem grid ativo */}
-                {(clientHasGrid && launchProducts.length > 0) || lockLaunchProduct ? (
-                <div style={{ display: "contents" }}>
-                </div>
-                ) : null}
                 {((clientHasGrid && launchProducts.length > 0) || lockLaunchProduct) && (
                   <div className="space-y-1.5">
                     <Label className="flex items-center gap-1.5">
