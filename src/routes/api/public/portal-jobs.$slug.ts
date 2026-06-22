@@ -301,8 +301,33 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           onboardings.push({ ...o, steps: stepRows || [] });
         }
 
+        // Fetch Launch Grids (ativos) do cliente, com etapas e produtos
+        const { data: gridRows } = await supabaseAdmin
+          .from("launch_grids")
+          .select("id, title, description, cover_url, status, launch_date, created_at")
+          .eq("client_id", client.id)
+          .eq("status", "active")
+          .order("created_at", { ascending: false });
+
+        const launchGrids: any[] = [];
+        for (const g of gridRows || []) {
+          const [{ data: gStatuses }, { data: gProducts }] = await Promise.all([
+            supabaseAdmin
+              .from("launch_grid_statuses")
+              .select("id, label, color, order_index, is_done")
+              .eq("grid_id", g.id)
+              .order("order_index", { ascending: true }),
+            supabaseAdmin
+              .from("launch_grid_products")
+              .select("id, name, description, image_url, status_id, due_date, links, order_index")
+              .eq("grid_id", g.id)
+              .order("order_index", { ascending: true }),
+          ]);
+          launchGrids.push({ ...g, statuses: gStatuses || [], products: gProducts || [] });
+        }
+
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, events, onboardings }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, events, onboardings, launchGrids }),
 
           {
             status: 200,

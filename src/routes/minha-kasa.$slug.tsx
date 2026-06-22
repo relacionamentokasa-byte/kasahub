@@ -32,6 +32,8 @@ import {
   Folder,
   Sun,
   Moon,
+  Rocket,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 
@@ -254,7 +256,7 @@ function isVideo(att: Attachment) {
 
 function MinhaKasaPage() {
   const { slug } = Route.useParams();
-  const [tab, setTab] = useState<"home" | "projects" | "approvals" | "finance" | "docs">("home");
+  const [tab, setTab] = useState<"home" | "projects" | "launches" | "approvals" | "finance" | "docs">("home");
   const themeStorageKey = `kasa.minha-kasa.theme.${slug}`;
   const [theme, setTheme] = useState<"light" | "dark">("light");
   useEffect(() => {
@@ -303,6 +305,11 @@ function MinhaKasaPage() {
   }
 
   const { client, jobs, responsibles, stages, invoices, proposals, currentContract, approvalItems = [], approvalComments = {} } = data;
+  const launchGrids = ((data as any).launchGrids || []) as Array<{
+    id: string; title: string; description: string | null; cover_url: string | null; launch_date: string | null;
+    statuses: Array<{ id: string; label: string; color: string; order_index: number; is_done: boolean }>;
+    products: Array<{ id: string; name: string; description: string | null; image_url: string | null; status_id: string | null; due_date: string | null; links: any }>;
+  }>;
   const displayName = client.company || client.name;
 
   const pendingApprovals = approvalItems.filter((it) => it.status === "pending");
@@ -327,6 +334,7 @@ function MinhaKasaPage() {
   const tabs: Array<{ key: typeof tab; label: string; icon: LucideIcon; badge?: number; dot?: boolean }> = [
     { key: "home", label: "Início", icon: Home },
     { key: "projects", label: "Projetos", icon: LayoutGrid },
+    ...(launchGrids.length > 0 ? [{ key: "launches" as typeof tab, label: "Lançamentos", icon: Rocket }] : []),
     { key: "approvals", label: "Aprovações", icon: CheckSquare, badge: pendingApprovals.length || undefined },
     { key: "finance", label: "Financeiro", icon: Wallet, dot: urgentInvoicesCount > 0 },
     { key: "docs", label: "Propostas", icon: FileText },
@@ -532,6 +540,8 @@ function MinhaKasaPage() {
                   ))}
               </div>
             )
+          ) : tab === "launches" ? (
+            <LaunchesSection grids={launchGrids} />
           ) : tab === "approvals" ? (
             <ApprovalsInstagramSection
               slug={slug}
@@ -3436,6 +3446,110 @@ function OnboardingPortalCard({ onboardings }: { onboardings: OnboardingRow[] })
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+// ============= LAUNCH GRIDS (Lançamentos) =============
+function LaunchesSection({ grids }: { grids: any[] }) {
+  if (!grids || grids.length === 0) {
+    return <EmptyState icon={Rocket} title="Nenhum lançamento ativo" subtitle="Quando houver um lançamento em andamento, aparecerá aqui." />;
+  }
+  return (
+    <div className="space-y-8">
+      {grids.map((g) => (
+        <LaunchGridView key={g.id} grid={g} />
+      ))}
+    </div>
+  );
+}
+
+function LaunchGridView({ grid }: { grid: any }) {
+  const statuses = grid.statuses || [];
+  const products = grid.products || [];
+  return (
+    <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+      {grid.cover_url && (
+        <div className="h-32 md:h-44 bg-cover bg-center" style={{ backgroundImage: `url(${grid.cover_url})` }} />
+      )}
+      <div className="p-4 md:p-6">
+        <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <Rocket className="size-5 text-[var(--portal-primary)]" />
+              <h2 className="text-lg md:text-xl font-bold text-slate-900">{grid.title}</h2>
+            </div>
+            {grid.launch_date && (
+              <div className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+                <Calendar className="size-3" />
+                Lançamento em {format(new Date(grid.launch_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </div>
+            )}
+            {grid.description && (
+              <p className="text-sm text-slate-600 mt-2 max-w-2xl">{grid.description}</p>
+            )}
+          </div>
+          <div className="text-xs text-slate-500">
+            {products.length} {products.length === 1 ? "produto" : "produtos"}
+          </div>
+        </div>
+
+        {/* Grid de cards por etapa */}
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
+          {statuses.map((s: any) => {
+            const items = products.filter((p: any) => p.status_id === s.id);
+            return (
+              <div key={s.id} className="w-64 shrink-0">
+                <div className="flex items-center gap-2 mb-2 px-1">
+                  <span className="size-2.5 rounded-full" style={{ background: s.color }} />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">{s.label}</h3>
+                  <span className="text-[10px] text-slate-400">{items.length}</span>
+                </div>
+                <div className="space-y-2 bg-slate-50 rounded-lg p-2 min-h-[100px]">
+                  {items.length === 0 && (
+                    <div className="text-center text-[10px] text-slate-300 py-4">—</div>
+                  )}
+                  {items.map((p: any) => (
+                    <div key={p.id} className="bg-white rounded-lg border border-slate-200 p-2 shadow-sm">
+                      {p.image_url && (
+                        <div className="h-20 rounded mb-2 bg-cover bg-center" style={{ backgroundImage: `url(${p.image_url})` }} />
+                      )}
+                      <div className="text-sm font-semibold text-slate-800 leading-tight">{p.name}</div>
+                      {p.description && (
+                        <div className="text-[11px] text-slate-500 line-clamp-2 mt-1">{p.description}</div>
+                      )}
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        {p.due_date ? (
+                          <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                            <Calendar className="size-2.5" />
+                            {format(new Date(p.due_date), "dd/MM", { locale: ptBR })}
+                          </span>
+                        ) : <span />}
+                        {Array.isArray(p.links) && p.links.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            {p.links.slice(0, 2).map((l: any, i: number) => (
+                              <a
+                                key={i}
+                                href={l.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-[10px] text-[var(--portal-primary)] hover:underline flex items-center gap-0.5"
+                                title={l.label || l.url}
+                              >
+                                <ExternalLink className="size-2.5" /> {l.label || "link"}
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
