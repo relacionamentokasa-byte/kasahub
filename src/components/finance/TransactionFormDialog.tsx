@@ -195,7 +195,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       const clientId = values.client_id === "none" || !values.client_id ? null : values.client_id;
       const supplierId = values.supplier_id === "none" || !values.supplier_id ? null : values.supplier_id;
       const freelancerId = values.freelancer_id === "none" || !values.freelancer_id ? null : values.freelancer_id;
-      const useFreelancer = values.category === "Freelancers e Terceirizados";
+      // NÃO acoplar à categoria: salvar o vínculo escolhido pelo usuário, qualquer que seja a categoria.
+      // Se ambos vierem preenchidos (raro — UI mostra um ou outro), prioriza freelancer.
 
       if (isEdit) {
         const realNum = values.valor_real === "" || values.valor_real == null
