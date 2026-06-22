@@ -9,7 +9,7 @@ import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
-import { createDmeBatch, getDmeBatchPublicUrl } from "@/lib/dme-batches-api";
+import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch } from "@/lib/dme-batches-api";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
@@ -89,6 +89,28 @@ function DmesPage() {
       return map;
     },
   });
+
+  const { data: batchByDme = {} } = useQuery<Record<string, { id: string; status: string; total_value: number; consolidated_transaction_id: string | null }>>({
+    queryKey: ["batches-by-dme", dmeIdsKey],
+    enabled: dmeIdsKey.length > 0,
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const ids = dmeIdsKey.split(",");
+      const { data, error } = await supabase
+        .from("dme_batch_items" as any)
+        .select("extra_demand_id, dme_batches(id, status, total_value, consolidated_transaction_id)")
+        .in("extra_demand_id", ids);
+      if (error) throw error;
+      const map: Record<string, any> = {};
+      (data ?? []).forEach((i: any) => {
+        if (i.extra_demand_id && i.dme_batches) map[i.extra_demand_id] = i.dme_batches;
+      });
+      return map;
+    },
+  });
+
+
 
 
   const filtered = useMemo(
@@ -328,17 +350,21 @@ function DmesPage() {
                           <LinkIcon className="size-4" />
                         </Button>
                       )}
-                      {d.status === "approved" && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setAddItemFor(d)}
-                          className="text-primary"
-                          title="Adicionar item nesta DME (atualiza valor no financeiro)"
-                        >
-                          <PlusCircle className="size-4" />
-                        </Button>
-                      )}
+                      {(() => {
+                        const batch = batchByDme[d.id];
+                        if (!batch || batch.status === "cancelled") return null;
+                        return (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setAddItemFor({ ...d, _batch: batch })}
+                            className="text-primary"
+                            title="Adicionar nova DME a este lote (soma na cobrança consolidada)"
+                          >
+                            <PlusCircle className="size-4" />
+                          </Button>
+                        );
+                      })()}
                       {isPending && (
                         <>
                           <Button size="icon" variant="ghost" onClick={() => approveMut.mutate(d.id)} className="text-emerald-600" title="Aprovar internamente">
@@ -379,105 +405,71 @@ function DmesPage() {
         }}
       />
 
-      <AddDmeItemDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
+      <AddDmeToBatchDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
     </div>
   );
 }
 
-function AddDmeItemDialog({ dme, onOpenChange }: { dme: any | null; onOpenChange: (o: boolean) => void }) {
+function AddDmeToBatchDialog({ dme, onOpenChange }: { dme: any | null; onOpenChange: (o: boolean) => void }) {
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [value, setValue] = useState("");
+
+  const batch = dme?._batch;
 
   const mut = useMutation({
     mutationFn: async () => {
-      if (!dme) throw new Error("DME inválida");
-      const extra = Number((value || "").toString().replace(",", "."));
-      if (!title.trim()) throw new Error("Informe o título do item.");
-      if (!extra || extra <= 0) throw new Error("Valor do item deve ser maior que zero.");
-
-      const stamp = new Date().toLocaleDateString("pt-BR");
-      const itemLine = `+ [${stamp}] ${title.trim()} — ${brl(extra)}`;
-      const newValue = Number(dme.value || 0) + extra;
-      const newDescription = dme.description
-        ? `${dme.description}\n${itemLine}`
-        : itemLine;
-
-      const { error: e1 } = await supabase
-        .from("extra_demands")
-        .update({ value: newValue, description: newDescription })
-        .eq("id", dme.id);
-      if (e1) throw e1;
-
-      const txId = dme.transaction_id || dme.consolidated_transaction_id;
-      if (txId) {
-        const { data: tx, error: eTx } = await supabase
-          .from("transactions")
-          .select("amount, description, status")
-          .eq("id", txId)
-          .maybeSingle();
-        if (eTx) throw eTx;
-        if (tx && tx.status !== "paid" && tx.status !== "cancelled") {
-          const newAmount = Number(tx.amount || 0) + extra;
-          const newDesc = `${tx.description || ""}\n${itemLine}`.trim();
-          const { error: e2 } = await supabase
-            .from("transactions")
-            .update({ amount: newAmount, description: newDesc })
-            .eq("id", txId);
-          if (e2) throw e2;
-        } else if (tx?.status === "paid") {
-          // se a cobrança já foi paga, cria uma nova transação avulsa com o item adicional
-          const { error: e3 } = await supabase
-            .from("transactions")
-            .insert({
-              description: `DME ${dme.number_display} — item adicional: ${title.trim()}`,
-              amount: extra,
-              type: "income",
-              kind: "income",
-              status: "pending",
-              due_date: dme.due_date || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
-              client_id: dme.client_id,
-              contract_id: dme.contract_id,
-              extra_demand_id: dme.id,
-            } as any);
-          if (e3) throw e3;
-        }
-      }
+      if (!batch?.id) throw new Error("Lote não encontrado.");
+      const v = Number((value || "").toString().replace(",", "."));
+      await addDmeToConsolidatedBatch({
+        batch_id: batch.id,
+        title,
+        description: description || null,
+        value: v,
+        contract_id: dme?.contract_id ?? null,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Item adicionado e financeiro atualizado.");
+      qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
+      toast.success("DME criada e somada à cobrança consolidada.");
       setTitle("");
+      setDescription("");
       setValue("");
       onOpenChange(false);
     },
-    onError: (e: any) => toast.error(e?.message ?? "Erro ao adicionar item"),
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao adicionar DME ao lote"),
   });
 
   return (
     <Dialog open={!!dme} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[520px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <PlusCircle className="size-5 text-primary" /> Adicionar item à DME
+            <PlusCircle className="size-5 text-primary" /> Adicionar nova DME ao lote
           </DialogTitle>
           <DialogDescription>
-            {dme?.number_display} — {dme?.title}
+            Lote do cliente <strong>{dme?.clients?.company || dme?.clients?.name || "—"}</strong>
             <br />
             <span className="text-xs">
-              Valor atual: <strong>{brl(Number(dme?.value || 0))}</strong>. O item será somado e a cobrança no financeiro será atualizada automaticamente (se ainda não foi paga).
+              Total atual do lote: <strong>{brl(Number(batch?.total_value || 0))}</strong>. A nova DME será criada já aprovada, vinculada ao mesmo lote e somada à cobrança consolidada no financeiro.
             </span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <div>
-            <Label className="text-xs">Descrição do item *</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: 2 stories adicionais" />
+            <Label className="text-xs">Título da nova DME *</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Edição extra de vídeo institucional" />
           </div>
           <div>
-            <Label className="text-xs">Valor extra (R$) *</Label>
+            <Label className="text-xs">Descrição (escopo)</Label>
+            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} placeholder="Detalhe o que será entregue..." />
+          </div>
+          <div>
+            <Label className="text-xs">Valor (R$) *</Label>
             <Input type="number" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} placeholder="0,00" />
           </div>
         </div>
@@ -486,7 +478,7 @@ function AddDmeItemDialog({ dme, onOpenChange }: { dme: any | null; onOpenChange
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="gap-2">
             {mut.isPending && <Loader2 className="size-4 animate-spin" />}
-            Adicionar item
+            Adicionar ao lote
           </Button>
         </DialogFooter>
       </DialogContent>
