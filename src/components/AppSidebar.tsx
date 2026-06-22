@@ -20,6 +20,7 @@ import {
   Sparkles,
   PiggyBank,
   TrendingUp,
+  Rocket,
 
 
   Loader2,

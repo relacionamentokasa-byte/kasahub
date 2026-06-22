@@ -46,6 +46,7 @@ import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manif
 import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
+import { Route as AuthenticatedLancamentosGridIdRouteImport } from './routes/_authenticated/lancamentos.$gridId'
 import { Route as AuthenticatedGestaoRelatoriosRouteImport } from './routes/_authenticated/gestao.relatorios'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdIndexRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.index'
@@ -260,6 +261,12 @@ const AuthenticatedProjetosProjectIdRoute =
     path: '/projetos/$projectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLancamentosGridIdRoute =
+  AuthenticatedLancamentosGridIdRouteImport.update({
+    id: '/$gridId',
+    path: '/$gridId',
+    getParentRoute: () => AuthenticatedLancamentosRoute,
+  } as any)
 const AuthenticatedGestaoRelatoriosRoute =
   AuthenticatedGestaoRelatoriosRouteImport.update({
     id: '/gestao/relatorios',
@@ -387,7 +394,7 @@ export interface FileRoutesByFullPath {
   '/dmes': typeof AuthenticatedDmesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
-  '/lancamentos': typeof AuthenticatedLancamentosRoute
+  '/lancamentos': typeof AuthenticatedLancamentosRouteWithChildren
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -403,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/proposta/$token': typeof PropostaTokenRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
+  '/lancamentos/$gridId': typeof AuthenticatedLancamentosGridIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
@@ -444,7 +452,7 @@ export interface FileRoutesByTo {
   '/dmes': typeof AuthenticatedDmesRoute
   '/integracoes': typeof AuthenticatedIntegracoesRoute
   '/jobs': typeof AuthenticatedJobsRoute
-  '/lancamentos': typeof AuthenticatedLancamentosRoute
+  '/lancamentos': typeof AuthenticatedLancamentosRouteWithChildren
   '/parceiros': typeof AuthenticatedParceirosRoute
   '/portal': typeof AuthenticatedPortalRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -461,6 +469,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthenticatedIndexRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
+  '/lancamentos/$gridId': typeof AuthenticatedLancamentosGridIdRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
@@ -504,7 +513,7 @@ export interface FileRoutesById {
   '/_authenticated/dmes': typeof AuthenticatedDmesRoute
   '/_authenticated/integracoes': typeof AuthenticatedIntegracoesRoute
   '/_authenticated/jobs': typeof AuthenticatedJobsRoute
-  '/_authenticated/lancamentos': typeof AuthenticatedLancamentosRoute
+  '/_authenticated/lancamentos': typeof AuthenticatedLancamentosRouteWithChildren
   '/_authenticated/parceiros': typeof AuthenticatedParceirosRoute
   '/_authenticated/portal': typeof AuthenticatedPortalRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
@@ -521,6 +530,7 @@ export interface FileRoutesById {
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
   '/_authenticated/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
+  '/_authenticated/lancamentos/$gridId': typeof AuthenticatedLancamentosGridIdRoute
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
@@ -581,6 +591,7 @@ export interface FileRouteTypes {
     | '/proposta/$token'
     | '/clientes/$clientId'
     | '/gestao/relatorios'
+    | '/lancamentos/$gridId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
     | '/api/public/favicon'
@@ -639,6 +650,7 @@ export interface FileRouteTypes {
     | '/'
     | '/clientes/$clientId'
     | '/gestao/relatorios'
+    | '/lancamentos/$gridId'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
     | '/api/public/favicon'
@@ -698,6 +710,7 @@ export interface FileRouteTypes {
     | '/_authenticated/'
     | '/_authenticated/clientes/$clientId'
     | '/_authenticated/gestao/relatorios'
+    | '/_authenticated/lancamentos/$gridId'
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
     | '/api/public/favicon'
@@ -1018,6 +1031,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjetosProjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lancamentos/$gridId': {
+      id: '/_authenticated/lancamentos/$gridId'
+      path: '/$gridId'
+      fullPath: '/lancamentos/$gridId'
+      preLoaderRoute: typeof AuthenticatedLancamentosGridIdRouteImport
+      parentRoute: typeof AuthenticatedLancamentosRoute
+    }
     '/_authenticated/gestao/relatorios': {
       id: '/_authenticated/gestao/relatorios'
       path: '/gestao/relatorios'
@@ -1161,6 +1181,20 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedLancamentosRouteChildren {
+  AuthenticatedLancamentosGridIdRoute: typeof AuthenticatedLancamentosGridIdRoute
+}
+
+const AuthenticatedLancamentosRouteChildren: AuthenticatedLancamentosRouteChildren =
+  {
+    AuthenticatedLancamentosGridIdRoute: AuthenticatedLancamentosGridIdRoute,
+  }
+
+const AuthenticatedLancamentosRouteWithChildren =
+  AuthenticatedLancamentosRoute._addFileChildren(
+    AuthenticatedLancamentosRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAprovacoesRoute: typeof AuthenticatedAprovacoesRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
@@ -1173,7 +1207,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDmesRoute: typeof AuthenticatedDmesRoute
   AuthenticatedIntegracoesRoute: typeof AuthenticatedIntegracoesRoute
   AuthenticatedJobsRoute: typeof AuthenticatedJobsRoute
-  AuthenticatedLancamentosRoute: typeof AuthenticatedLancamentosRoute
+  AuthenticatedLancamentosRoute: typeof AuthenticatedLancamentosRouteWithChildren
   AuthenticatedParceirosRoute: typeof AuthenticatedParceirosRoute
   AuthenticatedPortalRoute: typeof AuthenticatedPortalRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
@@ -1205,7 +1239,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDmesRoute: AuthenticatedDmesRoute,
   AuthenticatedIntegracoesRoute: AuthenticatedIntegracoesRoute,
   AuthenticatedJobsRoute: AuthenticatedJobsRoute,
-  AuthenticatedLancamentosRoute: AuthenticatedLancamentosRoute,
+  AuthenticatedLancamentosRoute: AuthenticatedLancamentosRouteWithChildren,
   AuthenticatedParceirosRoute: AuthenticatedParceirosRoute,
   AuthenticatedPortalRoute: AuthenticatedPortalRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
