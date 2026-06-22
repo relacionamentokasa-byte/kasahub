@@ -737,66 +737,6 @@ function ProductSheet({
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Histórico, decisões, referências..." className="mt-1" />
           </div>
 
-          {/* SKUs da linha */}
-          <div>
-            <Label className="text-xs flex items-center gap-1.5">
-              <Package className="size-3.5" /> SKUs desta linha ({skus.length})
-            </Label>
-            <p className="text-[11px] text-foreground/50 mt-0.5">
-              Liste cada item que será lançado dentro desta linha (ex: Shampoo, Condicionador, Máscara).
-            </p>
-            <div className="space-y-1.5 mt-2">
-              {skus.map((s, i) => (
-                <div key={s.id} className="flex items-center gap-2 bg-muted/40 rounded-md px-2 py-1">
-                  <input
-                    type="checkbox"
-                    checked={!!s.done}
-                    onChange={(e) => {
-                      const n = [...skus]; n[i] = { ...n[i], done: e.target.checked }; setSkus(n);
-                    }}
-                    className="size-3.5 accent-primary"
-                  />
-                  <Input
-                    value={s.name}
-                    onChange={(e) => { const n = [...skus]; n[i] = { ...n[i], name: e.target.value }; setSkus(n); }}
-                    placeholder="Nome do SKU"
-                    className={cn("h-7 flex-1 border-0 bg-transparent focus-visible:bg-background", s.done && "line-through text-foreground/40")}
-                  />
-                  <Button variant="ghost" size="icon" className="size-7" onClick={() => setSkus(skus.filter((_, j) => j !== i))}>
-                    <X className="size-3.5" />
-                  </Button>
-                </div>
-              ))}
-              <div className="flex gap-2">
-                <Input
-                  value={newSkuName}
-                  onChange={(e) => setNewSkuName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newSkuName.trim()) {
-                      e.preventDefault();
-                      setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
-                      setNewSkuName("");
-                    }
-                  }}
-                  placeholder="Adicionar SKU e pressionar Enter…"
-                  className="h-8 flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (!newSkuName.trim()) return;
-                    setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
-                    setNewSkuName("");
-                  }}
-                >
-                  <Plus className="size-3.5" /> Adicionar
-                </Button>
-              </div>
-            </div>
-          </div>
-
-
           {/* Links */}
           <div>
             <Label className="text-xs">Links</Label>
