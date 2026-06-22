@@ -13,9 +13,13 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           return Response.json({ error: "invalid_slug" }, { status: 400 });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const storageClient = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+        const storageClient = createClient(
+          process.env.SUPABASE_URL!,
+          process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY!,
+          {
           auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-        });
+          },
+        );
 
         const signPublicAssetUrl = async (url: string | null | undefined) => {
           if (!url) return url ?? null;
