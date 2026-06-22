@@ -281,8 +281,8 @@ function RelatoriosGestaoPage() {
                  sub={includeNonOp ? `Não-op: ${brl(totals.despesaNaoOp)}` : undefined} />
         <KpiCard icon={Wallet} label="Lucro do período" value={brl(totals.lucro)} color={totals.lucro >= 0 ? "blue" : "rose"} />
         <KpiCard icon={Percent} label="Margem do período" value={`${totals.margem.toFixed(1)}%`}
-                 sub="Lucro total ÷ Receita total"
-                 color={totals.margem >= 30 ? "emerald" : totals.margem >= 15 ? "amber" : "rose"} />
+                 sub="Limite mínimo: 75%"
+                 color={totals.margem >= 75 ? "emerald" : "rose"} />
       </div>
 
 
