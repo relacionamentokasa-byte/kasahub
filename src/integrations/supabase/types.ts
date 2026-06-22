@@ -1917,6 +1917,7 @@ export type Database = {
           labels: Json
           last_activity_at: string | null
           last_feedback: string | null
+          launch_product_id: string | null
           main_responsible_id: string | null
           operational_observations: string | null
           order_index: number
@@ -1960,6 +1961,7 @@ export type Database = {
           labels?: Json
           last_activity_at?: string | null
           last_feedback?: string | null
+          launch_product_id?: string | null
           main_responsible_id?: string | null
           operational_observations?: string | null
           order_index?: number
@@ -2003,6 +2005,7 @@ export type Database = {
           labels?: Json
           last_activity_at?: string | null
           last_feedback?: string | null
+          launch_product_id?: string | null
           main_responsible_id?: string | null
           operational_observations?: string | null
           order_index?: number
@@ -2042,6 +2045,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jobs_launch_product_id_fkey"
+            columns: ["launch_product_id"]
+            isOneToOne: false
+            referencedRelation: "launch_grid_products"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "jobs_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
@@ -2060,6 +2070,163 @@ export type Database = {
             columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "job_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_grid_products: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          grid_id: string
+          id: string
+          image_url: string | null
+          links: Json
+          name: string
+          notes: string | null
+          order_index: number
+          responsible_id: string | null
+          status_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          grid_id: string
+          id?: string
+          image_url?: string | null
+          links?: Json
+          name: string
+          notes?: string | null
+          order_index?: number
+          responsible_id?: string | null
+          status_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          grid_id?: string
+          id?: string
+          image_url?: string | null
+          links?: Json
+          name?: string
+          notes?: string | null
+          order_index?: number
+          responsible_id?: string | null
+          status_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_grid_products_grid_id_fkey"
+            columns: ["grid_id"]
+            isOneToOne: false
+            referencedRelation: "launch_grids"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "launch_grid_products_status_id_fkey"
+            columns: ["status_id"]
+            isOneToOne: false
+            referencedRelation: "launch_grid_statuses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_grid_statuses: {
+        Row: {
+          color: string
+          created_at: string
+          grid_id: string
+          id: string
+          is_done: boolean
+          label: string
+          order_index: number
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          grid_id: string
+          id?: string
+          is_done?: boolean
+          label: string
+          order_index?: number
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          grid_id?: string
+          id?: string
+          is_done?: boolean
+          label?: string
+          order_index?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_grid_statuses_grid_id_fkey"
+            columns: ["grid_id"]
+            isOneToOne: false
+            referencedRelation: "launch_grids"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      launch_grids: {
+        Row: {
+          client_id: string
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          launch_date: string | null
+          owner_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          launch_date?: string | null
+          owner_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          launch_date?: string | null
+          owner_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "launch_grids_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
