@@ -9,7 +9,7 @@ import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
-import { createDmeBatch, getDmeBatchPublicUrl } from "@/lib/dme-batches-api";
+import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch } from "@/lib/dme-batches-api";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
