@@ -903,7 +903,30 @@ export function JobSheet({
                                 variant="ghost"
                                 size="icon"
                                 className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
-                                onClick={() => window.open(file.file_url, '_blank')}
+                                title="Baixar com nome original"
+                                onClick={async () => {
+                                  try {
+                                    // Extrai o path do storage a partir da file_url pública
+                                    const marker = '/job-attachments/';
+                                    const idx = file.file_url.indexOf(marker);
+                                    const path = idx >= 0 ? file.file_url.slice(idx + marker.length) : null;
+                                    let href = file.file_url;
+                                    if (path) {
+                                      const { data } = supabase.storage
+                                        .from('job-attachments')
+                                        .getPublicUrl(path, { download: file.file_name });
+                                      href = data.publicUrl;
+                                    }
+                                    const a = document.createElement('a');
+                                    a.href = href;
+                                    a.download = file.file_name;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    a.remove();
+                                  } catch (err: any) {
+                                    toast.error('Erro ao baixar: ' + (err?.message || err));
+                                  }
+                                }}
                               >
                                 <ExternalLink className="size-3.5" />
                               </Button>
