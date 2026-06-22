@@ -328,6 +328,17 @@ function DmesPage() {
                           <LinkIcon className="size-4" />
                         </Button>
                       )}
+                      {d.status === "approved" && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setAddItemFor(d)}
+                          className="text-primary"
+                          title="Adicionar item nesta DME (atualiza valor no financeiro)"
+                        >
+                          <PlusCircle className="size-4" />
+                        </Button>
+                      )}
                       {isPending && (
                         <>
                           <Button size="icon" variant="ghost" onClick={() => approveMut.mutate(d.id)} className="text-emerald-600" title="Aprovar internamente">
