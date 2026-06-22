@@ -268,30 +268,39 @@ function DmesPage() {
         </div>
       )}
 
-      {visibleBatchGroups.length > 0 && (
+      {activeBatches.length > 0 && (
         <div className="rounded-2xl border-2 border-primary/50 bg-primary/10 p-4 space-y-3 shadow-sm">
           <div className="flex items-center gap-2 font-semibold text-primary">
-            <Layers className="size-5" /> Lotes consolidados nesta lista
+            <Layers className="size-5" /> Lotes ativos — adicione uma nova DME a um lote existente
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-            {visibleBatchGroups.map(({ batch, dme, count }) => (
-              <div key={batch.id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold truncate">{dme.clients?.company || dme.clients?.name || "Cliente"}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {count} DME{count > 1 ? "s" : ""} no lote · total {brl(Number(batch.total_value || 0))}
+            {activeBatches.map((b: any) => {
+              const count = (b.dme_batch_items ?? []).length;
+              const clientName = b.clients?.company || b.clients?.name || "Cliente";
+              return (
+                <div key={b.id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{clientName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {count} DME{count !== 1 ? "s" : ""} no lote · total {brl(Number(b.total_value || 0))}
+                    </div>
                   </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setAddItemFor({
+                      client_id: b.client_id,
+                      clients: b.clients,
+                      contract_id: null,
+                      _batch: b,
+                    })}
+                    className="gap-2 shrink-0"
+                    title="Criar uma nova DME e somar na cobrança consolidada deste lote"
+                  >
+                    <PlusCircle className="size-4" /> Adicionar DME
+                  </Button>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => setAddItemFor({ ...dme, _batch: batch })}
-                  className="gap-2 shrink-0"
-                  title="Criar uma nova DME e somar na cobrança consolidada deste lote"
-                >
-                  <PlusCircle className="size-4" /> Adicionar DME
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
