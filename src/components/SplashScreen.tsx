@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
 
 const BRAND_PHRASES = [
   "Humanidade Antes da Meta.",
