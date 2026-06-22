@@ -141,6 +141,16 @@ export function JobsBoard({
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
 
+  // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid)
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (initialOpenNew && !autoOpenedRef.current && stages.length > 0) {
+      autoOpenedRef.current = true;
+      setNewStage(stages[0]);
+    }
+  }, [initialOpenNew, stages]);
+
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const filtered = useMemo(() => {
