@@ -392,8 +392,7 @@ function RelatoriosGestaoPage() {
                 {perClient.map((c) => {
                   const tone =
                     c.receita === 0 ? "muted" :
-                    c.margemPct >= 40 ? "emerald" :
-                    c.margemPct >= 20 ? "amber" : "rose";
+                    c.margemPct >= 75 ? "emerald" : "rose";
                   return (
                     <TableRow key={c.id}>
                       <TableCell className="font-medium">{c.name}</TableCell>
