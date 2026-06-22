@@ -117,7 +117,8 @@ export function NewJobDialog({
     enabled: !!selectedClientId && clientHasGrid,
   });
   const lockedProduct = lockLaunchProduct && form.launch_product_id
-    ? launchProducts.find((p) => p.id === form.launch_product_id)
+    ? (launchProducts.find((p) => p.id === form.launch_product_id)
+        ?? { id: form.launch_product_id, name: "Produto vinculado", image_url: null as string | null })
     : null;
 
 
