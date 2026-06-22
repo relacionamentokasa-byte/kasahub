@@ -522,6 +522,7 @@ function ProductSheet({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const isEdit = !!product;
 
