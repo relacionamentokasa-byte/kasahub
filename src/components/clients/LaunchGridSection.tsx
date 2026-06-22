@@ -584,6 +584,17 @@ function ProductSheet({
     }
   };
 
+  const setSkuCount = (value: number) => {
+    const count = Math.max(0, Math.min(50, Number.isFinite(value) ? value : 0));
+    setSkus((current) => {
+      if (count <= current.length) return current.slice(0, count);
+      return [
+        ...current,
+        ...Array.from({ length: count - current.length }, () => ({ id: crypto.randomUUID(), name: "" })),
+      ];
+    });
+  };
+
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="sm:max-w-xl overflow-y-auto">
@@ -626,6 +637,71 @@ function ProductSheet({
           <div>
             <Label className="text-xs">Nome *</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+          </div>
+
+          {/* SKUs da linha */}
+          <div className="rounded-lg border border-border bg-muted/20 p-3">
+            <div className="flex items-end gap-3">
+              <div className="flex-1">
+                <Label className="text-xs flex items-center gap-1.5">
+                  <Package className="size-3.5" /> Quantos SKUs serão lançados nesta linha?
+                </Label>
+                <p className="text-[11px] text-foreground/50 mt-0.5">
+                  Ex: Shampoo, Condicionador, Máscara, Leave-in.
+                </p>
+              </div>
+              <Input
+                type="number"
+                min={0}
+                max={50}
+                value={skus.length}
+                onChange={(e) => setSkuCount(Number(e.target.value))}
+                className="h-9 w-20 text-center"
+              />
+            </div>
+
+            <div className="space-y-1.5 mt-3">
+              {skus.map((s, i) => (
+                <div key={s.id} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2">
+                  <span className="text-xs text-foreground/50 text-center">{i + 1}</span>
+                  <Input
+                    value={s.name}
+                    onChange={(e) => { const n = [...skus]; n[i] = { ...n[i], name: e.target.value }; setSkus(n); }}
+                    placeholder={`SKU ${i + 1}`}
+                    className="h-8"
+                  />
+                  <Button variant="ghost" size="icon" className="size-8" onClick={() => setSkus(skus.filter((_, j) => j !== i))}>
+                    <X className="size-3.5" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex gap-2 pt-1">
+                <Input
+                  value={newSkuName}
+                  onChange={(e) => setNewSkuName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newSkuName.trim()) {
+                      e.preventDefault();
+                      setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
+                      setNewSkuName("");
+                    }
+                  }}
+                  placeholder="Adicionar SKU pelo nome…"
+                  className="h-8 flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!newSkuName.trim()) return;
+                    setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
+                    setNewSkuName("");
+                  }}
+                >
+                  <Plus className="size-3.5" /> Adicionar
+                </Button>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
