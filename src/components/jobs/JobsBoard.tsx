@@ -819,7 +819,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                   }}
                 >
                    {(job as any).clients?.logo_url ? (
-                     <img
+                     <StorageImage
                        src={(job as any).clients.logo_url}
                        alt=""
                        className="size-4 shrink-0 rounded-sm object-cover border border-border/40"
