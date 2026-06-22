@@ -2034,16 +2034,9 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
         ) : item.content_type === "video" && item.content_url ? (
           <video src={item.content_url} controls className="w-full max-h-[70vh] object-contain" />
         ) : item.content_type === "pdf" && item.content_url ? (
-          <a
-            href={item.content_url}
-            target="_blank"
-            rel="noreferrer"
-            className="w-full aspect-[4/3] flex flex-col items-center justify-center gap-3 text-white hover:text-[var(--portal-primary)]"
-          >
-            <FileText className="size-16" />
-            <span className="text-sm font-bold">Visualizar PDF</span>
-            <span className="text-xs text-white/70">Abre em nova aba</span>
-          </a>
+          <div className="w-full bg-white">
+            <PdfPreview url={item.content_url} name={fileNameFromUrl(item.content_url)} />
+          </div>
         ) : item.content_type === "text" && item.content_text ? (
           <div className="w-full bg-white text-slate-900 p-6 max-h-[70vh] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed">
             {item.content_text}
