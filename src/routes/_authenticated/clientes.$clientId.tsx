@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
+import { LaunchGridSection } from "@/components/clients/LaunchGridSection";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientKpiHeader } from "@/components/clients/ClientKpiHeader";
 import { ClientUnifiedTimeline, buildUnifiedEvents } from "@/components/clients/ClientUnifiedTimeline";
@@ -263,6 +264,7 @@ function ClientDetail() {
                 { v: "propostas", label: "Propostas", icon: FileText },
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
+                ...((client as any)?.has_launch_grid ? [{ v: "grid", label: "Grid de Lançamento", icon: Rocket }] : []),
                 { v: "financeiro", label: "Financeiro", icon: Wallet },
                 { v: "dmes", label: "Demandas Extras", icon: Sparkles },
                 { v: "servicos", label: "Serviços", icon: Handshake },
@@ -447,6 +449,15 @@ function ClientDetail() {
             <TabsContent value="jobs" className="m-0 min-h-[500px] animate-reveal">
               <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Gestão · Operação" />
             </TabsContent>
+
+            {/* Conteúdo: Grid de Lançamento */}
+            {(client as any)?.has_launch_grid && (
+              <TabsContent value="grid" className="m-0 min-h-[500px] animate-reveal">
+                <LaunchGridSection clientId={clientId} clientName={client.name || client.company || "Cliente"} />
+              </TabsContent>
+            )}
+
+
 
             {/* Conteúdo: Financeiro */}
             <TabsContent value="financeiro" className="m-0 animate-reveal">

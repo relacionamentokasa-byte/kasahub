@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
 
         const { data: client, error: cErr } = await supabaseAdmin
           .from("clients")
-          .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, created_at")
+          .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at")
           .eq("portal_slug", parsed.data)
           .maybeSingle();
 
@@ -301,13 +301,15 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           onboardings.push({ ...o, steps: stepRows || [] });
         }
 
-        // Fetch Launch Grids (ativos) do cliente, com etapas e produtos
-        const { data: gridRows } = await supabaseAdmin
-          .from("launch_grids")
-          .select("id, title, description, cover_url, status, launch_date, created_at")
-          .eq("client_id", client.id)
-          .eq("status", "active")
-          .order("created_at", { ascending: false });
+        // Fetch Launch Grids do cliente (apenas se o módulo estiver ativado)
+        const gridRows = (client as any).has_launch_grid
+          ? (await supabaseAdmin
+              .from("launch_grids")
+              .select("id, title, description, cover_url, status, launch_date, created_at")
+              .eq("client_id", client.id)
+              .eq("status", "active")
+              .order("created_at", { ascending: false })).data
+          : [];
 
         const launchGrids: any[] = [];
         for (const g of gridRows || []) {

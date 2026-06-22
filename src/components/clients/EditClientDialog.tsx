@@ -52,6 +52,7 @@ type Client = {
   portal_cover_color?: string | null;
   portal_text_color?: string | null;
   segment?: string | null;
+  has_launch_grid?: boolean | null;
 };
 
 
@@ -99,6 +100,7 @@ export function EditClientDialog({
     portal_cover_color: (client.portal_cover_color ?? "#1A1A2E") as string,
     portal_text_color: (client.portal_text_color ?? "") as string,
     segment: client.segment ?? "",
+    has_launch_grid: !!client.has_launch_grid,
   });
 
   const [form, setForm] = useState(init);
@@ -327,6 +329,24 @@ export function EditClientDialog({
                   onChange={(e) => setForm({ ...form, start_date: e.target.value })}
                 />
               </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-border">
+              <div className="text-xs font-bold uppercase tracking-widest text-foreground/60 mb-3">Módulos</div>
+              <label className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background/50 cursor-pointer hover:bg-background">
+                <input
+                  type="checkbox"
+                  checked={!!form.has_launch_grid}
+                  onChange={(e) => setForm({ ...form, has_launch_grid: e.target.checked })}
+                  className="mt-0.5 size-4 accent-primary"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">🚀 Grid de Lançamento</div>
+                  <div className="text-xs text-foreground/60 mt-0.5">
+                    Ativa uma aba dentro do cliente para acompanhar produtos a serem lançados (kanban, tabela e galeria).
+                  </div>
+                </div>
+              </label>
             </div>
           </TabsContent>
 
