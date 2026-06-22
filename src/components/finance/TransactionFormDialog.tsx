@@ -641,7 +641,36 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               />
             )}
 
-            {watchType === "expense" && !isProLaboreCategory && !watchIsInternal && (
+            {watchType === "expense" && !isProLaboreCategory && (
+              <div className={watchIsInternal ? "grid grid-cols-1 gap-4" : "grid grid-cols-2 gap-4"}>
+                {!watchIsInternal && (
+                <FormField
+                  control={form.control}
+                  name="client_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cliente (Opcional)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Nenhum" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="none">Nenhum</SelectItem>
+                          {clients.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.company || client.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                )}
+              {false && (
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
