@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Plus, Settings2, LayoutGrid, Table as TableIcon, Image as ImageIcon,
   Pencil, Trash2, Upload, Link as LinkIcon, ExternalLink, Calendar,
@@ -521,6 +522,7 @@ function ProductSheet({
   onClose: () => void;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const fileRef = useRef<HTMLInputElement>(null);
   const isEdit = !!product;
 
@@ -673,8 +675,10 @@ function ProductSheet({
                   <Briefcase className="size-3.5" /> Jobs deste produto ({jobs.length})
                 </Label>
                 <Button size="sm" variant="outline" onClick={() => {
-                  // abre criação de job vinculada — passa pelos query params
-                  window.location.href = `/jobs?new=1&clientId=${clientId}&launchProductId=${product!.id}`;
+                  navigate({
+                    to: "/jobs",
+                    search: { new: true, clientId, launchProductId: product!.id },
+                  });
                 }}>
                   <Plus className="size-3.5" /> Criar job
                 </Button>

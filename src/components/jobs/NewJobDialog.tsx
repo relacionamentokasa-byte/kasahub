@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createJob, createProject, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
+import { listProductsByClient } from "@/lib/launch-grids-api";
 
 import { JOBS_QUERY_KEY } from "./JobsBoard";
 import { fetchPartners } from "@/lib/partners-api";
@@ -42,6 +43,8 @@ export function NewJobDialog({
   defaultTitle,
   defaultDescription,
   defaultDueDate,
+  defaultLaunchProductId,
+  lockLaunchProduct,
   onCreated,
 }: {
   stage: JobStage | null;
@@ -55,6 +58,8 @@ export function NewJobDialog({
   defaultTitle?: string;
   defaultDescription?: string;
   defaultDueDate?: string;
+  defaultLaunchProductId?: string;
+  lockLaunchProduct?: boolean;
   onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
@@ -75,6 +80,7 @@ export function NewJobDialog({
     period: defaultPeriod ?? "",
     main_responsible_id: "",
     team_involved_ids: [] as string[],
+    launch_product_id: defaultLaunchProductId ?? "",
   });
 
   // Projetos dependem do cliente selecionado (cascade)
@@ -102,9 +108,27 @@ export function NewJobDialog({
     enabled: !!selectedClientId,
   });
 
-  // Ao trocar de cliente, limpa o projeto selecionado e libera o ref de auto-criação
+  // Produtos do grid de lançamento do cliente (só carrega se cliente tem grid ativado)
+  const selectedClient = clients.find((c: any) => c.id === selectedClientId) as any;
+  const clientHasGrid = !!selectedClient?.has_launch_grid;
+  const { data: launchProducts = [] } = useQuery({
+    queryKey: ["launch-products-by-client", selectedClientId],
+    queryFn: () => listProductsByClient(selectedClientId),
+    enabled: !!selectedClientId && clientHasGrid,
+  });
+  const lockedProduct = lockLaunchProduct && form.launch_product_id
+    ? (launchProducts.find((p) => p.id === form.launch_product_id)
+        ?? { id: form.launch_product_id, name: "Produto vinculado", image_url: null as string | null })
+    : null;
+
+
+  // Ao trocar de cliente, limpa projeto e produto de lançamento (a menos que o produto venha travado pela URL)
   useEffect(() => {
-    setForm((f) => (f.project_id ? { ...f, project_id: "" } : f));
+    setForm((f) => ({
+      ...f,
+      project_id: "",
+      launch_product_id: lockLaunchProduct ? f.launch_product_id : "",
+    }));
     autoCreatingProjectRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClientId]);
@@ -178,6 +202,7 @@ export function NewJobDialog({
         main_responsible_id: form.main_responsible_id || null,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
         dme_id: defaultDmeId || null,
+        launch_product_id: form.launch_product_id || null,
       };
 
       const data = await createJob(payload as any);
@@ -242,6 +267,7 @@ export function NewJobDialog({
         period: defaultPeriod ?? "",
         main_responsible_id: "",
         team_involved_ids: [],
+        launch_product_id: defaultLaunchProductId ?? "",
       });
     },
     onError: (e: Error, _, ctx) => {
@@ -355,6 +381,47 @@ export function NewJobDialog({
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Produto do grid de lançamento — só aparece se o cliente tem grid ativo */}
+                {((clientHasGrid && launchProducts.length > 0) || lockLaunchProduct) && (
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5">
+                      🚀 Produto de Lançamento
+                      <span className="text-[10px] font-normal text-foreground/50">(opcional)</span>
+                    </Label>
+                    {lockedProduct ? (
+                      <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {lockedProduct.image_url ? (
+                            <img src={lockedProduct.image_url} alt="" className="size-8 rounded object-cover shrink-0" />
+                          ) : (
+                            <div className="size-8 rounded bg-primary/15 flex items-center justify-center text-xs shrink-0">🚀</div>
+                          )}
+                          <span className="text-sm font-semibold truncate">{lockedProduct.name}</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary shrink-0">Vinculado</span>
+                      </div>
+                    ) : (
+                      <Select
+                        value={form.launch_product_id || undefined}
+                        onValueChange={(v) => setForm({ ...form, launch_product_id: v === "__none__" ? "" : v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Nenhum (job avulso)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Nenhum (job avulso)</SelectItem>
+                          {launchProducts.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <p className="text-[10px] text-foreground/50">
+                      Se vinculado, esse job aparece no painel do produto dentro do Grid de Lançamento.
+                    </p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 

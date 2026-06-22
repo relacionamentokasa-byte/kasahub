@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,6 +63,9 @@ export function JobsBoard({
   eyebrow = "Operação · Tarefas",
   showPeriodFilter = false,
   initialOpenId,
+  initialOpenNew,
+  initialClientId,
+  initialLaunchProductId,
 }: {
   projectId?: string;
   clientId?: string;
@@ -71,6 +74,9 @@ export function JobsBoard({
   eyebrow?: string;
   showPeriodFilter?: boolean;
   initialOpenId?: string;
+  initialOpenNew?: boolean;
+  initialClientId?: string;
+  initialLaunchProductId?: string;
 }) {
   const qc = useQueryClient();
   const [period, setPeriod] = useState<string>("all");
@@ -134,6 +140,16 @@ export function JobsBoard({
   const openJob = useMemo(() => jobs.find(j => j.id === openId) || null, [jobs, openId]);
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
+
+  // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid)
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (initialOpenNew && !autoOpenedRef.current && stages.length > 0) {
+      autoOpenedRef.current = true;
+      setNewStage(stages[0]);
+    }
+  }, [initialOpenNew, stages]);
+
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -572,8 +588,10 @@ export function JobsBoard({
         open={!!newStage}
         onOpenChange={(o) => !o && setNewStage(null)}
         defaultProjectId={projectId}
-        defaultClientId={clientId}
+        defaultClientId={clientId ?? initialClientId}
         defaultPeriod={period !== 'all' ? period : undefined}
+        defaultLaunchProductId={initialLaunchProductId}
+        lockLaunchProduct={!!initialLaunchProductId}
       />
       <JobSheet job={openJob} stages={stages} onClose={() => setOpenId(null)} />
     </div>
