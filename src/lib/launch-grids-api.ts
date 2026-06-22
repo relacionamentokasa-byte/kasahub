@@ -23,6 +23,12 @@ export type LaunchGridStatus = {
   is_done: boolean;
 };
 
+export type LaunchGridSku = {
+  id: string;
+  name: string;
+  done?: boolean;
+};
+
 export type LaunchGridProduct = {
   id: string;
   grid_id: string;
@@ -33,6 +39,7 @@ export type LaunchGridProduct = {
   due_date: string | null;
   responsible_id: string | null;
   links: Array<{ label: string; url: string }>;
+  skus: LaunchGridSku[];
   notes: string | null;
   order_index: number;
   created_at: string;
@@ -125,6 +132,7 @@ export async function listGridProducts(gridId: string) {
   return (data || []).map((p: any) => ({
     ...p,
     links: Array.isArray(p.links) ? p.links : [],
+    skus: Array.isArray(p.skus) ? p.skus : [],
   })) as LaunchGridProduct[];
 }
 
@@ -178,6 +186,7 @@ export async function createProduct(input: {
   due_date?: string | null;
   responsible_id?: string | null;
   links?: Array<{ label: string; url: string }>;
+  skus?: LaunchGridSku[];
   notes?: string | null;
 }) {
   const { data: maxRow } = await supabase
@@ -200,6 +209,7 @@ export async function createProduct(input: {
       due_date: input.due_date ?? null,
       responsible_id: input.responsible_id ?? null,
       links: (input.links ?? []) as any,
+      skus: (input.skus ?? []) as any,
       notes: input.notes ?? null,
       order_index: nextIdx,
       created_by: user.user?.id ?? null,
@@ -207,12 +217,15 @@ export async function createProduct(input: {
     .select("*")
     .single();
   if (error) throw error;
-  return { ...(data as any), links: Array.isArray((data as any).links) ? (data as any).links : [] } as LaunchGridProduct;
+  return {
+    ...(data as any),
+    links: Array.isArray((data as any).links) ? (data as any).links : [],
+    skus: Array.isArray((data as any).skus) ? (data as any).skus : [],
+  } as LaunchGridProduct;
 }
 
 export async function updateProduct(id: string, patch: Partial<LaunchGridProduct>) {
   const payload: any = { ...patch };
-  if (payload.links) payload.links = payload.links;
   const { data, error } = await supabase
     .from("launch_grid_products")
     .update(payload)
@@ -220,7 +233,11 @@ export async function updateProduct(id: string, patch: Partial<LaunchGridProduct
     .select("*")
     .single();
   if (error) throw error;
-  return { ...(data as any), links: Array.isArray((data as any).links) ? (data as any).links : [] } as LaunchGridProduct;
+  return {
+    ...(data as any),
+    links: Array.isArray((data as any).links) ? (data as any).links : [],
+    skus: Array.isArray((data as any).skus) ? (data as any).skus : [],
+  } as LaunchGridProduct;
 }
 
 export async function deleteProduct(id: string) {

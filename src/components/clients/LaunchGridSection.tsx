@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   Plus, Settings2, LayoutGrid, Table as TableIcon, Image as ImageIcon,
   Pencil, Trash2, Upload, Link as LinkIcon, ExternalLink, Calendar,
-  Rocket, GripVertical, X, Briefcase,
+  Rocket, GripVertical, X, Briefcase, Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -33,7 +33,7 @@ import {
   listGridStatuses, createStatus, updateStatus, deleteStatus,
   listGridProducts, createProduct, updateProduct, deleteProduct,
   uploadProductImage, listProductJobs,
-  type LaunchGridProduct, type LaunchGridStatus,
+  type LaunchGridProduct, type LaunchGridStatus, type LaunchGridSku,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
 
@@ -261,7 +261,17 @@ function TableView({
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="font-medium">{p.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <span>{p.name}</span>
+                    {p.skus && p.skus.length > 0 && (
+                      <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1">
+                        <Package className="size-2.5" />
+                        {p.skus.filter((s) => s.done).length}/{p.skus.length}
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Select value={p.status_id ?? ""} onValueChange={(v) => onMove(p.id, v)}>
                     <SelectTrigger className="h-8 w-40">
@@ -534,6 +544,8 @@ function ProductSheet({
   const [notes, setNotes] = useState(product?.notes ?? "");
   const [imageUrl, setImageUrl] = useState<string | null>(product?.image_url ?? null);
   const [links, setLinks] = useState<Array<{ label: string; url: string }>>(product?.links ?? []);
+  const [skus, setSkus] = useState<LaunchGridSku[]>(product?.skus ?? []);
+  const [newSkuName, setNewSkuName] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const { data: jobs = [] } = useQuery({
@@ -547,7 +559,7 @@ function ProductSheet({
       const payload = {
         name, description, status_id: statusId || null,
         due_date: dueDate || null, notes,
-        image_url: imageUrl, links,
+        image_url: imageUrl, links, skus,
       };
       if (isEdit) return updateProduct(product!.id, payload);
       return createProduct({ grid_id: gridId, ...payload });
@@ -648,6 +660,66 @@ function ProductSheet({
             <Label className="text-xs">Observações</Label>
             <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Histórico, decisões, referências..." className="mt-1" />
           </div>
+
+          {/* SKUs da linha */}
+          <div>
+            <Label className="text-xs flex items-center gap-1.5">
+              <Package className="size-3.5" /> SKUs desta linha ({skus.length})
+            </Label>
+            <p className="text-[11px] text-foreground/50 mt-0.5">
+              Liste cada item que será lançado dentro desta linha (ex: Shampoo, Condicionador, Máscara).
+            </p>
+            <div className="space-y-1.5 mt-2">
+              {skus.map((s, i) => (
+                <div key={s.id} className="flex items-center gap-2 bg-muted/40 rounded-md px-2 py-1">
+                  <input
+                    type="checkbox"
+                    checked={!!s.done}
+                    onChange={(e) => {
+                      const n = [...skus]; n[i] = { ...n[i], done: e.target.checked }; setSkus(n);
+                    }}
+                    className="size-3.5 accent-primary"
+                  />
+                  <Input
+                    value={s.name}
+                    onChange={(e) => { const n = [...skus]; n[i] = { ...n[i], name: e.target.value }; setSkus(n); }}
+                    placeholder="Nome do SKU"
+                    className={cn("h-7 flex-1 border-0 bg-transparent focus-visible:bg-background", s.done && "line-through text-foreground/40")}
+                  />
+                  <Button variant="ghost" size="icon" className="size-7" onClick={() => setSkus(skus.filter((_, j) => j !== i))}>
+                    <X className="size-3.5" />
+                  </Button>
+                </div>
+              ))}
+              <div className="flex gap-2">
+                <Input
+                  value={newSkuName}
+                  onChange={(e) => setNewSkuName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newSkuName.trim()) {
+                      e.preventDefault();
+                      setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
+                      setNewSkuName("");
+                    }
+                  }}
+                  placeholder="Adicionar SKU e pressionar Enter…"
+                  className="h-8 flex-1"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    if (!newSkuName.trim()) return;
+                    setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
+                    setNewSkuName("");
+                  }}
+                >
+                  <Plus className="size-3.5" /> Adicionar
+                </Button>
+              </div>
+            </div>
+          </div>
+
 
           {/* Links */}
           <div>

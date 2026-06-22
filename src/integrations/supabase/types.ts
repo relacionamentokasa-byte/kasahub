@@ -2091,6 +2091,7 @@ export type Database = {
           notes: string | null
           order_index: number
           responsible_id: string | null
+          skus: Json
           status_id: string | null
           updated_at: string
         }
@@ -2107,6 +2108,7 @@ export type Database = {
           notes?: string | null
           order_index?: number
           responsible_id?: string | null
+          skus?: Json
           status_id?: string | null
           updated_at?: string
         }
@@ -2123,6 +2125,7 @@ export type Database = {
           notes?: string | null
           order_index?: number
           responsible_id?: string | null
+          skus?: Json
           status_id?: string | null
           updated_at?: string
         }
