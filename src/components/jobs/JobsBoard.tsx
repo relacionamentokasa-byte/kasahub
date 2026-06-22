@@ -50,6 +50,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { StorageImage } from "@/components/ui/storage-image";
 
 
 export const JOBS_QUERY_KEY = (filters: any) => ["jobs", filters];
@@ -818,7 +819,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                   }}
                 >
                    {(job as any).clients?.logo_url ? (
-                     <img
+                     <StorageImage
                        src={(job as any).clients.logo_url}
                        alt=""
                        className="size-4 shrink-0 rounded-sm object-cover border border-border/40"
@@ -856,7 +857,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
             >
               {mainResp ? (
                 mainResp.avatar_url ? (
-                  <img src={mainResp.avatar_url} alt="" className="size-full object-cover" />
+                  <StorageImage src={mainResp.avatar_url} alt="" className="size-full object-cover" />
                 ) : (
                   <span className="text-[8px] font-bold text-primary">
                     {(mainResp.display_name || mainResp.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
@@ -880,7 +881,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                       title={`${p.display_name || p.full_name} (${member.role || 'Membro'})`}
                     >
                       {p.avatar_url ? (
-                        <img src={p.avatar_url} alt="" className="size-full object-cover" />
+                        <StorageImage src={p.avatar_url} alt="" className="size-full object-cover" />
                       ) : (
                         <span className="text-[7px] font-bold text-foreground/50">
                           {(p.display_name || p.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}

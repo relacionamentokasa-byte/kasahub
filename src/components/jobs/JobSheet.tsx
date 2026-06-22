@@ -67,6 +67,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { StorageImage } from "@/components/ui/storage-image";
 
 
 export function JobSheet({
@@ -562,7 +563,7 @@ export function JobSheet({
                             : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
                           }`}>
                             {(clients.find(c => c.id === (job as any).client_id) as any)?.logo_url ? (
-                              <img src={(clients.find(c => c.id === (job as any).client_id) as any)?.logo_url} className="size-full rounded-full object-cover" />
+                              <StorageImage src={(clients.find(c => c.id === (job as any).client_id) as any)?.logo_url} className="size-full rounded-full object-cover" />
                             ) : (
                               clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"
                             )}
@@ -593,7 +594,7 @@ export function JobSheet({
                                     (c as any).logo_url ? "" : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
                                    }`}>
                                     {(c as any).logo_url ? (
-                                      <img src={(c as any).logo_url} className="size-full rounded-full object-cover" />
+                                      <StorageImage src={(c as any).logo_url} className="size-full rounded-full object-cover" />
                                     ) : (
                                       (c.company || c.name).substring(0, 2)
                                     )}
@@ -675,7 +676,7 @@ export function JobSheet({
                             }`}>
                               <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
                                 {p.avatar_url ? (
-                                  <img src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
+                                  <StorageImage src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
                                 ) : (
 
                                   <span className="text-xs font-bold text-foreground/40 uppercase">
@@ -717,7 +718,7 @@ export function JobSheet({
                             }`}>
                               <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
                                 {p.avatar_url ? (
-                                  <img src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
+                                  <StorageImage src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
                                 ) : (
 
                                   <span className="text-xs font-bold text-foreground/40 uppercase">

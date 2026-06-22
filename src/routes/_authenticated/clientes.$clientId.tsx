@@ -26,6 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DetailHeaderSkeleton, CardListSkeleton } from "@/components/ui/loading-skeletons";
+import { StorageImage } from "@/components/ui/storage-image";
 
 
 export const Route = createFileRoute("/_authenticated/clientes/$clientId")({
@@ -200,7 +201,7 @@ function ClientDetail() {
             <div className="flex items-center gap-5">
               <div className="size-16 lg:size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-2xl lg:text-3xl font-bold shadow-sm">
                 {client?.logo_url ? (
-                  <img src={client?.logo_url} alt={client?.name} className="size-full object-cover rounded-2xl" />
+                  <StorageImage src={client?.logo_url} alt={client?.name} className="size-full object-cover rounded-2xl" />
                 ) : (
                   (client?.company || client?.name)?.[0]?.toUpperCase()
                 )}

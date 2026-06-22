@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "@tanstack/react-router";
 import { fetchProfiles } from "@/lib/profile-api";
+import { StorageImage } from "@/components/ui/storage-image";
 
 export function ClientDetailSheet({
   clientId,
@@ -54,7 +55,7 @@ function QuickPreview({ clientId }: { clientId: string }) {
             style={{ background: `${client.brand_primary}22`, color: client.brand_primary ?? "#FFBC45" }}
           >
             {client.logo_url ? (
-              <img src={client.logo_url} alt="" className="size-full object-cover" />
+              <StorageImage src={client.logo_url} alt="" className="size-full object-cover" />
             ) : (
               (client.company || client.name).charAt(0).toUpperCase()
             )}
