@@ -90,6 +90,28 @@ function DmesPage() {
     },
   });
 
+  const { data: batchByDme = {} } = useQuery<Record<string, { id: string; status: string; total_value: number; consolidated_transaction_id: string | null }>>({
+    queryKey: ["batches-by-dme", dmeIdsKey],
+    enabled: dmeIdsKey.length > 0,
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const ids = dmeIdsKey.split(",");
+      const { data, error } = await supabase
+        .from("dme_batch_items" as any)
+        .select("extra_demand_id, dme_batches(id, status, total_value, consolidated_transaction_id)")
+        .in("extra_demand_id", ids);
+      if (error) throw error;
+      const map: Record<string, any> = {};
+      (data ?? []).forEach((i: any) => {
+        if (i.extra_demand_id && i.dme_batches) map[i.extra_demand_id] = i.dme_batches;
+      });
+      return map;
+    },
+  });
+
+
+
 
   const filtered = useMemo(
     () => dmes.filter((d: any) => !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.number_display?.toLowerCase().includes(search.toLowerCase())),
