@@ -33,7 +33,7 @@ import {
   listGridStatuses, createStatus, updateStatus, deleteStatus,
   listGridProducts, createProduct, updateProduct, deleteProduct,
   uploadProductImage, listProductJobs,
-  type LaunchGridProduct, type LaunchGridStatus,
+  type LaunchGridProduct, type LaunchGridStatus, type LaunchGridSku,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
 
