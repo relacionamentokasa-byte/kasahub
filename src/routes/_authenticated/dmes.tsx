@@ -316,7 +316,7 @@ function DmesPage() {
         </div>
       )}
 
-      {activeBatches.length > 0 && (
+      {(activeBatches.length > 0 || consolidatedTxGroups.length > 0) && (
         <div className="rounded-2xl border-2 border-primary/50 bg-primary/10 p-4 space-y-3 shadow-sm">
           <div className="flex items-center gap-2 font-semibold text-primary">
             <Layers className="size-5" /> Lotes ativos — adicione uma nova DME a um lote existente
@@ -343,6 +343,32 @@ function DmesPage() {
                     })}
                     className="gap-2 shrink-0"
                     title="Criar uma nova DME e somar na cobrança consolidada deste lote"
+                  >
+                    <PlusCircle className="size-4" /> Adicionar DME
+                  </Button>
+                </div>
+              );
+            })}
+            {consolidatedTxGroups.map((g: any) => {
+              const clientName = g.clients?.company || g.clients?.name || "Cliente";
+              return (
+                <div key={g.consolidated_transaction_id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{clientName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {g.count} DME{g.count !== 1 ? "s" : ""} consolidada{g.count !== 1 ? "s" : ""} · total {brl(Number(g.total_value || 0))}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setAddItemFor({
+                      client_id: g.client_id,
+                      clients: g.clients,
+                      contract_id: null,
+                      _consolidatedTx: g,
+                    })}
+                    className="gap-2 shrink-0"
+                    title="Criar uma nova DME e somar na cobrança consolidada do financeiro"
                   >
                     <PlusCircle className="size-4" /> Adicionar DME
                   </Button>
