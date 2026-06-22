@@ -376,6 +376,47 @@ export function NewJobDialog({
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Produto do grid de lançamento — só aparece se o cliente tem grid ativo */}
+                {clientHasGrid && (launchProducts.length > 0 || lockedProduct) && (
+                  <div className="space-y-1.5">
+                    <Label className="flex items-center gap-1.5">
+                      🚀 Produto de Lançamento
+                      <span className="text-[10px] font-normal text-foreground/50">(opcional)</span>
+                    </Label>
+                    {lockedProduct ? (
+                      <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {lockedProduct.image_url ? (
+                            <img src={lockedProduct.image_url} alt="" className="size-8 rounded object-cover shrink-0" />
+                          ) : (
+                            <div className="size-8 rounded bg-primary/15 flex items-center justify-center text-xs shrink-0">🚀</div>
+                          )}
+                          <span className="text-sm font-semibold truncate">{lockedProduct.name}</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary shrink-0">Vinculado</span>
+                      </div>
+                    ) : (
+                      <Select
+                        value={form.launch_product_id || undefined}
+                        onValueChange={(v) => setForm({ ...form, launch_product_id: v === "__none__" ? "" : v })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Nenhum (job avulso)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Nenhum (job avulso)</SelectItem>
+                          {launchProducts.map((p) => (
+                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <p className="text-[10px] text-foreground/50">
+                      Se vinculado, esse job aparece no painel do produto dentro do Grid de Lançamento.
+                    </p>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
