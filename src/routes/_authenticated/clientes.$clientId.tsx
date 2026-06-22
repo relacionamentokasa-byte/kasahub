@@ -450,6 +450,15 @@ function ClientDetail() {
               <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Gestão · Operação" />
             </TabsContent>
 
+            {/* Conteúdo: Grid de Lançamento */}
+            {(client as any)?.has_launch_grid && (
+              <TabsContent value="grid" className="m-0 min-h-[500px] animate-reveal">
+                <LaunchGridSection clientId={clientId} clientName={client.name || client.company || "Cliente"} />
+              </TabsContent>
+            )}
+
+
+
             {/* Conteúdo: Financeiro */}
             <TabsContent value="financeiro" className="m-0 animate-reveal">
                <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
