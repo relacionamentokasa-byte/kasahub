@@ -52,6 +52,7 @@ type Client = {
   portal_cover_color?: string | null;
   portal_text_color?: string | null;
   segment?: string | null;
+  has_launch_grid?: boolean | null;
 };
 
 
