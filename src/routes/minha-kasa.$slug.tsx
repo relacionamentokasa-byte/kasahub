@@ -1701,8 +1701,20 @@ function ApprovalFullscreenModal({
         {/* Actions */}
         <div className="bg-white p-4 space-y-3">
           {!isPending && !isMulti ? (
-            <div className="text-center text-sm font-semibold text-slate-600 py-2">
-              {item.status === "approved" ? "✅ Já aprovada" : "✏️ Ajuste já solicitado"}
+            <div className="text-center space-y-2 py-2">
+              <div className="text-sm font-semibold text-slate-600">
+                {item.status === "approved" ? "✅ Já aprovada" : "✏️ Ajuste já solicitado"}
+              </div>
+              <button
+                onClick={() => {
+                  if (!confirm("Deseja reabrir esta aprovação para revisar? O time será notificado.")) return;
+                  action.mutate({ action: "reopen" });
+                }}
+                disabled={action.isPending}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-900 underline underline-offset-2"
+              >
+                ↩️ Reabrir aprovação
+              </button>
             </div>
           ) : isMulti ? (
             // ---- Per-slide actions ----
@@ -1757,8 +1769,20 @@ function ApprovalFullscreenModal({
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-xs font-semibold text-slate-600 py-1">
-                  {activeSlideStatus === "approved" ? "✅ Slide aprovado" : "✏️ Ajuste solicitado neste slide"}
+                <div className="text-center space-y-1.5 py-1">
+                  <div className="text-xs font-semibold text-slate-600">
+                    {activeSlideStatus === "approved" ? "✅ Slide aprovado" : "✏️ Ajuste solicitado neste slide"}
+                  </div>
+                  <button
+                    onClick={() => {
+                      if (!confirm("Reabrir este slide para revisar?")) return;
+                      action.mutate({ action: "reopen_slide", slide_id: activeSlide!.id });
+                    }}
+                    disabled={action.isPending}
+                    className="text-[11px] font-semibold text-slate-500 hover:text-slate-900 underline underline-offset-2"
+                  >
+                    ↩️ Reabrir slide
+                  </button>
                 </div>
               )}
 

@@ -12,6 +12,8 @@ const BodySchema = z.object({
     "approve_slide",
     "reject_slide",
     "comment",
+    "reopen",
+    "reopen_slide",
   ]),
   feedback: z.string().max(4000).optional().nullable(),
   slide_id: z.string().max(100).optional().nullable(),
@@ -170,6 +172,65 @@ export const Route = createFileRoute("/api/public/portal-approval-action/$slug")
           }
 
           return Response.json({ ok: true, status: agg.status }, { headers: { "Cache-Control": "no-store" } });
+        }
+
+
+        // --- REOPEN (cliente quer desfazer aprovação/recusa) ---
+        if (action === "reopen" || action === "reopen_slide") {
+          const slides: Array<{ id: string }> = Array.isArray(item.slides) ? item.slides : [];
+          let nextStatuses: Record<string, string> = item.slide_statuses ?? {};
+
+          if (action === "reopen_slide") {
+            if (!slide_id) return Response.json({ error: "missing_slide_id" }, { status: 400 });
+            if (!slides.find((s) => s.id === slide_id)) {
+              return Response.json({ error: "invalid_slide" }, { status: 400 });
+            }
+            nextStatuses = { ...nextStatuses, [slide_id]: "pending" };
+          } else {
+            // reopen item inteiro: reseta todos os slides
+            nextStatuses = Object.fromEntries(slides.map((s) => [s.id, "pending"]));
+          }
+
+          const agg = recomputeAggregate(slides, nextStatuses);
+          const patchReopen: Record<string, unknown> = {
+            slide_statuses: nextStatuses,
+            status: slides.length ? agg.status : "pending",
+            approved_at: null,
+            rejected_at: null,
+            updated_at: now,
+          };
+
+          const { error: upErr } = await (supabaseAdmin as any)
+            .from("approval_items")
+            .update(patchReopen)
+            .eq("id", item_id);
+          if (upErr) return Response.json({ error: "db_error", message: upErr.message }, { status: 500 });
+
+          // log como comentário pra ter rastro
+          try {
+            await (supabaseAdmin as any).from("approval_item_comments").insert({
+              approval_item_id: item_id,
+              slide_id: action === "reopen_slide" ? slide_id : null,
+              author_type: "client",
+              author_name: author_name?.trim() || "Cliente",
+              body: feedback?.trim() || "Cliente reabriu a aprovação para revisão.",
+              is_change_request: true,
+            });
+          } catch {/* ignore */}
+
+          if (item.created_by) {
+            try {
+              await supabaseAdmin.from("notificacoes").insert({
+                user_id: item.created_by,
+                titulo: "Cliente reabriu uma aprovação ↩️",
+                mensagem: `"${item.title}"${action === "reopen_slide" ? " (um slide)" : ""}${feedback?.trim() ? ` — ${feedback.slice(0, 200)}` : ""}`,
+                tipo: "warning",
+                link: `/aprovacoes`,
+              });
+            } catch {/* ignore */}
+          }
+
+          return Response.json({ ok: true, status: patchReopen.status }, { headers: { "Cache-Control": "no-store" } });
         }
 
         // --- WHOLE-ITEM ACTIONS (legacy / single) ---
