@@ -2,6 +2,7 @@ import { createFileRoute, notFound } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
+import { StorageImage } from "@/components/ui/storage-image";
 
 type LandingConfig = {
   id: string;
@@ -194,7 +195,7 @@ function CaptarPage() {
           {/* Left: pitch */}
           <div>
             {config.landing_logo_url ? (
-              <img src={config.landing_logo_url} alt={config.name} className="h-12 mb-8 object-contain" />
+              <StorageImage src={config.landing_logo_url} alt={config.name} className="h-12 mb-8 object-contain" />
             ) : (
               <div className="font-display text-3xl font-black tracking-tighter mb-8" style={{ color: accent }}>
                 kasa.

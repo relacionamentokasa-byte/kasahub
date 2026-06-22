@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
+import { StorageImage } from "@/components/ui/storage-image";
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -331,7 +332,7 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                     <div className="flex items-center gap-3">
                       <div className="size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
                         {u.avatar_url ? (
-                          <img src={u.avatar_url} alt={u.display_name || u.full_name || ""} className="size-full object-cover" />
+                          <StorageImage src={u.avatar_url} alt={u.display_name || u.full_name || ""} className="size-full object-cover" />
                         ) : (
                           <span className="text-xs font-semibold text-primary">
                             {(u.display_name || u.full_name || "?").slice(0, 2).toUpperCase()}

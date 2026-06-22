@@ -9,6 +9,7 @@ import SignatureCanvas from 'react-signature-canvas';
 import { useRef } from "react";
 import { toast } from "sonner";
 import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
+import { StorageImage } from "@/components/ui/storage-image";
 
 
 export const Route = createFileRoute("/proposta/$token")({
@@ -482,7 +483,7 @@ function PublicProposalView() {
            <div className="flex items-center gap-3 relative z-10">
              <div className="size-10 rounded-full bg-[#f9f7f3] border border-[#ece8e0] flex items-center justify-center font-bold text-[#ffbc45] font-sans shadow-sm shrink-0 overflow-hidden">
                {client?.logo_url ? (
-                 <img src={client.logo_url} className="w-full h-full object-cover" alt="Client Logo" />
+                 <StorageImage src={client.logo_url} className="w-full h-full object-cover" alt="Client Logo" />
                ) : (
                  proposal.client_name.substring(0, 2).toUpperCase()
                )}

@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
+import { StorageImage } from "@/components/ui/storage-image";
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -120,7 +121,7 @@ export function AppTopbar() {
               <div className="size-8 md:size-9 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center overflow-hidden transition-transform group-active:scale-95">
                 {profile?.avatar_url ? (
                   // eslint-disable-next-line jsx-a11y/alt-text
-                  <img src={profile.avatar_url} className="size-full object-cover" />
+                  <StorageImage src={profile.avatar_url} className="size-full object-cover" />
                 ) : (
                   <span className="text-xs font-semibold text-primary">{initials}</span>
                 )}

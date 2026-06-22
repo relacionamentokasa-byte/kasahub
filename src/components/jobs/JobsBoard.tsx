@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ptBR } from "date-fns/locale";
 import {
+import { StorageImage } from "@/components/ui/storage-image";
   Select,
   SelectContent,
   SelectItem,
@@ -856,7 +857,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
             >
               {mainResp ? (
                 mainResp.avatar_url ? (
-                  <img src={mainResp.avatar_url} alt="" className="size-full object-cover" />
+                  <StorageImage src={mainResp.avatar_url} alt="" className="size-full object-cover" />
                 ) : (
                   <span className="text-[8px] font-bold text-primary">
                     {(mainResp.display_name || mainResp.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
@@ -880,7 +881,7 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
                       title={`${p.display_name || p.full_name} (${member.role || 'Membro'})`}
                     >
                       {p.avatar_url ? (
-                        <img src={p.avatar_url} alt="" className="size-full object-cover" />
+                        <StorageImage src={p.avatar_url} alt="" className="size-full object-cover" />
                       ) : (
                         <span className="text-[7px] font-bold text-foreground/50">
                           {(p.display_name || p.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}

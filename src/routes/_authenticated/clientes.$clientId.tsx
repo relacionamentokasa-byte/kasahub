@@ -2,6 +2,7 @@ import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { 
+import { StorageImage } from "@/components/ui/storage-image";
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
@@ -200,7 +201,7 @@ function ClientDetail() {
             <div className="flex items-center gap-5">
               <div className="size-16 lg:size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-2xl lg:text-3xl font-bold shadow-sm">
                 {client?.logo_url ? (
-                  <img src={client?.logo_url} alt={client?.name} className="size-full object-cover rounded-2xl" />
+                  <StorageImage src={client?.logo_url} alt={client?.name} className="size-full object-cover rounded-2xl" />
                 ) : (
                   (client?.company || client?.name)?.[0]?.toUpperCase()
                 )}

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { brl } from "@/lib/utils-format";
 import { 
+import { StorageImage } from "@/components/ui/storage-image";
   Table, 
   TableBody, 
   TableCell, 
@@ -137,7 +138,7 @@ function ClientsPage() {
                     >
                       <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 border border-primary/20">
                         {client.logo_url ? (
-                          <img src={client.logo_url} alt={client.name} className="size-full object-cover rounded-xl" />
+                          <StorageImage src={client.logo_url} alt={client.name} className="size-full object-cover rounded-xl" />
                         ) : (
                           (client.company || client.name)?.[0]?.toUpperCase()
                         )}

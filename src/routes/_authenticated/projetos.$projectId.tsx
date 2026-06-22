@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { EditProjectDialog } from "@/components/projects/EditProjectDialog";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { DetailHeaderSkeleton } from "@/components/ui/loading-skeletons";
+import { StorageImage } from "@/components/ui/storage-image";
 
 export const Route = createFileRoute("/_authenticated/projetos/$projectId")({
   head: () => ({ meta: [{ title: "Projeto — KASA HUB" }] }),
@@ -58,7 +59,7 @@ function ProjectDetail() {
               {client && (
                 <p className="text-xs text-foreground/50 mt-1 flex items-center gap-1.5">
                   {(client as any).logo_url ? (
-                    <img src={(client as any).logo_url} alt={client.company || client.name || ""} className="size-4 rounded object-cover" />
+                    <StorageImage src={(client as any).logo_url} alt={client.company || client.name || ""} className="size-4 rounded object-cover" />
                   ) : (
                     <CheckCircle2 className="size-3" />
                   )}
