@@ -15,7 +15,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
 
         const { data: client, error: cErr } = await supabaseAdmin
           .from("clients")
-          .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, created_at")
+          .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at")
           .eq("portal_slug", parsed.data)
           .maybeSingle();
 
