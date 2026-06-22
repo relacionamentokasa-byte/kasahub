@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 const SlugSchema = z.string().min(1).max(200).regex(/^[a-zA-Z0-9_-]+$/);
@@ -12,6 +13,9 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           return Response.json({ error: "invalid_slug" }, { status: 400 });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const storageClient = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
+          auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+        });
 
         const signPublicAssetUrl = async (url: string | null | undefined) => {
           if (!url) return url ?? null;
@@ -19,7 +23,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           if (!match) return url;
           const path = decodeURIComponent(match[1]);
           if (!path || path.includes("..") || path.startsWith("/")) return url;
-          const { data } = await supabaseAdmin.storage.from("public-assets").createSignedUrl(path, 60 * 60 * 24);
+          const { data } = await storageClient.storage.from("public-assets").createSignedUrl(path, 60 * 60 * 24);
           return data?.signedUrl ?? url;
         };
 
