@@ -160,7 +160,7 @@ export async function createProduct(input: {
     .select("*")
     .single();
   if (error) throw error;
-  return data as LaunchGridProduct;
+  return { ...(data as any), links: Array.isArray((data as any).links) ? (data as any).links : [] } as LaunchGridProduct;
 }
 
 export async function updateProduct(id: string, patch: Partial<LaunchGridProduct>) {
