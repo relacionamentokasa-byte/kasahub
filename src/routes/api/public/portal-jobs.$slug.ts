@@ -13,6 +13,16 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+        const signPublicAssetUrl = async (url: string | null | undefined) => {
+          if (!url) return url ?? null;
+          const match = url.match(/\/storage\/v1\/object\/public\/public-assets\/(.+?)(?:\?|$)/);
+          if (!match) return url;
+          const path = decodeURIComponent(match[1]);
+          if (!path || path.includes("..") || path.startsWith("/")) return url;
+          const { data } = await supabaseAdmin.storage.from("public-assets").createSignedUrl(path, 60 * 60 * 24);
+          return data?.signedUrl ?? url;
+        };
+
         const { data: client, error: cErr } = await supabaseAdmin
           .from("clients")
           .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at")
@@ -325,7 +335,18 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
               .eq("grid_id", g.id)
               .order("order_index", { ascending: true }),
           ]);
-          launchGrids.push({ ...g, statuses: gStatuses || [], products: gProducts || [] });
+          const productsWithImages = await Promise.all(
+            (gProducts || []).map(async (p: any) => ({
+              ...p,
+              image_url: await signPublicAssetUrl(p.image_url),
+            })),
+          );
+          launchGrids.push({
+            ...g,
+            cover_url: await signPublicAssetUrl((g as any).cover_url),
+            statuses: gStatuses || [],
+            products: productsWithImages,
+          });
         }
 
         return new Response(
