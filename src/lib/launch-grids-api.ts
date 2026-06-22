@@ -23,6 +23,12 @@ export type LaunchGridStatus = {
   is_done: boolean;
 };
 
+export type LaunchGridSku = {
+  id: string;
+  name: string;
+  done?: boolean;
+};
+
 export type LaunchGridProduct = {
   id: string;
   grid_id: string;
@@ -33,6 +39,7 @@ export type LaunchGridProduct = {
   due_date: string | null;
   responsible_id: string | null;
   links: Array<{ label: string; url: string }>;
+  skus: LaunchGridSku[];
   notes: string | null;
   order_index: number;
   created_at: string;
