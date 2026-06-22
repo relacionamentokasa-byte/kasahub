@@ -378,7 +378,119 @@ function DmesPage() {
           navigate({ to: "/jobs", search: { openJobId: (job as any).id } });
         }}
       />
+
+      <AddDmeItemDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
     </div>
+  );
+}
+
+function AddDmeItemDialog({ dme, onOpenChange }: { dme: any | null; onOpenChange: (o: boolean) => void }) {
+  const qc = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [value, setValue] = useState("");
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      if (!dme) throw new Error("DME inválida");
+      const extra = Number((value || "").toString().replace(",", "."));
+      if (!title.trim()) throw new Error("Informe o título do item.");
+      if (!extra || extra <= 0) throw new Error("Valor do item deve ser maior que zero.");
+
+      const stamp = new Date().toLocaleDateString("pt-BR");
+      const itemLine = `+ [${stamp}] ${title.trim()} — ${brl(extra)}`;
+      const newValue = Number(dme.value || 0) + extra;
+      const newDescription = dme.description
+        ? `${dme.description}\n${itemLine}`
+        : itemLine;
+
+      const { error: e1 } = await supabase
+        .from("extra_demands")
+        .update({ value: newValue, description: newDescription })
+        .eq("id", dme.id);
+      if (e1) throw e1;
+
+      const txId = dme.transaction_id || dme.consolidated_transaction_id;
+      if (txId) {
+        const { data: tx, error: eTx } = await supabase
+          .from("transactions")
+          .select("amount, description, status")
+          .eq("id", txId)
+          .maybeSingle();
+        if (eTx) throw eTx;
+        if (tx && tx.status !== "paid" && tx.status !== "cancelled") {
+          const newAmount = Number(tx.amount || 0) + extra;
+          const newDesc = `${tx.description || ""}\n${itemLine}`.trim();
+          const { error: e2 } = await supabase
+            .from("transactions")
+            .update({ amount: newAmount, description: newDesc })
+            .eq("id", txId);
+          if (e2) throw e2;
+        } else if (tx?.status === "paid") {
+          // se a cobrança já foi paga, cria uma nova transação avulsa com o item adicional
+          const { error: e3 } = await supabase
+            .from("transactions")
+            .insert({
+              description: `DME ${dme.number_display} — item adicional: ${title.trim()}`,
+              amount: extra,
+              type: "income",
+              kind: "income",
+              status: "pending",
+              due_date: dme.due_date || new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+              client_id: dme.client_id,
+              contract_id: dme.contract_id,
+              extra_demand_id: dme.id,
+            } as any);
+          if (e3) throw e3;
+        }
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["extra_demands"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Item adicionado e financeiro atualizado.");
+      setTitle("");
+      setValue("");
+      onOpenChange(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao adicionar item"),
+  });
+
+  return (
+    <Dialog open={!!dme} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <PlusCircle className="size-5 text-primary" /> Adicionar item à DME
+          </DialogTitle>
+          <DialogDescription>
+            {dme?.number_display} — {dme?.title}
+            <br />
+            <span className="text-xs">
+              Valor atual: <strong>{brl(Number(dme?.value || 0))}</strong>. O item será somado e a cobrança no financeiro será atualizada automaticamente (se ainda não foi paga).
+            </span>
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-3">
+          <div>
+            <Label className="text-xs">Descrição do item *</Label>
+            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: 2 stories adicionais" />
+          </div>
+          <div>
+            <Label className="text-xs">Valor extra (R$) *</Label>
+            <Input type="number" step="0.01" value={value} onChange={(e) => setValue(e.target.value)} placeholder="0,00" />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="gap-2">
+            {mut.isPending && <Loader2 className="size-4 animate-spin" />}
+            Adicionar item
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
