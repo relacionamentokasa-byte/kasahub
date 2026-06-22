@@ -118,6 +118,21 @@ function DmesPage() {
     [dmes, search]
   );
 
+  const visibleBatchGroups = useMemo(() => {
+    const map = new Map<string, { batch: any; dme: any; count: number }>();
+    filtered.forEach((d: any) => {
+      const batch = batchByDme[d.id];
+      if (!batch || batch.status === "cancelled") return;
+      const existing = map.get(batch.id);
+      if (existing) {
+        existing.count += 1;
+        return;
+      }
+      map.set(batch.id, { batch, dme: d, count: 1 });
+    });
+    return Array.from(map.values());
+  }, [filtered, batchByDme]);
+
   const approveMut = useMutation({
     mutationFn: (id: string) => approveExtraDemand(id),
     onSuccess: () => {
@@ -251,6 +266,34 @@ function DmesPage() {
               {creatingBatch ? <Loader2 className="size-4 animate-spin" /> : <LinkIcon className="size-4" />}
               Gerar link de aprovação em lote
             </Button>
+          </div>
+        </div>
+      )}
+
+      {visibleBatchGroups.length > 0 && (
+        <div className="rounded-2xl border-2 border-primary/50 bg-primary/10 p-4 space-y-3 shadow-sm">
+          <div className="flex items-center gap-2 font-semibold text-primary">
+            <Layers className="size-5" /> Lotes consolidados nesta lista
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+            {visibleBatchGroups.map(({ batch, dme, count }) => (
+              <div key={batch.id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold truncate">{dme.clients?.company || dme.clients?.name || "Cliente"}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {count} DME{count > 1 ? "s" : ""} no lote · total {brl(Number(batch.total_value || 0))}
+                  </div>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setAddItemFor({ ...dme, _batch: batch })}
+                  className="gap-2 shrink-0"
+                  title="Criar uma nova DME e somar na cobrança consolidada deste lote"
+                >
+                  <PlusCircle className="size-4" /> Adicionar DME
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       )}
