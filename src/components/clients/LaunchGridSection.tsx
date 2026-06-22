@@ -675,8 +675,10 @@ function ProductSheet({
                   <Briefcase className="size-3.5" /> Jobs deste produto ({jobs.length})
                 </Label>
                 <Button size="sm" variant="outline" onClick={() => {
-                  // abre criação de job vinculada — passa pelos query params
-                  window.location.href = `/jobs?new=1&clientId=${clientId}&launchProductId=${product!.id}`;
+                  navigate({
+                    to: "/jobs",
+                    search: { new: true, clientId, launchProductId: product!.id },
+                  });
                 }}>
                   <Plus className="size-3.5" /> Criar job
                 </Button>
