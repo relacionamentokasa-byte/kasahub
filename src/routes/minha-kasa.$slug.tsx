@@ -32,6 +32,8 @@ import {
   Folder,
   Sun,
   Moon,
+  Rocket,
+  ExternalLink,
   type LucideIcon,
 } from "lucide-react";
 
