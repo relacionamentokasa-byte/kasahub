@@ -905,9 +905,16 @@ function FinancialPage() {
                     </div>
                     <div className="flex flex-col gap-0.5">
                       {t.is_internal ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 w-fit">
-                          <Home className="size-3" /> Despesa Kasa
-                        </span>
+                        <>
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 w-fit">
+                            <Home className="size-3" /> Despesa Kasa
+                          </span>
+                          <InlineSupplierPicker
+                            transactionId={t.id}
+                            currentSupplierId={t.supplier_id}
+                            currentSupplierName={(t.suppliers as any)?.name || null}
+                          />
+                        </>
                       ) : (
                         (() => {
                           const catName = ((t.categorias_financeiras as any)?.nome || t.category || "")
