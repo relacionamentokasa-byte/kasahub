@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { StorageImage } from "@/components/ui/storage-image";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -253,7 +254,7 @@ function TableView({
               <TableRow key={p.id} className="cursor-pointer hover:bg-muted/40" onClick={() => onOpen(p)}>
                 <TableCell>
                   {p.image_url ? (
-                    <img src={p.image_url} alt="" className="size-10 rounded object-cover" />
+                    <StorageImage src={p.image_url} alt="" className="size-10 rounded object-cover" />
                   ) : (
                     <div className="size-10 rounded bg-muted flex items-center justify-center">
                       <ImageIcon className="size-4 text-foreground/30" />
@@ -343,7 +344,7 @@ function KanbanView({
                   onClick={() => onOpen(p)}
                 >
                   {p.image_url && (
-                    <img src={p.image_url} alt="" className="w-full h-24 object-cover rounded mb-2" />
+                    <StorageImage src={p.image_url} alt="" className="w-full h-24 object-cover rounded mb-2" />
                   )}
                   <div className="font-medium text-sm leading-tight">{p.name}</div>
                   {p.due_date && (
@@ -398,7 +399,7 @@ function GalleryView({
           >
             <div className="aspect-square bg-muted relative">
               {p.image_url ? (
-                <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                <StorageImage src={p.image_url} alt="" className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <ImageIcon className="size-10 text-foreground/20" />
@@ -585,7 +586,7 @@ function ProductSheet({
             <div className="mt-1 flex items-center gap-3">
               <div className="size-24 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
                 {imageUrl ? (
-                  <img src={imageUrl} alt="" className="w-full h-full object-cover" />
+                  <StorageImage src={imageUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <ImageIcon className="size-8 text-foreground/30" />
                 )}
