@@ -405,7 +405,7 @@ function DmesPage() {
         }}
       />
 
-      <AddDmeItemDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
+      <AddDmeToBatchDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
     </div>
   );
 }
