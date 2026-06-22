@@ -122,9 +122,13 @@ export function NewJobDialog({
     : null;
 
 
-  // Ao trocar de cliente, limpa o projeto selecionado e libera o ref de auto-criação
+  // Ao trocar de cliente, limpa projeto e produto de lançamento (a menos que o produto venha travado pela URL)
   useEffect(() => {
-    setForm((f) => (f.project_id ? { ...f, project_id: "" } : f));
+    setForm((f) => ({
+      ...f,
+      project_id: "",
+      launch_product_id: lockLaunchProduct ? f.launch_product_id : "",
+    }));
     autoCreatingProjectRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedClientId]);
