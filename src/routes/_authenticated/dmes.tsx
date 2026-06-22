@@ -309,7 +309,18 @@ function DmesPage() {
                   </TableCell>
                   <TableCell className="font-mono text-xs text-muted-foreground">{d.number_display}</TableCell>
                   <TableCell>
-                    <div className="font-medium">{d.title}</div>
+                    <div className="font-medium flex items-center gap-2 flex-wrap">
+                      {d.title}
+                      {(() => {
+                        const b = batchByDme[d.id];
+                        if (!b || b.status === "cancelled") return null;
+                        return (
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px]">
+                            <Layers className="size-3 mr-1" /> EM LOTE
+                          </Badge>
+                        );
+                      })()}
+                    </div>
                     {d.description && <div className="text-xs text-muted-foreground line-clamp-1">{d.description}</div>}
                   </TableCell>
                   <TableCell className="text-sm">{d.clients?.company || d.clients?.name || "—"}</TableCell>
@@ -355,13 +366,13 @@ function DmesPage() {
                         if (!batch || batch.status === "cancelled") return null;
                         return (
                           <Button
-                            size="icon"
-                            variant="ghost"
+                            size="sm"
+                            variant="outline"
                             onClick={() => setAddItemFor({ ...d, _batch: batch })}
-                            className="text-primary"
+                            className="gap-1 border-primary/40 text-primary hover:bg-primary/10"
                             title="Adicionar nova DME a este lote (soma na cobrança consolidada)"
                           >
-                            <PlusCircle className="size-4" />
+                            <PlusCircle className="size-4" /> Add ao lote
                           </Button>
                         );
                       })()}
