@@ -249,6 +249,7 @@ export function NewJobDialog({
         period: defaultPeriod ?? "",
         main_responsible_id: "",
         team_involved_ids: [],
+        launch_product_id: defaultLaunchProductId ?? "",
       });
     },
     onError: (e: Error, _, ctx) => {
