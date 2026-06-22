@@ -109,29 +109,27 @@ function DmesPage() {
       return map;
     },
   });
-
-
-
+  // Todos os lotes ativos (independente dos filtros da tabela) — para permitir
+  // adicionar uma nova DME ao lote mesmo que nenhuma DME do lote esteja visível.
+  const { data: activeBatches = [] } = useQuery<any[]>({
+    queryKey: ["dme-batches-active"],
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dme_batches" as any)
+        .select("id, status, total_value, consolidated_transaction_id, client_id, created_at, clients(name, company), dme_batch_items(extra_demand_id)")
+        .neq("status", "cancelled")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
 
   const filtered = useMemo(
     () => dmes.filter((d: any) => !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.number_display?.toLowerCase().includes(search.toLowerCase())),
     [dmes, search]
   );
-
-  const visibleBatchGroups = useMemo(() => {
-    const map = new Map<string, { batch: any; dme: any; count: number }>();
-    filtered.forEach((d: any) => {
-      const batch = batchByDme[d.id];
-      if (!batch || batch.status === "cancelled") return;
-      const existing = map.get(batch.id);
-      if (existing) {
-        existing.count += 1;
-        return;
-      }
-      map.set(batch.id, { batch, dme: d, count: 1 });
-    });
-    return Array.from(map.values());
-  }, [filtered, batchByDme]);
 
   const approveMut = useMutation({
     mutationFn: (id: string) => approveExtraDemand(id),
