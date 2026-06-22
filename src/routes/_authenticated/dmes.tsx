@@ -126,6 +126,54 @@ function DmesPage() {
     },
   });
 
+  // DMEs consolidadas via `consolidated_transaction_id` em extra_demands
+  // (sem registro em dme_batches). Permite "Adicionar DME" mesmo quando
+  // a junção foi feita diretamente no financeiro.
+  const { data: consolidatedTxGroups = [] } = useQuery<any[]>({
+    queryKey: ["dmes-consolidated-tx-groups"],
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("extra_demands")
+        .select("id, value, client_id, consolidated_transaction_id, clients(name, company)")
+        .not("consolidated_transaction_id", "is", null);
+      if (error) throw error;
+      const rows = (data ?? []) as any[];
+      if (!rows.length) return [];
+      const txIds = Array.from(new Set(rows.map((r) => r.consolidated_transaction_id)));
+      const { data: txs } = await supabase
+        .from("transactions")
+        .select("id, amount, status")
+        .in("id", txIds);
+      const txMap = new Map((txs ?? []).map((t: any) => [t.id, t]));
+      // Lotes que já existem em dme_batches — não duplicar
+      const existingBatchTxIds = new Set(
+        (activeBatches ?? [])
+          .map((b: any) => b.consolidated_transaction_id)
+          .filter(Boolean)
+      );
+      const groups: Record<string, any> = {};
+      for (const r of rows) {
+        const txId = r.consolidated_transaction_id;
+        if (existingBatchTxIds.has(txId)) continue;
+        const tx = txMap.get(txId);
+        if (!tx || tx.status === "cancelled") continue;
+        if (!groups[txId]) {
+          groups[txId] = {
+            consolidated_transaction_id: txId,
+            client_id: r.client_id,
+            clients: r.clients,
+            total_value: Number(tx.amount || 0),
+            count: 0,
+          };
+        }
+        groups[txId].count += 1;
+      }
+      return Object.values(groups);
+    },
+  });
+
   const filtered = useMemo(
     () => dmes.filter((d: any) => !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.number_display?.toLowerCase().includes(search.toLowerCase())),
     [dmes, search]
