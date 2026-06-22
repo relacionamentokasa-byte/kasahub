@@ -261,7 +261,17 @@ function TableView({
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="font-medium">{p.name}</TableCell>
+                <TableCell className="font-medium">
+                  <div className="flex items-center gap-2">
+                    <span>{p.name}</span>
+                    {p.skus && p.skus.length > 0 && (
+                      <Badge variant="outline" className="text-[10px] h-4 px-1.5 gap-1">
+                        <Package className="size-2.5" />
+                        {p.skus.filter((s) => s.done).length}/{p.skus.length}
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Select value={p.status_id ?? ""} onValueChange={(v) => onMove(p.id, v)}>
                     <SelectTrigger className="h-8 w-40">
