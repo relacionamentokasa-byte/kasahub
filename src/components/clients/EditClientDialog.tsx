@@ -330,6 +330,24 @@ export function EditClientDialog({
                 />
               </div>
             </div>
+
+            <div className="mt-6 pt-4 border-t border-border">
+              <div className="text-xs font-bold uppercase tracking-widest text-foreground/60 mb-3">Módulos</div>
+              <label className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background/50 cursor-pointer hover:bg-background">
+                <input
+                  type="checkbox"
+                  checked={!!form.has_launch_grid}
+                  onChange={(e) => setForm({ ...form, has_launch_grid: e.target.checked })}
+                  className="mt-0.5 size-4 accent-primary"
+                />
+                <div className="flex-1">
+                  <div className="font-medium text-sm">🚀 Grid de Lançamento</div>
+                  <div className="text-xs text-foreground/60 mt-0.5">
+                    Ativa uma aba dentro do cliente para acompanhar produtos a serem lançados (kanban, tabela e galeria).
+                  </div>
+                </div>
+              </label>
+            </div>
           </TabsContent>
 
           <TabsContent value="servicos" className="mt-4">
