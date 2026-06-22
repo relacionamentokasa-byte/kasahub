@@ -264,6 +264,7 @@ function ClientDetail() {
                 { v: "propostas", label: "Propostas", icon: FileText },
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
+                ...((client as any)?.has_launch_grid ? [{ v: "grid", label: "Grid de Lançamento", icon: Rocket }] : []),
                 { v: "financeiro", label: "Financeiro", icon: Wallet },
                 { v: "dmes", label: "Demandas Extras", icon: Sparkles },
                 { v: "servicos", label: "Serviços", icon: Handshake },
