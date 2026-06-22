@@ -218,8 +218,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
             ? (transaction?.payment_date || format(new Date(), "yyyy-MM-dd"))
             : null,
           client_id: clientId,
-          supplier_id: useFreelancer ? null : supplierId,
-          freelancer_id: useFreelancer ? freelancerId : null,
+          supplier_id: freelancerId ? null : supplierId,
+          freelancer_id: freelancerId,
           conta_id: values.conta_id,
           nature: values.nature,
           boleto_pdf_path: values.type === "income" ? (values.boleto_pdf_path || null) : null,
