@@ -3204,11 +3204,13 @@ function HomeSection({
               <img src={lightbox.url} alt={lightbox.name} className="max-w-full max-h-[75vh] object-contain rounded-lg" />
             ) : lightbox.kind === "video" ? (
               <video src={lightbox.url} controls autoPlay className="max-w-full max-h-[75vh] rounded-lg" />
+            ) : getFileKind(lightbox.name) === "pdf" ? (
+              <div className="w-full max-w-5xl bg-white rounded-2xl overflow-hidden">
+                <PdfPreview url={lightbox.url} name={lightbox.name} />
+              </div>
             ) : (
-              <div className="bg-white rounded-2xl p-8 text-center max-w-md">
-                <FileText className="size-16 text-slate-400 mx-auto mb-3" strokeWidth={1.5} />
-                <p className="font-bold text-slate-900 mb-1">{lightbox.name}</p>
-                <p className="text-sm text-slate-600 mb-4">Visualização não disponível para este tipo de arquivo.</p>
+              <div className="bg-white rounded-2xl overflow-hidden w-full max-w-md">
+                <DocumentCard url={lightbox.url} name={lightbox.name} kind={getFileKind(lightbox.name)} />
               </div>
             )}
             <div className="flex items-center gap-2">
