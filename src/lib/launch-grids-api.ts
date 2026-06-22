@@ -132,6 +132,7 @@ export async function listGridProducts(gridId: string) {
   return (data || []).map((p: any) => ({
     ...p,
     links: Array.isArray(p.links) ? p.links : [],
+    skus: Array.isArray(p.skus) ? p.skus : [],
   })) as LaunchGridProduct[];
 }
 
