@@ -276,10 +276,6 @@ export async function uploadProductImage(gridId: string, file: File): Promise<st
     .from("public-assets")
     .upload(path, file, { cacheControl: "3600", upsert: false });
   if (upErr) throw upErr;
-  // Bucket é privado — geramos signed URL de longa duração (100 anos)
-  const { data, error: signErr } = await supabase.storage
-    .from("public-assets")
-    .createSignedUrl(path, 60 * 60 * 24 * 365 * 100);
-  if (signErr || !data?.signedUrl) throw signErr ?? new Error("Falha ao gerar URL da imagem");
-  return data.signedUrl;
+  const { data } = supabase.storage.from("public-assets").getPublicUrl(path);
+  return data.publicUrl;
 }
