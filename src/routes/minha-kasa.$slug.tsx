@@ -254,6 +254,109 @@ function isVideo(att: Attachment) {
   return /\.(mp4|mov|webm|m4v)$/i.test(att.file_name);
 }
 
+// ===== FILE TYPE SYSTEM =====
+type FileKind = "image" | "video" | "pdf" | "word" | "excel" | "ppt" | "zip" | "other";
+
+function getFileKind(name: string, type?: string | null): FileKind {
+  const n = (name || "").toLowerCase();
+  const t = (type || "").toLowerCase();
+  if (t.startsWith("image/") || /\.(png|jpe?g|webp|gif|avif|svg)$/i.test(n)) return "image";
+  if (t.startsWith("video/") || /\.(mp4|mov|webm|m4v)$/i.test(n)) return "video";
+  if (t === "application/pdf" || /\.pdf(\?|$)/i.test(n)) return "pdf";
+  if (/\.(docx?|rtf|odt)(\?|$)/i.test(n) || t.includes("word") || t.includes("officedocument.wordprocessing")) return "word";
+  if (/\.(xlsx?|csv|ods)(\?|$)/i.test(n) || t.includes("excel") || t.includes("spreadsheet")) return "excel";
+  if (/\.(pptx?|key|odp)(\?|$)/i.test(n) || t.includes("presentation") || t.includes("powerpoint")) return "ppt";
+  if (/\.(zip|rar|7z|tar|gz)(\?|$)/i.test(n)) return "zip";
+  return "other";
+}
+
+const FILE_META: Record<FileKind, { label: string; color: string; bg: string; badge: string }> = {
+  image: { label: "Imagem", color: "#0EA5E9", bg: "#E0F2FE", badge: "IMG" },
+  video: { label: "Vídeo", color: "#7C3AED", bg: "#EDE9FE", badge: "VID" },
+  pdf:   { label: "PDF",   color: "#DC2626", bg: "#FEE2E2", badge: "PDF" },
+  word:  { label: "Word",  color: "#1D4ED8", bg: "#DBEAFE", badge: "W" },
+  excel: { label: "Excel", color: "#047857", bg: "#D1FAE5", badge: "X" },
+  ppt:   { label: "PowerPoint", color: "#C2410C", bg: "#FFEDD5", badge: "P" },
+  zip:   { label: "Arquivo", color: "#475569", bg: "#F1F5F9", badge: "ZIP" },
+  other: { label: "Arquivo", color: "#475569", bg: "#F1F5F9", badge: "DOC" },
+};
+
+function fileNameFromUrl(url: string): string {
+  try {
+    return decodeURIComponent(url.split("/").pop()?.split("?")[0] || "arquivo");
+  } catch {
+    return "arquivo";
+  }
+}
+
+/** Renders a PDF embed with toolbar overlay (open / download). */
+function PdfPreview({ url, name }: { url: string; name: string }) {
+  return (
+    <div className="w-full bg-slate-100 flex flex-col border-b border-slate-200">
+      <iframe
+        src={`${url}#toolbar=1&navpanes=0&view=FitH`}
+        title={name}
+        className="w-full h-[560px] bg-white"
+      />
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-white">
+        <span className="text-xs font-semibold text-slate-700 truncate inline-flex items-center gap-2 min-w-0">
+          <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-black shrink-0" style={{ background: FILE_META.pdf.bg, color: FILE_META.pdf.color }}>PDF</span>
+          <span className="truncate">{name}</span>
+        </span>
+        <div className="flex gap-3 shrink-0">
+          <a href={url} target="_blank" rel="noreferrer"
+             className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-[var(--portal-primary)] transition-colors">
+            <ExternalLink className="size-3.5" /> Abrir
+          </a>
+          <a href={url} download={name}
+             className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-[var(--portal-primary)] transition-colors">
+            <Download className="size-3.5" /> Baixar
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Clean document card for Word / Excel / PPT / ZIP / other. */
+function DocumentCard({ url, name, kind }: { url: string; name: string; kind: FileKind }) {
+  const meta = FILE_META[kind];
+  return (
+    <div className="w-full p-8 flex flex-col items-center justify-center gap-4 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+      <div className="size-24 rounded-2xl flex items-center justify-center font-black shadow-sm"
+        style={{ background: meta.bg, color: meta.color, fontSize: meta.badge.length > 2 ? 20 : 32 }}>
+        {meta.badge}
+      </div>
+      <div className="text-center max-w-md">
+        <p className="font-bold text-slate-900 text-sm break-all leading-tight">{name}</p>
+        <p className="text-xs text-slate-500 font-medium mt-1">{meta.label}</p>
+      </div>
+      <div className="flex gap-2 w-full max-w-xs">
+        <a href={url} download={name}
+           className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-[var(--portal-primary)] hover:bg-[var(--portal-primary-hover)] text-white font-bold py-2.5 text-sm shadow-sm transition-colors">
+          <Download className="size-4" /> Baixar
+        </a>
+        <a href={url} target="_blank" rel="noreferrer"
+           className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border-2 border-slate-200 hover:border-[var(--portal-primary)] text-slate-700 hover:text-[var(--portal-primary)] font-bold py-2.5 text-sm transition-colors">
+          <ExternalLink className="size-4" /> Abrir
+        </a>
+      </div>
+    </div>
+  );
+}
+
+/** Small thumbnail for document type (used in thumbnail strips / grids). */
+function FileThumb({ name, type }: { name: string; type?: string | null }) {
+  const kind = getFileKind(name, type);
+  const meta = FILE_META[kind];
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center gap-0.5" style={{ background: meta.bg }}>
+      <span className="font-black" style={{ color: meta.color, fontSize: meta.badge.length > 2 ? 10 : 16 }}>{meta.badge}</span>
+      <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: meta.color }}>{meta.label}</span>
+    </div>
+  );
+}
+
 function MinhaKasaPage() {
   const { slug } = Route.useParams();
   const [tab, setTab] = useState<"home" | "projects" | "launches" | "approvals" | "finance" | "docs">("home");
@@ -881,24 +984,19 @@ function ApprovalCard({
     <article className="bg-white border border-slate-200 rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] overflow-hidden">
       {/* PREVIEW */}
       {active ? (
-        <div className="relative bg-slate-900 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
-          {isImage(active) ? (
+        isImage(active) ? (
+          <div className="relative bg-slate-900 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
             <img src={active.file_url} alt={active.file_name} className="w-full h-full object-contain" />
-          ) : isVideo(active) ? (
+          </div>
+        ) : isVideo(active) ? (
+          <div className="relative bg-slate-900 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
             <video src={active.file_url} controls className="w-full h-full object-contain" />
-          ) : (
-            <a
-              href={active.file_url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center gap-2 text-white hover:text-[var(--portal-primary)]"
-            >
-              <FileText className="size-12" />
-              <span className="text-sm font-semibold">{active.file_name}</span>
-              <span className="text-xs text-white/80">Abrir arquivo</span>
-            </a>
-          )}
-        </div>
+          </div>
+        ) : getFileKind(active.file_name, active.file_type) === "pdf" ? (
+          <PdfPreview url={active.file_url} name={active.file_name} />
+        ) : (
+          <DocumentCard url={active.file_url} name={active.file_name} kind={getFileKind(active.file_name, active.file_type)} />
+        )
       ) : null}
 
       {/* THUMBNAILS */}
@@ -919,9 +1017,7 @@ function ApprovalCard({
                   <Play className="size-5 text-white" />
                 </div>
               ) : (
-                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                  <FileText className="size-5 text-slate-600" />
-                </div>
+                <FileThumb name={att.file_name} type={att.file_type} />
               )}
             </button>
           ))}
@@ -1548,16 +1644,9 @@ function ApprovalFullscreenModal({
           ) : item.content_type === "video" && item.content_url ? (
             <video src={item.content_url} controls autoPlay className="w-full h-full object-contain" />
           ) : item.content_type === "pdf" && item.content_url ? (
-            <a
-              href={item.content_url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center justify-center gap-3 text-white hover:text-[var(--portal-primary)] p-10"
-            >
-              <FileText className="size-20" />
-              <span className="text-base font-bold">Abrir PDF</span>
-              <span className="text-xs text-white/60">Abre em nova aba</span>
-            </a>
+            <div className="w-full max-h-[80vh] bg-white overflow-auto">
+              <PdfPreview url={item.content_url} name={fileNameFromUrl(item.content_url)} />
+            </div>
           ) : item.content_type === "text" && item.content_text ? (
             <div className="w-full max-h-full overflow-y-auto bg-white text-slate-900 p-6 whitespace-pre-wrap text-sm leading-relaxed">
               {item.content_text}
@@ -1945,16 +2034,9 @@ function ApprovalFeedCard({ slug, item }: { slug: string; item: ApprovalItem }) 
         ) : item.content_type === "video" && item.content_url ? (
           <video src={item.content_url} controls className="w-full max-h-[70vh] object-contain" />
         ) : item.content_type === "pdf" && item.content_url ? (
-          <a
-            href={item.content_url}
-            target="_blank"
-            rel="noreferrer"
-            className="w-full aspect-[4/3] flex flex-col items-center justify-center gap-3 text-white hover:text-[var(--portal-primary)]"
-          >
-            <FileText className="size-16" />
-            <span className="text-sm font-bold">Visualizar PDF</span>
-            <span className="text-xs text-white/70">Abre em nova aba</span>
-          </a>
+          <div className="w-full bg-white">
+            <PdfPreview url={item.content_url} name={fileNameFromUrl(item.content_url)} />
+          </div>
         ) : item.content_type === "text" && item.content_text ? (
           <div className="w-full bg-white text-slate-900 p-6 max-h-[70vh] overflow-y-auto whitespace-pre-wrap text-sm leading-relaxed">
             {item.content_text}
@@ -3059,12 +3141,10 @@ function HomeSection({
                   <Play className="size-7 text-white" fill="white" />
                 </div>
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                  <FileText className="size-8 text-slate-500" strokeWidth={1.5} />
-                </div>
+                <FileThumb name={f.name} />
               )}
               <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded-md bg-black/60 text-white font-bold backdrop-blur-sm">
-                {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : "📄"}
+                {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : FILE_META[getFileKind(f.name)].badge}
               </span>
               <span className="absolute inset-x-0 bottom-0 px-2 py-1 bg-gradient-to-t from-black/80 to-transparent text-[10px] text-white font-semibold truncate opacity-0 group-hover:opacity-100 transition-opacity">
                 {f.name}
@@ -3124,11 +3204,13 @@ function HomeSection({
               <img src={lightbox.url} alt={lightbox.name} className="max-w-full max-h-[75vh] object-contain rounded-lg" />
             ) : lightbox.kind === "video" ? (
               <video src={lightbox.url} controls autoPlay className="max-w-full max-h-[75vh] rounded-lg" />
+            ) : getFileKind(lightbox.name) === "pdf" ? (
+              <div className="w-full max-w-5xl bg-white rounded-2xl overflow-hidden">
+                <PdfPreview url={lightbox.url} name={lightbox.name} />
+              </div>
             ) : (
-              <div className="bg-white rounded-2xl p-8 text-center max-w-md">
-                <FileText className="size-16 text-slate-400 mx-auto mb-3" strokeWidth={1.5} />
-                <p className="font-bold text-slate-900 mb-1">{lightbox.name}</p>
-                <p className="text-sm text-slate-600 mb-4">Visualização não disponível para este tipo de arquivo.</p>
+              <div className="bg-white rounded-2xl overflow-hidden w-full max-w-md">
+                <DocumentCard url={lightbox.url} name={lightbox.name} kind={getFileKind(lightbox.name)} />
               </div>
             )}
             <div className="flex items-center gap-2">
