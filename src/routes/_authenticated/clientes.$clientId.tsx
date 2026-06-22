@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
+import { LaunchGridSection } from "@/components/clients/LaunchGridSection";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientKpiHeader } from "@/components/clients/ClientKpiHeader";
 import { ClientUnifiedTimeline, buildUnifiedEvents } from "@/components/clients/ClientUnifiedTimeline";
