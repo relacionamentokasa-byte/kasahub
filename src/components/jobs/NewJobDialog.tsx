@@ -108,6 +108,19 @@ export function NewJobDialog({
     enabled: !!selectedClientId,
   });
 
+  // Produtos do grid de lançamento do cliente (só carrega se cliente tem grid ativado)
+  const selectedClient = clients.find((c: any) => c.id === selectedClientId) as any;
+  const clientHasGrid = !!selectedClient?.has_launch_grid;
+  const { data: launchProducts = [] } = useQuery({
+    queryKey: ["launch-products-by-client", selectedClientId],
+    queryFn: () => listProductsByClient(selectedClientId),
+    enabled: !!selectedClientId && clientHasGrid,
+  });
+  const lockedProduct = lockLaunchProduct && form.launch_product_id
+    ? launchProducts.find((p) => p.id === form.launch_product_id)
+    : null;
+
+
   // Ao trocar de cliente, limpa o projeto selecionado e libera o ref de auto-criação
   useEffect(() => {
     setForm((f) => (f.project_id ? { ...f, project_id: "" } : f));
