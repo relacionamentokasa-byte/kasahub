@@ -58,6 +58,41 @@ export async function getLaunchGrid(id: string) {
   return data as LaunchGrid | null;
 }
 
+// Retorna o grid do cliente. Cria automaticamente se ainda não existir.
+export async function getOrCreateGridByClient(clientId: string, clientName?: string) {
+  const { data: existing, error } = await supabase
+    .from("launch_grids")
+    .select("*")
+    .eq("client_id", clientId)
+    .maybeSingle();
+  if (error) throw error;
+  if (existing) return existing as LaunchGrid;
+
+  const { data: user } = await supabase.auth.getUser();
+  const { data, error: createErr } = await supabase
+    .from("launch_grids")
+    .insert({
+      client_id: clientId,
+      title: `Grid de Lançamento — ${clientName ?? "Cliente"}`,
+      owner_id: user.user?.id ?? null,
+      created_by: user.user?.id ?? null,
+    } as any)
+    .select("*")
+    .single();
+  if (createErr) throw createErr;
+  return data as LaunchGrid;
+}
+
+export async function listProductJobs(productId: string) {
+  const { data, error } = await supabase
+    .from("jobs")
+    .select("id, title, status, due_date, assignee_id, done_at, progress_percentage")
+    .eq("launch_product_id", productId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data || [];
+}
+
 export async function listGridStatuses(gridId: string) {
   const { data, error } = await supabase
     .from("launch_grid_statuses")
