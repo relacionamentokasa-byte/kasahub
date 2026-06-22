@@ -1017,9 +1017,7 @@ function ApprovalCard({
                   <Play className="size-5 text-white" />
                 </div>
               ) : (
-                <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                  <FileText className="size-5 text-slate-600" />
-                </div>
+                <FileThumb name={att.file_name} type={att.file_type} />
               )}
             </button>
           ))}
