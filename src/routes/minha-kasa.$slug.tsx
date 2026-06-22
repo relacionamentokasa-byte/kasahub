@@ -254,7 +254,7 @@ function isVideo(att: Attachment) {
 
 function MinhaKasaPage() {
   const { slug } = Route.useParams();
-  const [tab, setTab] = useState<"home" | "projects" | "approvals" | "finance" | "docs">("home");
+  const [tab, setTab] = useState<"home" | "projects" | "launches" | "approvals" | "finance" | "docs">("home");
   const themeStorageKey = `kasa.minha-kasa.theme.${slug}`;
   const [theme, setTheme] = useState<"light" | "dark">("light");
   useEffect(() => {
