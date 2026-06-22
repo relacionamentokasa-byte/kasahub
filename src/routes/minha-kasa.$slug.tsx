@@ -1701,8 +1701,20 @@ function ApprovalFullscreenModal({
         {/* Actions */}
         <div className="bg-white p-4 space-y-3">
           {!isPending && !isMulti ? (
-            <div className="text-center text-sm font-semibold text-slate-600 py-2">
-              {item.status === "approved" ? "✅ Já aprovada" : "✏️ Ajuste já solicitado"}
+            <div className="text-center space-y-2 py-2">
+              <div className="text-sm font-semibold text-slate-600">
+                {item.status === "approved" ? "✅ Já aprovada" : "✏️ Ajuste já solicitado"}
+              </div>
+              <button
+                onClick={() => {
+                  if (!confirm("Deseja reabrir esta aprovação para revisar? O time será notificado.")) return;
+                  action.mutate({ action: "reopen" });
+                }}
+                disabled={action.isPending}
+                className="text-xs font-semibold text-slate-500 hover:text-slate-900 underline underline-offset-2"
+              >
+                ↩️ Reabrir aprovação
+              </button>
             </div>
           ) : isMulti ? (
             // ---- Per-slide actions ----
