@@ -366,13 +366,13 @@ function DmesPage() {
                         if (!batch || batch.status === "cancelled") return null;
                         return (
                           <Button
-                            size="icon"
-                            variant="ghost"
+                            size="sm"
+                            variant="outline"
                             onClick={() => setAddItemFor({ ...d, _batch: batch })}
-                            className="text-primary"
+                            className="gap-1 border-primary/40 text-primary hover:bg-primary/10"
                             title="Adicionar nova DME a este lote (soma na cobrança consolidada)"
                           >
-                            <PlusCircle className="size-4" />
+                            <PlusCircle className="size-4" /> Add ao lote
                           </Button>
                         );
                       })()}
