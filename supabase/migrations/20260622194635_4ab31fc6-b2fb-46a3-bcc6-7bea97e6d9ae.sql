@@ -1,0 +1,1 @@
+ALTER TABLE public.launch_grid_products ADD COLUMN IF NOT EXISTS skus jsonb NOT NULL DEFAULT '[]'::jsonb;
