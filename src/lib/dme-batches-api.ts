@@ -207,3 +207,65 @@ export async function fetchBatchForDme(extra_demand_id: string) {
   if (error) throw error;
   return (data as any)?.dme_batches ?? null;
 }
+
+/**
+ * Adiciona uma nova DME a uma cobrança consolidada do financeiro
+ * (caso em que as DMEs foram consolidadas via `consolidated_transaction_id`
+ * em extra_demands, sem registro em `dme_batches`).
+ */
+export async function addDmeToConsolidatedTransaction(input: {
+  consolidated_transaction_id: string;
+  client_id: string;
+  title: string;
+  description?: string | null;
+  value: number;
+  contract_id?: string | null;
+  responsible_id?: string | null;
+}) {
+  if (!input.title.trim()) throw new Error("Informe o título da DME.");
+  if (!input.value || input.value <= 0) throw new Error("Valor deve ser maior que zero.");
+
+  const { data: dme, error: dErr } = await supabase
+    .from("extra_demands")
+    .insert({
+      client_id: input.client_id,
+      contract_id: input.contract_id ?? null,
+      responsible_id: input.responsible_id ?? null,
+      title: input.title.trim(),
+      description: input.description?.trim() || null,
+      value: input.value,
+      status: "approved",
+      approved_by_client: true,
+      approved_at: new Date().toISOString(),
+      consolidated_transaction_id: input.consolidated_transaction_id,
+    } as any)
+    .select()
+    .single();
+  if (dErr) throw dErr;
+  const d = dme as any;
+
+  await supabase
+    .from("transactions")
+    .update({ status: "cancelled" })
+    .eq("extra_demand_id", d.id)
+    .eq("status", "pending");
+
+  const { data: tx } = await supabase
+    .from("transactions")
+    .select("amount, description, status")
+    .eq("id", input.consolidated_transaction_id)
+    .maybeSingle();
+  if (tx && tx.status !== "paid" && tx.status !== "cancelled") {
+    const newAmount = Number(tx.amount || 0) + Number(input.value);
+    const addLine = `+ ${input.title.trim()} — R$ ${Number(input.value).toFixed(2).replace(".", ",")}`;
+    await supabase
+      .from("transactions")
+      .update({
+        amount: newAmount,
+        description: `${tx.description || ""}\n${addLine}`.trim(),
+      })
+      .eq("id", input.consolidated_transaction_id);
+  }
+
+  return d;
+}

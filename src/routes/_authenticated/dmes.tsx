@@ -9,7 +9,7 @@ import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
-import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch } from "@/lib/dme-batches-api";
+import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction } from "@/lib/dme-batches-api";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
@@ -123,6 +123,54 @@ function DmesPage() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data ?? [];
+    },
+  });
+
+  // DMEs consolidadas via `consolidated_transaction_id` em extra_demands
+  // (sem registro em dme_batches). Permite "Adicionar DME" mesmo quando
+  // a junção foi feita diretamente no financeiro.
+  const { data: consolidatedTxGroups = [] } = useQuery<any[]>({
+    queryKey: ["dmes-consolidated-tx-groups"],
+    staleTime: 30_000,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("extra_demands")
+        .select("id, value, client_id, consolidated_transaction_id, clients(name, company)")
+        .not("consolidated_transaction_id", "is", null);
+      if (error) throw error;
+      const rows = (data ?? []) as any[];
+      if (!rows.length) return [];
+      const txIds = Array.from(new Set(rows.map((r) => r.consolidated_transaction_id)));
+      const { data: txs } = await supabase
+        .from("transactions")
+        .select("id, amount, status")
+        .in("id", txIds);
+      const txMap = new Map((txs ?? []).map((t: any) => [t.id, t]));
+      // Lotes que já existem em dme_batches — não duplicar
+      const existingBatchTxIds = new Set(
+        (activeBatches ?? [])
+          .map((b: any) => b.consolidated_transaction_id)
+          .filter(Boolean)
+      );
+      const groups: Record<string, any> = {};
+      for (const r of rows) {
+        const txId = r.consolidated_transaction_id;
+        if (existingBatchTxIds.has(txId)) continue;
+        const tx = txMap.get(txId);
+        if (!tx || tx.status === "cancelled") continue;
+        if (!groups[txId]) {
+          groups[txId] = {
+            consolidated_transaction_id: txId,
+            client_id: r.client_id,
+            clients: r.clients,
+            total_value: Number(tx.amount || 0),
+            count: 0,
+          };
+        }
+        groups[txId].count += 1;
+      }
+      return Object.values(groups);
     },
   });
 
@@ -268,7 +316,7 @@ function DmesPage() {
         </div>
       )}
 
-      {activeBatches.length > 0 && (
+      {(activeBatches.length > 0 || consolidatedTxGroups.length > 0) && (
         <div className="rounded-2xl border-2 border-primary/50 bg-primary/10 p-4 space-y-3 shadow-sm">
           <div className="flex items-center gap-2 font-semibold text-primary">
             <Layers className="size-5" /> Lotes ativos — adicione uma nova DME a um lote existente
@@ -295,6 +343,32 @@ function DmesPage() {
                     })}
                     className="gap-2 shrink-0"
                     title="Criar uma nova DME e somar na cobrança consolidada deste lote"
+                  >
+                    <PlusCircle className="size-4" /> Adicionar DME
+                  </Button>
+                </div>
+              );
+            })}
+            {consolidatedTxGroups.map((g: any) => {
+              const clientName = g.clients?.company || g.clients?.name || "Cliente";
+              return (
+                <div key={g.consolidated_transaction_id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{clientName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {g.count} DME{g.count !== 1 ? "s" : ""} consolidada{g.count !== 1 ? "s" : ""} · total {brl(Number(g.total_value || 0))}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => setAddItemFor({
+                      client_id: g.client_id,
+                      clients: g.clients,
+                      contract_id: null,
+                      _consolidatedTx: g,
+                    })}
+                    className="gap-2 shrink-0"
+                    title="Criar uma nova DME e somar na cobrança consolidada do financeiro"
                   >
                     <PlusCircle className="size-4" /> Adicionar DME
                   </Button>
@@ -490,23 +564,39 @@ function AddDmeToBatchDialog({ dme, onOpenChange }: { dme: any | null; onOpenCha
   const [value, setValue] = useState("");
 
   const batch = dme?._batch;
+  const consolidatedTx = dme?._consolidatedTx;
+  const totalValue = Number(batch?.total_value ?? consolidatedTx?.total_value ?? 0);
 
   const mut = useMutation({
     mutationFn: async () => {
-      if (!batch?.id) throw new Error("Lote não encontrado.");
       const v = Number((value || "").toString().replace(",", "."));
-      await addDmeToConsolidatedBatch({
-        batch_id: batch.id,
-        title,
-        description: description || null,
-        value: v,
-        contract_id: dme?.contract_id ?? null,
-      });
+      if (batch?.id) {
+        await addDmeToConsolidatedBatch({
+          batch_id: batch.id,
+          title,
+          description: description || null,
+          value: v,
+          contract_id: dme?.contract_id ?? null,
+        });
+      } else if (consolidatedTx?.consolidated_transaction_id) {
+        await addDmeToConsolidatedTransaction({
+          consolidated_transaction_id: consolidatedTx.consolidated_transaction_id,
+          client_id: consolidatedTx.client_id,
+          title,
+          description: description || null,
+          value: v,
+          contract_id: dme?.contract_id ?? null,
+        });
+      } else {
+        throw new Error("Lote não encontrado.");
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
+      qc.invalidateQueries({ queryKey: ["dmes-consolidated-tx-groups"] });
+      qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
       toast.success("DME criada e somada à cobrança consolidada.");
       setTitle("");
       setDescription("");
@@ -527,7 +617,7 @@ function AddDmeToBatchDialog({ dme, onOpenChange }: { dme: any | null; onOpenCha
             Lote do cliente <strong>{dme?.clients?.company || dme?.clients?.name || "—"}</strong>
             <br />
             <span className="text-xs">
-              Total atual do lote: <strong>{brl(Number(batch?.total_value || 0))}</strong>. A nova DME será criada já aprovada, vinculada ao mesmo lote e somada à cobrança consolidada no financeiro.
+              Total atual do lote: <strong>{brl(totalValue)}</strong>. A nova DME será criada já aprovada, vinculada ao mesmo lote e somada à cobrança consolidada no financeiro.
             </span>
           </DialogDescription>
         </DialogHeader>
