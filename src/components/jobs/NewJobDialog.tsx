@@ -43,6 +43,8 @@ export function NewJobDialog({
   defaultTitle,
   defaultDescription,
   defaultDueDate,
+  defaultLaunchProductId,
+  lockLaunchProduct,
   onCreated,
 }: {
   stage: JobStage | null;
@@ -56,6 +58,8 @@ export function NewJobDialog({
   defaultTitle?: string;
   defaultDescription?: string;
   defaultDueDate?: string;
+  defaultLaunchProductId?: string;
+  lockLaunchProduct?: boolean;
   onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
@@ -76,6 +80,7 @@ export function NewJobDialog({
     period: defaultPeriod ?? "",
     main_responsible_id: "",
     team_involved_ids: [] as string[],
+    launch_product_id: defaultLaunchProductId ?? "",
   });
 
   // Projetos dependem do cliente selecionado (cascade)
