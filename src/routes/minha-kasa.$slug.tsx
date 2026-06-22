@@ -3595,7 +3595,7 @@ function LaunchGridView({ grid }: { grid: any }) {
                   {items.map((p: any) => (
                     <div key={p.id} className="bg-white rounded-lg border border-slate-200 p-2 shadow-sm">
                       {p.image_url && (
-                        <div className="h-20 rounded mb-2 bg-cover bg-center" style={{ backgroundImage: `url(${p.image_url})` }} />
+                        <img src={p.image_url} alt="" className="h-20 w-full rounded mb-2 object-cover" loading="lazy" />
                       )}
                       <div className="text-sm font-semibold text-slate-800 leading-tight">{p.name}</div>
                       {p.description && (
