@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
 
 const BRAND_PHRASES = [
   "Humanidade Antes da Meta.",
@@ -120,7 +121,7 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
       <div className="relative flex flex-col items-center gap-12 px-6 text-center w-full max-w-xl">
         {/* Logo */}
         <img
-          src="https://api.freelovable.com.br/storage/v1/object/public/anexos/754fd88b-89a4-425f-a86f-f4ed2fe6a542.png"
+          src={logoWhiteAsset.url}
           alt="Kasa"
           className="animate-[splash-logo_900ms_ease-out_both] w-auto h-auto object-contain"
           style={{ maxWidth: "min(60vw, 22rem)", maxHeight: "32vh" }}
