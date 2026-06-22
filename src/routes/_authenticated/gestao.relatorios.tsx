@@ -405,7 +405,6 @@ function RelatoriosGestaoPage() {
                         {c.receita > 0 ? (
                           <Badge variant="outline" className={
                             tone === "emerald" ? "border-emerald-500/40 text-emerald-700 bg-emerald-500/10" :
-                            tone === "amber" ? "border-amber-500/40 text-amber-700 bg-amber-500/10" :
                             tone === "rose" ? "border-rose-500/40 text-rose-700 bg-rose-500/10" : ""
                           }>{c.margemPct.toFixed(1)}%</Badge>
                         ) : <span className="text-foreground/30">—</span>}
