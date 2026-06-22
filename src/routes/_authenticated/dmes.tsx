@@ -564,23 +564,39 @@ function AddDmeToBatchDialog({ dme, onOpenChange }: { dme: any | null; onOpenCha
   const [value, setValue] = useState("");
 
   const batch = dme?._batch;
+  const consolidatedTx = dme?._consolidatedTx;
+  const totalValue = Number(batch?.total_value ?? consolidatedTx?.total_value ?? 0);
 
   const mut = useMutation({
     mutationFn: async () => {
-      if (!batch?.id) throw new Error("Lote não encontrado.");
       const v = Number((value || "").toString().replace(",", "."));
-      await addDmeToConsolidatedBatch({
-        batch_id: batch.id,
-        title,
-        description: description || null,
-        value: v,
-        contract_id: dme?.contract_id ?? null,
-      });
+      if (batch?.id) {
+        await addDmeToConsolidatedBatch({
+          batch_id: batch.id,
+          title,
+          description: description || null,
+          value: v,
+          contract_id: dme?.contract_id ?? null,
+        });
+      } else if (consolidatedTx?.consolidated_transaction_id) {
+        await addDmeToConsolidatedTransaction({
+          consolidated_transaction_id: consolidatedTx.consolidated_transaction_id,
+          client_id: consolidatedTx.client_id,
+          title,
+          description: description || null,
+          value: v,
+          contract_id: dme?.contract_id ?? null,
+        });
+      } else {
+        throw new Error("Lote não encontrado.");
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
       qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
+      qc.invalidateQueries({ queryKey: ["dmes-consolidated-tx-groups"] });
+      qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
       toast.success("DME criada e somada à cobrança consolidada.");
       setTitle("");
       setDescription("");
@@ -601,7 +617,7 @@ function AddDmeToBatchDialog({ dme, onOpenChange }: { dme: any | null; onOpenCha
             Lote do cliente <strong>{dme?.clients?.company || dme?.clients?.name || "—"}</strong>
             <br />
             <span className="text-xs">
-              Total atual do lote: <strong>{brl(Number(batch?.total_value || 0))}</strong>. A nova DME será criada já aprovada, vinculada ao mesmo lote e somada à cobrança consolidada no financeiro.
+              Total atual do lote: <strong>{brl(totalValue)}</strong>. A nova DME será criada já aprovada, vinculada ao mesmo lote e somada à cobrança consolidada no financeiro.
             </span>
           </DialogDescription>
         </DialogHeader>
