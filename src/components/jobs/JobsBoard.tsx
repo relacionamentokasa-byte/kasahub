@@ -63,6 +63,9 @@ export function JobsBoard({
   eyebrow = "Operação · Tarefas",
   showPeriodFilter = false,
   initialOpenId,
+  initialOpenNew,
+  initialClientId,
+  initialLaunchProductId,
 }: {
   projectId?: string;
   clientId?: string;
@@ -71,6 +74,9 @@ export function JobsBoard({
   eyebrow?: string;
   showPeriodFilter?: boolean;
   initialOpenId?: string;
+  initialOpenNew?: boolean;
+  initialClientId?: string;
+  initialLaunchProductId?: string;
 }) {
   const qc = useQueryClient();
   const [period, setPeriod] = useState<string>("all");
