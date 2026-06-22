@@ -12,6 +12,8 @@ const BodySchema = z.object({
     "approve_slide",
     "reject_slide",
     "comment",
+    "reopen",
+    "reopen_slide",
   ]),
   feedback: z.string().max(4000).optional().nullable(),
   slide_id: z.string().max(100).optional().nullable(),
