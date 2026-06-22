@@ -534,6 +534,8 @@ function ProductSheet({
   const [notes, setNotes] = useState(product?.notes ?? "");
   const [imageUrl, setImageUrl] = useState<string | null>(product?.image_url ?? null);
   const [links, setLinks] = useState<Array<{ label: string; url: string }>>(product?.links ?? []);
+  const [skus, setSkus] = useState<LaunchGridSku[]>(product?.skus ?? []);
+  const [newSkuName, setNewSkuName] = useState("");
   const [uploading, setUploading] = useState(false);
 
   const { data: jobs = [] } = useQuery({
