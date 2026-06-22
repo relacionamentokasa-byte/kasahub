@@ -984,24 +984,19 @@ function ApprovalCard({
     <article className="bg-white border border-slate-200 rounded-2xl shadow-[0_4px_16px_rgba(15,23,42,0.08)] overflow-hidden">
       {/* PREVIEW */}
       {active ? (
-        <div className="relative bg-slate-900 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
-          {isImage(active) ? (
+        isImage(active) ? (
+          <div className="relative bg-slate-900 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
             <img src={active.file_url} alt={active.file_name} className="w-full h-full object-contain" />
-          ) : isVideo(active) ? (
+          </div>
+        ) : isVideo(active) ? (
+          <div className="relative bg-slate-900 aspect-[4/5] sm:aspect-[16/10] flex items-center justify-center overflow-hidden">
             <video src={active.file_url} controls className="w-full h-full object-contain" />
-          ) : (
-            <a
-              href={active.file_url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex flex-col items-center gap-2 text-white hover:text-[var(--portal-primary)]"
-            >
-              <FileText className="size-12" />
-              <span className="text-sm font-semibold">{active.file_name}</span>
-              <span className="text-xs text-white/80">Abrir arquivo</span>
-            </a>
-          )}
-        </div>
+          </div>
+        ) : getFileKind(active.file_name, active.file_type) === "pdf" ? (
+          <PdfPreview url={active.file_url} name={active.file_name} />
+        ) : (
+          <DocumentCard url={active.file_url} name={active.file_name} kind={getFileKind(active.file_name, active.file_type)} />
+        )
       ) : null}
 
       {/* THUMBNAILS */}
