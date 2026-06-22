@@ -118,7 +118,19 @@ function LancamentosPage() {
 function GridCard({ grid, onDelete }: { grid: any; onDelete: () => void }) {
   const clientName = grid.clients?.company || grid.clients?.name || "Cliente";
   return (
-    <Card className="overflow-hidden group hover:shadow-lg transition-shadow">
+    <Card className="overflow-hidden group hover:shadow-lg transition-shadow relative">
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7 text-foreground/40 hover:text-destructive absolute top-2 right-2 z-10 bg-background/80 backdrop-blur"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (confirm(`Remover "${grid.title}"? Os produtos serão excluídos.`)) onDelete();
+        }}
+      >
+        <Trash2 className="size-3.5" />
+      </Button>
       <Link to="/lancamentos/$gridId" params={{ gridId: grid.id }} className="block">
         {grid.cover_url ? (
           <div className="h-32 bg-cover bg-center" style={{ backgroundImage: `url(${grid.cover_url})` }} />
@@ -143,23 +155,13 @@ function GridCard({ grid, onDelete }: { grid: any; onDelete: () => void }) {
             <span className="text-xs text-primary font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
               Abrir <ArrowRight className="size-3" />
             </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 text-foreground/40 hover:text-destructive"
-              onClick={(e) => {
-                e.preventDefault();
-                if (confirm(`Remover "${grid.title}"? Os produtos serão excluídos.`)) onDelete();
-              }}
-            >
-              <Trash2 className="size-3.5" />
-            </Button>
           </div>
         </div>
       </Link>
     </Card>
   );
 }
+
 
 function NewGridDialog({
   clients, onClose, onCreated,
