@@ -93,6 +93,18 @@ export async function listProductJobs(productId: string) {
   return data || [];
 }
 
+// Lista produtos do grid do cliente (sem criar grid se não existir)
+export async function listProductsByClient(clientId: string): Promise<LaunchGridProduct[]> {
+  const { data: grid, error } = await supabase
+    .from("launch_grids")
+    .select("id")
+    .eq("client_id", clientId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!grid) return [];
+  return listGridProducts(grid.id);
+}
+
 export async function listGridStatuses(gridId: string) {
   const { data, error } = await supabase
     .from("launch_grid_statuses")
