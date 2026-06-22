@@ -560,12 +560,58 @@ function FinancialPage() {
           <ChevronLeft className="size-6" />
         </Button>
         
-        <div className="flex flex-col items-center min-w-[200px]">
-          <span className="text-[10px] font-mono-kasa uppercase font-bold tracking-[0.2em] text-foreground/40 mb-1">Período de Referência</span>
-          <h2 className="text-xl lg:text-2xl font-display font-bold tracking-tight text-primary">
-            {currentMonthLabel}
-          </h2>
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex flex-col items-center min-w-[200px] rounded-xl px-4 py-1 hover:bg-primary/5 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
+              aria-label="Selecionar mês e ano"
+            >
+              <span className="text-[10px] font-mono-kasa uppercase font-bold tracking-[0.2em] text-foreground/40 mb-1">Período de Referência</span>
+              <h2 className="text-xl lg:text-2xl font-display font-bold tracking-tight text-primary">
+                {currentMonthLabel}
+              </h2>
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-3 pointer-events-auto" align="center">
+            <div className="flex gap-2">
+              <Select
+                value={String(selectedDate.getMonth())}
+                onValueChange={(v) => {
+                  const d = new Date(selectedDate);
+                  d.setMonth(Number(v));
+                  setSelectedDate(d);
+                }}
+              >
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].map((m, i) => (
+                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={String(selectedDate.getFullYear())}
+                onValueChange={(v) => {
+                  const d = new Date(selectedDate);
+                  d.setFullYear(Number(v));
+                  setSelectedDate(d);
+                }}
+              >
+                <SelectTrigger className="w-[100px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i).map((y) => (
+                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </PopoverContent>
+        </Popover>
 
         <Button 
           variant="ghost" 
