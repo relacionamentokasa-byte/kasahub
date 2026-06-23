@@ -448,6 +448,15 @@ function FinancialPage() {
       if (t.status !== "pending" || !t.due_date || t.due_date >= todayStrLocal) return false;
     } else if (quickChip === "paid_month") {
       if (t.status !== "paid") return false;
+    } else if (quickChip === "missing_links") {
+      // Receita sem cliente OU despesa sem qualquer vínculo (cliente, fornecedor, freelancer, parceiro)
+      if (t.type === "income") {
+        if (t.client_id) return false;
+      } else if (t.type === "expense") {
+        if (t.client_id || t.supplier_id || t.freelancer_id || t.partner_id) return false;
+      } else {
+        return false;
+      }
     }
     return true;
   }).sort((a: any, b: any) => (a.due_date || "").localeCompare(b.due_date || ""));
