@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AttachmentViewer } from "@/components/AttachmentViewer";
+import { FileThumbnail } from "@/components/FileThumbnail";
 
 
 export const Route = createFileRoute("/approve/$token")({
@@ -191,40 +192,54 @@ function ApprovalInner() {
               <h3 className="text-sm font-semibold flex items-center gap-2">
                 <FileText className="size-4 text-primary" /> Arquivos para Revisão
               </h3>
-              <div className="grid gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {job.attachments.map((att) => (
                   <div
                     key={att.id}
-                    className="flex items-center justify-between p-4 bg-muted/20 border border-border rounded-xl group hover:border-primary/30 transition-colors"
+                    className="group relative bg-background border border-border rounded-xl overflow-hidden hover:border-primary/40 hover:shadow-md transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="size-10 rounded-lg bg-background flex items-center justify-center border border-border">
-                        <FileText className="size-5 text-foreground/40" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">{att.file_name}</p>
-                        <p className="text-[10px] text-foreground/40">
+                    <button
+                      type="button"
+                      onClick={() => setViewerConfig({ url: att.file_url, name: att.file_name })}
+                      className="block w-full text-left"
+                      title="Visualizar"
+                    >
+                      <FileThumbnail
+                        url={att.file_url}
+                        fileName={att.file_name}
+                        aspectClass="aspect-[4/3]"
+                        className="rounded-none ring-0 border-b border-border"
+                      />
+                      <div className="p-2.5">
+                        <p className="text-xs font-medium truncate text-foreground/90">{att.file_name}</p>
+                        <p className="text-[10px] text-foreground/40 mt-0.5">
                           {att.created_at
                             ? format(new Date(att.created_at), "dd/MM/yyyy")
                             : ""}
                         </p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-1 shrink-0">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2 h-9 px-3" 
-                        onClick={() => setViewerConfig({ url: att.file_url, name: att.file_name })}
-                      >
-                        <Eye className="size-4" /> Visualizar
-                      </Button>
+                    </button>
 
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="gap-2 h-9 px-3"
-                        onClick={() => {
+                    <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground shadow-sm"
+                        title="Visualizar"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setViewerConfig({ url: att.file_url, name: att.file_name });
+                        }}
+                      >
+                        <Eye className="size-3.5" />
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground shadow-sm"
+                        title="Baixar"
+                        onClick={(e) => {
+                          e.stopPropagation();
                           const link = document.createElement('a');
                           link.href = att.file_url;
                           link.download = att.file_name;
@@ -234,18 +249,19 @@ function ApprovalInner() {
                           document.body.removeChild(link);
                         }}
                       >
-                        <FileUp className="size-4" /> Baixar
+                        <FileUp className="size-3.5" />
                       </Button>
                     </div>
                   </div>
                 ))}
                 {job.attachments.length === 0 && (
-                  <p className="text-sm text-foreground/40 italic">
+                  <p className="col-span-full text-sm text-foreground/40 italic">
                     Nenhum arquivo anexado.
                   </p>
                 )}
               </div>
             </section>
+
 
 
             {!isResponded ? (
