@@ -15,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
 function ProposalDetailPage() {
   const { proposalId } = useParams({ from: "/_authenticated/propostas/$proposalId" });
   const { focusMode, toggleFocusMode, setFocusMode } = useFocusMode();
+  const [presenting, setPresenting] = useState(false);
+
 
   // Atalho: F alterna foco. Esc sai do foco.
   useEffect(() => {
