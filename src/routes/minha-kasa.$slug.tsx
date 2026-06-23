@@ -3710,22 +3710,37 @@ function OnboardingPortalCard({ onboardings }: { onboardings: OnboardingRow[] })
 }
 
 // ============= LAUNCH GRIDS (Lançamentos) =============
-function LaunchesSection({ grids }: { grids: any[] }) {
+function LaunchesSection({ grids, jobStages }: { grids: any[]; jobStages: Record<string, StageItem[]> }) {
   if (!grids || grids.length === 0) {
     return <EmptyState icon={Rocket} title="Nenhum lançamento ativo" subtitle="Quando houver um lançamento em andamento, aparecerá aqui." />;
   }
   return (
     <div className="space-y-8">
       {grids.map((g) => (
-        <LaunchGridView key={g.id} grid={g} />
+        <LaunchGridView key={g.id} grid={g} jobStages={jobStages} />
       ))}
     </div>
   );
 }
 
-function LaunchGridView({ grid }: { grid: any }) {
-  const statuses = grid.statuses || [];
+function LaunchGridView({ grid, jobStages }: { grid: any; jobStages: Record<string, StageItem[]> }) {
+  const statuses = [...(grid.statuses || [])].sort((a: any, b: any) => (a.order_index ?? 0) - (b.order_index ?? 0));
   const products = grid.products || [];
+  const stageMap = new Map(statuses.map((s: any, index: number) => [s.id, { stage: s, index }]));
+  const totalStages = Math.max(statuses.length, 1);
+  const productProgress = (statusId: string | null) => {
+    const found = statusId ? stageMap.get(statusId) : null;
+    if (!found) return 0;
+    if (found.stage.is_done) return 100;
+    return Math.round(((found.index + 1) / totalStages) * 100);
+  };
+  const doneProducts = products.filter((p: any) => {
+    const found = p.status_id ? stageMap.get(p.status_id) : null;
+    return !!found?.stage?.is_done;
+  }).length;
+  const overall = products.length > 0 ? Math.round((doneProducts / products.length) * 100) : 0;
+  const unmatchedProducts = products.filter((p: any) => !p.status_id || !stageMap.has(p.status_id));
+
   return (
     <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
       {grid.cover_url && (
@@ -3748,67 +3763,195 @@ function LaunchGridView({ grid }: { grid: any }) {
               <p className="text-sm text-slate-600 mt-2 max-w-2xl">{grid.description}</p>
             )}
           </div>
-          <div className="text-xs text-slate-500">
-            {products.length} {products.length === 1 ? "produto" : "produtos"}
+          <div className="text-right">
+            <div className="text-2xl font-black text-[var(--portal-primary)] leading-none">{overall}%</div>
+            <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              {products.length} {products.length === 1 ? "produto" : "produtos"}
+            </div>
           </div>
         </div>
 
-        {/* Grid de cards por etapa */}
+        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-5">
+          <div
+            className="h-full bg-[var(--portal-primary)] transition-all"
+            style={{ width: `${Math.min(100, Math.max(0, overall))}%` }}
+          />
+        </div>
+
+        {/* Grid de cards por etapa — usa as mesmas etapas globais dos Jobs. */}
         <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
           {statuses.map((s: any) => {
             const items = products.filter((p: any) => p.status_id === s.id);
+            const stageColor = resolveStageColor(s.color);
             return (
-              <div key={s.id} className="w-64 shrink-0">
+              <div key={s.id} className="w-[280px] shrink-0">
                 <div className="flex items-center gap-2 mb-2 px-1">
-                  <span className="size-2.5 rounded-full" style={{ background: s.color }} />
+                  <span className="size-2.5 rounded-full" style={{ background: stageColor }} />
                   <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">{s.label}</h3>
                   <span className="text-[10px] text-slate-400">{items.length}</span>
                 </div>
-                <div className="space-y-2 bg-slate-50 rounded-lg p-2 min-h-[100px]">
+                <div className="space-y-2 bg-slate-50 rounded-xl p-2 min-h-[132px]">
                   {items.length === 0 && (
                     <div className="text-center text-[10px] text-slate-300 py-4">—</div>
                   )}
                   {items.map((p: any) => (
-                    <div key={p.id} className="bg-white rounded-lg border border-slate-200 p-2 shadow-sm">
-                      {p.image_url && (
-                        <img src={p.image_url} alt="" className="h-20 w-full rounded mb-2 object-cover" loading="lazy" />
-                      )}
-                      <div className="text-sm font-semibold text-slate-800 leading-tight">{p.name}</div>
-                      {p.description && (
-                        <div className="text-[11px] text-slate-500 line-clamp-2 mt-1">{p.description}</div>
-                      )}
-                      <div className="flex items-center justify-between gap-2 mt-2">
-                        {p.due_date ? (
-                          <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                            <Calendar className="size-2.5" />
-                            {format(new Date(p.due_date), "dd/MM", { locale: ptBR })}
-                          </span>
-                        ) : <span />}
-                        {Array.isArray(p.links) && p.links.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            {p.links.slice(0, 2).map((l: any, i: number) => (
-                              <a
-                                key={i}
-                                href={l.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] text-[var(--portal-primary)] hover:underline flex items-center gap-0.5"
-                                title={l.label || l.url}
-                              >
-                                <ExternalLink className="size-2.5" /> {l.label || "link"}
-                              </a>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                    <LaunchProductCard
+                      key={p.id}
+                      product={p}
+                      status={s}
+                      progress={productProgress(p.status_id)}
+                      jobStages={jobStages}
+                      stageMap={stageMap}
+                    />
                   ))}
                 </div>
               </div>
             );
           })}
+
+          {unmatchedProducts.length > 0 && (
+            <div className="w-[280px] shrink-0">
+              <div className="flex items-center gap-2 mb-2 px-1">
+                <span className="size-2.5 rounded-full bg-slate-400" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Sem etapa definida</h3>
+                <span className="text-[10px] text-slate-400">{unmatchedProducts.length}</span>
+              </div>
+              <div className="space-y-2 bg-slate-50 rounded-xl p-2 min-h-[132px]">
+                {unmatchedProducts.map((p: any) => (
+                  <LaunchProductCard
+                    key={p.id}
+                    product={p}
+                    status={null}
+                    progress={0}
+                    jobStages={jobStages}
+                    stageMap={stageMap}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </section>
+  );
+}
+
+function LaunchProductCard({
+  product,
+  status,
+  progress,
+  jobStages,
+  stageMap,
+}: {
+  product: any;
+  status: any | null;
+  progress: number;
+  jobStages: Record<string, StageItem[]>;
+  stageMap: Map<string, { stage: any; index: number }>;
+}) {
+  const statusColor = resolveStageColor(status?.color);
+  const productJobs = Array.isArray(product.jobs) ? product.jobs : [];
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-2.5 shadow-sm">
+      {product.image_url ? (
+        <img src={product.image_url} alt="" className="h-28 w-full rounded-lg mb-2 object-contain bg-slate-50" loading="lazy" />
+      ) : (
+        <div className="h-28 w-full rounded-lg mb-2 bg-slate-100 grid place-items-center text-slate-300">
+          <ImageIcon className="size-8" />
+        </div>
+      )}
+      <div className="text-sm font-bold text-slate-900 leading-tight">{product.name}</div>
+      {product.description && (
+        <div className="text-[11px] text-slate-500 line-clamp-2 mt-1">{product.description}</div>
+      )}
+
+      <div className="mt-2 flex items-center justify-between gap-2">
+        {status ? (
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: `${statusColor}1A`, color: statusColor }}>
+            <span className="size-1.5 rounded-full" style={{ background: statusColor }} />
+            {status.label}
+          </span>
+        ) : (
+          <span className="text-[10px] font-semibold text-slate-400">Sem etapa</span>
+        )}
+        <span className="text-[10px] font-black text-slate-700">{progress}%</span>
+      </div>
+      <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-1.5">
+        <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: statusColor }} />
+      </div>
+
+      <div className="flex items-center justify-between gap-2 mt-2">
+        {product.due_date ? (
+          <span className="text-[10px] text-slate-500 flex items-center gap-1">
+            <Calendar className="size-2.5" />
+            {format(new Date(product.due_date), "dd/MM", { locale: ptBR })}
+          </span>
+        ) : <span />}
+        {Array.isArray(product.links) && product.links.length > 0 && (
+          <div className="flex items-center gap-1">
+            {product.links.slice(0, 2).map((l: any, i: number) => (
+              <a
+                key={i}
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-[var(--portal-primary)] hover:underline flex items-center gap-0.5"
+                title={l.label || l.url}
+              >
+                <ExternalLink className="size-2.5" /> {l.label || "link"}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {productJobs.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Jobs do produto</p>
+            <span className="text-[10px] text-slate-400">{productJobs.length}</span>
+          </div>
+          {productJobs.slice(0, 4).map((job: JobRow) => {
+            const jobStage = job.stage_id ? stageMap.get(job.stage_id)?.stage : null;
+            const jobColor = resolveStageColor(jobStage?.color);
+            const steps = jobStages[job.id] || [];
+            const doneSteps = steps.filter((step) => step.done).length;
+            const jobProgress = steps.length > 0
+              ? Math.round((doneSteps / steps.length) * 100)
+              : (job.progress_percentage ?? 0);
+            const done = jobIsDone(job, jobStage || undefined);
+            return (
+              <div key={job.id} className="rounded-lg bg-slate-50 border border-slate-100 p-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    {done ? (
+                      <CheckCircle2 className="size-3.5 text-[#10B981] shrink-0" />
+                    ) : job.status === "in_progress" ? (
+                      <Clock className="size-3.5 text-[var(--portal-primary)] shrink-0" />
+                    ) : (
+                      <Circle className="size-3.5 text-slate-400 shrink-0" />
+                    )}
+                    <span className="text-[11px] font-semibold text-slate-800 truncate">{job.title}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-500 shrink-0">{jobProgress}%</span>
+                </div>
+                <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden mt-1.5">
+                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, jobProgress))}%`, background: jobColor }} />
+                </div>
+                {jobStage && (
+                  <div className="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: `${jobColor}1A`, color: jobColor }}>
+                    <span className="size-1 rounded-full" style={{ background: jobColor }} />
+                    {jobStage.label}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {productJobs.length > 4 && (
+            <p className="text-[10px] text-slate-400 font-medium">+{productJobs.length - 4} jobs vinculados</p>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
