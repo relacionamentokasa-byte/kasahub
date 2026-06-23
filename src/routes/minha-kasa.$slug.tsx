@@ -3283,7 +3283,7 @@ function HomeSection({
                   <Play className="size-7 text-white" fill="white" />
                 </div>
               ) : (
-                <FileThumb name={f.name} />
+                <FileThumbnail url={f.url} fileName={f.name} aspectClass="h-full w-full aspect-auto" className="rounded-none border-0 ring-0" />
               )}
               <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded-md bg-black/60 text-white font-bold backdrop-blur-sm">
                 {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : FILE_META[getFileKind(f.name)].badge}
