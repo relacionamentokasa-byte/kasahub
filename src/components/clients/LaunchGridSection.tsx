@@ -774,7 +774,14 @@ function ProductSheet({
                   </div>
                   <div>
                     <Label className="text-xs">Categoria</Label>
-                    <Input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder="Ex: Skincare" className="mt-1" />
+                    <Select value={categoria || undefined} onValueChange={(v) => setCategoria(v)}>
+                      <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        {CATEGORIA_OPTIONS.map((c) => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div>
