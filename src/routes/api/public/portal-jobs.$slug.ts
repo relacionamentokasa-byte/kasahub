@@ -242,15 +242,17 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           .order("created_at", { ascending: false });
         const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
 
-        // Refresh signed URLs (originals expire after ~1h). Parse bucket+path
-        // from existing signed URLs and re-sign for 24h.
-        const SIGN_RE = /\/storage\/v1\/object\/sign\/([^/]+)\/([^?]+)/;
+        // Refresh storage URLs for the public portal. Some approval items were saved with
+        // raw public URLs from private buckets, so convert both public and signed storage
+        // URLs into fresh signed URLs before sending them to the client portal.
+        const STORAGE_RE = /\/storage\/v1\/object\/(?:sign|public)\/([^/]+)\/([^?]+)/;
         async function refreshUrl(url: unknown): Promise<string | null> {
           if (typeof url !== "string" || !url) return (url as string) ?? null;
-          const m = url.match(SIGN_RE);
+          const m = url.match(STORAGE_RE);
           if (!m) return url; // public URL or external — leave as is
           const bucket = decodeURIComponent(m[1]);
           const path = decodeURIComponent(m[2]);
+          if (!bucket || !path || path.includes("..") || path.startsWith("/")) return url;
           const { data } = await (supabaseAdmin as any).storage
             .from(bucket)
             .createSignedUrl(path, 60 * 60 * 24);
