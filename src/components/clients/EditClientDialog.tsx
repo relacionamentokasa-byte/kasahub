@@ -298,59 +298,6 @@ export function EditClientDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="contrato" className="mt-4 space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Tipo de Contrato</Label>
-                <select
-                  value={form.contract_type}
-                  onChange={(e) => setForm({ ...form, contract_type: e.target.value })}
-                  className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-                >
-                  <option value="recurring">Mensal (recorrente)</option>
-                  <option value="one_time">Projeto único</option>
-                </select>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Valor do Contrato (R$)</Label>
-                <Input
-                  type="number"
-                  value={form.contract_value}
-                  onChange={(e) => setForm({ ...form, contract_value: Number(e.target.value) || 0 })}
-                />
-              </div>
-              <div className="space-y-1.5 col-span-2">
-                <Label>Data de Início</Label>
-                <Input
-                  type="date"
-                  value={form.start_date ?? ""}
-                  onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-border">
-              <div className="text-xs font-bold uppercase tracking-widest text-foreground/60 mb-3">Módulos</div>
-              <label className="flex items-start gap-3 p-3 rounded-lg border border-border bg-background/50 cursor-pointer hover:bg-background">
-                <input
-                  type="checkbox"
-                  checked={!!form.has_launch_grid}
-                  onChange={(e) => setForm({ ...form, has_launch_grid: e.target.checked })}
-                  className="mt-0.5 size-4 accent-primary"
-                />
-                <div className="flex-1">
-                  <div className="font-medium text-sm">🚀 Grid de Lançamento</div>
-                  <div className="text-xs text-foreground/60 mt-0.5">
-                    Ativa uma aba dentro do cliente para acompanhar produtos a serem lançados (kanban, tabela e galeria).
-                  </div>
-                </div>
-              </label>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="servicos" className="mt-4">
-            <ClientServicesManager clientId={client.id} />
-          </TabsContent>
 
           <TabsContent value="portal" className="mt-4 space-y-4">
             <div className="rounded-xl border border-border bg-background/40 p-4 space-y-4">
