@@ -52,14 +52,28 @@ function stripHtml(html: string): string {
   return div.textContent || div.innerText || "";
 }
 
-function parseScope(raw: unknown): ScopeItem[] {
+function htmlToText(html: string): string {
+  // Replace block-level tags with newlines to preserve structure
+  let s = html
+    .replace(/<\s*br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6]|tr|section|article)>/gi, "\n")
+    .replace(/<\/(strong|b)>/gi, "</strong>\n"); // headings often bold
+  // Mark <li> with bullet
+  s = s.replace(/<li[^>]*>/gi, "• ");
+  // Treat bold-only line as heading-ish (keep marker)
+  return stripHtml(s);
+}
+
+const NUMBER_RE = /^\s*(\d+)\s*[\.\)]\s+(.+?)\s*$/;
+const SUBNUMBER_RE = /^\s*(\d+\.\d+(?:\.\d+)?)\s*[\.\)]?\s+(.+?)\s*$/;
+const BULLET_RE = /^\s*[•·\-–—*]\s+(.+?)\s*$/;
+
+function toLines(raw: unknown): string[] {
   if (!raw) return [];
-  // Array input
   if (Array.isArray(raw)) {
     return raw
       .map((v) => (typeof v === "string" ? v : v?.title || ""))
-      .filter(Boolean)
-      .map((t) => splitTitleDesc(t));
+      .filter(Boolean);
   }
   if (typeof raw !== "string") return [];
   const trimmed = raw.trim();
@@ -70,47 +84,75 @@ function parseScope(raw: unknown): ScopeItem[] {
     try {
       const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
-        return parsed
-          .map((v) => (typeof v === "string" ? v : v?.title || ""))
-          .filter(Boolean)
-          .map((t) => splitTitleDesc(t));
+        return parsed.map((v) => (typeof v === "string" ? v : v?.title || "")).filter(Boolean);
       }
     } catch {}
   }
 
-  // HTML — extract <li> first, fallback to <p>/lines
-  if (/<\/?[a-z][\s\S]*>/i.test(trimmed)) {
-    const liMatches = Array.from(trimmed.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi));
-    if (liMatches.length) {
-      return liMatches
-        .map((m) => stripHtml(m[1]).trim())
-        .filter(Boolean)
-        .map(splitTitleDesc);
+  const text = /<\/?[a-z][\s\S]*>/i.test(trimmed) ? htmlToText(trimmed) : trimmed;
+  return text
+    .split(/\r?\n+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function parseScopeSections(raw: unknown): ScopeSection[] {
+  const lines = toLines(raw);
+  if (!lines.length) return [];
+
+  const sections: ScopeSection[] = [];
+  let current: ScopeSection | null = null;
+
+  const ensureCurrent = () => {
+    if (!current) {
+      current = { title: "Escopo", items: [] };
+      sections.push(current);
     }
-    const text = stripHtml(trimmed);
-    return text
-      .split(/\n+/)
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(splitTitleDesc);
+    return current;
+  };
+
+  for (const line of lines) {
+    const sub = line.match(SUBNUMBER_RE);
+    if (sub) {
+      // Sub-numbered item like "2.1 Instagram"
+      const item = splitTitleDesc(sub[2]);
+      item.number = sub[1];
+      ensureCurrent().items.push(item);
+      continue;
+    }
+    const top = line.match(NUMBER_RE);
+    if (top) {
+      // New top-level section "2. Redes Sociais"
+      current = { title: top[2].trim(), number: top[1], items: [] };
+      sections.push(current);
+      continue;
+    }
+    const bul = line.match(BULLET_RE);
+    if (bul) {
+      ensureCurrent().items.push(splitTitleDesc(bul[1]));
+      continue;
+    }
+    // Plain line — if no section yet, treat as item; if short and uppercase-ish, treat as section title
+    if (!current && /^[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][^a-z]{2,}$/.test(line) && line.length < 60) {
+      current = { title: line, items: [] };
+      sections.push(current);
+    } else {
+      ensureCurrent().items.push(splitTitleDesc(line));
+    }
   }
 
-  // Plain text — split by newlines or bullets
-  return trimmed
-    .split(/\n+|(?:^|\s)[•·\-–]\s+/)
-    .map((s) => s.trim().replace(/^[•·\-–]\s*/, ""))
-    .filter(Boolean)
-    .map(splitTitleDesc);
+  // Drop empty sections that ended up with no items AND no children
+  return sections.filter((s) => s.items.length > 0 || s.title);
 }
 
 function splitTitleDesc(s: string): ScopeItem {
-  // "Title: description" or "Title — description"
   const m = s.match(/^([^:—–]{3,80})\s*[:—–]\s*(.+)$/);
   if (m) return { title: m[1].trim(), description: m[2].trim() };
   return { title: s };
 }
 
 function chunk<T>(arr: T[], size: number): T[][] {
+  if (!arr.length) return [[]];
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
