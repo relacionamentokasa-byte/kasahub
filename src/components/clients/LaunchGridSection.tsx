@@ -38,6 +38,7 @@ import {
   type AspectoFisico, type Acondicionar,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
+import { CATEGORIA_OPTIONS } from "@/lib/boletim-pdf";
 
 type Props = { clientId: string; clientName: string };
 type ViewMode = "table" | "kanban" | "gallery";
