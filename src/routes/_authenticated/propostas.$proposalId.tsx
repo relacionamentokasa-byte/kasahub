@@ -1,9 +1,11 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { ProposalEditorContent } from "@/components/proposals/ProposalEditorContent";
-import { ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
-import { useEffect } from "react";
+import { ProposalPresentation } from "@/components/proposals/ProposalPresentation";
+import { ArrowLeft, Maximize2, Minimize2, Presentation } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useFocusMode } from "@/contexts/FocusModeContext";
+
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
   head: () => ({ meta: [{ title: "Proposta — KASA HUB" }] }),
