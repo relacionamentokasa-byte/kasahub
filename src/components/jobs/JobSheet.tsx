@@ -432,9 +432,12 @@ export function JobSheet({
           <div className="flex-1 flex flex-col overflow-y-auto">
             <div className="p-6 space-y-8 pb-12">
               <SheetHeader className="space-y-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <CheckCircle2 className="size-5" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Gestão de Job</span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-primary">
+                    <CheckCircle2 className="size-5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Gestão de Job</span>
+                  </div>
+                  <FocusModeButton jobId={job.id} />
                 </div>
                 <SheetTitle className="font-display text-2xl lg:text-3xl">
                   <input
