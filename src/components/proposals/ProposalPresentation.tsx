@@ -34,9 +34,10 @@ type Slide = {
   scopeChunk?: { items: ScopeItem[]; page: number; total: number };
 };
 
-type ScopeItem = { title: string; description?: string };
+type ScopeItem = { title: string; description?: string; number?: string };
+type ScopeSection = { title: string; number?: string; items: ScopeItem[] };
 
-const SCOPE_PER_SLIDE = 6;
+const SCOPE_PER_SLIDE = 8;
 
 function stripHtml(html: string): string {
   if (typeof document === "undefined") return html.replace(/<[^>]+>/g, "");
