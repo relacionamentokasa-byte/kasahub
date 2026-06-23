@@ -800,10 +800,34 @@ function ProductSheet({
           {/* ===== IMAGENS DO PRODUTO ===== */}
           <section className="space-y-4 border-t pt-5">
             <h3 className="text-sm font-semibold text-foreground/80 break-words">Imagens do produto</h3>
-            <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []}
-              onChange={(v) => setImgs({ ...imgs, tampa: v })} />
-            <MultiImageUploader gridId={gridId} label="Embalagem" value={imgs.embalagem ?? []}
-              onChange={(v) => setImgs({ ...imgs, embalagem: v })} />
+            <div className="space-y-2">
+              <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []}
+                onChange={(v) => setImgs({ ...imgs, tampa: v })} />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Cor da tampa</Label>
+                  <Input value={tampaCor} onChange={(e) => setTampaCor(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs">Fornecedor da tampa</Label>
+                  <Input value={tampaFornecedor} onChange={(e) => setTampaFornecedor(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <MultiImageUploader gridId={gridId} label="Embalagem" value={imgs.embalagem ?? []}
+                onChange={(v) => setImgs({ ...imgs, embalagem: v })} />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Cor da embalagem</Label>
+                  <Input value={embalagemCor} onChange={(e) => setEmbalagemCor(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs">Fornecedor da embalagem</Label>
+                  <Input value={embalagemFornecedor} onChange={(e) => setEmbalagemFornecedor(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+            </div>
             <MultiImageUploader gridId={gridId} label="Rótulo" value={imgs.rotulo ?? []}
               onChange={(v) => setImgs({ ...imgs, rotulo: v })} />
             <MultiImageUploader gridId={gridId} label="Outros" value={imgs.outros ?? []}
