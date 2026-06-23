@@ -1163,6 +1163,8 @@ function timeAgoPtBR(iso: string): string {
 // ============= APROVAÇÕES — ESTILO INSTAGRAM =============
 
 function approvalFormatLabel(item: ApprovalItem): string {
+  const fileKind = getApprovalItemFileKind(item);
+  if (isDocumentFileKind(fileKind)) return FILE_META[fileKind].label;
   // Explicit format wins
   if (item.format === "carousel") return "Carrossel";
   if (item.format === "story") return "Story";
@@ -1530,6 +1532,110 @@ function ApprovalGridTile({ item, onClick }: { item: ApprovalItem; onClick: () =
       </div>
     </button>
   );
+}
+
+function ApprovalDocumentRow({ item, onOpen }: { item: ApprovalItem; onOpen: () => void }) {
+  const kind = getApprovalItemFileKind(item);
+  const meta = FILE_META[kind];
+  const fileName = approvalFileName(item);
+  const status =
+    item.status === "approved"
+      ? { label: "Aprovado", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+      : item.status === "rejected"
+      ? { label: "Ajuste solicitado", cls: "bg-amber-50 text-amber-700 border-amber-200" }
+      : { label: "Pendente", cls: "bg-orange-50 text-orange-700 border-orange-200" };
+
+  return (
+    <article className="bg-white border border-slate-200 rounded-2xl p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)] flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="shrink-0 size-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
+        title="Visualizar documento"
+      >
+        <FileThumbnail
+          url={item.thumbnail_url || item.content_url || ""}
+          fileName={fileName}
+          aspectClass="h-full w-full aspect-auto"
+          className="rounded-none border-0 ring-0"
+        />
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider"
+            style={{ background: meta.bg, color: meta.color }}
+          >
+            {meta.badge}
+          </span>
+          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold ${status.cls}`}>
+            {status.label}
+          </span>
+        </div>
+        <button type="button" onClick={onOpen} className="mt-1 block max-w-full text-left">
+          <h4 className="text-sm font-black text-slate-900 truncate">{item.title}</h4>
+          <p className="text-[11px] font-semibold text-slate-500 truncate">{fileName}</p>
+        </button>
+        {item.description && <p className="mt-1 text-xs text-slate-600 line-clamp-2">{item.description}</p>}
+      </div>
+      <div className="shrink-0 flex flex-col sm:flex-row gap-1.5">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[var(--portal-primary)] px-3 py-2 text-xs font-black text-slate-900 shadow-sm hover:bg-[var(--portal-primary-hover)]"
+        >
+          <ExternalLink className="size-3.5" /> Ver
+        </button>
+        {item.content_url && (
+          <a
+            href={item.content_url}
+            download={fileName}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:border-[var(--portal-primary)] hover:text-slate-900"
+          >
+            <Download className="size-3.5" /> Baixar
+          </a>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function ApprovalDocumentViewer({ item }: { item: ApprovalItem }) {
+  const kind = getApprovalItemFileKind(item);
+  const name = approvalFileName(item);
+  const url = item.content_url || "";
+  const canUseOfficeViewer = kind === "word" || kind === "excel" || kind === "ppt";
+  const officeViewerUrl = canUseOfficeViewer
+    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`
+    : null;
+
+  if (officeViewerUrl) {
+    return (
+      <div className="h-full min-h-[70vh] w-full bg-white flex flex-col">
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-2 bg-white">
+          <div className="min-w-0 flex items-center gap-2">
+            <span className="rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase" style={{ background: FILE_META[kind].bg, color: FILE_META[kind].color }}>
+              {FILE_META[kind].badge}
+            </span>
+            <span className="truncate text-xs font-bold text-slate-800">{name}</span>
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            <a href={url} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-slate-700 hover:bg-slate-100">
+              <ExternalLink className="size-3.5" /> Abrir
+            </a>
+            <a href={url} download={name} className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-slate-700 hover:bg-slate-100">
+              <Download className="size-3.5" /> Baixar
+            </a>
+          </div>
+        </div>
+        <iframe src={officeViewerUrl} title={name} className="min-h-0 flex-1 w-full bg-white" />
+      </div>
+    );
+  }
+
+  return <DocumentCard url={url} name={name} kind={kind} />;
 }
 
 function ApprovalFullscreenModal({
