@@ -14,9 +14,10 @@ export type LaunchGrid = {
   clients?: { id: string; name: string | null; company: string | null } | null;
 };
 
+// Status do grid agora reflete as etapas globais de Jobs (job_stages).
 export type LaunchGridStatus = {
   id: string;
-  grid_id: string;
+  grid_id: string | null;
   label: string;
   color: string;
   order_index: number;
