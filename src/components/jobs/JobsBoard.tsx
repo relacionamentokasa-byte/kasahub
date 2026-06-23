@@ -890,26 +890,43 @@ function JobCardInner({ job, profiles = [], dragging, nextResponsibleId }: { job
 
         <div className="flex items-center justify-between mt-1">
           <div className="flex items-center gap-1.5">
-            {/* Responsável Principal — sempre visível */}
-            <div
-              className={cn(
-                "size-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-surface",
-                mainResp ? "bg-primary/10 border border-primary/20" : "bg-muted border border-dashed border-border"
-              )}
-              title={mainResp ? `Responsável: ${mainResp.display_name || mainResp.full_name}` : "Sem responsável"}
-            >
-              {mainResp ? (
-                mainResp.avatar_url ? (
-                  <StorageImage src={mainResp.avatar_url} alt="" className="size-full object-cover" />
-                ) : (
-                  <span className="text-[8px] font-bold text-primary">
-                    {(mainResp.display_name || mainResp.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                  </span>
-                )
-              ) : (
-                <span className="text-[10px] font-bold text-foreground/30">?</span>
-              )}
-            </div>
+            {/* Bola da vez — destaque pulsando no avatar de quem precisa agir agora */}
+            {(() => {
+              const ball = isOpen && ballPerson ? ballPerson : null;
+              const featured = ball || mainResp;
+              const featuredName = featured?.display_name || featured?.full_name;
+              const ballName = ball?.display_name || ball?.full_name;
+              return (
+                <div className="relative">
+                  {ball && (
+                    <span className="absolute -inset-0.5 rounded-full bg-amber-400/40 animate-ping" aria-hidden />
+                  )}
+                  <div
+                    className={cn(
+                      "relative size-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2",
+                      ball
+                        ? "ring-amber-400 bg-amber-400/10 border border-amber-400/40"
+                        : featured
+                        ? "ring-surface bg-primary/10 border border-primary/20"
+                        : "ring-surface bg-muted border border-dashed border-border"
+                    )}
+                    title={ballName ? `🏐 Bola da vez: ${ballName}` : featuredName ? `Responsável: ${featuredName}` : "Sem responsável"}
+                  >
+                    {featured ? (
+                      featured.avatar_url ? (
+                        <StorageImage src={featured.avatar_url} alt="" className="size-full object-cover" />
+                      ) : (
+                        <span className="text-[8px] font-bold text-primary">
+                          {(featuredName || "M").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-[10px] font-bold text-foreground/30">?</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Equipe Envolvida */}
             {teamInvolved.length > 0 && (
