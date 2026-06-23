@@ -10,6 +10,27 @@ import { StorageImage } from "@/components/ui/storage-image";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+const STAGE_COLOR_MAP: Record<string, string> = {
+  "text-blue-500": "#3B82F6",
+  "text-amber-500": "#F59E0B",
+  "text-yellow-500": "#EAB308",
+  "text-orange-500": "#F97316",
+  "text-purple-500": "#A855F7",
+  "text-emerald-500": "#10B981",
+  "text-green-500": "#22C55E",
+  "text-rose-500": "#F43F5E",
+  "text-red-500": "#EF4444",
+  "text-slate-500": "#64748B",
+  "text-gray-500": "#6B7280",
+};
+
+function resolveStageColor(color?: string | null) {
+  if (!color) return "#64748B";
+  const clean = color.trim();
+  if (clean.startsWith("#") || clean.startsWith("rgb") || clean.startsWith("hsl") || clean.startsWith("var(")) return clean;
+  return STAGE_COLOR_MAP[clean] || "#64748B";
+}
+
 export function ClientPortalStructure() {
   const [clientId, setClientId] = useState<string | null>(null);
 
@@ -149,6 +170,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
     ...s,
     count: products.filter((p) => p.status_id === s.id).length,
   }));
+  const unmatchedProducts = products.filter((p) => !p.status_id || !stageMap.has(p.status_id));
   const doneCount = products.filter((p) => {
     const f = p.status_id ? stageMap.get(p.status_id) : null;
     return f?.stage.is_done;
@@ -176,7 +198,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
           {stageCounts.map((s, i) => (
             <div key={s.id} className="flex items-center gap-2">
               <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-background">
-                <span className="size-2 rounded-full" style={{ background: s.color }} />
+                <span className="size-2 rounded-full" style={{ background: resolveStageColor(s.color) }} />
                 <span className="text-xs font-medium">{s.label}</span>
                 <span className="text-[10px] text-foreground/40">{s.count}</span>
               </div>
@@ -190,6 +212,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((p) => {
           const st = p.status_id ? stageMap.get(p.status_id)?.stage : null;
+          const stColor = resolveStageColor(st?.color);
           const pct = productProgress(p.status_id);
           const productJobs = jobs.filter((j) => j.launch_product_id === p.id);
           return (
@@ -207,9 +230,9 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
                   {st ? (
                     <span
                       className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium"
-                      style={{ background: `${st.color}20`, color: st.color }}
+                      style={{ background: `${stColor}20`, color: stColor }}
                     >
-                      <span className="size-1.5 rounded-full" style={{ background: st.color }} />
+                      <span className="size-1.5 rounded-full" style={{ background: stColor }} />
                       {st.label}
                     </span>
                   ) : <span className="text-[10px] text-foreground/40">Sem etapa</span>}
@@ -229,6 +252,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
                     </h4>
                     {productJobs.slice(0, 4).map((job) => {
                       const jobStage = job.stage_id ? stageMap.get(job.stage_id)?.stage : null;
+                      const jobStageColor = resolveStageColor(jobStage?.color);
                       const isDone = jobStage?.is_done || job.status === "done" || !!job.done_at;
                       return (
                         <div key={job.id} className="flex items-center justify-between gap-1.5 text-[11px]">
@@ -245,7 +269,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
                           {jobStage && (
                             <span
                               className="text-[9px] px-1.5 py-0.5 rounded-full shrink-0"
-                              style={{ background: `${jobStage.color}20`, color: jobStage.color }}
+                              style={{ background: `${jobStageColor}20`, color: jobStageColor }}
                             >
                               {jobStage.label}
                             </span>
@@ -262,6 +286,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
             </div>
           );
         })}
+        {unmatchedProducts.length > 0 && null}
       </div>
     </section>
   );
