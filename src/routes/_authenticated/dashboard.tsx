@@ -4,6 +4,7 @@ import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
 import { InstallPromoCard } from "@/components/pwa/InstallPromoCard";
+import { MyDaySection } from "@/components/dashboard/MyDaySection";
 
 import { checkDailyNotifications } from "@/lib/notifications-cron";
 
@@ -56,7 +57,10 @@ function DashboardPage() {
 
       <InstallPromoCard />
 
+      <MyDaySection />
+
       <ExecutiveDashboard />
+      
       
       <footer className="pt-12 border-t border-border flex justify-between items-center text-[10px] font-mono-kasa text-foreground/30 uppercase tracking-widest">
         <span>KASA Marketing Consultoria</span>

@@ -45,7 +45,9 @@ import {
   updateChecklistItem,
 } from "@/lib/ops-api";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock } from "lucide-react";
+import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus } from "lucide-react";
+import { UnifiedTimeline } from "@/components/timeline/UnifiedTimeline";
+import { useFocusMode } from "@/contexts/FocusModeContext";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
 import { listJobApprovalItems, archiveApprovalItem, unarchiveApprovalItem, listApprovalItemComments, type ApprovalItem } from "@/lib/approval-items-api";
 import { enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
@@ -430,9 +432,12 @@ export function JobSheet({
           <div className="flex-1 flex flex-col overflow-y-auto">
             <div className="p-6 space-y-8 pb-12">
               <SheetHeader className="space-y-4">
-                <div className="flex items-center gap-2 text-primary">
-                  <CheckCircle2 className="size-5" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider">Gestão de Job</span>
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 text-primary">
+                    <CheckCircle2 className="size-5" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider">Gestão de Job</span>
+                  </div>
+                  <FocusModeButton jobId={job.id} />
                 </div>
                 <SheetTitle className="font-display text-2xl lg:text-3xl">
                   <input
@@ -1116,30 +1121,11 @@ export function JobSheet({
                   <AccordionTrigger className="hover:no-underline py-4">
                     <div className="flex items-center gap-2">
                       <History className="size-4 text-primary" />
-                      <span className="text-sm font-bold uppercase tracking-wider">Histórico</span>
+                      <span className="text-sm font-bold uppercase tracking-wider">Atividade</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pb-6">
-                    <div className="space-y-4">
-                      {history.map((h: any) => (
-                        <div key={h.id} className="flex gap-4 items-start border-l-2 border-muted pl-6 py-1 relative">
-                          <div className="size-3 rounded-full bg-muted absolute left-[-7.5px] top-2 border-2 border-background" />
-                          <div className="flex-1 space-y-1">
-                            <p className="text-sm font-medium text-foreground/80">
-                              {h.action}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] text-foreground/40 font-mono uppercase">
-                                {format(new Date(h.created_at), "dd MMM yyyy · HH:mm", { locale: ptBR })}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                      {history.length === 0 && (
-                        <p className="text-[10px] text-foreground/40 uppercase font-bold tracking-widest text-center py-4">Nenhum histórico registrado</p>
-                      )}
-                    </div>
+                    <UnifiedTimeline jobId={job.id} />
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
@@ -1189,6 +1175,43 @@ export function JobSheet({
         />
       )}
     </Sheet>
+  );
+}
+
+const FOCUS_SUGGEST_KEY = (jobId: string) => `kasa:focus-suggested:${jobId}`;
+
+function FocusModeButton({ jobId }: { jobId: string }) {
+  const { focusMode, setFocusMode } = useFocusMode();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = sessionStorage.getItem(FOCUS_SUGGEST_KEY(jobId));
+    if (seen || focusMode) return;
+    sessionStorage.setItem(FOCUS_SUGGEST_KEY(jobId), "1");
+    const t = setTimeout(() => {
+      toast("Quer entrar em Modo Foco para executar este job?", {
+        description: "Esconde menus e barras para você focar no que importa.",
+        action: { label: "Entrar", onClick: () => setFocusMode(true) },
+        duration: 6000,
+      });
+    }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
+
+  return (
+    <button
+      onClick={() => setFocusMode(!focusMode)}
+      title={focusMode ? "Sair do Modo Foco" : "Entrar em Modo Foco"}
+      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition ${
+        focusMode
+          ? "bg-primary text-primary-foreground border-primary"
+          : "border-border text-foreground/60 hover:text-primary hover:border-primary/40"
+      }`}
+    >
+      <Focus className="size-3" />
+      {focusMode ? "Saindo do Foco" : "Modo Foco"}
+    </button>
   );
 }
 

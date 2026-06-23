@@ -94,6 +94,27 @@ export function JobsBoard({
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: clients = [] } = useQuery({ queryKey: ["clients-filter"], queryFn: fetchClients });
 
+  // "Bola da vez" — para cada job em aberto, busca quem é o próximo responsável
+  // (primeiro item de checklist pendente). Uma query única pra todos os jobs visíveis.
+  const visibleJobIds = useMemo(() => jobs.filter((j: any) => j.status !== "done" && !j.done_at).map((j: any) => j.id), [jobs]);
+  const { data: nextResponsibleMap = new Map<string, string>() } = useQuery({
+    queryKey: ["jobs-next-responsible", visibleJobIds],
+    enabled: visibleJobIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("job_checklist")
+        .select("job_id, responsible_id, order_index")
+        .in("job_id", visibleJobIds)
+        .eq("done", false)
+        .order("order_index", { ascending: true });
+      const map = new Map<string, string>();
+      (data ?? []).forEach((r: any) => {
+        if (r.responsible_id && !map.has(r.job_id)) map.set(r.job_id, r.responsible_id);
+      });
+      return map;
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel('jobs-realtime-board')
@@ -573,6 +594,7 @@ export function JobsBoard({
                       onClick={() => { setFocusedId(j.id); setOpenId(j.id); }}
                       queryKey={queryKey}
                       focused={focusedId === j.id}
+                      nextResponsibleId={nextResponsibleMap.get(j.id) ?? null}
                     />
                   ))}
                 </Column>
@@ -661,7 +683,7 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick, queryKey, focused }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean }) {
+function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean; nextResponsibleId?: string | null }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   
@@ -710,7 +732,7 @@ function JobCard({ job, profiles, onClick, queryKey, focused }: { job: Job; prof
         onClick={() => !isOptimistic && onClick()}
         className={isOptimistic ? "cursor-wait" : "cursor-grab active:cursor-grabbing"}
       >
-        <JobCardInner job={job} profiles={profiles} />
+        <JobCardInner job={job} profiles={profiles} nextResponsibleId={nextResponsibleId} />
       </div>
       {!isOptimistic && (
         <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -745,7 +767,7 @@ function JobCard({ job, profiles, onClick, queryKey, focused }: { job: Job; prof
   );
 }
 
-function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: any[]; dragging?: boolean }) {
+function JobCardInner({ job, profiles = [], dragging, nextResponsibleId }: { job: Job; profiles?: any[]; dragging?: boolean; nextResponsibleId?: string | null }) {
   const navigate = useNavigate();
   const progress = (job as any).progress_percentage || 0;
   const totalSteps = (job as any).total_steps || 0;
@@ -755,6 +777,9 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
   const teamInvolvedRaw = (job as any).team_involved || [];
   // Evita duplicar o responsável principal na lista de equipe
   const teamInvolved = teamInvolvedRaw.filter((m: any) => m?.user_id && m.user_id !== mainRespId);
+  // "Bola da vez": pessoa do próximo item de checklist pendente
+  const ballPerson = nextResponsibleId ? profiles.find((p) => p.id === nextResponsibleId) : null;
+  const isOpen = job.status !== "done" && !job.done_at;
 
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
   const deadline = useMemo(() => {
@@ -865,26 +890,43 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
 
         <div className="flex items-center justify-between mt-1">
           <div className="flex items-center gap-1.5">
-            {/* Responsável Principal — sempre visível */}
-            <div
-              className={cn(
-                "size-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2 ring-surface",
-                mainResp ? "bg-primary/10 border border-primary/20" : "bg-muted border border-dashed border-border"
-              )}
-              title={mainResp ? `Responsável: ${mainResp.display_name || mainResp.full_name}` : "Sem responsável"}
-            >
-              {mainResp ? (
-                mainResp.avatar_url ? (
-                  <StorageImage src={mainResp.avatar_url} alt="" className="size-full object-cover" />
-                ) : (
-                  <span className="text-[8px] font-bold text-primary">
-                    {(mainResp.display_name || mainResp.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                  </span>
-                )
-              ) : (
-                <span className="text-[10px] font-bold text-foreground/30">?</span>
-              )}
-            </div>
+            {/* Bola da vez — destaque pulsando no avatar de quem precisa agir agora */}
+            {(() => {
+              const ball = isOpen && ballPerson ? ballPerson : null;
+              const featured = ball || mainResp;
+              const featuredName = featured?.display_name || featured?.full_name;
+              const ballName = ball?.display_name || ball?.full_name;
+              return (
+                <div className="relative">
+                  {ball && (
+                    <span className="absolute -inset-0.5 rounded-full bg-amber-400/40 animate-ping" aria-hidden />
+                  )}
+                  <div
+                    className={cn(
+                      "relative size-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2",
+                      ball
+                        ? "ring-amber-400 bg-amber-400/10 border border-amber-400/40"
+                        : featured
+                        ? "ring-surface bg-primary/10 border border-primary/20"
+                        : "ring-surface bg-muted border border-dashed border-border"
+                    )}
+                    title={ballName ? `🏐 Bola da vez: ${ballName}` : featuredName ? `Responsável: ${featuredName}` : "Sem responsável"}
+                  >
+                    {featured ? (
+                      featured.avatar_url ? (
+                        <StorageImage src={featured.avatar_url} alt="" className="size-full object-cover" />
+                      ) : (
+                        <span className="text-[8px] font-bold text-primary">
+                          {(featuredName || "M").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-[10px] font-bold text-foreground/30">?</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Equipe Envolvida */}
             {teamInvolved.length > 0 && (

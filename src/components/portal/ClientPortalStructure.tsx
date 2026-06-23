@@ -9,6 +9,9 @@ import { ClientOnboardingPortalView } from "@/components/onboarding/ClientOnboar
 import { StorageImage } from "@/components/ui/storage-image";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AccountManagerCard } from "./AccountManagerCard";
+import { PortalTour } from "./PortalTour";
+import { pt } from "@/lib/portal-glossary";
 
 const STAGE_COLOR_MAP: Record<string, string> = {
   "text-blue-500": "#3B82F6",
@@ -72,16 +75,18 @@ export function ClientPortalStructure() {
   if (!clientId) return null;
 
   return (
-    <div className="space-y-10 p-6 lg:p-10 max-w-7xl mx-auto">
+    <div className="space-y-8 sm:space-y-10 p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto">
+      <AccountManagerCard clientId={clientId} />
+
       <ClientOnboardingPortalView clientId={clientId} />
 
       <LaunchGridProgress clientId={clientId} jobs={jobs} />
 
-
-
       <div>
-        <h1 className="text-3xl font-display font-bold">Meus Projetos</h1>
-        <p className="text-foreground/50 mt-1">Acompanhe o progresso das suas demandas em tempo real.</p>
+        <h1 className="text-2xl sm:text-3xl font-display font-bold">{pt("my_projects")}</h1>
+        <p className="text-foreground/50 mt-1 text-sm sm:text-base">
+          Acompanhe o progresso das suas {pt("jobs").toLowerCase()} em tempo real.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -110,7 +115,7 @@ export function ClientPortalStructure() {
               </div>
 
               <div className="pt-4 border-t border-border space-y-3">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-foreground/30">Jobs em andamento</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-foreground/30">Demandas em andamento</h4>
                 <div className="space-y-2">
                   {projectJobs.slice(0, 3).map((job) => (
                     <div key={job.id} className="flex items-center justify-between gap-3 text-sm">
@@ -130,7 +135,7 @@ export function ClientPortalStructure() {
                     </div>
                   ))}
                   {projectJobs.length > 3 && (
-                    <p className="text-[10px] text-center text-primary hover:underline cursor-pointer">Ver todos os {projectJobs.length} jobs</p>
+                    <p className="text-[10px] text-center text-primary hover:underline cursor-pointer">Ver todas as {projectJobs.length} demandas</p>
                   )}
                 </div>
               </div>
@@ -138,6 +143,8 @@ export function ClientPortalStructure() {
           );
         })}
       </div>
+
+      <PortalTour clientId={clientId} />
     </div>
   );
 }
