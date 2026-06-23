@@ -75,16 +75,18 @@ export function ClientPortalStructure() {
   if (!clientId) return null;
 
   return (
-    <div className="space-y-10 p-6 lg:p-10 max-w-7xl mx-auto">
+    <div className="space-y-8 sm:space-y-10 p-4 sm:p-6 lg:p-10 max-w-7xl mx-auto">
+      <AccountManagerCard clientId={clientId} />
+
       <ClientOnboardingPortalView clientId={clientId} />
 
       <LaunchGridProgress clientId={clientId} jobs={jobs} />
 
-
-
       <div>
-        <h1 className="text-3xl font-display font-bold">Meus Projetos</h1>
-        <p className="text-foreground/50 mt-1">Acompanhe o progresso das suas demandas em tempo real.</p>
+        <h1 className="text-2xl sm:text-3xl font-display font-bold">{pt("my_projects")}</h1>
+        <p className="text-foreground/50 mt-1 text-sm sm:text-base">
+          Acompanhe o progresso das suas {pt("jobs").toLowerCase()} em tempo real.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
