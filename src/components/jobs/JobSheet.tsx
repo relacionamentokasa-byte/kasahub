@@ -56,6 +56,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AttachmentViewer } from "@/components/AttachmentViewer";
+import { FileThumbnail } from "@/components/FileThumbnail";
 import {
   Command,
   CommandEmpty,
