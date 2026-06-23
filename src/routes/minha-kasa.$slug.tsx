@@ -329,8 +329,6 @@ function DocumentCard({ url, name, kind }: { url: string; name: string; kind: Fi
 
 /** Small thumbnail for document type (used in thumbnail strips / grids). */
 function FileThumb({ name, type }: { name: string; type?: string | null }) {
-  const kind = getFileKind(name, type);
-  const meta = FILE_META[kind];
   return (
     <FileThumbnail url="" fileName={name} fileType={type} aspectClass="h-full w-full aspect-auto" className="rounded-none border-0 ring-0" />
   );
