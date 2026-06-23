@@ -91,10 +91,36 @@ export const notify = async (input: {
   link?: string;
   [key: string]: any;
 }) => {
+  let description = input.description || "";
+
+  // Auto-prepend autor: "Fulano: <descrição>" para que todos os popups
+  // do sistema sempre informem quem realizou a ação.
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    const currentUserId = user?.id;
+    if (currentUserId && currentUserId !== input.userId) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, full_name")
+        .eq("id", currentUserId)
+        .maybeSingle();
+      const authorName =
+        profile?.display_name || profile?.full_name || user?.email || "Alguém";
+      // Evita duplicar se a descrição já cita o autor
+      if (!description.toLowerCase().includes(authorName.toLowerCase())) {
+        description = description
+          ? `${authorName}: ${description}`
+          : `${authorName} realizou uma ação`;
+      }
+    }
+  } catch {
+    // se falhar a busca do autor, segue sem prefixo
+  }
+
   return enviarNotificacao(
     input.userId,
     input.title,
-    input.description || "",
+    description,
     input.type || input.category || "geral",
     input.link
   );
