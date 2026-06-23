@@ -31,12 +31,22 @@ type Slide = {
     | "conditions"
     | "closing";
   title?: string;
-  scopeChunk?: { items: ScopeItem[]; page: number; total: number };
+  scopeSection?: ScopeSection;
+  scopePage?: { page: number; total: number };
+
 };
 
-type ScopeItem = { title: string; description?: string };
+type ScopeBlock =
+  | { type: "list"; ordered: boolean; items: string[] }
+  | { type: "paragraph"; text: string };
 
-const SCOPE_PER_SLIDE = 6;
+type ScopeSection = {
+  heading?: string;
+  level?: number; // 1,2,3
+  blocks: ScopeBlock[];
+};
+
+const ITEMS_PER_SLIDE = 8;
 
 function stripHtml(html: string): string {
   if (typeof document === "undefined") return html.replace(/<[^>]+>/g, "");
@@ -45,14 +55,18 @@ function stripHtml(html: string): string {
   return div.textContent || div.innerText || "";
 }
 
-function parseScope(raw: unknown): ScopeItem[] {
+function nodeText(node: Element): string {
+  return (node.textContent || "").replace(/\s+/g, " ").trim();
+}
+
+function parseScope(raw: unknown): ScopeSection[] {
   if (!raw) return [];
-  // Array input
+  // Array → single section as bullet list
   if (Array.isArray(raw)) {
-    return raw
+    const items = raw
       .map((v) => (typeof v === "string" ? v : v?.title || ""))
-      .filter(Boolean)
-      .map((t) => splitTitleDesc(t));
+      .filter(Boolean);
+    return items.length ? [{ blocks: [{ type: "list", ordered: false, items }] }] : [];
   }
   if (typeof raw !== "string") return [];
   const trimmed = raw.trim();
@@ -63,68 +77,122 @@ function parseScope(raw: unknown): ScopeItem[] {
     try {
       const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
-        return parsed
+        const items = parsed
           .map((v) => (typeof v === "string" ? v : v?.title || ""))
-          .filter(Boolean)
-          .map((t) => splitTitleDesc(t));
+          .filter(Boolean);
+        return items.length
+          ? [{ blocks: [{ type: "list", ordered: false, items }] }]
+          : [];
       }
     } catch {}
   }
 
-  // HTML — extract <li> first, fallback to <p>/lines
-  if (/<\/?[a-z][\s\S]*>/i.test(trimmed)) {
-    const liMatches = Array.from(trimmed.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi));
-    if (liMatches.length) {
-      return liMatches
-        .map((m) => stripHtml(m[1]).trim())
-        .filter(Boolean)
-        .map(splitTitleDesc);
-    }
-    const text = stripHtml(trimmed);
-    return text
-      .split(/\n+/)
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(splitTitleDesc);
+  const isHtml = /<\/?[a-z][\s\S]*>/i.test(trimmed);
+
+  if (isHtml && typeof document !== "undefined") {
+    const container = document.createElement("div");
+    container.innerHTML = trimmed;
+    const sections: ScopeSection[] = [];
+    let current: ScopeSection = { blocks: [] };
+    const push = () => {
+      if (current.heading || current.blocks.length) sections.push(current);
+    };
+    Array.from(container.children).forEach((el) => {
+      const tag = el.tagName.toLowerCase();
+      if (tag === "h1" || tag === "h2" || tag === "h3" || tag === "h4") {
+        push();
+        current = {
+          heading: nodeText(el),
+          level: Number(tag[1]),
+          blocks: [],
+        };
+      } else if (tag === "ul" || tag === "ol") {
+        const items = Array.from(el.querySelectorAll(":scope > li"))
+          .map(nodeText)
+          .filter(Boolean);
+        if (items.length) {
+          current.blocks.push({ type: "list", ordered: tag === "ol", items });
+        }
+      } else if (tag === "p" || tag === "div") {
+        const txt = nodeText(el);
+        if (txt) current.blocks.push({ type: "paragraph", text: txt });
+      } else {
+        const txt = nodeText(el);
+        if (txt) current.blocks.push({ type: "paragraph", text: txt });
+      }
+    });
+    push();
+    return sections.filter((s) => s.heading || s.blocks.length);
   }
 
-  // Plain text — split by newlines or bullets
-  return trimmed
+  // Plain text — one section, list by lines/bullets
+  const items = trimmed
     .split(/\n+|(?:^|\s)[•·\-–]\s+/)
     .map((s) => s.trim().replace(/^[•·\-–]\s*/, ""))
-    .filter(Boolean)
-    .map(splitTitleDesc);
+    .filter(Boolean);
+  if (!items.length) return [];
+  if (items.length === 1) return [{ blocks: [{ type: "paragraph", text: items[0] }] }];
+  return [{ blocks: [{ type: "list", ordered: false, items }] }];
 }
 
-function splitTitleDesc(s: string): ScopeItem {
-  // "Title: description" or "Title — description"
-  const m = s.match(/^([^:—–]{3,80})\s*[:—–]\s*(.+)$/);
-  if (m) return { title: m[1].trim(), description: m[2].trim() };
-  return { title: s };
-}
-
-function chunk<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
+function paginateSection(section: ScopeSection): ScopeSection[] {
+  // Count "rows": each paragraph = 1, each list item = 1
+  const rows: ScopeBlock[] = [];
+  for (const b of section.blocks) {
+    if (b.type === "paragraph") rows.push(b);
+    else {
+      // split lists into chunks of items
+      for (let i = 0; i < b.items.length; i += ITEMS_PER_SLIDE) {
+        rows.push({
+          type: "list",
+          ordered: b.ordered,
+          items: b.items.slice(i, i + ITEMS_PER_SLIDE),
+        });
+      }
+    }
+  }
+  // Group rows into slides: paragraphs count as 2 rows, list-block counts as items.length
+  const pages: ScopeBlock[][] = [];
+  let cur: ScopeBlock[] = [];
+  let curWeight = 0;
+  const weight = (b: ScopeBlock) =>
+    b.type === "paragraph" ? Math.max(2, Math.ceil(b.text.length / 120)) : b.items.length;
+  for (const r of rows) {
+    const w = weight(r);
+    if (curWeight + w > ITEMS_PER_SLIDE && cur.length) {
+      pages.push(cur);
+      cur = [];
+      curWeight = 0;
+    }
+    cur.push(r);
+    curWeight += w;
+  }
+  if (cur.length) pages.push(cur);
+  if (!pages.length) pages.push([]);
+  return pages.map((blocks) => ({
+    heading: section.heading,
+    level: section.level,
+    blocks,
+  }));
 }
 
 function buildSlides(p: Proposal | undefined, items: ProposalItem[]): Slide[] {
   if (!p) return [];
   const slides: Slide[] = [{ id: "cover", kind: "cover" }];
   if (p.intro && p.intro.trim()) slides.push({ id: "intro", kind: "intro", title: "Sobre" });
-  const scopeItems = parseScope((p as any).scope_text || p.scope);
-  if (scopeItems.length) {
-    const chunks = chunk(scopeItems, SCOPE_PER_SLIDE);
-    chunks.forEach((c, i) =>
+  const sections = parseScope((p as any).scope_text || p.scope);
+  sections.forEach((section, sIdx) => {
+    const pages = paginateSection(section);
+    pages.forEach((pageSection, pIdx) => {
       slides.push({
-        id: `scope-${i}`,
+        id: `scope-${sIdx}-${pIdx}`,
         kind: "scope",
-        title: "Escopo",
-        scopeChunk: { items: c, page: i + 1, total: chunks.length },
-      }),
-    );
-  }
+        title: section.heading || "Escopo",
+        scopeSection: pageSection,
+        scopePage: pages.length > 1 ? { page: pIdx + 1, total: pages.length } : undefined,
+      });
+    });
+  });
   if (items.length) slides.push({ id: "items", kind: "items", title: "Serviços" });
   slides.push({ id: "investment", kind: "investment", title: "Investimento" });
   slides.push({ id: "conditions", kind: "conditions", title: "Condições" });
@@ -420,60 +488,71 @@ function IntroSlide({ proposal }: { proposal: Proposal }) {
 }
 
 function ScopeSlide({ slide }: { slide: Slide }) {
-  const chunk = slide.scopeChunk;
-  if (!chunk) return null;
-  const { items, page, total } = chunk;
-  const startIndex = (page - 1) * SCOPE_PER_SLIDE;
-  const isWide = items.length > 3;
+  const section = slide.scopeSection;
+  if (!section) return null;
+  const heading = section.heading;
+  const page = slide.scopePage;
 
   return (
-    <div className="max-w-6xl w-full">
+    <div className="max-w-5xl w-full">
       <div className="flex items-end justify-between mb-10 gap-6">
-        <div>
-          <SectionLabel>O que vamos entregar</SectionLabel>
-          <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
-            Escopo do trabalho
-          </h2>
+        <div className="min-w-0">
+          <SectionLabel>Escopo do trabalho</SectionLabel>
+          {heading ? (
+            <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
+              {heading}
+            </h2>
+          ) : (
+            <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
+              O que vamos entregar
+            </h2>
+          )}
         </div>
-        {total > 1 && (
+        {page && (
           <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-mono-kasa shrink-0 pb-2">
-            Parte {page} / {total}
+            Parte {page.page} / {page.total}
           </span>
         )}
       </div>
 
-      <div className={cn("grid gap-4", isWide ? "md:grid-cols-2" : "grid-cols-1")}>
-        {items.map((it, i) => {
-          const n = startIndex + i + 1;
-          return (
-            <div
+      <div className="space-y-6">
+        {section.blocks.map((b, i) =>
+          b.type === "paragraph" ? (
+            <p
               key={i}
-              className="group relative bg-white/[0.04] border border-white/10 hover:border-[#FFBC45]/40 rounded-2xl p-6 backdrop-blur transition-colors"
+              className="text-lg md:text-xl text-white/85 leading-relaxed max-w-3xl"
             >
-              <div className="flex items-start gap-5">
-                <div className="shrink-0 size-11 rounded-xl bg-[#FFBC45]/10 border border-[#FFBC45]/30 flex items-center justify-center">
-                  <span className="font-mono-kasa text-sm font-bold text-[#FFBC45] tabular-nums">
-                    {String(n).padStart(2, "0")}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg md:text-xl font-semibold text-white leading-snug">
-                    {it.title}
-                  </p>
-                  {it.description && (
-                    <p className="text-sm md:text-base text-white/60 mt-2 leading-relaxed">
-                      {it.description}
-                    </p>
+              {b.text}
+            </p>
+          ) : (
+            <ul key={i} className="space-y-3">
+              {b.items.map((it, j) => (
+                <li
+                  key={j}
+                  className="flex items-start gap-4 text-lg md:text-xl text-white/90 leading-relaxed"
+                >
+                  <span
+                    className={cn(
+                      "shrink-0 mt-2 size-1.5 rounded-full bg-[#FFBC45]",
+                      b.ordered && "hidden",
+                    )}
+                  />
+                  {b.ordered && (
+                    <span className="shrink-0 font-mono-kasa text-sm text-[#FFBC45] tabular-nums mt-1.5 w-7">
+                      {String(j + 1).padStart(2, "0")}
+                    </span>
                   )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+                  <span>{it}</span>
+                </li>
+              ))}
+            </ul>
+          ),
+        )}
       </div>
     </div>
   );
 }
+
 
 function ItemsSlide({ items }: { items: ProposalItem[] }) {
   return (
