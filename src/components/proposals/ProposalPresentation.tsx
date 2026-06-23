@@ -31,7 +31,13 @@ type Slide = {
     | "conditions"
     | "closing";
   title?: string;
-  scopeChunk?: { items: ScopeItem[]; page: number; total: number };
+  scopeChunk?: {
+    section: ScopeSection;
+    page: number;
+    totalPages: number;
+    sectionIndex: number;
+    totalSections: number;
+  };
 };
 
 type ScopeItem = { title: string; description?: string; number?: string };
