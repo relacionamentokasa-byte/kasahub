@@ -113,6 +113,43 @@ export async function exportBoletimPdf(
     clientName?: string;
   },
 ) {
+  // Sanitiza todo o texto vindo do usuário ANTES de desenhar — Helvetica
+  // só fala WinAnsi e qualquer emoji vira "Ø=Üã".
+  product = {
+    ...product,
+    name: sanitize(product.name),
+    description: sanitize(product.description),
+    notes: sanitize(product.notes),
+    statusLabel: sanitize(product.statusLabel),
+    clientName: sanitize(product.clientName),
+    links: (product.links ?? []).map((l) => ({ ...l, label: sanitize(l.label), url: l.url })),
+    skus: (product.skus ?? []).map((s) => ({
+      ...s,
+      name: sanitize(s.name),
+      descricao: sanitize(s.descricao),
+      cor_acabamento: sanitize(s.cor_acabamento),
+      vol_ros: sanitize(s.vol_ros),
+      fornecedor: sanitize(s.fornecedor),
+      custo_compras: sanitize(s.custo_compras),
+    })),
+    boletim: {
+      ...product.boletim,
+      categoria: sanitize(product.boletim.categoria),
+      briefing_criacao: sanitize(product.boletim.briefing_criacao),
+      regulatorio_verso: sanitize(product.boletim.regulatorio_verso),
+      volumetria: sanitize(product.boletim.volumetria),
+      descricao_embalagem: sanitize(product.boletim.descricao_embalagem),
+      embalagem_cor: sanitize(product.boletim.embalagem_cor),
+      embalagem_fornecedor: sanitize(product.boletim.embalagem_fornecedor),
+      tampa_cor: sanitize(product.boletim.tampa_cor),
+      tampa_fornecedor: sanitize(product.boletim.tampa_fornecedor),
+      responsaveis: (product.boletim.responsaveis ?? []).map((r) => ({
+        nome: sanitize(r.nome),
+        papel: sanitize(r.papel),
+      })),
+    },
+  };
+
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -120,6 +157,7 @@ export async function exportBoletimPdf(
   const CW = W - 2 * M;
   const b = product.boletim;
   const today = new Date().toLocaleDateString("pt-BR");
+
 
   // ============================================================
   // CAPA — fundo escuro Kasa + acento âmbar
