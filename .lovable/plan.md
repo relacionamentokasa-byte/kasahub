@@ -1,34 +1,100 @@
-# Botão "Despesa da Kasa" no lançamento financeiro
+## Escopo
 
-## Objetivo
-Permitir registrar despesas internas da agência (que não são de cliente, fornecedor nem freelancer) de forma simples e explícita, com um botão dedicado no diálogo de lançamento.
+Implementar 8 melhorias de UX agrupadas em 3 frentes:
 
-## Como vai funcionar (visão do usuário)
+### 🏠 Kasa Hub (interno)
+1. **Timeline unificada em Jobs e Propostas** — painel lateral mostrando todo histórico (status, comentários, aprovações, checklist)
+2. **Dashboard "Meu Dia"** — nova seção no dashboard com cards personalizados ("Você tem X jobs, Y aprovações, Z propostas esperando você")
+3. **Modo Focado sugerido** — ao abrir um Job no JobSheet, sugerir entrar em modo foco (toast com botão)
+4. **Avatar do responsável + "bola da vez"** nos cards de Jobs do board
 
-No diálogo de Novo Lançamento, na seção de "Vincular", além dos botões atuais (Cliente / Fornecedor / Freelancer) vai aparecer um quarto botão:
+### 👤 Portal do Cliente
+5. **Tour de onboarding** — primeira visita mostra 3 passos (projetos / aprovações / lançamento)
+6. **Linguagem amigável** — Job→Demanda, Stage→Etapa, DME→Solicitação de Pagamento
+7. **"Quem cuida de você"** — card no topo com foto/nome/WhatsApp do gerente de conta
+8. **Auditoria mobile** — garantir que aprovação, comentário e PDF funcionem bem no celular
 
-**🏠 Despesa da Kasa**
+## Implementação
 
-Quando o usuário clica nele:
-- O lançamento é marcado como "interno" (despesa da própria agência)
-- Os campos de Cliente, Fornecedor e Freelancer ficam ocultos (não precisa vincular ninguém)
-- O tipo é forçado para "Despesa"
-- O usuário preenche normalmente: descrição, valor, vencimento, **categoria** (usando as categorias que já existem) e **natureza** (operacional / não operacional)
-- Aparece um selo visual "Despesa da Kasa" no topo do formulário pra ficar claro
+### 1. Timeline unificada (Jobs + Propostas)
+- Novo componente `src/components/timeline/UnifiedTimeline.tsx` que agrega:
+  - Jobs: `job_history` + `job_comments` + `job_checklist` + `job_approval_logs`
+  - Propostas: `proposal_events` + comentários + assinaturas
+- Aba "Atividade" no `JobSheet` e `ProposalDetailSheet` (já existe `ProposalTimeline` — estender)
+- Ícones por tipo de evento, autor, timestamp relativo, agrupamento por dia
 
-Nas listagens e relatórios, esses lançamentos aparecem com o mesmo selo "Kasa" pra serem identificáveis de relance.
+### 2. Dashboard "Meu Dia"
+- Nova seção no topo de `src/routes/_authenticated/dashboard.tsx` (acima do executivo)
+- 4 cards clicáveis filtrados por `auth.uid()`:
+  - Jobs em execução comigo
+  - Aprovações esperando minha resposta
+  - Propostas com minha ação pendente
+  - Tarefas do checklist onde sou o próximo
+- Cada card navega filtrado pra módulo correspondente
+
+### 3. Modo focado sugerido
+- No `JobSheet`, ao abrir um job com status `in_progress` atribuído ao usuário atual, mostrar toast "Quer entrar em modo foco para executar?"
+- Botão "Entrar em modo foco" no header do JobSheet (sempre visível)
+- Persistir preferência "não sugerir novamente" em `localStorage`
+
+### 4. Avatar + "bola da vez" em cards de Jobs
+- No `JobsBoard`, cada card mostra:
+  - Avatar do `assigned_to` no canto
+  - Pulso/destaque (ring animado) quando é a vez dele agir (próximo item de checklist incompleto)
+  - Tooltip "Bola da vez: Amanda"
+
+### 5. Tour de onboarding do portal
+- Componente `src/components/portal/PortalTour.tsx` com 3 passos via overlay
+- Trigger: primeira visita (flag em `localStorage` por client_id)
+- Botão "Pular tour" + "Próximo"
+- Destaca áreas com spotlight
+
+### 6. Linguagem amigável no portal
+- Criar `src/lib/portal-glossary.ts` com map { job: "Demanda", stage: "Etapa", dme: "Solicitação de Pagamento", ... }
+- Função `t(key)` aplicada em todos os componentes em `src/components/portal/` e `src/routes/_authenticated/portal.tsx`
+- Não muda nomes nas tabelas, só a apresentação
+
+### 7. "Quem cuida de você"
+- Card no topo do `ClientPortalStructure` com:
+  - Avatar + nome do `account_manager_id` (campo já existe em `clients`?) — verificar
+  - Se não existir, usar o usuário com role `account_manager` mais ativo no projeto
+  - Botão WhatsApp (link `wa.me/<phone>`)
+  - Botão "Enviar mensagem" (futuro)
+
+### 8. Auditoria mobile
+- Revisar `ApprovalSheet`, comentários no portal, e visualização de PDF
+- Aplicar `responsive-layout-patterns`: grid + min-w-0 + shrink-0
+- Botões de aprovar/recusar grandes e fixos no bottom em mobile
+- PDF viewer com `object-contain` e zoom touch
+
+## Arquivos novos
+- `src/components/timeline/UnifiedTimeline.tsx`
+- `src/components/dashboard/MyDaySection.tsx`
+- `src/components/portal/PortalTour.tsx`
+- `src/components/portal/AccountManagerCard.tsx`
+- `src/lib/portal-glossary.ts`
+- `src/lib/timeline-api.ts` (agrega eventos)
+
+## Arquivos editados
+- `src/components/jobs/JobSheet.tsx` — aba Atividade + sugestão de foco
+- `src/components/jobs/JobsBoard.tsx` — avatar + bola da vez
+- `src/components/proposals/ProposalDetailSheet.tsx` — usar UnifiedTimeline
+- `src/routes/_authenticated/dashboard.tsx` — MyDaySection
+- `src/components/portal/ClientPortalStructure.tsx` — tour + AccountManagerCard + glossário
+- `src/components/approvals/ApprovalSheet.tsx` — mobile-first
 
 ## Detalhes técnicos
+- Timeline: query única que faz `union all` em server function pra performance
+- "Bola da vez" derivado do próximo item de `job_checklist` não concluído
+- Tour usa portal + overlay com `position: fixed` e spotlight via box-shadow
+- WhatsApp link: `https://wa.me/${phone.replace(/\D/g, "")}`
+- Glossário: hook `usePortalLabel(key)` com fallback pro termo original
 
-1. **Banco** — adicionar coluna booleana `is_internal` (default false) na tabela `transactions`, com índice. Migration via supabase--migration.
-2. **TransactionFormDialog.tsx** — adicionar o 4º botão na linha de vínculos; quando ativo, esconder os 3 pickers de cliente/fornecedor/freelancer/partner e forçar `type = "expense"`. Incluir `is_internal` no schema Zod, no payload de create/update e no reset do form.
-3. **finance-api.ts** — incluir `is_internal` no select de `fetchTransactions` (já vem com `*`, ok) e nas stats se fizer sentido separar depois.
-4. **Listagem de transações** — badge "Kasa" quando `is_internal = true` (mudança visual pequena no componente da linha).
-5. **types.ts** — regenerado automaticamente após a migration.
+## Ordem de execução
+1. Glossário + AccountManagerCard + Tour (portal — mais autônomo)
+2. MyDaySection (dashboard)
+3. UnifiedTimeline (Jobs + Propostas)
+4. Avatar/bola da vez + modo foco sugerido (Jobs)
+5. Auditoria mobile (revisão visual + ajustes)
 
-Sem mexer em relatórios/DRE neste momento — fica pra um próximo passo se você quiser separar "Custos internos da Kasa" como linha própria no resumo financeiro.
-
-## Fora de escopo
-- Criar categorias novas (você disse que já tem).
-- Mexer em DRE / Resumo Financeiro.
-- Reintroduzir o campo "Investimento" (mantido removido, conforme decisão anterior).
+Cada frente é independente — posso executar em paralelo onde possível.
