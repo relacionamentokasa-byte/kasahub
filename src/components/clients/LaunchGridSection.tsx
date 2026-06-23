@@ -34,6 +34,8 @@ import {
   listGridProducts, createProduct, updateProduct, deleteProduct,
   uploadProductImage, listProductJobs,
   type LaunchGridProduct, type LaunchGridStatus, type LaunchGridSku,
+  type LaunchGridBoletim, type BoletimImagens,
+  type AspectoFisico, type Acondicionar,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
 
@@ -521,6 +523,68 @@ function StatusesDialog({
   );
 }
 
+/* ============= MULTI IMAGE UPLOAD ============= */
+function MultiImageUploader({
+  gridId, label, value, onChange,
+}: {
+  gridId: string;
+  label: string;
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setBusy(true);
+    try {
+      const urls: string[] = [];
+      for (const f of Array.from(files)) {
+        try {
+          urls.push(await uploadProductImage(gridId, f));
+        } catch (e: any) {
+          toast.error(`${f.name}: ${e.message}`);
+        }
+      }
+      if (urls.length) onChange([...(value || []), ...urls]);
+    } finally {
+      setBusy(false);
+      if (ref.current) ref.current.value = "";
+    }
+  };
+
+  return (
+    <div>
+      <Label className="text-xs">{label}</Label>
+      <div className="mt-1 flex flex-wrap gap-2">
+        {(value || []).map((url, i) => (
+          <div key={i} className="relative group size-20 rounded-md bg-muted overflow-hidden border border-border">
+            <StorageImage src={url} alt="" className="w-full h-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange(value.filter((_, j) => j !== i))}
+              className="absolute top-0.5 right-0.5 bg-background/80 rounded p-0.5 opacity-0 group-hover:opacity-100 transition"
+              aria-label="Remover"
+            >
+              <X className="size-3" />
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          disabled={busy}
+          className="size-20 rounded-md border border-dashed border-border flex flex-col items-center justify-center text-xs text-foreground/50 hover:text-foreground hover:border-foreground/40 transition"
+        >
+          {busy ? "..." : (<><Upload className="size-4 mb-0.5" />Adicionar</>)}
+        </button>
+        <input ref={ref} type="file" accept="image/*" multiple hidden onChange={(e) => handleFiles(e.target.files)} />
+      </div>
+    </div>
+  );
+}
+
 /* ============= PRODUCT SHEET ============= */
 function ProductSheet({
   gridId, clientId, statuses, product, defaultStatusId, onClose,
@@ -534,7 +598,7 @@ function ProductSheet({
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const fileRef = useRef<HTMLInputElement>(null);
+  const coverRef = useRef<HTMLInputElement>(null);
   const isEdit = !!product;
 
   const [name, setName] = useState(product?.name ?? "");
@@ -548,6 +612,19 @@ function ProductSheet({
   const [newSkuName, setNewSkuName] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // Boletim
+  const b0: LaunchGridBoletim = product?.boletim ?? {};
+  const [categoria, setCategoria] = useState(b0.categoria ?? "");
+  const [imgs, setImgs] = useState<BoletimImagens>(b0.imagens ?? {});
+  const [briefing, setBriefing] = useState(b0.briefing_criacao ?? "");
+  const [regulatorio, setRegulatorio] = useState(b0.regulatorio_verso ?? "");
+  const [benchmark, setBenchmark] = useState<string[]>(b0.benchmark ?? []);
+  const [volumetria, setVolumetria] = useState(b0.volumetria ?? "");
+  const [aspecto, setAspecto] = useState<AspectoFisico>(b0.aspecto_fisico ?? "");
+  const [acondicionar, setAcondicionar] = useState<Acondicionar>(b0.acondicionar ?? "");
+  const [descEmbalagem, setDescEmbalagem] = useState(b0.descricao_embalagem ?? "");
+  const [responsaveis, setResponsaveis] = useState<Array<{ nome: string; papel?: string }>>(b0.responsaveis ?? []);
+
   const { data: jobs = [] } = useQuery({
     queryKey: ["product-jobs", product?.id],
     queryFn: () => listProductJobs(product!.id),
@@ -556,10 +633,16 @@ function ProductSheet({
 
   const saveMut = useMutation({
     mutationFn: async () => {
+      const boletim: LaunchGridBoletim = {
+        categoria, imagens: imgs, briefing_criacao: briefing,
+        regulatorio_verso: regulatorio, benchmark,
+        volumetria, aspecto_fisico: aspecto, acondicionar,
+        descricao_embalagem: descEmbalagem, responsaveis,
+      };
       const payload = {
         name, description, status_id: statusId || null,
         due_date: dueDate || null, notes,
-        image_url: imageUrl, links, skus,
+        image_url: imageUrl, links, skus, boletim,
       };
       if (isEdit) return updateProduct(product!.id, payload);
       return createProduct({ grid_id: gridId, ...payload });
@@ -572,7 +655,7 @@ function ProductSheet({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const handleUpload = async (file: File) => {
+  const handleCoverUpload = async (file: File) => {
     setUploading(true);
     try {
       const url = await uploadProductImage(gridId, file);
@@ -595,170 +678,311 @@ function ProductSheet({
     });
   };
 
+  const updateSku = (i: number, patch: Partial<LaunchGridSku>) => {
+    const n = [...skus]; n[i] = { ...n[i], ...patch }; setSkus(n);
+  };
+
+  const ASPECTO_OPTIONS: { value: AspectoFisico; label: string }[] = [
+    { value: "gel", label: "Gel" }, { value: "fluido", label: "Fluido" },
+    { value: "creme", label: "Creme" }, { value: "locao", label: "Loção" },
+    { value: "solido", label: "Sólido" }, { value: "liquido", label: "Líquido" },
+    { value: "mousse", label: "Mousse" }, { value: "oleo", label: "Óleo" },
+    { value: "outros", label: "Outros" },
+  ];
+
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="sm:max-w-xl overflow-y-auto">
+      <SheetContent className="sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>{isEdit ? "Editar Produto" : "Novo Produto"}</SheetTitle>
+          <SheetTitle>{isEdit ? "Boletim de Lançamento" : "Novo Produto"}</SheetTitle>
+          <p className="text-xs text-foreground/50">Boletim de Lançamento de Produtos</p>
         </SheetHeader>
 
-        <div className="space-y-4 mt-4">
-          {/* Imagem */}
-          <div>
-            <Label className="text-xs">Imagem</Label>
-            <div className="mt-1 flex items-center gap-3">
-              <div className="size-24 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
-                {imageUrl ? (
-                  <StorageImage src={imageUrl} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <ImageIcon className="size-8 text-foreground/30" />
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/*"
-                  hidden
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); }}
-                />
-                <Button size="sm" variant="outline" onClick={() => fileRef.current?.click()} disabled={uploading}>
-                  <Upload className="size-3.5" /> {uploading ? "..." : "Enviar"}
-                </Button>
-                {imageUrl && (
-                  <Button size="sm" variant="ghost" onClick={() => setImageUrl(null)}>
-                    <X className="size-3.5" /> Remover
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
+        <div className="space-y-6 mt-6">
+          {/* ===== IDENTIFICAÇÃO ===== */}
+          <section className="space-y-4">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Identificação</h3>
 
-          <div>
-            <Label className="text-xs">Nome *</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
-          </div>
-
-          {/* SKUs da linha */}
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <div className="flex items-end gap-3">
-              <div className="flex-1">
-                <Label className="text-xs flex items-center gap-1.5">
-                  <Package className="size-3.5" /> Quantos SKUs serão lançados nesta linha?
-                </Label>
-                <p className="text-[11px] text-foreground/50 mt-0.5">
-                  Ex: Shampoo, Condicionador, Máscara, Leave-in.
-                </p>
-              </div>
-              <Input
-                type="number"
-                min={0}
-                max={50}
-                value={skus.length}
-                onChange={(e) => setSkuCount(Number(e.target.value))}
-                className="h-9 w-20 text-center"
-              />
-            </div>
-
-            <div className="space-y-1.5 mt-3">
-              {skus.map((s, i) => (
-                <div key={s.id} className="grid grid-cols-[2rem_1fr_auto] items-center gap-2">
-                  <span className="text-xs text-foreground/50 text-center">{i + 1}</span>
-                  <Input
-                    value={s.name}
-                    onChange={(e) => { const n = [...skus]; n[i] = { ...n[i], name: e.target.value }; setSkus(n); }}
-                    placeholder={`SKU ${i + 1}`}
-                    className="h-8"
-                  />
-                  <Button variant="ghost" size="icon" className="size-8" onClick={() => setSkus(skus.filter((_, j) => j !== i))}>
-                    <X className="size-3.5" />
-                  </Button>
+            <div className="flex gap-4">
+              <div>
+                <Label className="text-xs">Capa</Label>
+                <div className="mt-1 size-24 rounded-lg bg-muted overflow-hidden flex items-center justify-center">
+                  {imageUrl ? (
+                    <StorageImage src={imageUrl} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="size-8 text-foreground/30" />
+                  )}
                 </div>
-              ))}
-              <div className="flex gap-2 pt-1">
+                <div className="flex flex-col gap-1 mt-2">
+                  <input
+                    ref={coverRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
+                  />
+                  <Button size="sm" variant="outline" onClick={() => coverRef.current?.click()} disabled={uploading}>
+                    <Upload className="size-3.5" /> {uploading ? "..." : "Enviar"}
+                  </Button>
+                  {imageUrl && (
+                    <Button size="sm" variant="ghost" onClick={() => setImageUrl(null)}>
+                      <X className="size-3.5" /> Remover
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex-1 space-y-3">
+                <div>
+                  <Label className="text-xs">Nome do produto / linha *</Label>
+                  <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Data de lançamento</Label>
+                    <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="mt-1" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Categoria</Label>
+                    <Input value={categoria} onChange={(e) => setCategoria(e.target.value)} placeholder="Ex: Skincare" className="mt-1" />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Etapa</Label>
+                  <Select value={statusId} onValueChange={setStatusId}>
+                    <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {statuses.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          <span className="flex items-center gap-2">
+                            <span className="size-2 rounded-full" style={{ background: s.color }} />
+                            {s.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ===== IMAGENS DO PRODUTO ===== */}
+          <section className="space-y-4 border-t pt-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Imagens do produto</h3>
+            <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []}
+              onChange={(v) => setImgs({ ...imgs, tampa: v })} />
+            <MultiImageUploader gridId={gridId} label="Embalagem" value={imgs.embalagem ?? []}
+              onChange={(v) => setImgs({ ...imgs, embalagem: v })} />
+            <MultiImageUploader gridId={gridId} label="Rótulo" value={imgs.rotulo ?? []}
+              onChange={(v) => setImgs({ ...imgs, rotulo: v })} />
+            <MultiImageUploader gridId={gridId} label="Outros" value={imgs.outros ?? []}
+              onChange={(v) => setImgs({ ...imgs, outros: v })} />
+          </section>
+
+          {/* ===== BRIEFING DE CRIAÇÃO ===== */}
+          <section className="space-y-3 border-t pt-5">
+            <div>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Briefing de criação</h3>
+              <p className="text-[11px] text-foreground/50">Esse conteúdo vai para o designer.</p>
+            </div>
+            <div>
+              <Label className="text-xs">Briefing</Label>
+              <Textarea value={briefing} onChange={(e) => setBriefing(e.target.value)} rows={4} className="mt-1" placeholder="Direcionamentos, referências, restrições..." />
+            </div>
+            <div>
+              <Label className="text-xs">Regulatório verso</Label>
+              <Textarea value={regulatorio} onChange={(e) => setRegulatorio(e.target.value)} rows={3} className="mt-1" placeholder="Informações regulatórias do verso da embalagem" />
+            </div>
+            <MultiImageUploader gridId={gridId} label="Benchmark (fotos)" value={benchmark} onChange={setBenchmark} />
+          </section>
+
+          {/* ===== EMBALAGEM / CONTEÚDO / ASPECTO FÍSICO ===== */}
+          <section className="space-y-4 border-t pt-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">
+              Embalagem / Conteúdo / Aspecto físico
+            </h3>
+
+            <div className="rounded-lg border border-border bg-muted/20 p-3">
+              <div className="flex items-end gap-3">
+                <div className="flex-1">
+                  <Label className="text-xs flex items-center gap-1.5">
+                    <Package className="size-3.5" /> SKUs desta linha
+                  </Label>
+                  <p className="text-[11px] text-foreground/50 mt-0.5">
+                    Ex: Shampoo, Condicionador, Máscara, Leave-in.
+                  </p>
+                </div>
                 <Input
-                  value={newSkuName}
-                  onChange={(e) => setNewSkuName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && newSkuName.trim()) {
-                      e.preventDefault();
+                  type="number" min={0} max={50}
+                  value={skus.length}
+                  onChange={(e) => setSkuCount(Number(e.target.value))}
+                  className="h-9 w-20 text-center"
+                />
+              </div>
+
+              <div className="space-y-3 mt-3">
+                {skus.map((s, i) => (
+                  <div key={s.id} className="rounded-md border border-border bg-background/40 p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-foreground/50 w-6">#{i + 1}</span>
+                      <Input
+                        value={s.name}
+                        onChange={(e) => updateSku(i, { name: e.target.value })}
+                        placeholder={`Nome do SKU ${i + 1}`}
+                        className="h-8 flex-1"
+                      />
+                      <Button variant="ghost" size="icon" className="size-8" onClick={() => setSkus(skus.filter((_, j) => j !== i))}>
+                        <X className="size-3.5" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-[11px]">Descrição</Label>
+                        <Input value={s.descricao ?? ""} onChange={(e) => updateSku(i, { descricao: e.target.value })} className="h-8 mt-0.5" />
+                      </div>
+                      <div>
+                        <Label className="text-[11px]">Cor / Acabamento</Label>
+                        <Input value={s.cor_acabamento ?? ""} onChange={(e) => updateSku(i, { cor_acabamento: e.target.value })} className="h-8 mt-0.5" />
+                      </div>
+                      <div>
+                        <Label className="text-[11px]">Vol / Ros</Label>
+                        <Input value={s.vol_ros ?? ""} onChange={(e) => updateSku(i, { vol_ros: e.target.value })} className="h-8 mt-0.5" />
+                      </div>
+                      <div>
+                        <Label className="text-[11px]">Custo compras</Label>
+                        <Input value={s.custo_compras ?? ""} onChange={(e) => updateSku(i, { custo_compras: e.target.value })} className="h-8 mt-0.5" />
+                      </div>
+                      <div className="col-span-2">
+                        <Label className="text-[11px]">Fornecedor</Label>
+                        <Input value={s.fornecedor ?? ""} onChange={(e) => updateSku(i, { fornecedor: e.target.value })} className="h-8 mt-0.5" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="flex gap-2 pt-1">
+                  <Input
+                    value={newSkuName}
+                    onChange={(e) => setNewSkuName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newSkuName.trim()) {
+                        e.preventDefault();
+                        setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
+                        setNewSkuName("");
+                      }
+                    }}
+                    placeholder="Adicionar SKU pelo nome…"
+                    className="h-8 flex-1"
+                  />
+                  <Button
+                    variant="outline" size="sm"
+                    onClick={() => {
+                      if (!newSkuName.trim()) return;
                       setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
                       setNewSkuName("");
-                    }
-                  }}
-                  placeholder="Adicionar SKU pelo nome…"
-                  className="h-8 flex-1"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    if (!newSkuName.trim()) return;
-                    setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
-                    setNewSkuName("");
-                  }}
-                >
-                  <Plus className="size-3.5" /> Adicionar
-                </Button>
+                    }}
+                  >
+                    <Plus className="size-3.5" /> Adicionar
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label className="text-xs">Etapa</Label>
-              <Select value={statusId} onValueChange={setStatusId}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {statuses.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      <span className="flex items-center gap-2">
-                        <span className="size-2 rounded-full" style={{ background: s.color }} />
-                        {s.label}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs">Volumetria</Label>
+                <Input value={volumetria} onChange={(e) => setVolumetria(e.target.value)} placeholder="Ex: 250 ml" className="mt-1" />
+              </div>
+              <div>
+                <Label className="text-xs">Aspecto físico</Label>
+                <Select value={aspecto || undefined} onValueChange={(v) => setAspecto(v as AspectoFisico)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    {ASPECTO_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">Acondicionar</Label>
+                <Select value={acondicionar || undefined} onValueChange={(v) => setAcondicionar(v as Acondicionar)}>
+                  <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="selo">Selo</SelectItem>
+                    <SelectItem value="caixa">Caixa</SelectItem>
+                    <SelectItem value="ambos">Selo + Caixa</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
             <div>
-              <Label className="text-xs">Data</Label>
-              <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="mt-1" />
+              <Label className="text-xs">Descrição da embalagem</Label>
+              <Textarea value={descEmbalagem} onChange={(e) => setDescEmbalagem(e.target.value)} rows={3} className="mt-1" />
             </div>
-          </div>
+          </section>
 
-          <div>
-            <Label className="text-xs">Descrição</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="mt-1" />
-          </div>
-
-          <div>
-            <Label className="text-xs">Observações</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Histórico, decisões, referências..." className="mt-1" />
-          </div>
-
-          {/* Links */}
-          <div>
-            <Label className="text-xs">Links</Label>
-            <div className="space-y-2 mt-1">
-              {links.map((l, i) => (
+          {/* ===== RESPONSÁVEIS ===== */}
+          <section className="space-y-3 border-t pt-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Responsáveis</h3>
+            <div className="space-y-2">
+              {responsaveis.map((r, i) => (
                 <div key={i} className="flex gap-2">
-                  <Input value={l.label} onChange={(e) => { const n = [...links]; n[i].label = e.target.value; setLinks(n); }} placeholder="Nome" className="h-8 flex-1" />
-                  <Input value={l.url} onChange={(e) => { const n = [...links]; n[i].url = e.target.value; setLinks(n); }} placeholder="URL" className="h-8 flex-1" />
-                  <Button variant="ghost" size="icon" className="size-8" onClick={() => setLinks(links.filter((_, j) => j !== i))}>
+                  <Input
+                    value={r.nome}
+                    onChange={(e) => { const n = [...responsaveis]; n[i].nome = e.target.value; setResponsaveis(n); }}
+                    placeholder="Nome" className="h-8 flex-1"
+                  />
+                  <Input
+                    value={r.papel ?? ""}
+                    onChange={(e) => { const n = [...responsaveis]; n[i].papel = e.target.value; setResponsaveis(n); }}
+                    placeholder="Papel / área" className="h-8 flex-1"
+                  />
+                  <Button variant="ghost" size="icon" className="size-8" onClick={() => setResponsaveis(responsaveis.filter((_, j) => j !== i))}>
                     <X className="size-3.5" />
                   </Button>
                 </div>
               ))}
-              <Button variant="outline" size="sm" onClick={() => setLinks([...links, { label: "", url: "" }])}>
-                <LinkIcon className="size-3.5" /> Adicionar link
+              <Button variant="outline" size="sm" onClick={() => setResponsaveis([...responsaveis, { nome: "", papel: "" }])}>
+                <Plus className="size-3.5" /> Adicionar responsável
               </Button>
             </div>
-          </div>
+          </section>
+
+          {/* ===== EXTRAS ===== */}
+          <section className="space-y-3 border-t pt-5">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Notas e links</h3>
+            <div>
+              <Label className="text-xs">Descrição geral</Label>
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-xs">Observações</Label>
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Histórico, decisões, referências..." className="mt-1" />
+            </div>
+            <div>
+              <Label className="text-xs">Links</Label>
+              <div className="space-y-2 mt-1">
+                {links.map((l, i) => (
+                  <div key={i} className="flex gap-2">
+                    <Input value={l.label} onChange={(e) => { const n = [...links]; n[i].label = e.target.value; setLinks(n); }} placeholder="Nome" className="h-8 flex-1" />
+                    <Input value={l.url} onChange={(e) => { const n = [...links]; n[i].url = e.target.value; setLinks(n); }} placeholder="URL" className="h-8 flex-1" />
+                    <Button variant="ghost" size="icon" className="size-8" onClick={() => setLinks(links.filter((_, j) => j !== i))}>
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                <Button variant="outline" size="sm" onClick={() => setLinks([...links, { label: "", url: "" }])}>
+                  <LinkIcon className="size-3.5" /> Adicionar link
+                </Button>
+              </div>
+            </div>
+          </section>
 
           {/* Jobs vinculados */}
           {isEdit && (
-            <div className="pt-4 border-t">
+            <section className="border-t pt-5">
               <div className="flex items-center justify-between mb-2">
                 <Label className="text-xs flex items-center gap-1.5">
                   <Briefcase className="size-3.5" /> Jobs deste produto ({jobs.length})
@@ -781,11 +1005,11 @@ function ProductSheet({
                   </a>
                 ))}
               </div>
-            </div>
+            </section>
           )}
         </div>
 
-        <div className="flex justify-between mt-6 pt-4 border-t">
+        <div className="flex justify-between mt-6 pt-4 border-t sticky bottom-0 bg-background">
           {isEdit ? (
             <Button variant="ghost" className="text-destructive" onClick={() => {
               if (confirm("Remover este produto?")) {

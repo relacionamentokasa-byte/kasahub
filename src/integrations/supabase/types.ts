@@ -2079,6 +2079,7 @@ export type Database = {
       }
       launch_grid_products: {
         Row: {
+          boletim: Json
           created_at: string
           created_by: string | null
           description: string | null
@@ -2096,6 +2097,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          boletim?: Json
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -2113,6 +2115,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          boletim?: Json
           created_at?: string
           created_by?: string | null
           description?: string | null

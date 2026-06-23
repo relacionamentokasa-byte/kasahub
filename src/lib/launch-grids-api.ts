@@ -27,6 +27,37 @@ export type LaunchGridSku = {
   id: string;
   name: string;
   done?: boolean;
+  descricao?: string;
+  cor_acabamento?: string;
+  vol_ros?: string;
+  custo_compras?: string;
+  fornecedor?: string;
+};
+
+export type AspectoFisico =
+  | "gel" | "fluido" | "creme" | "locao" | "solido"
+  | "liquido" | "mousse" | "oleo" | "outros" | "";
+
+export type Acondicionar = "selo" | "caixa" | "ambos" | "";
+
+export type BoletimImagens = {
+  tampa?: string[];
+  embalagem?: string[];
+  rotulo?: string[];
+  outros?: string[];
+};
+
+export type LaunchGridBoletim = {
+  categoria?: string;
+  imagens?: BoletimImagens;
+  briefing_criacao?: string;
+  regulatorio_verso?: string;
+  benchmark?: string[];
+  volumetria?: string;
+  aspecto_fisico?: AspectoFisico;
+  acondicionar?: Acondicionar;
+  descricao_embalagem?: string;
+  responsaveis?: Array<{ nome: string; papel?: string }>;
 };
 
 export type LaunchGridProduct = {
@@ -41,6 +72,7 @@ export type LaunchGridProduct = {
   links: Array<{ label: string; url: string }>;
   skus: LaunchGridSku[];
   notes: string | null;
+  boletim: LaunchGridBoletim;
   order_index: number;
   created_at: string;
   updated_at: string;
@@ -133,6 +165,7 @@ export async function listGridProducts(gridId: string) {
     ...p,
     links: Array.isArray(p.links) ? p.links : [],
     skus: Array.isArray(p.skus) ? p.skus : [],
+    boletim: (p.boletim && typeof p.boletim === "object") ? p.boletim : {},
   })) as LaunchGridProduct[];
 }
 
@@ -188,6 +221,7 @@ export async function createProduct(input: {
   links?: Array<{ label: string; url: string }>;
   skus?: LaunchGridSku[];
   notes?: string | null;
+  boletim?: LaunchGridBoletim;
 }) {
   const { data: maxRow } = await supabase
     .from("launch_grid_products")
@@ -211,6 +245,7 @@ export async function createProduct(input: {
       links: (input.links ?? []) as any,
       skus: (input.skus ?? []) as any,
       notes: input.notes ?? null,
+      boletim: (input.boletim ?? {}) as any,
       order_index: nextIdx,
       created_by: user.user?.id ?? null,
     })
@@ -221,6 +256,7 @@ export async function createProduct(input: {
     ...(data as any),
     links: Array.isArray((data as any).links) ? (data as any).links : [],
     skus: Array.isArray((data as any).skus) ? (data as any).skus : [],
+    boletim: ((data as any).boletim && typeof (data as any).boletim === "object") ? (data as any).boletim : {},
   } as LaunchGridProduct;
 }
 
@@ -237,6 +273,7 @@ export async function updateProduct(id: string, patch: Partial<LaunchGridProduct
     ...(data as any),
     links: Array.isArray((data as any).links) ? (data as any).links : [],
     skus: Array.isArray((data as any).skus) ? (data as any).skus : [],
+    boletim: ((data as any).boletim && typeof (data as any).boletim === "object") ? (data as any).boletim : {},
   } as LaunchGridProduct;
 }
 
