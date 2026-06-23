@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { FileText, FileSpreadsheet, FileType, FileArchive, FileVideo, FileAudio, File as FileIcon, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type FileKind = "image" | "pdf" | "word" | "excel" | "powerpoint" | "video" | "audio" | "archive" | "other";
+export type FileKind = "image" | "pdf" | "word" | "excel" | "powerpoint" | "design" | "video" | "audio" | "archive" | "other";
 
 export function getFileKind(fileName: string, fileType?: string | null): FileKind {
   const n = fileName.toLowerCase();
@@ -12,6 +12,7 @@ export function getFileKind(fileName: string, fileType?: string | null): FileKin
   if (/\.(docx?|odt|rtf)$/i.test(n) || t.includes("word") || t.includes("officedocument.wordprocessing")) return "word";
   if (/\.(xlsx?|ods|csv)$/i.test(n) || t.includes("sheet") || t.includes("excel") || t === "text/csv") return "excel";
   if (/\.(pptx?|odp)$/i.test(n) || t.includes("presentation") || t.includes("powerpoint")) return "powerpoint";
+  if (/\.(psd|psb|ai|eps|fig|sketch|xd)$/i.test(n) || t.includes("photoshop") || t.includes("illustrator")) return "design";
   if (/\.(mp4|mov|webm|mkv|avi)$/i.test(n) || t.startsWith("video/")) return "video";
   if (/\.(mp3|wav|m4a|ogg|flac)$/i.test(n) || t.startsWith("audio/")) return "audio";
   if (/\.(zip|rar|7z|tar|gz)$/i.test(n)) return "archive";
@@ -24,6 +25,7 @@ const KIND_META: Record<FileKind, { label: string; bg: string; fg: string; ring:
   word:       { label: "DOC",  bg: "from-sky-500/15 to-sky-500/5",         fg: "text-sky-500",      ring: "ring-sky-500/30",      Icon: FileText },
   excel:      { label: "XLS",  bg: "from-emerald-500/15 to-emerald-500/5", fg: "text-emerald-500",  ring: "ring-emerald-500/30",  Icon: FileSpreadsheet },
   powerpoint: { label: "PPT",  bg: "from-orange-500/15 to-orange-500/5",   fg: "text-orange-500",   ring: "ring-orange-500/30",   Icon: FileText },
+  design:     { label: "PSD",  bg: "from-fuchsia-500/15 to-fuchsia-500/5", fg: "text-fuchsia-500",  ring: "ring-fuchsia-500/30",  Icon: FileType },
   video:      { label: "VID",  bg: "from-fuchsia-500/15 to-fuchsia-500/5", fg: "text-fuchsia-500",  ring: "ring-fuchsia-500/30",  Icon: FileVideo },
   audio:      { label: "AUD",  bg: "from-amber-500/15 to-amber-500/5",     fg: "text-amber-500",    ring: "ring-amber-500/30",    Icon: FileAudio },
   archive:    { label: "ZIP",  bg: "from-zinc-500/15 to-zinc-500/5",       fg: "text-zinc-500",     ring: "ring-zinc-500/30",     Icon: FileArchive },

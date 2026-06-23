@@ -257,7 +257,7 @@ function isVideo(att: Attachment) {
 }
 
 // ===== FILE TYPE SYSTEM =====
-type FileKind = "image" | "video" | "pdf" | "word" | "excel" | "ppt" | "zip" | "other";
+type FileKind = "image" | "video" | "pdf" | "word" | "excel" | "ppt" | "design" | "zip" | "other";
 
 function getFileKind(name: string, type?: string | null): FileKind {
   const n = (name || "").toLowerCase();
@@ -268,6 +268,7 @@ function getFileKind(name: string, type?: string | null): FileKind {
   if (/\.(docx?|rtf|odt)(\?|$)/i.test(n) || t.includes("word") || t.includes("officedocument.wordprocessing")) return "word";
   if (/\.(xlsx?|csv|ods)(\?|$)/i.test(n) || t.includes("excel") || t.includes("spreadsheet")) return "excel";
   if (/\.(pptx?|key|odp)(\?|$)/i.test(n) || t.includes("presentation") || t.includes("powerpoint")) return "ppt";
+  if (/\.(psd|psb|ai|eps|fig|sketch|xd)(\?|$)/i.test(n) || t.includes("photoshop") || t.includes("illustrator")) return "design";
   if (/\.(zip|rar|7z|tar|gz)(\?|$)/i.test(n)) return "zip";
   return "other";
 }
@@ -279,6 +280,7 @@ const FILE_META: Record<FileKind, { label: string; color: string; bg: string; ba
   word:  { label: "Word",  color: "#1D4ED8", bg: "#DBEAFE", badge: "W" },
   excel: { label: "Excel", color: "#047857", bg: "#D1FAE5", badge: "X" },
   ppt:   { label: "PowerPoint", color: "#C2410C", bg: "#FFEDD5", badge: "P" },
+  design:{ label: "Design", color: "#A21CAF", bg: "#FCE7F3", badge: "PSD" },
   zip:   { label: "Arquivo", color: "#475569", bg: "#F1F5F9", badge: "ZIP" },
   other: { label: "Arquivo", color: "#475569", bg: "#F1F5F9", badge: "DOC" },
 };
@@ -289,6 +291,33 @@ function fileNameFromUrl(url: string): string {
   } catch {
     return "arquivo";
   }
+}
+
+function approvalFileName(item: Pick<ApprovalItem, "title" | "content_url" | "thumbnail_url">): string {
+  const fromUrl = item.content_url ? fileNameFromUrl(item.content_url) : "arquivo";
+  if (fromUrl && fromUrl !== "arquivo") return fromUrl;
+  const fromThumb = item.thumbnail_url ? fileNameFromUrl(item.thumbnail_url) : "arquivo";
+  if (fromThumb && fromThumb !== "arquivo") return fromThumb;
+  return item.title || "arquivo";
+}
+
+function getApprovalItemFileKind(item: Pick<ApprovalItem, "title" | "content_type" | "content_url" | "thumbnail_url">): FileKind {
+  const target = [item.title, item.content_url || "", item.thumbnail_url || ""].join(" ");
+  const inferred = getFileKind(target);
+  if (inferred !== "other") return inferred;
+  if (item.content_type === "image") return "image";
+  if (item.content_type === "video") return "video";
+  if (item.content_type === "pdf") return "pdf";
+  return "other";
+}
+
+function isDocumentFileKind(kind: FileKind) {
+  return kind === "word" || kind === "excel" || kind === "ppt" || kind === "design" || kind === "zip" || kind === "other";
+}
+
+function isDocumentApprovalItem(item: ApprovalItem) {
+  if (!item.content_url || item.content_type === "text") return false;
+  return isDocumentFileKind(getApprovalItemFileKind(item));
 }
 
 /** Renders a PDF embed with toolbar overlay (open / download). */
