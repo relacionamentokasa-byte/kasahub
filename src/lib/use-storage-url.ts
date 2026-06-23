@@ -49,6 +49,14 @@ async function resolve(url: string): Promise<string | null> {
 }
 
 /**
+ * Versão imperativa (fora de React) — útil para exportação de PDF, etc.
+ */
+export async function resolveStorageUrl(url: string | null | undefined): Promise<string | null> {
+  if (!url) return null;
+  return resolve(url);
+}
+
+/**
  * Resolve uma URL pública do Supabase Storage para uma signed URL
  * (necessário quando o bucket está privado).
  * Retorna a URL resolvida ou null enquanto carrega.

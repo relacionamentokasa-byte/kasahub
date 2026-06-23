@@ -1,6 +1,22 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { LaunchGridProduct, LaunchGridBoletim } from "@/lib/launch-grids-api";
+import { resolveStorageUrl } from "@/lib/use-storage-url";
+
+/**
+ * Remove caracteres que a fonte padrão do jsPDF (Helvetica/WinAnsi) não
+ * suporta — emojis, símbolos exóticos, etc. — para evitar "mojibake"
+ * tipo "Ø=Üã" no PDF. Mantém acentos latinos.
+ */
+function sanitize(s?: string | null): string {
+  if (s == null) return "";
+  let out = String(s).normalize("NFC");
+  // remove emojis e pictographs
+  out = out.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{1F000}-\u{1F02F}\u{1F100}-\u{1F1FF}\u{FE0F}]/gu, "");
+  // remove qualquer caractere fora do range WinAnsi/Latin-1 estendido
+  out = out.replace(/[^\u0000-\u00FF]/g, "");
+  return out.replace(/\s+/g, " ").trim();
+}
 
 export const CATEGORIA_OPTIONS = [
   "Perfumaria",
@@ -48,6 +64,8 @@ const K = {
 };
 
 async function imageToDataURL(url: string): Promise<string | null> {
+  const signed = (await resolveStorageUrl(url)) ?? url;
+  url = signed;
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
@@ -95,6 +113,43 @@ export async function exportBoletimPdf(
     clientName?: string;
   },
 ) {
+  // Sanitiza todo o texto vindo do usuário ANTES de desenhar — Helvetica
+  // só fala WinAnsi e qualquer emoji vira "Ø=Üã".
+  product = {
+    ...product,
+    name: sanitize(product.name),
+    description: sanitize(product.description),
+    notes: sanitize(product.notes),
+    statusLabel: sanitize(product.statusLabel),
+    clientName: sanitize(product.clientName),
+    links: (product.links ?? []).map((l) => ({ ...l, label: sanitize(l.label), url: l.url })),
+    skus: (product.skus ?? []).map((s) => ({
+      ...s,
+      name: sanitize(s.name),
+      descricao: sanitize(s.descricao),
+      cor_acabamento: sanitize(s.cor_acabamento),
+      vol_ros: sanitize(s.vol_ros),
+      fornecedor: sanitize(s.fornecedor),
+      custo_compras: sanitize(s.custo_compras),
+    })),
+    boletim: {
+      ...product.boletim,
+      categoria: sanitize(product.boletim.categoria),
+      briefing_criacao: sanitize(product.boletim.briefing_criacao),
+      regulatorio_verso: sanitize(product.boletim.regulatorio_verso),
+      volumetria: sanitize(product.boletim.volumetria),
+      descricao_embalagem: sanitize(product.boletim.descricao_embalagem),
+      embalagem_cor: sanitize(product.boletim.embalagem_cor),
+      embalagem_fornecedor: sanitize(product.boletim.embalagem_fornecedor),
+      tampa_cor: sanitize(product.boletim.tampa_cor),
+      tampa_fornecedor: sanitize(product.boletim.tampa_fornecedor),
+      responsaveis: (product.boletim.responsaveis ?? []).map((r) => ({
+        nome: sanitize(r.nome),
+        papel: sanitize(r.papel),
+      })),
+    },
+  };
+
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -102,6 +157,7 @@ export async function exportBoletimPdf(
   const CW = W - 2 * M;
   const b = product.boletim;
   const today = new Date().toLocaleDateString("pt-BR");
+
 
   // ============================================================
   // CAPA — fundo escuro Kasa + acento âmbar
