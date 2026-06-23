@@ -294,6 +294,7 @@ function fileNameFromUrl(url: string): string {
 }
 
 function approvalFileName(item: Pick<ApprovalItem, "title" | "content_url" | "thumbnail_url">): string {
+  if (/\.[a-z0-9]{2,5}$/i.test(item.title || "")) return item.title;
   const fromUrl = item.content_url ? fileNameFromUrl(item.content_url) : "arquivo";
   if (fromUrl && fromUrl !== "arquivo") return fromUrl;
   const fromThumb = item.thumbnail_url ? fileNameFromUrl(item.thumbnail_url) : "arquivo";
