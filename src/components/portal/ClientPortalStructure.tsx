@@ -54,6 +54,10 @@ export function ClientPortalStructure() {
     <div className="space-y-10 p-6 lg:p-10 max-w-7xl mx-auto">
       <ClientOnboardingPortalView clientId={clientId} />
 
+      <LaunchGridProgress clientId={clientId} />
+
+
+
       <div>
         <h1 className="text-3xl font-display font-bold">Meus Projetos</h1>
         <p className="text-foreground/50 mt-1">Acompanhe o progresso das suas demandas em tempo real.</p>
