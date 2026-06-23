@@ -86,8 +86,45 @@ export function GlobalChatWidget() {
           // If the chat is open on this exact conversation, mark it read instead.
           if (open && selectedContactId === msg.sender_id) {
             markConversationRead(msg.sender_id);
-          } else {
-            queryClient.invalidateQueries({ queryKey: unreadQueryKey });
+            return;
+          }
+          queryClient.invalidateQueries({ queryKey: unreadQueryKey });
+
+          // Pop-up notification
+          const sender = profiles.find((p: any) => p.id === msg.sender_id);
+          const name = sender?.display_name || sender?.full_name || "Nova mensagem";
+          const preview = (msg.content || "").slice(0, 120);
+
+          toast.message(name, {
+            description: preview,
+            duration: 6000,
+            action: {
+              label: "Abrir",
+              onClick: () => {
+                setSelectedContactId(msg.sender_id);
+                setOpen(true);
+              },
+            },
+          });
+
+          // Sound (best-effort, ignored if blocked by browser)
+          try {
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const o = ctx.createOscillator();
+            const g = ctx.createGain();
+            o.connect(g); g.connect(ctx.destination);
+            o.frequency.value = 880;
+            g.gain.setValueAtTime(0.08, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.25);
+            o.start(); o.stop(ctx.currentTime + 0.25);
+          } catch { /* ignore */ }
+
+          // Native browser notification if granted and tab not focused
+          if (typeof document !== "undefined" && document.visibilityState !== "visible"
+              && typeof Notification !== "undefined" && Notification.permission === "granted") {
+            try {
+              new Notification(name, { body: preview, tag: `chat-${msg.sender_id}` });
+            } catch { /* ignore */ }
           }
         },
       )
@@ -96,7 +133,16 @@ export function GlobalChatWidget() {
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUserId, open, selectedContactId]);
+  }, [currentUserId, open, selectedContactId, profiles]);
+
+  // Ask for native notification permission once
+  useEffect(() => {
+    if (typeof Notification === "undefined") return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => { /* ignore */ });
+    }
+  }, []);
+
 
   const totalUnread = useMemo(
     () => Object.values(unread).reduce((a, b) => a + b, 0),
