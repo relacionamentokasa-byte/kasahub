@@ -168,7 +168,10 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
 
   const stageCounts = ordered.map((s) => ({
     ...s,
-    count: products.filter((p) => p.status_id === s.id).length,
+    count: products.filter((p) => {
+      const effectiveStatusId = p.status_id && stageMap.has(p.status_id) ? p.status_id : ordered[0]?.id;
+      return effectiveStatusId === s.id;
+    }).length,
   }));
   const doneCount = products.filter((p) => {
     const f = p.status_id ? stageMap.get(p.status_id) : null;
@@ -210,9 +213,10 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
       {/* Products gallery */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((p) => {
-          const st = p.status_id ? stageMap.get(p.status_id)?.stage : null;
+          const effectiveStatusId = p.status_id && stageMap.has(p.status_id) ? p.status_id : ordered[0]?.id ?? null;
+          const st = effectiveStatusId ? stageMap.get(effectiveStatusId)?.stage : null;
           const stColor = resolveStageColor(st?.color);
-          const pct = productProgress(p.status_id);
+          const pct = productProgress(effectiveStatusId);
           const productJobs = jobs.filter((j) => j.launch_product_id === p.id);
           return (
             <div key={p.id} className="bg-surface border border-border rounded-2xl overflow-hidden flex flex-col hover:border-primary/30 hover:shadow-md transition shadow-sm">
