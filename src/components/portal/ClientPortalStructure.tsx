@@ -186,73 +186,79 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
         </div>
       </div>
 
-      {/* Products */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Products gallery */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((p) => {
           const st = p.status_id ? stageMap.get(p.status_id)?.stage : null;
           const pct = productProgress(p.status_id);
           const productJobs = jobs.filter((j) => j.launch_product_id === p.id);
           return (
-            <div key={p.id} className="bg-surface border border-border rounded-2xl p-4 space-y-3 hover:border-primary/30 transition shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="size-14 rounded-lg bg-muted overflow-hidden shrink-0 flex items-center justify-center">
-                  {p.image_url ? (
-                    <StorageImage src={p.image_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <Rocket className="size-5 text-foreground/30" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold truncate">{p.name}</div>
-                  {st && (
-                    <div className="flex items-center gap-1.5 mt-1">
-                      <span className="size-2 rounded-full" style={{ background: st.color }} />
-                      <span className="text-xs text-foreground/60">{st.label}</span>
-                    </div>
-                  )}
-                  {p.due_date && (
-                    <div className="text-[10px] text-foreground/40 mt-0.5">
-                      Previsto: {format(new Date(p.due_date), "dd/MM/yyyy")}
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs font-bold text-foreground/60">{pct}%</div>
+            <div key={p.id} className="bg-surface border border-border rounded-2xl overflow-hidden flex flex-col hover:border-primary/30 hover:shadow-md transition shadow-sm">
+              <div className="aspect-square bg-white overflow-hidden flex items-center justify-center border-b border-border">
+                {p.image_url ? (
+                  <StorageImage src={p.image_url} alt={p.name} className="w-full h-full object-contain" />
+                ) : (
+                  <Rocket className="size-10 text-foreground/20" />
+                )}
               </div>
-              <Progress value={pct} className="h-1.5" />
+              <div className="p-3 space-y-2 flex-1 flex flex-col">
+                <div className="font-semibold text-sm leading-tight line-clamp-2">{p.name}</div>
+                <div className="flex items-center justify-between gap-2">
+                  {st ? (
+                    <span
+                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium"
+                      style={{ background: `${st.color}20`, color: st.color }}
+                    >
+                      <span className="size-1.5 rounded-full" style={{ background: st.color }} />
+                      {st.label}
+                    </span>
+                  ) : <span className="text-[10px] text-foreground/40">Sem etapa</span>}
+                  <span className="text-[10px] font-bold text-foreground/60">{pct}%</span>
+                </div>
+                <Progress value={pct} className="h-1" />
+                {p.due_date && (
+                  <div className="text-[10px] text-foreground/40 flex items-center gap-1">
+                    <Clock className="size-3" /> {format(new Date(p.due_date), "dd/MM/yyyy")}
+                  </div>
+                )}
 
-              {productJobs.length > 0 && (
-                <div className="pt-3 border-t border-border space-y-2">
-                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-foreground/40">
-                    Jobs ({productJobs.length})
-                  </h4>
-                  <div className="space-y-1.5">
-                    {productJobs.map((job) => {
+                {productJobs.length > 0 && (
+                  <div className="pt-2 mt-auto border-t border-border space-y-1">
+                    <h4 className="text-[9px] font-bold uppercase tracking-wider text-foreground/40">
+                      Jobs ({productJobs.length})
+                    </h4>
+                    {productJobs.slice(0, 4).map((job) => {
                       const jobStage = job.stage_id ? stageMap.get(job.stage_id)?.stage : null;
                       const isDone = jobStage?.is_done || job.status === "done" || !!job.done_at;
                       return (
-                        <div key={job.id} className="flex items-center justify-between gap-2 text-xs">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div key={job.id} className="flex items-center justify-between gap-1.5 text-[11px]">
+                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
                             {isDone ? (
-                              <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                              <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
                             ) : job.status === "in_progress" ? (
-                              <Clock className="size-3.5 text-amber-500 shrink-0" />
+                              <Clock className="size-3 text-amber-500 shrink-0" />
                             ) : (
-                              <Circle className="size-3.5 text-foreground/20 shrink-0" />
+                              <Circle className="size-3 text-foreground/20 shrink-0" />
                             )}
                             <span className="truncate">{job.title}</span>
                           </div>
                           {jobStage && (
-                            <div className="flex items-center gap-1 shrink-0">
-                              <span className="size-1.5 rounded-full" style={{ background: jobStage.color }} />
-                              <span className="text-[10px] text-foreground/50">{jobStage.label}</span>
-                            </div>
+                            <span
+                              className="text-[9px] px-1.5 py-0.5 rounded-full shrink-0"
+                              style={{ background: `${jobStage.color}20`, color: jobStage.color }}
+                            >
+                              {jobStage.label}
+                            </span>
                           )}
                         </div>
                       );
                     })}
+                    {productJobs.length > 4 && (
+                      <div className="text-[9px] text-foreground/40">+{productJobs.length - 4} jobs</div>
+                    )}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           );
         })}
