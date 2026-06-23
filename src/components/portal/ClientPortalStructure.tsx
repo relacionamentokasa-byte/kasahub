@@ -2,9 +2,11 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchProjects, fetchJobs, fetchChecklist, type JobStage } from "@/lib/ops-api";
+import { listProductsByClient, listStatusesByClient } from "@/lib/launch-grids-api";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Clock, FileText } from "lucide-react";
+import { CheckCircle2, Circle, Clock, FileText, Rocket } from "lucide-react";
 import { ClientOnboardingPortalView } from "@/components/onboarding/ClientOnboardingPanel";
+import { StorageImage } from "@/components/ui/storage-image";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
