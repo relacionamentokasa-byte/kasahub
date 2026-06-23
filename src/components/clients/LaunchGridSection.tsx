@@ -608,8 +608,6 @@ function ProductSheet({
   const [notes, setNotes] = useState(product?.notes ?? "");
   const [imageUrl, setImageUrl] = useState<string | null>(product?.image_url ?? null);
   const [links, setLinks] = useState<Array<{ label: string; url: string }>>(product?.links ?? []);
-  const [skus, setSkus] = useState<LaunchGridSku[]>(product?.skus ?? []);
-  const [newSkuName, setNewSkuName] = useState("");
   const [uploading, setUploading] = useState(false);
 
   // Boletim
@@ -642,7 +640,7 @@ function ProductSheet({
       const payload = {
         name, description, status_id: statusId || null,
         due_date: dueDate || null, notes,
-        image_url: imageUrl, links, skus, boletim,
+        image_url: imageUrl, links, skus: product?.skus ?? [], boletim,
       };
       if (isEdit) return updateProduct(product!.id, payload);
       return createProduct({ grid_id: gridId, ...payload });
@@ -667,20 +665,6 @@ function ProductSheet({
     }
   };
 
-  const setSkuCount = (value: number) => {
-    const count = Math.max(0, Math.min(50, Number.isFinite(value) ? value : 0));
-    setSkus((current) => {
-      if (count <= current.length) return current.slice(0, count);
-      return [
-        ...current,
-        ...Array.from({ length: count - current.length }, () => ({ id: crypto.randomUUID(), name: "" })),
-      ];
-    });
-  };
-
-  const updateSku = (i: number, patch: Partial<LaunchGridSku>) => {
-    const n = [...skus]; n[i] = { ...n[i], ...patch }; setSkus(n);
-  };
 
   const ASPECTO_OPTIONS: { value: AspectoFisico; label: string }[] = [
     { value: "gel", label: "Gel" }, { value: "fluido", label: "Fluido" },
@@ -803,90 +787,6 @@ function ProductSheet({
               Embalagem / Conteúdo / Aspecto físico
             </h3>
 
-            <div className="rounded-lg border border-border bg-muted/20 p-3">
-              <div className="flex items-end gap-3">
-                <div className="flex-1">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <Package className="size-3.5" /> SKUs desta linha
-                  </Label>
-                  <p className="text-[11px] text-foreground/50 mt-0.5">
-                    Ex: Shampoo, Condicionador, Máscara, Leave-in.
-                  </p>
-                </div>
-                <Input
-                  type="number" min={0} max={50}
-                  value={skus.length}
-                  onChange={(e) => setSkuCount(Number(e.target.value))}
-                  className="h-9 w-20 text-center"
-                />
-              </div>
-
-              <div className="space-y-3 mt-3">
-                {skus.map((s, i) => (
-                  <div key={s.id} className="rounded-md border border-border bg-background/40 p-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-foreground/50 w-6">#{i + 1}</span>
-                      <Input
-                        value={s.name}
-                        onChange={(e) => updateSku(i, { name: e.target.value })}
-                        placeholder={`Nome do SKU ${i + 1}`}
-                        className="h-8 flex-1"
-                      />
-                      <Button variant="ghost" size="icon" className="size-8" onClick={() => setSkus(skus.filter((_, j) => j !== i))}>
-                        <X className="size-3.5" />
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label className="text-[11px]">Descrição</Label>
-                        <Input value={s.descricao ?? ""} onChange={(e) => updateSku(i, { descricao: e.target.value })} className="h-8 mt-0.5" />
-                      </div>
-                      <div>
-                        <Label className="text-[11px]">Cor / Acabamento</Label>
-                        <Input value={s.cor_acabamento ?? ""} onChange={(e) => updateSku(i, { cor_acabamento: e.target.value })} className="h-8 mt-0.5" />
-                      </div>
-                      <div>
-                        <Label className="text-[11px]">Vol / Ros</Label>
-                        <Input value={s.vol_ros ?? ""} onChange={(e) => updateSku(i, { vol_ros: e.target.value })} className="h-8 mt-0.5" />
-                      </div>
-                      <div>
-                        <Label className="text-[11px]">Custo compras</Label>
-                        <Input value={s.custo_compras ?? ""} onChange={(e) => updateSku(i, { custo_compras: e.target.value })} className="h-8 mt-0.5" />
-                      </div>
-                      <div className="col-span-2">
-                        <Label className="text-[11px]">Fornecedor</Label>
-                        <Input value={s.fornecedor ?? ""} onChange={(e) => updateSku(i, { fornecedor: e.target.value })} className="h-8 mt-0.5" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex gap-2 pt-1">
-                  <Input
-                    value={newSkuName}
-                    onChange={(e) => setNewSkuName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && newSkuName.trim()) {
-                        e.preventDefault();
-                        setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
-                        setNewSkuName("");
-                      }
-                    }}
-                    placeholder="Adicionar SKU pelo nome…"
-                    className="h-8 flex-1"
-                  />
-                  <Button
-                    variant="outline" size="sm"
-                    onClick={() => {
-                      if (!newSkuName.trim()) return;
-                      setSkus([...skus, { id: crypto.randomUUID(), name: newSkuName.trim() }]);
-                      setNewSkuName("");
-                    }}
-                  >
-                    <Plus className="size-3.5" /> Adicionar
-                  </Button>
-                </div>
-              </div>
-            </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
