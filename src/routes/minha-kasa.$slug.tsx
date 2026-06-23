@@ -1164,7 +1164,7 @@ function timeAgoPtBR(iso: string): string {
 
 function approvalFormatLabel(item: ApprovalItem): string {
   const fileKind = getApprovalItemFileKind(item);
-  if (isDocumentFileKind(fileKind)) return FILE_META[fileKind].label;
+  if (item.content_url && isDocumentFileKind(fileKind)) return FILE_META[fileKind].label;
   // Explicit format wins
   if (item.format === "carousel") return "Carrossel";
   if (item.format === "story") return "Story";
@@ -1723,7 +1723,7 @@ function ApprovalFullscreenModal({
 
   const isStory = item.format === "story";
   const itemFileKind = getApprovalItemFileKind(item);
-  const isDocumentItem = isDocumentFileKind(itemFileKind);
+  const isDocumentItem = !!item.content_url && isDocumentFileKind(itemFileKind);
   const usesDocumentShell = isDocumentItem || item.content_type === "pdf";
 
   return (
