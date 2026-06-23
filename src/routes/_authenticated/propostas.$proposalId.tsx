@@ -89,6 +89,16 @@ function ProposalDetailPage() {
       <main className="p-6 lg:p-10 max-w-7xl mx-auto">
         <ProposalEditorContent proposalId={proposalId} />
       </main>
+
+      <ProposalPresentation
+        proposalId={proposalId}
+        open={presenting}
+        onClose={() => setPresenting(false)}
+      />
+    </div>
+  );
+}
+
     </div>
   );
 }
