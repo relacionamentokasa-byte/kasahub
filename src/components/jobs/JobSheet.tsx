@@ -1178,6 +1178,43 @@ export function JobSheet({
   );
 }
 
+const FOCUS_SUGGEST_KEY = (jobId: string) => `kasa:focus-suggested:${jobId}`;
+
+function FocusModeButton({ jobId }: { jobId: string }) {
+  const { focusMode, setFocusMode } = useFocusMode();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = sessionStorage.getItem(FOCUS_SUGGEST_KEY(jobId));
+    if (seen || focusMode) return;
+    sessionStorage.setItem(FOCUS_SUGGEST_KEY(jobId), "1");
+    const t = setTimeout(() => {
+      toast("Quer entrar em Modo Foco para executar este job?", {
+        description: "Esconde menus e barras para você focar no que importa.",
+        action: { label: "Entrar", onClick: () => setFocusMode(true) },
+        duration: 6000,
+      });
+    }, 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobId]);
+
+  return (
+    <button
+      onClick={() => setFocusMode(!focusMode)}
+      title={focusMode ? "Sair do Modo Foco" : "Entrar em Modo Foco"}
+      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition ${
+        focusMode
+          ? "bg-primary text-primary-foreground border-primary"
+          : "border-border text-foreground/60 hover:text-primary hover:border-primary/40"
+      }`}
+    >
+      <Focus className="size-3" />
+      {focusMode ? "Saindo do Foco" : "Modo Foco"}
+    </button>
+  );
+}
+
 function RejectedFeedback({ item }: { item: ApprovalItem }) {
   const { data: comments = [] } = useQuery({
     queryKey: ["approval-item-comments", item.id],
