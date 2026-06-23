@@ -1177,7 +1177,7 @@ export function JobSheet({
           clientId={job.client_id}
           jobId={job.id}
           projectId={(job as any).project_id ?? null}
-          defaultTitle={job.title}
+          defaultTitle={approvalDialog.name || job.title}
           defaultUrl={approvalDialog.url}
           defaultFileName={approvalDialog.name}
           attachments={attachments.map((a: any) => ({
