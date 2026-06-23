@@ -231,21 +231,30 @@ export async function exportBoletimPdf(
     doc.text("sem imagem de produto", W / 2, coverY + coverBoxH / 2, { align: "center" });
   }
 
-  // Título
-  const titleY = coverY + coverBoxH + 64;
+  // Título — auto-redimensiona para caber em até 2 linhas
+  const titleY = coverY + coverBoxH + 56;
   doc.setTextColor(...K.ink);
   doc.setFont(FONT_TITLE, "bold");
-  doc.setFontSize(28);
-  const titleLines = doc.splitTextToSize(product.name || "Produto", CW);
+  let titleSize = 26;
+  doc.setFontSize(titleSize);
+  let titleLines = doc.splitTextToSize(product.name || "Produto", CW - 20);
+  while (titleLines.length > 2 && titleSize > 14) {
+    titleSize -= 2;
+    doc.setFontSize(titleSize);
+    titleLines = doc.splitTextToSize(product.name || "Produto", CW - 20);
+  }
+  const titleLineH = titleSize * 1.15;
   doc.text(titleLines, W / 2, titleY, { align: "center" });
+  const titleBottomY = titleY + (titleLines.length - 1) * titleLineH;
 
-  // Categoria
+  // Categoria — abaixo do título, sem sobrepor
   if (b.categoria) {
     doc.setTextColor(...K.brand);
     doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(10.5);
-    doc.text(b.categoria.toUpperCase(), W / 2, titleY + 22, { align: "center", charSpace: 3 });
+    doc.text(b.categoria.toUpperCase(), W / 2, titleBottomY + 22, { align: "center", charSpace: 3 });
   }
+
 
   // Rodapé capa
   doc.setDrawColor(...K.brand);
