@@ -746,34 +746,48 @@ function FinancialPage() {
 
       {/* Quick chips */}
       <div className="flex flex-wrap items-center gap-2">
-        {[
-          { id: "none", label: "Tudo" },
-          { id: "today", label: "Hoje" },
-          { id: "week", label: "Próx. 7 dias" },
-          { id: "overdue", label: "Atrasados" },
-          { id: "paid_month", label: "Pagos do mês" },
-        ].map((c) => {
-          const active = quickChip === (c.id as any);
-          return (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setQuickChip(c.id as any)}
-              className={cn(
-                "text-xs px-3 h-8 rounded-full border transition-colors font-medium",
-                active
-                  ? c.id === "overdue"
-                    ? "bg-red-600 text-white border-red-600"
-                    : c.id === "paid_month"
-                    ? "bg-emerald-600 text-white border-emerald-600"
-                    : "bg-primary text-primary-foreground border-primary"
-                  : "border-border text-foreground/60 hover:text-foreground hover:border-foreground/30 bg-surface",
-              )}
-            >
-              {c.label}
-            </button>
-          );
-        })}
+        {(() => {
+          const missingLinksCount = transactions.filter((t: any) => {
+            if (t.status === "cancelled") return false;
+            if (t.type === "income") return !t.client_id;
+            if (t.type === "expense") return !t.client_id && !t.supplier_id && !t.freelancer_id && !t.partner_id;
+            return false;
+          }).length;
+          const chips = [
+            { id: "none", label: "Tudo" },
+            { id: "today", label: "Hoje" },
+            { id: "week", label: "Próx. 7 dias" },
+            { id: "overdue", label: "Atrasados" },
+            { id: "paid_month", label: "Pagos do mês" },
+            { id: "missing_links", label: `Sem vínculo${missingLinksCount ? ` (${missingLinksCount})` : ""}` },
+          ];
+          return chips.map((c) => {
+            const active = quickChip === (c.id as any);
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setQuickChip(c.id as any)}
+                className={cn(
+                  "text-xs px-3 h-8 rounded-full border transition-colors font-medium",
+                  active
+                    ? c.id === "overdue"
+                      ? "bg-red-600 text-white border-red-600"
+                      : c.id === "paid_month"
+                      ? "bg-emerald-600 text-white border-emerald-600"
+                      : c.id === "missing_links"
+                      ? "bg-amber-500 text-white border-amber-500"
+                      : "bg-primary text-primary-foreground border-primary"
+                    : c.id === "missing_links" && missingLinksCount > 0
+                    ? "border-amber-500/40 text-amber-600 hover:bg-amber-500/10 bg-amber-500/5"
+                    : "border-border text-foreground/60 hover:text-foreground hover:border-foreground/30 bg-surface",
+                )}
+              >
+                {c.label}
+              </button>
+            );
+          });
+        })()}
       </div>
 
       {/* Bulk action bar */}
