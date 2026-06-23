@@ -65,9 +65,9 @@ const FORMAT_OPTIONS: { value: ApprovalFormat; label: string; icon: typeof Squar
 
 function detectType(url: string, fileName?: string): ApprovalContentType {
   const target = (fileName || url || "").toLowerCase();
-  if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(target)) return "image";
-  if (/\.(mp4|mov|webm|m4v)$/i.test(target)) return "video";
-  if (/\.(pdf|docx?|xlsx?|csv|pptx?|psd|psb|ai|eps)$/i.test(target)) return "pdf";
+  if (/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(target)) return "image";
+  if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(target)) return "video";
+  if (/\.(pdf|docx?|xlsx?|csv|pptx?|psd|psb|ai|eps)(\?|$)/i.test(target)) return "pdf";
   return "image";
 }
 
