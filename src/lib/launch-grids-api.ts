@@ -294,43 +294,48 @@ export async function deleteProduct(id: string) {
   if (error) throw error;
 }
 
-// Statuses CRUD
-export async function createStatus(input: { grid_id: string; label: string; color?: string }) {
+// Statuses CRUD — operam sobre as etapas globais de Jobs (job_stages).
+export async function createStatus(input: { grid_id?: string; label: string; color?: string }) {
   const { data: maxRow } = await supabase
-    .from("launch_grid_statuses")
+    .from("job_stages")
     .select("order_index")
-    .eq("grid_id", input.grid_id)
     .order("order_index", { ascending: false })
     .limit(1)
     .maybeSingle();
-  const nextIdx = (maxRow?.order_index ?? -1) + 1;
+  const nextIdx = ((maxRow as any)?.order_index ?? -1) + 1;
   const { data, error } = await supabase
-    .from("launch_grid_statuses")
+    .from("job_stages")
     .insert({
-      grid_id: input.grid_id,
-      label: input.label,
+      name: input.label,
       color: input.color || "#94a3b8",
       order_index: nextIdx,
-    })
+    } as any)
     .select("*")
     .single();
   if (error) throw error;
-  return data as LaunchGridStatus;
+  const s: any = data;
+  return { id: s.id, grid_id: null, label: s.name, color: s.color, order_index: s.order_index, is_done: !!s.is_done } as LaunchGridStatus;
 }
 
 export async function updateStatus(id: string, patch: Partial<LaunchGridStatus>) {
+  const payload: any = {};
+  if (patch.label !== undefined) payload.name = patch.label;
+  if (patch.color !== undefined) payload.color = patch.color;
+  if (patch.order_index !== undefined) payload.order_index = patch.order_index;
+  if (patch.is_done !== undefined) payload.is_done = patch.is_done;
   const { data, error } = await supabase
-    .from("launch_grid_statuses")
-    .update(patch as any)
+    .from("job_stages")
+    .update(payload)
     .eq("id", id)
     .select("*")
     .single();
   if (error) throw error;
-  return data as LaunchGridStatus;
+  const s: any = data;
+  return { id: s.id, grid_id: null, label: s.name, color: s.color, order_index: s.order_index, is_done: !!s.is_done } as LaunchGridStatus;
 }
 
 export async function deleteStatus(id: string) {
-  const { error } = await supabase.from("launch_grid_statuses").delete().eq("id", id);
+  const { error } = await supabase.from("job_stages").delete().eq("id", id);
   if (error) throw error;
 }
 
