@@ -64,6 +64,8 @@ const K = {
 };
 
 async function imageToDataURL(url: string): Promise<string | null> {
+  const signed = (await resolveStorageUrl(url)) ?? url;
+  url = signed;
   try {
     const res = await fetch(url);
     if (!res.ok) return null;
