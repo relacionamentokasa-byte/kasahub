@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useTheme } from "@/lib/theme";
 import { NotificationCenter } from "./notifications/NotificationCenter";
+import { PrivacyToggleButton } from "@/contexts/PrivacyContext";
 import { InstallPWAButton } from "./pwa/InstallPWAButton";
 import { ConnectionIndicator } from "./pwa/ConnectionIndicator";
 import { StorageImage } from "@/components/ui/storage-image";
@@ -97,6 +98,8 @@ export function AppTopbar() {
         >
           {theme === "dark" ? <Sun className="size-5" /> : <Moon className="size-5" />}
         </button>
+
+        <PrivacyToggleButton />
 
         <NotificationCenter />
 
