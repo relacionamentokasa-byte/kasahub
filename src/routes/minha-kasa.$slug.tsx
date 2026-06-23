@@ -651,7 +651,7 @@ function MinhaKasaPage() {
               </div>
             )
           ) : tab === "launches" ? (
-            <LaunchesSection grids={launchGrids} />
+            <LaunchesSection grids={launchGrids} jobStages={stages} />
           ) : tab === "approvals" ? (
             <ApprovalsInstagramSection
               slug={slug}
