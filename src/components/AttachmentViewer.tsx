@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,7 +5,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Download, ExternalLink, X, FileText, Loader2 } from "lucide-react";
+import { Download, ExternalLink, X } from "lucide-react";
+import { FileThumbnail, getFileKind } from "@/components/FileThumbnail";
 
 interface AttachmentViewerProps {
   url: string | null;
@@ -18,8 +18,17 @@ interface AttachmentViewerProps {
 export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentViewerProps) {
   if (!url) return null;
 
-  const isImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(fileName);
-  const isPDF = /\.pdf$/i.test(fileName);
+  const kind = getFileKind(fileName);
+  const isImage = kind === "image";
+  const isPDF = kind === "pdf";
+  const isOffice = kind === "word" || kind === "excel" || kind === "powerpoint";
+  const isVideo = kind === "video";
+  const isAudio = kind === "audio";
+
+  // Office Online viewer requires the file URL to be publicly reachable
+  const officeViewerUrl = isOffice
+    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`
+    : null;
 
   const handleDownload = () => {
     const link = document.createElement('a');
@@ -33,7 +42,7 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-4xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden bg-black/95 border-white/10">
+      <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden bg-black/95 border-white/10">
         <DialogHeader className="p-4 border-b border-white/10 flex flex-row items-center justify-between space-y-0 bg-black">
           <DialogTitle className="text-white text-sm font-medium truncate flex-1 pr-4">
             {fileName}
@@ -83,10 +92,20 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
               className="w-full h-full rounded-sm bg-white"
               title={fileName}
             />
+          ) : isOffice && officeViewerUrl ? (
+            <iframe
+              src={officeViewerUrl}
+              className="w-full h-full rounded-sm bg-white"
+              title={fileName}
+            />
+          ) : isVideo ? (
+            <video src={url} controls className="max-w-full max-h-full" />
+          ) : isAudio ? (
+            <audio src={url} controls className="w-full max-w-md" />
           ) : (
-            <div className="text-center space-y-4">
-              <div className="size-20 rounded-2xl bg-white/5 flex items-center justify-center mx-auto">
-                <FileText className="size-10 text-white/20" />
+            <div className="text-center space-y-4 max-w-sm">
+              <div className="w-40 mx-auto">
+                <FileThumbnail url={url} fileName={fileName} />
               </div>
               <p className="text-white/60 text-sm">
                 Visualização não disponível para este tipo de arquivo.

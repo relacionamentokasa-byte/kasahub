@@ -56,6 +56,7 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { AttachmentViewer } from "@/components/AttachmentViewer";
+import { FileThumbnail } from "@/components/FileThumbnail";
 import {
   Command,
   CommandEmpty,
@@ -880,33 +881,50 @@ export function JobSheet({
                         <Label className="text-xs font-bold uppercase tracking-wider">Anexos do Job</Label>
                       </div>
                       
-                      <div className="grid grid-cols-1 gap-2">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {attachments.map((file) => (
-                          <div key={file.id} className="flex items-center justify-between p-2 bg-background border border-border rounded-lg group">
-                            <div className="flex items-center gap-3 overflow-hidden">
-                              <FileText className="size-4 text-foreground/40 shrink-0" />
-                              <span className="text-xs font-medium truncate text-foreground/80">{file.file_name}</span>
-                            </div>
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div
+                            key={file.id}
+                            className="group relative bg-background border border-border rounded-xl overflow-hidden hover:border-primary/40 hover:shadow-sm transition-all"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setViewerConfig({ url: file.file_url, name: file.file_name })}
+                              className="block w-full text-left"
+                              title="Visualizar"
+                            >
+                              <FileThumbnail
+                                url={file.file_url}
+                                fileName={file.file_name}
+                                fileType={file.file_type}
+                                aspectClass="aspect-[4/3]"
+                                className="rounded-none ring-0 border-b border-border"
+                              />
+                              <div className="p-2">
+                                <p className="text-xs font-medium truncate text-foreground/80">{file.file_name}</p>
+                              </div>
+                            </button>
+
+                            <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                               {job.client_id && (
                                 <Button
-                                  variant="ghost"
+                                  variant="secondary"
                                   size="icon"
-                                  className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                  className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground shadow-sm"
                                   title="Enviar para aprovação do cliente"
-                                  onClick={() => setApprovalDialog({ url: file.file_url, name: file.file_name })}
+                                  onClick={(e) => { e.stopPropagation(); setApprovalDialog({ url: file.file_url, name: file.file_name }); }}
                                 >
                                   <Send className="size-3.5" />
                                 </Button>
                               )}
                               <Button
-                                variant="ghost"
+                                variant="secondary"
                                 size="icon"
-                                className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
+                                className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground shadow-sm"
                                 title="Baixar com nome original"
-                                onClick={async () => {
+                                onClick={async (e) => {
+                                  e.stopPropagation();
                                   try {
-                                    // Extrai o path do storage a partir da file_url pública
                                     const marker = '/job-attachments/';
                                     const idx = file.file_url.indexOf(marker);
                                     const path = idx >= 0 ? file.file_url.slice(idx + marker.length) : null;
@@ -931,10 +949,11 @@ export function JobSheet({
                                 <ExternalLink className="size-3.5" />
                               </Button>
                               <Button
-                                variant="ghost"
+                                variant="secondary"
                                 size="icon"
-                                className="size-7 h-7 w-7 text-foreground/40 hover:text-destructive"
-                                onClick={async () => {
+                                className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground shadow-sm"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
                                   if (confirm("Deseja remover este anexo?")) {
                                     const { error } = await supabase.from('job_attachments').delete().eq('id', file.id);
                                     if (!error) {
