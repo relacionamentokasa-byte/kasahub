@@ -1,9 +1,11 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { ProposalEditorContent } from "@/components/proposals/ProposalEditorContent";
-import { ArrowLeft, Maximize2, Minimize2 } from "lucide-react";
-import { useEffect } from "react";
+import { ProposalPresentation } from "@/components/proposals/ProposalPresentation";
+import { ArrowLeft, Maximize2, Minimize2, Presentation } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useFocusMode } from "@/contexts/FocusModeContext";
+
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
   head: () => ({ meta: [{ title: "Proposta — KASA HUB" }] }),
@@ -13,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({
 function ProposalDetailPage() {
   const { proposalId } = useParams({ from: "/_authenticated/propostas/$proposalId" });
   const { focusMode, toggleFocusMode, setFocusMode } = useFocusMode();
+  const [presenting, setPresenting] = useState(false);
+
 
   // Atalho: F alterna foco. Esc sai do foco.
   useEffect(() => {
@@ -52,25 +56,46 @@ function ProposalDetailPage() {
             </div>
           </div>
 
-          <Button
-            variant={focusMode ? "default" : "outline"}
-            size="sm"
-            onClick={toggleFocusMode}
-            className="gap-2 shrink-0"
-            title={focusMode ? "Sair do modo foco (Esc)" : "Entrar em modo foco (F)"}
-          >
-            {focusMode ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-            <span className="hidden sm:inline">{focusMode ? "Sair do foco" : "Modo foco"}</span>
-            <kbd className="hidden md:inline text-[10px] font-mono-kasa border border-current/30 rounded px-1 py-0.5 opacity-70">
-              F
-            </kbd>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPresenting(true)}
+              className="gap-2"
+              title="Apresentar proposta ao cliente"
+            >
+              <Presentation className="size-4" />
+              <span className="hidden sm:inline">Apresentar</span>
+            </Button>
+
+            <Button
+              variant={focusMode ? "default" : "outline"}
+              size="sm"
+              onClick={toggleFocusMode}
+              className="gap-2"
+              title={focusMode ? "Sair do modo foco (Esc)" : "Entrar em modo foco (F)"}
+            >
+              {focusMode ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+              <span className="hidden sm:inline">{focusMode ? "Sair do foco" : "Modo foco"}</span>
+              <kbd className="hidden md:inline text-[10px] font-mono-kasa border border-current/30 rounded px-1 py-0.5 opacity-70">
+                F
+              </kbd>
+            </Button>
+          </div>
+
         </div>
       </header>
 
       <main className="p-6 lg:p-10 max-w-7xl mx-auto">
         <ProposalEditorContent proposalId={proposalId} />
       </main>
+
+      <ProposalPresentation
+        proposalId={proposalId}
+        open={presenting}
+        onClose={() => setPresenting(false)}
+      />
     </div>
   );
 }
+
