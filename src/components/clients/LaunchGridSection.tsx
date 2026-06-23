@@ -602,12 +602,9 @@ function ProductSheet({
   const isEdit = !!product;
 
   const [name, setName] = useState(product?.name ?? "");
-  const [description, setDescription] = useState(product?.description ?? "");
   const [statusId, setStatusId] = useState<string>(product?.status_id ?? defaultStatusId ?? statuses[0]?.id ?? "");
   const [dueDate, setDueDate] = useState(product?.due_date ?? "");
-  const [notes, setNotes] = useState(product?.notes ?? "");
   const [imageUrl, setImageUrl] = useState<string | null>(product?.image_url ?? null);
-  const [links, setLinks] = useState<Array<{ label: string; url: string }>>(product?.links ?? []);
   const [uploading, setUploading] = useState(false);
 
   // Boletim
