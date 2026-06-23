@@ -31,7 +31,9 @@ type Slide = {
     | "conditions"
     | "closing";
   title?: string;
-  scopeChunk?: { items: ScopeItem[]; page: number; total: number };
+  scopeSection?: ScopeSection;
+  scopePage?: { page: number; total: number };
+
 };
 
 type ScopeBlock =
