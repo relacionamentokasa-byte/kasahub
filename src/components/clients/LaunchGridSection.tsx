@@ -682,7 +682,7 @@ function ProductSheet({
         <div className="space-y-6 mt-6">
           {/* ===== IDENTIFICAÇÃO ===== */}
           <section className="space-y-4">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Identificação</h3>
+            <h3 className="text-sm font-semibold text-foreground/80 break-words">Identificação</h3>
 
             <div className="flex gap-4">
               <div>
@@ -750,7 +750,7 @@ function ProductSheet({
 
           {/* ===== IMAGENS DO PRODUTO ===== */}
           <section className="space-y-4 border-t pt-5">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Imagens do produto</h3>
+            <h3 className="text-sm font-semibold text-foreground/80 break-words">Imagens do produto</h3>
             <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []}
               onChange={(v) => setImgs({ ...imgs, tampa: v })} />
             <MultiImageUploader gridId={gridId} label="Embalagem" value={imgs.embalagem ?? []}
@@ -764,7 +764,7 @@ function ProductSheet({
           {/* ===== BRIEFING DE CRIAÇÃO ===== */}
           <section className="space-y-3 border-t pt-5">
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Briefing de criação</h3>
+              <h3 className="text-sm font-semibold text-foreground/80 break-words">Briefing de criação</h3>
               <p className="text-[11px] text-foreground/50">Esse conteúdo vai para o designer.</p>
             </div>
             <div>
@@ -780,7 +780,7 @@ function ProductSheet({
 
           {/* ===== EMBALAGEM / CONTEÚDO / ASPECTO FÍSICO ===== */}
           <section className="space-y-4 border-t pt-5">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">
+            <h3 className="text-sm font-semibold text-foreground/80 break-words">
               Embalagem / Conteúdo / Aspecto físico
             </h3>
 
@@ -822,7 +822,7 @@ function ProductSheet({
 
           {/* ===== RESPONSÁVEIS ===== */}
           <section className="space-y-3 border-t pt-5">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Responsáveis</h3>
+            <h3 className="text-sm font-semibold text-foreground/80 break-words">Responsáveis</h3>
             <div className="space-y-2">
               {responsaveis.map((r, i) => (
                 <div key={i} className="flex gap-2">
