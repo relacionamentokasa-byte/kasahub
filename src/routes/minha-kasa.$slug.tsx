@@ -313,7 +313,7 @@ function getApprovalItemFileKind(item: Pick<ApprovalItem, "title" | "content_typ
 }
 
 function isDocumentFileKind(kind: FileKind) {
-  return kind === "word" || kind === "excel" || kind === "ppt" || kind === "design" || kind === "zip" || kind === "other";
+  return kind === "pdf" || kind === "word" || kind === "excel" || kind === "ppt" || kind === "design" || kind === "zip" || kind === "other";
 }
 
 function isDocumentApprovalItem(item: ApprovalItem) {
@@ -1611,6 +1611,10 @@ function ApprovalDocumentViewer({ item }: { item: ApprovalItem }) {
   const officeViewerUrl = canUseOfficeViewer
     ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`
     : null;
+
+  if (kind === "pdf") {
+    return <PdfDocumentViewer url={url} fileName={name} className="h-full min-h-[70vh]" />;
+  }
 
   if (officeViewerUrl) {
     return (
