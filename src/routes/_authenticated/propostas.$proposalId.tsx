@@ -99,6 +99,3 @@ function ProposalDetailPage() {
   );
 }
 
-    </div>
-  );
-}
