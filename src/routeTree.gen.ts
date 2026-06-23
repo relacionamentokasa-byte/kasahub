@@ -60,6 +60,7 @@ import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/publ
 import { Route as ApiPublicLeadsInboundRouteImport } from './routes/api/public/leads/inbound'
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
+import { Route as ApiPublicDmeBatchTokenRouteImport } from './routes/api/public/dme-batch.$token'
 import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
 import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.pdf'
@@ -335,6 +336,11 @@ const ApiPublicDmeTokenRoute = ApiPublicDmeTokenRouteImport.update({
   path: '/api/public/dme/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicDmeBatchTokenRoute = ApiPublicDmeBatchTokenRouteImport.update({
+  id: '/api/public/dme-batch/$token',
+  path: '/api/public/dme-batch/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
   id: '/api/public/approve/$token',
   path: '/api/public/approve/$token',
@@ -407,6 +413,7 @@ export interface FileRoutesByFullPath {
   '/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
+  '/api/public/dme-batch/$token': typeof ApiPublicDmeBatchTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
@@ -464,6 +471,7 @@ export interface FileRoutesByTo {
   '/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
+  '/api/public/dme-batch/$token': typeof ApiPublicDmeBatchTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
@@ -523,6 +531,7 @@ export interface FileRoutesById {
   '/_authenticated/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/_authenticated/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
   '/api/public/approve/$token': typeof ApiPublicApproveTokenRoute
+  '/api/public/dme-batch/$token': typeof ApiPublicDmeBatchTokenRoute
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
@@ -582,6 +591,7 @@ export interface FileRouteTypes {
     | '/construtor-relatorios/$reportId/pdf'
     | '/onboarding/$onboardingId/apresentar'
     | '/api/public/approve/$token'
+    | '/api/public/dme-batch/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/leads/inbound'
@@ -639,6 +649,7 @@ export interface FileRouteTypes {
     | '/construtor-relatorios/$reportId/pdf'
     | '/onboarding/$onboardingId/apresentar'
     | '/api/public/approve/$token'
+    | '/api/public/dme-batch/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/leads/inbound'
@@ -697,6 +708,7 @@ export interface FileRouteTypes {
     | '/_authenticated/construtor-relatorios/$reportId/pdf'
     | '/_authenticated/onboarding/$onboardingId/apresentar'
     | '/api/public/approve/$token'
+    | '/api/public/dme-batch/$token'
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/leads/inbound'
@@ -729,6 +741,7 @@ export interface RootRouteChildren {
   ApiPublicFaviconRoute: typeof ApiPublicFaviconRoute
   ApiPublicManifestRoute: typeof ApiPublicManifestRoute
   ApiPublicApproveTokenRoute: typeof ApiPublicApproveTokenRoute
+  ApiPublicDmeBatchTokenRoute: typeof ApiPublicDmeBatchTokenRoute
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
   ApiPublicLeadsInboundRoute: typeof ApiPublicLeadsInboundRoute
@@ -1103,6 +1116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicDmeTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/dme-batch/$token': {
+      id: '/api/public/dme-batch/$token'
+      path: '/api/public/dme-batch/$token'
+      fullPath: '/api/public/dme-batch/$token'
+      preLoaderRoute: typeof ApiPublicDmeBatchTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/approve/$token': {
       id: '/api/public/approve/$token'
       path: '/api/public/approve/$token'
@@ -1227,6 +1247,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicFaviconRoute: ApiPublicFaviconRoute,
   ApiPublicManifestRoute: ApiPublicManifestRoute,
   ApiPublicApproveTokenRoute: ApiPublicApproveTokenRoute,
+  ApiPublicDmeBatchTokenRoute: ApiPublicDmeBatchTokenRoute,
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
   ApiPublicLeadsInboundRoute: ApiPublicLeadsInboundRoute,

@@ -69,42 +69,33 @@ export function getDmeBatchPublicUrl(token: string) {
 }
 
 export async function fetchBatchByToken(token: string) {
-  const { data: batch, error } = await supabase
-    .from("dme_batches" as any)
-    .select("*, clients(id, name, company)")
-    .eq("public_token", token)
-    .maybeSingle();
-  if (error) throw error;
-  if (!batch) return null;
-
-  const { data: items, error: iErr } = await supabase
-    .from("dme_batch_items" as any)
-    .select("extra_demand_id, extra_demands(id, number_display, title, description, value, due_date, status)")
-    .eq("batch_id", (batch as any).id);
-  if (iErr) throw iErr;
-
-  return {
-    batch: batch as any,
-    dmes: (items ?? []).map((i: any) => i.extra_demands).filter(Boolean),
-  };
+  const res = await fetch(`/api/public/dme-batch/${encodeURIComponent(token)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("Falha ao carregar lote");
+  return (await res.json()) as { batch: any; dmes: any[] };
 }
 
 export async function approveBatch(token: string, signature: string) {
-  const { data, error } = await supabase.rpc("approve_dme_batch" as any, {
-    p_token: token,
-    p_signature: signature,
+  const res = await fetch(`/api/public/dme-batch/${encodeURIComponent(token)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "approve", signature }),
   });
-  if (error) throw error;
-  return data;
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.error || "Erro ao aprovar");
+  return json?.transaction_id;
 }
 
 export async function rejectBatch(token: string, reason: string) {
-  const { error } = await supabase.rpc("reject_dme_batch" as any, {
-    p_token: token,
-    p_reason: reason,
+  const res = await fetch(`/api/public/dme-batch/${encodeURIComponent(token)}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "reject", reason }),
   });
-  if (error) throw error;
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(json?.error || "Erro ao recusar");
 }
+
 
 /**
  * Adiciona uma nova DME a um lote já consolidado no financeiro.
