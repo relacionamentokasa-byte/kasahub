@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   Plus, Settings2, LayoutGrid, Table as TableIcon, Image as ImageIcon,
   Pencil, Trash2, Upload, Link as LinkIcon, ExternalLink, Calendar,
-  Rocket, GripVertical, X, Briefcase, Package,
+  Rocket, GripVertical, X, Briefcase, Package, FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
