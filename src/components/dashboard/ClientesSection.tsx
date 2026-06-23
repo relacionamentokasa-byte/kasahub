@@ -1,5 +1,6 @@
 import { Users, Award } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { brl, isMoneyHidden, MONEY_MASK } from "@/lib/utils-format";
 
 interface ClientRanking {
   id: string;
@@ -8,7 +9,11 @@ interface ClientRanking {
 }
 
 const fmt = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  isMoneyHidden()
+    ? MONEY_MASK
+    : v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const _keepBrlImport = brl;
 
 export function ClientesSection({ clients }: { clients: ClientRanking[] }) {
   const sortedClients = [...clients]

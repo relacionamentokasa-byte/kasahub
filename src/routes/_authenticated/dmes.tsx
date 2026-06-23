@@ -30,6 +30,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableRowsSkeleton } from "@/components/ui/loading-skeletons";
+import { brl } from "@/lib/utils-format";
 
 
 export const Route = createFileRoute("/_authenticated/dmes")({
@@ -39,8 +40,6 @@ export const Route = createFileRoute("/_authenticated/dmes")({
   }),
   component: DmesPage,
 });
-
-const brl = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
   draft:      { label: "Rascunho",  cls: "bg-slate-500/10 text-slate-500 border-slate-500/20" },
