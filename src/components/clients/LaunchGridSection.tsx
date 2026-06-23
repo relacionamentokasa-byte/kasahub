@@ -630,6 +630,10 @@ function ProductSheet({
   const [acondicionar, setAcondicionar] = useState<Acondicionar>(b0.acondicionar ?? "");
   const [descEmbalagem, setDescEmbalagem] = useState(b0.descricao_embalagem ?? "");
   const [responsaveis, setResponsaveis] = useState<Array<{ nome: string; papel?: string }>>(b0.responsaveis ?? []);
+  const [embalagemCor, setEmbalagemCor] = useState(b0.embalagem_cor ?? "");
+  const [embalagemFornecedor, setEmbalagemFornecedor] = useState(b0.embalagem_fornecedor ?? "");
+  const [tampaCor, setTampaCor] = useState(b0.tampa_cor ?? "");
+  const [tampaFornecedor, setTampaFornecedor] = useState(b0.tampa_fornecedor ?? "");
 
   const { data: jobs = [] } = useQuery({
     queryKey: ["product-jobs", product?.id],
@@ -644,6 +648,8 @@ function ProductSheet({
         regulatorio_verso: regulatorio, benchmark,
         volumetria, aspecto_fisico: aspecto, acondicionar,
         descricao_embalagem: descEmbalagem, responsaveis,
+        embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
+        tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
       };
       const payload = {
         name, description: product?.description ?? null, status_id: statusId || null,
@@ -698,6 +704,8 @@ function ProductSheet({
         regulatorio_verso: regulatorio, benchmark, volumetria,
         aspecto_fisico: aspecto, acondicionar,
         descricao_embalagem: descEmbalagem, responsaveis,
+        embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
+        tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
       },
       statusLabel,
     });
@@ -792,10 +800,34 @@ function ProductSheet({
           {/* ===== IMAGENS DO PRODUTO ===== */}
           <section className="space-y-4 border-t pt-5">
             <h3 className="text-sm font-semibold text-foreground/80 break-words">Imagens do produto</h3>
-            <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []}
-              onChange={(v) => setImgs({ ...imgs, tampa: v })} />
-            <MultiImageUploader gridId={gridId} label="Embalagem" value={imgs.embalagem ?? []}
-              onChange={(v) => setImgs({ ...imgs, embalagem: v })} />
+            <div className="space-y-2">
+              <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []}
+                onChange={(v) => setImgs({ ...imgs, tampa: v })} />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Cor da tampa</Label>
+                  <Input value={tampaCor} onChange={(e) => setTampaCor(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs">Fornecedor da tampa</Label>
+                  <Input value={tampaFornecedor} onChange={(e) => setTampaFornecedor(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <MultiImageUploader gridId={gridId} label="Embalagem" value={imgs.embalagem ?? []}
+                onChange={(v) => setImgs({ ...imgs, embalagem: v })} />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Cor da embalagem</Label>
+                  <Input value={embalagemCor} onChange={(e) => setEmbalagemCor(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs">Fornecedor da embalagem</Label>
+                  <Input value={embalagemFornecedor} onChange={(e) => setEmbalagemFornecedor(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+            </div>
             <MultiImageUploader gridId={gridId} label="Rótulo" value={imgs.rotulo ?? []}
               onChange={(v) => setImgs({ ...imgs, rotulo: v })} />
             <MultiImageUploader gridId={gridId} label="Outros" value={imgs.outros ?? []}

@@ -59,6 +59,10 @@ export type LaunchGridBoletim = {
   acondicionar?: Acondicionar;
   descricao_embalagem?: string;
   responsaveis?: Array<{ nome: string; papel?: string }>;
+  embalagem_cor?: string;
+  embalagem_fornecedor?: string;
+  tampa_cor?: string;
+  tampa_fornecedor?: string;
 };
 
 export type LaunchGridProduct = {

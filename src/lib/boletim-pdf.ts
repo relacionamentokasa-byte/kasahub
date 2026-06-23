@@ -114,6 +114,16 @@ export async function exportBoletimPdf(
     y += wrapped.length * 12 + 8;
   };
 
+  // Tampa / Embalagem — cor e fornecedor
+  const b = product.boletim;
+  const hasTampa = b.tampa_cor || b.tampa_fornecedor;
+  const hasEmb = b.embalagem_cor || b.embalagem_fornecedor;
+  if (hasTampa || hasEmb) {
+    section("Tampa e embalagem");
+    if (hasTampa) paragraph(`Tampa — Cor: ${b.tampa_cor || "-"} | Fornecedor: ${b.tampa_fornecedor || "-"}`);
+    if (hasEmb) paragraph(`Embalagem — Cor: ${b.embalagem_cor || "-"} | Fornecedor: ${b.embalagem_fornecedor || "-"}`);
+  }
+
   // Descrição da embalagem
   if (product.boletim.descricao_embalagem) {
     section("Descrição da embalagem");
