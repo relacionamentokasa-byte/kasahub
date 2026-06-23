@@ -59,11 +59,16 @@ type JobRow = {
   title: string;
   description: string | null;
   status: string | null;
+  stage_id?: string | null;
   due_date: string | null;
   progress_percentage: number | null;
+  completed_steps?: number | null;
+  total_steps?: number | null;
+  done_at?: string | null;
   updated_at: string;
   main_responsible_id: string | null;
   priority: string | null;
+  launch_product_id?: string | null;
 };
 
 type ClientInfo = {
@@ -244,6 +249,31 @@ const STATUS_MAP: Record<string, { emoji: string; label: string; cls: string }> 
   done: { emoji: "🏁", label: "Concluído", cls: "bg-[#10B981] text-white border-[#10B981]" },
   cancelled: { emoji: "❌", label: "Cancelado", cls: "bg-rose-500 text-white border-rose-500" },
 };
+
+const STAGE_COLOR_MAP: Record<string, string> = {
+  "text-blue-500": "#3B82F6",
+  "text-amber-500": "#F59E0B",
+  "text-yellow-500": "#EAB308",
+  "text-orange-500": "#F97316",
+  "text-purple-500": "#A855F7",
+  "text-emerald-500": "#10B981",
+  "text-green-500": "#22C55E",
+  "text-rose-500": "#F43F5E",
+  "text-red-500": "#EF4444",
+  "text-slate-500": "#64748B",
+  "text-gray-500": "#6B7280",
+};
+
+function resolveStageColor(color?: string | null) {
+  if (!color) return "#64748B";
+  const clean = color.trim();
+  if (clean.startsWith("#") || clean.startsWith("rgb") || clean.startsWith("hsl") || clean.startsWith("var(")) return clean;
+  return STAGE_COLOR_MAP[clean] || "#64748B";
+}
+
+function jobIsDone(job: Partial<JobRow>, stage?: { is_done?: boolean }) {
+  return !!job.done_at || job.status === "done" || !!stage?.is_done;
+}
 
 function isImage(att: Attachment) {
   const t = (att.file_type || "").toLowerCase();
