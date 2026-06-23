@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   Plus, Settings2, LayoutGrid, Table as TableIcon, Image as ImageIcon,
   Pencil, Trash2, Upload, Link as LinkIcon, ExternalLink, Calendar,
-  Rocket, GripVertical, X, Briefcase, Package,
+  Rocket, GripVertical, X, Briefcase, Package, FileDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -682,12 +682,42 @@ function ProductSheet({
     { value: "outros", label: "Outros" },
   ];
 
+  const handleExportPdf = async () => {
+    const { exportBoletimPdf } = await import("@/lib/boletim-pdf");
+    const statusLabel = statuses.find((s) => s.id === statusId)?.label;
+    await exportBoletimPdf({
+      name,
+      image_url: imageUrl,
+      due_date: dueDate || null,
+      description: product?.description ?? null,
+      notes: product?.notes ?? null,
+      links: product?.links ?? [],
+      skus: product?.skus ?? [],
+      boletim: {
+        categoria, imagens: imgs, briefing_criacao: briefing,
+        regulatorio_verso: regulatorio, benchmark, volumetria,
+        aspecto_fisico: aspecto, acondicionar,
+        descricao_embalagem: descEmbalagem, responsaveis,
+      },
+      statusLabel,
+    });
+  };
+
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="sm:max-w-2xl overflow-y-auto p-6">
         <SheetHeader className="pr-10">
-          <SheetTitle className="break-words">{isEdit ? "Boletim de Lançamento" : "Novo Produto"}</SheetTitle>
-          <p className="text-xs text-foreground/50">Boletim de Lançamento de Produtos</p>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <SheetTitle className="break-words">{isEdit ? "Boletim de Lançamento" : "Novo Produto"}</SheetTitle>
+              <p className="text-xs text-foreground/50">Boletim de Lançamento de Produtos</p>
+            </div>
+            {isEdit && (
+              <Button size="sm" variant="outline" onClick={handleExportPdf} className="shrink-0">
+                <FileDown className="size-3.5" /> Exportar PDF
+              </Button>
+            )}
+          </div>
         </SheetHeader>
 
         <div className="space-y-6 mt-6">
