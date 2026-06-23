@@ -143,6 +143,8 @@ export function ClientPortalStructure() {
           );
         })}
       </div>
+
+      <PortalTour clientId={clientId} />
     </div>
   );
 }
