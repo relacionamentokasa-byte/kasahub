@@ -673,9 +673,9 @@ function ProductSheet({
 
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="sm:max-w-2xl overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>{isEdit ? "Boletim de Lançamento" : "Novo Produto"}</SheetTitle>
+      <SheetContent className="sm:max-w-2xl overflow-y-auto p-6">
+        <SheetHeader className="pr-10">
+          <SheetTitle className="break-words">{isEdit ? "Boletim de Lançamento" : "Novo Produto"}</SheetTitle>
           <p className="text-xs text-foreground/50">Boletim de Lançamento de Produtos</p>
         </SheetHeader>
 
