@@ -117,7 +117,7 @@ function ValesPage() {
           <div key={partner.id} className="rounded-lg border bg-card p-4">
             <p className="text-xs text-muted-foreground">{partner.full_name}</p>
             <p className="text-2xl font-semibold mt-1">
-              {balance.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+              {brl(balance)}
             </p>
             <p className="text-[10px] text-muted-foreground mt-1">
               {partner.distribution_type === "pro_labore_only"
@@ -158,10 +158,10 @@ function ValesPage() {
                   </td>
                   <td className="px-4 py-3">{a.description || "—"}</td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {Number(a.amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    {brl(Number(a.amount))}
                   </td>
                   <td className="px-4 py-3 text-right text-muted-foreground">
-                    {Number(a.settled_amount).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                    {brl(Number(a.settled_amount))}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={STATUS_VARIANT[a.status]}>{STATUS_LABEL[a.status]}</Badge>
