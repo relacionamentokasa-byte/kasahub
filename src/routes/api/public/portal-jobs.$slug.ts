@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 const SlugSchema = z.string().min(1).max(200).regex(/^[a-zA-Z0-9_-]+$/);
@@ -13,23 +12,6 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           return Response.json({ error: "invalid_slug" }, { status: 400 });
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const storageClient = createClient(
-          process.env.SUPABASE_URL!,
-          process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY!,
-          {
-          auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-          },
-        );
-
-        const signPublicAssetUrl = async (url: string | null | undefined) => {
-          if (!url) return url ?? null;
-          const match = url.match(/\/storage\/v1\/object\/public\/public-assets\/(.+?)(?:\?|$)/);
-          if (!match) return url;
-          const path = decodeURIComponent(match[1]);
-          if (!path || path.includes("..") || path.startsWith("/")) return url;
-          const { data } = await storageClient.storage.from("public-assets").createSignedUrl(path, 60 * 60 * 24);
-          return data?.signedUrl ?? url;
-        };
 
         const { data: client, error: cErr } = await supabaseAdmin
           .from("clients")
@@ -43,7 +25,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
 
         const { data: jobs, error: jErr } = await supabaseAdmin
           .from("jobs")
-          .select("id, title, description, status, due_date, progress_percentage, updated_at, main_responsible_id, priority")
+          .select("id, title, description, status, stage_id, due_date, progress_percentage, completed_steps, total_steps, done_at, updated_at, main_responsible_id, priority, launch_product_id")
           .eq("client_id", client.id)
           .eq("show_in_portal", true)
           .order("updated_at", { ascending: false });
@@ -321,7 +303,8 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           onboardings.push({ ...o, steps: stepRows || [] });
         }
 
-        // Fetch Launch Grids do cliente (apenas se o módulo estiver ativado)
+        // Fetch Launch Grids do cliente com as mesmas etapas do board de Jobs.
+        // O status antigo do grid (launch_grid_statuses, ex: "em produção") não é mais usado.
         const gridRows = (client as any).has_launch_grid
           ? (await supabaseAdmin
               .from("launch_grids")
@@ -333,28 +316,50 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
 
         const launchGrids: any[] = [];
         for (const g of gridRows || []) {
-          const [{ data: gStatuses }, { data: gProducts }] = await Promise.all([
+          const [{ data: jobStages }, { data: gProducts }] = await Promise.all([
             supabaseAdmin
-              .from("launch_grid_statuses")
-              .select("id, label, color, order_index, is_done")
-              .eq("grid_id", g.id)
+              .from("job_stages")
+              .select("id, name, color, order_index, is_done")
               .order("order_index", { ascending: true }),
             supabaseAdmin
               .from("launch_grid_products")
-              .select("id, name, description, image_url, status_id, due_date, links, order_index")
+              .select("id, name, description, image_url, status_id, due_date, links, order_index, notes")
               .eq("grid_id", g.id)
               .order("order_index", { ascending: true }),
           ]);
+
+          const productIds = (gProducts || []).map((p: any) => p.id);
+          const productJobs = productIds.length > 0
+            ? ((jobs || []) as any[])
+                .filter((job) => job.launch_product_id && productIds.includes(job.launch_product_id))
+                .sort((a, b) => String(a.due_date || "").localeCompare(String(b.due_date || "")))
+            : [];
+          const jobsByProduct = productJobs.reduce((acc, job) => {
+            if (!acc[job.launch_product_id]) acc[job.launch_product_id] = [];
+            acc[job.launch_product_id].push(job);
+            return acc;
+          }, {} as Record<string, any[]>);
+          const validStageIds = new Set((jobStages || []).map((s: any) => s.id));
+          const fallbackStageId = (jobStages || [])[0]?.id ?? null;
+
           const productsWithImages = await Promise.all(
             (gProducts || []).map(async (p: any) => ({
               ...p,
-              image_url: await signPublicAssetUrl(p.image_url),
+              status_id: p.status_id && validStageIds.has(p.status_id) ? p.status_id : fallbackStageId,
+              image_url: await refreshUrl(p.image_url),
+              jobs: jobsByProduct[p.id] || [],
             })),
           );
           launchGrids.push({
             ...g,
-            cover_url: await signPublicAssetUrl((g as any).cover_url),
-            statuses: gStatuses || [],
+            cover_url: await refreshUrl((g as any).cover_url),
+            statuses: (jobStages || []).map((s: any) => ({
+              id: s.id,
+              label: s.name,
+              color: s.color,
+              order_index: s.order_index ?? 0,
+              is_done: !!s.is_done,
+            })),
             products: productsWithImages,
           });
         }
