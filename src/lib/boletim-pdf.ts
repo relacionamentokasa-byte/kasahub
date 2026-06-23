@@ -156,8 +156,8 @@ export async function exportBoletimPdf(
   // Carrega Funnel Display (títulos) e Onest (subtítulos/corpo).
   // Em caso de falha de rede, cai para Helvetica.
   const fonts = await registerBoletimFonts(doc);
-  const FONT_TITLE = fonts.funnel ? "Funnel" : FONT_BODY;
-  const FONT_BODY = fonts.onest ? "Onest" : FONT_BODY;
+  const FONT_TITLE = fonts.funnel ? "Funnel" : "helvetica";
+  const FONT_BODY = fonts.onest ? "Onest" : "helvetica";
 
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
