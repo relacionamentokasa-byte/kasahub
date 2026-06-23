@@ -640,7 +640,7 @@ function ProductSheet({
       const payload = {
         name, description, status_id: statusId || null,
         due_date: dueDate || null, notes,
-        image_url: imageUrl, links, skus, boletim,
+        image_url: imageUrl, links, skus: product?.skus ?? [], boletim,
       };
       if (isEdit) return updateProduct(product!.id, payload);
       return createProduct({ grid_id: gridId, ...payload });
