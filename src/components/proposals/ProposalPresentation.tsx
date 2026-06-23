@@ -217,16 +217,22 @@ export function ProposalPresentation({
   open: boolean;
   onClose: () => void;
 }) {
-  const { data: proposal, isLoading: loadingProposal } = useQuery({
+  const { data: proposal, isLoading: loadingProposal, refetch: refetchProposal } = useQuery({
     queryKey: ["proposal", proposalId],
     queryFn: () => fetchProposal(proposalId),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
-  const { data: items = [], isLoading: loadingItems } = useQuery({
+  const { data: items = [], isLoading: loadingItems, refetch: refetchItems } = useQuery({
     queryKey: ["proposal-items", proposalId],
     queryFn: () => fetchProposalItems(proposalId),
     enabled: open,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const slides = useMemo(() => buildSlides(proposal, items), [proposal, items]);
@@ -234,10 +240,14 @@ export function ProposalPresentation({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Reset idx when reopening
+  // Reset idx + buscar dados frescos ao reabrir
   useEffect(() => {
-    if (open) setIdx(0);
-  }, [open]);
+    if (open) {
+      setIdx(0);
+      refetchProposal();
+      refetchItems();
+    }
+  }, [open, refetchProposal, refetchItems]);
 
   // Keyboard navigation
   useEffect(() => {
