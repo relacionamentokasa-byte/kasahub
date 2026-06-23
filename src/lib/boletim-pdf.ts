@@ -234,7 +234,7 @@ export async function exportBoletimPdf(
   // Título
   const titleY = coverY + coverBoxH + 64;
   doc.setTextColor(...K.ink);
-  doc.setFont(FONT_BODY, "bold");
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(28);
   const titleLines = doc.splitTextToSize(product.name || "Produto", CW);
   doc.text(titleLines, W / 2, titleY, { align: "center" });
@@ -275,7 +275,7 @@ export async function exportBoletimPdf(
     ensureSpace(44);
     doc.setFillColor(...K.brand);
     doc.rect(M, y + 2, 3.5, 16, "F");
-    doc.setFont(FONT_BODY, "bold");
+    doc.setFont(FONT_TITLE, "bold");
     doc.setFontSize(11.5);
     doc.setTextColor(...K.inkDark);
     doc.text(label.toUpperCase(), M + 14, y + 14, { charSpace: 1.8 });
