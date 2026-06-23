@@ -1724,6 +1724,7 @@ function ApprovalFullscreenModal({
   const isStory = item.format === "story";
   const itemFileKind = getApprovalItemFileKind(item);
   const isDocumentItem = isDocumentFileKind(itemFileKind);
+  const usesDocumentShell = isDocumentItem || item.content_type === "pdf";
 
   return (
     <div
@@ -1731,7 +1732,7 @@ function ApprovalFullscreenModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full h-full sm:h-auto sm:max-h-[95vh] ${isStory ? "sm:max-w-[420px]" : isDocumentItem || item.content_type === "pdf" ? "sm:max-w-6xl" : "sm:max-w-md"} sm:rounded-2xl bg-black overflow-hidden flex flex-col`}
+        className={`relative w-full h-full sm:h-auto sm:max-h-[95vh] ${isStory ? "sm:max-w-[420px]" : usesDocumentShell ? "sm:max-w-6xl" : "sm:max-w-md"} sm:rounded-2xl bg-black overflow-hidden flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Story progress bars */}
@@ -1751,7 +1752,7 @@ function ApprovalFullscreenModal({
         )}
 
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 pt-5 bg-gradient-to-b from-black/80 to-transparent">
+        <div className={usesDocumentShell ? "shrink-0 z-20 flex items-center justify-between px-4 py-3 bg-black border-b border-white/10" : "absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 pt-5 bg-gradient-to-b from-black/80 to-transparent"}>
           <div className="text-white min-w-0">
             <p className="text-xs font-bold uppercase tracking-wider opacity-80">
               {approvalFormatLabel(item)}
@@ -1771,7 +1772,7 @@ function ApprovalFullscreenModal({
 
         {/* Media */}
         <div
-          className={`flex-1 flex items-center justify-center overflow-hidden bg-black relative ${isStory ? "aspect-[9/16] max-h-[75vh]" : ""}`}
+          className={`min-h-0 flex-1 flex items-center justify-center overflow-hidden bg-black relative ${isStory ? "aspect-[9/16] max-h-[75vh]" : ""}`}
           onPointerDown={() => isStory && setPaused(true)}
           onPointerUp={() => isStory && setPaused(false)}
           onPointerLeave={() => isStory && setPaused(false)}
