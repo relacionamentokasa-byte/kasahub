@@ -7,7 +7,7 @@ import {
   type Proposal,
   type ProposalItem,
 } from "@/lib/crm-api";
-import { ScopeRenderer } from "./ScopeRenderer";
+
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
