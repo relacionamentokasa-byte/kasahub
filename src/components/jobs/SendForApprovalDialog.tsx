@@ -53,7 +53,7 @@ interface Props {
 const TYPE_OPTIONS: { value: ApprovalContentType; label: string; icon: typeof ImageIcon }[] = [
   { value: "image", label: "Imagem", icon: ImageIcon },
   { value: "video", label: "Vídeo", icon: Film },
-  { value: "pdf", label: "PDF", icon: FileText },
+  { value: "pdf", label: "Docs", icon: FileText },
   { value: "text", label: "Texto", icon: Type },
 ];
 
