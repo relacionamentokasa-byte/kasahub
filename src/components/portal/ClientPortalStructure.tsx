@@ -170,7 +170,6 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
     ...s,
     count: products.filter((p) => p.status_id === s.id).length,
   }));
-  const unmatchedProducts = products.filter((p) => !p.status_id || !stageMap.has(p.status_id));
   const doneCount = products.filter((p) => {
     const f = p.status_id ? stageMap.get(p.status_id) : null;
     return f?.stage.is_done;
@@ -286,7 +285,6 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
             </div>
           );
         })}
-        {unmatchedProducts.length > 0 && null}
       </div>
     </section>
   );
