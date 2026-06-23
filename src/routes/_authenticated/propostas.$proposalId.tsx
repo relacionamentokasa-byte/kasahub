@@ -56,19 +56,33 @@ function ProposalDetailPage() {
             </div>
           </div>
 
-          <Button
-            variant={focusMode ? "default" : "outline"}
-            size="sm"
-            onClick={toggleFocusMode}
-            className="gap-2 shrink-0"
-            title={focusMode ? "Sair do modo foco (Esc)" : "Entrar em modo foco (F)"}
-          >
-            {focusMode ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
-            <span className="hidden sm:inline">{focusMode ? "Sair do foco" : "Modo foco"}</span>
-            <kbd className="hidden md:inline text-[10px] font-mono-kasa border border-current/30 rounded px-1 py-0.5 opacity-70">
-              F
-            </kbd>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPresenting(true)}
+              className="gap-2"
+              title="Apresentar proposta ao cliente"
+            >
+              <Presentation className="size-4" />
+              <span className="hidden sm:inline">Apresentar</span>
+            </Button>
+
+            <Button
+              variant={focusMode ? "default" : "outline"}
+              size="sm"
+              onClick={toggleFocusMode}
+              className="gap-2"
+              title={focusMode ? "Sair do modo foco (Esc)" : "Entrar em modo foco (F)"}
+            >
+              {focusMode ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+              <span className="hidden sm:inline">{focusMode ? "Sair do foco" : "Modo foco"}</span>
+              <kbd className="hidden md:inline text-[10px] font-mono-kasa border border-current/30 rounded px-1 py-0.5 opacity-70">
+                F
+              </kbd>
+            </Button>
+          </div>
+
         </div>
       </header>
 
