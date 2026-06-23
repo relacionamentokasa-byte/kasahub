@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { recordTimelineEvent } from "./client-timeline";
 import { handleMentions } from "./notifications-api";
+import { isMoneyHidden, MONEY_MASK } from "./utils-format";
 
 export type Stage = Database["public"]["Tables"]["lead_stages"]["Row"];
 export type Lead = Database["public"]["Tables"]["leads"]["Row"];
