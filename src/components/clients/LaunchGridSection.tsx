@@ -485,6 +485,9 @@ function StatusesDialog({
         <DialogHeader>
           <DialogTitle>Etapas do Grid</DialogTitle>
         </DialogHeader>
+        <p className="text-xs text-foreground/50 -mt-2">
+          Marque uma etapa como <strong>Concluída</strong> para indicar que produtos nela contam como finalizados (igual aos jobs).
+        </p>
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {statuses.map((s) => (
             <div key={s.id} className="flex items-center gap-2 p-2 rounded border border-border">
@@ -499,6 +502,14 @@ function StatusesDialog({
                 onBlur={(e) => { if (e.target.value !== s.label) updMut.mutate({ id: s.id, patch: { label: e.target.value } }); }}
                 className="h-8"
               />
+              <label className="flex items-center gap-1 text-[11px] text-foreground/70 cursor-pointer shrink-0 px-1">
+                <input
+                  type="checkbox"
+                  checked={!!s.is_done}
+                  onChange={(e) => updMut.mutate({ id: s.id, patch: { is_done: e.target.checked } })}
+                />
+                Concluída
+              </label>
               <Button variant="ghost" size="icon" className="size-7" onClick={() => { if (confirm("Remover etapa?")) delMut.mutate(s.id); }}>
                 <Trash2 className="size-3.5" />
               </Button>
