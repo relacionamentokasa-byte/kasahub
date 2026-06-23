@@ -363,7 +363,7 @@ function SlideBody({
     case "intro":
       return <IntroSlide proposal={proposal} />;
     case "scope":
-      return <ScopeSlide proposal={proposal} />;
+      return <ScopeSlide slide={slide} />;
     case "items":
       return <ItemsSlide items={items} />;
     case "investment":
