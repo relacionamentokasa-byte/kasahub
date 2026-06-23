@@ -59,9 +59,13 @@ function ClientsPage() {
       (c.email?.toLowerCase().includes(search.toLowerCase()))
     )
     .sort((a: any, b: any) => {
-      const an = (a.company || a.name || "").toString();
-      const bn = (b.company || b.name || "").toString();
-      return an.localeCompare(bn, "pt-BR", { sensitivity: "base" });
+      const key = (c: any) =>
+        (c.company?.trim() || c.name?.trim() || "")
+          .toString()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+      return key(a).localeCompare(key(b), "pt-BR", { sensitivity: "base" });
     });
 
   return (
