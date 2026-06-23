@@ -101,7 +101,14 @@ export function ApprovalStoriesRow({ onPickClient }: Props) {
                 )}
               >
                 <div className="w-full h-full rounded-full border-[3px] border-background overflow-hidden bg-surface flex items-center justify-center">
-                  {it.logoUrl ? (
+                  {it.firstApproval.cover_url ? (
+                    <img
+                      src={it.firstApproval.cover_url}
+                      alt={it.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : it.logoUrl ? (
                     <img
                       src={it.logoUrl}
                       alt={it.name}
