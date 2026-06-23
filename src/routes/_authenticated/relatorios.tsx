@@ -301,7 +301,7 @@ function FinancialPage() {
     search: ""
   });
   const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
-  const [quickChip, setQuickChip] = useState<"none" | "today" | "week" | "overdue" | "paid_month">("none");
+  const [quickChip, setQuickChip] = useState<"none" | "today" | "week" | "overdue" | "paid_month" | "missing_links">("none");
   const [showCancelled, setShowCancelled] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
