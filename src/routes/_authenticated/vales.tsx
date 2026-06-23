@@ -14,6 +14,7 @@ import {
 } from "@/lib/partners-finance-api";
 import { fetchContasBancarias } from "@/lib/contas-bancarias-api";
 import { RawTableRowsSkeleton } from "@/components/ui/loading-skeletons";
+import { brl } from "@/lib/utils-format";
 import {
   Dialog,
   DialogContent,
