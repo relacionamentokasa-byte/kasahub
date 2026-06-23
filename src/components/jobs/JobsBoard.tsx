@@ -594,6 +594,7 @@ export function JobsBoard({
                       onClick={() => { setFocusedId(j.id); setOpenId(j.id); }}
                       queryKey={queryKey}
                       focused={focusedId === j.id}
+                      nextResponsibleId={nextResponsibleMap.get(j.id) ?? null}
                     />
                   ))}
                 </Column>
