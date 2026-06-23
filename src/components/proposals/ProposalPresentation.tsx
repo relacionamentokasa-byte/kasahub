@@ -477,38 +477,50 @@ function IntroSlide({ proposal }: { proposal: Proposal }) {
 function ScopeSlide({ slide }: { slide: Slide }) {
   const chunk = slide.scopeChunk;
   if (!chunk) return null;
-  const { items, page, total } = chunk;
+  const { section, page, totalPages, sectionIndex, totalSections } = chunk;
   const startIndex = (page - 1) * SCOPE_PER_SLIDE;
-  const isWide = items.length > 3;
+  const isWide = section.items.length > 4;
+  const showSectionEyebrow = totalSections > 1 || !!section.number;
 
   return (
     <div className="max-w-6xl w-full">
       <div className="flex items-end justify-between mb-10 gap-6">
-        <div>
-          <SectionLabel>O que vamos entregar</SectionLabel>
+        <div className="min-w-0">
+          <SectionLabel>
+            {showSectionEyebrow
+              ? `Bloco ${String(sectionIndex + 1).padStart(2, "0")} de ${String(totalSections).padStart(2, "0")}`
+              : "O que vamos entregar"}
+          </SectionLabel>
           <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
-            Escopo do trabalho
+            {section.number && (
+              <span className="text-[#FFBC45] mr-3 tabular-nums">{section.number}.</span>
+            )}
+            {section.title}
           </h2>
         </div>
-        {total > 1 && (
+        {totalPages > 1 && (
           <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-mono-kasa shrink-0 pb-2">
-            Parte {page} / {total}
+            Parte {page} / {totalPages}
           </span>
         )}
       </div>
 
       <div className={cn("grid gap-4", isWide ? "md:grid-cols-2" : "grid-cols-1")}>
-        {items.map((it, i) => {
-          const n = startIndex + i + 1;
+        {section.items.map((it, i) => {
+          const label =
+            it.number ||
+            (section.number
+              ? `${section.number}.${startIndex + i + 1}`
+              : String(startIndex + i + 1).padStart(2, "0"));
           return (
             <div
               key={i}
               className="group relative bg-white/[0.04] border border-white/10 hover:border-[#FFBC45]/40 rounded-2xl p-6 backdrop-blur transition-colors"
             >
               <div className="flex items-start gap-5">
-                <div className="shrink-0 size-11 rounded-xl bg-[#FFBC45]/10 border border-[#FFBC45]/30 flex items-center justify-center">
+                <div className="shrink-0 min-w-11 h-11 px-3 rounded-xl bg-[#FFBC45]/10 border border-[#FFBC45]/30 flex items-center justify-center">
                   <span className="font-mono-kasa text-sm font-bold text-[#FFBC45] tabular-nums">
-                    {String(n).padStart(2, "0")}
+                    {label}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
