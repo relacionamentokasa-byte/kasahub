@@ -488,60 +488,71 @@ function IntroSlide({ proposal }: { proposal: Proposal }) {
 }
 
 function ScopeSlide({ slide }: { slide: Slide }) {
-  const chunk = slide.scopeChunk;
-  if (!chunk) return null;
-  const { items, page, total } = chunk;
-  const startIndex = (page - 1) * SCOPE_PER_SLIDE;
-  const isWide = items.length > 3;
+  const section = slide.scopeSection;
+  if (!section) return null;
+  const heading = section.heading;
+  const page = slide.scopePage;
 
   return (
-    <div className="max-w-6xl w-full">
+    <div className="max-w-5xl w-full">
       <div className="flex items-end justify-between mb-10 gap-6">
-        <div>
-          <SectionLabel>O que vamos entregar</SectionLabel>
-          <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
-            Escopo do trabalho
-          </h2>
+        <div className="min-w-0">
+          <SectionLabel>Escopo do trabalho</SectionLabel>
+          {heading ? (
+            <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
+              {heading}
+            </h2>
+          ) : (
+            <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
+              O que vamos entregar
+            </h2>
+          )}
         </div>
-        {total > 1 && (
+        {page && (
           <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-mono-kasa shrink-0 pb-2">
-            Parte {page} / {total}
+            Parte {page.page} / {page.total}
           </span>
         )}
       </div>
 
-      <div className={cn("grid gap-4", isWide ? "md:grid-cols-2" : "grid-cols-1")}>
-        {items.map((it, i) => {
-          const n = startIndex + i + 1;
-          return (
-            <div
+      <div className="space-y-6">
+        {section.blocks.map((b, i) =>
+          b.type === "paragraph" ? (
+            <p
               key={i}
-              className="group relative bg-white/[0.04] border border-white/10 hover:border-[#FFBC45]/40 rounded-2xl p-6 backdrop-blur transition-colors"
+              className="text-lg md:text-xl text-white/85 leading-relaxed max-w-3xl"
             >
-              <div className="flex items-start gap-5">
-                <div className="shrink-0 size-11 rounded-xl bg-[#FFBC45]/10 border border-[#FFBC45]/30 flex items-center justify-center">
-                  <span className="font-mono-kasa text-sm font-bold text-[#FFBC45] tabular-nums">
-                    {String(n).padStart(2, "0")}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg md:text-xl font-semibold text-white leading-snug">
-                    {it.title}
-                  </p>
-                  {it.description && (
-                    <p className="text-sm md:text-base text-white/60 mt-2 leading-relaxed">
-                      {it.description}
-                    </p>
+              {b.text}
+            </p>
+          ) : (
+            <ul key={i} className="space-y-3">
+              {b.items.map((it, j) => (
+                <li
+                  key={j}
+                  className="flex items-start gap-4 text-lg md:text-xl text-white/90 leading-relaxed"
+                >
+                  <span
+                    className={cn(
+                      "shrink-0 mt-2 size-1.5 rounded-full bg-[#FFBC45]",
+                      b.ordered && "hidden",
+                    )}
+                  />
+                  {b.ordered && (
+                    <span className="shrink-0 font-mono-kasa text-sm text-[#FFBC45] tabular-nums mt-1.5 w-7">
+                      {String(j + 1).padStart(2, "0")}
+                    </span>
                   )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+                  <span>{it}</span>
+                </li>
+              ))}
+            </ul>
+          ),
+        )}
       </div>
     </div>
   );
 }
+
 
 function ItemsSlide({ items }: { items: ProposalItem[] }) {
   return (
