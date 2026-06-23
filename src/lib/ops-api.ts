@@ -481,6 +481,35 @@ export async function updateJob(
     }
   }
 
+  // Próximo da fila de execução: quando este job é concluído, avisa o responsável
+  // do próximo job pendente do mesmo projeto via popup (tipo "assignment").
+  const becameDone = !!data.done_at && originalJob?.status !== 'done';
+  if (becameDone && data.project_id) {
+    const { data: nextJobs } = await supabase
+      .from('jobs')
+      .select('id, title, assignee_id, main_responsible_id')
+      .eq('project_id', data.project_id)
+      .is('done_at', null)
+      .neq('id', data.id)
+      .order('order_index', { ascending: true, nullsFirst: false })
+      .order('created_at', { ascending: true })
+      .limit(1);
+
+    const next = nextJobs?.[0];
+    const nextAssignee = next?.assignee_id || next?.main_responsible_id;
+    if (next && nextAssignee && nextAssignee !== currentUserId) {
+      await notify({
+        userId: nextAssignee,
+        title: `Sua vez: ${next.title}`,
+        description: `${authorName} concluiu "${data.title}". Você é o próximo da fila de execução deste projeto.`,
+        category: 'assignment',
+        originType: 'jobs',
+        originId: next.id,
+        link: `/jobs?jobId=${next.id}`,
+      });
+    }
+  }
+
   await logAudit("update", "job", id, null, patch);
   await refreshProjectStats(data.project_id);
   return data;
