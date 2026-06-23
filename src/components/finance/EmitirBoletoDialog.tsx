@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { brl } from "@/lib/utils-format";
+import { brlForce as brl } from "@/lib/utils-format";
 import { emitirBoletoInter } from "@/lib/inter/boletos.functions";
 
 interface Props {

@@ -42,7 +42,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { brl } from "@/lib/utils-format";
+import { brlForce as brl } from "@/lib/utils-format";
 import { createTransaction, updateTransaction } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { fetchSuppliers } from "@/lib/suppliers-api";

@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateTransaction } from "@/lib/finance-api";
-import { brl } from "@/lib/utils-format";
+import { brlForce as brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 
 const PAYMENT_METHODS = ["PIX", "Boleto", "Cartão", "Transferência", "Dinheiro"];
