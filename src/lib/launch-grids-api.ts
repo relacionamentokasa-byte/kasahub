@@ -273,6 +273,7 @@ export async function updateProduct(id: string, patch: Partial<LaunchGridProduct
     ...(data as any),
     links: Array.isArray((data as any).links) ? (data as any).links : [],
     skus: Array.isArray((data as any).skus) ? (data as any).skus : [],
+    boletim: ((data as any).boletim && typeof (data as any).boletim === "object") ? (data as any).boletim : {},
   } as LaunchGridProduct;
 }
 
