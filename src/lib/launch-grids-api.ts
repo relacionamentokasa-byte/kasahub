@@ -145,25 +145,25 @@ export async function listProductsByClient(clientId: string): Promise<LaunchGrid
   return listGridProducts(grid.id);
 }
 
-export async function listStatusesByClient(clientId: string): Promise<LaunchGridStatus[]> {
-  const { data: grid, error } = await supabase
-    .from("launch_grids")
-    .select("id")
-    .eq("client_id", clientId)
-    .maybeSingle();
-  if (error) throw error;
-  if (!grid) return [];
-  return listGridStatuses(grid.id);
+export async function listStatusesByClient(_clientId: string): Promise<LaunchGridStatus[]> {
+  return listGridStatuses();
 }
 
-export async function listGridStatuses(gridId: string) {
+// Etapas globais (job_stages) usadas como status do grid de lançamento.
+export async function listGridStatuses(_gridId?: string) {
   const { data, error } = await supabase
-    .from("launch_grid_statuses")
-    .select("*")
-    .eq("grid_id", gridId)
+    .from("job_stages")
+    .select("id, name, color, order_index, is_done")
     .order("order_index", { ascending: true });
   if (error) throw error;
-  return (data || []) as LaunchGridStatus[];
+  return (data || []).map((s: any) => ({
+    id: s.id,
+    grid_id: null,
+    label: s.name,
+    color: s.color ?? "#94a3b8",
+    order_index: s.order_index ?? 0,
+    is_done: !!s.is_done,
+  })) as LaunchGridStatus[];
 }
 
 export async function listGridProducts(gridId: string) {
