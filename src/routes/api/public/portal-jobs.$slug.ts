@@ -339,10 +339,13 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
             acc[job.launch_product_id].push(job);
             return acc;
           }, {} as Record<string, any[]>);
+          const validStageIds = new Set((jobStages || []).map((s: any) => s.id));
+          const fallbackStageId = (jobStages || [])[0]?.id ?? null;
 
           const productsWithImages = await Promise.all(
             (gProducts || []).map(async (p: any) => ({
               ...p,
+              status_id: p.status_id && validStageIds.has(p.status_id) ? p.status_id : fallbackStageId,
               image_url: await refreshUrl(p.image_url),
               jobs: jobsByProduct[p.id] || [],
             })),
