@@ -7,7 +7,7 @@ import {
   type Proposal,
   type ProposalItem,
 } from "@/lib/crm-api";
-import { ScopeRenderer } from "./ScopeRenderer";
+
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -31,13 +31,100 @@ type Slide = {
     | "conditions"
     | "closing";
   title?: string;
+  scopeChunk?: { items: ScopeItem[]; page: number; total: number };
 };
+
+type ScopeItem = { title: string; description?: string };
+
+const SCOPE_PER_SLIDE = 6;
+
+function stripHtml(html: string): string {
+  if (typeof document === "undefined") return html.replace(/<[^>]+>/g, "");
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+}
+
+function parseScope(raw: unknown): ScopeItem[] {
+  if (!raw) return [];
+  // Array input
+  if (Array.isArray(raw)) {
+    return raw
+      .map((v) => (typeof v === "string" ? v : v?.title || ""))
+      .filter(Boolean)
+      .map((t) => splitTitleDesc(t));
+  }
+  if (typeof raw !== "string") return [];
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+
+  // JSON array
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((v) => (typeof v === "string" ? v : v?.title || ""))
+          .filter(Boolean)
+          .map((t) => splitTitleDesc(t));
+      }
+    } catch {}
+  }
+
+  // HTML — extract <li> first, fallback to <p>/lines
+  if (/<\/?[a-z][\s\S]*>/i.test(trimmed)) {
+    const liMatches = Array.from(trimmed.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi));
+    if (liMatches.length) {
+      return liMatches
+        .map((m) => stripHtml(m[1]).trim())
+        .filter(Boolean)
+        .map(splitTitleDesc);
+    }
+    const text = stripHtml(trimmed);
+    return text
+      .split(/\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map(splitTitleDesc);
+  }
+
+  // Plain text — split by newlines or bullets
+  return trimmed
+    .split(/\n+|(?:^|\s)[•·\-–]\s+/)
+    .map((s) => s.trim().replace(/^[•·\-–]\s*/, ""))
+    .filter(Boolean)
+    .map(splitTitleDesc);
+}
+
+function splitTitleDesc(s: string): ScopeItem {
+  // "Title: description" or "Title — description"
+  const m = s.match(/^([^:—–]{3,80})\s*[:—–]\s*(.+)$/);
+  if (m) return { title: m[1].trim(), description: m[2].trim() };
+  return { title: s };
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
 
 function buildSlides(p: Proposal | undefined, items: ProposalItem[]): Slide[] {
   if (!p) return [];
   const slides: Slide[] = [{ id: "cover", kind: "cover" }];
   if (p.intro && p.intro.trim()) slides.push({ id: "intro", kind: "intro", title: "Sobre" });
-  if (p.scope_text || p.scope) slides.push({ id: "scope", kind: "scope", title: "Escopo" });
+  const scopeItems = parseScope((p as any).scope_text || p.scope);
+  if (scopeItems.length) {
+    const chunks = chunk(scopeItems, SCOPE_PER_SLIDE);
+    chunks.forEach((c, i) =>
+      slides.push({
+        id: `scope-${i}`,
+        kind: "scope",
+        title: "Escopo",
+        scopeChunk: { items: c, page: i + 1, total: chunks.length },
+      }),
+    );
+  }
   if (items.length) slides.push({ id: "items", kind: "items", title: "Serviços" });
   slides.push({ id: "investment", kind: "investment", title: "Investimento" });
   slides.push({ id: "conditions", kind: "conditions", title: "Condições" });
@@ -276,7 +363,7 @@ function SlideBody({
     case "intro":
       return <IntroSlide proposal={proposal} />;
     case "scope":
-      return <ScopeSlide proposal={proposal} />;
+      return <ScopeSlide slide={slide} />;
     case "items":
       return <ItemsSlide items={items} />;
     case "investment":
@@ -332,18 +419,57 @@ function IntroSlide({ proposal }: { proposal: Proposal }) {
   );
 }
 
-function ScopeSlide({ proposal }: { proposal: Proposal }) {
+function ScopeSlide({ slide }: { slide: Slide }) {
+  const chunk = slide.scopeChunk;
+  if (!chunk) return null;
+  const { items, page, total } = chunk;
+  const startIndex = (page - 1) * SCOPE_PER_SLIDE;
+  const isWide = items.length > 3;
+
   return (
-    <div className="max-w-5xl">
-      <SectionLabel>O que vamos entregar</SectionLabel>
-      <h2 className="font-display text-4xl md:text-5xl font-bold mb-8 leading-tight">
-        Escopo do trabalho
-      </h2>
-      <div className="text-lg md:text-xl text-white/85 leading-relaxed [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:space-y-3 [&_li]:!text-white/85 [&_strong]:text-white [&_p]:mb-4">
-        <ScopeRenderer
-          text={(proposal as any).scope_text || proposal.scope}
-          className="text-white/85"
-        />
+    <div className="max-w-6xl w-full">
+      <div className="flex items-end justify-between mb-10 gap-6">
+        <div>
+          <SectionLabel>O que vamos entregar</SectionLabel>
+          <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
+            Escopo do trabalho
+          </h2>
+        </div>
+        {total > 1 && (
+          <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-mono-kasa shrink-0 pb-2">
+            Parte {page} / {total}
+          </span>
+        )}
+      </div>
+
+      <div className={cn("grid gap-4", isWide ? "md:grid-cols-2" : "grid-cols-1")}>
+        {items.map((it, i) => {
+          const n = startIndex + i + 1;
+          return (
+            <div
+              key={i}
+              className="group relative bg-white/[0.04] border border-white/10 hover:border-[#FFBC45]/40 rounded-2xl p-6 backdrop-blur transition-colors"
+            >
+              <div className="flex items-start gap-5">
+                <div className="shrink-0 size-11 rounded-xl bg-[#FFBC45]/10 border border-[#FFBC45]/30 flex items-center justify-center">
+                  <span className="font-mono-kasa text-sm font-bold text-[#FFBC45] tabular-nums">
+                    {String(n).padStart(2, "0")}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-lg md:text-xl font-semibold text-white leading-snug">
+                    {it.title}
+                  </p>
+                  {it.description && (
+                    <p className="text-sm md:text-base text-white/60 mt-2 leading-relaxed">
+                      {it.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
