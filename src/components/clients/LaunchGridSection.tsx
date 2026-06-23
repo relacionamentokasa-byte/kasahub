@@ -637,6 +637,32 @@ function ProductSheet({
   const [tampaCor, setTampaCor] = useState(b0.tampa_cor ?? "");
   const [tampaFornecedor, setTampaFornecedor] = useState(b0.tampa_fornecedor ?? "");
 
+  const { data: clientData } = useQuery({
+    queryKey: ["client-commercial", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("commercial_contact_name, commercial_contact_email, commercial_contact_phone")
+        .eq("id", clientId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  const [responsaveis, setResponsaveis] = useState<Array<{ nome: string; papel?: string }>>(() => {
+    if (b0.responsaveis && b0.responsaveis.length > 0) return b0.responsaveis;
+    return [];
+  });
+
+  // Pré-popula com o responsável comercial do cliente quando carregar e ainda estiver vazio
+  useMemo(() => {
+    if (responsaveis.length === 0 && clientData?.commercial_contact_name) {
+      setResponsaveis([{ nome: clientData.commercial_contact_name, papel: "Responsável Comercial" }]);
+    }
+  }, [clientData?.commercial_contact_name]);
+
   const { data: jobs = [] } = useQuery({
     queryKey: ["product-jobs", product?.id],
     queryFn: () => listProductJobs(product!.id),
