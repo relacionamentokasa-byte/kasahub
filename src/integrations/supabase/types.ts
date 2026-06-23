@@ -2144,7 +2144,7 @@ export type Database = {
             foreignKeyName: "launch_grid_products_status_id_fkey"
             columns: ["status_id"]
             isOneToOne: false
-            referencedRelation: "launch_grid_statuses"
+            referencedRelation: "job_stages"
             referencedColumns: ["id"]
           },
         ]

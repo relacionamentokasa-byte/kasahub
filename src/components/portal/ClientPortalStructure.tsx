@@ -54,7 +54,7 @@ export function ClientPortalStructure() {
     <div className="space-y-10 p-6 lg:p-10 max-w-7xl mx-auto">
       <ClientOnboardingPortalView clientId={clientId} />
 
-      <LaunchGridProgress clientId={clientId} />
+      <LaunchGridProgress clientId={clientId} jobs={jobs} />
 
 
 
@@ -121,7 +121,7 @@ export function ClientPortalStructure() {
   );
 }
 
-function LaunchGridProgress({ clientId }: { clientId: string }) {
+function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] }) {
   const { data: statuses = [] } = useQuery({
     queryKey: ["portal-launch-statuses", clientId],
     queryFn: () => listStatusesByClient(clientId),
@@ -187,10 +187,11 @@ function LaunchGridProgress({ clientId }: { clientId: string }) {
       </div>
 
       {/* Products */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {products.map((p) => {
           const st = p.status_id ? stageMap.get(p.status_id)?.stage : null;
           const pct = productProgress(p.status_id);
+          const productJobs = jobs.filter((j) => j.launch_product_id === p.id);
           return (
             <div key={p.id} className="bg-surface border border-border rounded-2xl p-4 space-y-3 hover:border-primary/30 transition shadow-sm">
               <div className="flex items-start gap-3">
@@ -218,6 +219,40 @@ function LaunchGridProgress({ clientId }: { clientId: string }) {
                 <div className="text-xs font-bold text-foreground/60">{pct}%</div>
               </div>
               <Progress value={pct} className="h-1.5" />
+
+              {productJobs.length > 0 && (
+                <div className="pt-3 border-t border-border space-y-2">
+                  <h4 className="text-[10px] font-bold uppercase tracking-wider text-foreground/40">
+                    Jobs ({productJobs.length})
+                  </h4>
+                  <div className="space-y-1.5">
+                    {productJobs.map((job) => {
+                      const jobStage = job.stage_id ? stageMap.get(job.stage_id)?.stage : null;
+                      const isDone = jobStage?.is_done || job.status === "done" || !!job.done_at;
+                      return (
+                        <div key={job.id} className="flex items-center justify-between gap-2 text-xs">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            {isDone ? (
+                              <CheckCircle2 className="size-3.5 text-emerald-500 shrink-0" />
+                            ) : job.status === "in_progress" ? (
+                              <Clock className="size-3.5 text-amber-500 shrink-0" />
+                            ) : (
+                              <Circle className="size-3.5 text-foreground/20 shrink-0" />
+                            )}
+                            <span className="truncate">{job.title}</span>
+                          </div>
+                          {jobStage && (
+                            <div className="flex items-center gap-1 shrink-0">
+                              <span className="size-1.5 rounded-full" style={{ background: jobStage.color }} />
+                              <span className="text-[10px] text-foreground/50">{jobStage.label}</span>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
