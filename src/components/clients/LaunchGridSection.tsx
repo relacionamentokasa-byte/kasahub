@@ -657,7 +657,7 @@ function ProductSheet({
   });
 
   // Pré-popula com o responsável comercial do cliente quando carregar e ainda estiver vazio
-  useMemo(() => {
+  useEffect(() => {
     if (responsaveis.length === 0 && clientData?.commercial_contact_name) {
       setResponsaveis([{ nome: clientData.commercial_contact_name, papel: "Responsável Comercial" }]);
     }
