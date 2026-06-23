@@ -26,8 +26,7 @@ export const Route = createFileRoute("/_authenticated/distribuicao")({
   notFoundComponent: () => <div className="p-6">Página não encontrada</div>,
 });
 
-const brl = (v: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+import { brl } from "@/lib/utils-format";
 
 function currentMonth() {
   const d = new Date();

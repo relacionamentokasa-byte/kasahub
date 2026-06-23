@@ -9,6 +9,7 @@ import { FloatingActions } from "@/components/FloatingActions";
 import { GlobalChatWidget } from "@/components/GlobalChatWidget";
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { FocusModeProvider, useFocusMode } from "@/contexts/FocusModeContext";
+import { PrivacyProvider } from "@/contexts/PrivacyContext";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { SplashScreen } from "@/components/SplashScreen";
 
@@ -75,12 +76,14 @@ function ShellLayout() {
   return (
     <PresenceProvider userId={user?.id}>
       <FocusModeProvider>
-        <SidebarProvider>
-          <ShellInner />
-          {showSplash && user?.id && (
-            <SplashScreen userId={user.id} onDone={handleSplashDone} />
-          )}
-        </SidebarProvider>
+        <PrivacyProvider>
+          <SidebarProvider>
+            <ShellInner />
+            {showSplash && user?.id && (
+              <SplashScreen userId={user.id} onDone={handleSplashDone} />
+            )}
+          </SidebarProvider>
+        </PrivacyProvider>
       </FocusModeProvider>
     </PresenceProvider>
   );

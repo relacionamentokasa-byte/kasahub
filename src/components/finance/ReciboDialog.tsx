@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { brl } from "@/lib/utils-format";
+import { brlForce as brl } from "@/lib/utils-format";
 
 interface Props {
   open: boolean;

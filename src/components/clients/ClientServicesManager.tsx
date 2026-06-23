@@ -21,8 +21,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const BRL = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+import { brl as BRL } from "@/lib/utils-format";
 
 export function ClientServicesManager({ clientId }: { clientId: string }) {
   const qc = useQueryClient();
