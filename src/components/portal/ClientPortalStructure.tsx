@@ -120,3 +120,109 @@ export function ClientPortalStructure() {
     </div>
   );
 }
+
+function LaunchGridProgress({ clientId }: { clientId: string }) {
+  const { data: statuses = [] } = useQuery({
+    queryKey: ["portal-launch-statuses", clientId],
+    queryFn: () => listStatusesByClient(clientId),
+  });
+  const { data: products = [] } = useQuery({
+    queryKey: ["portal-launch-products", clientId],
+    queryFn: () => listProductsByClient(clientId),
+  });
+
+  if (products.length === 0 || statuses.length === 0) return null;
+
+  const ordered = [...statuses].sort((a, b) => a.order_index - b.order_index);
+  const stageMap = new Map(ordered.map((s, i) => [s.id, { stage: s, index: i }]));
+  const total = ordered.length;
+
+  const productProgress = (statusId: string | null) => {
+    if (!statusId) return 0;
+    const found = stageMap.get(statusId);
+    if (!found) return 0;
+    if (found.stage.is_done) return 100;
+    return Math.round(((found.index + 1) / total) * 100);
+  };
+
+  const stageCounts = ordered.map((s) => ({
+    ...s,
+    count: products.filter((p) => p.status_id === s.id).length,
+  }));
+  const doneCount = products.filter((p) => {
+    const f = p.status_id ? stageMap.get(p.status_id) : null;
+    return f?.stage.is_done;
+  }).length;
+  const overall = Math.round((doneCount / products.length) * 100);
+
+  return (
+    <section className="space-y-5">
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-2xl font-display font-bold flex items-center gap-2">
+            <Rocket className="size-5 text-primary" /> Grid de Lançamento
+          </h2>
+          <p className="text-foreground/50 mt-1 text-sm">Acompanhe o progresso de cada produto pelas etapas do lançamento.</p>
+        </div>
+        <div className="text-right">
+          <div className="text-xs text-foreground/50">Concluídos</div>
+          <div className="text-lg font-bold">{doneCount}/{products.length} <span className="text-foreground/40 text-sm">({overall}%)</span></div>
+        </div>
+      </div>
+
+      {/* Stage pipeline */}
+      <div className="bg-surface border border-border rounded-2xl p-4">
+        <div className="flex items-center gap-2 flex-wrap">
+          {stageCounts.map((s, i) => (
+            <div key={s.id} className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-background">
+                <span className="size-2 rounded-full" style={{ background: s.color }} />
+                <span className="text-xs font-medium">{s.label}</span>
+                <span className="text-[10px] text-foreground/40">{s.count}</span>
+              </div>
+              {i < stageCounts.length - 1 && <span className="text-foreground/20">→</span>}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Products */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {products.map((p) => {
+          const st = p.status_id ? stageMap.get(p.status_id)?.stage : null;
+          const pct = productProgress(p.status_id);
+          return (
+            <div key={p.id} className="bg-surface border border-border rounded-2xl p-4 space-y-3 hover:border-primary/30 transition shadow-sm">
+              <div className="flex items-start gap-3">
+                <div className="size-14 rounded-lg bg-muted overflow-hidden shrink-0 flex items-center justify-center">
+                  {p.image_url ? (
+                    <StorageImage src={p.image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <Rocket className="size-5 text-foreground/30" />
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold truncate">{p.name}</div>
+                  {st && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <span className="size-2 rounded-full" style={{ background: st.color }} />
+                      <span className="text-xs text-foreground/60">{st.label}</span>
+                    </div>
+                  )}
+                  {p.due_date && (
+                    <div className="text-[10px] text-foreground/40 mt-0.5">
+                      Previsto: {format(new Date(p.due_date), "dd/MM/yyyy")}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs font-bold text-foreground/60">{pct}%</div>
+              </div>
+              <Progress value={pct} className="h-1.5" />
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
