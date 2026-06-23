@@ -31,13 +31,100 @@ type Slide = {
     | "conditions"
     | "closing";
   title?: string;
+  scopeChunk?: { items: ScopeItem[]; page: number; total: number };
 };
+
+type ScopeItem = { title: string; description?: string };
+
+const SCOPE_PER_SLIDE = 6;
+
+function stripHtml(html: string): string {
+  if (typeof document === "undefined") return html.replace(/<[^>]+>/g, "");
+  const div = document.createElement("div");
+  div.innerHTML = html;
+  return div.textContent || div.innerText || "";
+}
+
+function parseScope(raw: unknown): ScopeItem[] {
+  if (!raw) return [];
+  // Array input
+  if (Array.isArray(raw)) {
+    return raw
+      .map((v) => (typeof v === "string" ? v : v?.title || ""))
+      .filter(Boolean)
+      .map((t) => splitTitleDesc(t));
+  }
+  if (typeof raw !== "string") return [];
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+
+  // JSON array
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .map((v) => (typeof v === "string" ? v : v?.title || ""))
+          .filter(Boolean)
+          .map((t) => splitTitleDesc(t));
+      }
+    } catch {}
+  }
+
+  // HTML — extract <li> first, fallback to <p>/lines
+  if (/<\/?[a-z][\s\S]*>/i.test(trimmed)) {
+    const liMatches = Array.from(trimmed.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi));
+    if (liMatches.length) {
+      return liMatches
+        .map((m) => stripHtml(m[1]).trim())
+        .filter(Boolean)
+        .map(splitTitleDesc);
+    }
+    const text = stripHtml(trimmed);
+    return text
+      .split(/\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map(splitTitleDesc);
+  }
+
+  // Plain text — split by newlines or bullets
+  return trimmed
+    .split(/\n+|(?:^|\s)[•·\-–]\s+/)
+    .map((s) => s.trim().replace(/^[•·\-–]\s*/, ""))
+    .filter(Boolean)
+    .map(splitTitleDesc);
+}
+
+function splitTitleDesc(s: string): ScopeItem {
+  // "Title: description" or "Title — description"
+  const m = s.match(/^([^:—–]{3,80})\s*[:—–]\s*(.+)$/);
+  if (m) return { title: m[1].trim(), description: m[2].trim() };
+  return { title: s };
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
 
 function buildSlides(p: Proposal | undefined, items: ProposalItem[]): Slide[] {
   if (!p) return [];
   const slides: Slide[] = [{ id: "cover", kind: "cover" }];
   if (p.intro && p.intro.trim()) slides.push({ id: "intro", kind: "intro", title: "Sobre" });
-  if (p.scope_text || p.scope) slides.push({ id: "scope", kind: "scope", title: "Escopo" });
+  const scopeItems = parseScope((p as any).scope_text || p.scope);
+  if (scopeItems.length) {
+    const chunks = chunk(scopeItems, SCOPE_PER_SLIDE);
+    chunks.forEach((c, i) =>
+      slides.push({
+        id: `scope-${i}`,
+        kind: "scope",
+        title: "Escopo",
+        scopeChunk: { items: c, page: i + 1, total: chunks.length },
+      }),
+    );
+  }
   if (items.length) slides.push({ id: "items", kind: "items", title: "Serviços" });
   slides.push({ id: "investment", kind: "investment", title: "Investimento" });
   slides.push({ id: "conditions", kind: "conditions", title: "Condições" });
