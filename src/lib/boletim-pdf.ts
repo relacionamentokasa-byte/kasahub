@@ -156,8 +156,8 @@ export async function exportBoletimPdf(
   // Carrega Funnel Display (títulos) e Onest (subtítulos/corpo).
   // Em caso de falha de rede, cai para Helvetica.
   const fonts = await registerBoletimFonts(doc);
-  const FONT_TITLE = fonts.funnel ? "Funnel" : "helvetica";
-  const FONT_BODY = fonts.onest ? "Onest" : "helvetica";
+  const FONT_TITLE = fonts.funnel ? "Funnel" : FONT_BODY;
+  const FONT_BODY = fonts.onest ? "Onest" : FONT_BODY;
 
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
@@ -183,13 +183,13 @@ export async function exportBoletimPdf(
 
   // Etiqueta
   doc.setTextColor(...K.brand);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.setFontSize(9);
   doc.text("KASA HUB  •  BOLETIM DE LANÇAMENTO", M, 60, { charSpace: 2.5 });
 
   if (product.clientName) {
     doc.setTextColor(...K.sub);
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(10);
     doc.text(`Cliente: ${product.clientName}`, M, 78);
   }
@@ -234,7 +234,7 @@ export async function exportBoletimPdf(
   // Título
   const titleY = coverY + coverBoxH + 64;
   doc.setTextColor(...K.ink);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.setFontSize(28);
   const titleLines = doc.splitTextToSize(product.name || "Produto", CW);
   doc.text(titleLines, W / 2, titleY, { align: "center" });
@@ -242,7 +242,7 @@ export async function exportBoletimPdf(
   // Categoria
   if (b.categoria) {
     doc.setTextColor(...K.brand);
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(10.5);
     doc.text(b.categoria.toUpperCase(), W / 2, titleY + 22, { align: "center", charSpace: 3 });
   }
@@ -275,7 +275,7 @@ export async function exportBoletimPdf(
     ensureSpace(44);
     doc.setFillColor(...K.brand);
     doc.rect(M, y + 2, 3.5, 16, "F");
-    doc.setFont("helvetica", "bold");
+    doc.setFont(FONT_BODY, "bold");
     doc.setFontSize(11.5);
     doc.setTextColor(...K.inkDark);
     doc.text(label.toUpperCase(), M + 14, y + 14, { charSpace: 1.8 });
@@ -290,7 +290,7 @@ export async function exportBoletimPdf(
     if (!text) return;
     const size = opts?.size ?? 10;
     const color = opts?.color ?? K.inkDark;
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(size);
     doc.setTextColor(...color);
     const wrapped = doc.splitTextToSize(text, CW);
@@ -329,11 +329,11 @@ export async function exportBoletimPdf(
         // barra esquerda âmbar fina
         doc.setFillColor(...K.brand);
         doc.rect(xc, y, 2.5, cardH, "F");
-        doc.setFont("helvetica", "bold");
+        doc.setFont(FONT_BODY, "bold");
         doc.setFontSize(7.5);
         doc.setTextColor(...K.muted);
         doc.text(item[0].toUpperCase(), xc + 12, y + 17, { charSpace: 1 });
-        doc.setFont("helvetica", "bold");
+        doc.setFont(FONT_BODY, "bold");
         doc.setFontSize(11.5);
         doc.setTextColor(...K.inkDark);
         const wrapped = doc.splitTextToSize(item[1], cardW - 22);
@@ -362,7 +362,7 @@ export async function exportBoletimPdf(
     doc.roundedRect(M, y, CW, 24, 5, 5, "F");
     doc.setFillColor(...K.brand);
     doc.rect(M, y + 14, CW, 10, "F");
-    doc.setFont("helvetica", "bold");
+    doc.setFont(FONT_BODY, "bold");
     doc.setFontSize(10);
     doc.setTextColor(...K.inkDark);
     doc.text(label.toUpperCase(), M + 14, y + 15, { charSpace: 1.5 });
@@ -396,12 +396,12 @@ export async function exportBoletimPdf(
     const infoW = CW - (infoX - M) - 14;
     let iy = imgY + 8;
     const kv = (k: string, v?: string) => {
-      doc.setFont("helvetica", "bold");
+      doc.setFont(FONT_BODY, "bold");
       doc.setFontSize(7.5);
       doc.setTextColor(...K.muted);
       doc.text(k.toUpperCase(), infoX, iy, { charSpace: 1 });
       iy += 12;
-      doc.setFont("helvetica", "normal");
+      doc.setFont(FONT_BODY, "normal");
       doc.setFontSize(11);
       doc.setTextColor(...K.inkDark);
       const ww = doc.splitTextToSize(v && v.length ? v : "—", infoW);
@@ -412,7 +412,7 @@ export async function exportBoletimPdf(
     kv("Fornecedor", fornecedor);
 
     if (images && images.length > 1) {
-      doc.setFont("helvetica", "italic");
+      doc.setFont(FONT_BODY, "italic");
       doc.setFontSize(8);
       doc.setTextColor(...K.muted);
       doc.text(`+${images.length - 1} imagem(ns) em referências visuais`, imgX, imgY + imgSize + 14);
@@ -476,7 +476,7 @@ export async function exportBoletimPdf(
       }
 
       if (captionFn) {
-        doc.setFont("helvetica", "normal");
+        doc.setFont(FONT_BODY, "normal");
         doc.setFontSize(7.5);
         doc.setTextColor(...K.muted);
         doc.text(captionFn(i), xc, y + tw + 11, { charSpace: 0.8 });
@@ -503,7 +503,7 @@ export async function exportBoletimPdf(
       margin: { left: M, right: M },
       head: [["Nome", "Papel"]],
       body: b.responsaveis.map((r) => [r.nome || "—", r.papel || "—"]),
-      styles: { fontSize: 9.5, cellPadding: 7, textColor: K.inkDark, lineColor: K.borderLt, lineWidth: 0.3, font: "helvetica" },
+      styles: { fontSize: 9.5, cellPadding: 7, textColor: K.inkDark, lineColor: K.borderLt, lineWidth: 0.3, font: FONT_BODY },
       headStyles: { fillColor: K.bg, textColor: K.brand, fontStyle: "bold", fontSize: 8.5, cellPadding: 7 },
       alternateRowStyles: { fillColor: K.soft },
     });
@@ -538,7 +538,7 @@ export async function exportBoletimPdf(
     sectionTitle("Links");
     product.links.forEach((l) => {
       ensureSpace(16);
-      doc.setFont("helvetica", "normal");
+      doc.setFont(FONT_BODY, "normal");
       doc.setFontSize(10);
       doc.setTextColor(...K.brandDark);
       doc.textWithLink(`→ ${l.label || l.url}`, M, y, { url: l.url });
@@ -575,11 +575,11 @@ export async function exportBoletimPdf(
     doc.rect(0, 0, W, 3, "F");
 
     // Header
-    doc.setFont("helvetica", "bold");
+    doc.setFont(FONT_BODY, "bold");
     doc.setFontSize(8);
     doc.setTextColor(...K.brandDark);
     doc.text("KASA HUB  •  BOLETIM DE LANÇAMENTO", M, 30, { charSpace: 1.5 });
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT_BODY, "normal");
     doc.setTextColor(...K.muted);
     const right = [product.name, product.clientName].filter(Boolean).join(" • ");
     if (right) doc.text(right, W - M, 30, { align: "right" });
