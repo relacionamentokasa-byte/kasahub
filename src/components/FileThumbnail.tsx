@@ -53,6 +53,10 @@ export function FileThumbnail({ url, fileName, fileType, className, aspectClass 
 
   useEffect(() => {
     if (kind !== "pdf") return;
+    if (!url) {
+      setPdfState("err");
+      return;
+    }
     let cancelled = false;
     setPdfState("loading");
     (async () => {
@@ -103,6 +107,12 @@ export function FileThumbnail({ url, fileName, fileType, className, aspectClass 
           {pdfState === "loading" && (
             <div className="absolute inset-0 flex items-center justify-center">
               <Loader2 className={cn("size-5 animate-spin", meta.fg)} />
+            </div>
+          )}
+          {pdfState === "err" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+              <meta.Icon className={cn("size-8", meta.fg)} />
+              <span className={cn("text-[10px] font-black uppercase tracking-wider", meta.fg)}>PDF</span>
             </div>
           )}
           {pdfState !== "ok" && (
