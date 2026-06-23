@@ -767,7 +767,7 @@ function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId 
   );
 }
 
-function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: any[]; dragging?: boolean }) {
+function JobCardInner({ job, profiles = [], dragging, nextResponsibleId }: { job: Job; profiles?: any[]; dragging?: boolean; nextResponsibleId?: string | null }) {
   const navigate = useNavigate();
   const progress = (job as any).progress_percentage || 0;
   const totalSteps = (job as any).total_steps || 0;
@@ -777,6 +777,9 @@ function JobCardInner({ job, profiles = [], dragging }: { job: Job; profiles?: a
   const teamInvolvedRaw = (job as any).team_involved || [];
   // Evita duplicar o responsável principal na lista de equipe
   const teamInvolved = teamInvolvedRaw.filter((m: any) => m?.user_id && m.user_id !== mainRespId);
+  // "Bola da vez": pessoa do próximo item de checklist pendente
+  const ballPerson = nextResponsibleId ? profiles.find((p) => p.id === nextResponsibleId) : null;
+  const isOpen = job.status !== "done" && !job.done_at;
 
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
   const deadline = useMemo(() => {
