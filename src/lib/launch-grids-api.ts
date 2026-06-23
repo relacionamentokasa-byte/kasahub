@@ -165,6 +165,7 @@ export async function listGridProducts(gridId: string) {
     ...p,
     links: Array.isArray(p.links) ? p.links : [],
     skus: Array.isArray(p.skus) ? p.skus : [],
+    boletim: (p.boletim && typeof p.boletim === "object") ? p.boletim : {},
   })) as LaunchGridProduct[];
 }
 
