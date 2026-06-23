@@ -630,6 +630,10 @@ function ProductSheet({
   const [acondicionar, setAcondicionar] = useState<Acondicionar>(b0.acondicionar ?? "");
   const [descEmbalagem, setDescEmbalagem] = useState(b0.descricao_embalagem ?? "");
   const [responsaveis, setResponsaveis] = useState<Array<{ nome: string; papel?: string }>>(b0.responsaveis ?? []);
+  const [embalagemCor, setEmbalagemCor] = useState(b0.embalagem_cor ?? "");
+  const [embalagemFornecedor, setEmbalagemFornecedor] = useState(b0.embalagem_fornecedor ?? "");
+  const [tampaCor, setTampaCor] = useState(b0.tampa_cor ?? "");
+  const [tampaFornecedor, setTampaFornecedor] = useState(b0.tampa_fornecedor ?? "");
 
   const { data: jobs = [] } = useQuery({
     queryKey: ["product-jobs", product?.id],
