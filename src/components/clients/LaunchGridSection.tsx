@@ -648,6 +648,8 @@ function ProductSheet({
         regulatorio_verso: regulatorio, benchmark,
         volumetria, aspecto_fisico: aspecto, acondicionar,
         descricao_embalagem: descEmbalagem, responsaveis,
+        embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
+        tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
       };
       const payload = {
         name, description: product?.description ?? null, status_id: statusId || null,
