@@ -27,6 +27,37 @@ export type LaunchGridSku = {
   id: string;
   name: string;
   done?: boolean;
+  descricao?: string;
+  cor_acabamento?: string;
+  vol_ros?: string;
+  custo_compras?: string;
+  fornecedor?: string;
+};
+
+export type AspectoFisico =
+  | "gel" | "fluido" | "creme" | "locao" | "solido"
+  | "liquido" | "mousse" | "oleo" | "outros" | "";
+
+export type Acondicionar = "selo" | "caixa" | "ambos" | "";
+
+export type BoletimImagens = {
+  tampa?: string[];
+  embalagem?: string[];
+  rotulo?: string[];
+  outros?: string[];
+};
+
+export type LaunchGridBoletim = {
+  categoria?: string;
+  imagens?: BoletimImagens;
+  briefing_criacao?: string;
+  regulatorio_verso?: string;
+  benchmark?: string[];
+  volumetria?: string;
+  aspecto_fisico?: AspectoFisico;
+  acondicionar?: Acondicionar;
+  descricao_embalagem?: string;
+  responsaveis?: Array<{ nome: string; papel?: string }>;
 };
 
 export type LaunchGridProduct = {
@@ -41,6 +72,7 @@ export type LaunchGridProduct = {
   links: Array<{ label: string; url: string }>;
   skus: LaunchGridSku[];
   notes: string | null;
+  boletim: LaunchGridBoletim;
   order_index: number;
   created_at: string;
   updated_at: string;
