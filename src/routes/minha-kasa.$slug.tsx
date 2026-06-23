@@ -1207,34 +1207,38 @@ function ApprovalsInstagramSection({
 
   const displayName = client.company || client.name;
 
-  // Stories go to the bubble row at the top, not into the grid
+  const sortForPortal = (a: ApprovalItem, b: ApprovalItem) => {
+    if (a.status === "pending" && b.status !== "pending") return -1;
+    if (b.status === "pending" && a.status !== "pending") return 1;
+    return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
+  };
+
+  // Stories stay in bubbles. Documents get their own list instead of the Instagram feed grid.
   const storyItems = useMemo(
     () =>
       items
-        .filter((i) => i.format === "story")
-        .sort((a, b) => {
-          if (a.status === "pending" && b.status !== "pending") return -1;
-          if (b.status === "pending" && a.status !== "pending") return 1;
-          return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
-        }),
+        .filter((i) => i.format === "story" && !isDocumentApprovalItem(i))
+        .sort(sortForPortal),
     [items],
   );
-  const feedItems = useMemo(() => items.filter((i) => i.format !== "story"), [items]);
+  const nonStoryItems = useMemo(() => items.filter((i) => i.format !== "story"), [items]);
+  const documentItems = useMemo(() => nonStoryItems.filter(isDocumentApprovalItem).sort(sortForPortal), [nonStoryItems]);
+  const feedItems = useMemo(() => nonStoryItems.filter((i) => !isDocumentApprovalItem(i)), [nonStoryItems]);
 
-  const approved = feedItems.filter((i) => i.status === "approved").length;
-  const pending = feedItems.filter((i) => i.status === "pending").length;
-  const rejected = feedItems.filter((i) => i.status === "rejected").length;
+  const approved = nonStoryItems.filter((i) => i.status === "approved").length;
+  const pending = nonStoryItems.filter((i) => i.status === "pending").length;
+  const rejected = nonStoryItems.filter((i) => i.status === "rejected").length;
 
   const filtered = useMemo(() => {
-    const sorted = [...feedItems].sort((a, b) => {
-      // Pending first, then most recent
-      if (a.status === "pending" && b.status !== "pending") return -1;
-      if (b.status === "pending" && a.status !== "pending") return 1;
-      return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
-    });
+    const sorted = [...feedItems].sort(sortForPortal);
     if (filter === "all") return sorted;
     return sorted.filter((i) => i.status === filter);
   }, [feedItems, filter]);
+
+  const filteredDocuments = useMemo(() => {
+    if (filter === "all") return documentItems;
+    return documentItems.filter((i) => i.status === filter);
+  }, [documentItems, filter]);
 
 
   const shown = filtered.slice(0, visible);
@@ -1308,7 +1312,7 @@ function ApprovalsInstagramSection({
         <div className="mt-5 -mx-5 md:-mx-6 border-t border-slate-200">
           <div className="flex justify-around text-[11px] font-bold uppercase tracking-wider">
             {([
-              { k: "all", label: `Tudo (${feedItems.length})` },
+              { k: "all", label: `Tudo (${nonStoryItems.length})` },
               { k: "pending", label: `⏳ Pendentes (${pending})` },
               { k: "approved", label: `✅ Aprovadas (${approved})` },
               { k: "rejected", label: `✏️ Ajustes (${rejected})` },
@@ -1376,19 +1380,41 @@ function ApprovalsInstagramSection({
         </div>
       )}
 
-      {/* INSTAGRAM GRID — 3 columns, 4px gap */}
+      {/* DOCUMENTS — files like PSD, Word and Excel should not look like social feed posts */}
+      {filteredDocuments.length > 0 && (
+        <div className="mt-3 md:mt-4 space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
+              <FileText className="size-3.5 text-[var(--portal-primary)]" />
+              Documentos para revisar
+            </h3>
+            <span className="text-[11px] font-bold text-slate-500">
+              {filteredDocuments.length} {filteredDocuments.length === 1 ? "arquivo" : "arquivos"}
+            </span>
+          </div>
+          <div className="space-y-2.5">
+            {filteredDocuments.map((item) => (
+              <ApprovalDocumentRow key={item.id} item={item} onOpen={() => setActiveId(item.id)} />
+            ))}
+          </div>
+        </div>
+      )}
 
-      <div className="mt-3 md:mt-4 grid grid-cols-3 gap-1">
-        {shown.map((item) => (
-          <ApprovalGridTile
-            key={item.id}
-            item={item}
-            onClick={() => setActiveId(item.id)}
-          />
-        ))}
-      </div>
+      {/* INSTAGRAM GRID — only image/video/text social pieces */}
 
-      {filtered.length === 0 && (
+      {shown.length > 0 && (
+        <div className="mt-3 md:mt-4 grid grid-cols-3 gap-1">
+          {shown.map((item) => (
+            <ApprovalGridTile
+              key={item.id}
+              item={item}
+              onClick={() => setActiveId(item.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {filtered.length === 0 && filteredDocuments.length === 0 && (
         <div className="text-center py-12 text-sm text-slate-500">
           Nenhum item neste filtro.
         </div>
