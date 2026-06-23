@@ -3044,7 +3044,7 @@ function HomeSection({
       id: string;
       url: string;
       name: string;
-      kind: "image" | "video" | "pdf" | "other";
+      kind: FileKind;
       createdAt: string;
     };
     const items: Item[] = [];
@@ -3054,18 +3054,11 @@ function HomeSection({
       if (it.status !== "approved") return;
       const refDate = it.approved_at || it.updated_at || it.created_at;
       if (!refDate || new Date(refDate).getTime() < weekAgo) return;
-      const kind: Item["kind"] =
-        it.content_type === "image"
-          ? "image"
-          : it.content_type === "video"
-            ? "video"
-            : it.content_type === "pdf"
-              ? "pdf"
-              : "other";
+      const kind = getApprovalItemFileKind(it);
       items.push({
         id: `ap-${it.id}`,
         url: it.content_url,
-        name: it.title,
+        name: approvalFileName(it),
         kind,
         createdAt: refDate,
       });
