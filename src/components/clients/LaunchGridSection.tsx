@@ -34,6 +34,8 @@ import {
   listGridProducts, createProduct, updateProduct, deleteProduct,
   uploadProductImage, listProductJobs,
   type LaunchGridProduct, type LaunchGridStatus, type LaunchGridSku,
+  type LaunchGridBoletim, type BoletimImagens,
+  type AspectoFisico, type Acondicionar,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
 
