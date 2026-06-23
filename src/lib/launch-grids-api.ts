@@ -144,6 +144,17 @@ export async function listProductsByClient(clientId: string): Promise<LaunchGrid
   return listGridProducts(grid.id);
 }
 
+export async function listStatusesByClient(clientId: string): Promise<LaunchGridStatus[]> {
+  const { data: grid, error } = await supabase
+    .from("launch_grids")
+    .select("id")
+    .eq("client_id", clientId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!grid) return [];
+  return listGridStatuses(grid.id);
+}
+
 export async function listGridStatuses(gridId: string) {
   const { data, error } = await supabase
     .from("launch_grid_statuses")
