@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2, Globe } from "lucide-react";
+import { Plus, Search, Mail, Phone, ExternalLink, MoreVertical, Pencil, Trash2, Globe, Eye, EyeOff } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,24 +39,30 @@ function ClientsPage() {
   const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [editClient, setEditClient] = useState<any>(null);
   const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
+  const [showBilling, setShowBilling] = useState(false);
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", "with-billing-and-proposals"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
-        .select("*, transactions(amount, status, type), proposals(status)")
-        .order("company", { ascending: true });
+        .select("*, transactions(amount, status, type), proposals(status)");
       if (error) throw error;
       return data ?? [];
     },
   });
 
-  const filteredClients = clients.filter((c: any) => 
-    (c.name?.toLowerCase().includes(search.toLowerCase())) ||
-    (c.company?.toLowerCase().includes(search.toLowerCase())) ||
-    (c.email?.toLowerCase().includes(search.toLowerCase()))
-  );
+  const filteredClients = clients
+    .filter((c: any) =>
+      (c.name?.toLowerCase().includes(search.toLowerCase())) ||
+      (c.company?.toLowerCase().includes(search.toLowerCase())) ||
+      (c.email?.toLowerCase().includes(search.toLowerCase()))
+    )
+    .sort((a: any, b: any) => {
+      const an = (a.company || a.name || "").toString();
+      const bn = (b.company || b.name || "").toString();
+      return an.localeCompare(bn, "pt-BR", { sensitivity: "base" });
+    });
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto animate-reveal">
@@ -99,7 +105,18 @@ function ClientsPage() {
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Cliente / Empresa</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden md:table-cell">Contato</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-center">Contrato Ativo</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Faturamento</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">
+                <button
+                  type="button"
+                  onClick={() => setShowBilling((v) => !v)}
+                  className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                  aria-label={showBilling ? "Ocultar faturamento" : "Mostrar faturamento"}
+                  title={showBilling ? "Ocultar faturamento" : "Mostrar faturamento"}
+                >
+                  Faturamento
+                  {showBilling ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                </button>
+              </TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden sm:table-cell text-center">Status</TableHead>
               <TableHead className="w-[80px]"></TableHead>
             </TableRow>
@@ -180,10 +197,12 @@ function ClientsPage() {
                   </TableCell>
                   <TableCell className="py-4 text-right">
                     <span className={cn(
-                      "text-sm font-bold",
-                      totalBilling > 0 ? "text-foreground" : "text-foreground/20"
+                      "text-sm font-bold tabular-nums",
+                      !showBilling
+                        ? "text-foreground/30 tracking-widest select-none"
+                        : totalBilling > 0 ? "text-foreground" : "text-foreground/20"
                     )}>
-                      {brl(totalBilling)}
+                      {showBilling ? brl(totalBilling) : "••••••"}
                     </span>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell py-4 text-center">
