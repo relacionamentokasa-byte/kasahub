@@ -54,7 +54,7 @@ export function ClientPortalStructure() {
     <div className="space-y-10 p-6 lg:p-10 max-w-7xl mx-auto">
       <ClientOnboardingPortalView clientId={clientId} />
 
-      <LaunchGridProgress clientId={clientId} />
+      <LaunchGridProgress clientId={clientId} jobs={jobs} />
 
 
 
