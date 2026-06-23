@@ -665,20 +665,6 @@ function ProductSheet({
     }
   };
 
-  const setSkuCount = (value: number) => {
-    const count = Math.max(0, Math.min(50, Number.isFinite(value) ? value : 0));
-    setSkus((current) => {
-      if (count <= current.length) return current.slice(0, count);
-      return [
-        ...current,
-        ...Array.from({ length: count - current.length }, () => ({ id: crypto.randomUUID(), name: "" })),
-      ];
-    });
-  };
-
-  const updateSku = (i: number, patch: Partial<LaunchGridSku>) => {
-    const n = [...skus]; n[i] = { ...n[i], ...patch }; setSkus(n);
-  };
 
   const ASPECTO_OPTIONS: { value: AspectoFisico; label: string }[] = [
     { value: "gel", label: "Gel" }, { value: "fluido", label: "Fluido" },
