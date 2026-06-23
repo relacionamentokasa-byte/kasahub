@@ -141,10 +141,8 @@ export function EditClientDialog({
         </DialogHeader>
 
         <Tabs defaultValue="dados" className="w-full">
-          <TabsList className="grid grid-cols-4 w-full">
+          <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="dados">Dados</TabsTrigger>
-            <TabsTrigger value="contrato">Contrato</TabsTrigger>
-            <TabsTrigger value="servicos">Serviços</TabsTrigger>
             <TabsTrigger value="portal">Portal</TabsTrigger>
           </TabsList>
 
