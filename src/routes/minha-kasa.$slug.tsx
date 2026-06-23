@@ -40,6 +40,8 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { FileThumbnail } from "@/components/FileThumbnail";
+import { PdfDocumentViewer } from "@/components/PdfDocumentViewer";
 
 
 export const Route = createFileRoute("/minha-kasa/$slug")({
@@ -292,28 +294,8 @@ function fileNameFromUrl(url: string): string {
 /** Renders a PDF embed with toolbar overlay (open / download). */
 function PdfPreview({ url, name }: { url: string; name: string }) {
   return (
-    <div className="w-full bg-slate-100 flex flex-col border-b border-slate-200">
-      <iframe
-        src={`${url}#toolbar=1&navpanes=0&view=FitH`}
-        title={name}
-        className="w-full h-[560px] bg-white"
-      />
-      <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-white">
-        <span className="text-xs font-semibold text-slate-700 truncate inline-flex items-center gap-2 min-w-0">
-          <span className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[9px] font-black shrink-0" style={{ background: FILE_META.pdf.bg, color: FILE_META.pdf.color }}>PDF</span>
-          <span className="truncate">{name}</span>
-        </span>
-        <div className="flex gap-3 shrink-0">
-          <a href={url} target="_blank" rel="noreferrer"
-             className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-[var(--portal-primary)] transition-colors">
-            <ExternalLink className="size-3.5" /> Abrir
-          </a>
-          <a href={url} download={name}
-             className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 hover:text-[var(--portal-primary)] transition-colors">
-            <Download className="size-3.5" /> Baixar
-          </a>
-        </div>
-      </div>
+    <div className="w-full h-[560px] bg-slate-100 border-b border-slate-200">
+      <PdfDocumentViewer url={url} fileName={name} className="h-full" />
     </div>
   );
 }
@@ -347,13 +329,8 @@ function DocumentCard({ url, name, kind }: { url: string; name: string; kind: Fi
 
 /** Small thumbnail for document type (used in thumbnail strips / grids). */
 function FileThumb({ name, type }: { name: string; type?: string | null }) {
-  const kind = getFileKind(name, type);
-  const meta = FILE_META[kind];
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center gap-0.5" style={{ background: meta.bg }}>
-      <span className="font-black" style={{ color: meta.color, fontSize: meta.badge.length > 2 ? 10 : 16 }}>{meta.badge}</span>
-      <span className="text-[8px] font-bold uppercase tracking-wider" style={{ color: meta.color }}>{meta.label}</span>
-    </div>
+    <FileThumbnail url="" fileName={name} fileType={type} aspectClass="h-full w-full aspect-auto" className="rounded-none border-0 ring-0" />
   );
 }
 
@@ -1457,10 +1434,13 @@ function ApprovalGridTile({ item, onClick }: { item: ApprovalItem; onClick: () =
           </div>
         </>
       ) : item.content_type === "pdf" ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 gap-1.5">
-          <FileText className="size-8" />
-          <span className="text-[10px] font-bold uppercase tracking-wider">PDF</span>
-        </div>
+        <FileThumbnail
+          url={item.thumbnail_url || item.content_url || ""}
+          fileName={fileNameFromUrl(item.content_url || item.title)}
+          fileType="application/pdf"
+          aspectClass="aspect-square"
+          className="absolute inset-0 rounded-none border-0 ring-0"
+        />
       ) : (
         <div className="absolute inset-0 p-3 bg-white text-slate-800 text-[10px] leading-tight overflow-hidden">
           <div className="font-bold uppercase tracking-wider text-[9px] text-slate-400 mb-1">📝 Legenda</div>

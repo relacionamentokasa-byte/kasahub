@@ -7,6 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Download, ExternalLink, X } from "lucide-react";
 import { FileThumbnail, getFileKind } from "@/components/FileThumbnail";
+import { PdfDocumentViewer } from "@/components/PdfDocumentViewer";
 
 interface AttachmentViewerProps {
   url: string | null;
@@ -87,11 +88,7 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
               className="max-w-full max-h-full object-contain"
             />
           ) : isPDF ? (
-            <iframe
-              src={`${url}#toolbar=0`}
-              className="w-full h-full rounded-sm bg-white"
-              title={fileName}
-            />
+            <PdfDocumentViewer url={url} fileName={fileName} showActions={false} className="h-full rounded-sm" />
           ) : isOffice && officeViewerUrl ? (
             <iframe
               src={officeViewerUrl}
