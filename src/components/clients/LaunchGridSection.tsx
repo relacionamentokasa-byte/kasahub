@@ -635,9 +635,9 @@ function ProductSheet({
         descricao_embalagem: descEmbalagem, responsaveis,
       };
       const payload = {
-        name, description, status_id: statusId || null,
-        due_date: dueDate || null, notes,
-        image_url: imageUrl, links, skus: product?.skus ?? [], boletim,
+        name, description: product?.description ?? null, status_id: statusId || null,
+        due_date: dueDate || null, notes: product?.notes ?? null,
+        image_url: imageUrl, links: product?.links ?? [], skus: product?.skus ?? [], boletim,
       };
       if (isEdit) return updateProduct(product!.id, payload);
       return createProduct({ grid_id: gridId, ...payload });
