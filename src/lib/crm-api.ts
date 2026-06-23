@@ -422,5 +422,14 @@ export function recalcProposalTotals(items: ProposalItem[]) {
 }
 
 export function formatCurrency(value: number, currency = "BRL") {
+  // Respeita o modo privacidade global (olhinho da topbar).
+  // Usa import dinâmico para evitar ciclo de dependências.
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { isMoneyHidden, MONEY_MASK } = require("./utils-format") as typeof import("./utils-format");
+    if (isMoneyHidden()) return MONEY_MASK;
+  } catch {
+    /* noop */
+  }
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(value);
 }
