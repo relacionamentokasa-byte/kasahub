@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -38,6 +38,7 @@ import {
   type AspectoFisico, type Acondicionar,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 import { CATEGORIA_OPTIONS } from "@/lib/boletim-pdf";
 
 type Props = { clientId: string; clientName: string };
@@ -630,11 +631,37 @@ function ProductSheet({
   const [aspecto, setAspecto] = useState<AspectoFisico>(b0.aspecto_fisico ?? "");
   const [acondicionar, setAcondicionar] = useState<Acondicionar>(b0.acondicionar ?? "");
   const [descEmbalagem, setDescEmbalagem] = useState(b0.descricao_embalagem ?? "");
-  const [responsaveis, setResponsaveis] = useState<Array<{ nome: string; papel?: string }>>(b0.responsaveis ?? []);
+  
   const [embalagemCor, setEmbalagemCor] = useState(b0.embalagem_cor ?? "");
   const [embalagemFornecedor, setEmbalagemFornecedor] = useState(b0.embalagem_fornecedor ?? "");
   const [tampaCor, setTampaCor] = useState(b0.tampa_cor ?? "");
   const [tampaFornecedor, setTampaFornecedor] = useState(b0.tampa_fornecedor ?? "");
+
+  const { data: clientData } = useQuery({
+    queryKey: ["client-commercial", clientId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("clients")
+        .select("commercial_contact_name, commercial_contact_email, commercial_contact_phone")
+        .eq("id", clientId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!clientId,
+  });
+
+  const [responsaveis, setResponsaveis] = useState<Array<{ nome: string; papel?: string }>>(() => {
+    if (b0.responsaveis && b0.responsaveis.length > 0) return b0.responsaveis;
+    return [];
+  });
+
+  // Pré-popula com o responsável comercial do cliente quando carregar e ainda estiver vazio
+  useEffect(() => {
+    if (responsaveis.length === 0 && clientData?.commercial_contact_name) {
+      setResponsaveis([{ nome: clientData.commercial_contact_name, papel: "Responsável Comercial" }]);
+    }
+  }, [clientData?.commercial_contact_name]);
 
   const { data: jobs = [] } = useQuery({
     queryKey: ["product-jobs", product?.id],
