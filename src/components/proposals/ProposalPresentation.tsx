@@ -162,18 +162,24 @@ function buildSlides(p: Proposal | undefined, items: ProposalItem[]): Slide[] {
   if (!p) return [];
   const slides: Slide[] = [{ id: "cover", kind: "cover" }];
   if (p.intro && p.intro.trim()) slides.push({ id: "intro", kind: "intro", title: "Sobre" });
-  const scopeItems = parseScope((p as any).scope_text || p.scope);
-  if (scopeItems.length) {
-    const chunks = chunk(scopeItems, SCOPE_PER_SLIDE);
-    chunks.forEach((c, i) =>
+  const sections = parseScopeSections((p as any).scope_text || p.scope);
+  sections.forEach((section, sIdx) => {
+    const chunks = chunk(section.items, SCOPE_PER_SLIDE);
+    chunks.forEach((items, pIdx) => {
       slides.push({
-        id: `scope-${i}`,
+        id: `scope-${sIdx}-${pIdx}`,
         kind: "scope",
         title: "Escopo",
-        scopeChunk: { items: c, page: i + 1, total: chunks.length },
-      }),
-    );
-  }
+        scopeChunk: {
+          section: { ...section, items },
+          page: pIdx + 1,
+          totalPages: chunks.length,
+          sectionIndex: sIdx,
+          totalSections: sections.length,
+        },
+      });
+    });
+  });
   if (items.length) slides.push({ id: "items", kind: "items", title: "Serviços" });
   slides.push({ id: "investment", kind: "investment", title: "Investimento" });
   slides.push({ id: "conditions", kind: "conditions", title: "Condições" });
