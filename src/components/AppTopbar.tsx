@@ -1,4 +1,5 @@
-import { LogOut, Moon, Search, Sparkles, Sun } from "lucide-react";
+import { LogOut, Moon, Sparkles, Sun } from "lucide-react";
+import { GlobalSearch } from "./GlobalSearch";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -73,17 +74,7 @@ export function AppTopbar() {
         <SidebarTrigger className="text-foreground/60 hover:text-foreground" />
 
 
-        <div className="hidden lg:flex items-center gap-3 bg-surface/60 border border-border px-4 h-9 rounded-full w-full max-w-md">
-          <Search className="size-4 text-foreground/40" />
-          <input
-            type="text"
-            placeholder="Busca global — clientes, tarefas, parceiros, propostas…"
-            className="bg-transparent border-none outline-none text-sm w-full placeholder:text-foreground/40"
-          />
-          <kbd className="text-[10px] font-mono-kasa text-foreground/30 border border-border rounded px-1.5 py-0.5">
-            ⌘K
-          </kbd>
-        </div>
+        <GlobalSearch />
       </div>
 
       <div className="flex items-center gap-2 lg:gap-4">
