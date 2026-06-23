@@ -1722,6 +1722,8 @@ function ApprovalFullscreenModal({
   const itemComments = comments.filter((c) => c.slide_id === null);
 
   const isStory = item.format === "story";
+  const itemFileKind = getApprovalItemFileKind(item);
+  const isDocumentItem = isDocumentFileKind(itemFileKind);
 
   return (
     <div
@@ -1729,7 +1731,7 @@ function ApprovalFullscreenModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full h-full sm:h-auto sm:max-h-[95vh] ${isStory ? "sm:max-w-[420px]" : "sm:max-w-md"} sm:rounded-2xl bg-black overflow-hidden flex flex-col`}
+        className={`relative w-full h-full sm:h-auto sm:max-h-[95vh] ${isStory ? "sm:max-w-[420px]" : isDocumentItem || item.content_type === "pdf" ? "sm:max-w-6xl" : "sm:max-w-md"} sm:rounded-2xl bg-black overflow-hidden flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Story progress bars */}
@@ -1780,6 +1782,10 @@ function ApprovalFullscreenModal({
             ) : (
               <img src={activeSlide.url} alt={`Slide ${slideIdx + 1}`} className="w-full h-full object-contain" />
             )
+          ) : isDocumentItem && item.content_url ? (
+            <div className="w-full h-full bg-white overflow-hidden">
+              <ApprovalDocumentViewer item={item} />
+            </div>
           ) : item.content_type === "image" && item.content_url ? (
             <img src={item.content_url} alt={item.title} className="w-full h-full object-contain" />
           ) : item.content_type === "video" && item.content_url ? (
