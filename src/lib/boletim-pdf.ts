@@ -20,15 +20,31 @@ const ACOND_LABEL: Record<string, string> = {
   selo: "Selo", caixa: "Caixa", ambos: "Selo + Caixa",
 };
 
-// Paleta refinada
-const C = {
-  ink: [15, 23, 42] as [number, number, number],
-  sub: [100, 116, 139] as [number, number, number],
-  muted: [148, 163, 184] as [number, number, number],
-  border: [226, 232, 240] as [number, number, number],
-  soft: [248, 250, 252] as [number, number, number],
-  accent: [180, 142, 84] as [number, number, number], // dourado discreto
-  accentSoft: [245, 235, 220] as [number, number, number],
+/* =========================================================
+ * Paleta Kasa Hub (espelha src/styles.css)
+ *  bg     #0C1618   verde-petróleo
+ *  surf   #142124   superfície
+ *  card   #1B2A2D   card elevado
+ *  ink    #F4F7F5   texto principal
+ *  sub    #9CB1B0   texto secundário
+ *  muted  #6B807F   texto auxiliar
+ *  brand  #FFBC45   amarelo Kasa
+ *  brandS #3A2E12   amarelo Kasa esmaecido
+ * ========================================================= */
+const K = {
+  bg:        [12, 22, 24]    as [number, number, number],
+  surf:      [20, 33, 36]    as [number, number, number],
+  card:      [27, 42, 45]    as [number, number, number],
+  ink:       [244, 247, 245] as [number, number, number],
+  inkDark:   [15, 23, 25]    as [number, number, number],
+  sub:       [156, 177, 176] as [number, number, number],
+  muted:     [107, 128, 127] as [number, number, number],
+  border:    [42, 60, 63]    as [number, number, number],
+  borderLt:  [228, 232, 230] as [number, number, number],
+  soft:      [246, 248, 246] as [number, number, number],
+  brand:     [255, 188, 69]  as [number, number, number],
+  brandDark: [201, 142, 38]  as [number, number, number],
+  brandSoft: [255, 240, 210] as [number, number, number],
 };
 
 async function imageToDataURL(url: string): Promise<string | null> {
@@ -50,8 +66,26 @@ async function imageToDataURL(url: string): Promise<string | null> {
 function tryAddImage(doc: jsPDF, dataUrl: string, x: number, y: number, w: number, h: number) {
   try { doc.addImage(dataUrl, "JPEG", x, y, w, h, undefined, "FAST"); return true; }
   catch {
-    try { doc.addImage(dataUrl, "PNG", x, y, w, h, undefined, "FAST"); return true; } catch { return false; }
+    try { doc.addImage(dataUrl, "PNG", x, y, w, h, undefined, "FAST"); return true; }
+    catch {
+      try { doc.addImage(dataUrl, "WEBP" as any, x, y, w, h, undefined, "FAST"); return true; } catch { return false; }
+    }
   }
+}
+
+// Calcula dimensões "cover" mantendo proporção dentro do box
+async function fitCover(dataUrl: string, boxW: number, boxH: number) {
+  return new Promise<{ w: number; h: number; ox: number; oy: number }>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const iw = img.width, ih = img.height;
+      const scale = Math.max(boxW / iw, boxH / ih);
+      const w = iw * scale, h = ih * scale;
+      resolve({ w, h, ox: (boxW - w) / 2, oy: (boxH - h) / 2 });
+    };
+    img.onerror = () => resolve({ w: boxW, h: boxH, ox: 0, oy: 0 });
+    img.src = dataUrl;
+  });
 }
 
 export async function exportBoletimPdf(
@@ -65,80 +99,95 @@ export async function exportBoletimPdf(
   const W = doc.internal.pageSize.getWidth();
   const H = doc.internal.pageSize.getHeight();
   const M = 44;
-  const CW = W - 2 * M; // content width
+  const CW = W - 2 * M;
   const b = product.boletim;
+  const today = new Date().toLocaleDateString("pt-BR");
 
   // ============================================================
-  // CAPA
+  // CAPA — fundo escuro Kasa + acento âmbar
   // ============================================================
-  // Fundo escuro elegante na capa
-  doc.setFillColor(...C.ink);
+  doc.setFillColor(...K.bg);
   doc.rect(0, 0, W, H, "F");
 
-  // Faixa dourada no topo
-  doc.setFillColor(...C.accent);
-  doc.rect(0, 0, W, 4, "F");
+  // Padrão decorativo sutil — quadrado âmbar no canto
+  doc.setFillColor(...K.brand);
+  doc.rect(0, 0, W, 5, "F");
+  doc.setFillColor(...K.brand);
+  doc.rect(W - 90, H - 90, 90, 5, "F");
+  doc.rect(W - 5, H - 90, 5, 90, "F");
 
-  // Etiqueta superior
-  doc.setTextColor(...C.accent);
+  // Etiqueta
+  doc.setTextColor(...K.brand);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(9);
-  doc.text("BOLETIM DE LANÇAMENTO", M, 60, { charSpace: 2 });
+  doc.text("KASA HUB  •  BOLETIM DE LANÇAMENTO", M, 60, { charSpace: 2.5 });
 
   if (product.clientName) {
-    doc.setTextColor(200, 200, 200);
+    doc.setTextColor(...K.sub);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(product.clientName, M, 78);
+    doc.text(`Cliente: ${product.clientName}`, M, 78);
   }
 
-  // Imagem de capa grande, centralizada
-  const coverY = 110;
-  const coverH = 360;
+  // Imagem de capa com moldura âmbar
+  const coverY = 118;
+  const coverBoxW = Math.min(380, CW);
+  const coverBoxH = 360;
+  const cx = (W - coverBoxW) / 2;
+
+  // moldura âmbar
+  doc.setDrawColor(...K.brand);
+  doc.setLineWidth(1.5);
+  doc.roundedRect(cx - 8, coverY - 8, coverBoxW + 16, coverBoxH + 16, 6, 6, "S");
+
   if (product.image_url) {
     const dataUrl = await imageToDataURL(product.image_url);
     if (dataUrl) {
-      const coverW = Math.min(360, CW);
-      const cx = (W - coverW) / 2;
-      // moldura
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(cx - 6, coverY - 6, coverW + 12, coverH + 12, 4, 4, "F");
-      tryAddImage(doc, dataUrl, cx, coverY, coverW, coverH);
+      // clip via fundo escuro + imagem dentro
+      doc.setFillColor(...K.surf);
+      doc.roundedRect(cx, coverY, coverBoxW, coverBoxH, 4, 4, "F");
+      const fit = await fitCover(dataUrl, coverBoxW, coverBoxH);
+      // Ajusta para caber sem distorcer (contain) — preferimos contain na capa
+      const img = new Image();
+      await new Promise((r) => { img.onload = () => r(null); img.onerror = () => r(null); img.src = dataUrl; });
+      const ratio = img.width && img.height ? img.width / img.height : 1;
+      let drawW = coverBoxW, drawH = coverBoxW / ratio;
+      if (drawH > coverBoxH) { drawH = coverBoxH; drawW = coverBoxH * ratio; }
+      const dx = cx + (coverBoxW - drawW) / 2;
+      const dy = coverY + (coverBoxH - drawH) / 2;
+      tryAddImage(doc, dataUrl, dx, dy, drawW, drawH);
+      void fit;
     }
   } else {
-    // Placeholder discreto
-    doc.setDrawColor(...C.muted);
-    doc.setLineWidth(0.5);
-    const coverW = 360;
-    const cx = (W - coverW) / 2;
-    doc.roundedRect(cx, coverY, coverW, coverH, 4, 4, "S");
+    doc.setFillColor(...K.surf);
+    doc.roundedRect(cx, coverY, coverBoxW, coverBoxH, 4, 4, "F");
+    doc.setTextColor(...K.muted);
+    doc.setFontSize(10);
+    doc.text("sem imagem de produto", W / 2, coverY + coverBoxH / 2, { align: "center" });
   }
 
-  // Título do produto
-  const titleY = coverY + coverH + 60;
-  doc.setTextColor(255, 255, 255);
+  // Título
+  const titleY = coverY + coverBoxH + 64;
+  doc.setTextColor(...K.ink);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(26);
-  const title = product.name || "Produto";
-  const titleLines = doc.splitTextToSize(title, CW);
+  doc.setFontSize(28);
+  const titleLines = doc.splitTextToSize(product.name || "Produto", CW);
   doc.text(titleLines, W / 2, titleY, { align: "center" });
 
-  // Subtítulo: categoria
+  // Categoria
   if (b.categoria) {
-    doc.setTextColor(...C.accent);
+    doc.setTextColor(...K.brand);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
+    doc.setFontSize(10.5);
     doc.text(b.categoria.toUpperCase(), W / 2, titleY + 22, { align: "center", charSpace: 3 });
   }
 
-  // Rodapé da capa
-  doc.setDrawColor(...C.accent);
-  doc.setLineWidth(0.5);
-  doc.line(M, H - 70, M + 30, H - 70);
-  doc.setTextColor(180, 180, 180);
+  // Rodapé capa
+  doc.setDrawColor(...K.brand);
+  doc.setLineWidth(0.6);
+  doc.line(M, H - 70, M + 36, H - 70);
+  doc.setTextColor(...K.sub);
   doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  const today = new Date().toLocaleDateString("pt-BR");
   doc.text(`Emitido em ${today}`, M, H - 55);
   if (product.due_date) {
     doc.text(
@@ -148,29 +197,25 @@ export async function exportBoletimPdf(
   }
 
   // ============================================================
-  // PÁGINAS DE CONTEÚDO
+  // CONTEÚDO — fundo claro para leitura confortável
   // ============================================================
   doc.addPage();
-  let y = M + 10;
-
-  // Cabeçalho discreto em cada página de conteúdo (desenhado depois no loop)
+  let y = 64;
 
   const ensureSpace = (need: number) => {
-    if (y + need > H - 60) { doc.addPage(); y = M + 10; }
+    if (y + need > H - 60) { doc.addPage(); y = 64; }
   };
 
   const sectionTitle = (label: string) => {
-    ensureSpace(40);
-    // barra dourada vertical
-    doc.setFillColor(...C.accent);
-    doc.rect(M, y + 2, 3, 14, "F");
+    ensureSpace(44);
+    doc.setFillColor(...K.brand);
+    doc.rect(M, y + 2, 3.5, 16, "F");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(...C.ink);
-    doc.text(label.toUpperCase(), M + 12, y + 13, { charSpace: 1.5 });
-    y += 22;
-    // linha separadora fina
-    doc.setDrawColor(...C.border);
+    doc.setFontSize(11.5);
+    doc.setTextColor(...K.inkDark);
+    doc.text(label.toUpperCase(), M + 14, y + 14, { charSpace: 1.8 });
+    y += 24;
+    doc.setDrawColor(...K.borderLt);
     doc.setLineWidth(0.5);
     doc.line(M, y, W - M, y);
     y += 14;
@@ -179,12 +224,12 @@ export async function exportBoletimPdf(
   const paragraph = (text?: string | null, opts?: { size?: number; color?: [number, number, number] }) => {
     if (!text) return;
     const size = opts?.size ?? 10;
-    const color = opts?.color ?? C.ink;
+    const color = opts?.color ?? K.inkDark;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(size);
     doc.setTextColor(...color);
     const wrapped = doc.splitTextToSize(text, CW);
-    const lineH = size * 1.35;
+    const lineH = size * 1.45;
     for (const ln of wrapped) {
       ensureSpace(lineH + 2);
       doc.text(ln, M, y);
@@ -193,7 +238,7 @@ export async function exportBoletimPdf(
     y += 6;
   };
 
-  // ------- Bloco de identificação (grid 3 colunas) -------
+  // ---------- Identificação (cards) ----------
   const identItems: Array<[string, string]> = [];
   if (product.statusLabel) identItems.push(["Etapa atual", product.statusLabel]);
   if (b.categoria) identItems.push(["Categoria", b.categoria]);
@@ -207,100 +252,108 @@ export async function exportBoletimPdf(
     const cols = 3;
     const gap = 12;
     const cardW = (CW - gap * (cols - 1)) / cols;
-    const cardH = 50;
+    const cardH = 54;
     for (let i = 0; i < identItems.length; i += cols) {
       ensureSpace(cardH + 8);
       for (let j = 0; j < cols; j++) {
         const item = identItems[i + j];
         if (!item) continue;
-        const cx = M + j * (cardW + gap);
-        doc.setFillColor(...C.soft);
-        doc.roundedRect(cx, y, cardW, cardH, 3, 3, "F");
+        const xc = M + j * (cardW + gap);
+        doc.setFillColor(...K.soft);
+        doc.roundedRect(xc, y, cardW, cardH, 4, 4, "F");
+        // barra esquerda âmbar fina
+        doc.setFillColor(...K.brand);
+        doc.rect(xc, y, 2.5, cardH, "F");
         doc.setFont("helvetica", "bold");
         doc.setFontSize(7.5);
-        doc.setTextColor(...C.sub);
-        doc.text(item[0].toUpperCase(), cx + 10, y + 16, { charSpace: 1 });
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(11);
-        doc.setTextColor(...C.ink);
-        const wrapped = doc.splitTextToSize(item[1], cardW - 20);
-        doc.text(wrapped.slice(0, 2), cx + 10, y + 32);
+        doc.setTextColor(...K.muted);
+        doc.text(item[0].toUpperCase(), xc + 12, y + 17, { charSpace: 1 });
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(11.5);
+        doc.setTextColor(...K.inkDark);
+        const wrapped = doc.splitTextToSize(item[1], cardW - 22);
+        doc.text(wrapped.slice(0, 2), xc + 12, y + 34);
       }
       y += cardH + gap;
     }
-    y += 2;
+    y += 4;
   }
 
-  // ------- Cards de Tampa / Embalagem (imagem + cor + fornecedor) -------
-  const componentCard = async (
-    label: string,
-    images: string[] | undefined,
-    cor?: string,
-    fornecedor?: string,
-  ) => {
+  // ---------- Cards Tampa / Embalagem ----------
+  const componentCard = async (label: string, images: string[] | undefined, cor?: string, fornecedor?: string) => {
     if (!images?.length && !cor && !fornecedor) return;
-    const cardH = 130;
+    const cardH = 140;
     ensureSpace(cardH + 14);
+
     // moldura
-    doc.setDrawColor(...C.border);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(M, y, CW, cardH, 4, 4, "S");
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(M, y, CW, cardH, 5, 5, "F");
+    doc.setDrawColor(...K.borderLt);
+    doc.setLineWidth(0.6);
+    doc.roundedRect(M, y, CW, cardH, 5, 5, "S");
 
-    // header da card
-    doc.setFillColor(...C.accentSoft);
-    doc.roundedRect(M, y, CW, 22, 4, 4, "F");
-    // tira o canto inferior do header
-    doc.setFillColor(...C.accentSoft);
-    doc.rect(M, y + 12, CW, 10, "F");
+    // header âmbar
+    doc.setFillColor(...K.brand);
+    doc.roundedRect(M, y, CW, 24, 5, 5, "F");
+    doc.setFillColor(...K.brand);
+    doc.rect(M, y + 14, CW, 10, "F");
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(9.5);
-    doc.setTextColor(...C.ink);
-    doc.text(label.toUpperCase(), M + 12, y + 14, { charSpace: 1.2 });
+    doc.setFontSize(10);
+    doc.setTextColor(...K.inkDark);
+    doc.text(label.toUpperCase(), M + 14, y + 15, { charSpace: 1.5 });
 
-    // imagem (primeira)
-    const imgX = M + 12;
-    const imgY = y + 32;
-    const imgSize = 86;
+    // imagem
+    const imgX = M + 14;
+    const imgY = y + 36;
+    const imgSize = 92;
     if (images?.[0]) {
       const du = await imageToDataURL(images[0]);
-      if (du) tryAddImage(doc, du, imgX, imgY, imgSize, imgSize);
+      if (du) {
+        doc.setFillColor(...K.soft);
+        doc.roundedRect(imgX, imgY, imgSize, imgSize, 4, 4, "F");
+        const img = new Image();
+        await new Promise((r) => { img.onload = () => r(null); img.onerror = () => r(null); img.src = du; });
+        const ratio = img.width && img.height ? img.width / img.height : 1;
+        let dw = imgSize, dh = imgSize / ratio;
+        if (dh > imgSize) { dh = imgSize; dw = imgSize * ratio; }
+        tryAddImage(doc, du, imgX + (imgSize - dw) / 2, imgY + (imgSize - dh) / 2, dw, dh);
+      }
     } else {
-      doc.setDrawColor(...C.border);
-      doc.roundedRect(imgX, imgY, imgSize, imgSize, 3, 3, "S");
-      doc.setTextColor(...C.muted);
+      doc.setFillColor(...K.soft);
+      doc.roundedRect(imgX, imgY, imgSize, imgSize, 4, 4, "F");
+      doc.setTextColor(...K.muted);
       doc.setFontSize(8);
       doc.text("sem imagem", imgX + imgSize / 2, imgY + imgSize / 2 + 3, { align: "center" });
     }
 
-    // infos à direita
-    const infoX = imgX + imgSize + 18;
-    const infoW = CW - (infoX - M) - 12;
-    let iy = imgY + 6;
+    // info
+    const infoX = imgX + imgSize + 22;
+    const infoW = CW - (infoX - M) - 14;
+    let iy = imgY + 8;
     const kv = (k: string, v?: string) => {
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7.5);
-      doc.setTextColor(...C.sub);
+      doc.setTextColor(...K.muted);
       doc.text(k.toUpperCase(), infoX, iy, { charSpace: 1 });
-      iy += 11;
+      iy += 12;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(11);
-      doc.setTextColor(...C.ink);
+      doc.setTextColor(...K.inkDark);
       const ww = doc.splitTextToSize(v && v.length ? v : "—", infoW);
       doc.text(ww.slice(0, 2), infoX, iy);
-      iy += ww.slice(0, 2).length * 13 + 8;
+      iy += ww.slice(0, 2).length * 13 + 10;
     };
     kv("Cor", cor);
     kv("Fornecedor", fornecedor);
 
-    // contagem extra de imagens
     if (images && images.length > 1) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(8);
-      doc.setTextColor(...C.muted);
-      doc.text(`+${images.length - 1} imagens em referências visuais`, imgX, imgY + imgSize + 12);
+      doc.setTextColor(...K.muted);
+      doc.text(`+${images.length - 1} imagem(ns) em referências visuais`, imgX, imgY + imgSize + 14);
     }
 
-    y += cardH + 12;
+    y += cardH + 14;
   };
 
   const imgs = b.imagens ?? {};
@@ -310,32 +363,73 @@ export async function exportBoletimPdf(
     await componentCard("Embalagem", imgs.embalagem, b.embalagem_cor, b.embalagem_fornecedor);
   }
 
-  // ------- Descrição da embalagem -------
+  // ---------- Descrição da embalagem ----------
   if (b.descricao_embalagem) {
     sectionTitle("Descrição da embalagem");
     paragraph(b.descricao_embalagem);
   }
 
-  // ------- Briefing -------
+  // ---------- Briefing ----------
   if (b.briefing_criacao) {
     sectionTitle("Briefing de criação");
     paragraph(b.briefing_criacao);
   }
 
-  // ------- Regulatório -------
+  // ---------- Regulatório ----------
   if (b.regulatorio_verso) {
     sectionTitle("Regulatório / Verso");
     paragraph(b.regulatorio_verso);
   }
 
-  // ------- Benchmark (texto) -------
+  // ---------- Galeria de imagens (helper) ----------
+  const imageGallery = async (items: string[], cols = 3, captionFn?: (i: number) => string) => {
+    const gap = 10;
+    const tw = (CW - gap * (cols - 1)) / cols;
+    let col = 0;
+    for (let i = 0; i < items.length; i++) {
+      if (col === 0) ensureSpace(tw + 26);
+      const xc = M + col * (tw + gap);
+      // moldura suave
+      doc.setFillColor(...K.soft);
+      doc.roundedRect(xc, y, tw, tw, 4, 4, "F");
+      doc.setDrawColor(...K.borderLt);
+      doc.setLineWidth(0.4);
+      doc.roundedRect(xc, y, tw, tw, 4, 4, "S");
+
+      const du = await imageToDataURL(items[i]);
+      if (du) {
+        const img = new Image();
+        await new Promise((r) => { img.onload = () => r(null); img.onerror = () => r(null); img.src = du; });
+        const ratio = img.width && img.height ? img.width / img.height : 1;
+        let dw = tw - 6, dh = (tw - 6) / ratio;
+        if (dh > tw - 6) { dh = tw - 6; dw = (tw - 6) * ratio; }
+        tryAddImage(doc, du, xc + (tw - dw) / 2, y + (tw - dh) / 2, dw, dh);
+      } else {
+        doc.setTextColor(...K.muted);
+        doc.setFontSize(7.5);
+        doc.text("imagem indisponível", xc + tw / 2, y + tw / 2, { align: "center" });
+      }
+
+      if (captionFn) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(...K.muted);
+        doc.text(captionFn(i), xc, y + tw + 11, { charSpace: 0.8 });
+      }
+
+      col++;
+      if (col >= cols) { col = 0; y += tw + (captionFn ? 22 : 14); }
+    }
+    if (col !== 0) y += tw + (captionFn ? 22 : 14);
+  };
+
+  // ---------- Benchmark (imagens) ----------
   if (b.benchmark && b.benchmark.length) {
-    // benchmark aqui é uma lista de URLs/strings — mostramos como texto
     sectionTitle("Benchmark");
-    b.benchmark.forEach((bm) => paragraph(`• ${bm}`, { size: 9, color: C.sub }));
+    await imageGallery(b.benchmark, 3);
   }
 
-  // ------- Responsáveis -------
+  // ---------- Responsáveis ----------
   if (b.responsaveis && b.responsaveis.length) {
     sectionTitle("Responsáveis");
     ensureSpace(50);
@@ -344,21 +438,21 @@ export async function exportBoletimPdf(
       margin: { left: M, right: M },
       head: [["Nome", "Papel"]],
       body: b.responsaveis.map((r) => [r.nome || "—", r.papel || "—"]),
-      styles: { fontSize: 9, cellPadding: 6, textColor: C.ink, lineColor: C.border, lineWidth: 0.3 },
-      headStyles: { fillColor: C.ink, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8 },
-      alternateRowStyles: { fillColor: C.soft },
+      styles: { fontSize: 9.5, cellPadding: 7, textColor: K.inkDark, lineColor: K.borderLt, lineWidth: 0.3, font: "helvetica" },
+      headStyles: { fillColor: K.bg, textColor: K.brand, fontStyle: "bold", fontSize: 8.5, cellPadding: 7 },
+      alternateRowStyles: { fillColor: K.soft },
     });
-    y = (doc as any).lastAutoTable.finalY + 14;
+    y = (doc as any).lastAutoTable.finalY + 16;
   }
 
-  // ------- SKUs -------
+  // ---------- SKUs ----------
   if (product.skus && product.skus.length) {
     sectionTitle("SKUs");
     ensureSpace(50);
     autoTable(doc, {
       startY: y,
       margin: { left: M, right: M },
-      head: [["Nome", "Descrição", "Cor/Acabamento", "Vol/Ros", "Fornecedor", "Custo"]],
+      head: [["Nome", "Descrição", "Cor/Acab.", "Vol/Ros", "Fornecedor", "Custo"]],
       body: product.skus.map((s) => [
         s.name || "—",
         s.descricao || "—",
@@ -367,91 +461,73 @@ export async function exportBoletimPdf(
         s.fornecedor || "—",
         s.custo_compras || "—",
       ]),
-      styles: { fontSize: 8, cellPadding: 5, textColor: C.ink, lineColor: C.border, lineWidth: 0.3 },
-      headStyles: { fillColor: C.ink, textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5 },
-      alternateRowStyles: { fillColor: C.soft },
+      styles: { fontSize: 8.5, cellPadding: 6, textColor: K.inkDark, lineColor: K.borderLt, lineWidth: 0.3 },
+      headStyles: { fillColor: K.bg, textColor: K.brand, fontStyle: "bold", fontSize: 7.8 },
+      alternateRowStyles: { fillColor: K.soft },
     });
-    y = (doc as any).lastAutoTable.finalY + 14;
+    y = (doc as any).lastAutoTable.finalY + 16;
   }
 
-  // ------- Links -------
+  // ---------- Links ----------
   if (product.links && product.links.length) {
     sectionTitle("Links");
     product.links.forEach((l) => {
       ensureSpace(16);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
-      doc.setTextColor(...C.accent);
+      doc.setTextColor(...K.brandDark);
       doc.textWithLink(`→ ${l.label || l.url}`, M, y, { url: l.url });
       y += 14;
     });
     y += 4;
   }
 
-  // ------- Notas -------
+  // ---------- Notas ----------
   if (product.notes) {
     sectionTitle("Notas");
     paragraph(product.notes);
   }
 
-  // ------- Galeria de referências visuais -------
+  // ---------- Referências visuais (todas imagens agrupadas) ----------
   const allImgs: Array<{ label: string; url: string }> = [];
   (["tampa", "embalagem", "rotulo", "outros"] as const).forEach((k) => {
     (imgs[k] ?? []).forEach((u) => allImgs.push({ label: k, url: u }));
   });
   if (allImgs.length) {
     sectionTitle("Referências visuais");
-    const cols = 3;
-    const gap = 10;
-    const tw = (CW - gap * (cols - 1)) / cols;
-    let col = 0;
-    for (const it of allImgs) {
-      if (col === 0) ensureSpace(tw + 24);
-      const cx = M + col * (tw + gap);
-      const du = await imageToDataURL(it.url);
-      // moldura sutil
-      doc.setDrawColor(...C.border);
-      doc.setLineWidth(0.4);
-      doc.roundedRect(cx, y, tw, tw, 3, 3, "S");
-      if (du) tryAddImage(doc, du, cx + 1, y + 1, tw - 2, tw - 2);
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor(...C.sub);
-      doc.text(it.label.toUpperCase(), cx, y + tw + 10, { charSpace: 1 });
-      col++;
-      if (col >= cols) {
-        col = 0;
-        y += tw + 22;
-      }
-    }
-    if (col !== 0) y += tw + 22;
+    await imageGallery(allImgs.map((i) => i.url), 3, (i) => allImgs[i].label.toUpperCase());
   }
 
   // ============================================================
-  // CABEÇALHO + RODAPÉ em todas as páginas de conteúdo (pula a capa)
+  // CABEÇALHO + RODAPÉ — todas as páginas exceto a capa
   // ============================================================
   const total = doc.getNumberOfPages();
   for (let i = 2; i <= total; i++) {
     doc.setPage(i);
-    // header
-    doc.setDrawColor(...C.border);
-    doc.setLineWidth(0.4);
-    doc.line(M, 32, W - M, 32);
+
+    // Faixa âmbar fina no topo
+    doc.setFillColor(...K.brand);
+    doc.rect(0, 0, W, 3, "F");
+
+    // Header
     doc.setFont("helvetica", "bold");
     doc.setFontSize(8);
-    doc.setTextColor(...C.accent);
-    doc.text("BOLETIM DE LANÇAMENTO", M, 24, { charSpace: 1.5 });
+    doc.setTextColor(...K.brandDark);
+    doc.text("KASA HUB  •  BOLETIM DE LANÇAMENTO", M, 30, { charSpace: 1.5 });
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(...C.sub);
+    doc.setTextColor(...K.muted);
     const right = [product.name, product.clientName].filter(Boolean).join(" • ");
-    if (right) doc.text(right, W - M, 24, { align: "right" });
-    // footer
-    doc.setDrawColor(...C.border);
-    doc.line(M, H - 30, W - M, H - 30);
+    if (right) doc.text(right, W - M, 30, { align: "right" });
+    doc.setDrawColor(...K.borderLt);
+    doc.setLineWidth(0.4);
+    doc.line(M, 40, W - M, 40);
+
+    // Footer
+    doc.line(M, H - 32, W - M, H - 32);
     doc.setFontSize(8);
-    doc.setTextColor(...C.muted);
-    doc.text(`Página ${i} de ${total}`, W - M, H - 16, { align: "right" });
-    doc.text(today, M, H - 16);
+    doc.setTextColor(...K.muted);
+    doc.text(today, M, H - 18);
+    doc.text(`Página ${i} de ${total}`, W - M, H - 18, { align: "right" });
   }
 
   const safe = (product.name || "boletim").replace(/[^a-z0-9-_]+/gi, "_").toLowerCase();
