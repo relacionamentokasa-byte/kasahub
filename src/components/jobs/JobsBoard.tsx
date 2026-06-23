@@ -94,6 +94,27 @@ export function JobsBoard({
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: clients = [] } = useQuery({ queryKey: ["clients-filter"], queryFn: fetchClients });
 
+  // "Bola da vez" — para cada job em aberto, busca quem é o próximo responsável
+  // (primeiro item de checklist pendente). Uma query única pra todos os jobs visíveis.
+  const visibleJobIds = useMemo(() => jobs.filter((j: any) => j.status !== "done" && !j.done_at).map((j: any) => j.id), [jobs]);
+  const { data: nextResponsibleMap = new Map<string, string>() } = useQuery({
+    queryKey: ["jobs-next-responsible", visibleJobIds],
+    enabled: visibleJobIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("job_checklist")
+        .select("job_id, responsible_id, order_index")
+        .in("job_id", visibleJobIds)
+        .eq("done", false)
+        .order("order_index", { ascending: true });
+      const map = new Map<string, string>();
+      (data ?? []).forEach((r: any) => {
+        if (r.responsible_id && !map.has(r.job_id)) map.set(r.job_id, r.responsible_id);
+      });
+      return map;
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel('jobs-realtime-board')
