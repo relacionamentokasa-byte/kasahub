@@ -850,35 +850,7 @@ function ProductSheet({
             </div>
           </section>
 
-          {/* ===== EXTRAS ===== */}
-          <section className="space-y-3 border-t pt-5">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-foreground/70">Notas e links</h3>
-            <div>
-              <Label className="text-xs">Descrição geral</Label>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className="mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Observações</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Histórico, decisões, referências..." className="mt-1" />
-            </div>
-            <div>
-              <Label className="text-xs">Links</Label>
-              <div className="space-y-2 mt-1">
-                {links.map((l, i) => (
-                  <div key={i} className="flex gap-2">
-                    <Input value={l.label} onChange={(e) => { const n = [...links]; n[i].label = e.target.value; setLinks(n); }} placeholder="Nome" className="h-8 flex-1" />
-                    <Input value={l.url} onChange={(e) => { const n = [...links]; n[i].url = e.target.value; setLinks(n); }} placeholder="URL" className="h-8 flex-1" />
-                    <Button variant="ghost" size="icon" className="size-8" onClick={() => setLinks(links.filter((_, j) => j !== i))}>
-                      <X className="size-3.5" />
-                    </Button>
-                  </div>
-                ))}
-                <Button variant="outline" size="sm" onClick={() => setLinks([...links, { label: "", url: "" }])}>
-                  <LinkIcon className="size-3.5" /> Adicionar link
-                </Button>
-              </div>
-            </div>
-          </section>
+
 
           {/* Jobs vinculados */}
           {isEdit && (
