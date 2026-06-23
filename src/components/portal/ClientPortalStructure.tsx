@@ -115,7 +115,7 @@ export function ClientPortalStructure() {
               </div>
 
               <div className="pt-4 border-t border-border space-y-3">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-foreground/30">Jobs em andamento</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-foreground/30">Demandas em andamento</h4>
                 <div className="space-y-2">
                   {projectJobs.slice(0, 3).map((job) => (
                     <div key={job.id} className="flex items-center justify-between gap-3 text-sm">
@@ -135,7 +135,7 @@ export function ClientPortalStructure() {
                     </div>
                   ))}
                   {projectJobs.length > 3 && (
-                    <p className="text-[10px] text-center text-primary hover:underline cursor-pointer">Ver todos os {projectJobs.length} jobs</p>
+                    <p className="text-[10px] text-center text-primary hover:underline cursor-pointer">Ver todas as {projectJobs.length} demandas</p>
                   )}
                 </div>
               </div>
