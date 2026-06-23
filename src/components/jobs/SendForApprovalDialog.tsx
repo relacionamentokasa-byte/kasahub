@@ -53,7 +53,7 @@ interface Props {
 const TYPE_OPTIONS: { value: ApprovalContentType; label: string; icon: typeof ImageIcon }[] = [
   { value: "image", label: "Imagem", icon: ImageIcon },
   { value: "video", label: "Vídeo", icon: Film },
-  { value: "pdf", label: "PDF", icon: FileText },
+  { value: "pdf", label: "Docs", icon: FileText },
   { value: "text", label: "Texto", icon: Type },
 ];
 
@@ -65,9 +65,9 @@ const FORMAT_OPTIONS: { value: ApprovalFormat; label: string; icon: typeof Squar
 
 function detectType(url: string, fileName?: string): ApprovalContentType {
   const target = (fileName || url || "").toLowerCase();
-  if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(target)) return "image";
-  if (/\.(mp4|mov|webm|m4v)$/i.test(target)) return "video";
-  if (/\.pdf$/i.test(target)) return "pdf";
+  if (/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(target)) return "image";
+  if (/\.(mp4|mov|webm|m4v)(\?|$)/i.test(target)) return "video";
+  if (/\.(pdf|docx?|xlsx?|csv|pptx?|psd|psb|ai|eps)(\?|$)/i.test(target)) return "pdf";
   return "image";
 }
 

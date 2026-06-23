@@ -257,7 +257,7 @@ function isVideo(att: Attachment) {
 }
 
 // ===== FILE TYPE SYSTEM =====
-type FileKind = "image" | "video" | "pdf" | "word" | "excel" | "ppt" | "zip" | "other";
+type FileKind = "image" | "video" | "pdf" | "word" | "excel" | "ppt" | "design" | "zip" | "other";
 
 function getFileKind(name: string, type?: string | null): FileKind {
   const n = (name || "").toLowerCase();
@@ -268,6 +268,7 @@ function getFileKind(name: string, type?: string | null): FileKind {
   if (/\.(docx?|rtf|odt)(\?|$)/i.test(n) || t.includes("word") || t.includes("officedocument.wordprocessing")) return "word";
   if (/\.(xlsx?|csv|ods)(\?|$)/i.test(n) || t.includes("excel") || t.includes("spreadsheet")) return "excel";
   if (/\.(pptx?|key|odp)(\?|$)/i.test(n) || t.includes("presentation") || t.includes("powerpoint")) return "ppt";
+  if (/\.(psd|psb|ai|eps|fig|sketch|xd)(\?|$)/i.test(n) || t.includes("photoshop") || t.includes("illustrator")) return "design";
   if (/\.(zip|rar|7z|tar|gz)(\?|$)/i.test(n)) return "zip";
   return "other";
 }
@@ -279,6 +280,7 @@ const FILE_META: Record<FileKind, { label: string; color: string; bg: string; ba
   word:  { label: "Word",  color: "#1D4ED8", bg: "#DBEAFE", badge: "W" },
   excel: { label: "Excel", color: "#047857", bg: "#D1FAE5", badge: "X" },
   ppt:   { label: "PowerPoint", color: "#C2410C", bg: "#FFEDD5", badge: "P" },
+  design:{ label: "Design", color: "#A21CAF", bg: "#FCE7F3", badge: "PSD" },
   zip:   { label: "Arquivo", color: "#475569", bg: "#F1F5F9", badge: "ZIP" },
   other: { label: "Arquivo", color: "#475569", bg: "#F1F5F9", badge: "DOC" },
 };
@@ -289,6 +291,34 @@ function fileNameFromUrl(url: string): string {
   } catch {
     return "arquivo";
   }
+}
+
+function approvalFileName(item: Pick<ApprovalItem, "title" | "content_url" | "thumbnail_url">): string {
+  if (/\.[a-z0-9]{2,5}$/i.test(item.title || "")) return item.title;
+  const fromUrl = item.content_url ? fileNameFromUrl(item.content_url) : "arquivo";
+  if (fromUrl && fromUrl !== "arquivo") return fromUrl;
+  const fromThumb = item.thumbnail_url ? fileNameFromUrl(item.thumbnail_url) : "arquivo";
+  if (fromThumb && fromThumb !== "arquivo") return fromThumb;
+  return item.title || "arquivo";
+}
+
+function getApprovalItemFileKind(item: Pick<ApprovalItem, "title" | "content_type" | "content_url" | "thumbnail_url">): FileKind {
+  const target = [item.title, item.content_url || "", item.thumbnail_url || ""].join(" ");
+  const inferred = getFileKind(target);
+  if (inferred !== "other") return inferred;
+  if (item.content_type === "image") return "image";
+  if (item.content_type === "video") return "video";
+  if (item.content_type === "pdf") return "pdf";
+  return "other";
+}
+
+function isDocumentFileKind(kind: FileKind) {
+  return kind === "pdf" || kind === "word" || kind === "excel" || kind === "ppt" || kind === "design" || kind === "zip" || kind === "other";
+}
+
+function isDocumentApprovalItem(item: ApprovalItem) {
+  if (!item.content_url || item.content_type === "text") return false;
+  return isDocumentFileKind(getApprovalItemFileKind(item));
 }
 
 /** Renders a PDF embed with toolbar overlay (open / download). */
@@ -1134,6 +1164,8 @@ function timeAgoPtBR(iso: string): string {
 // ============= APROVAÇÕES — ESTILO INSTAGRAM =============
 
 function approvalFormatLabel(item: ApprovalItem): string {
+  const fileKind = getApprovalItemFileKind(item);
+  if (item.content_url && isDocumentFileKind(fileKind)) return FILE_META[fileKind].label;
   // Explicit format wins
   if (item.format === "carousel") return "Carrossel";
   if (item.format === "story") return "Story";
@@ -1178,34 +1210,38 @@ function ApprovalsInstagramSection({
 
   const displayName = client.company || client.name;
 
-  // Stories go to the bubble row at the top, not into the grid
+  const sortForPortal = (a: ApprovalItem, b: ApprovalItem) => {
+    if (a.status === "pending" && b.status !== "pending") return -1;
+    if (b.status === "pending" && a.status !== "pending") return 1;
+    return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
+  };
+
+  // Stories stay in bubbles. Documents get their own list instead of the Instagram feed grid.
   const storyItems = useMemo(
     () =>
       items
-        .filter((i) => i.format === "story")
-        .sort((a, b) => {
-          if (a.status === "pending" && b.status !== "pending") return -1;
-          if (b.status === "pending" && a.status !== "pending") return 1;
-          return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
-        }),
+        .filter((i) => i.format === "story" && !isDocumentApprovalItem(i))
+        .sort(sortForPortal),
     [items],
   );
-  const feedItems = useMemo(() => items.filter((i) => i.format !== "story"), [items]);
+  const nonStoryItems = useMemo(() => items.filter((i) => i.format !== "story"), [items]);
+  const documentItems = useMemo(() => nonStoryItems.filter(isDocumentApprovalItem).sort(sortForPortal), [nonStoryItems]);
+  const feedItems = useMemo(() => nonStoryItems.filter((i) => !isDocumentApprovalItem(i)), [nonStoryItems]);
 
-  const approved = feedItems.filter((i) => i.status === "approved").length;
-  const pending = feedItems.filter((i) => i.status === "pending").length;
-  const rejected = feedItems.filter((i) => i.status === "rejected").length;
+  const approved = nonStoryItems.filter((i) => i.status === "approved").length;
+  const pending = nonStoryItems.filter((i) => i.status === "pending").length;
+  const rejected = nonStoryItems.filter((i) => i.status === "rejected").length;
 
   const filtered = useMemo(() => {
-    const sorted = [...feedItems].sort((a, b) => {
-      // Pending first, then most recent
-      if (a.status === "pending" && b.status !== "pending") return -1;
-      if (b.status === "pending" && a.status !== "pending") return 1;
-      return new Date(b.sent_for_approval_at).getTime() - new Date(a.sent_for_approval_at).getTime();
-    });
+    const sorted = [...feedItems].sort(sortForPortal);
     if (filter === "all") return sorted;
     return sorted.filter((i) => i.status === filter);
   }, [feedItems, filter]);
+
+  const filteredDocuments = useMemo(() => {
+    if (filter === "all") return documentItems;
+    return documentItems.filter((i) => i.status === filter);
+  }, [documentItems, filter]);
 
 
   const shown = filtered.slice(0, visible);
@@ -1279,7 +1315,7 @@ function ApprovalsInstagramSection({
         <div className="mt-5 -mx-5 md:-mx-6 border-t border-slate-200">
           <div className="flex justify-around text-[11px] font-bold uppercase tracking-wider">
             {([
-              { k: "all", label: `Tudo (${feedItems.length})` },
+              { k: "all", label: `Tudo (${nonStoryItems.length})` },
               { k: "pending", label: `⏳ Pendentes (${pending})` },
               { k: "approved", label: `✅ Aprovadas (${approved})` },
               { k: "rejected", label: `✏️ Ajustes (${rejected})` },
@@ -1347,19 +1383,41 @@ function ApprovalsInstagramSection({
         </div>
       )}
 
-      {/* INSTAGRAM GRID — 3 columns, 4px gap */}
+      {/* DOCUMENTS — files like PSD, Word and Excel should not look like social feed posts */}
+      {filteredDocuments.length > 0 && (
+        <div className="mt-3 md:mt-4 space-y-2.5">
+          <div className="flex items-center justify-between px-1">
+            <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-700 inline-flex items-center gap-1.5">
+              <FileText className="size-3.5 text-[var(--portal-primary)]" />
+              Documentos para revisar
+            </h3>
+            <span className="text-[11px] font-bold text-slate-500">
+              {filteredDocuments.length} {filteredDocuments.length === 1 ? "arquivo" : "arquivos"}
+            </span>
+          </div>
+          <div className="space-y-2.5">
+            {filteredDocuments.map((item) => (
+              <ApprovalDocumentRow key={item.id} item={item} onOpen={() => setActiveId(item.id)} />
+            ))}
+          </div>
+        </div>
+      )}
 
-      <div className="mt-3 md:mt-4 grid grid-cols-3 gap-1">
-        {shown.map((item) => (
-          <ApprovalGridTile
-            key={item.id}
-            item={item}
-            onClick={() => setActiveId(item.id)}
-          />
-        ))}
-      </div>
+      {/* INSTAGRAM GRID — only image/video/text social pieces */}
 
-      {filtered.length === 0 && (
+      {shown.length > 0 && (
+        <div className="mt-3 md:mt-4 grid grid-cols-3 gap-1">
+          {shown.map((item) => (
+            <ApprovalGridTile
+              key={item.id}
+              item={item}
+              onClick={() => setActiveId(item.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {filtered.length === 0 && filteredDocuments.length === 0 && (
         <div className="text-center py-12 text-sm text-slate-500">
           Nenhum item neste filtro.
         </div>
@@ -1477,6 +1535,114 @@ function ApprovalGridTile({ item, onClick }: { item: ApprovalItem; onClick: () =
   );
 }
 
+function ApprovalDocumentRow({ item, onOpen }: { item: ApprovalItem; onOpen: () => void }) {
+  const kind = getApprovalItemFileKind(item);
+  const meta = FILE_META[kind];
+  const fileName = approvalFileName(item);
+  const status =
+    item.status === "approved"
+      ? { label: "Aprovado", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" }
+      : item.status === "rejected"
+      ? { label: "Ajuste solicitado", cls: "bg-amber-50 text-amber-700 border-amber-200" }
+      : { label: "Pendente", cls: "bg-orange-50 text-orange-700 border-orange-200" };
+
+  return (
+    <article className="bg-white border border-slate-200 rounded-2xl p-3 shadow-[0_4px_16px_rgba(15,23,42,0.06)] flex items-center gap-3">
+      <button
+        type="button"
+        onClick={onOpen}
+        className="shrink-0 size-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-50"
+        title="Visualizar documento"
+      >
+        <FileThumbnail
+          url={item.thumbnail_url || item.content_url || ""}
+          fileName={fileName}
+          aspectClass="h-full w-full aspect-auto"
+          className="rounded-none border-0 ring-0"
+        />
+      </button>
+      <div className="min-w-0 flex-1">
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span
+            className="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase tracking-wider"
+            style={{ background: meta.bg, color: meta.color }}
+          >
+            {meta.badge}
+          </span>
+          <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold ${status.cls}`}>
+            {status.label}
+          </span>
+        </div>
+        <button type="button" onClick={onOpen} className="mt-1 block max-w-full text-left">
+          <h4 className="text-sm font-black text-slate-900 truncate">{item.title}</h4>
+          <p className="text-[11px] font-semibold text-slate-500 truncate">{fileName}</p>
+        </button>
+        {item.description && <p className="mt-1 text-xs text-slate-600 line-clamp-2">{item.description}</p>}
+      </div>
+      <div className="shrink-0 flex flex-col sm:flex-row gap-1.5">
+        <button
+          type="button"
+          onClick={onOpen}
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-[var(--portal-primary)] px-3 py-2 text-xs font-black text-slate-900 shadow-sm hover:bg-[var(--portal-primary-hover)]"
+        >
+          <ExternalLink className="size-3.5" /> Ver
+        </button>
+        {item.content_url && (
+          <a
+            href={item.content_url}
+            download={fileName}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2 text-xs font-black text-slate-700 hover:border-[var(--portal-primary)] hover:text-slate-900"
+          >
+            <Download className="size-3.5" /> Baixar
+          </a>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function ApprovalDocumentViewer({ item }: { item: ApprovalItem }) {
+  const kind = getApprovalItemFileKind(item);
+  const name = approvalFileName(item);
+  const url = item.content_url || "";
+  const canUseOfficeViewer = kind === "word" || kind === "excel" || kind === "ppt";
+  const officeViewerUrl = canUseOfficeViewer
+    ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`
+    : null;
+
+  if (kind === "pdf") {
+    return <PdfDocumentViewer url={url} fileName={name} className="h-full min-h-[70vh]" />;
+  }
+
+  if (officeViewerUrl) {
+    return (
+      <div className="h-full min-h-[70vh] w-full bg-white flex flex-col">
+        <div className="shrink-0 flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-2 bg-white">
+          <div className="min-w-0 flex items-center gap-2">
+            <span className="rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase" style={{ background: FILE_META[kind].bg, color: FILE_META[kind].color }}>
+              {FILE_META[kind].badge}
+            </span>
+            <span className="truncate text-xs font-bold text-slate-800">{name}</span>
+          </div>
+          <div className="flex shrink-0 gap-1.5">
+            <a href={url} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-slate-700 hover:bg-slate-100">
+              <ExternalLink className="size-3.5" /> Abrir
+            </a>
+            <a href={url} download={name} className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2 text-xs font-bold text-slate-700 hover:bg-slate-100">
+              <Download className="size-3.5" /> Baixar
+            </a>
+          </div>
+        </div>
+        <iframe src={officeViewerUrl} title={name} className="min-h-0 flex-1 w-full bg-white" />
+      </div>
+    );
+  }
+
+  return <DocumentCard url={url} name={name} kind={kind} />;
+}
+
 function ApprovalFullscreenModal({
   slug,
   item,
@@ -1561,6 +1727,9 @@ function ApprovalFullscreenModal({
   const itemComments = comments.filter((c) => c.slide_id === null);
 
   const isStory = item.format === "story";
+  const itemFileKind = getApprovalItemFileKind(item);
+  const isDocumentItem = !!item.content_url && isDocumentFileKind(itemFileKind);
+  const usesDocumentShell = isDocumentItem || item.content_type === "pdf";
 
   return (
     <div
@@ -1568,7 +1737,7 @@ function ApprovalFullscreenModal({
       onClick={onClose}
     >
       <div
-        className={`relative w-full h-full sm:h-auto sm:max-h-[95vh] ${isStory ? "sm:max-w-[420px]" : "sm:max-w-md"} sm:rounded-2xl bg-black overflow-hidden flex flex-col`}
+        className={`relative w-full h-full sm:h-auto sm:max-h-[95vh] ${isStory ? "sm:max-w-[420px]" : usesDocumentShell ? "sm:max-w-6xl" : "sm:max-w-md"} sm:rounded-2xl bg-black overflow-hidden flex flex-col`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Story progress bars */}
@@ -1588,7 +1757,7 @@ function ApprovalFullscreenModal({
         )}
 
         {/* Header */}
-        <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 pt-5 bg-gradient-to-b from-black/80 to-transparent">
+        <div className={usesDocumentShell ? "shrink-0 z-20 flex items-center justify-between px-4 py-3 bg-black border-b border-white/10" : "absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 pt-5 bg-gradient-to-b from-black/80 to-transparent"}>
           <div className="text-white min-w-0">
             <p className="text-xs font-bold uppercase tracking-wider opacity-80">
               {approvalFormatLabel(item)}
@@ -1608,7 +1777,7 @@ function ApprovalFullscreenModal({
 
         {/* Media */}
         <div
-          className={`flex-1 flex items-center justify-center overflow-hidden bg-black relative ${isStory ? "aspect-[9/16] max-h-[75vh]" : ""}`}
+          className={`min-h-0 flex-1 flex items-center justify-center overflow-hidden bg-black relative ${isStory ? "aspect-[9/16] max-h-[75vh]" : ""}`}
           onPointerDown={() => isStory && setPaused(true)}
           onPointerUp={() => isStory && setPaused(false)}
           onPointerLeave={() => isStory && setPaused(false)}
@@ -1619,6 +1788,10 @@ function ApprovalFullscreenModal({
             ) : (
               <img src={activeSlide.url} alt={`Slide ${slideIdx + 1}`} className="w-full h-full object-contain" />
             )
+          ) : isDocumentItem && item.content_url ? (
+            <div className="w-full h-full bg-white overflow-hidden">
+              <ApprovalDocumentViewer item={item} />
+            </div>
           ) : item.content_type === "image" && item.content_url ? (
             <img src={item.content_url} alt={item.title} className="w-full h-full object-contain" />
           ) : item.content_type === "video" && item.content_url ? (
@@ -2875,7 +3048,7 @@ function HomeSection({
       id: string;
       url: string;
       name: string;
-      kind: "image" | "video" | "pdf" | "other";
+      kind: FileKind;
       createdAt: string;
     };
     const items: Item[] = [];
@@ -2885,18 +3058,11 @@ function HomeSection({
       if (it.status !== "approved") return;
       const refDate = it.approved_at || it.updated_at || it.created_at;
       if (!refDate || new Date(refDate).getTime() < weekAgo) return;
-      const kind: Item["kind"] =
-        it.content_type === "image"
-          ? "image"
-          : it.content_type === "video"
-            ? "video"
-            : it.content_type === "pdf"
-              ? "pdf"
-              : "other";
+      const kind = getApprovalItemFileKind(it);
       items.push({
         id: `ap-${it.id}`,
         url: it.content_url,
-        name: it.title,
+        name: approvalFileName(it),
         kind,
         createdAt: refDate,
       });
@@ -3121,7 +3287,7 @@ function HomeSection({
                   <Play className="size-7 text-white" fill="white" />
                 </div>
               ) : (
-                <FileThumb name={f.name} />
+                <FileThumbnail url={f.url} fileName={f.name} aspectClass="h-full w-full aspect-auto" className="rounded-none border-0 ring-0" />
               )}
               <span className="absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 rounded-md bg-black/60 text-white font-bold backdrop-blur-sm">
                 {f.kind === "image" ? "🖼️" : f.kind === "video" ? "🎬" : FILE_META[getFileKind(f.name)].badge}
