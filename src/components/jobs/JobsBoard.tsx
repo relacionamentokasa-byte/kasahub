@@ -683,7 +683,7 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick, queryKey, focused }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean }) {
+function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean; nextResponsibleId?: string | null }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   
@@ -732,7 +732,7 @@ function JobCard({ job, profiles, onClick, queryKey, focused }: { job: Job; prof
         onClick={() => !isOptimistic && onClick()}
         className={isOptimistic ? "cursor-wait" : "cursor-grab active:cursor-grabbing"}
       >
-        <JobCardInner job={job} profiles={profiles} />
+        <JobCardInner job={job} profiles={profiles} nextResponsibleId={nextResponsibleId} />
       </div>
       {!isOptimistic && (
         <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
