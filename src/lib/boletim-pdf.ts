@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { LaunchGridProduct, LaunchGridBoletim } from "@/lib/launch-grids-api";
 import { resolveStorageUrl } from "@/lib/use-storage-url";
+import { registerBoletimFonts } from "@/lib/pdf-fonts";
 
 /**
  * Remove caracteres que a fonte padrão do jsPDF (Helvetica/WinAnsi) não
