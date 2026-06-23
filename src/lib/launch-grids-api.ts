@@ -221,6 +221,7 @@ export async function createProduct(input: {
   links?: Array<{ label: string; url: string }>;
   skus?: LaunchGridSku[];
   notes?: string | null;
+  boletim?: LaunchGridBoletim;
 }) {
   const { data: maxRow } = await supabase
     .from("launch_grid_products")
@@ -244,6 +245,7 @@ export async function createProduct(input: {
       links: (input.links ?? []) as any,
       skus: (input.skus ?? []) as any,
       notes: input.notes ?? null,
+      boletim: (input.boletim ?? {}) as any,
       order_index: nextIdx,
       created_by: user.user?.id ?? null,
     })
@@ -254,6 +256,7 @@ export async function createProduct(input: {
     ...(data as any),
     links: Array.isArray((data as any).links) ? (data as any).links : [],
     skus: Array.isArray((data as any).skus) ? (data as any).skus : [],
+    boletim: ((data as any).boletim && typeof (data as any).boletim === "object") ? (data as any).boletim : {},
   } as LaunchGridProduct;
 }
 
