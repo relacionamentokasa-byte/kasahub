@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { MessageCircle, Phone, Mail } from "lucide-react";
+import { MessageCircle, Phone } from "lucide-react";
 import { StorageImage } from "@/components/ui/storage-image";
 
 /**
@@ -20,7 +20,7 @@ export function AccountManagerCard({ clientId }: { clientId: string }) {
       if (!client?.owner_id) return null;
       const { data: profile } = await supabase
         .from("profiles")
-        .select("display_name, full_name, avatar_url, email, phone")
+        .select("display_name, full_name, avatar_url, phone")
         .eq("id", client.owner_id)
         .maybeSingle();
       return profile;
@@ -68,15 +68,6 @@ export function AccountManagerCard({ clientId }: { clientId: string }) {
             className="size-10 rounded-full bg-surface-elevated border border-border flex items-center justify-center hover:border-primary transition"
           >
             <Phone className="size-4" />
-          </a>
-        )}
-        {data.email && (
-          <a
-            href={`mailto:${data.email}`}
-            title="Enviar email"
-            className="size-10 rounded-full bg-surface-elevated border border-border flex items-center justify-center hover:border-primary transition hidden sm:flex"
-          >
-            <Mail className="size-4" />
           </a>
         )}
       </div>
