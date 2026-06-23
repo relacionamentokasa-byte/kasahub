@@ -121,7 +121,7 @@ export function ClientPortalStructure() {
   );
 }
 
-function LaunchGridProgress({ clientId }: { clientId: string }) {
+function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] }) {
   const { data: statuses = [] } = useQuery({
     queryKey: ["portal-launch-statuses", clientId],
     queryFn: () => listStatusesByClient(clientId),
