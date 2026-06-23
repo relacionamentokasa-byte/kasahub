@@ -31,19 +31,12 @@ type Slide = {
     | "conditions"
     | "closing";
   title?: string;
-  scopeChunk?: {
-    section: ScopeSection;
-    page: number;
-    totalPages: number;
-    sectionIndex: number;
-    totalSections: number;
-  };
+  scopeChunk?: { items: ScopeItem[]; page: number; total: number };
 };
 
-type ScopeItem = { title: string; description?: string; number?: string };
-type ScopeSection = { title: string; number?: string; items: ScopeItem[] };
+type ScopeItem = { title: string; description?: string };
 
-const SCOPE_PER_SLIDE = 8;
+const SCOPE_PER_SLIDE = 6;
 
 function stripHtml(html: string): string {
   if (typeof document === "undefined") return html.replace(/<[^>]+>/g, "");
@@ -52,28 +45,14 @@ function stripHtml(html: string): string {
   return div.textContent || div.innerText || "";
 }
 
-function htmlToText(html: string): string {
-  // Replace block-level tags with newlines to preserve structure
-  let s = html
-    .replace(/<\s*br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6]|tr|section|article)>/gi, "\n")
-    .replace(/<\/(strong|b)>/gi, "</strong>\n"); // headings often bold
-  // Mark <li> with bullet
-  s = s.replace(/<li[^>]*>/gi, "• ");
-  // Treat bold-only line as heading-ish (keep marker)
-  return stripHtml(s);
-}
-
-const NUMBER_RE = /^\s*(\d+)\s*[\.\)]\s+(.+?)\s*$/;
-const SUBNUMBER_RE = /^\s*(\d+\.\d+(?:\.\d+)?)\s*[\.\)]?\s+(.+?)\s*$/;
-const BULLET_RE = /^\s*[•·\-–—*]\s+(.+?)\s*$/;
-
-function toLines(raw: unknown): string[] {
+function parseScope(raw: unknown): ScopeItem[] {
   if (!raw) return [];
+  // Array input
   if (Array.isArray(raw)) {
     return raw
       .map((v) => (typeof v === "string" ? v : v?.title || ""))
-      .filter(Boolean);
+      .filter(Boolean)
+      .map((t) => splitTitleDesc(t));
   }
   if (typeof raw !== "string") return [];
   const trimmed = raw.trim();
@@ -84,75 +63,47 @@ function toLines(raw: unknown): string[] {
     try {
       const parsed = JSON.parse(trimmed);
       if (Array.isArray(parsed)) {
-        return parsed.map((v) => (typeof v === "string" ? v : v?.title || "")).filter(Boolean);
+        return parsed
+          .map((v) => (typeof v === "string" ? v : v?.title || ""))
+          .filter(Boolean)
+          .map((t) => splitTitleDesc(t));
       }
     } catch {}
   }
 
-  const text = /<\/?[a-z][\s\S]*>/i.test(trimmed) ? htmlToText(trimmed) : trimmed;
-  return text
-    .split(/\r?\n+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
-function parseScopeSections(raw: unknown): ScopeSection[] {
-  const lines = toLines(raw);
-  if (!lines.length) return [];
-
-  const sections: ScopeSection[] = [];
-  let current: ScopeSection | null = null;
-
-  const ensureCurrent = () => {
-    if (!current) {
-      current = { title: "Escopo", items: [] };
-      sections.push(current);
+  // HTML — extract <li> first, fallback to <p>/lines
+  if (/<\/?[a-z][\s\S]*>/i.test(trimmed)) {
+    const liMatches = Array.from(trimmed.matchAll(/<li[^>]*>([\s\S]*?)<\/li>/gi));
+    if (liMatches.length) {
+      return liMatches
+        .map((m) => stripHtml(m[1]).trim())
+        .filter(Boolean)
+        .map(splitTitleDesc);
     }
-    return current;
-  };
-
-  for (const line of lines) {
-    const sub = line.match(SUBNUMBER_RE);
-    if (sub) {
-      // Sub-numbered item like "2.1 Instagram"
-      const item = splitTitleDesc(sub[2]);
-      item.number = sub[1];
-      ensureCurrent().items.push(item);
-      continue;
-    }
-    const top = line.match(NUMBER_RE);
-    if (top) {
-      // New top-level section "2. Redes Sociais"
-      current = { title: top[2].trim(), number: top[1], items: [] };
-      sections.push(current);
-      continue;
-    }
-    const bul = line.match(BULLET_RE);
-    if (bul) {
-      ensureCurrent().items.push(splitTitleDesc(bul[1]));
-      continue;
-    }
-    // Plain line — if no section yet, treat as item; if short and uppercase-ish, treat as section title
-    if (!current && /^[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][^a-z]{2,}$/.test(line) && line.length < 60) {
-      current = { title: line, items: [] };
-      sections.push(current);
-    } else {
-      ensureCurrent().items.push(splitTitleDesc(line));
-    }
+    const text = stripHtml(trimmed);
+    return text
+      .split(/\n+/)
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map(splitTitleDesc);
   }
 
-  // Drop empty sections that ended up with no items AND no children
-  return sections.filter((s) => s.items.length > 0 || s.title);
+  // Plain text — split by newlines or bullets
+  return trimmed
+    .split(/\n+|(?:^|\s)[•·\-–]\s+/)
+    .map((s) => s.trim().replace(/^[•·\-–]\s*/, ""))
+    .filter(Boolean)
+    .map(splitTitleDesc);
 }
 
 function splitTitleDesc(s: string): ScopeItem {
+  // "Title: description" or "Title — description"
   const m = s.match(/^([^:—–]{3,80})\s*[:—–]\s*(.+)$/);
   if (m) return { title: m[1].trim(), description: m[2].trim() };
   return { title: s };
 }
 
 function chunk<T>(arr: T[], size: number): T[][] {
-  if (!arr.length) return [[]];
   const out: T[][] = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
   return out;
@@ -162,24 +113,18 @@ function buildSlides(p: Proposal | undefined, items: ProposalItem[]): Slide[] {
   if (!p) return [];
   const slides: Slide[] = [{ id: "cover", kind: "cover" }];
   if (p.intro && p.intro.trim()) slides.push({ id: "intro", kind: "intro", title: "Sobre" });
-  const sections = parseScopeSections((p as any).scope_text || p.scope);
-  sections.forEach((section, sIdx) => {
-    const chunks = chunk(section.items, SCOPE_PER_SLIDE);
-    chunks.forEach((items, pIdx) => {
+  const scopeItems = parseScope((p as any).scope_text || p.scope);
+  if (scopeItems.length) {
+    const chunks = chunk(scopeItems, SCOPE_PER_SLIDE);
+    chunks.forEach((c, i) =>
       slides.push({
-        id: `scope-${sIdx}-${pIdx}`,
+        id: `scope-${i}`,
         kind: "scope",
         title: "Escopo",
-        scopeChunk: {
-          section: { ...section, items },
-          page: pIdx + 1,
-          totalPages: chunks.length,
-          sectionIndex: sIdx,
-          totalSections: sections.length,
-        },
-      });
-    });
-  });
+        scopeChunk: { items: c, page: i + 1, total: chunks.length },
+      }),
+    );
+  }
   if (items.length) slides.push({ id: "items", kind: "items", title: "Serviços" });
   slides.push({ id: "investment", kind: "investment", title: "Investimento" });
   slides.push({ id: "conditions", kind: "conditions", title: "Condições" });
@@ -477,50 +422,38 @@ function IntroSlide({ proposal }: { proposal: Proposal }) {
 function ScopeSlide({ slide }: { slide: Slide }) {
   const chunk = slide.scopeChunk;
   if (!chunk) return null;
-  const { section, page, totalPages, sectionIndex, totalSections } = chunk;
+  const { items, page, total } = chunk;
   const startIndex = (page - 1) * SCOPE_PER_SLIDE;
-  const isWide = section.items.length > 4;
-  const showSectionEyebrow = totalSections > 1 || !!section.number;
+  const isWide = items.length > 3;
 
   return (
     <div className="max-w-6xl w-full">
       <div className="flex items-end justify-between mb-10 gap-6">
-        <div className="min-w-0">
-          <SectionLabel>
-            {showSectionEyebrow
-              ? `Bloco ${String(sectionIndex + 1).padStart(2, "0")} de ${String(totalSections).padStart(2, "0")}`
-              : "O que vamos entregar"}
-          </SectionLabel>
+        <div>
+          <SectionLabel>O que vamos entregar</SectionLabel>
           <h2 className="font-display text-4xl md:text-5xl font-bold leading-tight">
-            {section.number && (
-              <span className="text-[#FFBC45] mr-3 tabular-nums">{section.number}.</span>
-            )}
-            {section.title}
+            Escopo do trabalho
           </h2>
         </div>
-        {totalPages > 1 && (
+        {total > 1 && (
           <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-mono-kasa shrink-0 pb-2">
-            Parte {page} / {totalPages}
+            Parte {page} / {total}
           </span>
         )}
       </div>
 
       <div className={cn("grid gap-4", isWide ? "md:grid-cols-2" : "grid-cols-1")}>
-        {section.items.map((it, i) => {
-          const label =
-            it.number ||
-            (section.number
-              ? `${section.number}.${startIndex + i + 1}`
-              : String(startIndex + i + 1).padStart(2, "0"));
+        {items.map((it, i) => {
+          const n = startIndex + i + 1;
           return (
             <div
               key={i}
               className="group relative bg-white/[0.04] border border-white/10 hover:border-[#FFBC45]/40 rounded-2xl p-6 backdrop-blur transition-colors"
             >
               <div className="flex items-start gap-5">
-                <div className="shrink-0 min-w-11 h-11 px-3 rounded-xl bg-[#FFBC45]/10 border border-[#FFBC45]/30 flex items-center justify-center">
+                <div className="shrink-0 size-11 rounded-xl bg-[#FFBC45]/10 border border-[#FFBC45]/30 flex items-center justify-center">
                   <span className="font-mono-kasa text-sm font-bold text-[#FFBC45] tabular-nums">
-                    {label}
+                    {String(n).padStart(2, "0")}
                   </span>
                 </div>
                 <div className="min-w-0 flex-1">
