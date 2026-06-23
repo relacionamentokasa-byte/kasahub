@@ -1,54 +1,36 @@
 import type jsPDF from "jspdf";
 
 /**
- * Carrega Funnel Display (bold) e Onest (regular + bold) via Google Fonts
- * e registra na instância jsPDF. Estratégia:
- *   1. Pega o CSS do Google Fonts com User-Agent antigo → retorna .ttf
- *   2. Faz fetch do .ttf
- *   3. Registra com addFileToVFS + addFont
+ * Carrega Funnel Display Bold + Onest (regular & bold) e registra na
+ * instância jsPDF como famílias "Funnel" e "Onest".
  *
- * Em caso de qualquer falha de rede/parse, retorna false para a fonte
- * correspondente e o caller cai para Helvetica.
+ * Estratégia: usa as TTFs estáticas hospedadas no gstatic (servidas
+ * com CORS *). Em caso de falha, cai para a TTF variável do repo
+ * google/fonts no jsdelivr.
  */
 
-const CSS_URL =
-  "https://fonts.googleapis.com/css?family=Funnel+Display:700|Onest:400,700";
-// Browser do navegador atual pode (e vai) pedir woff2 — passamos o CSS
-// para um servidor que aceita UA mas o fetch do browser não permite
-// trocar User-Agent. Solução: usamos um proxy CORS-friendly que devolve
-// o CSS solicitado pelo Android. Como esse infra extra pode falhar,
-// caímos para um cache embutido se necessário.
-//
-// Estratégia simples e robusta: pedimos o CSS direto. O Chrome moderno
-// pede woff2, mas o Google Fonts respeita o header "User-Agent" no
-// servidor — só que fetch() não deixa setar UA. Então fazemos o
-// download via uma estratégia híbrida:
-//   - Tentamos endpoints conhecidos dos repositórios open-source
-//     (jsdelivr@gh/google/fonts) que servem .ttf diretamente.
-//   - Esses arquivos são as TTFs variáveis ([wght]) que cobrem todos
-//     os pesos. jsPDF lida com variável usando o estilo padrão; para
-//     "negrito visual" usamos a fonte FunnelDisplay-Bold estática
-//     hospedada num mirror confiável.
-
-// Mirror dos repositórios oficiais Google Fonts (jsdelivr GH).
-// FunnelDisplay e Onest só existem como TTF variável no repo público,
-// então usamos a TTF variável.
-const FONT_SOURCES = {
-  funnelBold: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/funneldisplay/FunnelDisplay%5Bwght%5D.ttf",
-  onestReg: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/onest/Onest%5Bwght%5D.ttf",
-  onestBold: "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/onest/Onest%5Bwght%5D.ttf",
+const SRC = {
+  funnelBold: [
+    "https://fonts.gstatic.com/s/funneldisplay/v3/B50bF7FGv37QNVWgE0ga--4PbZSRJXrOHcLHLoAYfWTnX890.ttf",
+    "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/funneldisplay/FunnelDisplay%5Bwght%5D.ttf",
+  ],
+  onestReg: [
+    "https://fonts.gstatic.com/s/onest/v9/gNMZW3F-SZuj7zOT0IfSjTS16cPh9R-ptRtI.ttf",
+    "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/onest/Onest%5Bwght%5D.ttf",
+  ],
+  onestBold: [
+    "https://fonts.gstatic.com/s/onest/v9/gNMZW3F-SZuj7zOT0IfSjTS16cPhEhiptRtI.ttf",
+    "https://cdn.jsdelivr.net/gh/google/fonts@main/ofl/onest/Onest%5Bwght%5D.ttf",
+  ],
 };
 
 const cache = new Map<string, string | null>();
 
-async function fetchAsBase64(url: string): Promise<string | null> {
+async function fetchOneAsBase64(url: string): Promise<string | null> {
   if (cache.has(url)) return cache.get(url) ?? null;
   try {
     const res = await fetch(url);
-    if (!res.ok) {
-      cache.set(url, null);
-      return null;
-    }
+    if (!res.ok) { cache.set(url, null); return null; }
     const buf = await res.arrayBuffer();
     let bin = "";
     const bytes = new Uint8Array(buf);
@@ -65,12 +47,21 @@ async function fetchAsBase64(url: string): Promise<string | null> {
   }
 }
 
+async function fetchWithFallback(urls: string[]): Promise<string | null> {
+  for (const u of urls) {
+    const b = await fetchOneAsBase64(u);
+    if (b) return b;
+  }
+  return null;
+}
+
 export async function registerBoletimFonts(
   doc: jsPDF,
 ): Promise<{ funnel: boolean; onest: boolean }> {
-  const [funnelB, onestR] = await Promise.all([
-    fetchAsBase64(FONT_SOURCES.funnelBold),
-    fetchAsBase64(FONT_SOURCES.onestReg),
+  const [funnelB, onestR, onestB] = await Promise.all([
+    fetchWithFallback(SRC.funnelBold),
+    fetchWithFallback(SRC.onestReg),
+    fetchWithFallback(SRC.onestBold),
   ]);
 
   let funnelOk = false;
@@ -79,25 +70,26 @@ export async function registerBoletimFonts(
   if (funnelB) {
     try {
       doc.addFileToVFS("FunnelDisplay-Bold.ttf", funnelB);
-      // Registramos como "Funnel" tanto normal quanto bold apontando para
-      // a mesma TTF variável — para o uso na capa/títulos sempre em bold.
+      // Mesma TTF (700) usada tanto para normal quanto bold — títulos sempre encorpados
       doc.addFont("FunnelDisplay-Bold.ttf", "Funnel", "normal");
       doc.addFont("FunnelDisplay-Bold.ttf", "Funnel", "bold");
       funnelOk = true;
-    } catch {
-      funnelOk = false;
-    }
+    } catch { funnelOk = false; }
   }
 
   if (onestR) {
     try {
-      doc.addFileToVFS("Onest.ttf", onestR);
-      doc.addFont("Onest.ttf", "Onest", "normal");
-      doc.addFont("Onest.ttf", "Onest", "bold");
+      doc.addFileToVFS("Onest-Regular.ttf", onestR);
+      doc.addFont("Onest-Regular.ttf", "Onest", "normal");
+      if (onestB) {
+        doc.addFileToVFS("Onest-Bold.ttf", onestB);
+        doc.addFont("Onest-Bold.ttf", "Onest", "bold");
+      } else {
+        // Sem variante bold — usa regular para os dois pesos
+        doc.addFont("Onest-Regular.ttf", "Onest", "bold");
+      }
       onestOk = true;
-    } catch {
-      onestOk = false;
-    }
+    } catch { onestOk = false; }
   }
 
   return { funnel: funnelOk, onest: onestOk };
