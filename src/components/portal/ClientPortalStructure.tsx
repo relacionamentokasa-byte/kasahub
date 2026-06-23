@@ -9,6 +9,9 @@ import { ClientOnboardingPortalView } from "@/components/onboarding/ClientOnboar
 import { StorageImage } from "@/components/ui/storage-image";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { AccountManagerCard } from "./AccountManagerCard";
+import { PortalTour } from "./PortalTour";
+import { pt } from "@/lib/portal-glossary";
 
 const STAGE_COLOR_MAP: Record<string, string> = {
   "text-blue-500": "#3B82F6",
