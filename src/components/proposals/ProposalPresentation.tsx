@@ -657,8 +657,19 @@ function ConditionsSlide({ proposal }: { proposal: Proposal }) {
   const p = proposal as any;
   const items: { label: string; value: string }[] = [];
 
+  const CONTRACT_TYPE_LABELS: Record<string, string> = {
+    recurring: "Recorrente",
+    one_time: "Pontual",
+    onetime: "Pontual",
+    fixed: "Fixo",
+    project: "Projeto",
+    hourly: "Por hora",
+  };
   if (p.contract_type)
-    items.push({ label: "Tipo de contrato", value: String(p.contract_type) });
+    items.push({
+      label: "Tipo de contrato",
+      value: CONTRACT_TYPE_LABELS[String(p.contract_type).toLowerCase()] || String(p.contract_type),
+    });
   if (p.recurring_months)
     items.push({ label: "Vigência", value: `${p.recurring_months} meses` });
   if (p.installments && p.installments > 1)
