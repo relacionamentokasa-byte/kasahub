@@ -1,6 +1,22 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import type { LaunchGridProduct, LaunchGridBoletim } from "@/lib/launch-grids-api";
+import { resolveStorageUrl } from "@/lib/use-storage-url";
+
+/**
+ * Remove caracteres que a fonte padrão do jsPDF (Helvetica/WinAnsi) não
+ * suporta — emojis, símbolos exóticos, etc. — para evitar "mojibake"
+ * tipo "Ø=Üã" no PDF. Mantém acentos latinos.
+ */
+function sanitize(s?: string | null): string {
+  if (s == null) return "";
+  let out = String(s).normalize("NFC");
+  // remove emojis e pictographs
+  out = out.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{1F000}-\u{1F02F}\u{1F100}-\u{1F1FF}\u{FE0F}]/gu, "");
+  // remove qualquer caractere fora do range WinAnsi/Latin-1 estendido
+  out = out.replace(/[^\u0000-\u00FF]/g, "");
+  return out.replace(/\s+/g, " ").trim();
+}
 
 export const CATEGORIA_OPTIONS = [
   "Perfumaria",
