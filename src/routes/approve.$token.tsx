@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { AttachmentViewer } from "@/components/AttachmentViewer";
+import { FileThumbnail } from "@/components/FileThumbnail";
 
 
 export const Route = createFileRoute("/approve/$token")({
