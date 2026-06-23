@@ -481,34 +481,8 @@ export async function updateJob(
     }
   }
 
-  // Próximo da fila de execução: quando este job é concluído, avisa o responsável
-  // do próximo job pendente do mesmo projeto via popup (tipo "assignment").
-  const becameDone = !!data.done_at && originalJob?.status !== 'done';
-  if (becameDone && data.project_id) {
-    const { data: nextJobs } = await supabase
-      .from('jobs')
-      .select('id, title, assignee_id, main_responsible_id')
-      .eq('project_id', data.project_id)
-      .is('done_at', null)
-      .neq('id', data.id)
-      .order('order_index', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: true })
-      .limit(1);
 
-    const next = nextJobs?.[0];
-    const nextAssignee = next?.assignee_id || next?.main_responsible_id;
-    if (next && nextAssignee && nextAssignee !== currentUserId) {
-      await notify({
-        userId: nextAssignee,
-        title: `Sua vez: ${next.title}`,
-        description: `${authorName} concluiu "${data.title}". Você é o próximo da fila de execução deste projeto.`,
-        category: 'assignment',
-        originType: 'jobs',
-        originId: next.id,
-        link: `/jobs?jobId=${next.id}`,
-      });
-    }
-  }
+
 
   await logAudit("update", "job", id, null, patch);
   await refreshProjectStats(data.project_id);
@@ -603,30 +577,30 @@ export async function addChecklistItem(jobId: string, content: string) {
 }
 
 export async function toggleChecklistItem(id: string, done: boolean) {
-  // Simple Supabase update as requested
+  // Buscar o item antes pra saber se virou done agora (e seu job/order_index).
+  const { data: before } = await supabase
+    .from('job_checklist')
+    .select('job_id, done, order_index, content, responsible_id')
+    .eq('id', id)
+    .maybeSingle();
+
   const { error: updateError } = await supabase
     .from('job_checklist')
     .update({ done })
     .eq('id', id);
-  
+
   if (updateError) {
     console.error("ERRO COMPLETO DO SUPABASE AO ATUALIZAR CHECKLIST:", updateError);
     throw updateError;
   }
 
-  // Fetch job_id to recalculate progress
-  const { data: item } = await supabase
-    .from('job_checklist')
-    .select('job_id')
-    .eq('id', id)
-    .single();
-
-  if (item?.job_id) {
+  const jobId = before?.job_id;
+  if (jobId) {
     // Recalcular porcentagem de progresso da tarefa
     const { data: items } = await supabase
       .from('job_checklist')
       .select('done')
-      .eq('job_id', item.job_id);
+      .eq('job_id', jobId);
 
     if (items) {
       const totalCount = items.length;
@@ -640,7 +614,53 @@ export async function toggleChecklistItem(id: string, done: boolean) {
           total_steps: totalCount,
           progress_percentage: progressPercentage
         } as any)
-        .eq('id', item.job_id);
+        .eq('id', jobId);
+    }
+
+    // Próximo da fila de execução do checklist: quando este item acabou de ser
+    // marcado como feito, avisa o responsável do próximo item pendente por popup.
+    const becameDone = done === true && before?.done !== true;
+    if (becameDone) {
+      const { data: nextItems } = await supabase
+        .from('job_checklist')
+        .select('id, content, responsible_id, order_index')
+        .eq('job_id', jobId)
+        .eq('done', false)
+        .neq('id', id)
+        .order('order_index', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+      const next = nextItems?.[0];
+      if (next && next.responsible_id) {
+        const { data: userData } = await supabase.auth.getUser();
+        const currentUserId = userData.user?.id;
+
+        if (next.responsible_id !== currentUserId) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('display_name, full_name')
+            .eq('id', currentUserId || '')
+            .maybeSingle();
+          const authorName = profile?.display_name || profile?.full_name || 'Alguém';
+
+          const { data: job } = await supabase
+            .from('jobs')
+            .select('title')
+            .eq('id', jobId)
+            .maybeSingle();
+
+          await notify({
+            userId: next.responsible_id,
+            title: `Sua vez: ${next.content}`,
+            description: `${authorName} concluiu "${before?.content ?? 'a etapa anterior'}"${job?.title ? ` no job ${job.title}` : ''}. Agora é com você.`,
+            category: 'assignment',
+            originType: 'jobs',
+            originId: jobId,
+            link: `/jobs?jobId=${jobId}`,
+          });
+        }
+      }
     }
   }
 }
