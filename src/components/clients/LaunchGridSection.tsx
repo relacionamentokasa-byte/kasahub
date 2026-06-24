@@ -675,12 +675,8 @@ function ProductSheet({
     return [];
   });
 
-  // Pré-popula com o responsável comercial do cliente quando carregar e ainda estiver vazio
-  useEffect(() => {
-    if (responsaveis.length === 0 && clientData?.commercial_contact_name) {
-      setResponsaveis([{ nome: clientData.commercial_contact_name, papel: "Responsável Comercial" }]);
-    }
-  }, [clientData?.commercial_contact_name]);
+
+
 
   const { data: jobs = [] } = useQuery({
     queryKey: ["product-jobs", product?.id],
