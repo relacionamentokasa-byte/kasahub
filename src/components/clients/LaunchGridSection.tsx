@@ -313,9 +313,14 @@ function TableView({
                 </TableCell>
                 <TableCell className="text-xs text-foreground/60 max-w-xs truncate">{p.notes || "—"}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="size-7" onClick={() => onDelete(p.id)}>
-                    <Trash2 className="size-3.5" />
-                  </Button>
+                  <div className="flex gap-0.5">
+                    <Button variant="ghost" size="icon" className="size-7" title="Duplicar" onClick={() => onDuplicate(p.id)}>
+                      <Copy className="size-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="size-7" title="Remover" onClick={() => onDelete(p.id)}>
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             );
