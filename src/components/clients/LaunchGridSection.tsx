@@ -816,6 +816,10 @@ function ProductSheet({
                   <Label className="text-xs">Nome do produto / linha *</Label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
                 </div>
+                <div>
+                  <Label className="text-xs">Coleção</Label>
+                  <Input value={colecao} onChange={(e) => setColecao(e.target.value)} className="mt-1" placeholder="Ex: Verão 2026, Edição Limitada..." />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-xs">Data de lançamento</Label>
