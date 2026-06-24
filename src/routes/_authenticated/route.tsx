@@ -6,7 +6,7 @@ import { AppSidebar } from "@/components/AppSidebar";
 import { AppTopbar } from "@/components/AppTopbar";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { FloatingActions } from "@/components/FloatingActions";
-import { GlobalChatWidget } from "@/components/GlobalChatWidget";
+
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { FocusModeProvider, useFocusMode } from "@/contexts/FocusModeContext";
 import { PrivacyProvider } from "@/contexts/PrivacyContext";
@@ -103,7 +103,7 @@ function ShellInner() {
       </div>
       {!focusMode && <OnboardingWizard />}
       {!focusMode && <FloatingActions />}
-      {!focusMode && <GlobalChatWidget />}
+      
     </div>
   );
 }

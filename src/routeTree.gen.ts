@@ -33,7 +33,6 @@ import { Route as AuthenticatedDistribuicaoRouteImport } from './routes/_authent
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
-import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authenticated/aprovacoes'
@@ -186,11 +185,6 @@ const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
 const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
   id: '/config',
   path: '/config',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
-  id: '/chat',
-  path: '/chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCeoRoute = AuthenticatedCeoRouteImport.update({
@@ -378,7 +372,6 @@ export interface FileRoutesByFullPath {
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/ceo': typeof AuthenticatedCeoRoute
-  '/chat': typeof AuthenticatedChatRoute
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -435,7 +428,6 @@ export interface FileRoutesByTo {
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
   '/ceo': typeof AuthenticatedCeoRoute
-  '/chat': typeof AuthenticatedChatRoute
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -495,7 +487,6 @@ export interface FileRoutesById {
   '/_authenticated/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/ceo': typeof AuthenticatedCeoRoute
-  '/_authenticated/chat': typeof AuthenticatedChatRoute
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -556,7 +547,6 @@ export interface FileRouteTypes {
     | '/aprovacoes'
     | '/calendario'
     | '/ceo'
-    | '/chat'
     | '/config'
     | '/crm'
     | '/dashboard'
@@ -613,7 +603,6 @@ export interface FileRouteTypes {
     | '/aprovacoes'
     | '/calendario'
     | '/ceo'
-    | '/chat'
     | '/config'
     | '/crm'
     | '/dashboard'
@@ -672,7 +661,6 @@ export interface FileRouteTypes {
     | '/_authenticated/aprovacoes'
     | '/_authenticated/calendario'
     | '/_authenticated/ceo'
-    | '/_authenticated/chat'
     | '/_authenticated/config'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
@@ -927,13 +915,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfigRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/chat': {
-      id: '/_authenticated/chat'
-      path: '/chat'
-      fullPath: '/chat'
-      preLoaderRoute: typeof AuthenticatedChatRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/ceo': {
       id: '/_authenticated/ceo'
       path: '/ceo'
@@ -1165,7 +1146,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAprovacoesRoute: typeof AuthenticatedAprovacoesRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedCeoRoute: typeof AuthenticatedCeoRoute
-  AuthenticatedChatRoute: typeof AuthenticatedChatRoute
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1196,7 +1176,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAprovacoesRoute: AuthenticatedAprovacoesRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedCeoRoute: AuthenticatedCeoRoute,
-  AuthenticatedChatRoute: AuthenticatedChatRoute,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
