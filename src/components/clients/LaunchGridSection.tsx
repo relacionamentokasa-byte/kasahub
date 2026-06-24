@@ -31,11 +31,11 @@ import { ptBR } from "date-fns/locale";
 import {
   getOrCreateGridByClient, updateLaunchGrid,
   listGridStatuses, createStatus, updateStatus, deleteStatus,
-  listGridProducts, createProduct, updateProduct, deleteProduct,
+  listGridProducts, createProduct, updateProduct, deleteProduct, duplicateProduct,
   uploadProductImage, listProductJobs,
   type LaunchGridProduct, type LaunchGridStatus, type LaunchGridSku,
   type LaunchGridBoletim, type BoletimImagens,
-  type AspectoFisico, type Acondicionar,
+  type AspectoFisico, type Acondicionar, type TipoArte,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
