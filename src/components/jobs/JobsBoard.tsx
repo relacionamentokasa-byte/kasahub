@@ -744,7 +744,7 @@ function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId,
         onClick={() => !isOptimistic && onClick()}
         className={isOptimistic ? "cursor-wait" : "cursor-grab active:cursor-grabbing"}
       >
-        <JobCardInner job={job} profiles={profiles} nextResponsibleId={nextResponsibleId} />
+        <JobCardInner job={job} profiles={profiles} nextResponsibleId={nextResponsibleId} teamIds={teamIds} />
       </div>
       {!isOptimistic && (
         <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
