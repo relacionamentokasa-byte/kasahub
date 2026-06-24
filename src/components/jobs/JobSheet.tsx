@@ -561,6 +561,28 @@ export function JobSheet({
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
   }, []);
 
+  // Sincroniza team_involved com os responsáveis da execução (fonte única).
+  useEffect(() => {
+    if (!job) return;
+    const derivedIds = Array.from(new Set(
+      (checklist || [])
+        .map((c: any) => c.responsible_id)
+        .filter((id: string | null) => !!id)
+    )) as string[];
+    const currentIds = ((job as any).team_involved || [])
+      .map((m: any) => (typeof m === "string" ? m : m.user_id))
+      .filter(Boolean);
+    const same =
+      derivedIds.length === currentIds.length &&
+      derivedIds.every((id) => currentIds.includes(id));
+    if (same) return;
+    const next = derivedIds.map((id) => ({ user_id: id, role: "Membro" }));
+    updateJob(job.id, { team_involved: next } as any)
+      .then(() => qc.invalidateQueries({ queryKey: ["jobs"] }))
+      .catch(() => {});
+  }, [checklist, job?.id]);
+
+
   const isAdmin = currentUser?.user_metadata?.role === 'admin' || currentUser?.email === 'admin@ops.com'; // Placeholder check
 
 
@@ -850,47 +872,53 @@ export function JobSheet({
                     </div>
                   </div>
 
-                  {/* EQUIPE ENVOLVIDA */}
+                  {/* EQUIPE ENVOLVIDA — derivada da execução */}
                   <div className="space-y-3 col-span-1 sm:col-span-2">
-                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Equipe Envolvida</Label>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                      {team.map((p) => {
-                        const isSelected = ((job as any).team_involved || []).some((m: any) => m.user_id === p.id);
-                        return (
-                          <button
-                            key={p.id}
-                            onClick={() => {
-                              const current = (job as any).team_involved || [];
-                              if (isSelected) {
-                                updateMut.mutate({ team_involved: current.filter((m: any) => m.user_id !== p.id) } as any);
-                              } else {
-                                updateMut.mutate({ team_involved: [...current, { user_id: p.id, role: "Membro" }] } as any);
-                              }
-                            }}
-                            className={`flex flex-col items-center gap-2 group transition-opacity ${!isSelected && "opacity-40 hover:opacity-100"}`}
-                          >
-                            <div className={`size-12 rounded-full border-2 transition-all p-0.5 ${
-                              isSelected ? "border-primary scale-110 shadow-[0_0_15px_rgba(255,188,69,0.3)]" : "border-transparent group-hover:border-primary/30"
-                            }`}>
-                              <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                {p.avatar_url ? (
-                                  <StorageImage src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
-                                ) : (
-
-                                  <span className="text-xs font-bold text-foreground/40 uppercase">
-                                    {(p.display_name || p.full_name || "??").substring(0, 2)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <span className={`text-[9px] font-bold uppercase tracking-tighter text-center line-clamp-1 w-full ${isSelected ? "text-primary" : "text-foreground/40"}`}>
-                              {p.display_name || p.full_name?.split(' ')[0]}
-                            </span>
-                          </button>
-                        );
-                      })}
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Equipe Envolvida</Label>
+                      <span className="text-[9px] text-foreground/40 italic">Definida pelos responsáveis da execução</span>
                     </div>
+                    {(() => {
+                      const ids = Array.from(new Set(
+                        (checklist || [])
+                          .map((c: any) => c.responsible_id)
+                          .filter((id: string | null) => !!id)
+                      )) as string[];
+                      const members = ids
+                        .map((id) => team.find((p) => p.id === id))
+                        .filter(Boolean) as any[];
+                      if (members.length === 0) {
+                        return (
+                          <p className="text-[11px] text-foreground/40 italic">
+                            Atribua responsáveis aos itens da execução para montar a equipe.
+                          </p>
+                        );
+                      }
+                      return (
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                          {members.map((p) => (
+                            <div key={p.id} className="flex flex-col items-center gap-2">
+                              <div className="size-12 rounded-full border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(255,188,69,0.3)]">
+                                <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                                  {p.avatar_url ? (
+                                    <StorageImage src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
+                                  ) : (
+                                    <span className="text-xs font-bold text-foreground/40 uppercase">
+                                      {(p.display_name || p.full_name || "??").substring(0, 2)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <span className="text-[9px] font-bold uppercase tracking-tighter text-center line-clamp-1 w-full text-primary">
+                                {p.display_name || p.full_name?.split(' ')[0]}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </div>
+
                 </div>
               </div>
 
