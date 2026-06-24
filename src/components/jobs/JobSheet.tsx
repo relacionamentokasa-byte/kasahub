@@ -534,6 +534,25 @@ export function JobSheet({
     }
   });
 
+  const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleChecklistDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !job) return;
+    const qk = ["job-checklist", job.id];
+    const current = (qc.getQueryData<any[]>(qk) ?? []).slice();
+    const oldIndex = current.findIndex((i) => i.id === active.id);
+    const newIndex = current.findIndex((i) => i.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(current, oldIndex, newIndex).map((it, idx) => ({ ...it, order_index: idx }));
+    qc.setQueryData(qk, reordered);
+    reorderChecklist(reordered.map((it) => ({ id: it.id, order_index: it.order_index })))
+      .then(() => qc.invalidateQueries({ queryKey: qk }))
+      .catch(() => qc.setQueryData(qk, current));
+  };
+
+
+
 
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const [currentUser, setCurrentUser] = useState<any>(null);
