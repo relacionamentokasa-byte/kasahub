@@ -55,7 +55,7 @@ function drawClientLogo(doc: jsPDF, dataUrl: string | null, pageW: number, margi
 export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   const { data: batch, error: bErr } = await supabase
     .from("dme_batches" as any)
-    .select("*, clients(name, company)")
+    .select("*, clients(name, company, logo_url)")
     .eq("id", batchId)
     .maybeSingle();
   if (bErr) throw bErr;
