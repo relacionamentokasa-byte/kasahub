@@ -52,6 +52,71 @@ function drawClientLogo(doc: jsPDF, dataUrl: string | null, pageW: number, margi
   }
 }
 
+// Logo Kasa (branca) — exibida no rodapé de todos os PDFs
+import kasaLogoAsset from "@/assets/logo-white.png.asset.json";
+let _kasaLogoCache: string | null | undefined;
+async function getKasaLogoDataUrl(): Promise<string | null> {
+  if (_kasaLogoCache !== undefined) return _kasaLogoCache;
+  _kasaLogoCache = await imageToDataURL(kasaLogoAsset.url);
+  return _kasaLogoCache;
+}
+
+async function drawPdfFooter(
+  doc: jsPDF,
+  opts: { footerText?: string | null; pageW: number; margin: number },
+) {
+  const { footerText, pageW, margin } = opts;
+  const pageH = doc.internal.pageSize.getHeight();
+  const bandH = 64;
+  const bandY = pageH - bandH;
+
+  doc.setFillColor(12, 22, 24);
+  doc.rect(0, bandY, pageW, bandH, "F");
+
+  // Texto configurável (lado esquerdo)
+  const text = sanitize(footerText || "").trim();
+  if (text) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(244, 247, 245);
+    const maxWidth = pageW - margin * 2 - 110; // reserva espaço da logo
+    const lines = doc.splitTextToSize(text, maxWidth).slice(0, 3);
+    doc.text(lines, margin, bandY + 22);
+  }
+
+  // Data de geração (lado esquerdo, abaixo)
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(156, 177, 176);
+  doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, margin, pageH - 10);
+
+  // Logo Kasa (lado direito)
+  const kasaLogo = await getKasaLogoDataUrl();
+  if (kasaLogo) {
+    const logoH = 28;
+    const logoW = 84;
+    try {
+      doc.addImage(
+        kasaLogo,
+        "PNG",
+        pageW - margin - logoW,
+        bandY + (bandH - logoH) / 2,
+        logoW,
+        logoH,
+        undefined,
+        "FAST",
+      );
+    } catch {
+      /* ignore */
+    }
+  } else {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(255, 188, 69);
+    doc.text("KASA HUB", pageW - margin, bandY + 28, { align: "right" });
+  }
+}
+
 export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   const { data: batch, error: bErr } = await supabase
     .from("dme_batches" as any)
