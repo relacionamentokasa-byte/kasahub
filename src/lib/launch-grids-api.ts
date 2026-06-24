@@ -52,6 +52,7 @@ export type BoletimImagens = {
 
 export type LaunchGridBoletim = {
   categoria?: string;
+  colecao?: string;
   imagens?: BoletimImagens;
   briefing_criacao?: string;
   regulatorio_verso?: string;
