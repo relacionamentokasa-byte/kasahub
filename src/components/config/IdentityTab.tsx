@@ -60,6 +60,15 @@ export function IdentityTab({ form, set, canEdit }: { form: Partial<AgencySettin
           <Input value={form.timezone ?? ""} onChange={(e) => set("timezone", e.target.value)} disabled={!canEdit} />
         </Field>
       </Grid>
+      <Field label="Rodapé do PDF de Demandas Extras" className="mt-4">
+        <Textarea
+          value={form.dme_pdf_footer ?? ""}
+          onChange={(e) => set("dme_pdf_footer", e.target.value)}
+          disabled={!canEdit}
+          rows={3}
+          placeholder="Ex: Obrigado pela parceria! Dúvidas: contato@suaempresa.com · (11) 99999-0000"
+        />
+      </Field>
     </div>
   );
 }
