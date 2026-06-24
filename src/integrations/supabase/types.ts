@@ -172,6 +172,7 @@ export type Database = {
           brand_secondary: string | null
           created_at: string
           default_currency: string
+          dme_pdf_footer: string | null
           document: string | null
           email: string | null
           icon_system_url: string | null
@@ -213,6 +214,7 @@ export type Database = {
           brand_secondary?: string | null
           created_at?: string
           default_currency?: string
+          dme_pdf_footer?: string | null
           document?: string | null
           email?: string | null
           icon_system_url?: string | null
@@ -254,6 +256,7 @@ export type Database = {
           brand_secondary?: string | null
           created_at?: string
           default_currency?: string
+          dme_pdf_footer?: string | null
           document?: string | null
           email?: string | null
           icon_system_url?: string | null
