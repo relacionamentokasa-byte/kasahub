@@ -151,6 +151,8 @@ export async function exportBoletimPdf(
       embalagem_fornecedor: sanitize(product.boletim.embalagem_fornecedor),
       tampa_cor: sanitize(product.boletim.tampa_cor),
       tampa_fornecedor: sanitize(product.boletim.tampa_fornecedor),
+      valvula_cor: sanitize(product.boletim.valvula_cor),
+      valvula_fornecedor: sanitize(product.boletim.valvula_fornecedor),
       responsaveis: (product.boletim.responsaveis ?? []).map((r) => ({
         nome: sanitize(r.nome),
         papel: sanitize(r.papel),
@@ -434,9 +436,14 @@ export async function exportBoletimPdf(
   };
 
   const imgs = b.imagens ?? {};
-  if (imgs.tampa?.length || imgs.embalagem?.length || b.tampa_cor || b.embalagem_cor || b.tampa_fornecedor || b.embalagem_fornecedor) {
-    sectionTitle("Tampa & Embalagem");
+  if (
+    imgs.tampa?.length || imgs.valvula?.length || imgs.embalagem?.length ||
+    b.tampa_cor || b.valvula_cor || b.embalagem_cor ||
+    b.tampa_fornecedor || b.valvula_fornecedor || b.embalagem_fornecedor
+  ) {
+    sectionTitle("Tampa, Válvula & Embalagem");
     await componentCard("Tampa", imgs.tampa, b.tampa_cor, b.tampa_fornecedor);
+    await componentCard("Válvula", imgs.valvula, b.valvula_cor, b.valvula_fornecedor);
     await componentCard("Embalagem", imgs.embalagem, b.embalagem_cor, b.embalagem_fornecedor);
   }
 

@@ -655,6 +655,8 @@ function ProductSheet({
   const [embalagemFornecedor, setEmbalagemFornecedor] = useState(b0.embalagem_fornecedor ?? "");
   const [tampaCor, setTampaCor] = useState(b0.tampa_cor ?? "");
   const [tampaFornecedor, setTampaFornecedor] = useState(b0.tampa_fornecedor ?? "");
+  const [valvulaCor, setValvulaCor] = useState(b0.valvula_cor ?? "");
+  const [valvulaFornecedor, setValvulaFornecedor] = useState(b0.valvula_fornecedor ?? "");
 
   const { data: clientData } = useQuery({
     queryKey: ["client-commercial", clientId],
@@ -693,6 +695,7 @@ function ProductSheet({
         descricao_embalagem: descEmbalagem, responsaveis,
         embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
         tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
+        valvula_cor: valvulaCor, valvula_fornecedor: valvulaFornecedor,
         tipo_arte: tipoArte,
       };
       const payload = {
@@ -750,6 +753,7 @@ function ProductSheet({
         descricao_embalagem: descEmbalagem, responsaveis,
         embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
         tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
+        valvula_cor: valvulaCor, valvula_fornecedor: valvulaFornecedor,
         tipo_arte: tipoArte,
       },
       statusLabel,
@@ -867,6 +871,20 @@ function ProductSheet({
                 <div>
                   <Label className="text-xs">Fornecedor da tampa</Label>
                   <Input value={tampaFornecedor} onChange={(e) => setTampaFornecedor(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <MultiImageUploader gridId={gridId} label="Válvula" value={imgs.valvula ?? []}
+                onChange={(v) => setImgs({ ...imgs, valvula: v })} />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Cor da válvula</Label>
+                  <Input value={valvulaCor} onChange={(e) => setValvulaCor(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs">Fornecedor da válvula</Label>
+                  <Input value={valvulaFornecedor} onChange={(e) => setValvulaFornecedor(e.target.value)} className="mt-1" />
                 </div>
               </div>
             </div>
