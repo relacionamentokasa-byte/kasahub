@@ -427,12 +427,8 @@ export async function exportBoletimPdf(
     kv("Cor", cor);
     kv("Fornecedor", fornecedor);
 
-    if (images && images.length > 1) {
-      doc.setFont(FONT_BODY, "italic");
-      doc.setFontSize(8);
-      doc.setTextColor(...K.muted);
-      doc.text(`+${images.length - 1} imagem(ns) em referências visuais`, imgX, imgY + imgSize + 14);
-    }
+
+
 
     y += cardH + 14;
   };
