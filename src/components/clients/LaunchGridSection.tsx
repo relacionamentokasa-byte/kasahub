@@ -875,7 +875,6 @@ function ProductSheet({
               </div>
             </div>
             <div className="space-y-2">
-            <div className="space-y-2">
               <MultiImageUploader gridId={gridId} label="Válvula" value={imgs.valvula ?? []}
                 onChange={(v) => setImgs({ ...imgs, valvula: v })} />
               <div className="grid grid-cols-2 gap-2">
