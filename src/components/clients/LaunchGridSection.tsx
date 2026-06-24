@@ -691,7 +691,7 @@ function ProductSheet({
   const saveMut = useMutation({
     mutationFn: async () => {
       const boletim: LaunchGridBoletim = {
-        categoria, imagens: imgs, briefing_criacao: briefing,
+        categoria, colecao, imagens: imgs, briefing_criacao: briefing,
         regulatorio_verso: regulatorio, benchmark,
         volumetria, aspecto_fisico: aspecto, acondicionar,
         descricao_embalagem: descEmbalagem, responsaveis,
