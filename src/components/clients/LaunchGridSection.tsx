@@ -875,6 +875,21 @@ function ProductSheet({
               </div>
             </div>
             <div className="space-y-2">
+            <div className="space-y-2">
+              <MultiImageUploader gridId={gridId} label="Válvula" value={imgs.valvula ?? []}
+                onChange={(v) => setImgs({ ...imgs, valvula: v })} />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Cor da válvula</Label>
+                  <Input value={valvulaCor} onChange={(e) => setValvulaCor(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs">Fornecedor da válvula</Label>
+                  <Input value={valvulaFornecedor} onChange={(e) => setValvulaFornecedor(e.target.value)} className="mt-1" />
+                </div>
+              </div>
+            </div>
+            <div className="space-y-2">
               <MultiImageUploader gridId={gridId} label="Embalagem" value={imgs.embalagem ?? []}
                 onChange={(v) => setImgs({ ...imgs, embalagem: v })} />
               <div className="grid grid-cols-2 gap-2">
