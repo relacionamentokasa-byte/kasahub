@@ -79,6 +79,8 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
     .select("name, logo_url")
     .maybeSingle();
 
+  const clientLogo = await imageToDataURL(b.clients?.logo_url);
+
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 40;
@@ -102,7 +104,9 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
     78,
   );
 
-  if (agency?.name) {
+  drawClientLogo(doc, clientLogo, pageW, margin);
+
+  if (agency?.name && !clientLogo) {
     doc.setFontSize(9);
     doc.text(sanitize(agency.name), pageW - margin, 35, { align: "right" });
   }
