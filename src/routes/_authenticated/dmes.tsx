@@ -3,13 +3,14 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase, Layers, PlusCircle,
+  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase, Layers, PlusCircle, FileDown,
 } from "lucide-react";
 import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
 import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction } from "@/lib/dme-batches-api";
+import { generateDmeBatchPdf } from "@/lib/dme-batch-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
@@ -117,7 +118,7 @@ function DmesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dme_batches" as any)
-        .select("id, status, total_value, consolidated_transaction_id, client_id, created_at, clients(name, company), dme_batch_items(extra_demand_id)")
+        .select("id, public_token, status, total_value, consolidated_transaction_id, client_id, created_at, clients(name, company), dme_batch_items(extra_demand_id)")
         .neq("status", "cancelled")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -246,10 +247,22 @@ function DmesPage() {
       await navigator.clipboard.writeText(url);
       toast.success(`Link do lote copiado! (${selectedDmes.length} DMEs · ${brl(selectedTotal)})`);
       setSelectedIds(new Set());
+      // Já gera o PDF para envio ao cliente
+      try { await generateDmeBatchPdf(batch.id); } catch (e) { console.error(e); }
+      qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao criar lote.");
     } finally {
       setCreatingBatch(false);
+    }
+  }
+
+  async function handleDownloadBatchPdf(batchId: string) {
+    try {
+      await generateDmeBatchPdf(batchId);
+      toast.success("PDF gerado.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao gerar PDF.");
     }
   }
 
@@ -332,19 +345,43 @@ function DmesPage() {
                       {count} DME{count !== 1 ? "s" : ""} no lote · total {brl(Number(b.total_value || 0))}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setAddItemFor({
-                      client_id: b.client_id,
-                      clients: b.clients,
-                      contract_id: null,
-                      _batch: b,
-                    })}
-                    className="gap-2 shrink-0"
-                    title="Criar uma nova DME e somar na cobrança consolidada deste lote"
-                  >
-                    <PlusCircle className="size-4" /> Adicionar DME
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadBatchPdf(b.id)}
+                      className="gap-2"
+                      title="Gerar PDF do lote para enviar ao cliente"
+                    >
+                      <FileDown className="size-4" /> PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        const url = getDmeBatchPublicUrl(b.public_token);
+                        await navigator.clipboard.writeText(url);
+                        toast.success("Link de aprovação copiado.");
+                      }}
+                      className="gap-2"
+                      title="Copiar link de aprovação"
+                    >
+                      <LinkIcon className="size-4" /> Link
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setAddItemFor({
+                        client_id: b.client_id,
+                        clients: b.clients,
+                        contract_id: null,
+                        _batch: b,
+                      })}
+                      className="gap-2"
+                      title="Criar uma nova DME e somar na cobrança consolidada deste lote"
+                    >
+                      <PlusCircle className="size-4" /> Adicionar DME
+                    </Button>
+                  </div>
                 </div>
               );
             })}
