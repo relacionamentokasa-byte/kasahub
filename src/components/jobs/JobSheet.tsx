@@ -898,99 +898,32 @@ export function JobSheet({
                       <Progress value={progressPercent} className="h-2.5 bg-muted" />
                       
                       <div className="space-y-2 mt-4">
-                        {checklist.map((item) => {
-                          const resp = team.find(p => p.id === (item as any).responsible_id);
-                          return (
-                            <div 
-                              key={item.id} 
-                              className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all cursor-pointer"
-                              onClick={(e) => {
-                                // Only trigger if not clicking on the select or delete button
-                                if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="combobox"]')) {
-                                  toggleItemMut.mutate({ id: item.id, done: !item.done });
-                                }
-                              }}
-                            >
-                              <Checkbox
-                                checked={item.done}
-                                onCheckedChange={(v) => {
-                                  // This will be handled by the div click for better hit area, 
-                                  // but keep it for accessibility/keyboard
-                                  toggleItemMut.mutate({ id: item.id, done: v === true });
+                        <DndContext
+                          sensors={dndSensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleChecklistDragEnd}
+                        >
+                          <SortableContext
+                            items={checklist.map((c) => c.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {checklist.map((item) => (
+                              <SortableChecklistRow
+                                key={item.id}
+                                item={item}
+                                team={team}
+                                jobId={job.id}
+                                onToggle={(id, done) => toggleItemMut.mutate({ id, done })}
+                                onDelete={(id) => delItemMut.mutate(id)}
+                                onUpdate={async (id, patch) => {
+                                  await updateChecklistItem(id, patch);
+                                  qc.invalidateQueries({ queryKey: ["job-checklist", job.id] });
                                 }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300 shrink-0"
                               />
-                              <div className="flex-1 min-w-0">
+                            ))}
+                          </SortableContext>
+                        </DndContext>
 
-                                 <input
-                                  defaultValue={item.content}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onBlur={(e) => {
-                                    const newContent = e.target.value.trim();
-                                    if (newContent && newContent !== item.content) {
-                                      updateChecklistItem(item.id, { content: newContent })
-                                        .then(() => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }));
-                                    }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.currentTarget.blur();
-                                    }
-                                  }}
-                                  className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm transition-all duration-300 ${
-                                    item.done ? "line-through text-foreground/40 italic" : "font-medium text-foreground"
-                                  }`}
-                                />
-                              </div>
-
-                              
-                              <div className="flex items-center gap-2">
-                                <Select
-                                  value={(item as any).responsible_id || "none"}
-                                  onValueChange={(v) => {
-                                    updateChecklistItem(item.id, { responsible_id: v === "none" ? null : v } as any)
-                                      .then(() => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }));
-                                  }}
-                                >
-                                  <SelectTrigger className="h-7 border-none bg-transparent hover:bg-white/5 p-0 w-auto gap-1 focus:ring-0">
-                                    <div className="flex items-center gap-1.5 px-2">
-                                      <Avatar className="size-5">
-                                        {resp?.avatar_url ? (
-                                          <AvatarImage src={resp.avatar_url} />
-                                        ) : null}
-                                        <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
-                                          {resp ? (resp.display_name || resp.full_name || "?").charAt(0).toUpperCase() : <User className="size-3" />}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                    </div>
-                                  </SelectTrigger>
-                                  <SelectContent align="end">
-                                    <SelectItem value="none" className="text-xs">Sem responsável</SelectItem>
-                                    {team.map((p: any) => (
-                                      <SelectItem key={p.id} value={p.id} className="text-xs">
-                                        <div className="flex items-center gap-2">
-                                          <Avatar className="size-4">
-                                            {p.avatar_url && <AvatarImage src={p.avatar_url} />}
-                                            <AvatarFallback className="text-[6px]">{ (p.display_name || p.full_name || "?").charAt(0) }</AvatarFallback>
-                                          </Avatar>
-                                          {p.display_name || p.full_name}
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-
-                                <button
-                                  onClick={() => delItemMut.mutate(item.id)}
-                                  className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all p-1"
-                                >
-                                  <X className="size-4" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();
