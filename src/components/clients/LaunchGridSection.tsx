@@ -240,13 +240,14 @@ export function LaunchGridSection({ clientId, clientName }: Props) {
 
 /* ============= TABLE VIEW ============= */
 function TableView({
-  products, statuses, onOpen, onMove, onDelete,
+  products, statuses, onOpen, onMove, onDelete, onDuplicate,
 }: {
   products: LaunchGridProduct[];
   statuses: LaunchGridStatus[];
   onOpen: (p: LaunchGridProduct) => void;
   onMove: (id: string, statusId: string) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
 }) {
   if (products.length === 0) return <EmptyProducts />;
   return (
