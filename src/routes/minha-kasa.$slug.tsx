@@ -275,6 +275,13 @@ function jobIsDone(job: Partial<JobRow>, stage?: { is_done?: boolean }) {
   return !!job.done_at || job.status === "done" || !!stage?.is_done;
 }
 
+function getFriendlyProgress(progress: number) {
+  if (progress >= 100) return { label: "Concluído", cls: "text-emerald-600", color: "#10B981" };
+  if (progress >= 81) return { label: "Quase pronto", cls: "text-amber-600", color: "#F59E0B" };
+  if (progress >= 1) return { label: "Em andamento", cls: "text-[var(--portal-primary)]", color: "var(--portal-primary)" };
+  return { label: "Em breve", cls: "text-slate-400", color: "#CBD5E1" };
+}
+
 function isImage(att: Attachment) {
   const t = (att.file_type || "").toLowerCase();
   if (t.startsWith("image/")) return true;
@@ -3739,8 +3746,6 @@ function LaunchGridView({ grid, jobStages }: { grid: any; jobStages: Record<stri
     return !!found?.stage?.is_done;
   }).length;
   const overall = products.length > 0 ? Math.round((doneProducts / products.length) * 100) : 0;
-  const unmatchedProducts = products.filter((p: any) => !p.status_id || !stageMap.has(p.status_id));
-
   return (
     <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
       {grid.cover_url && (
@@ -3778,58 +3783,16 @@ function LaunchGridView({ grid, jobStages }: { grid: any; jobStages: Record<stri
           />
         </div>
 
-        {/* Grid de cards por etapa — usa as mesmas etapas globais dos Jobs. */}
-        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
-          {statuses.map((s: any) => {
-            const items = products.filter((p: any) => p.status_id === s.id);
-            const stageColor = resolveStageColor(s.color);
-            return (
-              <div key={s.id} className="w-[280px] shrink-0">
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <span className="size-2.5 rounded-full" style={{ background: stageColor }} />
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">{s.label}</h3>
-                  <span className="text-[10px] text-slate-400">{items.length}</span>
-                </div>
-                <div className="space-y-2 bg-slate-50 rounded-xl p-2 min-h-[132px]">
-                  {items.length === 0 && (
-                    <div className="text-center text-[10px] text-slate-300 py-4">—</div>
-                  )}
-                  {items.map((p: any) => (
-                    <LaunchProductCard
-                      key={p.id}
-                      product={p}
-                      status={s}
-                      progress={productProgress(p.status_id)}
-                      jobStages={jobStages}
-                      stageMap={stageMap}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-
-          {unmatchedProducts.length > 0 && (
-            <div className="w-[280px] shrink-0">
-              <div className="flex items-center gap-2 mb-2 px-1">
-                <span className="size-2.5 rounded-full bg-slate-400" />
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">Sem etapa definida</h3>
-                <span className="text-[10px] text-slate-400">{unmatchedProducts.length}</span>
-              </div>
-              <div className="space-y-2 bg-slate-50 rounded-xl p-2 min-h-[132px]">
-                {unmatchedProducts.map((p: any) => (
-                  <LaunchProductCard
-                    key={p.id}
-                    product={p}
-                    status={null}
-                    progress={0}
-                    jobStages={jobStages}
-                    stageMap={stageMap}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {products.map((p: any) => (
+            <LaunchProductCard
+              key={p.id}
+              product={p}
+              progress={productProgress(p.status_id)}
+              jobStages={jobStages}
+              stageMap={stageMap}
+            />
+          ))}
         </div>
       </div>
     </section>
@@ -3838,18 +3801,16 @@ function LaunchGridView({ grid, jobStages }: { grid: any; jobStages: Record<stri
 
 function LaunchProductCard({
   product,
-  status,
   progress,
   jobStages,
   stageMap,
 }: {
   product: any;
-  status: any | null;
   progress: number;
   jobStages: Record<string, StageItem[]>;
   stageMap: Map<string, { stage: any; index: number }>;
 }) {
-  const statusColor = resolveStageColor(status?.color);
+  const friendly = getFriendlyProgress(progress);
   const productJobs = Array.isArray(product.jobs) ? product.jobs : [];
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-2.5 shadow-sm">
@@ -3866,18 +3827,11 @@ function LaunchProductCard({
       )}
 
       <div className="mt-2 flex items-center justify-between gap-2">
-        {status ? (
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: `${statusColor}1A`, color: statusColor }}>
-            <span className="size-1.5 rounded-full" style={{ background: statusColor }} />
-            {status.label}
-          </span>
-        ) : (
-          <span className="text-[10px] font-semibold text-slate-400">Sem etapa</span>
-        )}
+        <span className={`text-[10px] font-bold ${friendly.cls}`}>{friendly.label}</span>
         <span className="text-[10px] font-black text-slate-700">{progress}%</span>
       </div>
       <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mt-1.5">
-        <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: statusColor }} />
+        <div className="h-full rounded-full transition-all" style={{ width: `${progress}%`, background: friendly.color }} />
       </div>
 
       <div className="flex items-center justify-between gap-2 mt-2">
@@ -3913,37 +3867,23 @@ function LaunchProductCard({
           </div>
           {productJobs.slice(0, 4).map((job: JobRow) => {
             const jobStage = job.stage_id ? stageMap.get(job.stage_id)?.stage : null;
-            const jobColor = resolveStageColor(jobStage?.color);
             const steps = jobStages[job.id] || [];
             const doneSteps = steps.filter((step) => step.done).length;
-            const jobProgress = steps.length > 0
+            const rawProgress = steps.length > 0
               ? Math.round((doneSteps / steps.length) * 100)
               : (job.progress_percentage ?? 0);
             const done = jobIsDone(job, jobStage || undefined);
+            const jobProgress = done ? 100 : Math.min(100, Math.max(0, rawProgress));
+            const friendly = getFriendlyProgress(jobProgress);
             return (
               <div key={job.id} className="rounded-lg bg-slate-50 border border-slate-100 p-2">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    {done ? (
-                      <CheckCircle2 className="size-3.5 text-[#10B981] shrink-0" />
-                    ) : job.status === "in_progress" ? (
-                      <Clock className="size-3.5 text-[var(--portal-primary)] shrink-0" />
-                    ) : (
-                      <Circle className="size-3.5 text-slate-400 shrink-0" />
-                    )}
-                    <span className="text-[11px] font-semibold text-slate-800 truncate">{job.title}</span>
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 shrink-0">{jobProgress}%</span>
+                  <span className="text-[11px] font-semibold text-slate-800 truncate">{job.title}</span>
+                  <span className={`text-[10px] font-bold shrink-0 ${friendly.cls}`}>{friendly.label}</span>
                 </div>
                 <div className="h-1 w-full bg-slate-200 rounded-full overflow-hidden mt-1.5">
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, Math.max(0, jobProgress))}%`, background: jobColor }} />
+                  <div className="h-full rounded-full" style={{ width: `${jobProgress}%`, background: friendly.color }} />
                 </div>
-                {jobStage && (
-                  <div className="mt-1.5 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold" style={{ background: `${jobColor}1A`, color: jobColor }}>
-                    <span className="size-1 rounded-full" style={{ background: jobColor }} />
-                    {jobStage.label}
-                  </div>
-                )}
               </div>
             );
           })}
