@@ -872,7 +872,7 @@ function ProductSheet({
           <section className="space-y-4 border-t pt-5">
             <h3 className="text-sm font-semibold text-foreground/80 break-words">Imagens do produto</h3>
             <div className="space-y-2">
-              <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []}
+              <MultiImageUploader gridId={gridId} label="Tampa" value={imgs.tampa ?? []} maxImages={1}
                 onChange={(v) => setImgs({ ...imgs, tampa: v })} />
               <div className="grid grid-cols-2 gap-2">
                 <div>
