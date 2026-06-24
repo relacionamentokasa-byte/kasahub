@@ -640,6 +640,7 @@ function ProductSheet({
   // Boletim
   const b0: LaunchGridBoletim = product?.boletim ?? {};
   const [categoria, setCategoria] = useState(b0.categoria ?? "");
+  const [colecao, setColecao] = useState(b0.colecao ?? "");
   const [imgs, setImgs] = useState<BoletimImagens>(b0.imagens ?? {});
   const [briefing, setBriefing] = useState(b0.briefing_criacao ?? "");
   const [regulatorio, setRegulatorio] = useState(b0.regulatorio_verso ?? "");
