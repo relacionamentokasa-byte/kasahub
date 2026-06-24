@@ -89,6 +89,16 @@ export function LaunchGridSection({ clientId, clientName }: Props) {
     },
   });
 
+  const dupProductMut = useMutation({
+    mutationFn: (id: string) => duplicateProduct(id),
+    onSuccess: (p) => {
+      toast.success("Produto duplicado");
+      qc.invalidateQueries({ queryKey: ["launch-grid-products", gridId] });
+      setProductSheet({ product: p });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (!grid) {
     return <div className="p-8 text-center text-foreground/50">Carregando grid…</div>;
   }
