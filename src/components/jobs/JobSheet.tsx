@@ -561,6 +561,28 @@ export function JobSheet({
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
   }, []);
 
+  // Sincroniza team_involved com os responsáveis da execução (fonte única).
+  useEffect(() => {
+    if (!job) return;
+    const derivedIds = Array.from(new Set(
+      (checklist || [])
+        .map((c: any) => c.responsible_id)
+        .filter((id: string | null) => !!id)
+    )) as string[];
+    const currentIds = ((job as any).team_involved || [])
+      .map((m: any) => (typeof m === "string" ? m : m.user_id))
+      .filter(Boolean);
+    const same =
+      derivedIds.length === currentIds.length &&
+      derivedIds.every((id) => currentIds.includes(id));
+    if (same) return;
+    const next = derivedIds.map((id) => ({ user_id: id, role: "Membro" }));
+    updateJob(job.id, { team_involved: next } as any)
+      .then(() => qc.invalidateQueries({ queryKey: ["jobs"] }))
+      .catch(() => {});
+  }, [checklist, job?.id]);
+
+
   const isAdmin = currentUser?.user_metadata?.role === 'admin' || currentUser?.email === 'admin@ops.com'; // Placeholder check
 
 
