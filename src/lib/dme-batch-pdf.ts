@@ -52,12 +52,43 @@ function drawClientLogo(doc: jsPDF, dataUrl: string | null, pageW: number, margi
   }
 }
 
-// Logo Kasa (branca) — exibida no rodapé de todos os PDFs
+// Logo Kasa (branca) — exibida no rodapé de todos os PDFs.
+// Carregamos via <img> + canvas para garantir que o canal alpha seja
+// preservado (caso contrário o jsPDF renderiza um retângulo preto).
 import kasaLogoAsset from "@/assets/logo-white.png.asset.json";
-let _kasaLogoCache: string | null | undefined;
-async function getKasaLogoDataUrl(): Promise<string | null> {
+let _kasaLogoCache: { dataUrl: string; w: number; h: number } | null | undefined;
+async function getKasaLogo(): Promise<{ dataUrl: string; w: number; h: number } | null> {
   if (_kasaLogoCache !== undefined) return _kasaLogoCache;
-  _kasaLogoCache = await imageToDataURL(kasaLogoAsset.url);
+  try {
+    const result = await new Promise<{ dataUrl: string; w: number; h: number } | null>(
+      (resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.naturalWidth;
+            canvas.height = img.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return resolve(null);
+            ctx.drawImage(img, 0, 0);
+            resolve({
+              dataUrl: canvas.toDataURL("image/png"),
+              w: img.naturalWidth,
+              h: img.naturalHeight,
+            });
+          } catch {
+            resolve(null);
+          }
+        };
+        img.onerror = () => resolve(null);
+        img.src = kasaLogoAsset.url;
+      },
+    );
+    _kasaLogoCache = result;
+  } catch {
+    _kasaLogoCache = null;
+  }
   return _kasaLogoCache;
 }
 
@@ -73,13 +104,34 @@ async function drawPdfFooter(
   doc.setFillColor(12, 22, 24);
   doc.rect(0, bandY, pageW, bandH, "F");
 
+  // Logo Kasa (lado direito) — calcula primeiro para reservar espaço do texto
+  const kasa = await getKasaLogo();
+  const logoH = 24;
+  const logoW = kasa ? (kasa.w / kasa.h) * logoH : 0;
+  const logoX = pageW - margin - logoW;
+  const logoY = bandY + (bandH - logoH) / 2;
+
+  if (kasa) {
+    try {
+      doc.addImage(kasa.dataUrl, "PNG", logoX, logoY, logoW, logoH);
+    } catch {
+      /* ignore */
+    }
+  } else {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(255, 188, 69);
+    doc.text("KASA HUB", pageW - margin, bandY + bandH / 2 + 4, { align: "right" });
+  }
+
   // Texto configurável (lado esquerdo)
   const text = sanitize(footerText || "").trim();
   if (text) {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(244, 247, 245);
-    const maxWidth = pageW - margin * 2 - 110; // reserva espaço da logo
+    const reservedRight = (kasa ? logoW : 80) + 24;
+    const maxWidth = pageW - margin * 2 - reservedRight;
     const lines = doc.splitTextToSize(text, maxWidth).slice(0, 3);
     doc.text(lines, margin, bandY + 22);
   }
@@ -89,32 +141,6 @@ async function drawPdfFooter(
   doc.setFontSize(7);
   doc.setTextColor(156, 177, 176);
   doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, margin, pageH - 10);
-
-  // Logo Kasa (lado direito)
-  const kasaLogo = await getKasaLogoDataUrl();
-  if (kasaLogo) {
-    const logoH = 28;
-    const logoW = 84;
-    try {
-      doc.addImage(
-        kasaLogo,
-        "PNG",
-        pageW - margin - logoW,
-        bandY + (bandH - logoH) / 2,
-        logoW,
-        logoH,
-        undefined,
-        "FAST",
-      );
-    } catch {
-      /* ignore */
-    }
-  } else {
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(255, 188, 69);
-    doc.text("KASA HUB", pageW - margin, bandY + 28, { align: "right" });
-  }
 }
 
 export async function generateDmeBatchPdf(batchId: string): Promise<void> {
