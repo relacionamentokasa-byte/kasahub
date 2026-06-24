@@ -103,7 +103,7 @@ function ShellInner() {
       </div>
       {!focusMode && <OnboardingWizard />}
       {!focusMode && <FloatingActions />}
-      {!focusMode && <GlobalChatWidget />}
+      
     </div>
   );
 }
