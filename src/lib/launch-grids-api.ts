@@ -45,6 +45,7 @@ export type TipoArte = "rotulo" | "sleev" | "gravacao" | "";
 
 export type BoletimImagens = {
   tampa?: string[];
+  valvula?: string[];
   embalagem?: string[];
   rotulo?: string[];
   outros?: string[];
@@ -67,6 +68,8 @@ export type LaunchGridBoletim = {
   embalagem_fornecedor?: string;
   tampa_cor?: string;
   tampa_fornecedor?: string;
+  valvula_cor?: string;
+  valvula_fornecedor?: string;
 };
 
 export type LaunchGridProduct = {
