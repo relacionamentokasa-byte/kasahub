@@ -263,28 +263,20 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
                     </h4>
                     {productJobs.slice(0, 4).map((job) => {
                       const jobStage = job.stage_id ? stageMap.get(job.stage_id)?.stage : null;
-                      const jobStageColor = resolveStageColor(jobStage?.color);
                       const isDone = jobStage?.is_done || job.status === "done" || !!job.done_at;
+                      const pct = isDone ? 100 : Math.max(0, Math.min(100, Number((job as any).progress_percentage) || 0));
+                      const friendly =
+                        pct >= 100 ? { label: "Concluído", tone: "text-emerald-500" }
+                        : pct >= 81 ? { label: "Quase pronto", tone: "text-amber-500" }
+                        : pct >= 1  ? { label: "Em andamento", tone: "text-blue-500" }
+                                    : { label: "Em breve", tone: "text-foreground/40" };
                       return (
-                        <div key={job.id} className="flex items-center justify-between gap-1.5 text-[11px]">
-                          <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                            {isDone ? (
-                              <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
-                            ) : job.status === "in_progress" ? (
-                              <Clock className="size-3 text-amber-500 shrink-0" />
-                            ) : (
-                              <Circle className="size-3 text-foreground/20 shrink-0" />
-                            )}
-                            <span className="truncate">{job.title}</span>
+                        <div key={job.id} className="space-y-1">
+                          <div className="flex items-center justify-between gap-1.5 text-[11px]">
+                            <span className="truncate flex-1">{job.title}</span>
+                            <span className={`text-[9px] shrink-0 ${friendly.tone}`}>{friendly.label}</span>
                           </div>
-                          {jobStage && (
-                            <span
-                              className="text-[9px] px-1.5 py-0.5 rounded-full shrink-0"
-                              style={{ background: `${jobStageColor}20`, color: jobStageColor }}
-                            >
-                              {jobStage.label}
-                            </span>
-                          )}
+                          <Progress value={pct} className="h-1" />
                         </div>
                       );
                     })}
