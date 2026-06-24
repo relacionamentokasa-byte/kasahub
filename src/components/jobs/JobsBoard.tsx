@@ -97,23 +97,34 @@ export function JobsBoard({
   // "Bola da vez" — para cada job em aberto, busca quem é o próximo responsável
   // (primeiro item de checklist pendente). Uma query única pra todos os jobs visíveis.
   const visibleJobIds = useMemo(() => jobs.filter((j: any) => j.status !== "done" && !j.done_at).map((j: any) => j.id), [jobs]);
-  const { data: nextResponsibleMap = new Map<string, string>() } = useQuery({
-    queryKey: ["jobs-next-responsible", visibleJobIds],
-    enabled: visibleJobIds.length > 0,
+  const allVisibleJobIds = useMemo(() => jobs.map((j: any) => j.id), [jobs]);
+  const { data: checklistMaps = { nextMap: new Map<string, string>(), teamMap: new Map<string, string[]>() } } = useQuery({
+    queryKey: ["jobs-checklist-derived", allVisibleJobIds],
+    enabled: allVisibleJobIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
         .from("job_checklist")
-        .select("job_id, responsible_id, order_index")
-        .in("job_id", visibleJobIds)
-        .eq("done", false)
+        .select("job_id, responsible_id, order_index, done")
+        .in("job_id", allVisibleJobIds)
         .order("order_index", { ascending: true });
-      const map = new Map<string, string>();
+      const nextMap = new Map<string, string>();
+      const teamMap = new Map<string, string[]>();
+      const seen = new Map<string, Set<string>>();
       (data ?? []).forEach((r: any) => {
-        if (r.responsible_id && !map.has(r.job_id)) map.set(r.job_id, r.responsible_id);
+        if (!r.responsible_id) return;
+        if (!r.done && !nextMap.has(r.job_id)) nextMap.set(r.job_id, r.responsible_id);
+        let set = seen.get(r.job_id);
+        if (!set) { set = new Set(); seen.set(r.job_id, set); teamMap.set(r.job_id, []); }
+        if (!set.has(r.responsible_id)) {
+          set.add(r.responsible_id);
+          teamMap.get(r.job_id)!.push(r.responsible_id);
+        }
       });
-      return map;
+      return { nextMap, teamMap };
     },
   });
+  const nextResponsibleMap = checklistMaps.nextMap;
+  const teamFromChecklistMap = checklistMaps.teamMap;
 
   useEffect(() => {
     const channel = supabase
