@@ -41,6 +41,8 @@ export type AspectoFisico =
 
 export type Acondicionar = "selo" | "caixa" | "ambos" | "";
 
+export type TipoArte = "rotulo" | "sleev" | "gravacao" | "";
+
 export type BoletimImagens = {
   tampa?: string[];
   embalagem?: string[];
@@ -57,6 +59,7 @@ export type LaunchGridBoletim = {
   volumetria?: string;
   aspecto_fisico?: AspectoFisico;
   acondicionar?: Acondicionar;
+  tipo_arte?: TipoArte;
   descricao_embalagem?: string;
   responsaveis?: Array<{ nome: string; papel?: string }>;
   embalagem_cor?: string;
@@ -291,6 +294,29 @@ export async function updateProduct(id: string, patch: Partial<LaunchGridProduct
     skus: Array.isArray((data as any).skus) ? (data as any).skus : [],
     boletim: ((data as any).boletim && typeof (data as any).boletim === "object") ? (data as any).boletim : {},
   } as LaunchGridProduct;
+}
+
+export async function duplicateProduct(id: string): Promise<LaunchGridProduct> {
+  const { data: src, error: e1 } = await supabase
+    .from("launch_grid_products")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (e1) throw e1;
+  const s: any = src;
+  return createProduct({
+    grid_id: s.grid_id,
+    name: `${s.name} (cópia)`,
+    status_id: s.status_id ?? null,
+    description: s.description ?? null,
+    image_url: s.image_url ?? null,
+    due_date: s.due_date ?? null,
+    responsible_id: s.responsible_id ?? null,
+    links: Array.isArray(s.links) ? s.links : [],
+    skus: Array.isArray(s.skus) ? s.skus : [],
+    notes: s.notes ?? null,
+    boletim: (s.boletim && typeof s.boletim === "object") ? s.boletim : {},
+  });
 }
 
 export async function deleteProduct(id: string) {

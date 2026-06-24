@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import {
   Plus, Settings2, LayoutGrid, Table as TableIcon, Image as ImageIcon,
   Pencil, Trash2, Upload, Link as LinkIcon, ExternalLink, Calendar,
-  Rocket, GripVertical, X, Briefcase, Package, FileDown,
+  Rocket, GripVertical, X, Briefcase, Package, FileDown, Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -31,11 +31,11 @@ import { ptBR } from "date-fns/locale";
 import {
   getOrCreateGridByClient, updateLaunchGrid,
   listGridStatuses, createStatus, updateStatus, deleteStatus,
-  listGridProducts, createProduct, updateProduct, deleteProduct,
+  listGridProducts, createProduct, updateProduct, deleteProduct, duplicateProduct,
   uploadProductImage, listProductJobs,
   type LaunchGridProduct, type LaunchGridStatus, type LaunchGridSku,
   type LaunchGridBoletim, type BoletimImagens,
-  type AspectoFisico, type Acondicionar,
+  type AspectoFisico, type Acondicionar, type TipoArte,
 } from "@/lib/launch-grids-api";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,6 +87,16 @@ export function LaunchGridSection({ clientId, clientName }: Props) {
       toast.success("Produto removido");
       qc.invalidateQueries({ queryKey: ["launch-grid-products", gridId] });
     },
+  });
+
+  const dupProductMut = useMutation({
+    mutationFn: (id: string) => duplicateProduct(id),
+    onSuccess: (p) => {
+      toast.success("Produto duplicado");
+      qc.invalidateQueries({ queryKey: ["launch-grid-products", gridId] });
+      setProductSheet({ product: p });
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
 
   if (!grid) {
@@ -181,6 +191,7 @@ export function LaunchGridSection({ clientId, clientName }: Props) {
               onOpen={(p) => setProductSheet({ product: p })}
               onMove={(id, status_id) => moveMut.mutate({ id, status_id })}
               onDelete={(id) => { if (confirm("Remover produto?")) delProductMut.mutate(id); }}
+              onDuplicate={(id) => dupProductMut.mutate(id)}
             />
           )}
           {view === "kanban" && (
@@ -229,13 +240,14 @@ export function LaunchGridSection({ clientId, clientName }: Props) {
 
 /* ============= TABLE VIEW ============= */
 function TableView({
-  products, statuses, onOpen, onMove, onDelete,
+  products, statuses, onOpen, onMove, onDelete, onDuplicate,
 }: {
   products: LaunchGridProduct[];
   statuses: LaunchGridStatus[];
   onOpen: (p: LaunchGridProduct) => void;
   onMove: (id: string, statusId: string) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
 }) {
   if (products.length === 0) return <EmptyProducts />;
   return (
@@ -301,9 +313,14 @@ function TableView({
                 </TableCell>
                 <TableCell className="text-xs text-foreground/60 max-w-xs truncate">{p.notes || "—"}</TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="size-7" onClick={() => onDelete(p.id)}>
-                    <Trash2 className="size-3.5" />
-                  </Button>
+                  <div className="flex gap-0.5">
+                    <Button variant="ghost" size="icon" className="size-7" title="Duplicar" onClick={() => onDuplicate(p.id)}>
+                      <Copy className="size-3.5" />
+                    </Button>
+                    <Button variant="ghost" size="icon" className="size-7" title="Remover" onClick={() => onDelete(p.id)}>
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             );
@@ -630,6 +647,7 @@ function ProductSheet({
   const [volumetria, setVolumetria] = useState(b0.volumetria ?? "");
   const [aspecto, setAspecto] = useState<AspectoFisico>(b0.aspecto_fisico ?? "");
   const [acondicionar, setAcondicionar] = useState<Acondicionar>(b0.acondicionar ?? "");
+  const [tipoArte, setTipoArte] = useState<TipoArte>(b0.tipo_arte ?? "");
   const [descEmbalagem, setDescEmbalagem] = useState(b0.descricao_embalagem ?? "");
   
   const [embalagemCor, setEmbalagemCor] = useState(b0.embalagem_cor ?? "");
@@ -678,6 +696,7 @@ function ProductSheet({
         descricao_embalagem: descEmbalagem, responsaveis,
         embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
         tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
+        tipo_arte: tipoArte,
       };
       const payload = {
         name, description: product?.description ?? null, status_id: statusId || null,
@@ -734,6 +753,7 @@ function ProductSheet({
         descricao_embalagem: descEmbalagem, responsaveis,
         embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
         tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
+        tipo_arte: tipoArte,
       },
       statusLabel,
     });
@@ -876,6 +896,18 @@ function ProductSheet({
               <p className="text-[11px] text-foreground/50">Esse conteúdo vai para o designer.</p>
             </div>
             <div>
+              <Label className="text-xs">Tipo de arte *</Label>
+              <p className="text-[11px] text-foreground/50 mb-1">Informe ao designer o formato da arte a ser produzida.</p>
+              <Select value={tipoArte || undefined} onValueChange={(v) => setTipoArte(v as TipoArte)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rotulo">Rótulo</SelectItem>
+                  <SelectItem value="sleev">Sleev</SelectItem>
+                  <SelectItem value="gravacao">Gravação</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
               <Label className="text-xs">Briefing</Label>
               <Textarea value={briefing} onChange={(e) => setBriefing(e.target.value)} rows={4} className="mt-1" placeholder="Direcionamentos, referências, restrições..." />
             </div>
@@ -988,17 +1020,31 @@ function ProductSheet({
 
         <div className="flex justify-between mt-6 pt-4 border-t sticky bottom-0 bg-background">
           {isEdit ? (
-            <Button variant="ghost" className="text-destructive" onClick={() => {
-              if (confirm("Remover este produto?")) {
-                deleteProduct(product!.id).then(() => {
+            <div className="flex gap-2">
+              <Button variant="ghost" className="text-destructive" onClick={() => {
+                if (confirm("Remover este produto?")) {
+                  deleteProduct(product!.id).then(() => {
+                    qc.invalidateQueries({ queryKey: ["launch-grid-products", gridId] });
+                    toast.success("Produto removido");
+                    onClose();
+                  });
+                }
+              }}>
+                <Trash2 className="size-3.5" /> Remover
+              </Button>
+              <Button variant="outline" onClick={async () => {
+                try {
+                  const p = await duplicateProduct(product!.id);
+                  toast.success("Produto duplicado");
                   qc.invalidateQueries({ queryKey: ["launch-grid-products", gridId] });
-                  toast.success("Produto removido");
                   onClose();
-                });
-              }
-            }}>
-              <Trash2 className="size-3.5" /> Remover
-            </Button>
+                } catch (e: any) {
+                  toast.error(e.message);
+                }
+              }}>
+                <Copy className="size-3.5" /> Duplicar
+              </Button>
+            </div>
           ) : <div />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Cancelar</Button>
