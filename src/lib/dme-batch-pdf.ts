@@ -365,10 +365,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
     );
   }
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
-  doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, margin, doc.internal.pageSize.getHeight() - 20);
+  await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin });
 
   const slug = sanitize(t.clients?.company || t.clients?.name || "cliente")
     .toLowerCase()
