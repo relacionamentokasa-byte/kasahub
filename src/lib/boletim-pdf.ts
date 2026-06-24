@@ -565,15 +565,8 @@ export async function exportBoletimPdf(
     paragraph(product.notes);
   }
 
-  // ---------- Referências visuais (todas imagens agrupadas) ----------
-  const allImgs: Array<{ label: string; url: string }> = [];
-  (["tampa", "embalagem", "rotulo", "outros"] as const).forEach((k) => {
-    (imgs[k] ?? []).forEach((u) => allImgs.push({ label: k, url: u }));
-  });
-  if (allImgs.length) {
-    sectionTitle("Referências visuais");
-    await imageGallery(allImgs.map((i) => i.url), 3, (i) => allImgs[i].label.toUpperCase());
-  }
+
+
 
   // ============================================================
   // CABEÇALHO + RODAPÉ — todas as páginas exceto a capa
