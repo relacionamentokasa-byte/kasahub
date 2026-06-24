@@ -647,6 +647,7 @@ function ProductSheet({
   const [volumetria, setVolumetria] = useState(b0.volumetria ?? "");
   const [aspecto, setAspecto] = useState<AspectoFisico>(b0.aspecto_fisico ?? "");
   const [acondicionar, setAcondicionar] = useState<Acondicionar>(b0.acondicionar ?? "");
+  const [tipoArte, setTipoArte] = useState<TipoArte>(b0.tipo_arte ?? "");
   const [descEmbalagem, setDescEmbalagem] = useState(b0.descricao_embalagem ?? "");
   
   const [embalagemCor, setEmbalagemCor] = useState(b0.embalagem_cor ?? "");
