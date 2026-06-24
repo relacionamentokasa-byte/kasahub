@@ -695,7 +695,7 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean; nextResponsibleId?: string | null }) {
+function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId, teamIds }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean; nextResponsibleId?: string | null; teamIds?: string[] | null }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   
