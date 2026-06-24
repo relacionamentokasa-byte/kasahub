@@ -555,29 +555,38 @@ function StatusesDialog({
 
 /* ============= MULTI IMAGE UPLOAD ============= */
 function MultiImageUploader({
-  gridId, label, value, onChange,
+  gridId, label, value, onChange, maxImages,
 }: {
   gridId: string;
   label: string;
   value: string[];
   onChange: (next: string[]) => void;
+  maxImages?: number;
 }) {
   const ref = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const current = value || [];
+  const reached = typeof maxImages === "number" && current.length >= maxImages;
+  const single = maxImages === 1;
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setBusy(true);
     try {
+      let arr = Array.from(files);
+      if (typeof maxImages === "number") {
+        const remaining = Math.max(0, maxImages - current.length);
+        arr = arr.slice(0, remaining);
+      }
       const urls: string[] = [];
-      for (const f of Array.from(files)) {
+      for (const f of arr) {
         try {
           urls.push(await uploadProductImage(gridId, f));
         } catch (e: any) {
           toast.error(`${f.name}: ${e.message}`);
         }
       }
-      if (urls.length) onChange([...(value || []), ...urls]);
+      if (urls.length) onChange([...current, ...urls]);
     } finally {
       setBusy(false);
       if (ref.current) ref.current.value = "";
@@ -588,12 +597,12 @@ function MultiImageUploader({
     <div>
       <Label className="text-xs">{label}</Label>
       <div className="mt-1 flex flex-wrap gap-2">
-        {(value || []).map((url, i) => (
+        {current.map((url, i) => (
           <div key={i} className="relative group size-20 rounded-md bg-muted overflow-hidden border border-border">
             <StorageImage src={url} alt="" className="w-full h-full object-cover" />
             <button
               type="button"
-              onClick={() => onChange(value.filter((_, j) => j !== i))}
+              onClick={() => onChange(current.filter((_, j) => j !== i))}
               className="absolute top-0.5 right-0.5 bg-background/80 rounded p-0.5 opacity-0 group-hover:opacity-100 transition"
               aria-label="Remover"
             >
@@ -601,15 +610,17 @@ function MultiImageUploader({
             </button>
           </div>
         ))}
-        <button
-          type="button"
-          onClick={() => ref.current?.click()}
-          disabled={busy}
-          className="size-20 rounded-md border border-dashed border-border flex flex-col items-center justify-center text-xs text-foreground/50 hover:text-foreground hover:border-foreground/40 transition"
-        >
-          {busy ? "..." : (<><Upload className="size-4 mb-0.5" />Adicionar</>)}
-        </button>
-        <input ref={ref} type="file" accept="image/*" multiple hidden onChange={(e) => handleFiles(e.target.files)} />
+        {!reached && (
+          <button
+            type="button"
+            onClick={() => ref.current?.click()}
+            disabled={busy}
+            className="size-20 rounded-md border border-dashed border-border flex flex-col items-center justify-center text-xs text-foreground/50 hover:text-foreground hover:border-foreground/40 transition"
+          >
+            {busy ? "..." : (<><Upload className="size-4 mb-0.5" />Adicionar</>)}
+          </button>
+        )}
+        <input ref={ref} type="file" accept="image/*" multiple={!single} hidden onChange={(e) => handleFiles(e.target.files)} />
       </div>
     </div>
   );
