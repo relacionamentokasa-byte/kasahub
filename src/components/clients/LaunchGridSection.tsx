@@ -753,6 +753,7 @@ function ProductSheet({
         descricao_embalagem: descEmbalagem, responsaveis,
         embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
         tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
+        tipo_arte: tipoArte,
       },
       statusLabel,
     });
