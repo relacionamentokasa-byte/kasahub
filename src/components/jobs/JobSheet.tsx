@@ -43,9 +43,25 @@ import {
   fetchClients,
   fetchProjects,
   updateChecklistItem,
+  reorderChecklist,
 } from "@/lib/ops-api";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus } from "lucide-react";
+import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus, GripVertical } from "lucide-react";
 import { UnifiedTimeline } from "@/components/timeline/UnifiedTimeline";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
@@ -71,6 +87,121 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StorageImage } from "@/components/ui/storage-image";
+
+function SortableChecklistRow({
+  item,
+  team,
+  jobId,
+  onToggle,
+  onDelete,
+  onUpdate,
+}: {
+  item: any;
+  team: any[];
+  jobId: string;
+  onToggle: (id: string, done: boolean) => void;
+  onDelete: (id: string) => void;
+  onUpdate: (id: string, patch: any) => Promise<void> | void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+  const resp = team.find((p) => p.id === item.responsible_id);
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="touch-none cursor-grab active:cursor-grabbing text-foreground/30 hover:text-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+        title="Arraste para reordenar"
+        aria-label="Arraste para reordenar"
+      >
+        <GripVertical className="size-4" />
+      </button>
+      <Checkbox
+        checked={item.done}
+        onCheckedChange={(v) => onToggle(item.id, v === true)}
+        className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300 shrink-0"
+      />
+      <div
+        className="flex-1 min-w-0 cursor-pointer"
+        onClick={(e) => {
+          if (
+            !(e.target as HTMLElement).closest("input") &&
+            !(e.target as HTMLElement).closest("button") &&
+            !(e.target as HTMLElement).closest('[role="combobox"]')
+          ) {
+            onToggle(item.id, !item.done);
+          }
+        }}
+      >
+        <input
+          defaultValue={item.content}
+          onClick={(e) => e.stopPropagation()}
+          onBlur={(e) => {
+            const newContent = e.target.value.trim();
+            if (newContent && newContent !== item.content) {
+              onUpdate(item.id, { content: newContent });
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.currentTarget.blur();
+          }}
+          className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm transition-all duration-300 ${
+            item.done ? "line-through text-foreground/40 italic" : "font-medium text-foreground"
+          }`}
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <Select
+          value={item.responsible_id || "none"}
+          onValueChange={(v) => onUpdate(item.id, { responsible_id: v === "none" ? null : v })}
+        >
+          <SelectTrigger className="h-7 border-none bg-transparent hover:bg-white/5 p-0 w-auto gap-1 focus:ring-0">
+            <div className="flex items-center gap-1.5 px-2">
+              <Avatar className="size-5">
+                {resp?.avatar_url ? <AvatarImage src={resp.avatar_url} /> : null}
+                <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
+                  {resp ? (resp.display_name || resp.full_name || "?").charAt(0).toUpperCase() : <User className="size-3" />}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          </SelectTrigger>
+          <SelectContent align="end">
+            <SelectItem value="none" className="text-xs">Sem responsável</SelectItem>
+            {team.map((p: any) => (
+              <SelectItem key={p.id} value={p.id} className="text-xs">
+                <div className="flex items-center gap-2">
+                  <Avatar className="size-4">
+                    {p.avatar_url && <AvatarImage src={p.avatar_url} />}
+                    <AvatarFallback className="text-[6px]">{(p.display_name || p.full_name || "?").charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  {p.display_name || p.full_name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <button
+          onClick={() => onDelete(item.id)}
+          className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all p-1"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
 
 
 export function JobSheet({
@@ -402,6 +533,25 @@ export function JobSheet({
       if (ctx?.prev) qc.setQueryData(["job-checklist", job!.id], ctx.prev);
     }
   });
+
+  const dndSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const handleChecklistDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id || !job) return;
+    const qk = ["job-checklist", job.id];
+    const current = (qc.getQueryData<any[]>(qk) ?? []).slice();
+    const oldIndex = current.findIndex((i) => i.id === active.id);
+    const newIndex = current.findIndex((i) => i.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(current, oldIndex, newIndex).map((it, idx) => ({ ...it, order_index: idx }));
+    qc.setQueryData(qk, reordered);
+    reorderChecklist(reordered.map((it) => ({ id: it.id, order_index: it.order_index })))
+      .then(() => qc.invalidateQueries({ queryKey: qk }))
+      .catch(() => qc.setQueryData(qk, current));
+  };
+
+
 
 
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
@@ -767,99 +917,32 @@ export function JobSheet({
                       <Progress value={progressPercent} className="h-2.5 bg-muted" />
                       
                       <div className="space-y-2 mt-4">
-                        {checklist.map((item) => {
-                          const resp = team.find(p => p.id === (item as any).responsible_id);
-                          return (
-                            <div 
-                              key={item.id} 
-                              className="flex items-center gap-3 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all cursor-pointer"
-                              onClick={(e) => {
-                                // Only trigger if not clicking on the select or delete button
-                                if (!(e.target as HTMLElement).closest('button') && !(e.target as HTMLElement).closest('[role="combobox"]')) {
-                                  toggleItemMut.mutate({ id: item.id, done: !item.done });
-                                }
-                              }}
-                            >
-                              <Checkbox
-                                checked={item.done}
-                                onCheckedChange={(v) => {
-                                  // This will be handled by the div click for better hit area, 
-                                  // but keep it for accessibility/keyboard
-                                  toggleItemMut.mutate({ id: item.id, done: v === true });
+                        <DndContext
+                          sensors={dndSensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleChecklistDragEnd}
+                        >
+                          <SortableContext
+                            items={checklist.map((c) => c.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            {checklist.map((item) => (
+                              <SortableChecklistRow
+                                key={item.id}
+                                item={item}
+                                team={team}
+                                jobId={job.id}
+                                onToggle={(id, done) => toggleItemMut.mutate({ id, done })}
+                                onDelete={(id) => delItemMut.mutate(id)}
+                                onUpdate={async (id, patch) => {
+                                  await updateChecklistItem(id, patch);
+                                  qc.invalidateQueries({ queryKey: ["job-checklist", job.id] });
                                 }}
-                                onClick={(e) => e.stopPropagation()}
-                                className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300 shrink-0"
                               />
-                              <div className="flex-1 min-w-0">
+                            ))}
+                          </SortableContext>
+                        </DndContext>
 
-                                 <input
-                                  defaultValue={item.content}
-                                  onClick={(e) => e.stopPropagation()}
-                                  onBlur={(e) => {
-                                    const newContent = e.target.value.trim();
-                                    if (newContent && newContent !== item.content) {
-                                      updateChecklistItem(item.id, { content: newContent })
-                                        .then(() => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }));
-                                    }
-                                  }}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      e.currentTarget.blur();
-                                    }
-                                  }}
-                                  className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm transition-all duration-300 ${
-                                    item.done ? "line-through text-foreground/40 italic" : "font-medium text-foreground"
-                                  }`}
-                                />
-                              </div>
-
-                              
-                              <div className="flex items-center gap-2">
-                                <Select
-                                  value={(item as any).responsible_id || "none"}
-                                  onValueChange={(v) => {
-                                    updateChecklistItem(item.id, { responsible_id: v === "none" ? null : v } as any)
-                                      .then(() => qc.invalidateQueries({ queryKey: ["job-checklist", job.id] }));
-                                  }}
-                                >
-                                  <SelectTrigger className="h-7 border-none bg-transparent hover:bg-white/5 p-0 w-auto gap-1 focus:ring-0">
-                                    <div className="flex items-center gap-1.5 px-2">
-                                      <Avatar className="size-5">
-                                        {resp?.avatar_url ? (
-                                          <AvatarImage src={resp.avatar_url} />
-                                        ) : null}
-                                        <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
-                                          {resp ? (resp.display_name || resp.full_name || "?").charAt(0).toUpperCase() : <User className="size-3" />}
-                                        </AvatarFallback>
-                                      </Avatar>
-                                    </div>
-                                  </SelectTrigger>
-                                  <SelectContent align="end">
-                                    <SelectItem value="none" className="text-xs">Sem responsável</SelectItem>
-                                    {team.map((p: any) => (
-                                      <SelectItem key={p.id} value={p.id} className="text-xs">
-                                        <div className="flex items-center gap-2">
-                                          <Avatar className="size-4">
-                                            {p.avatar_url && <AvatarImage src={p.avatar_url} />}
-                                            <AvatarFallback className="text-[6px]">{ (p.display_name || p.full_name || "?").charAt(0) }</AvatarFallback>
-                                          </Avatar>
-                                          {p.display_name || p.full_name}
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-
-                                <button
-                                  onClick={() => delItemMut.mutate(item.id)}
-                                  className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all p-1"
-                                >
-                                  <X className="size-4" />
-                                </button>
-                              </div>
-                            </div>
-                          );
-                        })}
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();

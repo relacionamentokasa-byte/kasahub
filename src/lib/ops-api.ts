@@ -692,6 +692,15 @@ export async function deleteChecklistItem(id: string) {
   if (error) throw error;
 }
 
+export async function reorderChecklist(items: { id: string; order_index: number }[]) {
+  // Atualiza order_index de cada item para refletir a nova ordem manual.
+  await Promise.all(
+    items.map((it) =>
+      supabase.from("job_checklist").update({ order_index: it.order_index }).eq("id", it.id)
+    )
+  );
+}
+
 
 export function priorityColor(p: string) {
   switch (p) {
