@@ -896,6 +896,17 @@ function ProductSheet({
               <p className="text-[11px] text-foreground/50">Esse conteúdo vai para o designer.</p>
             </div>
             <div>
+              <Label className="text-xs">Tipo de arte *</Label>
+              <p className="text-[11px] text-foreground/50 mb-1">Informe ao designer o formato da arte a ser produzida.</p>
+              <Select value={tipoArte || undefined} onValueChange={(v) => setTipoArte(v as TipoArte)}>
+                <SelectTrigger className="mt-1"><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="rotulo">Rótulo</SelectItem>
+                  <SelectItem value="sleev">Sleev</SelectItem>
+                  <SelectItem value="gravacao">Gravação</SelectItem>
+                </SelectContent>
+              </Select>
+            <div>
               <Label className="text-xs">Briefing</Label>
               <Textarea value={briefing} onChange={(e) => setBriefing(e.target.value)} rows={4} className="mt-1" placeholder="Direcionamentos, referências, restrições..." />
             </div>
