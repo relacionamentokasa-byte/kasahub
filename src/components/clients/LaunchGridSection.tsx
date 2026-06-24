@@ -191,6 +191,7 @@ export function LaunchGridSection({ clientId, clientName }: Props) {
               onOpen={(p) => setProductSheet({ product: p })}
               onMove={(id, status_id) => moveMut.mutate({ id, status_id })}
               onDelete={(id) => { if (confirm("Remover produto?")) delProductMut.mutate(id); }}
+              onDuplicate={(id) => dupProductMut.mutate(id)}
             />
           )}
           {view === "kanban" && (
