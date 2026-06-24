@@ -41,6 +41,8 @@ export type AspectoFisico =
 
 export type Acondicionar = "selo" | "caixa" | "ambos" | "";
 
+export type TipoArte = "rotulo" | "sleev" | "gravacao" | "";
+
 export type BoletimImagens = {
   tampa?: string[];
   embalagem?: string[];
