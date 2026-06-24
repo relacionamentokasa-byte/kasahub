@@ -775,10 +775,18 @@ function JobCardInner({ job, profiles = [], dragging, nextResponsibleId }: { job
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
   const teamInvolvedRaw = (job as any).team_involved || [];
-  // Evita duplicar o responsável principal na lista de equipe
-  const teamInvolved = teamInvolvedRaw.filter((m: any) => m?.user_id && m.user_id !== mainRespId);
   // "Bola da vez": pessoa do próximo item de checklist pendente
   const ballPerson = nextResponsibleId ? profiles.find((p) => p.id === nextResponsibleId) : null;
+  // Evita duplicar o responsável principal e a "bola da vez" (ambos já aparecem no avatar destacado)
+  const featuredId = (job.status !== "done" && !job.done_at && ballPerson) ? ballPerson.id : mainRespId;
+  const seenIds = new Set<string>();
+  const teamInvolved = teamInvolvedRaw.filter((m: any) => {
+    const id = m?.user_id;
+    if (!id || id === featuredId) return false;
+    if (seenIds.has(id)) return false;
+    seenIds.add(id);
+    return true;
+  });
   const isOpen = job.status !== "done" && !job.done_at;
 
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
