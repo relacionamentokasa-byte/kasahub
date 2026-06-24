@@ -2,6 +2,7 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { getDmeBatchPublicUrl } from "@/lib/dme-batches-api";
+import { resolveStorageUrl } from "@/lib/use-storage-url";
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
@@ -16,6 +17,40 @@ function sanitize(s?: string | null): string {
 
 const brl = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+
+async function imageToDataURL(url?: string | null): Promise<string | null> {
+  if (!url) return null;
+  try {
+    const signed = (await resolveStorageUrl(url)) ?? url;
+    const res = await fetch(signed);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result as string);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function drawClientLogo(doc: jsPDF, dataUrl: string | null, pageW: number, margin: number) {
+  if (!dataUrl) return;
+  const size = 56;
+  const x = pageW - margin - size;
+  const y = (90 - size) / 2;
+  // fundo branco arredondado para logos com transparência
+  doc.setFillColor(255, 255, 255);
+  doc.roundedRect(x - 4, y - 4, size + 8, size + 8, 6, 6, "F");
+  try {
+    const fmt = dataUrl.startsWith("data:image/png") ? "PNG" : "JPEG";
+    doc.addImage(dataUrl, fmt, x, y, size, size, undefined, "FAST");
+  } catch {
+    /* ignore broken image */
+  }
+}
 
 export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   const { data: batch, error: bErr } = await supabase
