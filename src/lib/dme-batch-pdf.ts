@@ -41,7 +41,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
 
   const { data: agency } = await supabase
     .from("agency_settings")
-    .select("agency_name, logo_url")
+    .select("name, logo_url")
     .maybeSingle();
 
   const doc = new jsPDF({ unit: "pt", format: "a4" });
