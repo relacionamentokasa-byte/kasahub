@@ -748,7 +748,7 @@ function ProductSheet({
       links: product?.links ?? [],
       skus: product?.skus ?? [],
       boletim: {
-        categoria, imagens: imgs, briefing_criacao: briefing,
+        categoria, colecao, imagens: imgs, briefing_criacao: briefing,
         regulatorio_verso: regulatorio, benchmark, volumetria,
         aspecto_fisico: aspecto, acondicionar,
         descricao_embalagem: descEmbalagem, responsaveis,
