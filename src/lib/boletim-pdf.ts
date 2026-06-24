@@ -12,12 +12,19 @@ import { registerBoletimFonts } from "@/lib/pdf-fonts";
 function sanitize(s?: string | null): string {
   if (s == null) return "";
   let out = String(s).normalize("NFC");
+  // normaliza quebras de linha (CRLF/CR -> LF)
+  out = out.replace(/\r\n?/g, "\n");
   // remove emojis e pictographs
   out = out.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{1F000}-\u{1F02F}\u{1F100}-\u{1F1FF}\u{FE0F}]/gu, "");
-  // remove qualquer caractere fora do range WinAnsi/Latin-1 estendido
+  // remove qualquer caractere fora do range WinAnsi/Latin-1 estendido (mantendo \n)
   out = out.replace(/[^\u0000-\u00FF]/g, "");
-  return out.replace(/\s+/g, " ").trim();
+  // colapsa apenas espaços/tabs horizontais — preserva \n
+  out = out.replace(/[ \t\f\v]+/g, " ");
+  // remove espaços nas pontas de cada linha e colapsa 3+ quebras em 2
+  out = out.split("\n").map((l) => l.trim()).join("\n").replace(/\n{3,}/g, "\n\n");
+  return out.trim();
 }
+
 
 export const CATEGORIA_OPTIONS = [
   "Perfumaria",
