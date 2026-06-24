@@ -779,14 +779,17 @@ function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId,
   );
 }
 
-function JobCardInner({ job, profiles = [], dragging, nextResponsibleId }: { job: Job; profiles?: any[]; dragging?: boolean; nextResponsibleId?: string | null }) {
+function JobCardInner({ job, profiles = [], dragging, nextResponsibleId, teamIds }: { job: Job; profiles?: any[]; dragging?: boolean; nextResponsibleId?: string | null; teamIds?: string[] | null }) {
   const navigate = useNavigate();
   const progress = (job as any).progress_percentage || 0;
   const totalSteps = (job as any).total_steps || 0;
   const completedSteps = (job as any).completed_steps || 0;
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
-  const teamInvolvedRaw = (job as any).team_involved || [];
+  // Equipe derivada do checklist (responsáveis marcados na execução). Fallback para team_involved legado.
+  const teamInvolvedRaw = (teamIds && teamIds.length > 0)
+    ? teamIds.map((id) => ({ user_id: id }))
+    : ((job as any).team_involved || []);
   // "Bola da vez": pessoa do próximo item de checklist pendente
   const ballPerson = nextResponsibleId ? profiles.find((p) => p.id === nextResponsibleId) : null;
   // Evita duplicar o responsável principal e a "bola da vez" (ambos já aparecem no avatar destacado)
