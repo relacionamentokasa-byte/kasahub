@@ -68,7 +68,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
       
       { title: "Parceiros", url: "/parceiros", icon: Handshake, module: "parceiros" },
       { title: "Agenda", url: "/calendario", icon: CalendarRange, module: "dashboard" },
-      { title: "Chat", url: "/chat", icon: MessageSquare, module: "dashboard" },
+      
 
     ],
   },
