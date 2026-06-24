@@ -345,19 +345,43 @@ function DmesPage() {
                       {count} DME{count !== 1 ? "s" : ""} no lote · total {brl(Number(b.total_value || 0))}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setAddItemFor({
-                      client_id: b.client_id,
-                      clients: b.clients,
-                      contract_id: null,
-                      _batch: b,
-                    })}
-                    className="gap-2 shrink-0"
-                    title="Criar uma nova DME e somar na cobrança consolidada deste lote"
-                  >
-                    <PlusCircle className="size-4" /> Adicionar DME
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadBatchPdf(b.id)}
+                      className="gap-2"
+                      title="Gerar PDF do lote para enviar ao cliente"
+                    >
+                      <FileDown className="size-4" /> PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        const url = getDmeBatchPublicUrl(b.public_token);
+                        await navigator.clipboard.writeText(url);
+                        toast.success("Link de aprovação copiado.");
+                      }}
+                      className="gap-2"
+                      title="Copiar link de aprovação"
+                    >
+                      <LinkIcon className="size-4" /> Link
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setAddItemFor({
+                        client_id: b.client_id,
+                        clients: b.clients,
+                        contract_id: null,
+                        _batch: b,
+                      })}
+                      className="gap-2"
+                      title="Criar uma nova DME e somar na cobrança consolidada deste lote"
+                    >
+                      <PlusCircle className="size-4" /> Adicionar DME
+                    </Button>
+                  </div>
                 </div>
               );
             })}
