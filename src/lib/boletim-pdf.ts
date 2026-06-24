@@ -12,12 +12,19 @@ import { registerBoletimFonts } from "@/lib/pdf-fonts";
 function sanitize(s?: string | null): string {
   if (s == null) return "";
   let out = String(s).normalize("NFC");
+  // normaliza quebras de linha (CRLF/CR -> LF)
+  out = out.replace(/\r\n?/g, "\n");
   // remove emojis e pictographs
   out = out.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{1F000}-\u{1F02F}\u{1F100}-\u{1F1FF}\u{FE0F}]/gu, "");
-  // remove qualquer caractere fora do range WinAnsi/Latin-1 estendido
+  // remove qualquer caractere fora do range WinAnsi/Latin-1 estendido (mantendo \n)
   out = out.replace(/[^\u0000-\u00FF]/g, "");
-  return out.replace(/\s+/g, " ").trim();
+  // colapsa apenas espaços/tabs horizontais — preserva \n
+  out = out.replace(/[ \t\f\v]+/g, " ");
+  // remove espaços nas pontas de cada linha e colapsa 3+ quebras em 2
+  out = out.split("\n").map((l) => l.trim()).join("\n").replace(/\n{3,}/g, "\n\n");
+  return out.trim();
 }
+
 
 export const CATEGORIA_OPTIONS = [
   "Perfumaria",
@@ -420,12 +427,8 @@ export async function exportBoletimPdf(
     kv("Cor", cor);
     kv("Fornecedor", fornecedor);
 
-    if (images && images.length > 1) {
-      doc.setFont(FONT_BODY, "italic");
-      doc.setFontSize(8);
-      doc.setTextColor(...K.muted);
-      doc.text(`+${images.length - 1} imagem(ns) em referências visuais`, imgX, imgY + imgSize + 14);
-    }
+
+
 
     y += cardH + 14;
   };
@@ -503,21 +506,8 @@ export async function exportBoletimPdf(
     await imageGallery(b.benchmark, 3);
   }
 
-  // ---------- Responsáveis ----------
-  if (b.responsaveis && b.responsaveis.length) {
-    sectionTitle("Responsáveis");
-    ensureSpace(50);
-    autoTable(doc, {
-      startY: y,
-      margin: { left: M, right: M },
-      head: [["Nome", "Papel"]],
-      body: b.responsaveis.map((r) => [r.nome || "—", r.papel || "—"]),
-      styles: { fontSize: 9.5, cellPadding: 7, textColor: K.inkDark, lineColor: K.borderLt, lineWidth: 0.3, font: FONT_BODY },
-      headStyles: { fillColor: K.bg, textColor: K.brand, fontStyle: "bold", fontSize: 8.5, cellPadding: 7 },
-      alternateRowStyles: { fillColor: K.soft },
-    });
-    y = (doc as any).lastAutoTable.finalY + 16;
-  }
+
+
 
   // ---------- SKUs ----------
   if (product.skus && product.skus.length) {
@@ -562,15 +552,8 @@ export async function exportBoletimPdf(
     paragraph(product.notes);
   }
 
-  // ---------- Referências visuais (todas imagens agrupadas) ----------
-  const allImgs: Array<{ label: string; url: string }> = [];
-  (["tampa", "embalagem", "rotulo", "outros"] as const).forEach((k) => {
-    (imgs[k] ?? []).forEach((u) => allImgs.push({ label: k, url: u }));
-  });
-  if (allImgs.length) {
-    sectionTitle("Referências visuais");
-    await imageGallery(allImgs.map((i) => i.url), 3, (i) => allImgs[i].label.toUpperCase());
-  }
+
+
 
   // ============================================================
   // CABEÇALHO + RODAPÉ — todas as páginas exceto a capa
