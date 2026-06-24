@@ -262,15 +262,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   doc.setFont("helvetica", "bold");
   doc.textWithLink(sanitize(approvalUrl), margin + 16, afterY + 56, { url: approvalUrl });
 
-  // Footer
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
-  doc.text(
-    `Gerado em ${new Date().toLocaleString("pt-BR")}`,
-    margin,
-    doc.internal.pageSize.getHeight() - 20,
-  );
+  await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin });
 
   const clientSlug = sanitize(b.clients?.company || b.clients?.name || "cliente")
     .toLowerCase()
