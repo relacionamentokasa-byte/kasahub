@@ -116,24 +116,25 @@ export function ClientPortalStructure() {
 
               <div className="pt-4 border-t border-border space-y-3">
                 <h4 className="text-[10px] font-bold uppercase tracking-wider text-foreground/30">Demandas em andamento</h4>
-                <div className="space-y-2">
-                  {projectJobs.slice(0, 3).map((job) => (
-                    <div key={job.id} className="flex items-center justify-between gap-3 text-sm">
-                      <div className="flex items-center gap-2 truncate">
-                        {job.status === 'done' ? (
-                          <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
-                        ) : job.status === 'in_progress' ? (
-                          <Clock className="size-4 text-amber-500 shrink-0" />
-                        ) : (
-                          <Circle className="size-4 text-foreground/20 shrink-0" />
-                        )}
-                        <span className="truncate">{job.title}</span>
+                <div className="space-y-3">
+                  {projectJobs.slice(0, 3).map((job) => {
+                    const isDone = job.status === 'done' || !!job.done_at;
+                    const pct = isDone ? 100 : Math.max(0, Math.min(100, Number((job as any).progress_percentage) || 0));
+                    const friendly =
+                      pct >= 100 ? { label: 'Concluído', tone: 'text-emerald-500' }
+                      : pct >= 81 ? { label: 'Quase pronto', tone: 'text-amber-500' }
+                      : pct >= 1  ? { label: 'Em andamento', tone: 'text-blue-500' }
+                                  : { label: 'Em breve', tone: 'text-foreground/40' };
+                    return (
+                      <div key={job.id} className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-3 text-sm">
+                          <span className="truncate">{job.title}</span>
+                          <span className={`text-[10px] shrink-0 ${friendly.tone}`}>{friendly.label}</span>
+                        </div>
+                        <Progress value={pct} className="h-1.5" />
                       </div>
-                      <span className="text-[10px] text-foreground/40 shrink-0">
-                        {(job as any).progress_percentage || 0}%
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {projectJobs.length > 3 && (
                     <p className="text-[10px] text-center text-primary hover:underline cursor-pointer">Ver todas as {projectJobs.length} demandas</p>
                   )}
