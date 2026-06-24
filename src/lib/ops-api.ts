@@ -567,9 +567,19 @@ export async function fetchChecklist(jobId: string): Promise<JobChecklist[]> {
 }
 
 export async function addChecklistItem(jobId: string, content: string) {
+  // Calcula o próximo order_index para manter a ordem de inserção (novos no final).
+  const { data: last } = await supabase
+    .from("job_checklist")
+    .select("order_index")
+    .eq("job_id", jobId)
+    .order("order_index", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const nextOrder = ((last?.order_index ?? 0) as number) + 1;
+
   const { data, error } = await supabase
     .from("job_checklist")
-    .insert({ job_id: jobId, content })
+    .insert({ job_id: jobId, content, order_index: nextOrder })
     .select()
     .single();
   if (error) throw error;
