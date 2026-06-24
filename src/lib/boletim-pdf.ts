@@ -434,9 +434,14 @@ export async function exportBoletimPdf(
   };
 
   const imgs = b.imagens ?? {};
-  if (imgs.tampa?.length || imgs.embalagem?.length || b.tampa_cor || b.embalagem_cor || b.tampa_fornecedor || b.embalagem_fornecedor) {
-    sectionTitle("Tampa & Embalagem");
+  if (
+    imgs.tampa?.length || imgs.valvula?.length || imgs.embalagem?.length ||
+    b.tampa_cor || b.valvula_cor || b.embalagem_cor ||
+    b.tampa_fornecedor || b.valvula_fornecedor || b.embalagem_fornecedor
+  ) {
+    sectionTitle("Tampa, Válvula & Embalagem");
     await componentCard("Tampa", imgs.tampa, b.tampa_cor, b.tampa_fornecedor);
+    await componentCard("Válvula", imgs.valvula, b.valvula_cor, b.valvula_fornecedor);
     await componentCard("Embalagem", imgs.embalagem, b.embalagem_cor, b.embalagem_fornecedor);
   }
 
