@@ -151,6 +151,8 @@ export async function exportBoletimPdf(
       embalagem_fornecedor: sanitize(product.boletim.embalagem_fornecedor),
       tampa_cor: sanitize(product.boletim.tampa_cor),
       tampa_fornecedor: sanitize(product.boletim.tampa_fornecedor),
+      valvula_cor: sanitize(product.boletim.valvula_cor),
+      valvula_fornecedor: sanitize(product.boletim.valvula_fornecedor),
       responsaveis: (product.boletim.responsaveis ?? []).map((r) => ({
         nome: sanitize(r.nome),
         papel: sanitize(r.papel),
