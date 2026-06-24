@@ -506,21 +506,8 @@ export async function exportBoletimPdf(
     await imageGallery(b.benchmark, 3);
   }
 
-  // ---------- Responsáveis ----------
-  if (b.responsaveis && b.responsaveis.length) {
-    sectionTitle("Responsáveis");
-    ensureSpace(50);
-    autoTable(doc, {
-      startY: y,
-      margin: { left: M, right: M },
-      head: [["Nome", "Papel"]],
-      body: b.responsaveis.map((r) => [r.nome || "—", r.papel || "—"]),
-      styles: { fontSize: 9.5, cellPadding: 7, textColor: K.inkDark, lineColor: K.borderLt, lineWidth: 0.3, font: FONT_BODY },
-      headStyles: { fillColor: K.bg, textColor: K.brand, fontStyle: "bold", fontSize: 8.5, cellPadding: 7 },
-      alternateRowStyles: { fillColor: K.soft },
-    });
-    y = (doc as any).lastAutoTable.finalY + 16;
-  }
+
+
 
   // ---------- SKUs ----------
   if (product.skus && product.skus.length) {
