@@ -141,7 +141,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
 
   const { data: agency } = await supabase
     .from("agency_settings")
-    .select("name, logo_url")
+    .select("name, logo_url, dme_pdf_footer")
     .maybeSingle();
 
   const clientLogo = await imageToDataURL(b.clients?.logo_url);
@@ -303,7 +303,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
 
   const { data: agency } = await supabase
     .from("agency_settings")
-    .select("name, logo_url")
+    .select("name, logo_url, dme_pdf_footer")
     .maybeSingle();
 
   const clientLogo = await imageToDataURL(t.clients?.logo_url);
