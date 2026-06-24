@@ -222,7 +222,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
 export async function generateConsolidatedTxPdf(consolidatedTransactionId: string): Promise<void> {
   const { data: tx, error: tErr } = await supabase
     .from("transactions")
-    .select("id, amount, description, due_date, client_id, clients(name, company)")
+    .select("id, amount, description, due_date, client_id, clients(name, company, logo_url)")
     .eq("id", consolidatedTransactionId)
     .maybeSingle();
   if (tErr) throw tErr;
@@ -240,6 +240,8 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
     .from("agency_settings")
     .select("name, logo_url")
     .maybeSingle();
+
+  const clientLogo = await imageToDataURL(t.clients?.logo_url);
 
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
@@ -259,7 +261,9 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
   doc.setTextColor(156, 177, 176);
   doc.text(sanitize(t.clients?.company || t.clients?.name || "Cliente"), margin, 78);
 
-  if (agency?.name) {
+  drawClientLogo(doc, clientLogo, pageW, margin);
+
+  if (agency?.name && !clientLogo) {
     doc.setFontSize(9);
     doc.text(sanitize(agency.name), pageW - margin, 35, { align: "right" });
   }
