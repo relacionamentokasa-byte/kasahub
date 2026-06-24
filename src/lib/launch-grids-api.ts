@@ -59,6 +59,7 @@ export type LaunchGridBoletim = {
   volumetria?: string;
   aspecto_fisico?: AspectoFisico;
   acondicionar?: Acondicionar;
+  tipo_arte?: TipoArte;
   descricao_embalagem?: string;
   responsaveis?: Array<{ nome: string; papel?: string }>;
   embalagem_cor?: string;
