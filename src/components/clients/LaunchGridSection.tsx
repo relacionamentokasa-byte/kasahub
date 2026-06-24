@@ -965,32 +965,8 @@ function ProductSheet({
             </div>
           </section>
 
-          {/* ===== RESPONSÁVEIS ===== */}
-          <section className="space-y-3 border-t pt-5">
-            <h3 className="text-sm font-semibold text-foreground/80 break-words">Responsáveis</h3>
-            <div className="space-y-2">
-              {responsaveis.map((r, i) => (
-                <div key={i} className="flex gap-2">
-                  <Input
-                    value={r.nome}
-                    onChange={(e) => { const n = [...responsaveis]; n[i].nome = e.target.value; setResponsaveis(n); }}
-                    placeholder="Nome" className="h-8 flex-1"
-                  />
-                  <Input
-                    value={r.papel ?? ""}
-                    onChange={(e) => { const n = [...responsaveis]; n[i].papel = e.target.value; setResponsaveis(n); }}
-                    placeholder="Papel / área" className="h-8 flex-1"
-                  />
-                  <Button variant="ghost" size="icon" className="size-8" onClick={() => setResponsaveis(responsaveis.filter((_, j) => j !== i))}>
-                    <X className="size-3.5" />
-                  </Button>
-                </div>
-              ))}
-              <Button variant="outline" size="sm" onClick={() => setResponsaveis([...responsaveis, { nome: "", papel: "" }])}>
-                <Plus className="size-3.5" /> Adicionar responsável
-              </Button>
-            </div>
-          </section>
+
+
 
 
 
