@@ -655,6 +655,8 @@ function ProductSheet({
   const [embalagemFornecedor, setEmbalagemFornecedor] = useState(b0.embalagem_fornecedor ?? "");
   const [tampaCor, setTampaCor] = useState(b0.tampa_cor ?? "");
   const [tampaFornecedor, setTampaFornecedor] = useState(b0.tampa_fornecedor ?? "");
+  const [valvulaCor, setValvulaCor] = useState(b0.valvula_cor ?? "");
+  const [valvulaFornecedor, setValvulaFornecedor] = useState(b0.valvula_fornecedor ?? "");
 
   const { data: clientData } = useQuery({
     queryKey: ["client-commercial", clientId],
