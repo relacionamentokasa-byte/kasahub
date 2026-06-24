@@ -1020,17 +1020,31 @@ function ProductSheet({
 
         <div className="flex justify-between mt-6 pt-4 border-t sticky bottom-0 bg-background">
           {isEdit ? (
-            <Button variant="ghost" className="text-destructive" onClick={() => {
-              if (confirm("Remover este produto?")) {
-                deleteProduct(product!.id).then(() => {
+            <div className="flex gap-2">
+              <Button variant="ghost" className="text-destructive" onClick={() => {
+                if (confirm("Remover este produto?")) {
+                  deleteProduct(product!.id).then(() => {
+                    qc.invalidateQueries({ queryKey: ["launch-grid-products", gridId] });
+                    toast.success("Produto removido");
+                    onClose();
+                  });
+                }
+              }}>
+                <Trash2 className="size-3.5" /> Remover
+              </Button>
+              <Button variant="outline" onClick={async () => {
+                try {
+                  const p = await duplicateProduct(product!.id);
+                  toast.success("Produto duplicado");
                   qc.invalidateQueries({ queryKey: ["launch-grid-products", gridId] });
-                  toast.success("Produto removido");
                   onClose();
-                });
-              }
-            }}>
-              <Trash2 className="size-3.5" /> Remover
-            </Button>
+                } catch (e: any) {
+                  toast.error(e.message);
+                }
+              }}>
+                <Copy className="size-3.5" /> Duplicar
+              </Button>
+            </div>
           ) : <div />}
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose}>Cancelar</Button>
