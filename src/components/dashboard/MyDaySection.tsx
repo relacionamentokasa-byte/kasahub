@@ -31,11 +31,15 @@ export function MyDaySection() {
     enabled: !!userId,
     queryFn: async () => {
       if (!userId) return null;
+      const teamFilter = `[{"user_id":"${userId}"}]`;
       const [jobsRes, checklistRes, approvalsRes, proposalsRes] = await Promise.all([
+        // Jobs: assignee OR responsável principal OR membro da equipe
         supabase
           .from("jobs")
           .select("id", { count: "exact", head: true })
-          .eq("assignee_id", userId)
+          .or(
+            `assignee_id.eq.${userId},main_responsible_id.eq.${userId},team_involved.cs.${teamFilter}`,
+          )
           .in("status", ["in_progress", "review", "not_started"]),
         supabase
           .from("job_checklist")
@@ -49,7 +53,7 @@ export function MyDaySection() {
         supabase
           .from("proposals")
           .select("id", { count: "exact", head: true })
-          .eq("owner_id", userId)
+          .or(`owner_id.eq.${userId},created_by.eq.${userId}`)
           .in("status", ["draft", "sent", "viewed"]),
       ]);
       return {
