@@ -395,19 +395,37 @@ function DmesPage() {
                       {g.count} DME{g.count !== 1 ? "s" : ""} consolidada{g.count !== 1 ? "s" : ""} · total {brl(Number(g.total_value || 0))}
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => setAddItemFor({
-                      client_id: g.client_id,
-                      clients: g.clients,
-                      contract_id: null,
-                      _consolidatedTx: g,
-                    })}
-                    className="gap-2 shrink-0"
-                    title="Criar uma nova DME e somar na cobrança consolidada do financeiro"
-                  >
-                    <PlusCircle className="size-4" /> Adicionar DME
-                  </Button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={async () => {
+                        try {
+                          await generateConsolidatedTxPdf(g.consolidated_transaction_id);
+                          toast.success("PDF gerado.");
+                        } catch (e: any) {
+                          toast.error(e?.message ?? "Erro ao gerar PDF.");
+                        }
+                      }}
+                      className="gap-2"
+                      title="Gerar PDF do lote consolidado para enviar ao cliente"
+                    >
+                      <FileDown className="size-4" /> PDF
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => setAddItemFor({
+                        client_id: g.client_id,
+                        clients: g.clients,
+                        contract_id: null,
+                        _consolidatedTx: g,
+                      })}
+                      className="gap-2"
+                      title="Criar uma nova DME e somar na cobrança consolidada do financeiro"
+                    >
+                      <PlusCircle className="size-4" /> Adicionar DME
+                    </Button>
+                  </div>
                 </div>
               );
             })}
