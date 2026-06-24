@@ -906,6 +906,7 @@ function ProductSheet({
                   <SelectItem value="gravacao">Gravação</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
             <div>
               <Label className="text-xs">Briefing</Label>
               <Textarea value={briefing} onChange={(e) => setBriefing(e.target.value)} rows={4} className="mt-1" placeholder="Direcionamentos, referências, restrições..." />
