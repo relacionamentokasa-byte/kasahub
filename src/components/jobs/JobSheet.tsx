@@ -61,7 +61,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus } from "lucide-react";
+import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus, GripVertical } from "lucide-react";
 import { UnifiedTimeline } from "@/components/timeline/UnifiedTimeline";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
