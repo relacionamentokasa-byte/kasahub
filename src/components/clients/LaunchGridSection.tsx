@@ -640,6 +640,7 @@ function ProductSheet({
   // Boletim
   const b0: LaunchGridBoletim = product?.boletim ?? {};
   const [categoria, setCategoria] = useState(b0.categoria ?? "");
+  const [colecao, setColecao] = useState(b0.colecao ?? "");
   const [imgs, setImgs] = useState<BoletimImagens>(b0.imagens ?? {});
   const [briefing, setBriefing] = useState(b0.briefing_criacao ?? "");
   const [regulatorio, setRegulatorio] = useState(b0.regulatorio_verso ?? "");
@@ -690,7 +691,7 @@ function ProductSheet({
   const saveMut = useMutation({
     mutationFn: async () => {
       const boletim: LaunchGridBoletim = {
-        categoria, imagens: imgs, briefing_criacao: briefing,
+        categoria, colecao, imagens: imgs, briefing_criacao: briefing,
         regulatorio_verso: regulatorio, benchmark,
         volumetria, aspecto_fisico: aspecto, acondicionar,
         descricao_embalagem: descEmbalagem, responsaveis,
@@ -747,7 +748,7 @@ function ProductSheet({
       links: product?.links ?? [],
       skus: product?.skus ?? [],
       boletim: {
-        categoria, imagens: imgs, briefing_criacao: briefing,
+        categoria, colecao, imagens: imgs, briefing_criacao: briefing,
         regulatorio_verso: regulatorio, benchmark, volumetria,
         aspecto_fisico: aspecto, acondicionar,
         descricao_embalagem: descEmbalagem, responsaveis,
@@ -814,6 +815,10 @@ function ProductSheet({
                 <div>
                   <Label className="text-xs">Nome do produto / linha *</Label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" />
+                </div>
+                <div>
+                  <Label className="text-xs">Coleção</Label>
+                  <Input value={colecao} onChange={(e) => setColecao(e.target.value)} className="mt-1" placeholder="Ex: Verão 2026, Edição Limitada..." />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
