@@ -38,6 +38,7 @@ export interface AgencySettings {
   pwa_icon_192_url: string | null;
   pwa_icon_512_url: string | null;
   pwa_favicon_url: string | null;
+  dme_pdf_footer: string | null;
 }
 
 export async function fetchAgencySettings(): Promise<AgencySettings | null> {
