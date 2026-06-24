@@ -69,7 +69,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
 
   if (agency?.agency_name) {
     doc.setFontSize(9);
-    doc.text(sanitize(agency.agency_name), pageW - margin, 35, { align: "right" });
+    doc.text(sanitize(agency.name), pageW - margin, 35, { align: "right" });
   }
 
   let y = 120;
