@@ -247,10 +247,22 @@ function DmesPage() {
       await navigator.clipboard.writeText(url);
       toast.success(`Link do lote copiado! (${selectedDmes.length} DMEs · ${brl(selectedTotal)})`);
       setSelectedIds(new Set());
+      // Já gera o PDF para envio ao cliente
+      try { await generateDmeBatchPdf(batch.id); } catch (e) { console.error(e); }
+      qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao criar lote.");
     } finally {
       setCreatingBatch(false);
+    }
+  }
+
+  async function handleDownloadBatchPdf(batchId: string) {
+    try {
+      await generateDmeBatchPdf(batchId);
+      toast.success("PDF gerado.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao gerar PDF.");
     }
   }
 
