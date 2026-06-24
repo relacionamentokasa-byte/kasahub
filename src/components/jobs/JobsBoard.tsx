@@ -97,23 +97,34 @@ export function JobsBoard({
   // "Bola da vez" — para cada job em aberto, busca quem é o próximo responsável
   // (primeiro item de checklist pendente). Uma query única pra todos os jobs visíveis.
   const visibleJobIds = useMemo(() => jobs.filter((j: any) => j.status !== "done" && !j.done_at).map((j: any) => j.id), [jobs]);
-  const { data: nextResponsibleMap = new Map<string, string>() } = useQuery({
-    queryKey: ["jobs-next-responsible", visibleJobIds],
-    enabled: visibleJobIds.length > 0,
+  const allVisibleJobIds = useMemo(() => jobs.map((j: any) => j.id), [jobs]);
+  const { data: checklistMaps = { nextMap: new Map<string, string>(), teamMap: new Map<string, string[]>() } } = useQuery({
+    queryKey: ["jobs-checklist-derived", allVisibleJobIds],
+    enabled: allVisibleJobIds.length > 0,
     queryFn: async () => {
       const { data } = await supabase
         .from("job_checklist")
-        .select("job_id, responsible_id, order_index")
-        .in("job_id", visibleJobIds)
-        .eq("done", false)
+        .select("job_id, responsible_id, order_index, done")
+        .in("job_id", allVisibleJobIds)
         .order("order_index", { ascending: true });
-      const map = new Map<string, string>();
+      const nextMap = new Map<string, string>();
+      const teamMap = new Map<string, string[]>();
+      const seen = new Map<string, Set<string>>();
       (data ?? []).forEach((r: any) => {
-        if (r.responsible_id && !map.has(r.job_id)) map.set(r.job_id, r.responsible_id);
+        if (!r.responsible_id) return;
+        if (!r.done && !nextMap.has(r.job_id)) nextMap.set(r.job_id, r.responsible_id);
+        let set = seen.get(r.job_id);
+        if (!set) { set = new Set(); seen.set(r.job_id, set); teamMap.set(r.job_id, []); }
+        if (!set.has(r.responsible_id)) {
+          set.add(r.responsible_id);
+          teamMap.get(r.job_id)!.push(r.responsible_id);
+        }
       });
-      return map;
+      return { nextMap, teamMap };
     },
   });
+  const nextResponsibleMap = checklistMaps.nextMap;
+  const teamFromChecklistMap = checklistMaps.teamMap;
 
   useEffect(() => {
     const channel = supabase
@@ -595,6 +606,7 @@ export function JobsBoard({
                       queryKey={queryKey}
                       focused={focusedId === j.id}
                       nextResponsibleId={nextResponsibleMap.get(j.id) ?? null}
+                      teamIds={teamFromChecklistMap.get(j.id) ?? null}
                     />
                   ))}
                 </Column>
@@ -683,7 +695,7 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean; nextResponsibleId?: string | null }) {
+function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId, teamIds }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean; nextResponsibleId?: string | null; teamIds?: string[] | null }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
   
@@ -732,7 +744,7 @@ function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId 
         onClick={() => !isOptimistic && onClick()}
         className={isOptimistic ? "cursor-wait" : "cursor-grab active:cursor-grabbing"}
       >
-        <JobCardInner job={job} profiles={profiles} nextResponsibleId={nextResponsibleId} />
+        <JobCardInner job={job} profiles={profiles} nextResponsibleId={nextResponsibleId} teamIds={teamIds} />
       </div>
       {!isOptimistic && (
         <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -767,14 +779,17 @@ function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId 
   );
 }
 
-function JobCardInner({ job, profiles = [], dragging, nextResponsibleId }: { job: Job; profiles?: any[]; dragging?: boolean; nextResponsibleId?: string | null }) {
+function JobCardInner({ job, profiles = [], dragging, nextResponsibleId, teamIds }: { job: Job; profiles?: any[]; dragging?: boolean; nextResponsibleId?: string | null; teamIds?: string[] | null }) {
   const navigate = useNavigate();
   const progress = (job as any).progress_percentage || 0;
   const totalSteps = (job as any).total_steps || 0;
   const completedSteps = (job as any).completed_steps || 0;
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
-  const teamInvolvedRaw = (job as any).team_involved || [];
+  // Equipe derivada do checklist (responsáveis marcados na execução). Fallback para team_involved legado.
+  const teamInvolvedRaw = (teamIds && teamIds.length > 0)
+    ? teamIds.map((id) => ({ user_id: id }))
+    : ((job as any).team_involved || []);
   // "Bola da vez": pessoa do próximo item de checklist pendente
   const ballPerson = nextResponsibleId ? profiles.find((p) => p.id === nextResponsibleId) : null;
   // Evita duplicar o responsável principal e a "bola da vez" (ambos já aparecem no avatar destacado)
