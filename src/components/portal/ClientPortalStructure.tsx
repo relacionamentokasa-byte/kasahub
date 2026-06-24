@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchProjects, fetchJobs, fetchChecklist, type JobStage } from "@/lib/ops-api";
+import { fetchProjects, fetchJobs } from "@/lib/ops-api";
 import { listProductsByClient, listStatusesByClient } from "@/lib/launch-grids-api";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Circle, Clock, FileText, Rocket } from "lucide-react";
+import { Clock, Rocket } from "lucide-react";
 import { ClientOnboardingPortalView } from "@/components/onboarding/ClientOnboardingPanel";
 import { StorageImage } from "@/components/ui/storage-image";
 import { format } from "date-fns";
@@ -13,25 +13,11 @@ import { AccountManagerCard } from "./AccountManagerCard";
 import { PortalTour } from "./PortalTour";
 import { pt } from "@/lib/portal-glossary";
 
-const STAGE_COLOR_MAP: Record<string, string> = {
-  "text-blue-500": "#3B82F6",
-  "text-amber-500": "#F59E0B",
-  "text-yellow-500": "#EAB308",
-  "text-orange-500": "#F97316",
-  "text-purple-500": "#A855F7",
-  "text-emerald-500": "#10B981",
-  "text-green-500": "#22C55E",
-  "text-rose-500": "#F43F5E",
-  "text-red-500": "#EF4444",
-  "text-slate-500": "#64748B",
-  "text-gray-500": "#6B7280",
-};
-
-function resolveStageColor(color?: string | null) {
-  if (!color) return "#64748B";
-  const clean = color.trim();
-  if (clean.startsWith("#") || clean.startsWith("rgb") || clean.startsWith("hsl") || clean.startsWith("var(")) return clean;
-  return STAGE_COLOR_MAP[clean] || "#64748B";
+function getFriendlyProgress(progress: number) {
+  if (progress >= 100) return { label: "Concluído", tone: "text-emerald-500" };
+  if (progress >= 81) return { label: "Quase pronto", tone: "text-amber-500" };
+  if (progress >= 1) return { label: "Em andamento", tone: "text-blue-500" };
+  return { label: "Em breve", tone: "text-foreground/40" };
 }
 
 export function ClientPortalStructure() {
@@ -120,11 +106,7 @@ export function ClientPortalStructure() {
                   {projectJobs.slice(0, 3).map((job) => {
                     const isDone = job.status === 'done' || !!job.done_at;
                     const pct = isDone ? 100 : Math.max(0, Math.min(100, Number((job as any).progress_percentage) || 0));
-                    const friendly =
-                      pct >= 100 ? { label: 'Concluído', tone: 'text-emerald-500' }
-                      : pct >= 81 ? { label: 'Quase pronto', tone: 'text-amber-500' }
-                      : pct >= 1  ? { label: 'Em andamento', tone: 'text-blue-500' }
-                                  : { label: 'Em breve', tone: 'text-foreground/40' };
+                    const friendly = getFriendlyProgress(pct);
                     return (
                       <div key={job.id} className="space-y-1.5">
                         <div className="flex items-center justify-between gap-3 text-sm">
@@ -174,13 +156,6 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
     return Math.round(((found.index + 1) / total) * 100);
   };
 
-  const stageCounts = ordered.map((s) => ({
-    ...s,
-    count: products.filter((p) => {
-      const effectiveStatusId = p.status_id && stageMap.has(p.status_id) ? p.status_id : ordered[0]?.id;
-      return effectiveStatusId === s.id;
-    }).length,
-  }));
   const doneCount = products.filter((p) => {
     const f = p.status_id ? stageMap.get(p.status_id) : null;
     return f?.stage.is_done;
@@ -194,7 +169,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
           <h2 className="text-2xl font-display font-bold flex items-center gap-2">
             <Rocket className="size-5 text-primary" /> Grid de Lançamento
           </h2>
-          <p className="text-foreground/50 mt-1 text-sm">Acompanhe o progresso de cada produto pelas etapas do lançamento.</p>
+          <p className="text-foreground/50 mt-1 text-sm">Acompanhe o progresso de cada produto do lançamento.</p>
         </div>
         <div className="text-right">
           <div className="text-xs text-foreground/50">Concluídos</div>
@@ -202,29 +177,12 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
         </div>
       </div>
 
-      {/* Stage pipeline */}
-      <div className="bg-surface border border-border rounded-2xl p-4">
-        <div className="flex items-center gap-2 flex-wrap">
-          {stageCounts.map((s, i) => (
-            <div key={s.id} className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-background">
-                <span className="size-2 rounded-full" style={{ background: resolveStageColor(s.color) }} />
-                <span className="text-xs font-medium">{s.label}</span>
-                <span className="text-[10px] text-foreground/40">{s.count}</span>
-              </div>
-              {i < stageCounts.length - 1 && <span className="text-foreground/20">→</span>}
-            </div>
-          ))}
-        </div>
-      </div>
-
       {/* Products gallery */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {products.map((p) => {
           const effectiveStatusId = p.status_id && stageMap.has(p.status_id) ? p.status_id : ordered[0]?.id ?? null;
-          const st = effectiveStatusId ? stageMap.get(effectiveStatusId)?.stage : null;
-          const stColor = resolveStageColor(st?.color);
           const pct = productProgress(effectiveStatusId);
+          const friendly = getFriendlyProgress(pct);
           const productJobs = jobs.filter((j) => j.launch_product_id === p.id);
           return (
             <div key={p.id} className="bg-surface border border-border rounded-2xl overflow-hidden flex flex-col hover:border-primary/30 hover:shadow-md transition shadow-sm">
@@ -238,15 +196,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
               <div className="p-3 space-y-2 flex-1 flex flex-col">
                 <div className="font-semibold text-sm leading-tight line-clamp-2">{p.name}</div>
                 <div className="flex items-center justify-between gap-2">
-                  {st ? (
-                    <span
-                      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium"
-                      style={{ background: `${stColor}20`, color: stColor }}
-                    >
-                      <span className="size-1.5 rounded-full" style={{ background: stColor }} />
-                      {st.label}
-                    </span>
-                  ) : <span className="text-[10px] text-foreground/40">Sem etapa</span>}
+                  <span className={`text-[10px] font-medium ${friendly.tone}`}>{friendly.label}</span>
                   <span className="text-[10px] font-bold text-foreground/60">{pct}%</span>
                 </div>
                 <Progress value={pct} className="h-1" />
@@ -265,11 +215,7 @@ function LaunchGridProgress({ clientId, jobs }: { clientId: string; jobs: any[] 
                       const jobStage = job.stage_id ? stageMap.get(job.stage_id)?.stage : null;
                       const isDone = jobStage?.is_done || job.status === "done" || !!job.done_at;
                       const pct = isDone ? 100 : Math.max(0, Math.min(100, Number((job as any).progress_percentage) || 0));
-                      const friendly =
-                        pct >= 100 ? { label: "Concluído", tone: "text-emerald-500" }
-                        : pct >= 81 ? { label: "Quase pronto", tone: "text-amber-500" }
-                        : pct >= 1  ? { label: "Em andamento", tone: "text-blue-500" }
-                                    : { label: "Em breve", tone: "text-foreground/40" };
+                      const friendly = getFriendlyProgress(pct);
                       return (
                         <div key={job.id} className="space-y-1">
                           <div className="flex items-center justify-between gap-1.5 text-[11px]">
