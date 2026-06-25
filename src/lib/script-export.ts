@@ -24,12 +24,15 @@ const formatLabel: Record<string, string> = {
   square: "Quadrado (1:1)",
 };
 
-export function exportScriptPDF(opts: {
+export async function exportScriptPDF(opts: {
   script: Script & { clients?: { name: string } | null; jobs?: { title: string } | null };
   scenes: ScriptScene[];
 }) {
   const { script, scenes } = opts;
   const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const fonts = await registerBoletimFonts(doc);
+  const FONT_TITLE = fonts.funnel ? "Funnel" : "helvetica";
+  const FONT_BODY = fonts.onest ? "Onest" : "helvetica";
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 36;
 
@@ -37,14 +40,15 @@ export function exportScriptPDF(opts: {
   doc.setFillColor(12, 22, 24);
   doc.rect(0, 0, pageW, 100, "F");
   doc.setTextColor(255, 188, 69);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(11);
   doc.text("ROTEIRO", margin, 32);
   doc.setTextColor(255, 255, 255);
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(20);
   const titleLines = doc.splitTextToSize(sanitize(script.title || "Sem titulo"), pageW - margin * 2);
   doc.text(titleLines.slice(0, 2), margin, 56);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT_BODY, "normal");
   doc.setFontSize(9);
   const meta = [
     script.clients?.name ? `Cliente: ${sanitize(script.clients.name)}` : null,
@@ -55,11 +59,11 @@ export function exportScriptPDF(opts: {
   // Info block
   let y = 130;
   doc.setTextColor(30, 30, 30);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(11);
   doc.text("Informacoes", margin, y);
   y += 14;
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT_BODY, "normal");
   doc.setFontSize(10);
   const totalDur = scenes.reduce((a, s) => a + (s.duration_sec ?? 0), 0);
   const lines = [
@@ -90,8 +94,8 @@ export function exportScriptPDF(opts: {
     startY: y,
     head: [["#", "Dur.", "Visual", "Fala / Narracao", "Notas de producao"]],
     body,
-    styles: { font: "helvetica", fontSize: 9, cellPadding: 6, valign: "top", textColor: [30, 30, 30], lineColor: [220, 220, 220] },
-    headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold" },
+    styles: { font: FONT_BODY, fontSize: 9, cellPadding: 6, valign: "top", textColor: [30, 30, 30], lineColor: [220, 220, 220] },
+    headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold", font: FONT_TITLE },
     alternateRowStyles: { fillColor: [248, 248, 245] },
     columnStyles: {
       0: { cellWidth: 28, halign: "center" },
