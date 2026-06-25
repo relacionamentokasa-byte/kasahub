@@ -14,8 +14,20 @@ export interface EditorialPost {
   description: string | null;
   status: EditorialStatus;
   job_id: string | null;
+  cover_url: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export async function uploadEditorialCover(clientId: string, file: File): Promise<string> {
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `editorial/${clientId}/${crypto.randomUUID()}.${ext}`;
+  const { error: upErr } = await supabase.storage
+    .from("public-assets")
+    .upload(path, file, { cacheControl: "3600", upsert: false });
+  if (upErr) throw upErr;
+  const { data } = supabase.storage.from("public-assets").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export const SOCIAL_LABEL: Record<SocialNetwork, string> = {
