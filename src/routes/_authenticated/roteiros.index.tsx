@@ -143,13 +143,12 @@ function RoteirosListPage() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Select value={filters.clientId ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, clientId: v === "all" ? undefined : v }))}>
-          <SelectTrigger className="bg-background w-56"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos clientes</SelectItem>
-            {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <ClientPicker
+          value={filters.clientId ?? ""}
+          onChange={(v) => setFilters(f => ({ ...f, clientId: v || undefined }))}
+          placeholder="Todos clientes"
+          allowClear
+        />
         <Select value={filters.ct ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, ct: v === "all" ? undefined : v as ScriptContentType }))}>
           <SelectTrigger className="bg-background w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
