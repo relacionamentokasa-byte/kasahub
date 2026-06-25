@@ -107,6 +107,12 @@ export async function exportScriptPDF(opts: {
     margin: { left: margin, right: margin },
   });
 
-  const safe = sanitize(script.title || "roteiro").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  doc.save(`roteiro-${safe || "sem-titulo"}.pdf`);
+  const slug = (s: string) => sanitize(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const parts = [
+    slug(script.jobs?.title ?? ""),
+    slug(script.clients?.name ?? ""),
+    slug(script.title ?? "roteiro"),
+    new Date().toISOString().slice(0, 10),
+  ].filter(Boolean);
+  doc.save(`${parts.join("-") || "roteiro"}.pdf`);
 }
