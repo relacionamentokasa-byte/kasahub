@@ -242,6 +242,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
       textColor: [255, 188, 69],
       fontStyle: "bold",
       fontSize: 9,
+      font: FONT_TITLE,
     },
     footStyles: {
       fillColor: [246, 248, 246],
