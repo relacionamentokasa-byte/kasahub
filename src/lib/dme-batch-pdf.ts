@@ -363,7 +363,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
 
   let y = 120;
   doc.setTextColor(15, 23, 25);
-  doc.setFont(FONT_BODY, "bold");
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(12);
   doc.text(`${list.length} demanda${list.length !== 1 ? "s" : ""} consolidada${list.length !== 1 ? "s" : ""}`, margin, y);
   y += 8;
