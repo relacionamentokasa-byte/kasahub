@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/calendario-editorial")({
 function EditorialPage() {
   const [clientId, setClientId] = useState<string>("");
   const [cursor, setCursor] = useState(new Date());
-  const [view, setView] = useState<"month" | "week">("month");
+  const [view, setView] = useState<"month" | "week" | "feed" | "list" | "timeline">("feed");
   const [filters, setFilters] = useState<{ social?: SocialNetwork; ct?: EditorialContentType; status?: EditorialStatus }>({});
   const [dialog, setDialog] = useState<{ open: boolean; post?: EditorialPost | null; date?: Date | null }>({ open: false });
 
