@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   type EditorialPost, SOCIAL_LABEL, SOCIAL_COLOR, STATUS_LABEL, STATUS_COLOR, CONTENT_TYPE_LABEL,
 } from "@/lib/editorial-api";
+import { SocialIcon } from "./SocialIcon";
 
 interface Props {
   posts: EditorialPost[];
