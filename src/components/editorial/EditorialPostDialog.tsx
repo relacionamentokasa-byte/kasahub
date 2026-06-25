@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ExternalLink, Wand2, Trash2 } from "lucide-react";
+import { ExternalLink, Wand2, Trash2, Upload, X } from "lucide-react";
 import {
-  createEditorialPost, updateEditorialPost, deleteEditorialPost,
+  createEditorialPost, updateEditorialPost, deleteEditorialPost, uploadEditorialCover,
   type EditorialPost, SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
   type SocialNetwork, type EditorialContentType, type EditorialStatus,
 } from "@/lib/editorial-api";
@@ -35,12 +35,27 @@ const empty = (clientId: string, date?: Date | null) => ({
   content_type: "reels" as EditorialContentType,
   description: "",
   status: "planned" as EditorialStatus,
+  cover_url: "" as string,
 });
 
 export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaultDate }: Props) {
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [form, setForm] = useState(empty(clientId, defaultDate));
+  const [uploading, setUploading] = useState(false);
+
+  const handleCoverUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      const url = await uploadEditorialCover(clientId, file);
+      setForm((f) => ({ ...f, cover_url: url }));
+      toast.success("Capa enviada");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (post) {
@@ -52,6 +67,7 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
         content_type: post.content_type,
         description: post.description ?? "",
         status: post.status,
+        cover_url: post.cover_url ?? "",
       });
     } else if (open) {
       setForm(empty(clientId, defaultDate));
@@ -151,6 +167,37 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Imagem de capa (aparece no Feed)</Label>
+            {form.cover_url ? (
+              <div className="relative inline-block">
+                <img src={form.cover_url} alt="capa" className="h-32 w-32 object-cover rounded-lg border border-border" />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6"
+                  onClick={() => setForm({ ...form, cover_url: "" })}
+                >
+                  <X className="size-3" />
+                </Button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center h-32 w-32 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary/50 transition-colors text-foreground/40">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
+                />
+                <div className="flex flex-col items-center gap-1 text-xs">
+                  <Upload className="size-5" />
+                  {uploading ? "Enviando..." : "Subir capa"}
+                </div>
+              </label>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Descrição / Copy</Label>
