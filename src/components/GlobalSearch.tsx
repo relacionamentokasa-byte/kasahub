@@ -171,7 +171,7 @@ export function GlobalSearch() {
         <Loader2 className="size-3.5 text-foreground/40 animate-spin shrink-0" />
       ) : (
         <kbd className="text-[10px] font-mono-kasa text-foreground/30 border border-border rounded px-1.5 py-0.5 shrink-0">
-          ⌘K
+          {typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl K"}
         </kbd>
       )}
 
