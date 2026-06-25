@@ -10,10 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import {
-  addScene, updateScene, deleteScene, reorderScenes, type ScriptScene,
+  addScene, updateScene, deleteScene, reorderScenes, uploadSceneReference, type ScriptScene,
 } from "@/lib/scripts-api";
 
 function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean }) {
