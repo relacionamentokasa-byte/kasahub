@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import {
   type EditorialPost, SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
 } from "@/lib/editorial-api";
+import { registerBoletimFonts } from "@/lib/pdf-fonts";
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
