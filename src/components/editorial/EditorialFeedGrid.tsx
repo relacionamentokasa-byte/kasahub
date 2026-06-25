@@ -50,11 +50,20 @@ export function EditorialFeedGrid({
             key={p.id}
             onClick={() => onSelectPost(p)}
             className={cn(
-              "group relative aspect-square rounded-md overflow-hidden border border-border/40 bg-gradient-to-br transition-all hover:scale-[1.02] hover:z-10 hover:shadow-xl",
-              TILE_BG[p.social_network] ?? TILE_BG.other,
+              "group relative aspect-square rounded-md overflow-hidden border border-border/40 transition-all hover:scale-[1.02] hover:z-10 hover:shadow-xl",
+              !p.cover_url && "bg-gradient-to-br",
+              !p.cover_url && (TILE_BG[p.social_network] ?? TILE_BG.other),
             )}
             title={`${SOCIAL_LABEL[p.social_network]} • ${CONTENT_TYPE_LABEL[p.content_type]} • ${STATUS_LABEL[p.status]}`}
           >
+            {p.cover_url && (
+              <img
+                src={p.cover_url}
+                alt={p.title}
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
             {/* corner: content type */}
             <div className="absolute top-1.5 right-1.5 size-6 rounded-full bg-black/60 backdrop-blur grid place-items-center">
               <Icon className="size-3 text-white" />
