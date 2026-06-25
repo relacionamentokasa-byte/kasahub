@@ -13,7 +13,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Plus, Download, FileText } from "lucide-react";
 import { EditorialMonthGrid } from "@/components/editorial/EditorialMonthGrid";
 import { EditorialWeekList } from "@/components/editorial/EditorialWeekList";
+import { EditorialFeedGrid } from "@/components/editorial/EditorialFeedGrid";
+import { EditorialList } from "@/components/editorial/EditorialList";
+import { EditorialTimeline } from "@/components/editorial/EditorialTimeline";
 import { EditorialPostDialog } from "@/components/editorial/EditorialPostDialog";
+import { SocialIcon } from "@/components/editorial/SocialIcon";
 import { exportEditorialPostsPDF, exportEditorialPostsCSV } from "@/lib/editorial-export";
 import { ClientPicker } from "@/components/clients/ClientPicker";
 import {
@@ -28,18 +32,20 @@ export const Route = createFileRoute("/_authenticated/calendario-editorial")({
 function EditorialPage() {
   const [clientId, setClientId] = useState<string>("");
   const [cursor, setCursor] = useState(new Date());
-  const [view, setView] = useState<"month" | "week">("month");
+  const [view, setView] = useState<"month" | "week" | "feed" | "list" | "timeline">("feed");
   const [filters, setFilters] = useState<{ social?: SocialNetwork; ct?: EditorialContentType; status?: EditorialStatus }>({});
   const [dialog, setDialog] = useState<{ open: boolean; post?: EditorialPost | null; date?: Date | null }>({ open: false });
 
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
   const range = useMemo(() => {
-    if (view === "month") {
-      const from = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 15).toISOString();
+    if (view === "month" || view === "feed" || view === "list") {
+      // Wide window: previous month through next 2 months (good for Feed/List/Month).
+      const from = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1).toISOString();
       const to = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1).toISOString();
       return { from, to };
     } else {
+      // Week / Timeline: 2-week window centered on cursor.
       const s = new Date(cursor); s.setDate(s.getDate() - s.getDay() - 7);
       const e = new Date(cursor); e.setDate(e.getDate() + 14);
       return { from: s.toISOString(), to: e.toISOString() };
@@ -71,10 +77,16 @@ function EditorialPage() {
         <ClientPicker value={clientId} onChange={setClientId} placeholder="Selecionar cliente" allowClear />
 
         <Select value={filters.social ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, social: v === "all" ? undefined : v as SocialNetwork }))}>
-          <SelectTrigger className="bg-background w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="bg-background w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas redes</SelectItem>
-            {Object.entries(SOCIAL_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+            {Object.entries(SOCIAL_LABEL).map(([k, v]) => (
+              <SelectItem key={k} value={k}>
+                <span className="inline-flex items-center gap-2">
+                  <SocialIcon network={k as SocialNetwork} size={16} /> {v}
+                </span>
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -136,9 +148,32 @@ function EditorialPage() {
       ) : (
         <Tabs value={view} onValueChange={(v) => setView(v as any)}>
           <TabsList>
+            <TabsTrigger value="feed">Feed</TabsTrigger>
+            <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="month">Mensal</TabsTrigger>
             <TabsTrigger value="week">Semanal</TabsTrigger>
           </TabsList>
+          <TabsContent value="feed" className="mt-4">
+            <EditorialFeedGrid
+              posts={posts}
+              onSelectPost={(p) => setDialog({ open: true, post: p })}
+            />
+          </TabsContent>
+          <TabsContent value="list" className="mt-4">
+            <EditorialList
+              posts={posts}
+              onSelectPost={(p) => setDialog({ open: true, post: p })}
+            />
+          </TabsContent>
+          <TabsContent value="timeline" className="mt-4">
+            <EditorialTimeline
+              posts={posts}
+              cursor={cursor}
+              onCursorChange={setCursor}
+              onSelectPost={(p) => setDialog({ open: true, post: p })}
+            />
+          </TabsContent>
           <TabsContent value="month" className="mt-4">
             <EditorialMonthGrid
               posts={posts}

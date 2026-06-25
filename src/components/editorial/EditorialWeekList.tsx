@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import {
   type EditorialPost, SOCIAL_LABEL, SOCIAL_COLOR, STATUS_LABEL, STATUS_COLOR, CONTENT_TYPE_LABEL,
 } from "@/lib/editorial-api";
+import { SocialIcon } from "./SocialIcon";
 
 interface Props {
   posts: EditorialPost[];
@@ -72,7 +73,9 @@ export function EditorialWeekList({ posts, cursor, onCursorChange, onSelectPost 
               <div className="flex-1 min-w-0">
                 <p className="font-medium truncate">{p.title}</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  <Badge variant="outline" className={cn("text-[9px]", SOCIAL_COLOR[p.social_network])}>{SOCIAL_LABEL[p.social_network]}</Badge>
+                  <Badge variant="outline" className={cn("text-[9px] gap-1 pl-1", SOCIAL_COLOR[p.social_network])}>
+                    <SocialIcon network={p.social_network} size={12} /> {SOCIAL_LABEL[p.social_network]}
+                  </Badge>
                   <Badge variant="outline" className="text-[9px]">{CONTENT_TYPE_LABEL[p.content_type]}</Badge>
                   <Badge variant="outline" className={cn("text-[9px]", STATUS_COLOR[p.status])}>{STATUS_LABEL[p.status]}</Badge>
                 </div>
