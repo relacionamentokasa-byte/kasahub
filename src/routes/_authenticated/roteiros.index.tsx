@@ -136,7 +136,7 @@ function RoteirosListPage() {
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <p className="text-xs font-mono-kasa text-foreground/40 uppercase">Operação · Conteúdo</p>
-          <h1 className="font-display text-3xl mt-1">Roteiros</h1>
+          <h1 className="font-display font-bold text-3xl mt-1">Roteiros</h1>
           <p className="text-foreground/60 text-sm mt-1">Roteiros para vídeos e eventos vinculados aos Jobs.</p>
         </div>
         <NewScriptDialog />

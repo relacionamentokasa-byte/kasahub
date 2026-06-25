@@ -69,7 +69,7 @@ function EditorialPage() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto">
       <div>
         <p className="text-xs font-mono-kasa text-foreground/40 uppercase">Operação · Conteúdo</p>
-        <h1 className="font-display text-3xl mt-1">Calendário Editorial</h1>
+        <h1 className="font-display font-bold text-3xl mt-1">Calendário Editorial</h1>
         <p className="text-foreground/60 text-sm mt-1">Planeje e organize os posts de cada cliente nas redes sociais.</p>
       </div>
 
