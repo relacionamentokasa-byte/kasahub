@@ -294,7 +294,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   doc.setFont(FONT_BODY, "bold");
   doc.textWithLink(sanitize(approvalUrl), margin + 16, afterY + 56, { url: approvalUrl });
 
-  await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin });
+  await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin, FONT_TITLE, FONT_BODY });
 
   const clientSlug = sanitize(b.clients?.company || b.clients?.name || "cliente")
     .toLowerCase()
