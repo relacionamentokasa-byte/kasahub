@@ -12,6 +12,7 @@ import {
   SOCIAL_LABEL, SOCIAL_COLOR, STATUS_COLOR, STATUS_LABEL,
 } from "@/lib/editorial-api";
 import { toast } from "sonner";
+import { SocialIcon } from "./SocialIcon";
 
 interface Props {
   posts: EditorialPost[];
