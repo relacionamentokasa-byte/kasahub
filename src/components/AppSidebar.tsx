@@ -66,7 +66,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
       { title: "Clientes", url: "/clientes", icon: Users, module: "clientes" },
       { title: "Projetos", url: "/projetos", icon: FolderKanban, module: "projetos" },
       { title: "Jobs", url: "/jobs", icon: CheckSquare, module: "jobs" },
-      { title: "Calendário Editorial", url: "/calendario-editorial", icon: CalendarDays, module: "jobs" },
+      
       { title: "Roteiros", url: "/roteiros", icon: Film, module: "jobs" },
       { title: "Demandas Extras", url: "/dmes", icon: Sparkles, module: "jobs" },
       
