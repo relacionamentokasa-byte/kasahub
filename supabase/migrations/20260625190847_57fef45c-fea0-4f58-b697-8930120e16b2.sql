@@ -1,0 +1,1 @@
+ALTER TABLE public.editorial_posts ADD COLUMN IF NOT EXISTS cover_url TEXT;

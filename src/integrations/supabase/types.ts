@@ -1352,6 +1352,7 @@ export type Database = {
         Row: {
           client_id: string
           content_type: Database["public"]["Enums"]["editorial_content_type"]
+          cover_url: string | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -1366,6 +1367,7 @@ export type Database = {
         Insert: {
           client_id: string
           content_type: Database["public"]["Enums"]["editorial_content_type"]
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -1380,6 +1382,7 @@ export type Database = {
         Update: {
           client_id?: string
           content_type?: Database["public"]["Enums"]["editorial_content_type"]
+          cover_url?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
