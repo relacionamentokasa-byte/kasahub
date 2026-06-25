@@ -1,0 +1,1 @@
+ALTER TABLE public.clients ADD COLUMN IF NOT EXISTS has_editorial_calendar BOOLEAN NOT NULL DEFAULT false;

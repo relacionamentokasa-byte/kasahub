@@ -908,6 +908,7 @@ export type Database = {
           financial_contact_email: string | null
           financial_contact_name: string | null
           financial_contact_phone: string | null
+          has_editorial_calendar: boolean
           has_launch_grid: boolean
           id: string
           lead_id: string | null
@@ -951,6 +952,7 @@ export type Database = {
           financial_contact_email?: string | null
           financial_contact_name?: string | null
           financial_contact_phone?: string | null
+          has_editorial_calendar?: boolean
           has_launch_grid?: boolean
           id?: string
           lead_id?: string | null
@@ -994,6 +996,7 @@ export type Database = {
           financial_contact_email?: string | null
           financial_contact_name?: string | null
           financial_contact_phone?: string | null
+          has_editorial_calendar?: boolean
           has_launch_grid?: boolean
           id?: string
           lead_id?: string | null
