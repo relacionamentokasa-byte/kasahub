@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Download, FileText } from "lucide-react";
+import { Plus, Download, FileText, Share2, LayoutGrid, Activity } from "lucide-react";
 import { EditorialMonthGrid } from "@/components/editorial/EditorialMonthGrid";
 import { EditorialWeekList } from "@/components/editorial/EditorialWeekList";
 import { EditorialFeedGrid } from "@/components/editorial/EditorialFeedGrid";
@@ -73,11 +73,18 @@ function EditorialPage() {
         <p className="text-foreground/60 text-sm mt-1">Planeje e organize os posts de cada cliente nas redes sociais.</p>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <ClientPicker value={clientId} onChange={setClientId} placeholder="Selecionar cliente" allowClear />
+      <div className="rounded-2xl border border-foreground/10 bg-card/40 backdrop-blur-sm shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset] px-3 py-2 flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-[220px]">
+          <ClientPicker value={clientId} onChange={setClientId} placeholder="Selecionar cliente" allowClear />
+        </div>
+
+        <div className="hidden md:block h-6 w-px bg-foreground/10 mx-1" />
 
         <Select value={filters.social ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, social: v === "all" ? undefined : v as SocialNetwork }))}>
-          <SelectTrigger className="bg-background w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`h-9 rounded-full border-foreground/10 bg-transparent hover:bg-foreground/5 transition-colors px-3 gap-2 w-auto min-w-[8.5rem] ${filters.social ? "text-primary border-primary/40 bg-primary/5" : "text-foreground/70"}`}>
+            <Share2 className="size-3.5 opacity-70" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas redes</SelectItem>
             {Object.entries(SOCIAL_LABEL).map(([k, v]) => (
@@ -91,7 +98,10 @@ function EditorialPage() {
         </Select>
 
         <Select value={filters.ct ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, ct: v === "all" ? undefined : v as EditorialContentType }))}>
-          <SelectTrigger className="bg-background w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`h-9 rounded-full border-foreground/10 bg-transparent hover:bg-foreground/5 transition-colors px-3 gap-2 w-auto min-w-[8rem] ${filters.ct ? "text-primary border-primary/40 bg-primary/5" : "text-foreground/70"}`}>
+            <LayoutGrid className="size-3.5 opacity-70" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos tipos</SelectItem>
             {Object.entries(CONTENT_TYPE_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
@@ -99,18 +109,22 @@ function EditorialPage() {
         </Select>
 
         <Select value={filters.status ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, status: v === "all" ? undefined : v as EditorialStatus }))}>
-          <SelectTrigger className="bg-background w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`h-9 rounded-full border-foreground/10 bg-transparent hover:bg-foreground/5 transition-colors px-3 gap-2 w-auto min-w-[8rem] ${filters.status ? "text-primary border-primary/40 bg-primary/5" : "text-foreground/70"}`}>
+            <Activity className="size-3.5 opacity-70" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos status</SelectItem>
             {Object.entries(STATUS_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
 
-        <div className="ml-auto flex gap-2">
+        <div className="ml-auto flex items-center gap-2">
+          <div className="hidden md:block h-6 w-px bg-foreground/10 mx-1" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={!clientId || posts.length === 0}>
-                <Download className="size-4 mr-1" /> Exportar
+              <Button variant="ghost" size="sm" className="h-9 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5" disabled={!clientId || posts.length === 0}>
+                <Download className="size-4 mr-1.5" /> Exportar
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -133,10 +147,12 @@ function EditorialPage() {
             </DropdownMenuContent>
           </DropdownMenu>
           <Button
+            size="sm"
+            className="h-9 rounded-full px-4"
             disabled={!clientId}
             onClick={() => setDialog({ open: true, post: null, date: cursor })}
           >
-            <Plus className="size-4 mr-1" /> Novo post
+            <Plus className="size-4 mr-1.5" /> Novo post
           </Button>
         </div>
       </div>
