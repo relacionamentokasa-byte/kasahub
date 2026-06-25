@@ -169,6 +169,37 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
             </div>
           </div>
           <div className="space-y-2">
+            <Label>Imagem de capa (aparece no Feed)</Label>
+            {form.cover_url ? (
+              <div className="relative inline-block">
+                <img src={form.cover_url} alt="capa" className="h-32 w-32 object-cover rounded-lg border border-border" />
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-6 w-6"
+                  onClick={() => setForm({ ...form, cover_url: "" })}
+                >
+                  <X className="size-3" />
+                </Button>
+              </div>
+            ) : (
+              <label className="flex items-center justify-center h-32 w-32 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary/50 transition-colors text-foreground/40">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
+                />
+                <div className="flex flex-col items-center gap-1 text-xs">
+                  <Upload className="size-5" />
+                  {uploading ? "Enviando..." : "Subir capa"}
+                </div>
+              </label>
+            )}
+          </div>
+          <div className="space-y-2">
             <Label>Descrição / Copy</Label>
             <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} className="bg-background" />
           </div>
