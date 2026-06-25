@@ -1348,6 +1348,66 @@ export type Database = {
           },
         ]
       }
+      editorial_posts: {
+        Row: {
+          client_id: string
+          content_type: Database["public"]["Enums"]["editorial_content_type"]
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          job_id: string | null
+          scheduled_at: string
+          social_network: Database["public"]["Enums"]["editorial_social_network"]
+          status: Database["public"]["Enums"]["editorial_post_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          content_type: Database["public"]["Enums"]["editorial_content_type"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          job_id?: string | null
+          scheduled_at: string
+          social_network: Database["public"]["Enums"]["editorial_social_network"]
+          status?: Database["public"]["Enums"]["editorial_post_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          content_type?: Database["public"]["Enums"]["editorial_content_type"]
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          job_id?: string | null
+          scheduled_at?: string
+          social_network?: Database["public"]["Enums"]["editorial_social_network"]
+          status?: Database["public"]["Enums"]["editorial_post_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_posts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editorial_posts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -1869,6 +1929,9 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          editorial_status:
+            | Database["public"]["Enums"]["editorial_post_status"]
+            | null
           id: string
           is_done: boolean
           name: string
@@ -1878,6 +1941,9 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          editorial_status?:
+            | Database["public"]["Enums"]["editorial_post_status"]
+            | null
           id?: string
           is_done?: boolean
           name: string
@@ -1887,6 +1953,9 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          editorial_status?:
+            | Database["public"]["Enums"]["editorial_post_status"]
+            | null
           id?: string
           is_done?: boolean
           name?: string
@@ -3720,6 +3789,116 @@ export type Database = {
         }
         Relationships: []
       }
+      script_scenes: {
+        Row: {
+          created_at: string
+          duration_sec: number | null
+          id: string
+          production_notes: string | null
+          scene_number: number
+          script_id: string
+          speech: string | null
+          updated_at: string
+          visual: string
+        }
+        Insert: {
+          created_at?: string
+          duration_sec?: number | null
+          id?: string
+          production_notes?: string | null
+          scene_number?: number
+          script_id: string
+          speech?: string | null
+          updated_at?: string
+          visual?: string
+        }
+        Update: {
+          created_at?: string
+          duration_sec?: number | null
+          id?: string
+          production_notes?: string | null
+          scene_number?: number
+          script_id?: string
+          speech?: string | null
+          updated_at?: string
+          visual?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_scenes_script_id_fkey"
+            columns: ["script_id"]
+            isOneToOne: false
+            referencedRelation: "scripts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scripts: {
+        Row: {
+          client_id: string
+          content_type: Database["public"]["Enums"]["script_content_type"]
+          created_at: string
+          created_by: string | null
+          estimated_duration_sec: number | null
+          id: string
+          job_id: string
+          platform: Database["public"]["Enums"]["script_platform"]
+          status: Database["public"]["Enums"]["script_status"]
+          title: string
+          updated_at: string
+          video_format:
+            | Database["public"]["Enums"]["script_video_format"]
+            | null
+        }
+        Insert: {
+          client_id: string
+          content_type: Database["public"]["Enums"]["script_content_type"]
+          created_at?: string
+          created_by?: string | null
+          estimated_duration_sec?: number | null
+          id?: string
+          job_id: string
+          platform: Database["public"]["Enums"]["script_platform"]
+          status?: Database["public"]["Enums"]["script_status"]
+          title: string
+          updated_at?: string
+          video_format?:
+            | Database["public"]["Enums"]["script_video_format"]
+            | null
+        }
+        Update: {
+          client_id?: string
+          content_type?: Database["public"]["Enums"]["script_content_type"]
+          created_at?: string
+          created_by?: string | null
+          estimated_duration_sec?: number | null
+          id?: string
+          job_id?: string
+          platform?: Database["public"]["Enums"]["script_platform"]
+          status?: Database["public"]["Enums"]["script_status"]
+          title?: string
+          updated_at?: string
+          video_format?:
+            | Database["public"]["Enums"]["script_video_format"]
+            | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scripts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scripts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: true
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       services: {
         Row: {
           archived_at: string | null
@@ -4255,7 +4434,33 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "ceo" | "gestor" | "operador" | "cliente"
+      editorial_content_type: "reels" | "static" | "carousel"
+      editorial_post_status: "planned" | "in_production" | "review" | "approved"
+      editorial_social_network:
+        | "instagram"
+        | "youtube"
+        | "tiktok"
+        | "linkedin"
+        | "facebook"
+        | "other"
       project_type: "automatic" | "special"
+      script_content_type:
+        | "reels"
+        | "youtube"
+        | "story"
+        | "live"
+        | "event"
+        | "institutional"
+        | "other"
+      script_platform:
+        | "instagram"
+        | "youtube"
+        | "tiktok"
+        | "linkedin"
+        | "facebook"
+        | "other"
+      script_status: "draft" | "review" | "approved"
+      script_video_format: "vertical" | "horizontal" | "square"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -4384,7 +4589,36 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "ceo", "gestor", "operador", "cliente"],
+      editorial_content_type: ["reels", "static", "carousel"],
+      editorial_post_status: ["planned", "in_production", "review", "approved"],
+      editorial_social_network: [
+        "instagram",
+        "youtube",
+        "tiktok",
+        "linkedin",
+        "facebook",
+        "other",
+      ],
       project_type: ["automatic", "special"],
+      script_content_type: [
+        "reels",
+        "youtube",
+        "story",
+        "live",
+        "event",
+        "institutional",
+        "other",
+      ],
+      script_platform: [
+        "instagram",
+        "youtube",
+        "tiktok",
+        "linkedin",
+        "facebook",
+        "other",
+      ],
+      script_status: ["draft", "review", "approved"],
+      script_video_format: ["vertical", "horizontal", "square"],
     },
   },
 } as const
