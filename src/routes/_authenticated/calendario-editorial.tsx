@@ -67,12 +67,7 @@ function EditorialPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={clientId} onValueChange={setClientId}>
-          <SelectTrigger className="bg-background w-64"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-          <SelectContent>
-            {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <ClientPicker value={clientId} onChange={setClientId} placeholder="Selecionar cliente" allowClear />
 
         <Select value={filters.social ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, social: v === "all" ? undefined : v as SocialNetwork }))}>
           <SelectTrigger className="bg-background w-40"><SelectValue /></SelectTrigger>
