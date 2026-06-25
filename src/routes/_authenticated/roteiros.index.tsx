@@ -68,7 +68,7 @@ function NewScriptDialog() {
             <Select value={clientId} onValueChange={(v) => { setClientId(v); setForm(f => ({ ...f, job_id: "" })); }}>
               <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione" /></SelectTrigger>
               <SelectContent>
-                {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -146,7 +146,7 @@ function RoteirosListPage() {
           <SelectTrigger className="bg-background w-56"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos clientes</SelectItem>
-            {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.ct ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, ct: v === "all" ? undefined : v as ScriptContentType }))}>
