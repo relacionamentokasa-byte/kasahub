@@ -8,6 +8,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { JobScriptTab } from "@/components/jobs/JobScriptTab";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -622,8 +624,14 @@ export function JobSheet({
                 </SheetTitle>
               </SheetHeader>
 
+              <Tabs defaultValue="gestao" className="space-y-6">
+                <TabsList className="bg-background/50">
+                  <TabsTrigger value="gestao">Gestão</TabsTrigger>
+                  <TabsTrigger value="roteiro">Roteiro</TabsTrigger>
+                </TabsList>
+                <TabsContent value="gestao" className="space-y-6 mt-0">
               <div className="space-y-6">
-                {/* STATUS */}
+                {/* STATUS spacer */}
                 <div className="space-y-3">
                   <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Status</Label>
                   <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:gap-2">
@@ -1256,6 +1264,11 @@ export function JobSheet({
                   </span>
                 </div>
               </div>
+                </TabsContent>
+                <TabsContent value="roteiro" className="mt-0">
+                  <JobScriptTab jobId={job.id} defaultTitle={job.title} />
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
 
