@@ -34,14 +34,17 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
 import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
+import { Route as AuthenticatedCalendarioEditorialRouteImport } from './routes/_authenticated/calendario-editorial'
 import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authenticated/aprovacoes'
+import { Route as AuthenticatedRoteirosIndexRouteImport } from './routes/_authenticated/roteiros.index'
 import { Route as AuthenticatedPropostasIndexRouteImport } from './routes/_authenticated/propostas.index'
 import { Route as AuthenticatedProjetosIndexRouteImport } from './routes/_authenticated/projetos.index'
 import { Route as AuthenticatedConstrutorRelatoriosIndexRouteImport } from './routes/_authenticated/construtor-relatorios.index'
 import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
 import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
 import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
+import { Route as AuthenticatedRoteirosScriptIdRouteImport } from './routes/_authenticated/roteiros.$scriptId'
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
 import { Route as AuthenticatedGestaoRelatoriosRouteImport } from './routes/_authenticated/gestao.relatorios'
@@ -192,6 +195,12 @@ const AuthenticatedCeoRoute = AuthenticatedCeoRouteImport.update({
   path: '/ceo',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCalendarioEditorialRoute =
+  AuthenticatedCalendarioEditorialRouteImport.update({
+    id: '/calendario-editorial',
+    path: '/calendario-editorial',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
   id: '/calendario',
   path: '/calendario',
@@ -202,6 +211,12 @@ const AuthenticatedAprovacoesRoute = AuthenticatedAprovacoesRouteImport.update({
   path: '/aprovacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRoteirosIndexRoute =
+  AuthenticatedRoteirosIndexRouteImport.update({
+    id: '/roteiros/',
+    path: '/roteiros/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPropostasIndexRoute =
   AuthenticatedPropostasIndexRouteImport.update({
     id: '/propostas/',
@@ -236,6 +251,12 @@ const ApiPublicFaviconRoute = ApiPublicFaviconRouteImport.update({
   path: '/api/public/favicon',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRoteirosScriptIdRoute =
+  AuthenticatedRoteirosScriptIdRouteImport.update({
+    id: '/roteiros/$scriptId',
+    path: '/roteiros/$scriptId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPropostasProposalIdRoute =
   AuthenticatedPropostasProposalIdRouteImport.update({
     id: '/propostas/$proposalId',
@@ -371,6 +392,7 @@ export interface FileRoutesByFullPath {
   '/convite': typeof ConviteRoute
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/calendario-editorial': typeof AuthenticatedCalendarioEditorialRoute
   '/ceo': typeof AuthenticatedCeoRoute
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
@@ -396,12 +418,14 @@ export interface FileRoutesByFullPath {
   '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/roteiros/$scriptId': typeof AuthenticatedRoteirosScriptIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/clientes/': typeof AuthenticatedClientesIndexRoute
   '/construtor-relatorios/': typeof AuthenticatedConstrutorRelatoriosIndexRoute
   '/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/propostas/': typeof AuthenticatedPropostasIndexRoute
+  '/roteiros/': typeof AuthenticatedRoteirosIndexRoute
   '/construtor-relatorios/$reportId/apresentar': typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   '/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -427,6 +451,7 @@ export interface FileRoutesByTo {
   '/convite': typeof ConviteRoute
   '/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/calendario': typeof AuthenticatedCalendarioRoute
+  '/calendario-editorial': typeof AuthenticatedCalendarioEditorialRoute
   '/ceo': typeof AuthenticatedCeoRoute
   '/config': typeof AuthenticatedConfigRoute
   '/crm': typeof AuthenticatedCrmRoute
@@ -453,12 +478,14 @@ export interface FileRoutesByTo {
   '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/roteiros/$scriptId': typeof AuthenticatedRoteirosScriptIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/clientes': typeof AuthenticatedClientesIndexRoute
   '/construtor-relatorios': typeof AuthenticatedConstrutorRelatoriosIndexRoute
   '/projetos': typeof AuthenticatedProjetosIndexRoute
   '/propostas': typeof AuthenticatedPropostasIndexRoute
+  '/roteiros': typeof AuthenticatedRoteirosIndexRoute
   '/construtor-relatorios/$reportId/apresentar': typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   '/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -486,6 +513,7 @@ export interface FileRoutesById {
   '/convite': typeof ConviteRoute
   '/_authenticated/aprovacoes': typeof AuthenticatedAprovacoesRoute
   '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
+  '/_authenticated/calendario-editorial': typeof AuthenticatedCalendarioEditorialRoute
   '/_authenticated/ceo': typeof AuthenticatedCeoRoute
   '/_authenticated/config': typeof AuthenticatedConfigRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
@@ -512,12 +540,14 @@ export interface FileRoutesById {
   '/_authenticated/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
+  '/_authenticated/roteiros/$scriptId': typeof AuthenticatedRoteirosScriptIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
   '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
   '/_authenticated/construtor-relatorios/': typeof AuthenticatedConstrutorRelatoriosIndexRoute
   '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
+  '/_authenticated/roteiros/': typeof AuthenticatedRoteirosIndexRoute
   '/_authenticated/construtor-relatorios/$reportId/apresentar': typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   '/_authenticated/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/_authenticated/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -546,6 +576,7 @@ export interface FileRouteTypes {
     | '/convite'
     | '/aprovacoes'
     | '/calendario'
+    | '/calendario-editorial'
     | '/ceo'
     | '/config'
     | '/crm'
@@ -571,12 +602,14 @@ export interface FileRouteTypes {
     | '/gestao/relatorios'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/roteiros/$scriptId'
     | '/api/public/favicon'
     | '/api/public/manifest'
     | '/clientes/'
     | '/construtor-relatorios/'
     | '/projetos/'
     | '/propostas/'
+    | '/roteiros/'
     | '/construtor-relatorios/$reportId/apresentar'
     | '/construtor-relatorios/$reportId/pdf'
     | '/onboarding/$onboardingId/apresentar'
@@ -602,6 +635,7 @@ export interface FileRouteTypes {
     | '/convite'
     | '/aprovacoes'
     | '/calendario'
+    | '/calendario-editorial'
     | '/ceo'
     | '/config'
     | '/crm'
@@ -628,12 +662,14 @@ export interface FileRouteTypes {
     | '/gestao/relatorios'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
+    | '/roteiros/$scriptId'
     | '/api/public/favicon'
     | '/api/public/manifest'
     | '/clientes'
     | '/construtor-relatorios'
     | '/projetos'
     | '/propostas'
+    | '/roteiros'
     | '/construtor-relatorios/$reportId/apresentar'
     | '/construtor-relatorios/$reportId/pdf'
     | '/onboarding/$onboardingId/apresentar'
@@ -660,6 +696,7 @@ export interface FileRouteTypes {
     | '/convite'
     | '/_authenticated/aprovacoes'
     | '/_authenticated/calendario'
+    | '/_authenticated/calendario-editorial'
     | '/_authenticated/ceo'
     | '/_authenticated/config'
     | '/_authenticated/crm'
@@ -686,12 +723,14 @@ export interface FileRouteTypes {
     | '/_authenticated/gestao/relatorios'
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
+    | '/_authenticated/roteiros/$scriptId'
     | '/api/public/favicon'
     | '/api/public/manifest'
     | '/_authenticated/clientes/'
     | '/_authenticated/construtor-relatorios/'
     | '/_authenticated/projetos/'
     | '/_authenticated/propostas/'
+    | '/_authenticated/roteiros/'
     | '/_authenticated/construtor-relatorios/$reportId/apresentar'
     | '/_authenticated/construtor-relatorios/$reportId/pdf'
     | '/_authenticated/onboarding/$onboardingId/apresentar'
@@ -922,6 +961,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCeoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/calendario-editorial': {
+      id: '/_authenticated/calendario-editorial'
+      path: '/calendario-editorial'
+      fullPath: '/calendario-editorial'
+      preLoaderRoute: typeof AuthenticatedCalendarioEditorialRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/calendario': {
       id: '/_authenticated/calendario'
       path: '/calendario'
@@ -934,6 +980,13 @@ declare module '@tanstack/react-router' {
       path: '/aprovacoes'
       fullPath: '/aprovacoes'
       preLoaderRoute: typeof AuthenticatedAprovacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/roteiros/': {
+      id: '/_authenticated/roteiros/'
+      path: '/roteiros'
+      fullPath: '/roteiros/'
+      preLoaderRoute: typeof AuthenticatedRoteirosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/propostas/': {
@@ -977,6 +1030,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/favicon'
       preLoaderRoute: typeof ApiPublicFaviconRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/roteiros/$scriptId': {
+      id: '/_authenticated/roteiros/$scriptId'
+      path: '/roteiros/$scriptId'
+      fullPath: '/roteiros/$scriptId'
+      preLoaderRoute: typeof AuthenticatedRoteirosScriptIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/propostas/$proposalId': {
       id: '/_authenticated/propostas/$proposalId'
@@ -1145,6 +1205,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAprovacoesRoute: typeof AuthenticatedAprovacoesRoute
   AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
+  AuthenticatedCalendarioEditorialRoute: typeof AuthenticatedCalendarioEditorialRoute
   AuthenticatedCeoRoute: typeof AuthenticatedCeoRoute
   AuthenticatedConfigRoute: typeof AuthenticatedConfigRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
@@ -1162,10 +1223,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedGestaoRelatoriosRoute: typeof AuthenticatedGestaoRelatoriosRoute
   AuthenticatedProjetosProjectIdRoute: typeof AuthenticatedProjetosProjectIdRoute
   AuthenticatedPropostasProposalIdRoute: typeof AuthenticatedPropostasProposalIdRoute
+  AuthenticatedRoteirosScriptIdRoute: typeof AuthenticatedRoteirosScriptIdRoute
   AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
   AuthenticatedConstrutorRelatoriosIndexRoute: typeof AuthenticatedConstrutorRelatoriosIndexRoute
   AuthenticatedProjetosIndexRoute: typeof AuthenticatedProjetosIndexRoute
   AuthenticatedPropostasIndexRoute: typeof AuthenticatedPropostasIndexRoute
+  AuthenticatedRoteirosIndexRoute: typeof AuthenticatedRoteirosIndexRoute
   AuthenticatedConstrutorRelatoriosReportIdApresentarRoute: typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   AuthenticatedConstrutorRelatoriosReportIdPdfRoute: typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   AuthenticatedOnboardingOnboardingIdApresentarRoute: typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -1175,6 +1238,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAprovacoesRoute: AuthenticatedAprovacoesRoute,
   AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
+  AuthenticatedCalendarioEditorialRoute: AuthenticatedCalendarioEditorialRoute,
   AuthenticatedCeoRoute: AuthenticatedCeoRoute,
   AuthenticatedConfigRoute: AuthenticatedConfigRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
@@ -1192,11 +1256,13 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedGestaoRelatoriosRoute: AuthenticatedGestaoRelatoriosRoute,
   AuthenticatedProjetosProjectIdRoute: AuthenticatedProjetosProjectIdRoute,
   AuthenticatedPropostasProposalIdRoute: AuthenticatedPropostasProposalIdRoute,
+  AuthenticatedRoteirosScriptIdRoute: AuthenticatedRoteirosScriptIdRoute,
   AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
   AuthenticatedConstrutorRelatoriosIndexRoute:
     AuthenticatedConstrutorRelatoriosIndexRoute,
   AuthenticatedProjetosIndexRoute: AuthenticatedProjetosIndexRoute,
   AuthenticatedPropostasIndexRoute: AuthenticatedPropostasIndexRoute,
+  AuthenticatedRoteirosIndexRoute: AuthenticatedRoteirosIndexRoute,
   AuthenticatedConstrutorRelatoriosReportIdApresentarRoute:
     AuthenticatedConstrutorRelatoriosReportIdApresentarRoute,
   AuthenticatedConstrutorRelatoriosReportIdPdfRoute:
