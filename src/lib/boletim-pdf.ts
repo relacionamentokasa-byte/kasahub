@@ -203,45 +203,12 @@ export async function exportBoletimPdf(
     doc.text(`Cliente: ${product.clientName}`, M, 78);
   }
 
-  // Imagem de capa com moldura âmbar
+  // Imagem principal removida da capa — evita confusão com benchmarks.
   const coverY = 118;
-  const coverBoxW = Math.min(380, CW);
-  const coverBoxH = 360;
-  const cx = (W - coverBoxW) / 2;
-
-  // moldura âmbar
-  doc.setDrawColor(...K.brand);
-  doc.setLineWidth(1.5);
-  doc.roundedRect(cx - 8, coverY - 8, coverBoxW + 16, coverBoxH + 16, 6, 6, "S");
-
-  if (product.image_url) {
-    const dataUrl = await imageToDataURL(product.image_url);
-    if (dataUrl) {
-      // clip via fundo escuro + imagem dentro
-      doc.setFillColor(...K.surf);
-      doc.roundedRect(cx, coverY, coverBoxW, coverBoxH, 4, 4, "F");
-      const fit = await fitCover(dataUrl, coverBoxW, coverBoxH);
-      // Ajusta para caber sem distorcer (contain) — preferimos contain na capa
-      const img = new Image();
-      await new Promise((r) => { img.onload = () => r(null); img.onerror = () => r(null); img.src = dataUrl; });
-      const ratio = img.width && img.height ? img.width / img.height : 1;
-      let drawW = coverBoxW, drawH = coverBoxW / ratio;
-      if (drawH > coverBoxH) { drawH = coverBoxH; drawW = coverBoxH * ratio; }
-      const dx = cx + (coverBoxW - drawW) / 2;
-      const dy = coverY + (coverBoxH - drawH) / 2;
-      tryAddImage(doc, dataUrl, dx, dy, drawW, drawH);
-      void fit;
-    }
-  } else {
-    doc.setFillColor(...K.surf);
-    doc.roundedRect(cx, coverY, coverBoxW, coverBoxH, 4, 4, "F");
-    doc.setTextColor(...K.muted);
-    doc.setFontSize(10);
-    doc.text("sem imagem de produto", W / 2, coverY + coverBoxH / 2, { align: "center" });
-  }
+  const coverBoxH = 0;
 
   // Título — auto-redimensiona para caber em até 2 linhas
-  const titleY = coverY + coverBoxH + 56;
+  const titleY = coverY + coverBoxH + 200;
   doc.setTextColor(...K.ink);
   doc.setFont(FONT_TITLE, "bold");
   let titleSize = 26;
