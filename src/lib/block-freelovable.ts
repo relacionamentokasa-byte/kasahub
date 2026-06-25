@@ -64,15 +64,17 @@ export function installFreeLovableBlocker() {
   }) as typeof fetch;
 
   const OrigXHROpen = XMLHttpRequest.prototype.open;
-  XMLHttpRequest.prototype.open = function (
+  (XMLHttpRequest.prototype as any).open = function (
+    this: XMLHttpRequest,
     method: string,
     url: string | URL,
-    ...rest: any[]
+    async?: boolean,
+    user?: string | null,
+    password?: string | null,
   ) {
     if (typeof url === "string" && isBadUrl(url)) {
-      // redireciona para about:blank — falha silenciosa
-      return OrigXHROpen.call(this, method, "about:blank", ...(rest as []));
+      return (OrigXHROpen as any).call(this, method, "about:blank", async ?? true, user, password);
     }
-    return OrigXHROpen.call(this, method, url as any, ...(rest as []));
-  } as any;
+    return (OrigXHROpen as any).call(this, method, url, async ?? true, user, password);
+  };
 }
