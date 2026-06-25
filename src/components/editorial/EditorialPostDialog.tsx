@@ -11,9 +11,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ExternalLink, Wand2, Trash2 } from "lucide-react";
+import { ExternalLink, Wand2, Trash2, Upload, X } from "lucide-react";
 import {
-  createEditorialPost, updateEditorialPost, deleteEditorialPost,
+  createEditorialPost, updateEditorialPost, deleteEditorialPost, uploadEditorialCover,
   type EditorialPost, SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
   type SocialNetwork, type EditorialContentType, type EditorialStatus,
 } from "@/lib/editorial-api";
