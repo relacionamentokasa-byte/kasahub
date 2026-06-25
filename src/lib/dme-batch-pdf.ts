@@ -119,7 +119,7 @@ async function drawPdfFooter(
       /* ignore */
     }
   } else {
-    doc.setFont("helvetica", "bold");
+    doc.setFont(FONT_BODY, "bold");
     doc.setFontSize(11);
     doc.setTextColor(255, 188, 69);
     doc.text("KASA HUB", pageW - margin, bandY + bandH / 2 + 4, { align: "right" });
@@ -128,7 +128,7 @@ async function drawPdfFooter(
   // Texto configurável (lado esquerdo)
   const text = sanitize(footerText || "").trim();
   if (text) {
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(9);
     doc.setTextColor(244, 247, 245);
     const reservedRight = (kasa ? logoW : 80) + 24;
@@ -138,7 +138,7 @@ async function drawPdfFooter(
   }
 
   // Data de geração (lado esquerdo, abaixo)
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT_BODY, "normal");
   doc.setFontSize(7);
   doc.setTextColor(156, 177, 176);
   doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, margin, pageH - 10);
@@ -181,13 +181,13 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   doc.setFillColor(12, 22, 24);
   doc.rect(0, 0, pageW, 90, "F");
   doc.setTextColor(255, 188, 69);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.setFontSize(10);
   doc.text("SOLICITAÇÃO DE APROVAÇÃO", margin, 35);
   doc.setTextColor(244, 247, 245);
   doc.setFontSize(20);
   doc.text("Demandas Extras — Lote", margin, 60);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT_BODY, "normal");
   doc.setFontSize(11);
   doc.setTextColor(156, 177, 176);
   doc.text(
@@ -205,7 +205,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
 
   let y = 120;
   doc.setTextColor(15, 23, 25);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.setFontSize(12);
   doc.text(`${dmes.length} demanda${dmes.length !== 1 ? "s" : ""} para aprovação`, margin, y);
   y += 8;
@@ -226,7 +226,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
     ]),
     foot: [["", "", "TOTAL", brl(Number(b.total_value || 0))]],
     styles: {
-      font: "helvetica",
+      font: FONT_BODY,
       fontSize: 9,
       cellPadding: 8,
       textColor: [15, 23, 25],
@@ -258,7 +258,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
 
   if (b.due_date) {
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT_BODY, "normal");
     doc.setTextColor(107, 128, 127);
     doc.text(
       `Vencimento sugerido: ${new Date(b.due_date + "T00:00:00").toLocaleDateString("pt-BR")}`,
@@ -273,11 +273,11 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   doc.setDrawColor(255, 188, 69);
   doc.setFillColor(255, 240, 210);
   doc.roundedRect(margin, afterY, pageW - margin * 2, 70, 8, 8, "FD");
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 25);
   doc.text("Aprovar online (assinatura digital)", margin + 16, afterY + 22);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT_BODY, "normal");
   doc.setFontSize(9);
   doc.setTextColor(60, 70, 70);
   doc.text(
@@ -286,7 +286,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
     afterY + 38,
   );
   doc.setTextColor(20, 60, 120);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.textWithLink(sanitize(approvalUrl), margin + 16, afterY + 56, { url: approvalUrl });
 
   await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin });
@@ -334,13 +334,13 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
   doc.setFillColor(12, 22, 24);
   doc.rect(0, 0, pageW, 90, "F");
   doc.setTextColor(255, 188, 69);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.setFontSize(10);
   doc.text("DEMANDAS EXTRAS — COBRANÇA CONSOLIDADA", margin, 35);
   doc.setTextColor(244, 247, 245);
   doc.setFontSize(20);
   doc.text("Lote Consolidado", margin, 60);
-  doc.setFont("helvetica", "normal");
+  doc.setFont(FONT_BODY, "normal");
   doc.setFontSize(11);
   doc.setTextColor(156, 177, 176);
   doc.text(sanitize(t.clients?.company || t.clients?.name || "Cliente"), margin, 78);
@@ -354,7 +354,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
 
   let y = 120;
   doc.setTextColor(15, 23, 25);
-  doc.setFont("helvetica", "bold");
+  doc.setFont(FONT_BODY, "bold");
   doc.setFontSize(12);
   doc.text(`${list.length} demanda${list.length !== 1 ? "s" : ""} consolidada${list.length !== 1 ? "s" : ""}`, margin, y);
   y += 8;
@@ -369,7 +369,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
       brl(Number(d.value || 0)),
     ]),
     foot: [["", "", "TOTAL", brl(Number(t.amount || 0))]],
-    styles: { font: "helvetica", fontSize: 9, cellPadding: 8, textColor: [15, 23, 25], lineColor: [228, 232, 230], lineWidth: 0.5 },
+    styles: { font: FONT_BODY, fontSize: 9, cellPadding: 8, textColor: [15, 23, 25], lineColor: [228, 232, 230], lineWidth: 0.5 },
     headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold", fontSize: 9 },
     footStyles: { fillColor: [246, 248, 246], textColor: [15, 23, 25], fontStyle: "bold", fontSize: 10 },
     columnStyles: {
@@ -383,7 +383,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
   let afterY = (doc as any).lastAutoTable.finalY + 24;
   if (t.due_date) {
     doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
+    doc.setFont(FONT_BODY, "normal");
     doc.setTextColor(107, 128, 127);
     doc.text(
       `Vencimento: ${new Date(t.due_date + "T00:00:00").toLocaleDateString("pt-BR")}`,
