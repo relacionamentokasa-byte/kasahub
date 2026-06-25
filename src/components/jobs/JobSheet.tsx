@@ -1264,6 +1264,11 @@ export function JobSheet({
                   </span>
                 </div>
               </div>
+                </TabsContent>
+                <TabsContent value="roteiro" className="mt-0">
+                  <JobScriptTab jobId={job.id} defaultTitle={job.title} />
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
 
