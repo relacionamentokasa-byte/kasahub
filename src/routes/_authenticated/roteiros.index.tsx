@@ -65,12 +65,12 @@ function NewScriptDialog() {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Cliente</Label>
-            <Select value={clientId} onValueChange={(v) => { setClientId(v); setForm(f => ({ ...f, job_id: "" })); }}>
-              <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <ClientPicker
+              value={clientId}
+              onChange={(v) => { setClientId(v); setForm(f => ({ ...f, job_id: "" })); }}
+              placeholder="Selecionar cliente"
+              className="w-full"
+            />
           </div>
           <div className="space-y-2">
             <Label>Job</Label>
