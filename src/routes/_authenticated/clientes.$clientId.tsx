@@ -459,6 +459,13 @@ function ClientDetail() {
               </TabsContent>
             )}
 
+            {/* Conteúdo: Calendário Editorial */}
+            {(client as any)?.has_editorial_calendar && (
+              <TabsContent value="editorial" className="m-0 min-h-[500px] animate-reveal">
+                <ClientEditorialSection clientId={clientId} clientName={client.name || client.company || "Cliente"} />
+              </TabsContent>
+            )}
+
 
 
             {/* Conteúdo: Financeiro */}
