@@ -142,22 +142,33 @@ function RoteirosListPage() {
         <NewScriptDialog />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-        <ClientPicker
-          value={filters.clientId ?? ""}
-          onChange={(v) => setFilters(f => ({ ...f, clientId: v || undefined }))}
-          placeholder="Todos clientes"
-          allowClear
-        />
+      <div className="rounded-2xl border border-foreground/10 bg-card/40 backdrop-blur-sm shadow-[0_1px_0_0_rgba(255,255,255,0.04)_inset] px-3 py-2 flex flex-wrap items-center gap-2">
+        <div className="flex-1 min-w-[220px]">
+          <ClientPicker
+            value={filters.clientId ?? ""}
+            onChange={(v) => setFilters(f => ({ ...f, clientId: v || undefined }))}
+            placeholder="Todos clientes"
+            allowClear
+          />
+        </div>
+
+        <div className="hidden md:block h-6 w-px bg-foreground/10 mx-1" />
+
         <Select value={filters.ct ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, ct: v === "all" ? undefined : v as ScriptContentType }))}>
-          <SelectTrigger className="bg-background w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`h-9 rounded-full border-foreground/10 bg-transparent hover:bg-foreground/5 transition-colors px-3 gap-2 w-auto min-w-[8.5rem] ${filters.ct ? "text-primary border-primary/40 bg-primary/5" : "text-foreground/70"}`}>
+            <LayoutGrid className="size-3.5 opacity-70" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos tipos</SelectItem>
             {Object.entries(SCRIPT_CONTENT_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={filters.status ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, status: v === "all" ? undefined : v as ScriptStatus }))}>
-          <SelectTrigger className="bg-background w-44"><SelectValue /></SelectTrigger>
+          <SelectTrigger className={`h-9 rounded-full border-foreground/10 bg-transparent hover:bg-foreground/5 transition-colors px-3 gap-2 w-auto min-w-[8.5rem] ${filters.status ? "text-primary border-primary/40 bg-primary/5" : "text-foreground/70"}`}>
+            <Activity className="size-3.5 opacity-70" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos status</SelectItem>
             {Object.entries(SCRIPT_STATUS_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
