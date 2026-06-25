@@ -77,10 +77,16 @@ function EditorialPage() {
         <ClientPicker value={clientId} onChange={setClientId} placeholder="Selecionar cliente" allowClear />
 
         <Select value={filters.social ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, social: v === "all" ? undefined : v as SocialNetwork }))}>
-          <SelectTrigger className="bg-background w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="bg-background w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas redes</SelectItem>
-            {Object.entries(SOCIAL_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+            {Object.entries(SOCIAL_LABEL).map(([k, v]) => (
+              <SelectItem key={k} value={k}>
+                <span className="inline-flex items-center gap-2">
+                  <SocialIcon network={k as SocialNetwork} size={16} /> {v}
+                </span>
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
