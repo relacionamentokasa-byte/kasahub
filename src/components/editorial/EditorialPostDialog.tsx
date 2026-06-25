@@ -53,6 +53,7 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
         content_type: post.content_type,
         description: post.description ?? "",
         status: post.status,
+        cover_url: post.cover_url ?? "",
       });
     } else if (open) {
       setForm(empty(clientId, defaultDate));
