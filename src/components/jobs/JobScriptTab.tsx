@@ -88,7 +88,11 @@ function ScriptEditor({ scriptId }: { scriptId: string }) {
     queryKey: ["script-by-job-detail", scriptId],
     queryFn: async () => {
       const { supabase } = await import("@/integrations/supabase/client");
-      const { data, error } = await supabase.from("scripts").select("*").eq("id", scriptId).single();
+      const { data, error } = await supabase
+        .from("scripts")
+        .select("*, clients(name), jobs(id, title)")
+        .eq("id", scriptId)
+        .single();
       if (error) throw error;
       return data as any;
     },
