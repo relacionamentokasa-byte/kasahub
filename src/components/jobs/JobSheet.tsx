@@ -626,8 +626,8 @@ export function JobSheet({
 
               <Tabs defaultValue="gestao" className="space-y-6">
                 <TabsList className="bg-background/50">
-                  <TabsTrigger value="gestao">Gestão</TabsTrigger>
-                  <TabsTrigger value="roteiro">Roteiro</TabsTrigger>
+                  <TabsTrigger value="gestao" className="gap-1.5"><ClipboardList className="size-3.5" />Gestão</TabsTrigger>
+                  <TabsTrigger value="roteiro" className="gap-1.5"><Clapperboard className="size-3.5" />Roteiro</TabsTrigger>
                 </TabsList>
                 <TabsContent value="gestao" className="space-y-6 mt-0">
               <div className="space-y-6">
