@@ -15,6 +15,7 @@ import { EditorialMonthGrid } from "@/components/editorial/EditorialMonthGrid";
 import { EditorialWeekList } from "@/components/editorial/EditorialWeekList";
 import { EditorialPostDialog } from "@/components/editorial/EditorialPostDialog";
 import { exportEditorialPostsPDF, exportEditorialPostsCSV } from "@/lib/editorial-export";
+import { ClientPicker } from "@/components/clients/ClientPicker";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
