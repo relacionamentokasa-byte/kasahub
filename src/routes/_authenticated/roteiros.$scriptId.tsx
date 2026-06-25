@@ -78,6 +78,13 @@ function ScriptDetailPage() {
         <Badge variant="outline" className={cn(SCRIPT_STATUS_COLOR[form.status as ScriptStatus])}>
           {SCRIPT_STATUS_LABEL[form.status as ScriptStatus]}
         </Badge>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportScriptPDF({ script: script as any, scenes })}
+        >
+          <Download className="size-3 mr-1" /> Exportar PDF
+        </Button>
         {script.jobs?.id && (
           <Button variant="outline" size="sm" onClick={() => navigate({ to: "/jobs", search: { openJobId: script.jobs.id } as any })}>
             <ExternalLink className="size-3 mr-1" /> Abrir Job
