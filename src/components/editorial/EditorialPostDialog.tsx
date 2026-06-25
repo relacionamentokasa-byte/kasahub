@@ -17,6 +17,7 @@ import {
   type EditorialPost, SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
   type SocialNetwork, type EditorialContentType, type EditorialStatus,
 } from "@/lib/editorial-api";
+import { SocialIcon } from "./SocialIcon";
 
 interface Props {
   open: boolean;
