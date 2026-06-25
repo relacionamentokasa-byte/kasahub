@@ -131,7 +131,13 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
               <Select value={form.social_network} onValueChange={(v) => setForm({ ...form, social_network: v as SocialNetwork })}>
                 <SelectTrigger className="bg-background"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {Object.entries(SOCIAL_LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                  {Object.entries(SOCIAL_LABEL).map(([k, v]) => (
+                    <SelectItem key={k} value={k}>
+                      <span className="inline-flex items-center gap-2">
+                        <SocialIcon network={k as SocialNetwork} size={16} /> {v}
+                      </span>
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
