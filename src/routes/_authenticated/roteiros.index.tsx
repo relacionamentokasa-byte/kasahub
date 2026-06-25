@@ -17,7 +17,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, LayoutGrid, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ClientPicker } from "@/components/clients/ClientPicker";
