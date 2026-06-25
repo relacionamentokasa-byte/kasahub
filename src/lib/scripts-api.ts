@@ -27,6 +27,16 @@ export interface ScriptScene {
   speech: string | null;
   duration_sec: number | null;
   production_notes: string | null;
+  reference_url: string | null;
+  reference_image_url: string | null;
+}
+
+export async function uploadSceneReference(scriptId: string, file: File): Promise<string> {
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const path = `scenes/${scriptId}/${crypto.randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("public-assets").upload(path, file, { upsert: false, cacheControl: "3600" });
+  if (error) throw error;
+  return supabase.storage.from("public-assets").getPublicUrl(path).data.publicUrl;
 }
 
 export const SCRIPT_CONTENT_LABEL: Record<ScriptContentType, string> = {

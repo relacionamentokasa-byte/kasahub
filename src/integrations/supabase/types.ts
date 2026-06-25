@@ -3801,6 +3801,8 @@ export type Database = {
           duration_sec: number | null
           id: string
           production_notes: string | null
+          reference_image_url: string | null
+          reference_url: string | null
           scene_number: number
           script_id: string
           speech: string | null
@@ -3812,6 +3814,8 @@ export type Database = {
           duration_sec?: number | null
           id?: string
           production_notes?: string | null
+          reference_image_url?: string | null
+          reference_url?: string | null
           scene_number?: number
           script_id: string
           speech?: string | null
@@ -3823,6 +3827,8 @@ export type Database = {
           duration_sec?: number | null
           id?: string
           production_notes?: string | null
+          reference_image_url?: string | null
+          reference_url?: string | null
           scene_number?: number
           script_id?: string
           speech?: string | null

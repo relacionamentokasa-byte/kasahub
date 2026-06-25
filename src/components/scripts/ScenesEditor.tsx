@@ -10,10 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { GripVertical, Plus, Trash2 } from "lucide-react";
+import { GripVertical, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import {
-  addScene, updateScene, deleteScene, reorderScenes, type ScriptScene,
+  addScene, updateScene, deleteScene, reorderScenes, uploadSceneReference, type ScriptScene,
 } from "@/lib/scripts-api";
 
 function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean }) {
@@ -88,6 +88,65 @@ function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean
           placeholder="Trilha, transição, elementos gráficos…"
           disabled={disabled}
         />
+      </div>
+
+      {/* Referência visual */}
+      <div className="space-y-2 pt-2 border-t border-border/50">
+        <Label className="text-xs flex items-center gap-1.5 text-foreground/70">
+          <ImageIcon className="size-3.5" /> Referência visual
+        </Label>
+        <div className="flex flex-wrap items-start gap-3">
+          {local.reference_image_url ? (
+            <div className="relative group">
+              <img src={local.reference_image_url} alt="Ref" className="size-24 rounded-md object-cover border border-border" />
+              {!disabled && (
+                <button
+                  onClick={() => { setLocal({ ...local, reference_image_url: null }); save.mutate({ reference_image_url: null }); }}
+                  className="absolute -top-2 -right-2 size-5 rounded-full bg-destructive text-destructive-foreground grid place-items-center opacity-0 group-hover:opacity-100 transition"
+                  aria-label="Remover imagem"
+                >
+                  <X className="size-3" />
+                </button>
+              )}
+            </div>
+          ) : (
+            !disabled && (
+              <label className="size-24 rounded-md border border-dashed border-border grid place-items-center text-foreground/40 hover:text-primary hover:border-primary cursor-pointer transition">
+                <ImageIcon className="size-5" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    try {
+                      const url = await uploadSceneReference(scene.script_id, f);
+                      setLocal({ ...local, reference_image_url: url });
+                      save.mutate({ reference_image_url: url });
+                    } catch (err: any) {
+                      toast.error(err.message ?? "Falha no upload");
+                    }
+                  }}
+                />
+              </label>
+            )
+          )}
+          <div className="flex-1 min-w-[180px] space-y-1">
+            <div className="relative">
+              <LinkIcon className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-foreground/40" />
+              <Input
+                value={local.reference_url ?? ""}
+                onChange={(e) => setLocal({ ...local, reference_url: e.target.value || null })}
+                onBlur={() => save.mutate({ reference_url: local.reference_url })}
+                placeholder="Pinterest, Drive, YouTube..."
+                className="bg-background h-8 text-xs pl-8"
+                disabled={disabled}
+              />
+            </div>
+            <p className="text-[10px] text-foreground/40">Cole um link de referência ou anexe um frame/print</p>
+          </div>
+        </div>
       </div>
     </Card>
   );
