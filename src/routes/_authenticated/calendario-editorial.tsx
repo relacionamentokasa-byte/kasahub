@@ -99,6 +99,31 @@ function EditorialPage() {
         </Select>
 
         <div className="ml-auto flex gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" disabled={!clientId || posts.length === 0}>
+                <Download className="size-4 mr-1" /> Exportar
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => exportEditorialPostsPDF({
+                  clientName: clients.find(c => c.id === clientId)?.name ?? "Cliente",
+                  cursor, posts,
+                })}
+              >
+                <FileText className="size-4 mr-2" /> PDF (para o cliente)
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => exportEditorialPostsCSV({
+                  clientName: clients.find(c => c.id === clientId)?.name ?? "Cliente",
+                  cursor, posts,
+                })}
+              >
+                <Download className="size-4 mr-2" /> CSV (planilha)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button
             disabled={!clientId}
             onClick={() => setDialog({ open: true, post: null, date: cursor })}
