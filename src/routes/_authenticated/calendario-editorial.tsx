@@ -39,11 +39,13 @@ function EditorialPage() {
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
   const range = useMemo(() => {
-    if (view === "month") {
-      const from = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 15).toISOString();
+    if (view === "month" || view === "feed" || view === "list") {
+      // Wide window: previous month through next 2 months (good for Feed/List/Month).
+      const from = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1).toISOString();
       const to = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1).toISOString();
       return { from, to };
     } else {
+      // Week / Timeline: 2-week window centered on cursor.
       const s = new Date(cursor); s.setDate(s.getDate() - s.getDay() - 7);
       const e = new Date(cursor); e.setDate(e.getDate() + 14);
       return { from: s.toISOString(), to: e.toISOString() };
