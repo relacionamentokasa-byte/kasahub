@@ -379,7 +379,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
     ]),
     foot: [["", "", "TOTAL", brl(Number(t.amount || 0))]],
     styles: { font: FONT_BODY, fontSize: 9, cellPadding: 8, textColor: [15, 23, 25], lineColor: [228, 232, 230], lineWidth: 0.5 },
-    headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold", fontSize: 9 },
+    headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold", fontSize: 9, font: FONT_TITLE },
     footStyles: { fillColor: [246, 248, 246], textColor: [15, 23, 25], fontStyle: "bold", fontSize: 10 },
     columnStyles: {
       0: { cellWidth: 60, fontStyle: "bold" },
