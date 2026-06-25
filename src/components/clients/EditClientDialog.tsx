@@ -53,6 +53,7 @@ type Client = {
   portal_text_color?: string | null;
   segment?: string | null;
   has_launch_grid?: boolean | null;
+  has_editorial_calendar?: boolean | null;
 };
 
 
