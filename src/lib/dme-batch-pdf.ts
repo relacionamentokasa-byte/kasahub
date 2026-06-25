@@ -95,9 +95,9 @@ async function getKasaLogo(): Promise<{ dataUrl: string; w: number; h: number } 
 
 async function drawPdfFooter(
   doc: jsPDF,
-  opts: { footerText?: string | null; pageW: number; margin: number },
+  opts: { footerText?: string | null; pageW: number; margin: number; FONT_TITLE: string; FONT_BODY: string },
 ) {
-  const { footerText, pageW, margin } = opts;
+  const { footerText, pageW, margin, FONT_TITLE, FONT_BODY } = opts;
   const pageH = doc.internal.pageSize.getHeight();
   const bandH = 64;
   const bandY = pageH - bandH;
