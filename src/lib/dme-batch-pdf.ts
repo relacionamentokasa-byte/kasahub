@@ -333,16 +333,20 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
   const clientLogo = await imageToDataURL(t.clients?.logo_url);
 
   const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const fonts = await registerBoletimFonts(doc);
+  const FONT_TITLE = fonts.funnel ? "Funnel" : "helvetica";
+  const FONT_BODY = fonts.onest ? "Onest" : "helvetica";
   const pageW = doc.internal.pageSize.getWidth();
   const margin = 40;
 
   doc.setFillColor(12, 22, 24);
   doc.rect(0, 0, pageW, 90, "F");
   doc.setTextColor(255, 188, 69);
-  doc.setFont(FONT_BODY, "bold");
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(10);
   doc.text("DEMANDAS EXTRAS — COBRANÇA CONSOLIDADA", margin, 35);
   doc.setTextColor(244, 247, 245);
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(20);
   doc.text("Lote Consolidado", margin, 60);
   doc.setFont(FONT_BODY, "normal");
