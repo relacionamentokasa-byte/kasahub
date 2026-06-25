@@ -439,6 +439,14 @@ export async function updateJob(
 
   const { data, error } = await supabase.from("jobs").update(patch).eq("id", id).select().single();
   if (error) throw error;
+
+  // Sync stage_id -> launch_grid_products.status_id (when job came from a grid product)
+  if (patch.stage_id !== undefined && (data as any)?.launch_product_id) {
+    await supabase
+      .from("launch_grid_products")
+      .update({ status_id: (patch as any).stage_id })
+      .eq("id", (data as any).launch_product_id);
+  }
   
   const { data: userData } = await supabase.auth.getUser();
   const currentUserId = userData.user?.id;
