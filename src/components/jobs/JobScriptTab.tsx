@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Plus, Loader2 } from "lucide-react";
+import { FileText, Plus, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import { exportScriptPDF } from "@/lib/script-export";
 import {
   getScriptByJob,
   createScript,
