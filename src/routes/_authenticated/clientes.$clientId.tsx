@@ -5,7 +5,7 @@ import {
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
-  FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket
+  FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket, CalendarDays
 } from "lucide-react";
 import { ClientOnboardingPanel } from "@/components/onboarding/ClientOnboardingPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { LaunchGridSection } from "@/components/clients/LaunchGridSection";
+import { ClientEditorialSection } from "@/components/clients/ClientEditorialSection";
 import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientKpiHeader } from "@/components/clients/ClientKpiHeader";
 import { ClientUnifiedTimeline, buildUnifiedEvents } from "@/components/clients/ClientUnifiedTimeline";
@@ -265,6 +266,7 @@ function ClientDetail() {
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
                 ...((client as any)?.has_launch_grid ? [{ v: "grid", label: "Grid de Lançamento", icon: Rocket }] : []),
+                ...((client as any)?.has_editorial_calendar ? [{ v: "editorial", label: "Calendário Editorial", icon: CalendarDays }] : []),
                 { v: "financeiro", label: "Financeiro", icon: Wallet },
                 { v: "dmes", label: "Demandas Extras", icon: Sparkles },
                 { v: "servicos", label: "Serviços", icon: Handshake },
@@ -454,6 +456,13 @@ function ClientDetail() {
             {(client as any)?.has_launch_grid && (
               <TabsContent value="grid" className="m-0 min-h-[500px] animate-reveal">
                 <LaunchGridSection clientId={clientId} clientName={client.name || client.company || "Cliente"} />
+              </TabsContent>
+            )}
+
+            {/* Conteúdo: Calendário Editorial */}
+            {(client as any)?.has_editorial_calendar && (
+              <TabsContent value="editorial" className="m-0 min-h-[500px] animate-reveal">
+                <ClientEditorialSection clientId={clientId} clientName={client.name || client.company || "Cliente"} />
               </TabsContent>
             )}
 

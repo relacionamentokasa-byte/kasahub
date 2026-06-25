@@ -53,6 +53,7 @@ type Client = {
   portal_text_color?: string | null;
   segment?: string | null;
   has_launch_grid?: boolean | null;
+  has_editorial_calendar?: boolean | null;
 };
 
 
@@ -101,6 +102,7 @@ export function EditClientDialog({
     portal_text_color: (client.portal_text_color ?? "") as string,
     segment: client.segment ?? "",
     has_launch_grid: !!client.has_launch_grid,
+    has_editorial_calendar: !!client.has_editorial_calendar,
   });
 
   const [form, setForm] = useState(init);
@@ -295,6 +297,37 @@ export function EditClientDialog({
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 placeholder="Observações sobre o cliente…"
               />
+            </div>
+
+            <div className="pt-2 border-t border-border/50">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/60 mb-3">Módulos ativos</h4>
+              <p className="text-[11px] text-foreground/50 mb-3">Ative recursos específicos para este cliente. As abas aparecerão dentro do cliente.</p>
+              <div className="space-y-2">
+                <label className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={!!form.has_launch_grid}
+                    onChange={(e) => setForm({ ...form, has_launch_grid: e.target.checked })}
+                    className="size-4 accent-primary"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold">🚀 Grid de Lançamento</div>
+                    <div className="text-[11px] text-foreground/50">Para clientes com lançamentos de produto.</div>
+                  </div>
+                </label>
+                <label className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted/30 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={!!form.has_editorial_calendar}
+                    onChange={(e) => setForm({ ...form, has_editorial_calendar: e.target.checked })}
+                    className="size-4 accent-primary"
+                  />
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold">📅 Calendário Editorial</div>
+                    <div className="text-[11px] text-foreground/50">Planejamento de posts e conteúdo nas redes sociais.</div>
+                  </div>
+                </label>
+              </div>
             </div>
           </TabsContent>
 
