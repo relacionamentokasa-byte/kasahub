@@ -401,7 +401,7 @@ export async function generateConsolidatedTxPdf(consolidatedTransactionId: strin
     );
   }
 
-  await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin });
+  await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin, FONT_TITLE, FONT_BODY });
 
   const slug = sanitize(t.clients?.company || t.clients?.name || "cliente")
     .toLowerCase()
