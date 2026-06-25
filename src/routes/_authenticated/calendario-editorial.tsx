@@ -148,9 +148,32 @@ function EditorialPage() {
       ) : (
         <Tabs value={view} onValueChange={(v) => setView(v as any)}>
           <TabsList>
+            <TabsTrigger value="feed">Feed</TabsTrigger>
+            <TabsTrigger value="list">Lista</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
             <TabsTrigger value="month">Mensal</TabsTrigger>
             <TabsTrigger value="week">Semanal</TabsTrigger>
           </TabsList>
+          <TabsContent value="feed" className="mt-4">
+            <EditorialFeedGrid
+              posts={posts}
+              onSelectPost={(p) => setDialog({ open: true, post: p })}
+            />
+          </TabsContent>
+          <TabsContent value="list" className="mt-4">
+            <EditorialList
+              posts={posts}
+              onSelectPost={(p) => setDialog({ open: true, post: p })}
+            />
+          </TabsContent>
+          <TabsContent value="timeline" className="mt-4">
+            <EditorialTimeline
+              posts={posts}
+              cursor={cursor}
+              onCursorChange={setCursor}
+              onSelectPost={(p) => setDialog({ open: true, post: p })}
+            />
+          </TabsContent>
           <TabsContent value="month" className="mt-4">
             <EditorialMonthGrid
               posts={posts}
