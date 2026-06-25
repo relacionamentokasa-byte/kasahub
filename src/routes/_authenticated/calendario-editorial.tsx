@@ -15,6 +15,7 @@ import { EditorialMonthGrid } from "@/components/editorial/EditorialMonthGrid";
 import { EditorialWeekList } from "@/components/editorial/EditorialWeekList";
 import { EditorialPostDialog } from "@/components/editorial/EditorialPostDialog";
 import { exportEditorialPostsPDF, exportEditorialPostsCSV } from "@/lib/editorial-export";
+import { ClientPicker } from "@/components/clients/ClientPicker";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
@@ -67,12 +68,7 @@ function EditorialPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <Select value={clientId} onValueChange={setClientId}>
-          <SelectTrigger className="bg-background w-64"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
-          <SelectContent>
-            {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <ClientPicker value={clientId} onChange={setClientId} placeholder="Selecionar cliente" allowClear />
 
         <Select value={filters.social ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, social: v === "all" ? undefined : v as SocialNetwork }))}>
           <SelectTrigger className="bg-background w-40"><SelectValue /></SelectTrigger>

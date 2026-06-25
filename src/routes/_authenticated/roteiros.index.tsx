@@ -20,6 +20,7 @@ import {
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { ClientPicker } from "@/components/clients/ClientPicker";
 
 export const Route = createFileRoute("/_authenticated/roteiros/")({
   head: () => ({ meta: [{ title: "Roteiros — KASA HUB" }] }),
@@ -65,12 +66,12 @@ function NewScriptDialog() {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>Cliente</Label>
-            <Select value={clientId} onValueChange={(v) => { setClientId(v); setForm(f => ({ ...f, job_id: "" })); }}>
-              <SelectTrigger className="bg-background"><SelectValue placeholder="Selecione" /></SelectTrigger>
-              <SelectContent>
-                {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
-              </SelectContent>
-            </Select>
+            <ClientPicker
+              value={clientId}
+              onChange={(v) => { setClientId(v); setForm(f => ({ ...f, job_id: "" })); }}
+              placeholder="Selecionar cliente"
+              className="w-full"
+            />
           </div>
           <div className="space-y-2">
             <Label>Job</Label>
@@ -142,13 +143,12 @@ function RoteirosListPage() {
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Select value={filters.clientId ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, clientId: v === "all" ? undefined : v }))}>
-          <SelectTrigger className="bg-background w-56"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos clientes</SelectItem>
-            {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <ClientPicker
+          value={filters.clientId ?? ""}
+          onChange={(v) => setFilters(f => ({ ...f, clientId: v || undefined }))}
+          placeholder="Todos clientes"
+          allowClear
+        />
         <Select value={filters.ct ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, ct: v === "all" ? undefined : v as ScriptContentType }))}>
           <SelectTrigger className="bg-background w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
