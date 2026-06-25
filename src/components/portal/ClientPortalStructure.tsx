@@ -12,6 +12,7 @@ import { ptBR } from "date-fns/locale";
 import { AccountManagerCard } from "./AccountManagerCard";
 import { PortalTour } from "./PortalTour";
 import { pt } from "@/lib/portal-glossary";
+import { PortalEditorialCalendar } from "./PortalEditorialCalendar";
 
 function getFriendlyProgress(progress: number) {
   if (progress >= 100) return { label: "Concluído", tone: "text-emerald-500" };
@@ -65,6 +66,8 @@ export function ClientPortalStructure() {
       <AccountManagerCard clientId={clientId} />
 
       <ClientOnboardingPortalView clientId={clientId} />
+
+      <PortalEditorialCalendar clientId={clientId} />
 
       <LaunchGridProgress clientId={clientId} jobs={jobs} />
 
