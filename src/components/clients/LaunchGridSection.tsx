@@ -939,11 +939,25 @@ function ProductSheet({
             </div>
             <div>
               <Label className="text-xs">Briefing</Label>
-              <Textarea value={briefing} onChange={(e) => setBriefing(e.target.value)} rows={4} className="mt-1" placeholder="Direcionamentos, referências, restrições..." />
+              <Textarea
+                value={briefing}
+                onChange={(e) => setBriefing(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                rows={4}
+                className="mt-1"
+                placeholder="Direcionamentos, referências, restrições..."
+              />
             </div>
             <div>
               <Label className="text-xs">Regulatório verso</Label>
-              <Textarea value={regulatorio} onChange={(e) => setRegulatorio(e.target.value)} rows={3} className="mt-1" placeholder="Informações regulatórias do verso da embalagem" />
+              <Textarea
+                value={regulatorio}
+                onChange={(e) => setRegulatorio(e.target.value)}
+                onKeyDown={(e) => e.stopPropagation()}
+                rows={3}
+                className="mt-1"
+                placeholder="Informações regulatórias do verso da embalagem"
+              />
             </div>
             <MultiImageUploader gridId={gridId} label="Benchmark (fotos)" value={benchmark} onChange={setBenchmark} />
           </section>
