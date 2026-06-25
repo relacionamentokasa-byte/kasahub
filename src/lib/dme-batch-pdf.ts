@@ -209,7 +209,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
 
   let y = 120;
   doc.setTextColor(15, 23, 25);
-  doc.setFont(FONT_BODY, "bold");
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(12);
   doc.text(`${dmes.length} demanda${dmes.length !== 1 ? "s" : ""} para aprovação`, margin, y);
   y += 8;
