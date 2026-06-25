@@ -13,10 +13,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScenesEditor } from "@/components/scripts/ScenesEditor";
+import { exportScriptPDF } from "@/lib/script-export";
 
 export const Route = createFileRoute("/_authenticated/roteiros/$scriptId")({
   head: () => ({ meta: [{ title: "Roteiro — KASA HUB" }] }),
@@ -77,6 +78,13 @@ function ScriptDetailPage() {
         <Badge variant="outline" className={cn(SCRIPT_STATUS_COLOR[form.status as ScriptStatus])}>
           {SCRIPT_STATUS_LABEL[form.status as ScriptStatus]}
         </Badge>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => exportScriptPDF({ script: script as any, scenes })}
+        >
+          <Download className="size-3 mr-1" /> Exportar PDF
+        </Button>
         {script.jobs?.id && (
           <Button variant="outline" size="sm" onClick={() => navigate({ to: "/jobs", search: { openJobId: script.jobs.id } as any })}>
             <ExternalLink className="size-3 mr-1" /> Abrir Job
