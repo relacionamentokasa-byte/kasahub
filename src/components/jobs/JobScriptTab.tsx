@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Plus, Loader2 } from "lucide-react";
+import { FileText, Plus, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
+import { exportScriptPDF } from "@/lib/script-export";
 import {
   getScriptByJob,
   createScript,
@@ -124,10 +125,20 @@ function ScriptEditor({ scriptId }: { scriptId: string }) {
               className="bg-background font-display text-lg"
             />
           </div>
-          <Badge className={SCRIPT_STATUS_COLOR[current.status as ScriptStatus]}>
-            {SCRIPT_STATUS_LABEL[current.status as ScriptStatus]}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={SCRIPT_STATUS_COLOR[current.status as ScriptStatus]}>
+              {SCRIPT_STATUS_LABEL[current.status as ScriptStatus]}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportScriptPDF({ script: current as any, scenes })}
+            >
+              <Download className="size-3 mr-1" /> Exportar PDF
+            </Button>
+          </div>
         </div>
+
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-1">
