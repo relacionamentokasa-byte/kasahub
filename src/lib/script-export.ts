@@ -5,6 +5,7 @@ import {
   SCRIPT_CONTENT_LABEL, SCRIPT_STATUS_LABEL,
 } from "@/lib/scripts-api";
 import { SOCIAL_LABEL } from "@/lib/editorial-api";
+import { registerBoletimFonts } from "@/lib/pdf-fonts";
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
