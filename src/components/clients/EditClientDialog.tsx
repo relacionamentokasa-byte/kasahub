@@ -102,6 +102,7 @@ export function EditClientDialog({
     portal_text_color: (client.portal_text_color ?? "") as string,
     segment: client.segment ?? "",
     has_launch_grid: !!client.has_launch_grid,
+    has_editorial_calendar: !!client.has_editorial_calendar,
   });
 
   const [form, setForm] = useState(init);
