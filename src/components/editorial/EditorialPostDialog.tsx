@@ -42,6 +42,20 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
   const qc = useQueryClient();
   const navigate = useNavigate();
   const [form, setForm] = useState(empty(clientId, defaultDate));
+  const [uploading, setUploading] = useState(false);
+
+  const handleCoverUpload = async (file: File) => {
+    try {
+      setUploading(true);
+      const url = await uploadEditorialCover(clientId, file);
+      setForm((f) => ({ ...f, cover_url: url }));
+      toast.success("Capa enviada");
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (post) {
