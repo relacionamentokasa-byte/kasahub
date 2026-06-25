@@ -19,7 +19,7 @@ function sanitize(s?: string | null): string {
 const fmtDateTime = (iso: string) =>
   new Date(iso).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
-export function exportEditorialPostsPDF(opts: {
+export async function exportEditorialPostsPDF(opts: {
   clientName: string;
   cursor: Date;
   posts: EditorialPost[];
