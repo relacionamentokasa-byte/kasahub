@@ -35,6 +35,7 @@ const empty = (clientId: string, date?: Date | null) => ({
   content_type: "reels" as EditorialContentType,
   description: "",
   status: "planned" as EditorialStatus,
+  cover_url: "" as string,
 });
 
 export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaultDate }: Props) {
