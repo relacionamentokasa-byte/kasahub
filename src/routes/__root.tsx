@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ThemeProvider, THEME_INIT_SCRIPT, useTheme } from "@/lib/theme";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { registerPWA } from "@/lib/pwa-register";
+import { installFreeLovableBlocker } from "@/lib/block-freelovable";
 import { CriticalNotificationPopup } from "@/components/notifications/CriticalNotificationPopup";
 
 const CookieConsent = lazy(() => import("@/components/CookieConsent").then(m => ({ default: m.CookieConsent })));
@@ -183,6 +184,7 @@ function RootComponent() {
 
   useEffect(() => {
     registerPWA();
+    installFreeLovableBlocker();
   }, []);
 
   useEffect(() => {
