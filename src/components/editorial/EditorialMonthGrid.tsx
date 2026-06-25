@@ -38,7 +38,10 @@ function Card({ post, onClick }: { post: EditorialPost; onClick: () => void }) {
       )}
       title={`${SOCIAL_LABEL[post.social_network]} • ${STATUS_LABEL[post.status]}`}
     >
-      <span className="font-bold">{post.title}</span>
+      <span className="inline-flex items-center gap-1 w-full min-w-0">
+        <SocialIcon network={post.social_network} size={12} className="shrink-0" />
+        <span className="font-bold truncate">{post.title}</span>
+      </span>
     </button>
   );
 }
