@@ -70,7 +70,7 @@ function EditorialPage() {
         <Select value={clientId} onValueChange={setClientId}>
           <SelectTrigger className="bg-background w-64"><SelectValue placeholder="Selecione o cliente" /></SelectTrigger>
           <SelectContent>
-            {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+            {clients.map(c => <SelectItem key={c.id} value={c.id}>{(c as any).company || c.name}</SelectItem>)}
           </SelectContent>
         </Select>
 
