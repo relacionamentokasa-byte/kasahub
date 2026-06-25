@@ -10,10 +10,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus } from "lucide-react";
+import { Plus, Download, FileText } from "lucide-react";
 import { EditorialMonthGrid } from "@/components/editorial/EditorialMonthGrid";
 import { EditorialWeekList } from "@/components/editorial/EditorialWeekList";
 import { EditorialPostDialog } from "@/components/editorial/EditorialPostDialog";
+import { exportEditorialPostsPDF, exportEditorialPostsCSV } from "@/lib/editorial-export";
+import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/_authenticated/calendario-editorial")({
   head: () => ({ meta: [{ title: "Calendário Editorial — KASA HUB" }] }),
