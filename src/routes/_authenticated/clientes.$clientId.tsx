@@ -5,7 +5,7 @@ import {
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
-  FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket
+  FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket, CalendarDays
 } from "lucide-react";
 import { ClientOnboardingPanel } from "@/components/onboarding/ClientOnboardingPanel";
 import { supabase } from "@/integrations/supabase/client";
