@@ -278,7 +278,7 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   doc.setDrawColor(255, 188, 69);
   doc.setFillColor(255, 240, 210);
   doc.roundedRect(margin, afterY, pageW - margin * 2, 70, 8, 8, "FD");
-  doc.setFont(FONT_BODY, "bold");
+  doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(11);
   doc.setTextColor(15, 23, 25);
   doc.text("Aprovar online (assinatura digital)", margin + 16, afterY + 22);
