@@ -3,6 +3,7 @@ import autoTable from "jspdf-autotable";
 import { supabase } from "@/integrations/supabase/client";
 import { getDmeBatchPublicUrl } from "@/lib/dme-batches-api";
 import { resolveStorageUrl } from "@/lib/use-storage-url";
+import { registerBoletimFonts } from "@/lib/pdf-fonts";
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
