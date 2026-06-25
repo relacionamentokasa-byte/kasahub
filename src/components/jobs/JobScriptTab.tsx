@@ -125,10 +125,20 @@ function ScriptEditor({ scriptId }: { scriptId: string }) {
               className="bg-background font-display text-lg"
             />
           </div>
-          <Badge className={SCRIPT_STATUS_COLOR[current.status as ScriptStatus]}>
-            {SCRIPT_STATUS_LABEL[current.status as ScriptStatus]}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge className={SCRIPT_STATUS_COLOR[current.status as ScriptStatus]}>
+              {SCRIPT_STATUS_LABEL[current.status as ScriptStatus]}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => exportScriptPDF({ script: current as any, scenes })}
+            >
+              <Download className="size-3 mr-1" /> Exportar PDF
+            </Button>
+          </div>
         </div>
+
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-1">
