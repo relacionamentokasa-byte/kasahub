@@ -58,7 +58,7 @@ function DmesPage() {
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
   const [jobForDme, setJobForDme] = useState<any | null>(null);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [creatingBatch, setCreatingBatch] = useState(false);
