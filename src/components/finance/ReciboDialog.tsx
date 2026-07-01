@@ -61,15 +61,27 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   const [refer, setRefer] = useState("");
   const [local, setLocal] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dmes, setDmes] = useState<any[]>([]);
 
   useEffect(() => {
     if (!open || !transaction) return;
     setLoading(true);
-    supabase.from("agency_settings").select("*").maybeSingle().then(({ data }) => {
-      setAgency(data);
-      setLocal(data?.address ? String(data.address).split(",").slice(-2).join(",").trim() : "");
+    (async () => {
+      const { data: ag } = await supabase.from("agency_settings").select("*").maybeSingle();
+      setAgency(ag);
+      setLocal(ag?.address ? String(ag.address).split(",").slice(-2).join(",").trim() : "");
+
+      // DMEs vinculadas (individual via extra_demand_id, ou lote consolidado)
+      const orParts: string[] = [`consolidated_transaction_id.eq.${transaction.id}`];
+      if (transaction.extra_demand_id) orParts.push(`id.eq.${transaction.extra_demand_id}`);
+      const { data: dmeRows } = await supabase
+        .from("extra_demands")
+        .select("number_display, title, description, value, due_date")
+        .or(orParts.join(","))
+        .order("created_at", { ascending: true });
+      setDmes(dmeRows || []);
       setLoading(false);
-    });
+    })();
     setNumero(`REC-${String(transaction.id).slice(0, 8).toUpperCase()}`);
     const c = transaction.clients;
     setPagador(c?.name || c?.company || "");
@@ -103,7 +115,7 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   function imprimir() {
     const html = buildHtml({
       agency, numero, valor, valorExtenso: valorPorExtenso(valor),
-      pagador, pagadorDoc, refer, local, dataPg,
+      pagador, pagadorDoc, refer, local, dataPg, dmes,
     });
     const w = window.open("", "_blank", "width=820,height=900");
     if (!w) return;
@@ -168,12 +180,34 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
 function buildHtml(d: {
   agency: any; numero: string; valor: number; valorExtenso: string;
   pagador: string; pagadorDoc: string; refer: string; local: string; dataPg: string;
+  dmes?: any[];
 }) {
   const a = d.agency || {};
   const displayName = a.legal_name || a.name || "";
   const logo = a.logo_url || a.logo_reports_url || a.logo_black_url || "";
   const dataFmt = new Date(d.dataPg + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
   const valorFmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(d.valor);
+  const brlFmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+  const dmes = d.dmes || [];
+  const dmesHtml = dmes.length ? `
+    <div class="dmes">
+      <div class="dmes-title">${dmes.length > 1 ? "Demandas extras incluídas nesta cobrança consolidada" : "Demanda extra referente a esta cobrança"}</div>
+      <table class="dmes-table">
+        <thead><tr><th>Nº</th><th>Descrição</th><th class="r">Valor</th></tr></thead>
+        <tbody>
+          ${dmes.map((x: any) => `
+            <tr>
+              <td class="mono">${escape(x.number_display || "")}</td>
+              <td>
+                <div class="dt">${escape(x.title || "")}</div>
+                ${x.description ? `<div class="dd">${escape(x.description)}</div>` : ""}
+              </td>
+              <td class="r mono">${brlFmt(Number(x.value || 0))}</td>
+            </tr>`).join("")}
+        </tbody>
+        ${dmes.length > 1 ? `<tfoot><tr><td colspan="2" class="r"><strong>Total</strong></td><td class="r mono"><strong>${valorFmt}</strong></td></tr></tfoot>` : ""}
+      </table>
+    </div>` : "";
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
 <title>Recibo ${d.numero}</title>
 <style>
@@ -192,6 +226,16 @@ function buildHtml(d: {
   .sign{margin-top:60px;text-align:center;font-size:13px}
   .sign .line{border-top:1px solid #111;width:320px;margin:0 auto 6px}
   .foot{margin-top:32px;padding-top:16px;border-top:1px dashed #d1d5db;font-size:10px;color:#9ca3af;text-align:center}
+  .dmes{margin:24px 0 32px;border:1px solid #e5e7eb;border-radius:10px;padding:16px;background:#fafafa}
+  .dmes-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6b7280;margin-bottom:10px;font-weight:600}
+  .dmes-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .dmes-table th{text-align:left;padding:8px 6px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .dmes-table td{padding:10px 6px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+  .dmes-table tfoot td{border-bottom:none;border-top:2px solid #111;padding-top:10px}
+  .dmes-table .r{text-align:right}
+  .dmes-table .mono{font-variant-numeric:tabular-nums;font-family:'SFMono-Regular',Menlo,monospace;font-size:11.5px}
+  .dmes-table .dt{font-weight:600;color:#111}
+  .dmes-table .dd{color:#4b5563;font-size:11.5px;margin-top:2px;white-space:pre-line}
   @media print {body{padding:0} .sheet{border:none}}
 </style></head>
 <body>
@@ -219,6 +263,8 @@ function buildHtml(d: {
       <br/><br/>
       Para clareza e validade do que aqui foi declarado, firmo o presente recibo, dando plena, geral e irrevogável quitação da quantia ora recebida.
     </p>
+
+    ${dmesHtml}
 
     <p style="font-size:13px;text-align:right;margin-bottom:48px">${escape(d.local || "")}${d.local ? ", " : ""}${dataFmt}.</p>
 
