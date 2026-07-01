@@ -4,6 +4,12 @@ import {
   type EditorialPost, SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
 } from "@/lib/editorial-api";
 import { registerBoletimFonts } from "@/lib/pdf-fonts";
+import instagramIcon from "@/assets/social/instagram.png.asset.json";
+
+const SOCIAL_ICON_URL: Partial<Record<EditorialPost["social_network"], string>> = {
+  instagram: instagramIcon.url,
+};
+
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
