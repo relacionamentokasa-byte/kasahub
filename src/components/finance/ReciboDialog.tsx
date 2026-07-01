@@ -170,6 +170,7 @@ function buildHtml(d: {
   pagador: string; pagadorDoc: string; refer: string; local: string; dataPg: string;
 }) {
   const a = d.agency || {};
+  const displayName = a.legal_name || a.name || "";
   const logo = a.logo_url || a.logo_reports_url || a.logo_black_url || "";
   const dataFmt = new Date(d.dataPg + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
   const valorFmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(d.valor);
@@ -198,7 +199,7 @@ function buildHtml(d: {
     <header>
       <div class="brand">
         <h1>Recibo de Pagamento</h1>
-        <h2>${escape(a.name || "")}</h2>
+        <h2>${escape(displayName)}</h2>
         ${a.document ? `<p>CNPJ/CPF: ${escape(a.document)}</p>` : ""}
         ${a.address ? `<p>${escape(a.address)}</p>` : ""}
         ${a.email || a.phone ? `<p>${escape(a.email || "")}${a.email && a.phone ? " · " : ""}${escape(a.phone || "")}</p>` : ""}
@@ -223,7 +224,7 @@ function buildHtml(d: {
 
     <div class="sign">
       <div class="line"></div>
-      <div><strong>${escape(a.name || "")}</strong></div>
+      <div><strong>${escape(displayName)}</strong></div>
       ${a.document ? `<div style="color:#6b7280;font-size:11px">${escape(a.document)}</div>` : ""}
     </div>
 
