@@ -68,7 +68,7 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
       setForm({
         client_id: post.client_id,
         title: post.title,
-        scheduled_at: new Date(post.scheduled_at).toISOString().slice(0, 16),
+        scheduled_at: toLocalInput(new Date(post.scheduled_at)),
         social_network: post.social_network,
         content_type: post.content_type,
         description: post.description ?? "",
