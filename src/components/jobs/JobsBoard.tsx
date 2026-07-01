@@ -83,7 +83,7 @@ export function JobsBoard({
   const [responsibleId, setResponsibleId] = useState<string>("all");
   const [clientFilterId, setClientFilterId] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
 
   const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
