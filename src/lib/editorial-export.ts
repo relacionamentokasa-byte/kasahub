@@ -109,43 +109,91 @@ export async function exportEditorialPostsPDF(opts: {
     cursorY += lines.length * 12 + 16;
   }
 
-  const rows = posts
-    .slice()
-    .sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))
-    .map((p) => [
-      fmtDateTime(p.scheduled_at),
-      sanitize(p.title),
-      SOCIAL_LABEL[p.social_network],
-      CONTENT_TYPE_LABEL[p.content_type],
-      STATUS_LABEL[p.status],
-      sanitize(p.description ?? ""),
-    ]);
+  const sorted = posts.slice().sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at));
 
-  autoTable(doc, {
-    startY: cursorY,
-    head: [["Data", "Titulo", "Rede", "Tipo", "Status", "Descricao"]],
-    body: rows,
-    styles: {
-      font: FONT_BODY,
-      fontSize: 8.5,
-      cellPadding: { top: 3, right: 5, bottom: 3, left: 5 },
-      textColor: [30, 30, 30],
-      lineColor: [230, 230, 230],
-      valign: "middle",
-      overflow: "linebreak",
-    },
-    headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold", font: FONT_TITLE, fontSize: 9, cellPadding: 5 },
-    alternateRowStyles: { fillColor: [248, 248, 245] },
-    columnStyles: {
-      0: { cellWidth: 78 },
-      1: { cellWidth: 130 },
-      2: { cellWidth: 55 },
-      3: { cellWidth: 55 },
-      4: { cellWidth: 55 },
-      5: { cellWidth: "auto" },
-    },
-    margin: { left: margin, right: margin },
-  });
+  const pageH = doc.internal.pageSize.getHeight();
+  const contentW = pageW - margin * 2;
+  const colX = [margin + 12, margin + 12 + 108, margin + 12 + 108 + 190, margin + 12 + 108 + 190 + 90];
+  const statusX = pageW - margin - 12; // right edge for status pill
+
+  const drawPageHeaderBand = () => {
+    // no repeated header band on subsequent pages, keep clean margin
+  };
+
+  for (const p of sorted) {
+    const descText = sanitize(p.description ?? "");
+    doc.setFont(FONT_BODY, "normal");
+    doc.setFontSize(9.5);
+    const descLines = descText ? doc.splitTextToSize(descText, contentW - 24) : [];
+    const descBlockH = descLines.length ? descLines.length * 12 + 22 : 0; // label + text
+    const cardH = 60 + descBlockH; // top row + description block
+
+    if (cursorY + cardH > pageH - margin) {
+      doc.addPage();
+      cursorY = margin;
+      drawPageHeaderBand();
+    }
+
+    // Card background
+    doc.setDrawColor(230, 230, 230);
+    doc.setFillColor(255, 255, 255);
+    (doc as any).roundedRect(margin, cursorY, contentW, cardH, 8, 8, "FD");
+
+    // Top row labels
+    doc.setFont(FONT_BODY, "bold");
+    doc.setFontSize(7);
+    doc.setTextColor(140, 140, 140);
+    ["DATA", "TITULO", "REDE", "TIPO"].forEach((lbl, i) => {
+      doc.text(lbl, colX[i], cursorY + 16);
+    });
+
+    // Top row values
+    doc.setFont(FONT_BODY, "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(30, 30, 30);
+    const dateStr = fmtDateTime(p.scheduled_at);
+    doc.text(dateStr, colX[0], cursorY + 34);
+    const title = sanitize(p.title);
+    const titleLine = doc.splitTextToSize(title, 180)[0] ?? "";
+    doc.text(titleLine, colX[1], cursorY + 34);
+    doc.text(sanitize(SOCIAL_LABEL[p.social_network]), colX[2], cursorY + 34);
+    doc.text(sanitize(CONTENT_TYPE_LABEL[p.content_type]), colX[3], cursorY + 34);
+
+    // Status pill (amber)
+    const statusLabel = sanitize(STATUS_LABEL[p.status]);
+    doc.setFont(FONT_BODY, "bold");
+    doc.setFontSize(8.5);
+    const pillPadX = 10;
+    const pillW = doc.getTextWidth(statusLabel) + pillPadX * 2;
+    const pillH = 18;
+    const pillX = statusX - pillW;
+    const pillY = cursorY + 22;
+    doc.setFillColor(255, 188, 69);
+    (doc as any).roundedRect(pillX, pillY, pillW, pillH, 9, 9, "F");
+    doc.setTextColor(12, 22, 24);
+    doc.text(statusLabel, pillX + pillW / 2, pillY + 12, { align: "center" });
+
+    // Description block
+    if (descLines.length) {
+      // divider
+      doc.setDrawColor(238, 238, 238);
+      doc.setLineWidth(0.6);
+      doc.line(margin + 12, cursorY + 54, margin + contentW - 12, cursorY + 54);
+
+      doc.setFont(FONT_BODY, "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(140, 140, 140);
+      doc.text("LEGENDA / DESCRICAO", margin + 12, cursorY + 68);
+
+      doc.setFont(FONT_BODY, "normal");
+      doc.setFontSize(9.5);
+      doc.setTextColor(45, 45, 45);
+      doc.text(descLines, margin + 12, cursorY + 82, { lineHeightFactor: 1.3 });
+    }
+
+    cursorY += cardH + 10;
+  }
+
 
   const safeName = sanitize(clientName).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   doc.save(`calendario-editorial-${safeName}-${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}.pdf`);
