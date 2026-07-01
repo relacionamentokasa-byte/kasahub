@@ -1351,6 +1351,44 @@ export type Database = {
           },
         ]
       }
+      editorial_month_strategies: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: string
+          month: number
+          strategy: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: string
+          month: number
+          strategy?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: string
+          month?: number
+          strategy?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editorial_month_strategies_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       editorial_posts: {
         Row: {
           client_id: string
