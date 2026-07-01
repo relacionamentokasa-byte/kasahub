@@ -4,6 +4,12 @@ import {
   type EditorialPost, SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
 } from "@/lib/editorial-api";
 import { registerBoletimFonts } from "@/lib/pdf-fonts";
+import instagramIcon from "@/assets/social/instagram.png.asset.json";
+
+const SOCIAL_ICON_URL: Partial<Record<EditorialPost["social_network"], string>> = {
+  instagram: instagramIcon.url,
+};
+
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
@@ -120,6 +126,16 @@ export async function exportEditorialPostsPDF(opts: {
     // no repeated header band on subsequent pages, keep clean margin
   };
 
+  // Preload social network icons once
+  const iconCache: Record<string, { dataUrl: string; format: "PNG" | "JPEG"; w: number; h: number } | null> = {};
+  const uniqueNets = Array.from(new Set(sorted.map((p) => p.social_network)));
+  await Promise.all(uniqueNets.map(async (net) => {
+    const u = SOCIAL_ICON_URL[net];
+    if (u) iconCache[net] = await fetchImage(u);
+  }));
+
+
+
   for (const p of sorted) {
     const descText = sanitize(p.description ?? "");
     doc.setFont(FONT_BODY, "normal");
@@ -156,7 +172,18 @@ export async function exportEditorialPostsPDF(opts: {
     const title = sanitize(p.title);
     const titleLine = doc.splitTextToSize(title, 180)[0] ?? "";
     doc.text(titleLine, colX[1], cursorY + 34);
-    doc.text(sanitize(SOCIAL_LABEL[p.social_network]), colX[2], cursorY + 34);
+    const netLabel = sanitize(SOCIAL_LABEL[p.social_network]);
+    const icon = iconCache[p.social_network];
+    let netTextX = colX[2];
+    if (icon) {
+      const size = 14;
+      try {
+        doc.addImage(icon.dataUrl, icon.format, colX[2], cursorY + 22, size, size, undefined, "FAST");
+        netTextX = colX[2] + size + 5;
+      } catch { /* ignore */ }
+    }
+    doc.text(netLabel, netTextX, cursorY + 34);
+
     doc.text(sanitize(CONTENT_TYPE_LABEL[p.content_type]), colX[3], cursorY + 34);
 
     // Status pill (amber)
