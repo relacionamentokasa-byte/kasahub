@@ -61,15 +61,27 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   const [refer, setRefer] = useState("");
   const [local, setLocal] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dmes, setDmes] = useState<any[]>([]);
 
   useEffect(() => {
     if (!open || !transaction) return;
     setLoading(true);
-    supabase.from("agency_settings").select("*").maybeSingle().then(({ data }) => {
-      setAgency(data);
-      setLocal(data?.address ? String(data.address).split(",").slice(-2).join(",").trim() : "");
+    (async () => {
+      const { data: ag } = await supabase.from("agency_settings").select("*").maybeSingle();
+      setAgency(ag);
+      setLocal(ag?.address ? String(ag.address).split(",").slice(-2).join(",").trim() : "");
+
+      // DMEs vinculadas (individual via extra_demand_id, ou lote consolidado)
+      const orParts: string[] = [`consolidated_transaction_id.eq.${transaction.id}`];
+      if (transaction.extra_demand_id) orParts.push(`id.eq.${transaction.extra_demand_id}`);
+      const { data: dmeRows } = await supabase
+        .from("extra_demands")
+        .select("number_display, title, description, value, due_date")
+        .or(orParts.join(","))
+        .order("created_at", { ascending: true });
+      setDmes(dmeRows || []);
       setLoading(false);
-    });
+    })();
     setNumero(`REC-${String(transaction.id).slice(0, 8).toUpperCase()}`);
     const c = transaction.clients;
     setPagador(c?.name || c?.company || "");
