@@ -734,7 +734,11 @@ export async function fetchExtraDemands(filters: { clientId?: string; contractId
     .order("created_at", { ascending: false });
   if (filters.clientId) q = q.eq("client_id", filters.clientId);
   if (filters.contractId) q = q.eq("contract_id", filters.contractId);
-  if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
+  if (filters.status === "active") {
+    q = q.not("status", "in", "(completed,rejected,cancelled)");
+  } else if (filters.status && filters.status !== "all") {
+    q = q.eq("status", filters.status);
+  }
   const { data, error } = await q;
   if (error) throw error;
   return data ?? [];

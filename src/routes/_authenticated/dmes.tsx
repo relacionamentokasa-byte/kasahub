@@ -58,7 +58,7 @@ function DmesPage() {
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
   const [jobForDme, setJobForDme] = useState<any | null>(null);
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [creatingBatch, setCreatingBatch] = useState(false);
@@ -294,13 +294,14 @@ function DmesPage() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]"><Filter className="size-3.5 mr-2" /><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[200px]"><Filter className="size-3.5 mr-2" /><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="active">Ativas (em andamento)</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="pending">Aguardando aprovação</SelectItem>
             <SelectItem value="approved">Aprovadas</SelectItem>
+            <SelectItem value="completed">💰 Pagas / concluídas</SelectItem>
             <SelectItem value="rejected">Recusadas</SelectItem>
-            <SelectItem value="completed">Concluídas</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -517,7 +518,16 @@ function DmesPage() {
                   <TableCell className="text-sm text-muted-foreground">{d.contracts?.title || "—"}</TableCell>
                   <TableCell className="text-right font-mono">{brl(Number(d.value))}</TableCell>
                   <TableCell className="text-sm">{d.due_date ? new Date(d.due_date + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</TableCell>
-                  <TableCell><Badge variant="outline" className={st.cls}>{st.label}</Badge></TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1 items-start">
+                      <Badge variant="outline" className={st.cls}>{st.label}</Badge>
+                      {d.paid_at && (
+                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-[10px]">
+                          💰 Pago em {new Date(d.paid_at).toLocaleDateString("pt-BR")}
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
                       {(() => {
