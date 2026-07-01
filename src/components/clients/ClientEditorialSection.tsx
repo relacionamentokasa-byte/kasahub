@@ -128,7 +128,7 @@ export function ClientEditorialSection({ clientId, clientName, clientLogoUrl }: 
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => exportEditorialPostsPDF({ clientName, cursor, posts })}>
+              <DropdownMenuItem onClick={() => exportEditorialPostsPDF({ clientName, clientLogoUrl: clientLogoUrl ?? null, strategy, cursor, posts })}>
                 <FileText className="size-4 mr-2" /> PDF (para o cliente)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportEditorialPostsCSV({ clientName, cursor, posts })}>
@@ -145,6 +145,25 @@ export function ClientEditorialSection({ clientId, clientName, clientLogoUrl }: 
           </Button>
         </div>
       </div>
+
+      <div className="rounded-2xl border border-foreground/10 bg-card/40 backdrop-blur-sm p-4 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Sparkles className="size-4 text-primary" />
+            Estratégia do mês · {cursor.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+          </div>
+          <Button size="sm" variant="secondary" className="h-8 rounded-full" onClick={() => saveStrategy.mutate()} disabled={saveStrategy.isPending}>
+            <Save className="size-3.5 mr-1.5" /> Salvar
+          </Button>
+        </div>
+        <Textarea
+          value={strategy}
+          onChange={(e) => setStrategy(e.target.value)}
+          placeholder="Objetivos, pilares de conteúdo, campanhas e diretrizes do mês..."
+          className="min-h-[96px] resize-y"
+        />
+      </div>
+
 
       <Tabs value={view} onValueChange={(v) => setView(v as any)}>
         <TabsList>
