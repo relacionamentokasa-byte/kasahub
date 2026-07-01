@@ -264,7 +264,7 @@ export function JobsBoard({
     setClientFilterId("all");
     setPeriod("all");
     setPriorityFilter("all");
-    setStatusFilter("all");
+    setStatusFilter("active");
     setTeamFilter([]);
   };
 
