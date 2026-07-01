@@ -550,7 +550,9 @@ export function JobsBoard({
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="active">Ativos (esconde concluídos)</SelectItem>
                         <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="done">✅ Concluídos</SelectItem>
                         {Object.entries(JOB_STATUS_LABELS).map(([key, value]) => (
                           <SelectItem key={key} value={key}>
                             {value.label}
