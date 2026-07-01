@@ -294,13 +294,14 @@ function DmesPage() {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]"><Filter className="size-3.5 mr-2" /><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[200px]"><Filter className="size-3.5 mr-2" /><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos os status</SelectItem>
+            <SelectItem value="active">Ativas (em andamento)</SelectItem>
+            <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="pending">Aguardando aprovação</SelectItem>
             <SelectItem value="approved">Aprovadas</SelectItem>
+            <SelectItem value="completed">💰 Pagas / concluídas</SelectItem>
             <SelectItem value="rejected">Recusadas</SelectItem>
-            <SelectItem value="completed">Concluídas</SelectItem>
           </SelectContent>
         </Select>
       </div>
