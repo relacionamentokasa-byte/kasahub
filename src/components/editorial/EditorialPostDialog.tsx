@@ -63,7 +63,11 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
     }
   };
 
+  // Only re-hydrate when the dialog opens or the post identity changes —
+  // NOT on every parent re-render (which would randomly reset the time field
+  // if the parent's cursor/defaultDate updated while the dialog is open).
   useEffect(() => {
+    if (!open) return;
     if (post) {
       setForm({
         client_id: post.client_id,
@@ -75,10 +79,11 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
         status: post.status,
         cover_url: post.cover_url ?? "",
       });
-    } else if (open) {
+    } else {
       setForm(empty(clientId, defaultDate));
     }
-  }, [post, open, clientId, defaultDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, post?.id]);
 
   const save = useMutation({
     mutationFn: async () => {
