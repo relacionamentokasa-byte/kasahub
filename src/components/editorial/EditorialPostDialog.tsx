@@ -27,10 +27,16 @@ interface Props {
   defaultDate?: Date | null;
 }
 
+// Format Date -> "YYYY-MM-DDTHH:mm" in LOCAL time (datetime-local expects local, not UTC)
+const toLocalInput = (d: Date) => {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
 const empty = (clientId: string, date?: Date | null) => ({
   client_id: clientId,
   title: "",
-  scheduled_at: (date ?? new Date()).toISOString().slice(0, 16),
+  scheduled_at: toLocalInput(date ?? new Date()),
   social_network: "instagram" as SocialNetwork,
   content_type: "reels" as EditorialContentType,
   description: "",
@@ -62,7 +68,7 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
       setForm({
         client_id: post.client_id,
         title: post.title,
-        scheduled_at: new Date(post.scheduled_at).toISOString().slice(0, 16),
+        scheduled_at: toLocalInput(new Date(post.scheduled_at)),
         social_network: post.social_network,
         content_type: post.content_type,
         description: post.description ?? "",
