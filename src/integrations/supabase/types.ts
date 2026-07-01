@@ -1595,6 +1595,7 @@ export type Database = {
           number_display: string
           origin: string | null
           owner_id: string | null
+          paid_at: string | null
           public_token: string | null
           rejected_at: string | null
           rejection_reason: string | null
@@ -1621,6 +1622,7 @@ export type Database = {
           number_display?: string
           origin?: string | null
           owner_id?: string | null
+          paid_at?: string | null
           public_token?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null
@@ -1647,6 +1649,7 @@ export type Database = {
           number_display?: string
           origin?: string | null
           owner_id?: string | null
+          paid_at?: string | null
           public_token?: string | null
           rejected_at?: string | null
           rejection_reason?: string | null
