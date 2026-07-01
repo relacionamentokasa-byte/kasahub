@@ -1,14 +1,16 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   listEditorialPosts, type EditorialPost,
   SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
   type SocialNetwork, type EditorialContentType, type EditorialStatus,
 } from "@/lib/editorial-api";
+import { getMonthStrategy, upsertMonthStrategy } from "@/lib/editorial-strategy-api";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Download, FileText, Share2, LayoutGrid, Activity } from "lucide-react";
+import { Plus, Download, FileText, Share2, LayoutGrid, Activity, Sparkles, Save } from "lucide-react";
 import { EditorialMonthGrid } from "@/components/editorial/EditorialMonthGrid";
 import { EditorialWeekList } from "@/components/editorial/EditorialWeekList";
 import { EditorialFeedGrid } from "@/components/editorial/EditorialFeedGrid";
@@ -20,12 +22,36 @@ import { exportEditorialPostsPDF, exportEditorialPostsCSV } from "@/lib/editoria
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
-export function ClientEditorialSection({ clientId, clientName }: { clientId: string; clientName: string }) {
+export function ClientEditorialSection({ clientId, clientName, clientLogoUrl }: { clientId: string; clientName: string; clientLogoUrl?: string | null }) {
   const [cursor, setCursor] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "feed" | "list" | "timeline">("feed");
   const [filters, setFilters] = useState<{ social?: SocialNetwork; ct?: EditorialContentType; status?: EditorialStatus }>({});
   const [dialog, setDialog] = useState<{ open: boolean; post?: EditorialPost | null; date?: Date | null }>({ open: false });
+  const [strategy, setStrategy] = useState("");
+  const qc = useQueryClient();
+
+  const year = cursor.getFullYear();
+  const month = cursor.getMonth() + 1;
+
+  const { data: strategyData = "" } = useQuery({
+    queryKey: ["editorial-strategy", clientId, year, month],
+    queryFn: () => getMonthStrategy(clientId, year, month),
+    enabled: !!clientId,
+  });
+
+  useEffect(() => { setStrategy(strategyData); }, [strategyData]);
+
+  const saveStrategy = useMutation({
+    mutationFn: () => upsertMonthStrategy(clientId, year, month, strategy),
+    onSuccess: () => {
+      toast.success("Estratégia salva");
+      qc.invalidateQueries({ queryKey: ["editorial-strategy", clientId, year, month] });
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao salvar"),
+  });
+
 
   const range = useMemo(() => {
     if (view === "month" || view === "feed" || view === "list") {
@@ -102,7 +128,7 @@ export function ClientEditorialSection({ clientId, clientName }: { clientId: str
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => exportEditorialPostsPDF({ clientName, cursor, posts })}>
+              <DropdownMenuItem onClick={() => exportEditorialPostsPDF({ clientName, clientLogoUrl: clientLogoUrl ?? null, strategy, cursor, posts })}>
                 <FileText className="size-4 mr-2" /> PDF (para o cliente)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => exportEditorialPostsCSV({ clientName, cursor, posts })}>
@@ -119,6 +145,25 @@ export function ClientEditorialSection({ clientId, clientName }: { clientId: str
           </Button>
         </div>
       </div>
+
+      <div className="rounded-2xl border border-foreground/10 bg-card/40 backdrop-blur-sm p-4 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Sparkles className="size-4 text-primary" />
+            Estratégia do mês · {cursor.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+          </div>
+          <Button size="sm" variant="secondary" className="h-8 rounded-full" onClick={() => saveStrategy.mutate()} disabled={saveStrategy.isPending}>
+            <Save className="size-3.5 mr-1.5" /> Salvar
+          </Button>
+        </div>
+        <Textarea
+          value={strategy}
+          onChange={(e) => setStrategy(e.target.value)}
+          placeholder="Objetivos, pilares de conteúdo, campanhas e diretrizes do mês..."
+          className="min-h-[96px] resize-y"
+        />
+      </div>
+
 
       <Tabs value={view} onValueChange={(v) => setView(v as any)}>
         <TabsList>

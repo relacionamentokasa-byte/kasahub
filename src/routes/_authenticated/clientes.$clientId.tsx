@@ -462,7 +462,11 @@ function ClientDetail() {
             {/* Conteúdo: Calendário Editorial */}
             {(client as any)?.has_editorial_calendar && (
               <TabsContent value="editorial" className="m-0 min-h-[500px] animate-reveal">
-                <ClientEditorialSection clientId={clientId} clientName={client.name || client.company || "Cliente"} />
+                <ClientEditorialSection
+                  clientId={clientId}
+                  clientName={client.company || client.name || "Cliente"}
+                  clientLogoUrl={(client as any)?.logo_url ?? null}
+                />
               </TabsContent>
             )}
 
