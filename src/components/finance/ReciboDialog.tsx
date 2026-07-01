@@ -226,6 +226,16 @@ function buildHtml(d: {
   .sign{margin-top:60px;text-align:center;font-size:13px}
   .sign .line{border-top:1px solid #111;width:320px;margin:0 auto 6px}
   .foot{margin-top:32px;padding-top:16px;border-top:1px dashed #d1d5db;font-size:10px;color:#9ca3af;text-align:center}
+  .dmes{margin:24px 0 32px;border:1px solid #e5e7eb;border-radius:10px;padding:16px;background:#fafafa}
+  .dmes-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6b7280;margin-bottom:10px;font-weight:600}
+  .dmes-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .dmes-table th{text-align:left;padding:8px 6px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  .dmes-table td{padding:10px 6px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+  .dmes-table tfoot td{border-bottom:none;border-top:2px solid #111;padding-top:10px}
+  .dmes-table .r{text-align:right}
+  .dmes-table .mono{font-variant-numeric:tabular-nums;font-family:'SFMono-Regular',Menlo,monospace;font-size:11.5px}
+  .dmes-table .dt{font-weight:600;color:#111}
+  .dmes-table .dd{color:#4b5563;font-size:11.5px;margin-top:2px;white-space:pre-line}
   @media print {body{padding:0} .sheet{border:none}}
 </style></head>
 <body>
