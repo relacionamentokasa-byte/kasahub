@@ -172,7 +172,18 @@ export async function exportEditorialPostsPDF(opts: {
     const title = sanitize(p.title);
     const titleLine = doc.splitTextToSize(title, 180)[0] ?? "";
     doc.text(titleLine, colX[1], cursorY + 34);
-    doc.text(sanitize(SOCIAL_LABEL[p.social_network]), colX[2], cursorY + 34);
+    const netLabel = sanitize(SOCIAL_LABEL[p.social_network]);
+    const icon = iconCache[p.social_network];
+    let netTextX = colX[2];
+    if (icon) {
+      const size = 14;
+      try {
+        doc.addImage(icon.dataUrl, icon.format, colX[2], cursorY + 22, size, size, undefined, "FAST");
+        netTextX = colX[2] + size + 5;
+      } catch { /* ignore */ }
+    }
+    doc.text(netLabel, netTextX, cursorY + 34);
+
     doc.text(sanitize(CONTENT_TYPE_LABEL[p.content_type]), colX[3], cursorY + 34);
 
     // Status pill (amber)
