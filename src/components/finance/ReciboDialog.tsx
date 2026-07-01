@@ -180,12 +180,34 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
 function buildHtml(d: {
   agency: any; numero: string; valor: number; valorExtenso: string;
   pagador: string; pagadorDoc: string; refer: string; local: string; dataPg: string;
+  dmes?: any[];
 }) {
   const a = d.agency || {};
   const displayName = a.legal_name || a.name || "";
   const logo = a.logo_url || a.logo_reports_url || a.logo_black_url || "";
   const dataFmt = new Date(d.dataPg + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
   const valorFmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(d.valor);
+  const brlFmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
+  const dmes = d.dmes || [];
+  const dmesHtml = dmes.length ? `
+    <div class="dmes">
+      <div class="dmes-title">${dmes.length > 1 ? "Demandas extras incluídas nesta cobrança consolidada" : "Demanda extra referente a esta cobrança"}</div>
+      <table class="dmes-table">
+        <thead><tr><th>Nº</th><th>Descrição</th><th class="r">Valor</th></tr></thead>
+        <tbody>
+          ${dmes.map((x: any) => `
+            <tr>
+              <td class="mono">${escape(x.number_display || "")}</td>
+              <td>
+                <div class="dt">${escape(x.title || "")}</div>
+                ${x.description ? `<div class="dd">${escape(x.description)}</div>` : ""}
+              </td>
+              <td class="r mono">${brlFmt(Number(x.value || 0))}</td>
+            </tr>`).join("")}
+        </tbody>
+        ${dmes.length > 1 ? `<tfoot><tr><td colspan="2" class="r"><strong>Total</strong></td><td class="r mono"><strong>${valorFmt}</strong></td></tr></tfoot>` : ""}
+      </table>
+    </div>` : "";
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
 <title>Recibo ${d.numero}</title>
 <style>
