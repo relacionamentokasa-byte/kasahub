@@ -83,7 +83,7 @@ export function JobsBoard({
   const [responsibleId, setResponsibleId] = useState<string>("all");
   const [clientFilterId, setClientFilterId] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("active");
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
 
   const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
@@ -246,7 +246,12 @@ export function JobsBoard({
     }
 
     // Filtro por Status
-    if (statusFilter && statusFilter !== "all") {
+    if (statusFilter === "active") {
+      // Esconde jobs concluídos (com done_at ou status "done") — padrão do board
+      result = result.filter((j: any) => !j.done_at && j.status !== "done");
+    } else if (statusFilter === "done") {
+      result = result.filter((j: any) => !!j.done_at || j.status === "done");
+    } else if (statusFilter && statusFilter !== "all") {
       result = result.filter((j) => j.status === statusFilter);
     }
 
@@ -259,7 +264,7 @@ export function JobsBoard({
     setClientFilterId("all");
     setPeriod("all");
     setPriorityFilter("all");
-    setStatusFilter("all");
+    setStatusFilter("active");
     setTeamFilter([]);
   };
 
@@ -269,7 +274,7 @@ export function JobsBoard({
     clientFilterId !== "all",
     period !== "all",
     priorityFilter !== "all",
-    statusFilter !== "all",
+    statusFilter !== "all" && statusFilter !== "active",
     teamFilter.length > 0
   ].filter(Boolean).length;
 
@@ -545,7 +550,9 @@ export function JobsBoard({
                         <SelectValue placeholder="Status" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="active">Ativos (esconde concluídos)</SelectItem>
                         <SelectItem value="all">Todos</SelectItem>
+                        <SelectItem value="done">✅ Concluídos</SelectItem>
                         {Object.entries(JOB_STATUS_LABELS).map(([key, value]) => (
                           <SelectItem key={key} value={key}>
                             {value.label}
