@@ -170,6 +170,7 @@ function buildHtml(d: {
   pagador: string; pagadorDoc: string; refer: string; local: string; dataPg: string;
 }) {
   const a = d.agency || {};
+  const displayName = a.legal_name || a.name || "";
   const logo = a.logo_url || a.logo_reports_url || a.logo_black_url || "";
   const dataFmt = new Date(d.dataPg + "T12:00:00").toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" });
   const valorFmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(d.valor);
