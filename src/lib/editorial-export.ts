@@ -141,8 +141,23 @@ export async function exportEditorialPostsPDF(opts: {
     doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(9.5);
     const descLines = descText ? doc.splitTextToSize(descText, contentW - 24) : [];
+
+    // Title wrapping (up to 3 lines) — width matches the "TITULO" column slot
+    const titleColW = colX[2] - colX[1] - 8;
+    const titleText = sanitize(p.title);
+    doc.setFont(FONT_BODY, "normal");
+    doc.setFontSize(10);
+    const titleLinesAll: string[] = doc.splitTextToSize(titleText, titleColW);
+    const titleLines = titleLinesAll.slice(0, 3);
+    if (titleLinesAll.length > 3) {
+      const last = titleLines[2];
+      titleLines[2] = last.length > 3 ? last.slice(0, last.length - 1).trimEnd() + "…" : last + "…";
+    }
+    const titleBlockH = titleLines.length * 12;
+
+    const topRowH = Math.max(48, 22 + titleBlockH + 4);
     const descBlockH = descLines.length ? descLines.length * 12 + 22 : 0; // label + text
-    const cardH = 60 + descBlockH; // top row + description block
+    const cardH = topRowH + descBlockH + 12;
 
     if (cursorY + cardH > pageH - margin) {
       doc.addPage();
@@ -169,9 +184,7 @@ export async function exportEditorialPostsPDF(opts: {
     doc.setTextColor(30, 30, 30);
     const dateStr = fmtDateTime(p.scheduled_at);
     doc.text(dateStr, colX[0], cursorY + 34);
-    const title = sanitize(p.title);
-    const titleLine = doc.splitTextToSize(title, 180)[0] ?? "";
-    doc.text(titleLine, colX[1], cursorY + 34);
+    doc.text(titleLines, colX[1], cursorY + 34, { lineHeightFactor: 1.2 });
     const netLabel = sanitize(SOCIAL_LABEL[p.social_network]);
     const icon = iconCache[p.social_network];
     let netTextX = colX[2];
@@ -202,20 +215,20 @@ export async function exportEditorialPostsPDF(opts: {
 
     // Description block
     if (descLines.length) {
-      // divider
+      const dividerY = cursorY + topRowH - 2;
       doc.setDrawColor(238, 238, 238);
       doc.setLineWidth(0.6);
-      doc.line(margin + 12, cursorY + 54, margin + contentW - 12, cursorY + 54);
+      doc.line(margin + 12, dividerY, margin + contentW - 12, dividerY);
 
       doc.setFont(FONT_BODY, "bold");
       doc.setFontSize(7);
       doc.setTextColor(140, 140, 140);
-      doc.text("LEGENDA / DESCRICAO", margin + 12, cursorY + 68);
+      doc.text("LEGENDA / DESCRICAO", margin + 12, dividerY + 14);
 
       doc.setFont(FONT_BODY, "normal");
       doc.setFontSize(9.5);
       doc.setTextColor(45, 45, 45);
-      doc.text(descLines, margin + 12, cursorY + 82, { lineHeightFactor: 1.3 });
+      doc.text(descLines, margin + 12, dividerY + 28, { lineHeightFactor: 1.3 });
     }
 
     cursorY += cardH + 10;
