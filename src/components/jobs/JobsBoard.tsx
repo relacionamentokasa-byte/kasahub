@@ -246,7 +246,12 @@ export function JobsBoard({
     }
 
     // Filtro por Status
-    if (statusFilter && statusFilter !== "all") {
+    if (statusFilter === "active") {
+      // Esconde jobs concluídos (com done_at ou status "done") — padrão do board
+      result = result.filter((j: any) => !j.done_at && j.status !== "done");
+    } else if (statusFilter === "done") {
+      result = result.filter((j: any) => !!j.done_at || j.status === "done");
+    } else if (statusFilter && statusFilter !== "all") {
       result = result.filter((j) => j.status === statusFilter);
     }
 
