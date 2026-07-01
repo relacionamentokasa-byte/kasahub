@@ -264,6 +264,8 @@ function buildHtml(d: {
       Para clareza e validade do que aqui foi declarado, firmo o presente recibo, dando plena, geral e irrevogável quitação da quantia ora recebida.
     </p>
 
+    ${dmesHtml}
+
     <p style="font-size:13px;text-align:right;margin-bottom:48px">${escape(d.local || "")}${d.local ? ", " : ""}${dataFmt}.</p>
 
     <div class="sign">
