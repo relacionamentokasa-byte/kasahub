@@ -274,7 +274,7 @@ export function JobsBoard({
     clientFilterId !== "all",
     period !== "all",
     priorityFilter !== "all",
-    statusFilter !== "all",
+    statusFilter !== "all" && statusFilter !== "active",
     teamFilter.length > 0
   ].filter(Boolean).length;
 
