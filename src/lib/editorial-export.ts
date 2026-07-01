@@ -126,6 +126,16 @@ export async function exportEditorialPostsPDF(opts: {
     // no repeated header band on subsequent pages, keep clean margin
   };
 
+  // Preload social network icons once
+  const iconCache: Record<string, { dataUrl: string; format: "PNG" | "JPEG"; w: number; h: number } | null> = {};
+  const uniqueNets = Array.from(new Set(sorted.map((p) => p.social_network)));
+  await Promise.all(uniqueNets.map(async (net) => {
+    const u = SOCIAL_ICON_URL[net];
+    if (u) iconCache[net] = await fetchImage(u);
+  }));
+
+
+
   for (const p of sorted) {
     const descText = sanitize(p.description ?? "");
     doc.setFont(FONT_BODY, "normal");
