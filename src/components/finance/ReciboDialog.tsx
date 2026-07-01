@@ -115,7 +115,7 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   function imprimir() {
     const html = buildHtml({
       agency, numero, valor, valorExtenso: valorPorExtenso(valor),
-      pagador, pagadorDoc, refer, local, dataPg,
+      pagador, pagadorDoc, refer, local, dataPg, dmes,
     });
     const w = window.open("", "_blank", "width=820,height=900");
     if (!w) return;
