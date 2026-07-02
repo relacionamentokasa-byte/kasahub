@@ -146,6 +146,8 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
               setEditing(selectedTpl);
               setEditOpen(true);
             }}
+            onDuplicate={() => duplicateMut.mutate(selectedTpl.id)}
+            duplicating={duplicateMut.isPending}
             onDelete={() => {
               if (confirm(`Remover o modelo "${selectedTpl.name}"?`)) deleteMut.mutate(selectedTpl.id);
             }}
