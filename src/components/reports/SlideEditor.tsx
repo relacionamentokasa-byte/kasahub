@@ -367,6 +367,25 @@ function ChartEditor({
         </div>
       </Field>
 
+      <Field label="Subtítulo do gráfico (aparece abaixo do título)">
+        <Input
+          value={subtitle}
+          onChange={(e) => onChange({ chartSubtitle: e.target.value })}
+          placeholder="Ex.: comparativo mensal por rede"
+        />
+      </Field>
+
+      {chartType !== "pie" && (
+        <Field label="Nome do eixo X">
+          <Input
+            value={xAxisLabel}
+            onChange={(e) => onChange({ chartXAxisLabel: e.target.value })}
+            placeholder="Ex.: Mês / Rede / Período"
+          />
+        </Field>
+      )}
+
+
       <Field label={chartType === "pie" ? "Fatias" : "Categorias (eixo X)"}>
         <div className="space-y-2">
           {categories.map((cat, i) => (
