@@ -6,6 +6,7 @@ import { fetchReport } from "@/lib/reports-api";
 import { fetchClient } from "@/lib/ops-api";
 import { ScaledSlide } from "@/components/reports/ScaledSlide";
 import type { Slide } from "@/components/reports/types";
+import { useFocusMode } from "@/contexts/FocusModeContext";
 
 export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/apresentar")({
   component: PresentReportPage,
@@ -14,6 +15,11 @@ export const Route = createFileRoute("/_authenticated/construtor-relatorios/$rep
 function PresentReportPage() {
   const { reportId } = Route.useParams();
   const navigate = useNavigate();
+  const { setFocusMode } = useFocusMode();
+  useEffect(() => {
+    setFocusMode(true);
+    return () => setFocusMode(false);
+  }, [setFocusMode]);
   const reportQ = useQuery({ queryKey: ["report", reportId], queryFn: () => fetchReport(reportId) });
   const clientQ = useQuery({
     queryKey: ["client", reportQ.data?.client_id],
@@ -50,7 +56,7 @@ function PresentReportPage() {
   const clientName = clientQ.data?.company || clientQ.data?.name || "";
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col">
       <div className="flex-1 relative">
         <ScaledSlide
           slide={cur}
