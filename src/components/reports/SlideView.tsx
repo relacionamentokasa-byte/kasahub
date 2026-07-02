@@ -22,6 +22,22 @@ import {
 
 const KASA_YELLOW = "#FFBC45";
 
+function getGalleryGrid(count: number) {
+  if (count <= 1) {
+    return { columns: "minmax(0, 1fr)", rows: "minmax(0, 1fr)" };
+  }
+
+  if (count === 2) {
+    return { columns: "repeat(2, minmax(0, 1fr))", rows: "minmax(0, 1fr)" };
+  }
+
+  if (count === 3) {
+    return { columns: "repeat(3, minmax(0, 1fr))", rows: "minmax(0, 1fr)" };
+  }
+
+  return { columns: "repeat(2, minmax(0, 1fr))", rows: "repeat(2, minmax(0, 1fr))" };
+}
+
 function KasaMark({ size = 28 }: { size?: number }) {
   return (
     <div className="flex items-center gap-3">
@@ -207,22 +223,25 @@ export function SlideView({
       );
 
     case "gallery": {
-      const imgs = (p.images || []).slice(0, 4);
-      const cols = imgs.length <= 1 ? 1 : imgs.length === 2 ? 2 : imgs.length === 3 ? 3 : 4;
+      const imgs = Array.isArray(p.images) ? p.images.filter(Boolean).slice(0, 4) : [];
+      const grid = getGalleryGrid(imgs.length);
       return shell(
         <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
           {p.title ? heading(p.title, "sm") : null}
           <div
-            className="flex-1 mt-8 grid gap-6 items-center"
-            style={{ gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+            className="flex-1 min-h-0 mt-8 grid gap-6"
+            style={{
+              gridTemplateColumns: grid.columns,
+              gridTemplateRows: grid.rows,
+            }}
           >
             {imgs.length === 0 ? (
               <div className="rounded-3xl bg-neutral-100 flex items-center justify-center text-[28px] text-neutral-400 h-full">
                 Sem imagens
               </div>
             ) : imgs.map((url, i) => (
-              <div key={i} className="rounded-3xl overflow-hidden bg-neutral-50 flex items-center justify-center h-full p-4">
-                <img src={url} alt="" className="max-w-full max-h-full w-auto h-auto object-contain" />
+              <div key={`${url}-${i}`} className="min-h-0 rounded-3xl overflow-hidden bg-neutral-50 flex items-center justify-center p-5">
+                <img src={url} alt="" className="block max-w-full max-h-full w-auto h-auto object-contain" />
               </div>
             ))}
           </div>
