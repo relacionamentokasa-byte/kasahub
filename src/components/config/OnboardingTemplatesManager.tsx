@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, Loader2, Star, Building2, User, Users as UsersIcon, GripVertical } from "lucide-react";
+import { Plus, Trash2, Pencil, Loader2, Star, Building2, User, Users as UsersIcon, GripVertical, Copy } from "lucide-react";
 import {
   fetchOnboardingTemplates,
   fetchTemplateSteps,
   createTemplate,
   updateTemplate,
   deleteTemplate,
+  duplicateTemplate,
   upsertTemplateStep,
   deleteTemplateStep,
   type OnboardingTemplate,
