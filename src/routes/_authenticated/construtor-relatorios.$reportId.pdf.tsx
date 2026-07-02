@@ -7,7 +7,7 @@ import { SlideView } from "@/components/reports/SlideView";
 import type { Slide } from "@/components/reports/types";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toJpeg } from "html-to-image";
 
 export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/pdf")({
   component: ReportPdfPage,
@@ -61,18 +61,16 @@ function ReportPdfPage() {
           setStatus(`Renderizando slide ${i + 1} de ${slideEls.length}...`);
           setProgress(Math.round(((i) / slideEls.length) * 100));
           const el = slideEls[i];
-          const canvas = await html2canvas(el, {
+          const img = await toJpeg(el, {
             width: 1920,
             height: 1080,
-            windowWidth: 1920,
-            windowHeight: 1080,
-            scale: 1,
-            useCORS: true,
-            allowTaint: false,
+            canvasWidth: 1920,
+            canvasHeight: 1080,
+            quality: 0.92,
             backgroundColor: "#ffffff",
-            logging: false,
+            cacheBust: true,
+            pixelRatio: 1,
           });
-          const img = canvas.toDataURL("image/jpeg", 0.92);
           if (i > 0) pdf.addPage([1920, 1080], "landscape");
           pdf.addImage(img, "JPEG", 0, 0, 1920, 1080, undefined, "FAST");
         }
