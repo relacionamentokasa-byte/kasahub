@@ -56,7 +56,7 @@ function PresentReportPage() {
   const clientName = clientQ.data?.company || clientQ.data?.name || "";
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-black flex flex-col">
       <div className="flex-1 relative">
         <ScaledSlide
           slide={cur}
