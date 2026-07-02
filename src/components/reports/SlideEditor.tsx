@@ -126,6 +126,8 @@ export function SlideEditor({
           categoryPlatforms={p.chartCategoryPlatforms ?? []}
           series={p.chartSeries ?? []}
           note={p.chartNote ?? ""}
+          subtitle={p.chartSubtitle ?? ""}
+          xAxisLabel={p.chartXAxisLabel ?? ""}
           onChange={(patch) => update(patch)}
         />
       )}

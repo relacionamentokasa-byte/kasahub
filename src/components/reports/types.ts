@@ -42,6 +42,8 @@ export type SlideProps = {
   chartCategoryPlatforms?: string[]; // parallel to chartCategories; platform id per category (optional)
   chartSeries?: ChartSeries[];
   chartNote?: string;
+  chartSubtitle?: string;
+  chartXAxisLabel?: string;
 };
 
 export type Slide = {
