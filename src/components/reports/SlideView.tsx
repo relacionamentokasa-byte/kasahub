@@ -278,7 +278,13 @@ export function SlideView({
             />
           </div>
           {p.chartNote ? (
-            <p className="mt-4 text-[24px] text-neutral-500">{p.chartNote}</p>
+            <div
+              className="mt-6 rounded-2xl border-l-4 px-8 py-5 bg-neutral-50 text-[26px] leading-[1.4] text-neutral-700 whitespace-pre-wrap"
+              style={{ borderColor: color }}
+            >
+              <p className="text-[18px] font-mono uppercase tracking-[0.18em] mb-2" style={{ color }}>Observações</p>
+              {p.chartNote}
+            </div>
           ) : null}
         </div>,
       );
