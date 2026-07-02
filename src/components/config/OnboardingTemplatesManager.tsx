@@ -278,6 +278,9 @@ function TemplateDetail({
         </div>
         {canEdit && (
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onDuplicate} disabled={duplicating} title="Duplicar modelo">
+              {duplicating ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
+            </Button>
             <Button variant="outline" size="sm" onClick={onEdit}>
               <Pencil className="size-3.5" />
             </Button>
