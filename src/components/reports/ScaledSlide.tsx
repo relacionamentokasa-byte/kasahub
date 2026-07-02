@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { Slide } from "./types";
 import { SlideView } from "./SlideView";
 
@@ -23,18 +23,29 @@ export function ScaledSlide({
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.4);
+  const [scale, setScale] = useState(0.25);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const ro = new ResizeObserver(() => {
-      const w = el.clientWidth;
-      const h = el.clientHeight;
-      setScale(Math.min(w / 1920, h / 1080));
-    });
+
+    const updateScale = () => {
+      const box = el.getBoundingClientRect();
+      if (box.width <= 0 || box.height <= 0) return;
+      setScale(Math.min(box.width / 1920, box.height / 1080, 1));
+    };
+
+    updateScale();
+    const frame = requestAnimationFrame(updateScale);
+    const ro = new ResizeObserver(updateScale);
     ro.observe(el);
-    return () => ro.disconnect();
+    window.addEventListener("resize", updateScale);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      ro.disconnect();
+      window.removeEventListener("resize", updateScale);
+    };
   }, []);
 
   return (
