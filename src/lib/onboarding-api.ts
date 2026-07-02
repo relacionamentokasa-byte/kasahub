@@ -95,6 +95,53 @@ export async function updateTemplate(id: string, input: Partial<OnboardingTempla
   return data as OnboardingTemplate;
 }
 
+export async function duplicateTemplate(id: string) {
+  const tplRes = await (supabase as any)
+    .from("onboarding_templates")
+    .select("*")
+    .eq("id", id)
+    .single();
+  if (tplRes.error) throw tplRes.error;
+  const tpl = tplRes.data as OnboardingTemplate;
+
+  const stepsRes = await (supabase as any)
+    .from("onboarding_template_steps")
+    .select("*")
+    .eq("template_id", id)
+    .order("order_index", { ascending: true });
+  if (stepsRes.error) throw stepsRes.error;
+  const tplSteps = stepsRes.data as OnboardingTemplateStep[];
+
+  const { data: newTpl, error: newErr } = await (supabase as any)
+    .from("onboarding_templates")
+    .insert({
+      name: `${tpl.name} (cópia)`,
+      description: tpl.description,
+      is_default: false,
+      is_active: tpl.is_active,
+    })
+    .select()
+    .single();
+  if (newErr) throw newErr;
+
+  if (tplSteps.length > 0) {
+    const rows = tplSteps.map((s) => ({
+      template_id: newTpl.id,
+      title: s.title,
+      description: s.description,
+      responsible_type: s.responsible_type,
+      days_after_start: s.days_after_start,
+      order_index: s.order_index,
+    }));
+    const { error: stepsErr } = await (supabase as any)
+      .from("onboarding_template_steps")
+      .insert(rows);
+    if (stepsErr) throw stepsErr;
+  }
+
+  return newTpl as OnboardingTemplate;
+}
+
 export async function deleteTemplate(id: string) {
   const { error } = await (supabase as any).from("onboarding_templates").delete().eq("id", id);
   if (error) throw error;
