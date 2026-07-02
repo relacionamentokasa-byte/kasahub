@@ -222,8 +222,8 @@ export function SlideView({
                 Sem imagens
               </div>
             ) : imgs.map((url, i) => (
-              <div key={i} className="rounded-3xl overflow-hidden bg-neutral-100">
-                <img src={url} alt="" className="w-full h-full object-cover" />
+              <div key={i} className="rounded-3xl overflow-hidden bg-neutral-50 flex items-center justify-center">
+                <img src={url} alt="" className="w-full h-full object-contain" />
               </div>
             ))}
           </div>
