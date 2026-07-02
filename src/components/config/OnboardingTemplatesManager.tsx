@@ -220,11 +220,15 @@ function TemplateDetail({
   template,
   canEdit,
   onEdit,
+  onDuplicate,
+  duplicating,
   onDelete,
 }: {
   template: OnboardingTemplate;
   canEdit: boolean;
   onEdit: () => void;
+  onDuplicate: () => void;
+  duplicating: boolean;
   onDelete: () => void;
 }) {
   const qc = useQueryClient();
