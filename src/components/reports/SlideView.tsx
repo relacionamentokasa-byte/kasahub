@@ -509,9 +509,9 @@ function ChartRender({
   return (
     <ResponsiveContainer width="100%" height="100%">
       {chartType === "bar" ? (
-        <BarChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+        <BarChart data={data} margin={cartesianMargin}>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra}>{xAxisLabelNode}</XAxis>
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
