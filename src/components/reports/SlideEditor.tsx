@@ -452,8 +452,8 @@ function ChartEditor({
         </div>
       </Field>
 
-      <Field label="Legenda / observação (opcional)">
-        <Input value={note} onChange={(e) => onChange({ chartNote: e.target.value })} />
+      <Field label="Observações (aparece abaixo do gráfico)">
+        <Textarea rows={4} value={note} onChange={(e) => onChange({ chartNote: e.target.value })} placeholder="Contexto, insights ou destaques sobre esses números..." />
       </Field>
     </div>
   );
