@@ -419,12 +419,14 @@ function ChartRender({
   categories,
   categoryPlatforms,
   series,
+  xAxisLabel,
   brandColor,
 }: {
   chartType: "bar" | "line" | "area" | "pie";
   categories: string[];
   categoryPlatforms: string[];
   series: ChartSeries[];
+  xAxisLabel?: string;
   brandColor: string;
 }) {
   // Build a palette: brand, Kasa yellow, then desaturated companions
