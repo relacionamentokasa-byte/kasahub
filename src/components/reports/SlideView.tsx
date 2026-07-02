@@ -495,6 +495,16 @@ function ChartRender({
   const xAxisExtra = hasAnyPlatformOnCategory
     ? { tick: CategoryTick as any, height: 80 }
     : {};
+  const cartesianMargin = { top: 24, right: 24, left: 12, bottom: xAxisLabel ? 48 : 12 };
+  const xAxisLabelNode = xAxisLabel ? (
+    <Label
+      value={xAxisLabel}
+      position="insideBottom"
+      offset={-8}
+      style={{ fill: "#404040", fontFamily: "Onest", fontSize: 24, fontWeight: 500 }}
+    />
+  ) : null;
+
 
   return (
     <ResponsiveContainer width="100%" height="100%">
