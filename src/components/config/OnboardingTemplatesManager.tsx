@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, Loader2, Star, Building2, User, Users as UsersIcon, GripVertical } from "lucide-react";
+import { Plus, Trash2, Pencil, Loader2, Star, Building2, User, Users as UsersIcon, GripVertical, Copy } from "lucide-react";
 import {
   fetchOnboardingTemplates,
   fetchTemplateSteps,
   createTemplate,
   updateTemplate,
   deleteTemplate,
+  duplicateTemplate,
   upsertTemplateStep,
   deleteTemplateStep,
   type OnboardingTemplate,
@@ -77,6 +78,16 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const duplicateMut = useMutation({
+    mutationFn: (id: string) => duplicateTemplate(id),
+    onSuccess: (newTpl) => {
+      toast.success("Modelo duplicado");
+      qc.invalidateQueries({ queryKey: ["onboarding-templates"] });
+      setSelected(newTpl.id);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (isLoading) {
     return <Loader2 className="size-5 animate-spin mx-auto" />;
   }
@@ -135,6 +146,8 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
               setEditing(selectedTpl);
               setEditOpen(true);
             }}
+            onDuplicate={() => duplicateMut.mutate(selectedTpl.id)}
+            duplicating={duplicateMut.isPending}
             onDelete={() => {
               if (confirm(`Remover o modelo "${selectedTpl.name}"?`)) deleteMut.mutate(selectedTpl.id);
             }}
@@ -207,11 +220,15 @@ function TemplateDetail({
   template,
   canEdit,
   onEdit,
+  onDuplicate,
+  duplicating,
   onDelete,
 }: {
   template: OnboardingTemplate;
   canEdit: boolean;
   onEdit: () => void;
+  onDuplicate: () => void;
+  duplicating: boolean;
   onDelete: () => void;
 }) {
   const qc = useQueryClient();
@@ -261,6 +278,9 @@ function TemplateDetail({
         </div>
         {canEdit && (
           <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onDuplicate} disabled={duplicating} title="Duplicar modelo">
+              {duplicating ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
+            </Button>
             <Button variant="outline" size="sm" onClick={onEdit}>
               <Pencil className="size-3.5" />
             </Button>
