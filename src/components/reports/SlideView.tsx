@@ -267,12 +267,18 @@ export function SlideView({
       return shell(
         <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
           {p.title ? heading(p.title, "sm") : null}
+          {p.chartSubtitle ? (
+            <p className="mt-3 text-[28px] text-neutral-500 leading-tight max-w-[1500px]">
+              {p.chartSubtitle}
+            </p>
+          ) : null}
           <div className="flex-1 mt-8">
             <ChartRender
               chartType={p.chartType ?? "bar"}
               categories={p.chartCategories ?? []}
               categoryPlatforms={p.chartCategoryPlatforms ?? []}
               series={(p.chartSeries ?? []) as ChartSeries[]}
+              xAxisLabel={p.chartXAxisLabel ?? ""}
               brandColor={color}
             />
           </div>
@@ -287,6 +293,7 @@ export function SlideView({
           ) : null}
         </div>,
       );
+
 
 
     case "deliverables": {
