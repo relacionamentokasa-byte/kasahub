@@ -15,6 +15,11 @@ export const Route = createFileRoute("/_authenticated/construtor-relatorios/$rep
 function PresentReportPage() {
   const { reportId } = Route.useParams();
   const navigate = useNavigate();
+  const { setFocusMode } = useFocusMode();
+  useEffect(() => {
+    setFocusMode(true);
+    return () => setFocusMode(false);
+  }, [setFocusMode]);
   const reportQ = useQuery({ queryKey: ["report", reportId], queryFn: () => fetchReport(reportId) });
   const clientQ = useQuery({
     queryKey: ["client", reportQ.data?.client_id],
