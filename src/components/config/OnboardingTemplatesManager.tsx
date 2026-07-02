@@ -78,6 +78,16 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const duplicateMut = useMutation({
+    mutationFn: (id: string) => duplicateTemplate(id),
+    onSuccess: (newTpl) => {
+      toast.success("Modelo duplicado");
+      qc.invalidateQueries({ queryKey: ["onboarding-templates"] });
+      setSelected(newTpl.id);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   if (isLoading) {
     return <Loader2 className="size-5 animate-spin mx-auto" />;
   }
