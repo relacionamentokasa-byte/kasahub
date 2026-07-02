@@ -75,7 +75,9 @@ function ReportEditorPage() {
   const update = (next: Slide) => setSlides(slides.map((s) => (s.id === next.id ? next : s)));
   const addSlide = (type: SlideType) => {
     const s = newSlide(type);
-    setSlides([...slides, s]);
+    const idx = selectedId ? slides.findIndex((x) => x.id === selectedId) : slides.length - 1;
+    const insertAt = idx >= 0 ? idx + 1 : slides.length;
+    setSlides([...slides.slice(0, insertAt), s, ...slides.slice(insertAt)]);
     setSelectedId(s.id);
   };
   const removeSlide = (id: string) => {
