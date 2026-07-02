@@ -538,7 +538,7 @@ function ChartRender({
           ))}
         </LineChart>
       ) : chartType === "area" ? (
-        <AreaChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+        <AreaChart data={data} margin={cartesianMargin}>
           <defs>
             {series.map((s, i) => (
               <linearGradient key={s.name + i} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -548,7 +548,7 @@ function ChartRender({
             ))}
           </defs>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra}>{xAxisLabelNode}</XAxis>
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
