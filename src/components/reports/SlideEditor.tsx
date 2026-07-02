@@ -311,6 +311,8 @@ function ChartEditor({
   categoryPlatforms,
   series,
   note,
+  subtitle,
+  xAxisLabel,
   onChange,
 }: {
   chartType: ChartType;
@@ -318,12 +320,16 @@ function ChartEditor({
   categoryPlatforms: string[];
   series: ChartSeries[];
   note: string;
+  subtitle: string;
+  xAxisLabel: string;
   onChange: (patch: {
     chartType?: ChartType;
     chartCategories?: string[];
     chartCategoryPlatforms?: string[];
     chartSeries?: ChartSeries[];
     chartNote?: string;
+    chartSubtitle?: string;
+    chartXAxisLabel?: string;
   }) => void;
 }) {
   const setCategories = (next: string[]) => {
