@@ -6,6 +6,7 @@ import { fetchReport } from "@/lib/reports-api";
 import { fetchClient } from "@/lib/ops-api";
 import { ScaledSlide } from "@/components/reports/ScaledSlide";
 import type { Slide } from "@/components/reports/types";
+import { useFocusMode } from "@/contexts/FocusModeContext";
 
 export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/apresentar")({
   component: PresentReportPage,
