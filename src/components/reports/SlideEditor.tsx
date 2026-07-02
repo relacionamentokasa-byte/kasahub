@@ -126,6 +126,8 @@ export function SlideEditor({
           categoryPlatforms={p.chartCategoryPlatforms ?? []}
           series={p.chartSeries ?? []}
           note={p.chartNote ?? ""}
+          subtitle={p.chartSubtitle ?? ""}
+          xAxisLabel={p.chartXAxisLabel ?? ""}
           onChange={(patch) => update(patch)}
         />
       )}
@@ -309,6 +311,8 @@ function ChartEditor({
   categoryPlatforms,
   series,
   note,
+  subtitle,
+  xAxisLabel,
   onChange,
 }: {
   chartType: ChartType;
@@ -316,12 +320,16 @@ function ChartEditor({
   categoryPlatforms: string[];
   series: ChartSeries[];
   note: string;
+  subtitle: string;
+  xAxisLabel: string;
   onChange: (patch: {
     chartType?: ChartType;
     chartCategories?: string[];
     chartCategoryPlatforms?: string[];
     chartSeries?: ChartSeries[];
     chartNote?: string;
+    chartSubtitle?: string;
+    chartXAxisLabel?: string;
   }) => void;
 }) {
   const setCategories = (next: string[]) => {
@@ -358,6 +366,25 @@ function ChartEditor({
           ))}
         </div>
       </Field>
+
+      <Field label="Subtítulo do gráfico (aparece abaixo do título)">
+        <Input
+          value={subtitle}
+          onChange={(e) => onChange({ chartSubtitle: e.target.value })}
+          placeholder="Ex.: comparativo mensal por rede"
+        />
+      </Field>
+
+      {chartType !== "pie" && (
+        <Field label="Nome do eixo X">
+          <Input
+            value={xAxisLabel}
+            onChange={(e) => onChange({ chartXAxisLabel: e.target.value })}
+            placeholder="Ex.: Mês / Rede / Período"
+          />
+        </Field>
+      )}
+
 
       <Field label={chartType === "pie" ? "Fatias" : "Categorias (eixo X)"}>
         <div className="space-y-2">

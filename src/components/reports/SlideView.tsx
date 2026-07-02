@@ -18,6 +18,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
+  Label,
 } from "recharts";
 
 const KASA_YELLOW = "#FFBC45";
@@ -267,12 +268,18 @@ export function SlideView({
       return shell(
         <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
           {p.title ? heading(p.title, "sm") : null}
+          {p.chartSubtitle ? (
+            <p className="mt-3 text-[28px] text-neutral-500 leading-tight max-w-[1500px]">
+              {p.chartSubtitle}
+            </p>
+          ) : null}
           <div className="flex-1 mt-8">
             <ChartRender
               chartType={p.chartType ?? "bar"}
               categories={p.chartCategories ?? []}
               categoryPlatforms={p.chartCategoryPlatforms ?? []}
               series={(p.chartSeries ?? []) as ChartSeries[]}
+              xAxisLabel={p.chartXAxisLabel ?? ""}
               brandColor={color}
             />
           </div>
@@ -287,6 +294,7 @@ export function SlideView({
           ) : null}
         </div>,
       );
+
 
 
     case "deliverables": {
@@ -411,12 +419,14 @@ function ChartRender({
   categories,
   categoryPlatforms,
   series,
+  xAxisLabel,
   brandColor,
 }: {
   chartType: "bar" | "line" | "area" | "pie";
   categories: string[];
   categoryPlatforms: string[];
   series: ChartSeries[];
+  xAxisLabel?: string;
   brandColor: string;
 }) {
   // Build a palette: brand, Kasa yellow, then desaturated companions
@@ -485,13 +495,23 @@ function ChartRender({
   const xAxisExtra = hasAnyPlatformOnCategory
     ? { tick: CategoryTick as any, height: 80 }
     : {};
+  const cartesianMargin = { top: 24, right: 24, left: 12, bottom: xAxisLabel ? 48 : 12 };
+  const xAxisLabelNode = xAxisLabel ? (
+    <Label
+      value={xAxisLabel}
+      position="insideBottom"
+      offset={-8}
+      style={{ fill: "#404040", fontFamily: "Onest", fontSize: 24, fontWeight: 500 }}
+    />
+  ) : null;
+
 
   return (
     <ResponsiveContainer width="100%" height="100%">
       {chartType === "bar" ? (
-        <BarChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+        <BarChart data={data} margin={cartesianMargin}>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra}>{xAxisLabelNode}</XAxis>
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
@@ -500,9 +520,9 @@ function ChartRender({
           ))}
         </BarChart>
       ) : chartType === "line" ? (
-        <LineChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+        <LineChart data={data} margin={cartesianMargin}>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra}>{xAxisLabelNode}</XAxis>
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
@@ -518,7 +538,7 @@ function ChartRender({
           ))}
         </LineChart>
       ) : chartType === "area" ? (
-        <AreaChart data={data} margin={{ top: 24, right: 24, left: 12, bottom: 12 }}>
+        <AreaChart data={data} margin={cartesianMargin}>
           <defs>
             {series.map((s, i) => (
               <linearGradient key={s.name + i} id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
@@ -528,7 +548,7 @@ function ChartRender({
             ))}
           </defs>
           <CartesianGrid strokeDasharray="4 4" stroke="#e5e5e5" vertical={false} />
-          <XAxis dataKey="name" {...axisProps} {...xAxisExtra} />
+          <XAxis dataKey="name" {...axisProps} {...xAxisExtra}>{xAxisLabelNode}</XAxis>
           <YAxis {...axisProps} />
           <Tooltip contentStyle={{ fontSize: 18, borderRadius: 12 }} />
           {series.length > 1 ? <Legend wrapperStyle={legendStyle} /> : null}
