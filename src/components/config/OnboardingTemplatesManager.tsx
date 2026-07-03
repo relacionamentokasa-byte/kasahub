@@ -52,7 +52,11 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
   const saveMut = useMutation({
     mutationFn: async () => {
       if (!editing) return;
-      if (editing.id) return updateTemplate(editing.id, editing);
+      if (editing.id) {
+        const res = await updateTemplate(editing.id, editing);
+        await syncAllOnboardingsForTemplate(editing.id).catch(() => null);
+        return res;
+      }
       return createTemplate({
         name: editing.name || "Novo modelo",
         description: editing.description ?? null,
@@ -63,6 +67,8 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
     onSuccess: () => {
       toast.success("Modelo salvo");
       qc.invalidateQueries({ queryKey: ["onboarding-templates"] });
+      qc.invalidateQueries({ queryKey: ["onboarding-steps"] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
       setEditOpen(false);
       setEditing(null);
     },
