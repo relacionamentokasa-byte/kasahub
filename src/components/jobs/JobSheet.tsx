@@ -1100,16 +1100,28 @@ export function JobSheet({
 
                       <div 
                         onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-border rounded-xl p-6 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-2"
+                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (!isDragging) setIsDragging(true); }}
+                        onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+                        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (e.currentTarget === e.target) setIsDragging(false); }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsDragging(false);
+                          const files = Array.from(e.dataTransfer.files ?? []);
+                          if (files.length) uploadFiles(files);
+                        }}
+                        className={`border-2 border-dashed rounded-xl p-6 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 ${
+                          isDragging ? "border-primary bg-primary/10 scale-[1.01]" : "border-border hover:border-primary/50 hover:bg-primary/5"
+                        }`}
                       >
                         {isUploading ? (
                           <Loader2 className="size-6 text-primary animate-spin" />
                         ) : (
-                          <FileUp className="size-6 text-foreground/20" />
+                          <FileUp className={`size-6 ${isDragging ? "text-primary" : "text-foreground/20"}`} />
                         )}
                         <div className="text-center">
                           <p className="text-xs font-bold text-foreground/60">
-                            {isUploading ? "Enviando arquivo..." : "Clique ou arraste para anexar"}
+                            {isUploading ? "Enviando arquivo..." : isDragging ? "Solte para anexar" : "Clique ou arraste arquivos aqui"}
                           </p>
                           <p className="text-[10px] text-foreground/40 uppercase tracking-widest mt-1">Formatos suportados: PDF, JPG, PNG, DOCX</p>
                         </div>
@@ -1117,6 +1129,7 @@ export function JobSheet({
                           type="file"
                           ref={fileInputRef}
                           className="hidden"
+                          multiple
                           onChange={handleFileUpload}
                         />
                       </div>
