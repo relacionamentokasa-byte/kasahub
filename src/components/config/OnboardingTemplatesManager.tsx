@@ -11,6 +11,7 @@ import {
   duplicateTemplate,
   upsertTemplateStep,
   deleteTemplateStep,
+  syncAllOnboardingsForTemplate,
   type OnboardingTemplate,
   type OnboardingTemplateStep,
 } from "@/lib/onboarding-api";
