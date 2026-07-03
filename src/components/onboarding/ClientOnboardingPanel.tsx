@@ -18,6 +18,7 @@ import {
   Loader2,
   CalendarIcon,
   Presentation,
+  RefreshCw,
 } from "lucide-react";
 
 import {
@@ -27,6 +28,7 @@ import {
   createOnboardingFromTemplate,
   updateOnboardingStep,
   deleteOnboarding,
+  syncOnboardingWithTemplate,
   type OnboardingStep,
 } from "@/lib/onboarding-api";
 import { Button } from "@/components/ui/button";
@@ -266,6 +268,18 @@ function OnboardingCard({
     onSuccess: () => {
       toast.success("Prazo atualizado");
       qc.invalidateQueries({ queryKey: ["onboarding-steps", onboardingId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const syncMut = useMutation({
+    mutationFn: () => syncOnboardingWithTemplate(onboardingId),
+    onSuccess: (res) => {
+      toast.success(
+        `Sincronizado com o modelo (${res.inserted} nova(s), ${res.updated} atualizada(s)).`,
+      );
+      qc.invalidateQueries({ queryKey: ["onboarding-steps", onboardingId] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
     },
     onError: (e: Error) => toast.error(e.message),
   });
