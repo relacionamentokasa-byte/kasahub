@@ -11,6 +11,7 @@ import {
   duplicateTemplate,
   upsertTemplateStep,
   deleteTemplateStep,
+  syncAllOnboardingsForTemplate,
   type OnboardingTemplate,
   type OnboardingTemplateStep,
 } from "@/lib/onboarding-api";
@@ -51,7 +52,11 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
   const saveMut = useMutation({
     mutationFn: async () => {
       if (!editing) return;
-      if (editing.id) return updateTemplate(editing.id, editing);
+      if (editing.id) {
+        const res = await updateTemplate(editing.id, editing);
+        await syncAllOnboardingsForTemplate(editing.id).catch(() => null);
+        return res;
+      }
       return createTemplate({
         name: editing.name || "Novo modelo",
         description: editing.description ?? null,
@@ -62,6 +67,8 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
     onSuccess: () => {
       toast.success("Modelo salvo");
       qc.invalidateQueries({ queryKey: ["onboarding-templates"] });
+      qc.invalidateQueries({ queryKey: ["onboarding-steps"] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
       setEditOpen(false);
       setEditing(null);
     },
@@ -241,13 +248,18 @@ function TemplateDetail({
   });
 
   const saveStep = useMutation({
-    mutationFn: () =>
-      upsertTemplateStep({
+    mutationFn: async () => {
+      const res = await upsertTemplateStep({
         ...stepDraft,
         template_id: template.id,
-      }),
+      });
+      await syncAllOnboardingsForTemplate(template.id).catch(() => null);
+      return res;
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["onboarding-template-steps", template.id] });
+      qc.invalidateQueries({ queryKey: ["onboarding-steps"] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
       setStepOpen(false);
       setStepDraft(null);
     },
@@ -255,9 +267,15 @@ function TemplateDetail({
   });
 
   const deleteStep = useMutation({
-    mutationFn: (id: string) => deleteTemplateStep(id),
-    onSuccess: () =>
-      qc.invalidateQueries({ queryKey: ["onboarding-template-steps", template.id] }),
+    mutationFn: async (id: string) => {
+      await deleteTemplateStep(id);
+      await syncAllOnboardingsForTemplate(template.id).catch(() => null);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["onboarding-template-steps", template.id] });
+      qc.invalidateQueries({ queryKey: ["onboarding-steps"] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
+    },
   });
 
   return (
