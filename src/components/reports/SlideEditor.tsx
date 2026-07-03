@@ -143,6 +143,7 @@ export function SlideEditor({
           items={(p.items || []) as DeliverableItem[]}
           empty={{ label: "Nova entrega", done: true }}
           onChange={(items) => update({ items })}
+          sortable
           renderItem={(it, set) => (
             <div className="flex items-center gap-2">
               <Switch checked={it.done} onCheckedChange={(v) => set({ ...it, done: v })} />
