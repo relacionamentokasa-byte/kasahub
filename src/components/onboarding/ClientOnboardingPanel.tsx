@@ -313,6 +313,23 @@ function OnboardingCard({
           </Badge>
           {!readOnly && (
             <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              title="Sincronizar etapas com o modelo (aplica novas etapas e ajustes do template)"
+              onClick={() => syncMut.mutate()}
+              disabled={syncMut.isPending}
+            >
+              {syncMut.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="size-3.5" />
+              )}
+              Sincronizar
+            </Button>
+          )}
+          {!readOnly && (
+            <Button
               asChild
               variant="outline"
               size="sm"
