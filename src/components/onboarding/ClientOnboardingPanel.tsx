@@ -18,6 +18,7 @@ import {
   Loader2,
   CalendarIcon,
   Presentation,
+  RefreshCw,
 } from "lucide-react";
 
 import {
@@ -27,6 +28,7 @@ import {
   createOnboardingFromTemplate,
   updateOnboardingStep,
   deleteOnboarding,
+  syncOnboardingWithTemplate,
   type OnboardingStep,
 } from "@/lib/onboarding-api";
 import { Button } from "@/components/ui/button";
@@ -270,6 +272,18 @@ function OnboardingCard({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const syncMut = useMutation({
+    mutationFn: () => syncOnboardingWithTemplate(onboardingId),
+    onSuccess: (res) => {
+      toast.success(
+        `Sincronizado com o modelo (${res.inserted} nova(s), ${res.updated} atualizada(s)).`,
+      );
+      qc.invalidateQueries({ queryKey: ["onboarding-steps", onboardingId] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="bg-surface border border-border rounded-2xl p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
@@ -297,6 +311,23 @@ function OnboardingCard({
                   ? "Pausado"
                   : "Cancelado"}
           </Badge>
+          {!readOnly && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              title="Sincronizar etapas com o modelo (aplica novas etapas e ajustes do template)"
+              onClick={() => syncMut.mutate()}
+              disabled={syncMut.isPending}
+            >
+              {syncMut.isPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="size-3.5" />
+              )}
+              Sincronizar
+            </Button>
+          )}
           {!readOnly && (
             <Button
               asChild
