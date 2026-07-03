@@ -336,6 +336,30 @@ export async function syncOnboardingWithTemplate(onboardingId: string) {
   return { inserted: toInsert.length, updated: toUpdate.length };
 }
 
+/**
+ * Re-sincroniza todas as instâncias de onboarding que usam um modelo específico.
+ * Chamado automaticamente quando o modelo é editado nas configurações.
+ */
+export async function syncAllOnboardingsForTemplate(templateId: string) {
+  const { data, error } = await (supabase as any)
+    .from("onboardings")
+    .select("id")
+    .eq("template_id", templateId)
+    .in("status", ["in_progress", "paused"]);
+  if (error) throw error;
+  const list = (data ?? []) as { id: string }[];
+  let synced = 0;
+  for (const o of list) {
+    try {
+      await syncOnboardingWithTemplate(o.id);
+      synced++;
+    } catch (e) {
+      console.error("sync failed for onboarding", o.id, e);
+    }
+  }
+  return { total: list.length, synced };
+}
+
 export async function updateOnboardingStep(id: string, input: Partial<OnboardingStep>) {
   const payload: any = { ...input };
   if (input.status === "done" && !input.completed_at) {
