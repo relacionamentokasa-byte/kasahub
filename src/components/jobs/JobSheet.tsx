@@ -373,39 +373,35 @@ export function JobSheet({
     }
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !job) return;
-
+  const uploadFiles = async (files: File[]) => {
+    if (!job || files.length === 0) return;
     try {
       setIsUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${job.id}/${Math.random()}.${fileExt}`;
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${job.id}/${Math.random()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('job-attachments')
-        .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from('job-attachments')
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('job-attachments')
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+          .from('job-attachments')
+          .getPublicUrl(filePath);
 
-      await addJobAttachment({
-        job_id: job.id,
-        file_name: file.name,
-        file_url: publicUrl,
-        file_type: file.type,
-        file_size: file.size
-      });
-
-      // Removido addJobComment manual aqui pois o addJobAttachment já deve disparar a criação 
-      // do comentário via trigger no banco ou se for necessário ser manual, deve ser centralizado.
-      // Atualmente parece que o addJobAttachment e addJobComment estão criando o mesmo "evento" visual.
+        await addJobAttachment({
+          job_id: job.id,
+          file_name: file.name,
+          file_url: publicUrl,
+          file_type: file.type,
+          file_size: file.size
+        });
+      }
 
       qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
-      toast.success("Arquivo enviado com sucesso!");
+      toast.success(files.length > 1 ? `${files.length} arquivos enviados!` : "Arquivo enviado com sucesso!");
     } catch (error: any) {
       toast.error("Erro no upload: " + error.message);
     } finally {
@@ -413,6 +409,14 @@ export function JobSheet({
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    await uploadFiles(files);
+  };
+
+  const [isDragging, setIsDragging] = useState(false);
+
 
   const deleteMut = useMutation({
     mutationFn: () => deleteJob(job!.id),
@@ -1096,16 +1100,28 @@ export function JobSheet({
 
                       <div 
                         onClick={() => fileInputRef.current?.click()}
-                        className="border-2 border-dashed border-border rounded-xl p-6 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-2"
+                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (!isDragging) setIsDragging(true); }}
+                        onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
+                        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (e.currentTarget === e.target) setIsDragging(false); }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsDragging(false);
+                          const files = Array.from(e.dataTransfer.files ?? []);
+                          if (files.length) uploadFiles(files);
+                        }}
+                        className={`border-2 border-dashed rounded-xl p-6 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 ${
+                          isDragging ? "border-primary bg-primary/10 scale-[1.01]" : "border-border hover:border-primary/50 hover:bg-primary/5"
+                        }`}
                       >
                         {isUploading ? (
                           <Loader2 className="size-6 text-primary animate-spin" />
                         ) : (
-                          <FileUp className="size-6 text-foreground/20" />
+                          <FileUp className={`size-6 ${isDragging ? "text-primary" : "text-foreground/20"}`} />
                         )}
                         <div className="text-center">
                           <p className="text-xs font-bold text-foreground/60">
-                            {isUploading ? "Enviando arquivo..." : "Clique ou arraste para anexar"}
+                            {isUploading ? "Enviando arquivo..." : isDragging ? "Solte para anexar" : "Clique ou arraste arquivos aqui"}
                           </p>
                           <p className="text-[10px] text-foreground/40 uppercase tracking-widest mt-1">Formatos suportados: PDF, JPG, PNG, DOCX</p>
                         </div>
@@ -1113,6 +1129,7 @@ export function JobSheet({
                           type="file"
                           ref={fileInputRef}
                           className="hidden"
+                          multiple
                           onChange={handleFileUpload}
                         />
                       </div>
