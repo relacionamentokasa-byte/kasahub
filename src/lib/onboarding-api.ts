@@ -243,6 +243,99 @@ export async function createOnboardingFromTemplate(opts: {
   return onb as Onboarding;
 }
 
+/**
+ * Re-sincroniza as etapas de um onboarding com o modelo de origem.
+ * - Insere etapas novas do modelo que ainda não existem na instância (match por título).
+ * - Atualiza descrição, responsável, ordem e prazo (recalculado a partir do start_date) das existentes.
+ * - Preserva status/notas/completed_at das etapas já trabalhadas.
+ * - Não remove etapas customizadas que já existam na instância.
+ */
+export async function syncOnboardingWithTemplate(onboardingId: string) {
+  const onbRes = await (supabase as any)
+    .from("onboardings")
+    .select("*")
+    .eq("id", onboardingId)
+    .single();
+  if (onbRes.error) throw onbRes.error;
+  const onb = onbRes.data as Onboarding;
+  if (!onb.template_id) {
+    throw new Error("Este onboarding não está vinculado a um modelo.");
+  }
+
+  const tplStepsRes = await (supabase as any)
+    .from("onboarding_template_steps")
+    .select("*")
+    .eq("template_id", onb.template_id)
+    .order("order_index", { ascending: true });
+  if (tplStepsRes.error) throw tplStepsRes.error;
+  const tplSteps = tplStepsRes.data as OnboardingTemplateStep[];
+
+  const instRes = await (supabase as any)
+    .from("onboarding_steps")
+    .select("*")
+    .eq("onboarding_id", onboardingId);
+  if (instRes.error) throw instRes.error;
+  const instSteps = instRes.data as OnboardingStep[];
+
+  const start = new Date(onb.start_date + "T00:00:00");
+  const byTitle = new Map(instSteps.map((s) => [s.title.trim().toLowerCase(), s]));
+
+  const toInsert: any[] = [];
+  const toUpdate: { id: string; patch: any }[] = [];
+
+  for (const t of tplSteps) {
+    const due = new Date(start);
+    due.setDate(due.getDate() + t.days_after_start);
+    const dueStr = due.toISOString().slice(0, 10);
+    const key = t.title.trim().toLowerCase();
+    const existing = byTitle.get(key);
+    if (existing) {
+      toUpdate.push({
+        id: existing.id,
+        patch: {
+          description: t.description,
+          responsible_type: t.responsible_type,
+          order_index: t.order_index,
+          // Só atualiza o prazo se a etapa ainda não foi concluída
+          ...(existing.status === "done" ? {} : { due_date: dueStr }),
+        },
+      });
+    } else {
+      toInsert.push({
+        onboarding_id: onboardingId,
+        title: t.title,
+        description: t.description,
+        responsible_type: t.responsible_type,
+        due_date: dueStr,
+        order_index: t.order_index,
+      });
+    }
+  }
+
+  if (toInsert.length > 0) {
+    const { error } = await (supabase as any).from("onboarding_steps").insert(toInsert);
+    if (error) throw error;
+  }
+  for (const u of toUpdate) {
+    const { error } = await (supabase as any)
+      .from("onboarding_steps")
+      .update(u.patch)
+      .eq("id", u.id);
+    if (error) throw error;
+  }
+
+  // Recalcula previsão de término com base no maior prazo do modelo
+  const maxDays = tplSteps.reduce((m, s) => Math.max(m, s.days_after_start), 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + maxDays);
+  await (supabase as any)
+    .from("onboardings")
+    .update({ expected_end_date: end.toISOString().slice(0, 10) })
+    .eq("id", onboardingId);
+
+  return { inserted: toInsert.length, updated: toUpdate.length };
+}
+
 export async function updateOnboardingStep(id: string, input: Partial<OnboardingStep>) {
   const payload: any = { ...input };
   if (input.status === "done" && !input.completed_at) {
