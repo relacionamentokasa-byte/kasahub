@@ -373,39 +373,35 @@ export function JobSheet({
     }
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !job) return;
-
+  const uploadFiles = async (files: File[]) => {
+    if (!job || files.length === 0) return;
     try {
       setIsUploading(true);
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${job.id}/${Math.random()}.${fileExt}`;
+      for (const file of files) {
+        const fileExt = file.name.split('.').pop();
+        const filePath = `${job.id}/${Math.random()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('job-attachments')
-        .upload(filePath, file);
+        const { error: uploadError } = await supabase.storage
+          .from('job-attachments')
+          .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+        if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('job-attachments')
-        .getPublicUrl(filePath);
+        const { data: { publicUrl } } = supabase.storage
+          .from('job-attachments')
+          .getPublicUrl(filePath);
 
-      await addJobAttachment({
-        job_id: job.id,
-        file_name: file.name,
-        file_url: publicUrl,
-        file_type: file.type,
-        file_size: file.size
-      });
-
-      // Removido addJobComment manual aqui pois o addJobAttachment já deve disparar a criação 
-      // do comentário via trigger no banco ou se for necessário ser manual, deve ser centralizado.
-      // Atualmente parece que o addJobAttachment e addJobComment estão criando o mesmo "evento" visual.
+        await addJobAttachment({
+          job_id: job.id,
+          file_name: file.name,
+          file_url: publicUrl,
+          file_type: file.type,
+          file_size: file.size
+        });
+      }
 
       qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
-      toast.success("Arquivo enviado com sucesso!");
+      toast.success(files.length > 1 ? `${files.length} arquivos enviados!` : "Arquivo enviado com sucesso!");
     } catch (error: any) {
       toast.error("Erro no upload: " + error.message);
     } finally {
@@ -413,6 +409,14 @@ export function JobSheet({
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    await uploadFiles(files);
+  };
+
+  const [isDragging, setIsDragging] = useState(false);
+
 
   const deleteMut = useMutation({
     mutationFn: () => deleteJob(job!.id),
