@@ -7,9 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Upload, ImageIcon, BarChart3, LineChart as LineIcon, AreaChart as AreaIcon, PieChart as PieIcon } from "lucide-react";
+import { Plus, Trash2, Upload, ImageIcon, BarChart3, LineChart as LineIcon, AreaChart as AreaIcon, PieChart as PieIcon, GripVertical } from "lucide-react";
 import { uploadReportImage } from "@/lib/reports-api";
 import { toast } from "sonner";
+import {
+  DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, closestCenter,
+} from "@dnd-kit/core";
+import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 export function SlideEditor({
   slide,
@@ -138,6 +143,7 @@ export function SlideEditor({
           items={(p.items || []) as DeliverableItem[]}
           empty={{ label: "Nova entrega", done: true }}
           onChange={(items) => update({ items })}
+          sortable
           renderItem={(it, set) => (
             <div className="flex items-center gap-2">
               <Switch checked={it.done} onCheckedChange={(v) => set({ ...it, done: v })} />
@@ -188,6 +194,27 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function SortableRow({ id, children }: { id: string; children: (dragHandle: React.ReactNode) => React.ReactNode }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
+  const handle = (
+    <button
+      {...attributes}
+      {...listeners}
+      type="button"
+      className="cursor-grab active:cursor-grabbing text-foreground/40 hover:text-foreground shrink-0"
+      aria-label="Arrastar"
+    >
+      <GripVertical className="size-4" />
+    </button>
+  );
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children(handle)}
+    </div>
+  );
+}
+
 function ListEditor<T>({
   label,
   items,
@@ -195,6 +222,7 @@ function ListEditor<T>({
   max,
   onChange,
   renderItem,
+  sortable,
 }: {
   label: string;
   items: T[];
@@ -202,18 +230,44 @@ function ListEditor<T>({
   max?: number;
   onChange: (items: T[]) => void;
   renderItem: (item: T, set: (next: T) => void) => React.ReactNode;
+  sortable?: boolean;
 }) {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
+  const ids = items.map((_, i) => `item-${i}`);
+  const handleDragEnd = (e: DragEndEvent) => {
+    if (!e.over || e.over.id === e.active.id) return;
+    const oldIndex = ids.indexOf(String(e.active.id));
+    const newIndex = ids.indexOf(String(e.over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    onChange(arrayMove(items, oldIndex, newIndex));
+  };
+
+  const row = (it: T, i: number, handle?: React.ReactNode) => (
+    <div className="flex items-start gap-2">
+      {handle}
+      <div className="flex-1">{renderItem(it, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}</div>
+      <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => onChange(items.filter((_, j) => j !== i))}>
+        <Trash2 className="size-3.5" />
+      </Button>
+    </div>
+  );
+
   return (
     <Field label={label}>
       <div className="space-y-2">
-        {items.map((it, i) => (
-          <div key={i} className="flex items-start gap-2">
-            <div className="flex-1">{renderItem(it, (next) => onChange(items.map((x, j) => (j === i ? next : x))))}</div>
-            <Button variant="ghost" size="icon" className="size-8 shrink-0" onClick={() => onChange(items.filter((_, j) => j !== i))}>
-              <Trash2 className="size-3.5" />
-            </Button>
-          </div>
-        ))}
+        {sortable ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+              {items.map((it, i) => (
+                <SortableRow key={ids[i]} id={ids[i]}>
+                  {(handle) => row(it, i, handle)}
+                </SortableRow>
+              ))}
+            </SortableContext>
+          </DndContext>
+        ) : (
+          items.map((it, i) => <div key={i}>{row(it, i)}</div>)
+        )}
         {(!max || items.length < max) && (
           <Button variant="outline" size="sm" className="w-full" onClick={() => onChange([...items, structuredClone(empty)])}>
             <Plus className="size-3.5 mr-1.5" /> Adicionar
