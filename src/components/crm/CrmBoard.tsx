@@ -50,6 +50,10 @@ export function CrmBoard() {
     queryKey: ["crm", "task-counts"],
     queryFn: fetchOpenTaskCounts,
   });
+  const { data: nextTasks = {} } = useQuery({
+    queryKey: ["crm", "next-tasks"],
+    queryFn: fetchNextTasksByLead,
+  });
 
   const [view, setView] = useState<View>("kanban");
   const [activeId, setActiveId] = useState<string | null>(null);
