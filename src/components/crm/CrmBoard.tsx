@@ -403,7 +403,21 @@ function Column({
   );
 }
 
-function LeadCard({ lead, dueTasks = 0, onClick }: { lead: Lead; dueTasks?: number; onClick: () => void }) {
+type ProfileLite = { id: string; display_name?: string | null; full_name?: string | null; avatar_url?: string | null };
+
+function LeadCard({
+  lead,
+  dueTasks = 0,
+  nextTask,
+  profiles = [],
+  onClick,
+}: {
+  lead: Lead;
+  dueTasks?: number;
+  nextTask?: NextLeadTask;
+  profiles?: ProfileLite[];
+  onClick: () => void;
+}) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: lead.id });
   const qc = useQueryClient();
   const delMut = useMutation({
@@ -424,7 +438,7 @@ function LeadCard({ lead, dueTasks = 0, onClick }: { lead: Lead; dueTasks?: numb
         onClick={onClick}
         className="cursor-grab active:cursor-grabbing"
       >
-        <LeadCardInner lead={lead} dueTasks={dueTasks} />
+        <LeadCardInner lead={lead} dueTasks={dueTasks} nextTask={nextTask} profiles={profiles} />
       </div>
       <button
         type="button"
@@ -447,7 +461,41 @@ function daysBetween(from: string) {
   return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
 }
 
-function LeadCardInner({ lead, dragging, dueTasks = 0 }: { lead: Lead; dragging?: boolean; dueTasks?: number }) {
+function formatDueLabel(due: string): { label: string; tone: "overdue" | "today" | "soon" | "later" } {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(due);
+  const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+  const diff = Math.round((targetDay.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+  if (diff < 0) return { label: `atrasada ${Math.abs(diff)}d`, tone: "overdue" };
+  if (diff === 0) return { label: "hoje", tone: "today" };
+  if (diff === 1) return { label: "amanhã", tone: "soon" };
+  if (diff <= 7) return { label: `em ${diff}d`, tone: "soon" };
+  return { label: target.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }), tone: "later" };
+}
+
+const TASK_TYPE_ICON: Record<string, string> = {
+  call: "📞",
+  whatsapp: "💬",
+  email: "✉️",
+  meeting: "📅",
+  follow_up: "🔁",
+  other: "•",
+};
+
+function LeadCardInner({
+  lead,
+  dragging,
+  dueTasks = 0,
+  nextTask,
+  profiles = [],
+}: {
+  lead: Lead;
+  dragging?: boolean;
+  dueTasks?: number;
+  nextTask?: NextLeadTask;
+  profiles?: ProfileLite[];
+}) {
   const days = daysBetween(lead.updated_at || lead.created_at);
   const stuckColor =
     days > 15
@@ -455,6 +503,26 @@ function LeadCardInner({ lead, dragging, dueTasks = 0 }: { lead: Lead; dragging?
       : days > 7
         ? "bg-amber-500/15 text-amber-500"
         : "bg-emerald-500/15 text-emerald-500";
+
+  const responsibleId = nextTask?.assigned_to ?? lead.owner_id ?? null;
+  const responsible = responsibleId ? profiles.find((p) => p.id === responsibleId) : null;
+  const responsibleName = responsible?.display_name || responsible?.full_name || null;
+  const initials = (responsibleName ?? "")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase())
+    .join("");
+
+  const due = nextTask?.due_date ? formatDueLabel(nextTask.due_date) : null;
+  const dueTone =
+    due?.tone === "overdue"
+      ? "bg-destructive/15 text-destructive"
+      : due?.tone === "today"
+        ? "bg-amber-500/15 text-amber-600"
+        : due?.tone === "soon"
+          ? "bg-primary/15 text-primary"
+          : "bg-foreground/10 text-foreground/60";
 
   return (
     <div
@@ -475,6 +543,24 @@ function LeadCardInner({ lead, dragging, dueTasks = 0 }: { lead: Lead; dragging?
           </span>
         )}
       </div>
+
+      {nextTask && (
+        <div
+          className="mt-2 flex items-center gap-1.5 rounded-md bg-surface px-2 py-1 border border-border/60"
+          title={nextTask.title}
+        >
+          <span className="text-[11px]">{TASK_TYPE_ICON[nextTask.type] ?? "•"}</span>
+          <span className="text-[11px] text-foreground/80 truncate flex-1">
+            {nextTask.title}
+          </span>
+          {due && (
+            <span className={`text-[10px] rounded px-1.5 py-0.5 shrink-0 font-semibold ${dueTone}`}>
+              {due.label}
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mt-3 gap-2">
         <div className="flex items-center gap-1.5 min-w-0">
           {lead.source && (
@@ -497,19 +583,39 @@ function LeadCardInner({ lead, dragging, dueTasks = 0 }: { lead: Lead; dragging?
             </span>
           )}
         </div>
-        {lead.phone && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              const phone = lead.phone?.replace(/\D/g, "");
-              if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(`Olá, ${lead.name}. Vi seu interesse em nossos serviços e gostaria de entender melhor sua necessidade.`)}`, "_blank");
-            }}
-            className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-bold hover:underline shrink-0"
-          >
-            <MessageCircle className="size-3" /> WhatsApp
-          </button>
-        )}
+        <div className="flex items-center gap-2 shrink-0">
+          {responsible && (
+            <div
+              className="flex items-center gap-1"
+              title={`Responsável: ${responsibleName}`}
+            >
+              {responsible.avatar_url ? (
+                <img
+                  src={responsible.avatar_url}
+                  alt={responsibleName ?? ""}
+                  className="size-5 rounded-full object-cover border border-border"
+                />
+              ) : (
+                <div className="size-5 rounded-full bg-primary/15 text-primary text-[9px] font-bold grid place-items-center border border-border">
+                  {initials || "?"}
+                </div>
+              )}
+            </div>
+          )}
+          {lead.phone && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const phone = lead.phone?.replace(/\D/g, "");
+                if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(`Olá, ${lead.name}. Vi seu interesse em nossos serviços e gostaria de entender melhor sua necessidade.`)}`, "_blank");
+              }}
+              className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-bold hover:underline shrink-0"
+            >
+              <MessageCircle className="size-3" /> WhatsApp
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
