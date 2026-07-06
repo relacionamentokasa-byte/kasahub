@@ -477,6 +477,14 @@ function LeadCardInner({ lead, dragging, dueTasks = 0 }: { lead: Lead; dragging?
           >
             {days}d
           </span>
+          {dueTasks > 0 && (
+            <span
+              className="text-[10px] rounded px-1.5 py-0.5 shrink-0 bg-destructive/15 text-destructive font-semibold flex items-center gap-0.5"
+              title={`${dueTasks} tarefa(s) para hoje ou atrasadas`}
+            >
+              🔔 {dueTasks}
+            </span>
+          )}
         </div>
         {lead.phone && (
           <button
