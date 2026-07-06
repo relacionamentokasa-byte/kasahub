@@ -448,3 +448,184 @@ function ActivityIcon({ type }: { type: string }) {
     </div>
   );
 }
+
+function TasksSection({ leadId, tasks }: { leadId: string; tasks: LeadTask[] }) {
+  const qc = useQueryClient();
+  const [title, setTitle] = useState("");
+  const [type, setType] = useState<string>("follow_up");
+  const [dueIn, setDueIn] = useState<string>("3");
+
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: ["crm", "tasks", leadId] });
+    qc.invalidateQueries({ queryKey: ["crm", "task-counts"] });
+  };
+
+  const createMut = useMutation({
+    mutationFn: () => {
+      const days = Number(dueIn);
+      const due =
+        Number.isFinite(days) && days >= 0
+          ? new Date(Date.now() + days * 86400000).toISOString()
+          : null;
+      return createLeadTask({
+        lead_id: leadId,
+        title: title.trim(),
+        type,
+        due_date: due,
+      });
+    },
+    onSuccess: () => {
+      setTitle("");
+      invalidate();
+      toast.success("Tarefa criada");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const completeMut = useMutation({
+    mutationFn: (id: string) => completeLeadTask(id),
+    onSuccess: invalidate,
+  });
+  const reopenMut = useMutation({
+    mutationFn: (id: string) =>
+      updateLeadTask(id, { status: "pending", completed_at: null }),
+    onSuccess: invalidate,
+  });
+  const delMut = useMutation({
+    mutationFn: (id: string) => deleteLeadTask(id),
+    onSuccess: invalidate,
+  });
+
+  const now = Date.now();
+
+  return (
+    <div className="border-t border-border pt-5 mt-2">
+      <h3 className="font-display font-semibold text-sm capitalize text-foreground/60 mb-3 flex items-center gap-2">
+        <Bell className="size-4" /> Tarefas & Follow-ups
+      </h3>
+
+      <div className="flex flex-wrap gap-2 mb-3">
+        <Select value={type} onValueChange={setType}>
+          <SelectTrigger className="w-36 bg-background">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TASK_TYPES.map((t) => (
+              <SelectItem key={t.value} value={t.value}>
+                {t.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Input
+          placeholder="Ex.: ligar para confirmar reunião"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && title.trim()) createMut.mutate();
+          }}
+          className="flex-1 min-w-[180px]"
+        />
+        <div className="flex items-center gap-1 bg-background border border-border rounded-md px-2">
+          <Label className="text-[10px] text-foreground/50">Vencer em</Label>
+          <Input
+            type="number"
+            min={0}
+            value={dueIn}
+            onChange={(e) => setDueIn(e.target.value)}
+            className="w-14 h-8 border-none bg-transparent"
+          />
+          <span className="text-[10px] text-foreground/50">dias</span>
+        </div>
+        <Button
+          size="sm"
+          onClick={() => title.trim() && createMut.mutate()}
+          disabled={!title.trim() || createMut.isPending}
+          className="gap-1.5"
+        >
+          <Plus className="size-3.5" /> Adicionar
+        </Button>
+      </div>
+
+      <ul className="space-y-2">
+        {tasks.map((t) => {
+          const isDone = t.status === "done";
+          const overdue =
+            !isDone && t.due_date && new Date(t.due_date).getTime() < now;
+          const dueLabel = t.due_date
+            ? new Date(t.due_date).toLocaleDateString("pt-BR", {
+                day: "2-digit",
+                month: "2-digit",
+              })
+            : null;
+          return (
+            <li
+              key={t.id}
+              className={cn(
+                "flex items-start gap-3 border rounded-lg p-3 group/task",
+                isDone
+                  ? "bg-background/30 border-border opacity-60"
+                  : overdue
+                    ? "bg-destructive/5 border-destructive/40"
+                    : "bg-background/50 border-border",
+              )}
+            >
+              <button
+                onClick={() =>
+                  isDone ? reopenMut.mutate(t.id) : completeMut.mutate(t.id)
+                }
+                className="mt-0.5"
+                aria-label={isDone ? "Reabrir" : "Concluir"}
+              >
+                {isDone ? (
+                  <CheckSquare className="size-4 text-primary" />
+                ) : (
+                  <Square className="size-4 text-foreground/40 hover:text-primary" />
+                )}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p
+                  className={cn(
+                    "text-sm text-foreground/90",
+                    isDone && "line-through",
+                  )}
+                >
+                  {t.title}
+                </p>
+                <div className="flex items-center gap-2 mt-1 text-[10px] text-foreground/50">
+                  <span className="uppercase tracking-wide">
+                    {TASK_TYPES.find((x) => x.value === t.type)?.label ??
+                      t.type}
+                  </span>
+                  {dueLabel && (
+                    <span
+                      className={cn(
+                        overdue && !isDone && "text-destructive font-semibold",
+                      )}
+                    >
+                      • Vence {dueLabel}
+                    </span>
+                  )}
+                  {t.auto_generated && <span>• automática</span>}
+                </div>
+              </div>
+              <button
+                onClick={() => delMut.mutate(t.id)}
+                className="text-foreground/30 hover:text-destructive opacity-0 group-hover/task:opacity-100 transition"
+                aria-label="Excluir"
+              >
+                <Trash2 className="size-3.5" />
+              </button>
+            </li>
+          );
+        })}
+        {tasks.length === 0 && (
+          <p className="text-xs text-foreground/40 text-center py-4">
+            Nenhuma tarefa. Ao mover o lead entre etapas, follow-ups
+            automáticos aparecem aqui.
+          </p>
+        )}
+      </ul>
+    </div>
+  );
+}
