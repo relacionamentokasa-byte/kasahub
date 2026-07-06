@@ -92,6 +92,11 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
     queryFn: () => fetchActivities(lead.id),
   });
 
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["crm", "tasks", lead.id],
+    queryFn: () => fetchLeadTasks(lead.id),
+  });
+
   const saveMut = useMutation({
     mutationFn: () =>
       updateLead(lead.id, {
@@ -103,10 +108,21 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
         source: form.source,
         notes: form.notes,
         stage_id: form.stage_id,
+        contact_status: form.contact_status,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
       toast.success("Lead atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const contactStatusMut = useMutation({
+    mutationFn: (status: string) =>
+      updateLead(lead.id, { contact_status: status }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "leads"] });
+      toast.success("Status atualizado");
     },
     onError: (e: Error) => toast.error(e.message),
   });
