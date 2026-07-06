@@ -1,80 +1,71 @@
-# Estruturando o CRM: funil visual + melhorias para a equipe
+## Objetivo
+Fazer o CRM mostrar, direto no card do lead, o próximo follow-up pendente e o responsável — e garantir que esse responsável seja notificado quando a tarefa chegar (ou atrasar).
 
-## 1. Nova visualização "Funil" no CRM
+## O que muda na tela do CRM (`CrmBoard` + card do lead)
 
-Hoje o CRM tem apenas o board Kanban. Vou adicionar uma **segunda aba** ao lado do funil comercial, com um toggle no topo:
+Hoje o card só mostra um badge com a contagem de tarefas vencidas. Vamos enriquecer:
 
-```
-[ Kanban ] [ Funil ]   (mesma página /crm)
-```
+1. **Próximo follow-up no card**
+   - Buscar, por lead, a tarefa `pending` mais próxima (menor `due_date`).
+   - Exibir no card uma linha compacta com:
+     - ícone do tipo (ligação, whatsapp, e-mail, reunião…)
+     - título curto da tarefa
+     - data relativa ("hoje", "amanhã", "em 3 dias", "atrasada há 2 dias") com cor:
+       - vermelho = atrasada
+       - âmbar = hoje
+       - normal = futuro
+   - Clique na linha abre o `LeadSheet` já na aba de tarefas.
 
-### Como o funil vai parecer
+2. **Responsável no card**
+   - Mostrar avatar + nome curto do `assigned_to` da próxima tarefa (fallback: `owner_id` do lead).
+   - Tooltip com nome completo.
 
-Formato de funil real (trapézios empilhados), cada faixa representa uma etapa da `lead_stages`, com largura proporcional à quantidade de leads e cor da etapa. Dentro de cada faixa:
+3. **Filtro no topo do board**
+   - Toggle "Meus leads" (owner_id = usuário atual) e "Minhas tarefas hoje" (leads onde há tarefa minha vencendo hoje/atrasada).
 
-- Nome da etapa + contagem de leads + valor total (R$)
-- Taxa de conversão para a próxima etapa (%)
-- Ao clicar na faixa → abre um painel lateral listando **quais leads estão ali**, com foto/nome/empresa/valor. Clicar num lead abre o `LeadSheet` já existente.
+4. **Painel lateral "Follow-ups de hoje"** (opcional dentro desta fase, mesmo componente da tela CRM)
+   - Lista agrupada por: Atrasadas / Hoje / Amanhã, com botão "Concluir" e "Reagendar +1 dia".
 
-Ao lado do funil, um resumo:
-- Total de leads no funil
-- Valor total em pipeline
-- Ticket médio
-- Taxa de conversão geral (primeira etapa → etapa "ganha")
-- Tempo médio por etapa (dias que o lead ficou parado)
+## Como o responsável é notificado
 
-```text
-   ┌─────────────────────────────┐  Novo lead      42  R$ 210k
-   └───┐                     ┌───┘  ↓ 71%
-       │  Qualificado    30  │      R$ 180k
-       └──┐               ┌──┘      ↓ 60%
-          │ Proposta   18 │         R$ 145k
-          └─┐           ┌─┘         ↓ 44%
-            │ Ganho   8 │           R$ 80k
-            └───────────┘
-```
+Já existe:
+- `lead_tasks.assigned_to`
+- rota `/api/public/hooks/lead-task-reminders` que insere em `notificacoes` para tarefas vencidas/hoje
+- `useRealtimeNotifications` que faz popup + som no cliente
 
-## 2. Melhorias sugeridas para a equipe usar o CRM
+Falta o agendamento e alguns gatilhos extras:
 
-Marquei o que eu recomendo incluir já nesta rodada com **[incluir]**. O resto fica para você escolher o que quer priorizar depois.
+1. **Cron diário (pg_cron + pg_net)**
+   - Job `lead-task-daily-reminders` às 08:00 (horário do servidor) chamando o endpoint existente com `apikey` = anon key. Uma execução por dia gera os avisos de "tarefa para hoje" e "atrasada".
 
-**Visão e produtividade**
-- **[incluir]** Toggle Kanban ⇄ Funil (item 1 acima)
-- **[incluir]** Card do lead mostrando **dias parado na etapa** (com cor: verde <7d, amarelo 7–15d, vermelho >15d) — evita lead esquecido
-- **[incluir]** Filtro por responsável e por origem no topo do board/funil
-- **[incluir]** KPIs no topo da página: leads no mês, taxa de conversão, ticket médio, valor ganho no mês
+2. **Cron de manhã cedo para o próximo dia** (opcional, mesmo endpoint com parâmetro)
+   - Segundo `cron.schedule` às 18:00 enviando "amanhã você tem X follow-ups", reutilizando o mesmo handler com querystring `?scope=tomorrow`. Se preferir simplificar, ficamos só com o das 08:00.
 
-**Ação e follow-up**
-- Tarefas / follow-ups com data no lead (aparecem no dashboard "Meu Dia")
-- Templates de mensagem de WhatsApp editáveis nas configurações (hoje estão fixos no código)
-- Lembretes automáticos quando um lead fica X dias parado (notificação para o responsável)
+3. **Notificação instantânea ao criar/atribuir tarefa**
+   - Trigger `AFTER INSERT OR UPDATE OF assigned_to ON lead_tasks`:
+     - Se `assigned_to` mudou e não é o próprio usuário logado, insere em `notificacoes` (`tipo = 'lead_task'`, link `/crm?leadId=…`) para o novo responsável: "Nova tarefa atribuída a você — {título} · {lead}".
+   - Não dispara para tarefas `auto_generated` sem responsável definido.
 
-**Análise**
-- Relatório de motivos de perda (campo "motivo" ao mover para etapa perdida + gráfico)
-- Evolução mensal de leads criados x ganhos (gráfico de linha)
-- Ranking de vendedores (leads convertidos, valor fechado)
+4. **Notificação ao mover o lead de etapa**
+   - O trigger `fn_lead_auto_followup` já cria a tarefa automática ao trocar `stage_id`. Vamos estender para também notificar o `assigned_to` daquela tarefa recém-criada ("Follow-up agendado para {data} · {lead}").
 
-**Colaboração e qualidade de dados**
-- Atribuir responsável ao lead (owner visível no card)
-- Deduplicação: aviso ao criar lead com e-mail ou telefone já existentes
-- Importação em massa via CSV
-- Histórico de mudança de etapa (já existe `lead_activities`, expor um timeline visual no `LeadSheet`)
+5. **Deduplicação**
+   - Mantemos o filtro atual no endpoint (chave `user_id::mensagem` do dia) para não spammar.
 
-## 3. O que faço agora
+## Dados/consultas
 
-Nesta implementação vou entregar apenas os itens marcados **[incluir]**:
+- Nova função em `src/lib/lead-tasks-api.ts`: `fetchNextTasksByLead()` → devolve `Map<lead_id, { id, title, type, due_date, assigned_to }>` (uma query, `distinct on (lead_id)` ordenada por `due_date asc`).
+- Reaproveitar `fetchOpenTaskCounts` para o badge.
+- Um único hook `useLeadTasksSummary` no `CrmBoard` alimenta os cards.
 
-1. Aba "Funil" no `/crm` com visualização de funil clicável
-2. Indicador de dias parado nos cards do Kanban
-3. Filtro por responsável e origem no topo
-4. Barra de KPIs no topo da página
+## Arquivos afetados
 
-Os demais itens da lista ficam como próximas rodadas — me diga quais quer priorizar em seguida.
+- `src/components/crm/CrmBoard.tsx` — filtros novos, passar summary aos cards.
+- `src/components/crm/LeadCard` (dentro de `CrmBoard.tsx` ou extraído) — linha do próximo follow-up + avatar do responsável.
+- `src/lib/lead-tasks-api.ts` — `fetchNextTasksByLead`, tipos auxiliares.
+- `supabase/migrations/*` — trigger de notificação em atribuição de tarefa; extensão do `fn_lead_auto_followup`; `cron.schedule` chamando o endpoint.
+- Nenhum arquivo novo de rota é necessário (endpoint de lembrete já existe).
 
-## Detalhes técnicos
-
-- Novo componente `src/components/crm/CrmFunnel.tsx` (SVG com trapézios; reusa `fetchStages` e `fetchLeads` do `crm-api.ts`)
-- `CrmBoard.tsx` vira wrapper com toggle e passa a chamar `<CrmKanban>` (renomeando o conteúdo atual) ou `<CrmFunnel>`
-- Barra de KPIs e filtros extraídos para `src/components/crm/CrmHeader.tsx` para serem compartilhados
-- Cálculo de "dias parado" a partir de `updated_at` do lead (já existe na tabela `leads`); se preferir precisão real por etapa, adicionamos depois um campo `stage_changed_at` via migration
-- Nenhuma alteração de schema nesta rodada
+## Fora do escopo
+- Envio por e-mail/WhatsApp (só notificação in-app + som, que já é o padrão do sistema).
+- Reordenação/kanban do painel "hoje" — só listagem simples com concluir/reagendar.
