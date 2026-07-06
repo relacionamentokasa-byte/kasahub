@@ -10,7 +10,16 @@ import {
   DragOverlay,
 } from "@dnd-kit/core";
 import { useDroppable, useDraggable } from "@dnd-kit/core";
-import { Plus, Trophy, Search, MessageCircle, Filter, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Trophy,
+  Search,
+  MessageCircle,
+  Filter,
+  Trash2,
+  LayoutGrid,
+  Filter as FunnelIcon,
+} from "lucide-react";
 import {
   fetchStages,
   fetchLeads,
@@ -21,33 +30,53 @@ import {
   type Lead,
   type Stage,
 } from "@/lib/crm-api";
+import { fetchProfiles } from "@/lib/profile-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewLeadDialog } from "./NewLeadDialog";
 import { LeadSheet } from "./LeadSheet";
+import { CrmFunnel } from "./CrmFunnel";
 import { toast } from "sonner";
+
+type View = "kanban" | "funnel";
 
 export function CrmBoard() {
   const qc = useQueryClient();
   const { data: stages = [] } = useQuery({ queryKey: ["crm", "stages"], queryFn: fetchStages });
   const { data: leads = [] } = useQuery({ queryKey: ["crm", "leads"], queryFn: fetchLeads });
+  const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
+  const [view, setView] = useState<View>("kanban");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [openLead, setOpenLead] = useState<Lead | null>(null);
   const [newLeadStage, setNewLeadStage] = useState<Stage | null>(null);
   const [query, setQuery] = useState("");
   const [whatsappFilter, setWhatsappFilter] = useState<"all" | "yes" | "no">("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const sources = useMemo(() => {
+    const set = new Set<string>();
+    for (const l of leads) if (l.source) set.add(l.source);
+    return Array.from(set).sort();
+  }, [leads]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = leads;
 
-    if (whatsappFilter === "yes") {
-      list = list.filter((l) => !!l.phone);
-    } else if (whatsappFilter === "no") {
-      list = list.filter((l) => !l.phone);
+    if (whatsappFilter === "yes") list = list.filter((l) => !!l.phone);
+    else if (whatsappFilter === "no") list = list.filter((l) => !l.phone);
+
+    if (ownerFilter !== "all") {
+      list = list.filter((l) =>
+        ownerFilter === "unassigned" ? !l.owner_id : l.owner_id === ownerFilter,
+      );
+    }
+    if (sourceFilter !== "all") {
+      list = list.filter((l) => (l.source ?? "") === sourceFilter);
     }
 
     if (!q) return list;
@@ -57,7 +86,7 @@ export function CrmBoard() {
         (l.company ?? "").toLowerCase().includes(q) ||
         (l.email ?? "").toLowerCase().includes(q),
     );
-  }, [leads, query, whatsappFilter]);
+  }, [leads, query, whatsappFilter, ownerFilter, sourceFilter]);
 
   const byStage = useMemo(() => {
     const m = new Map<string, Lead[]>();
@@ -67,6 +96,28 @@ export function CrmBoard() {
     }
     return m;
   }, [stages, filtered]);
+
+  // KPIs
+  const kpis = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const wonStages = new Set(stages.filter((s) => s.is_won).map((s) => s.id));
+    const monthLeads = leads.filter((l) => new Date(l.created_at) >= start);
+    const wonAll = leads.filter((l) => l.stage_id && wonStages.has(l.stage_id));
+    const wonMonth = wonAll.filter((l) => l.won_at && new Date(l.won_at) >= start);
+    const wonValueMonth = wonMonth.reduce((a, l) => a + Number(l.value), 0);
+    const pipelineValue = leads
+      .filter((l) => l.stage_id && !wonStages.has(l.stage_id))
+      .reduce((a, l) => a + Number(l.value), 0);
+    const convRate =
+      leads.length > 0 ? Math.round((wonAll.length / leads.length) * 100) : 0;
+    return {
+      monthLeads: monthLeads.length,
+      convRate,
+      wonValueMonth,
+      pipelineValue,
+    };
+  }, [leads, stages]);
 
   const moveMut = useMutation({
     mutationFn: async ({ id, stageId, stage }: { id: string; stageId: string; stage: Stage }) => {
@@ -118,6 +169,28 @@ export function CrmBoard() {
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="flex bg-surface border border-border rounded-lg p-1">
+            <button
+              onClick={() => setView("kanban")}
+              className={`h-8 px-3 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
+                view === "kanban"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-foreground/60 hover:text-foreground"
+              }`}
+            >
+              <LayoutGrid className="size-3.5" /> Kanban
+            </button>
+            <button
+              onClick={() => setView("funnel")}
+              className={`h-8 px-3 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
+                view === "funnel"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-foreground/60 hover:text-foreground"
+              }`}
+            >
+              <FunnelIcon className="size-3.5" /> Funil
+            </button>
+          </div>
           <div className="relative flex-1 sm:flex-none min-w-[120px]">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
@@ -126,6 +199,37 @@ export function CrmBoard() {
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9 h-11 sm:h-10 w-full sm:w-56 bg-surface border-border"
             />
+          </div>
+          <div className="flex items-center gap-2 bg-surface border border-border px-3 h-11 sm:h-10 rounded-lg">
+            <Filter className="size-3.5 text-foreground/40" />
+            <select
+              value={ownerFilter}
+              onChange={(e) => setOwnerFilter(e.target.value)}
+              className="bg-transparent border-none outline-none text-xs text-foreground/70"
+            >
+              <option value="all">Todos responsáveis</option>
+              <option value="unassigned">Sem responsável</option>
+              {profiles.map((p: any) => (
+                <option key={p.id} value={p.id}>
+                  {p.display_name || p.full_name || "—"}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 bg-surface border border-border px-3 h-11 sm:h-10 rounded-lg">
+            <Filter className="size-3.5 text-foreground/40" />
+            <select
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+              className="bg-transparent border-none outline-none text-xs text-foreground/70"
+            >
+              <option value="all">Todas origens</option>
+              {sources.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex-1 sm:flex-none flex items-center gap-2 bg-surface border border-border px-3 h-11 sm:h-10 rounded-lg">
             <Filter className="size-3.5 text-foreground/40" />
@@ -148,32 +252,46 @@ export function CrmBoard() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-10">
-        <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-          <div className="flex gap-4 min-w-max h-full">
-            {stages.map((stage) => {
-              const cards = byStage.get(stage.id) ?? [];
-              const total = cards.reduce((acc, l) => acc + Number(l.value), 0);
-              return (
-                <Column
-                  key={stage.id}
-                  stage={stage}
-                  total={total}
-                  count={cards.length}
-                  onAdd={() => setNewLeadStage(stage)}
-                >
-                  {cards.map((lead) => (
-                    <LeadCard key={lead.id} lead={lead} onClick={() => setOpenLead(lead)} />
-                  ))}
-                </Column>
-              );
-            })}
-          </div>
-          <DragOverlay>
-            {activeLead ? <LeadCardInner lead={activeLead} dragging /> : null}
-          </DragOverlay>
-        </DndContext>
+      {/* KPIs */}
+      <div className="px-4 sm:px-6 lg:px-10 pb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiCard label="Novos leads no mês" value={String(kpis.monthLeads)} />
+        <KpiCard label="Conversão geral" value={`${kpis.convRate}%`} />
+        <KpiCard label="Valor ganho no mês" value={formatCurrency(kpis.wonValueMonth)} />
+        <KpiCard label="Pipeline em aberto" value={formatCurrency(kpis.pipelineValue)} />
       </div>
+
+      {view === "kanban" ? (
+        <div className="flex-1 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-10">
+          <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+            <div className="flex gap-4 min-w-max h-full">
+              {stages.map((stage) => {
+                const cards = byStage.get(stage.id) ?? [];
+                const total = cards.reduce((acc, l) => acc + Number(l.value), 0);
+                return (
+                  <Column
+                    key={stage.id}
+                    stage={stage}
+                    total={total}
+                    count={cards.length}
+                    onAdd={() => setNewLeadStage(stage)}
+                  >
+                    {cards.map((lead) => (
+                      <LeadCard key={lead.id} lead={lead} onClick={() => setOpenLead(lead)} />
+                    ))}
+                  </Column>
+                );
+              })}
+            </div>
+            <DragOverlay>
+              {activeLead ? <LeadCardInner lead={activeLead} dragging /> : null}
+            </DragOverlay>
+          </DndContext>
+        </div>
+      ) : (
+        <div className="flex-1 px-4 sm:px-6 lg:px-10 pb-10">
+          <CrmFunnel stages={stages} leads={filtered} onOpenLead={setOpenLead} />
+        </div>
+      )}
 
       {newLeadStage && (
         <NewLeadDialog
@@ -182,6 +300,19 @@ export function CrmBoard() {
         />
       )}
       <LeadSheet lead={openLead} stages={stages} onClose={() => setOpenLead(null)} />
+    </div>
+  );
+}
+
+function KpiCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-surface border border-border rounded-xl px-4 py-3">
+      <div className="text-[10px] uppercase tracking-wide text-foreground/50">
+        {label}
+      </div>
+      <div className="font-display font-bold text-xl text-foreground mt-1">
+        {value}
+      </div>
     </div>
   );
 }
@@ -295,7 +426,20 @@ function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
   );
 }
 
+function daysBetween(from: string) {
+  const ms = Date.now() - new Date(from).getTime();
+  return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
+}
+
 function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
+  const days = daysBetween(lead.updated_at || lead.created_at);
+  const stuckColor =
+    days > 15
+      ? "bg-destructive/15 text-destructive"
+      : days > 7
+        ? "bg-amber-500/15 text-amber-500"
+        : "bg-emerald-500/15 text-emerald-500";
+
   return (
     <div
       className={`bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition ${
@@ -315,12 +459,20 @@ function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
           </span>
         )}
       </div>
-      <div className="flex items-center justify-between mt-3">
-        {lead.source && (
-          <span className="text-[10px] capitalize text-foreground/40 border border-border rounded px-1.5 py-0.5">
-            {lead.source}
+      <div className="flex items-center justify-between mt-3 gap-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          {lead.source && (
+            <span className="text-[10px] capitalize text-foreground/40 border border-border rounded px-1.5 py-0.5 truncate">
+              {lead.source}
+            </span>
+          )}
+          <span
+            className={`text-[10px] rounded px-1.5 py-0.5 shrink-0 ${stuckColor}`}
+            title={`Sem movimentação há ${days} dias`}
+          >
+            {days}d
           </span>
-        )}
+        </div>
         {lead.phone && (
           <button
             type="button"
@@ -329,7 +481,7 @@ function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
               const phone = lead.phone?.replace(/\D/g, "");
               if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(`Olá, ${lead.name}. Vi seu interesse em nossos serviços e gostaria de entender melhor sua necessidade.`)}`, "_blank");
             }}
-            className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-bold hover:underline"
+            className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-bold hover:underline shrink-0"
           >
             <MessageCircle className="size-3" /> WhatsApp
           </button>
