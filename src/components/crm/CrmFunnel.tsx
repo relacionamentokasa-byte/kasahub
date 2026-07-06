@@ -23,13 +23,30 @@ export function CrmFunnel({
     });
   }, [stages, leads]);
 
-  const maxCount = Math.max(1, ...rows.map((r) => r.items.length));
+  // Compute monotonically non-increasing widths so it always looks like a funnel.
+  // Width per row is proportional to the max count seen up to that row divided by
+  // the top stage count — this way later stages never get wider than earlier ones.
+  const topCount = Math.max(1, rows[0]?.items.length ?? 0);
+  const MIN_W = 22; // % — narrowest tip
+  const MAX_W = 100; // % — widest top
+  let runningMax = rows[0]?.items.length ?? 0;
+  const widths = rows.map((r) => {
+    runningMax = Math.min(runningMax, Math.max(r.items.length, 0));
+    const ratio = topCount > 0 ? runningMax / topCount : 0;
+    return MIN_W + ratio * (MAX_W - MIN_W);
+  });
+  // Ensure strictly non-increasing and add a subtle taper on the last row.
+  for (let i = 1; i < widths.length; i++) {
+    if (widths[i] > widths[i - 1]) widths[i] = widths[i - 1];
+  }
+  const bottomWidth = Math.max(MIN_W, (widths[widths.length - 1] ?? MIN_W) - 8);
+
   const openRow = openStageId ? rows.find((r) => r.stage.id === openStageId) ?? null : null;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 h-full">
       {/* Funnel */}
-      <div className="bg-surface/40 border border-border rounded-2xl p-6 flex flex-col gap-2 overflow-hidden">
+      <div className="bg-surface/40 border border-border rounded-2xl p-6 flex flex-col overflow-hidden">
         {rows.length === 0 && (
           <div className="text-center text-sm text-foreground/40 py-16">
             Sem etapas cadastradas.
@@ -37,10 +54,8 @@ export function CrmFunnel({
         )}
         {rows.map((row, i) => {
           const next = rows[i + 1];
-          const widthPct = 30 + (row.items.length / maxCount) * 70; // 30–100%
-          const nextWidthPct = next
-            ? 30 + (next.items.length / maxCount) * 70
-            : Math.max(20, widthPct - 15);
+          const topW = widths[i];
+          const bottomW = next ? widths[i + 1] : bottomWidth;
           const conversion =
             next && row.items.length > 0
               ? Math.round((next.items.length / row.items.length) * 100)
@@ -51,32 +66,37 @@ export function CrmFunnel({
               <button
                 type="button"
                 onClick={() => setOpenStageId(row.stage.id)}
-                className="w-full group"
+                className="w-full group relative"
                 aria-label={`Ver leads em ${row.stage.name}`}
               >
-                <div className="relative mx-auto" style={{ width: "100%" }}>
+                <div className="relative w-full h-20">
                   <svg
                     viewBox="0 0 100 20"
                     preserveAspectRatio="none"
-                    className="w-full h-16 transition group-hover:opacity-90"
+                    className="absolute inset-0 w-full h-full transition group-hover:opacity-95"
                   >
+                    <defs>
+                      <linearGradient id={`grad-${row.stage.id}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={row.stage.color} stopOpacity="1" />
+                        <stop offset="100%" stopColor={row.stage.color} stopOpacity="0.75" />
+                      </linearGradient>
+                    </defs>
                     <polygon
-                      points={`${50 - widthPct / 2},0 ${50 + widthPct / 2},0 ${50 + nextWidthPct / 2},20 ${50 - nextWidthPct / 2},20`}
-                      fill={row.stage.color}
-                      opacity={0.85}
-                      stroke={row.stage.color}
-                      strokeWidth={0.3}
+                      points={`${50 - topW / 2},0 ${50 + topW / 2},0 ${50 + bottomW / 2},20 ${50 - bottomW / 2},20`}
+                      fill={`url(#grad-${row.stage.id})`}
+                      stroke="rgba(0,0,0,0.15)"
+                      strokeWidth={0.2}
                     />
                   </svg>
-                  <div className="absolute inset-0 flex items-center justify-between px-6 pointer-events-none">
-                    <div className="flex items-center gap-2 text-white drop-shadow">
+                  <div className="absolute inset-0 flex items-center justify-between px-8 pointer-events-none">
+                    <div className="flex items-center gap-2 text-white drop-shadow-md">
                       <span className="font-display font-semibold text-sm">
                         {row.stage.name}
                       </span>
                       {row.stage.is_won && <Trophy className="size-3.5" />}
                     </div>
-                    <div className="flex items-center gap-4 text-white drop-shadow">
-                      <span className="font-display font-bold text-lg">
+                    <div className="flex items-center gap-4 text-white drop-shadow-md">
+                      <span className="font-display font-bold text-xl leading-none">
                         {row.items.length}
                       </span>
                       <span className="text-[11px] opacity-90">
