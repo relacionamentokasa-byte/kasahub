@@ -688,6 +688,29 @@ function TasksSection({
                   )}
                   {t.auto_generated && <span>• automática</span>}
                 </div>
+                <div className="mt-2">
+                  <Select
+                    value={t.assigned_to ?? "unassigned"}
+                    onValueChange={(v) =>
+                      reassignMut.mutate({
+                        id: t.id,
+                        assigned_to: v === "unassigned" ? null : v,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-7 text-[11px] bg-background w-56">
+                      <SelectValue placeholder="Responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Sem responsável</SelectItem>
+                      {profiles.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.display_name || p.full_name || "—"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <button
                 onClick={() => delMut.mutate(t.id)}
