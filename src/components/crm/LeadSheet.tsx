@@ -385,7 +385,12 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
           </Button>
         </div>
 
-        <TasksSection leadId={lead.id} tasks={tasks} />
+        <TasksSection
+          leadId={lead.id}
+          tasks={tasks}
+          profiles={profiles as any}
+          defaultAssignee={form.owner_id ?? null}
+        />
 
         <div className="border-t border-border pt-5 mt-2">
           <h3 className="font-display font-semibold text-sm capitalize text-foreground/60 mb-3 flex items-center gap-2">
