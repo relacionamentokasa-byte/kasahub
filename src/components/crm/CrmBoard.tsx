@@ -436,7 +436,7 @@ function daysBetween(from: string) {
   return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
 }
 
-function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
+function LeadCardInner({ lead, dragging, dueTasks = 0 }: { lead: Lead; dragging?: boolean; dueTasks?: number }) {
   const days = daysBetween(lead.updated_at || lead.created_at);
   const stuckColor =
     days > 15
