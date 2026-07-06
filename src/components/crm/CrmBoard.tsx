@@ -413,7 +413,7 @@ function LeadCard({ lead, dueTasks = 0, onClick }: { lead: Lead; dueTasks?: numb
         onClick={onClick}
         className="cursor-grab active:cursor-grabbing"
       >
-        <LeadCardInner lead={lead} />
+        <LeadCardInner lead={lead} dueTasks={dueTasks} />
       </div>
       <button
         type="button"
