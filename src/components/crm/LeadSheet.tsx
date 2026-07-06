@@ -481,29 +481,62 @@ function ActivityIcon({ type }: { type: string }) {
   );
 }
 
-function TasksSection({ leadId, tasks }: { leadId: string; tasks: LeadTask[] }) {
+type ProfileLite = { id: string; display_name?: string | null; full_name?: string | null; avatar_url?: string | null };
+
+function TasksSection({
+  leadId,
+  tasks,
+  profiles = [],
+  defaultAssignee = null,
+}: {
+  leadId: string;
+  tasks: LeadTask[];
+  profiles?: ProfileLite[];
+  defaultAssignee?: string | null;
+}) {
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
   const [type, setType] = useState<string>("follow_up");
   const [dueIn, setDueIn] = useState<string>("3");
+  const [assignee, setAssignee] = useState<string>("me");
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["crm", "tasks", leadId] });
     qc.invalidateQueries({ queryKey: ["crm", "task-counts"] });
+    qc.invalidateQueries({ queryKey: ["crm", "next-tasks"] });
   };
 
+  const reassignMut = useMutation({
+    mutationFn: ({ id, assigned_to }: { id: string; assigned_to: string | null }) =>
+      updateLeadTask(id, { assigned_to }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const createMut = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const days = Number(dueIn);
       const due =
         Number.isFinite(days) && days >= 0
           ? new Date(Date.now() + days * 86400000).toISOString()
           : null;
+      let assigned: string | null = null;
+      if (assignee === "me") {
+        const { data } = await supabase.auth.getUser();
+        assigned = data.user?.id ?? null;
+      } else if (assignee === "lead_owner") {
+        assigned = defaultAssignee;
+      } else if (assignee === "unassigned") {
+        assigned = null;
+      } else {
+        assigned = assignee;
+      }
       return createLeadTask({
         lead_id: leadId,
         title: title.trim(),
         type,
         due_date: due,
+        assigned_to: assigned,
       });
     },
     onSuccess: () => {
