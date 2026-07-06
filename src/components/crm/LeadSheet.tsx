@@ -602,6 +602,21 @@ function TasksSection({
           />
           <span className="text-[10px] text-foreground/50">dias</span>
         </div>
+        <Select value={assignee} onValueChange={setAssignee}>
+          <SelectTrigger className="w-44 bg-background">
+            <SelectValue placeholder="Responsável" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="me">Eu (padrão)</SelectItem>
+            <SelectItem value="lead_owner">Responsável do lead</SelectItem>
+            <SelectItem value="unassigned">Sem responsável</SelectItem>
+            {profiles.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.display_name || p.full_name || "—"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button
           size="sm"
           onClick={() => title.trim() && createMut.mutate()}
