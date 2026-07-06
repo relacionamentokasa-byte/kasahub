@@ -46,6 +46,10 @@ export function CrmBoard() {
   const { data: stages = [] } = useQuery({ queryKey: ["crm", "stages"], queryFn: fetchStages });
   const { data: leads = [] } = useQuery({ queryKey: ["crm", "leads"], queryFn: fetchLeads });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: taskCounts = {} } = useQuery({
+    queryKey: ["crm", "task-counts"],
+    queryFn: fetchOpenTaskCounts,
+  });
 
   const [view, setView] = useState<View>("kanban");
   const [activeId, setActiveId] = useState<string | null>(null);
