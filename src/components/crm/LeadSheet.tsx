@@ -100,6 +100,11 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
     queryFn: () => fetchLeadTasks(lead.id),
   });
 
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: fetchProfiles,
+  });
+
   const saveMut = useMutation({
     mutationFn: () =>
       updateLead(lead.id, {
