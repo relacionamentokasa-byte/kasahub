@@ -38,6 +38,8 @@ import {
   updateLeadTask,
   type LeadTask,
 } from "@/lib/lead-tasks-api";
+import { fetchProfiles } from "@/lib/profile-api";
+import { supabase } from "@/integrations/supabase/client";
 import {
   FileText,
   Mail,
@@ -98,6 +100,11 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
     queryFn: () => fetchLeadTasks(lead.id),
   });
 
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: fetchProfiles,
+  });
+
   const saveMut = useMutation({
     mutationFn: () =>
       updateLead(lead.id, {
@@ -110,6 +117,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
         notes: form.notes,
         stage_id: form.stage_id,
         contact_status: form.contact_status,
+        owner_id: form.owner_id,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
@@ -247,6 +255,24 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
             </Select>
           </F>
         </div>
+        <F label="Responsável pelo lead">
+          <Select
+            value={form.owner_id ?? "unassigned"}
+            onValueChange={(v) => setForm({ ...form, owner_id: v === "unassigned" ? null : v })}
+          >
+            <SelectTrigger className="bg-background">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unassigned">Sem responsável</SelectItem>
+              {profiles.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.display_name || p.full_name || "—"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </F>
         <F label="Notas">
           <Textarea
             rows={3}
@@ -359,7 +385,12 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
           </Button>
         </div>
 
-        <TasksSection leadId={lead.id} tasks={tasks} />
+        <TasksSection
+          leadId={lead.id}
+          tasks={tasks}
+          profiles={profiles as any}
+          defaultAssignee={form.owner_id ?? null}
+        />
 
         <div className="border-t border-border pt-5 mt-2">
           <h3 className="font-display font-semibold text-sm capitalize text-foreground/60 mb-3 flex items-center gap-2">
@@ -450,29 +481,62 @@ function ActivityIcon({ type }: { type: string }) {
   );
 }
 
-function TasksSection({ leadId, tasks }: { leadId: string; tasks: LeadTask[] }) {
+type ProfileLite = { id: string; display_name?: string | null; full_name?: string | null; avatar_url?: string | null };
+
+function TasksSection({
+  leadId,
+  tasks,
+  profiles = [],
+  defaultAssignee = null,
+}: {
+  leadId: string;
+  tasks: LeadTask[];
+  profiles?: ProfileLite[];
+  defaultAssignee?: string | null;
+}) {
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
   const [type, setType] = useState<string>("follow_up");
   const [dueIn, setDueIn] = useState<string>("3");
+  const [assignee, setAssignee] = useState<string>("me");
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["crm", "tasks", leadId] });
     qc.invalidateQueries({ queryKey: ["crm", "task-counts"] });
+    qc.invalidateQueries({ queryKey: ["crm", "next-tasks"] });
   };
 
+  const reassignMut = useMutation({
+    mutationFn: ({ id, assigned_to }: { id: string; assigned_to: string | null }) =>
+      updateLeadTask(id, { assigned_to }),
+    onSuccess: invalidate,
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const createMut = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const days = Number(dueIn);
       const due =
         Number.isFinite(days) && days >= 0
           ? new Date(Date.now() + days * 86400000).toISOString()
           : null;
+      let assigned: string | null = null;
+      if (assignee === "me") {
+        const { data } = await supabase.auth.getUser();
+        assigned = data.user?.id ?? null;
+      } else if (assignee === "lead_owner") {
+        assigned = defaultAssignee;
+      } else if (assignee === "unassigned") {
+        assigned = null;
+      } else {
+        assigned = assignee;
+      }
       return createLeadTask({
         lead_id: leadId,
         title: title.trim(),
         type,
         due_date: due,
+        assigned_to: assigned,
       });
     },
     onSuccess: () => {
@@ -538,6 +602,21 @@ function TasksSection({ leadId, tasks }: { leadId: string; tasks: LeadTask[] }) 
           />
           <span className="text-[10px] text-foreground/50">dias</span>
         </div>
+        <Select value={assignee} onValueChange={setAssignee}>
+          <SelectTrigger className="w-44 bg-background">
+            <SelectValue placeholder="Responsável" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="me">Eu (padrão)</SelectItem>
+            <SelectItem value="lead_owner">Responsável do lead</SelectItem>
+            <SelectItem value="unassigned">Sem responsável</SelectItem>
+            {profiles.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.display_name || p.full_name || "—"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button
           size="sm"
           onClick={() => title.trim() && createMut.mutate()}
@@ -608,6 +687,29 @@ function TasksSection({ leadId, tasks }: { leadId: string; tasks: LeadTask[] }) 
                     </span>
                   )}
                   {t.auto_generated && <span>• automática</span>}
+                </div>
+                <div className="mt-2">
+                  <Select
+                    value={t.assigned_to ?? "unassigned"}
+                    onValueChange={(v) =>
+                      reassignMut.mutate({
+                        id: t.id,
+                        assigned_to: v === "unassigned" ? null : v,
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-7 text-[11px] bg-background w-56">
+                      <SelectValue placeholder="Responsável" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="unassigned">Sem responsável</SelectItem>
+                      {profiles.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.display_name || p.full_name || "—"}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <button
