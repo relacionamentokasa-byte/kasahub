@@ -31,6 +31,7 @@ import {
   type Stage,
 } from "@/lib/crm-api";
 import { fetchProfiles } from "@/lib/profile-api";
+import { fetchOpenTaskCounts } from "@/lib/lead-tasks-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewLeadDialog } from "./NewLeadDialog";
