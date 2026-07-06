@@ -2544,6 +2544,7 @@ export type Database = {
         Row: {
           color: string
           created_at: string
+          follow_up_days: number | null
           id: string
           is_lost: boolean
           is_won: boolean
@@ -2554,6 +2555,7 @@ export type Database = {
         Insert: {
           color?: string
           created_at?: string
+          follow_up_days?: number | null
           id?: string
           is_lost?: boolean
           is_won?: boolean
@@ -2564,6 +2566,7 @@ export type Database = {
         Update: {
           color?: string
           created_at?: string
+          follow_up_days?: number | null
           id?: string
           is_lost?: boolean
           is_won?: boolean
@@ -2573,9 +2576,66 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_tasks: {
+        Row: {
+          assigned_to: string | null
+          auto_generated: boolean
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          lead_id: string
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          auto_generated?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id: string
+          status?: string
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          auto_generated?: boolean
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id?: string
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_tasks_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           company: string | null
+          contact_status: string | null
           created_at: string
           email: string | null
           id: string
@@ -2602,6 +2662,7 @@ export type Database = {
         }
         Insert: {
           company?: string | null
+          contact_status?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -2628,6 +2689,7 @@ export type Database = {
         }
         Update: {
           company?: string | null
+          contact_status?: string | null
           created_at?: string
           email?: string | null
           id?: string
