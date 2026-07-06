@@ -31,6 +31,7 @@ import {
   type Stage,
 } from "@/lib/crm-api";
 import { fetchProfiles } from "@/lib/profile-api";
+import { fetchOpenTaskCounts } from "@/lib/lead-tasks-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NewLeadDialog } from "./NewLeadDialog";
@@ -45,6 +46,10 @@ export function CrmBoard() {
   const { data: stages = [] } = useQuery({ queryKey: ["crm", "stages"], queryFn: fetchStages });
   const { data: leads = [] } = useQuery({ queryKey: ["crm", "leads"], queryFn: fetchLeads });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: taskCounts = {} } = useQuery({
+    queryKey: ["crm", "task-counts"],
+    queryFn: fetchOpenTaskCounts,
+  });
 
   const [view, setView] = useState<View>("kanban");
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -276,7 +281,7 @@ export function CrmBoard() {
                     onAdd={() => setNewLeadStage(stage)}
                   >
                     {cards.map((lead) => (
-                      <LeadCard key={lead.id} lead={lead} onClick={() => setOpenLead(lead)} />
+                      <LeadCard key={lead.id} lead={lead} dueTasks={taskCounts[lead.id] ?? 0} onClick={() => setOpenLead(lead)} />
                     ))}
                   </Column>
                 );
@@ -387,7 +392,7 @@ function Column({
   );
 }
 
-function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
+function LeadCard({ lead, dueTasks = 0, onClick }: { lead: Lead; dueTasks?: number; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: lead.id });
   const qc = useQueryClient();
   const delMut = useMutation({
@@ -408,7 +413,7 @@ function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
         onClick={onClick}
         className="cursor-grab active:cursor-grabbing"
       >
-        <LeadCardInner lead={lead} />
+        <LeadCardInner lead={lead} dueTasks={dueTasks} />
       </div>
       <button
         type="button"
@@ -431,7 +436,7 @@ function daysBetween(from: string) {
   return Math.max(0, Math.floor(ms / (1000 * 60 * 60 * 24)));
 }
 
-function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
+function LeadCardInner({ lead, dragging, dueTasks = 0 }: { lead: Lead; dragging?: boolean; dueTasks?: number }) {
   const days = daysBetween(lead.updated_at || lead.created_at);
   const stuckColor =
     days > 15
@@ -472,6 +477,14 @@ function LeadCardInner({ lead, dragging }: { lead: Lead; dragging?: boolean }) {
           >
             {days}d
           </span>
+          {dueTasks > 0 && (
+            <span
+              className="text-[10px] rounded px-1.5 py-0.5 shrink-0 bg-destructive/15 text-destructive font-semibold flex items-center gap-0.5"
+              title={`${dueTasks} tarefa(s) para hoje ou atrasadas`}
+            >
+              🔔 {dueTasks}
+            </span>
+          )}
         </div>
         {lead.phone && (
           <button
