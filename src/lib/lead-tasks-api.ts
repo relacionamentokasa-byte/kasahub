@@ -52,6 +52,34 @@ export async function fetchOpenTaskCounts(): Promise<Record<string, number>> {
   return counts;
 }
 
+export type NextLeadTask = Pick<
+  LeadTask,
+  "id" | "lead_id" | "title" | "type" | "due_date" | "assigned_to"
+>;
+
+export async function fetchNextTasksByLead(): Promise<Record<string, NextLeadTask>> {
+  const { data, error } = await supabase
+    .from("lead_tasks")
+    .select("id, lead_id, title, type, due_date, assigned_to, status")
+    .eq("status", "pending")
+    .order("due_date", { ascending: true, nullsFirst: false });
+  if (error) throw error;
+  const map: Record<string, NextLeadTask> = {};
+  for (const t of data ?? []) {
+    if (!map[t.lead_id]) {
+      map[t.lead_id] = {
+        id: t.id,
+        lead_id: t.lead_id,
+        title: t.title,
+        type: t.type,
+        due_date: t.due_date,
+        assigned_to: t.assigned_to,
+      };
+    }
+  }
+  return map;
+}
+
 export async function createLeadTask(input: {
   lead_id: string;
   title: string;
