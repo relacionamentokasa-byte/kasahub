@@ -392,7 +392,7 @@ function Column({
   );
 }
 
-function LeadCard({ lead, onClick }: { lead: Lead; onClick: () => void }) {
+function LeadCard({ lead, dueTasks = 0, onClick }: { lead: Lead; dueTasks?: number; onClick: () => void }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: lead.id });
   const qc = useQueryClient();
   const delMut = useMutation({
