@@ -117,6 +117,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
         notes: form.notes,
         stage_id: form.stage_id,
         contact_status: form.contact_status,
+        owner_id: form.owner_id,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
