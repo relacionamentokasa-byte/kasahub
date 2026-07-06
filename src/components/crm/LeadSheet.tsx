@@ -38,6 +38,8 @@ import {
   updateLeadTask,
   type LeadTask,
 } from "@/lib/lead-tasks-api";
+import { fetchProfiles } from "@/lib/profile-api";
+import { supabase } from "@/integrations/supabase/client";
 import {
   FileText,
   Mail,
