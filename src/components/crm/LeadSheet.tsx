@@ -29,6 +29,15 @@ import {
   type Stage,
 } from "@/lib/crm-api";
 import {
+  CONTACT_STATUS_OPTIONS,
+  TASK_TYPES,
+  completeLeadTask,
+  createLeadTask,
+  deleteLeadTask,
+  fetchLeadTasks,
+  type LeadTask,
+} from "@/lib/lead-tasks-api";
+import {
   FileText,
   Mail,
   MessageSquare,
@@ -38,6 +47,10 @@ import {
   Activity,
   MessageCircle,
   MoreVertical,
+  CheckSquare,
+  Square,
+  Bell,
+  Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
