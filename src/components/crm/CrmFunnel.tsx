@@ -23,23 +23,19 @@ export function CrmFunnel({
     });
   }, [stages, leads]);
 
-  // Compute monotonically non-increasing widths so it always looks like a funnel.
-  // Width per row is proportional to the max count seen up to that row divided by
-  // the top stage count — this way later stages never get wider than earlier ones.
-  const topCount = Math.max(1, rows[0]?.items.length ?? 0);
-  const MIN_W = 22; // % — narrowest tip
-  const MAX_W = 100; // % — widest top
-  let runningMax = rows[0]?.items.length ?? 0;
-  const widths = rows.map((r) => {
-    runningMax = Math.min(runningMax, Math.max(r.items.length, 0));
-    const ratio = topCount > 0 ? runningMax / topCount : 0;
-    return MIN_W + ratio * (MAX_W - MIN_W);
-  });
-  // Ensure strictly non-increasing and add a subtle taper on the last row.
-  for (let i = 1; i < widths.length; i++) {
-    if (widths[i] > widths[i - 1]) widths[i] = widths[i - 1];
+  // For each row, width is proportional to the MAX count from this row onward,
+  // divided by the top stage count. That keeps the funnel monotonically
+  // non-increasing while never collapsing to zero when later stages still hold leads.
+  const counts = rows.map((r) => r.items.length);
+  const suffixMax: number[] = [];
+  for (let i = counts.length - 1; i >= 0; i--) {
+    suffixMax[i] = Math.max(counts[i], suffixMax[i + 1] ?? 0);
   }
-  const bottomWidth = Math.max(MIN_W, (widths[widths.length - 1] ?? MIN_W) - 8);
+  const topCount = Math.max(1, suffixMax[0] ?? 0);
+  const MIN_W = 24; // % — narrowest tip
+  const MAX_W = 100; // % — widest top
+  const widths = suffixMax.map((c) => MIN_W + (c / topCount) * (MAX_W - MIN_W));
+  const bottomWidth = Math.max(MIN_W - 6, (widths[widths.length - 1] ?? MIN_W) - 8);
 
   const openRow = openStageId ? rows.find((r) => r.stage.id === openStageId) ?? null : null;
 
