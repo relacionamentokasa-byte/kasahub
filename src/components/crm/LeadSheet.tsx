@@ -207,23 +207,45 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
             />
           </F>
         </div>
-        <F label="Etapa">
-          <Select
-            value={form.stage_id ?? undefined}
-            onValueChange={(v) => setForm({ ...form, stage_id: v })}
-          >
-            <SelectTrigger className="bg-background">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {stages.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </F>
+        <div className="grid grid-cols-2 gap-3">
+          <F label="Etapa">
+            <Select
+              value={form.stage_id ?? undefined}
+              onValueChange={(v) => setForm({ ...form, stage_id: v })}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {stages.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </F>
+          <F label="Status de contato">
+            <Select
+              value={form.contact_status ?? "not_contacted"}
+              onValueChange={(v) => {
+                setForm({ ...form, contact_status: v });
+                contactStatusMut.mutate(v);
+              }}
+            >
+              <SelectTrigger className="bg-background">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {CONTACT_STATUS_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </F>
+        </div>
         <F label="Notas">
           <Textarea
             rows={3}
