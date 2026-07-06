@@ -255,6 +255,24 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
             </Select>
           </F>
         </div>
+        <F label="Responsável pelo lead">
+          <Select
+            value={form.owner_id ?? "unassigned"}
+            onValueChange={(v) => setForm({ ...form, owner_id: v === "unassigned" ? null : v })}
+          >
+            <SelectTrigger className="bg-background">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="unassigned">Sem responsável</SelectItem>
+              {profiles.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.display_name || p.full_name || "—"}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </F>
         <F label="Notas">
           <Textarea
             rows={3}
