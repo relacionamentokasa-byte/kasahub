@@ -35,6 +35,7 @@ import {
   createLeadTask,
   deleteLeadTask,
   fetchLeadTasks,
+  updateLeadTask,
   type LeadTask,
 } from "@/lib/lead-tasks-api";
 import {
