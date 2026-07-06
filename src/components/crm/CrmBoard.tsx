@@ -285,7 +285,14 @@ export function CrmBoard() {
                     onAdd={() => setNewLeadStage(stage)}
                   >
                     {cards.map((lead) => (
-                      <LeadCard key={lead.id} lead={lead} dueTasks={taskCounts[lead.id] ?? 0} onClick={() => setOpenLead(lead)} />
+                      <LeadCard
+                        key={lead.id}
+                        lead={lead}
+                        dueTasks={taskCounts[lead.id] ?? 0}
+                        nextTask={nextTasks[lead.id]}
+                        profiles={profiles as any}
+                        onClick={() => setOpenLead(lead)}
+                      />
                     ))}
                   </Column>
                 );
