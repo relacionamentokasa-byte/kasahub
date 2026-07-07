@@ -2446,6 +2446,13 @@ export type Database = {
             referencedRelation: "lead_sources"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "lead_source_submissions_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       lead_sources: {
@@ -2727,6 +2734,13 @@ export type Database = {
             columns: ["source_id"]
             isOneToOne: false
             referencedRelation: "lead_sources"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "lead_sources_public"
             referencedColumns: ["id"]
           },
           {
@@ -4462,7 +4476,72 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lead_sources_public: {
+        Row: {
+          gtag_id: string | null
+          id: string | null
+          is_active: boolean | null
+          landing_accent_color: string | null
+          landing_benefits: Json | null
+          landing_bg_color: string | null
+          landing_cta_label: string | null
+          landing_description: string | null
+          landing_form_fields: Json | null
+          landing_headline: string | null
+          landing_hero_image_url: string | null
+          landing_logo_url: string | null
+          landing_redirect_url: string | null
+          landing_subheadline: string | null
+          landing_success_message: string | null
+          landing_testimonials: Json | null
+          name: string | null
+          pixel_meta_id: string | null
+          slug: string | null
+        }
+        Insert: {
+          gtag_id?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          landing_accent_color?: string | null
+          landing_benefits?: Json | null
+          landing_bg_color?: string | null
+          landing_cta_label?: string | null
+          landing_description?: string | null
+          landing_form_fields?: Json | null
+          landing_headline?: string | null
+          landing_hero_image_url?: string | null
+          landing_logo_url?: string | null
+          landing_redirect_url?: string | null
+          landing_subheadline?: string | null
+          landing_success_message?: string | null
+          landing_testimonials?: Json | null
+          name?: string | null
+          pixel_meta_id?: string | null
+          slug?: string | null
+        }
+        Update: {
+          gtag_id?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          landing_accent_color?: string | null
+          landing_benefits?: Json | null
+          landing_bg_color?: string | null
+          landing_cta_label?: string | null
+          landing_description?: string | null
+          landing_form_fields?: Json | null
+          landing_headline?: string | null
+          landing_hero_image_url?: string | null
+          landing_logo_url?: string | null
+          landing_redirect_url?: string | null
+          landing_subheadline?: string | null
+          landing_success_message?: string | null
+          landing_testimonials?: Json | null
+          name?: string | null
+          pixel_meta_id?: string | null
+          slug?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       account_balance: { Args: { _account_id: string }; Returns: number }
