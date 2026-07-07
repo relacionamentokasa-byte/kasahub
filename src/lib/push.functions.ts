@@ -80,7 +80,7 @@ export const sendTestPush = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const publicKey = cleanVapidKey(process.env.VAPID_PUBLIC_KEY, "VAPID_PUBLIC_KEY");
     const privateKey = cleanVapidKey(process.env.VAPID_PRIVATE_KEY, "VAPID_PRIVATE_KEY");
-    const subject = process.env.VAPID_SUBJECT || "mailto:admin@kasahub.app";
+    const subject = cleanVapidSubject(process.env.VAPID_SUBJECT);
 
     const { data: subs, error } = await supabase
       .from("push_subscriptions")

@@ -16,6 +16,17 @@ function cleanVapidKey(raw: string | undefined, name: string): string {
   throw new Error(`${name} invalid`);
 }
 
+function cleanVapidSubject(raw: string | undefined): string {
+  const fallback = "mailto:admin@kasahub.app";
+  if (!raw) return fallback;
+  let s = raw.trim().replace(/^['"]|['"]$/g, "").replace(/^<|>$/g, "").trim();
+  if (!s) return fallback;
+  if (!/^(mailto:|https?:\/\/)/i.test(s)) {
+    s = /@/.test(s) ? `mailto:${s}` : `https://${s}`;
+  }
+  return s;
+}
+
 export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
   server: {
     handlers: {
@@ -74,7 +85,7 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
 
         const publicKey = cleanVapidKey(process.env.VAPID_PUBLIC_KEY, "VAPID_PUBLIC_KEY");
         const privateKey = cleanVapidKey(process.env.VAPID_PRIVATE_KEY, "VAPID_PRIVATE_KEY");
-        const subject = process.env.VAPID_SUBJECT || "mailto:admin@kasahub.app";
+        const subject = cleanVapidSubject(process.env.VAPID_SUBJECT);
 
         const webpush = (await import("web-push")).default;
         webpush.setVapidDetails(subject, publicKey, privateKey);
