@@ -1,0 +1,2 @@
+ALTER TABLE public.presentation_slides DROP CONSTRAINT IF EXISTS presentation_slides_layout_check;
+ALTER TABLE public.presentation_slides ADD CONSTRAINT presentation_slides_layout_check CHECK (layout IN ('cover','content','image','split','quote','closing','cards'));
