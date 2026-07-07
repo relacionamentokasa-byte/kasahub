@@ -32,7 +32,10 @@ function bufferToBase64(buffer: ArrayBuffer | null): string {
 function subscriptionUsesApplicationServerKey(sub: PushSubscription, appServerKey: Uint8Array): boolean {
   const current = sub.options?.applicationServerKey;
   if (!current) return false;
-  const bytes = new Uint8Array(current);
+  const bytes =
+    current instanceof ArrayBuffer
+      ? new Uint8Array(current)
+      : new Uint8Array(current.buffer, current.byteOffset, current.byteLength);
   if (bytes.length !== appServerKey.length) return false;
   return bytes.every((value, index) => value === appServerKey[index]);
 }
@@ -65,10 +68,7 @@ export async function subscribeToPush(): Promise<PushSubscription> {
 
   const { publicKey } = await getVapidPublicKey();
   const appServerKey = urlBase64ToUint8Array(publicKey);
-  const appServerKeyBuffer = appServerKey.buffer.slice(
-    appServerKey.byteOffset,
-    appServerKey.byteOffset + appServerKey.byteLength,
-  ) as ArrayBuffer;
+  const appServerKeyBuffer = new Uint8Array(appServerKey).buffer as ArrayBuffer;
 
   let sub = await reg.pushManager.getSubscription();
   if (sub && !subscriptionUsesApplicationServerKey(sub, appServerKey)) {
