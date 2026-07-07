@@ -25,6 +25,7 @@ import {
   upsertSlide,
   deleteSlide,
   reorderSlides,
+  normalizePresentationText,
   type Presentation,
   type PresentationSlide,
   type PresentationLayout,
@@ -370,7 +371,7 @@ function PresentationDetail({
                   </p>
                 </div>
                 {s.body && (
-                  <p className="text-xs text-foreground/50 mt-1 line-clamp-2">
+                  <p className="text-xs text-foreground/50 mt-1 line-clamp-2 whitespace-pre-line">
                     {s.body}
                   </p>
                 )}
@@ -491,7 +492,10 @@ function PresentationDetail({
                 placeholder="Aceita quebras de linha. Use • para bullets."
                 value={slideDraft?.body ?? ""}
                 onChange={(e) =>
-                  setSlideDraft((p) => ({ ...p, body: e.target.value }))
+                  setSlideDraft((p) => ({
+                    ...p,
+                    body: normalizePresentationText(e.target.value),
+                  }))
                 }
               />
             </div>
