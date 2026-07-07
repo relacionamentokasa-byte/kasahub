@@ -13,6 +13,8 @@ import {
   Quote,
   Flag,
   Columns2,
+  LayoutGrid,
+  List,
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
