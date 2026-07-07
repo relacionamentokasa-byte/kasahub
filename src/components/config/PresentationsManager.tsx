@@ -501,7 +501,7 @@ function PresentationDetail({
                     variant="ghost"
                     className="h-6 px-2 text-[10px] gap-1"
                     onClick={() => {
-                      const el = bodyRef.el;
+                      const el = bodyRef.current;
                       const current = slideDraft?.body ?? "";
                       if (!el) {
                         setSlideDraft((p) => ({
@@ -530,7 +530,7 @@ function PresentationDetail({
               </div>
               <Textarea
                 ref={(el) => {
-                  bodyRef.el = el;
+                  bodyRef.current = el;
                 }}
                 rows={6}
                 placeholder={
