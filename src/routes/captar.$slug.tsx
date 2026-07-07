@@ -28,12 +28,11 @@ type LandingConfig = {
 export const Route = createFileRoute("/captar/$slug")({
   loader: async ({ params }) => {
     const { data, error } = await supabase
-      .from("lead_sources")
+      .from("lead_sources_public")
       .select(
         "id, name, slug, landing_headline, landing_subheadline, landing_description, landing_cta_label, landing_logo_url, landing_hero_image_url, landing_bg_color, landing_accent_color, landing_benefits, landing_testimonials, landing_form_fields, landing_success_message, landing_redirect_url, pixel_meta_id, gtag_id",
       )
       .eq("slug", params.slug)
-      .eq("is_active", true)
       .maybeSingle();
     if (error || !data) throw notFound();
     return { config: data as unknown as LandingConfig };
