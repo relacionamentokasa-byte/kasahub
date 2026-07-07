@@ -102,7 +102,7 @@ function PresentPage() {
   const client = clientQ.data as any;
   const agency = agencyQ.data;
 
-  const { stage, brand, inkHex, inkRgb } = useMemo(() => {
+  const { stage, brand, inkHex, inkRgb, brandInkHex } = useMemo(() => {
     const hexLum = (hex: string): number => {
       const m = hex.replace("#", "").match(/.{2}/g);
       if (!m || m.length < 3) return 0;
@@ -162,6 +162,7 @@ function PresentPage() {
           backgroundColor: stage,
           ["--brand" as any]: brand,
           ["--brand-soft" as any]: `color-mix(in oklab, ${brand} 18%, transparent)`,
+          ["--brand-ink" as any]: brandInkHex,
           ["--ink-rgb" as any]: inkRgb,
           fontFamily:
             "'Onest', ui-sans-serif, system-ui, -apple-system, sans-serif",
@@ -458,7 +459,7 @@ function Cta({ slide }: { slide: PresentationSlide }) {
   const Btn = (
     <span
       className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm uppercase tracking-widest"
-      style={{ backgroundColor: "var(--brand)", color: "#0B0B14" }}
+      style={{ backgroundColor: "var(--brand)", color: "var(--brand-ink)" }}
     >
       {slide.cta_label}
       {slide.cta_url && <ExternalLink className="size-4" />}
