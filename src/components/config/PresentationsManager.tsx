@@ -62,6 +62,7 @@ const LAYOUT_META: Record<
   image: { label: "Imagem", icon: ImageIcon, hint: "Imagem tela cheia" },
   split: { label: "Dividido", icon: Columns2, hint: "Imagem + texto" },
   quote: { label: "Citação", icon: Quote, hint: "Frase de destaque" },
+  cards: { label: "Cards", icon: LayoutGrid, hint: "Quadrados com dados" },
   closing: { label: "Encerramento", icon: Flag, hint: "Slide final com CTA" },
 };
 
