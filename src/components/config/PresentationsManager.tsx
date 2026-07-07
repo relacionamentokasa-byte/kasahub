@@ -490,18 +490,64 @@ function PresentationDetail({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Texto / corpo</Label>
+              <div className="flex items-center justify-between">
+                <Label>
+                  {slideDraft?.layout === "cards" ? "Cards (um por linha)" : "Texto / corpo"}
+                </Label>
+                {slideDraft?.layout !== "cards" && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[10px] gap-1"
+                    onClick={() => {
+                      const el = bodyRef.el;
+                      const current = slideDraft?.body ?? "";
+                      if (!el) {
+                        setSlideDraft((p) => ({
+                          ...p,
+                          body: (current ? current + "\n" : "") + "• ",
+                        }));
+                        return;
+                      }
+                      const start = el.selectionStart ?? current.length;
+                      const end = el.selectionEnd ?? current.length;
+                      const before = current.slice(0, start);
+                      const after = current.slice(end);
+                      const prefix = before.length === 0 || before.endsWith("\n") ? "• " : "\n• ";
+                      const next = before + prefix + after;
+                      setSlideDraft((p) => ({ ...p, body: next }));
+                      requestAnimationFrame(() => {
+                        el.focus();
+                        const pos = (before + prefix).length;
+                        el.setSelectionRange(pos, pos);
+                      });
+                    }}
+                  >
+                    <List className="size-3" /> Bullet
+                  </Button>
+                )}
+              </div>
               <Textarea
-                rows={5}
-                placeholder="Aceita quebras de linha. Use • para bullets."
+                ref={(el) => {
+                  bodyRef.el = el;
+                }}
+                rows={6}
+                placeholder={
+                  slideDraft?.layout === "cards"
+                    ? "Rótulo | Valor | Descrição\nSegmento | Confecção B2B | Camisetas e moletons\nPraças | 3 estados | GO, MT e DF"
+                    : "Aceita quebras de linha. Use • ou - para bullets."
+                }
                 value={slideDraft?.body ?? ""}
                 onChange={(e) =>
-                  setSlideDraft((p) => ({
-                    ...p,
-                    body: normalizePresentationText(e.target.value),
-                  }))
+                  setSlideDraft((p) => ({ ...p, body: e.target.value }))
                 }
               />
+              {slideDraft?.layout === "cards" && (
+                <p className="text-[10px] text-foreground/40">
+                  Formato: <code>Rótulo | Valor | Descrição</code> — um card por linha (até 3 por linha visual).
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>URL da imagem</Label>
