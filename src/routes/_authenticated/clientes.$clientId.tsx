@@ -5,8 +5,10 @@ import {
   ArrowLeft, Mail, Phone, Building2, 
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
-  FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket, CalendarDays
+  FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket, CalendarDays,
+  Presentation as PresentationIcon
 } from "lucide-react";
+import { ClientPresentationsPanel } from "@/components/clients/ClientPresentationsPanel";
 import { ClientOnboardingPanel } from "@/components/onboarding/ClientOnboardingPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -271,6 +273,7 @@ function ClientDetail() {
                 { v: "dmes", label: "Demandas Extras", icon: Sparkles },
                 { v: "servicos", label: "Serviços", icon: Handshake },
                 { v: "onboarding", label: "Onboarding", icon: Rocket },
+                { v: "apresentacoes", label: "Apresentações", icon: PresentationIcon },
                 { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
               ].map((tab) => (
                 <TabsTrigger
@@ -516,6 +519,12 @@ function ClientDetail() {
             <TabsContent value="onboarding" className="m-0 animate-reveal">
               <ClientOnboardingPanel clientId={clientId} />
             </TabsContent>
+
+            <TabsContent value="apresentacoes" className="m-0 animate-reveal">
+              <ClientPresentationsPanel clientId={clientId} />
+            </TabsContent>
+
+
 
 
             <TabsContent value="timeline" className="m-0 animate-reveal">
