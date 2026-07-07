@@ -3235,6 +3235,89 @@ export type Database = {
         }
         Relationships: []
       }
+      presentation_slides: {
+        Row: {
+          body: string | null
+          created_at: string
+          cta_label: string | null
+          cta_url: string | null
+          eyebrow: string | null
+          id: string
+          image_url: string | null
+          layout: string
+          order_index: number
+          presentation_id: string
+          subtitle: string | null
+          title: string | null
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          eyebrow?: string | null
+          id?: string
+          image_url?: string | null
+          layout?: string
+          order_index?: number
+          presentation_id: string
+          subtitle?: string | null
+          title?: string | null
+        }
+        Update: {
+          body?: string | null
+          created_at?: string
+          cta_label?: string | null
+          cta_url?: string | null
+          eyebrow?: string | null
+          id?: string
+          image_url?: string | null
+          layout?: string
+          order_index?: number
+          presentation_id?: string
+          subtitle?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "presentation_slides_presentation_id_fkey"
+            columns: ["presentation_id"]
+            isOneToOne: false
+            referencedRelation: "presentations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      presentations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           agency_logo_url: string | null
