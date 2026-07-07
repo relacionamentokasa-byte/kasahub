@@ -29,6 +29,14 @@ function bufferToBase64(buffer: ArrayBuffer | null): string {
   return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
+function subscriptionUsesApplicationServerKey(sub: PushSubscription, appServerKey: Uint8Array): boolean {
+  const current = sub.options?.applicationServerKey;
+  if (!current) return false;
+  const bytes = new Uint8Array(current);
+  if (bytes.length !== appServerKey.length) return false;
+  return bytes.every((value, index) => value === appServerKey[index]);
+}
+
 export function isPushSupported(): boolean {
   return (
     typeof window !== "undefined" &&
@@ -56,16 +64,24 @@ export async function subscribeToPush(): Promise<PushSubscription> {
   if (!reg) throw new Error("Service Worker não registrado. Publique e abra a versão publicada.");
 
   const { publicKey } = await getVapidPublicKey();
+  const appServerKey = urlBase64ToUint8Array(publicKey);
+  const appServerKeyBuffer = appServerKey.buffer.slice(
+    appServerKey.byteOffset,
+    appServerKey.byteOffset + appServerKey.byteLength,
+  ) as ArrayBuffer;
 
   let sub = await reg.pushManager.getSubscription();
+  if (sub && !subscriptionUsesApplicationServerKey(sub, appServerKey)) {
+    const oldEndpoint = sub.endpoint;
+    await sub.unsubscribe().catch(() => {});
+    await removePushSubscription({ data: { endpoint: oldEndpoint } }).catch(() => {});
+    sub = null;
+  }
+
   if (!sub) {
-    const appServerKey = urlBase64ToUint8Array(publicKey);
     sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: appServerKey.buffer.slice(
-        appServerKey.byteOffset,
-        appServerKey.byteOffset + appServerKey.byteLength,
-      ) as ArrayBuffer,
+      applicationServerKey: appServerKeyBuffer,
     });
   }
 
