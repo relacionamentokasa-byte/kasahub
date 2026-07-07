@@ -12,7 +12,6 @@ export function registerPWA() {
   const inIframe = window.self !== window.top;
 
   const isLovablePreview =
-    host.includes(".lovable.app") ||
     host.startsWith("id-preview--") ||
     host.startsWith("preview--") ||
     host === "lovableproject.com" ||
