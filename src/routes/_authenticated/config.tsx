@@ -20,9 +20,11 @@ import {
   SunMoon,
   Rocket,
   Target,
+  Presentation as PresentationIcon,
 } from "lucide-react";
 import { LeadSourcesPanel } from "@/components/config/LeadSourcesPanel";
 import { OnboardingTemplatesManager } from "@/components/config/OnboardingTemplatesManager";
+import { PresentationsManager } from "@/components/config/PresentationsManager";
 import { DetailHeaderSkeleton } from "@/components/ui/loading-skeletons";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ServicesManager } from "@/components/config/ServicesManager";
@@ -122,6 +124,7 @@ function ConfigPage() {
     { id: "contracts", label: "Templates de Contratos", icon: FileText, group: "Catálogos", component: <ContractTemplatesManager canEdit={canEdit} /> },
     { id: "scope-templates", label: "Modelos de Escopo", icon: FileText, group: "Catálogos", component: <ScopeTemplatesManager canEdit={canEdit} /> },
     { id: "onboarding-templates", label: "Modelos de Onboarding", icon: Rocket, group: "Catálogos", component: <OnboardingTemplatesManager canEdit={canEdit} /> },
+    { id: "presentations", label: "Apresentações", icon: PresentationIcon, group: "Catálogos", component: <PresentationsManager canEdit={canEdit} /> },
 
     { id: "lead-sources", label: "Fontes de Lead", icon: Target, group: "Captação", component: <LeadSourcesPanel /> },
 

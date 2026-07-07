@@ -68,6 +68,7 @@ import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/a
 import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.pdf'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.apresentar'
+import { Route as AuthenticatedApresentacoesPresentationIdApresentarRouteImport } from './routes/_authenticated/apresentacoes.$presentationId.apresentar'
 import { Route as ApiPublicLeadsSubmitSlugRouteImport } from './routes/api/public/leads/submit.$slug'
 
 const ConviteRoute = ConviteRouteImport.update({
@@ -386,6 +387,12 @@ const AuthenticatedConstrutorRelatoriosReportIdApresentarRoute =
     path: '/construtor-relatorios/$reportId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedApresentacoesPresentationIdApresentarRoute =
+  AuthenticatedApresentacoesPresentationIdApresentarRouteImport.update({
+    id: '/apresentacoes/$presentationId/apresentar',
+    path: '/apresentacoes/$presentationId/apresentar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const ApiPublicLeadsSubmitSlugRoute =
   ApiPublicLeadsSubmitSlugRouteImport.update({
     id: '/api/public/leads/submit/$slug',
@@ -433,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/roteiros/': typeof AuthenticatedRoteirosIndexRoute
+  '/apresentacoes/$presentationId/apresentar': typeof AuthenticatedApresentacoesPresentationIdApresentarRoute
   '/construtor-relatorios/$reportId/apresentar': typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   '/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -494,6 +502,7 @@ export interface FileRoutesByTo {
   '/projetos': typeof AuthenticatedProjetosIndexRoute
   '/propostas': typeof AuthenticatedPropostasIndexRoute
   '/roteiros': typeof AuthenticatedRoteirosIndexRoute
+  '/apresentacoes/$presentationId/apresentar': typeof AuthenticatedApresentacoesPresentationIdApresentarRoute
   '/construtor-relatorios/$reportId/apresentar': typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   '/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -557,6 +566,7 @@ export interface FileRoutesById {
   '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/_authenticated/roteiros/': typeof AuthenticatedRoteirosIndexRoute
+  '/_authenticated/apresentacoes/$presentationId/apresentar': typeof AuthenticatedApresentacoesPresentationIdApresentarRoute
   '/_authenticated/construtor-relatorios/$reportId/apresentar': typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   '/_authenticated/construtor-relatorios/$reportId/pdf': typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   '/_authenticated/onboarding/$onboardingId/apresentar': typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -620,6 +630,7 @@ export interface FileRouteTypes {
     | '/projetos/'
     | '/propostas/'
     | '/roteiros/'
+    | '/apresentacoes/$presentationId/apresentar'
     | '/construtor-relatorios/$reportId/apresentar'
     | '/construtor-relatorios/$reportId/pdf'
     | '/onboarding/$onboardingId/apresentar'
@@ -681,6 +692,7 @@ export interface FileRouteTypes {
     | '/projetos'
     | '/propostas'
     | '/roteiros'
+    | '/apresentacoes/$presentationId/apresentar'
     | '/construtor-relatorios/$reportId/apresentar'
     | '/construtor-relatorios/$reportId/pdf'
     | '/onboarding/$onboardingId/apresentar'
@@ -743,6 +755,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projetos/'
     | '/_authenticated/propostas/'
     | '/_authenticated/roteiros/'
+    | '/_authenticated/apresentacoes/$presentationId/apresentar'
     | '/_authenticated/construtor-relatorios/$reportId/apresentar'
     | '/_authenticated/construtor-relatorios/$reportId/pdf'
     | '/_authenticated/onboarding/$onboardingId/apresentar'
@@ -1213,6 +1226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/apresentacoes/$presentationId/apresentar': {
+      id: '/_authenticated/apresentacoes/$presentationId/apresentar'
+      path: '/apresentacoes/$presentationId/apresentar'
+      fullPath: '/apresentacoes/$presentationId/apresentar'
+      preLoaderRoute: typeof AuthenticatedApresentacoesPresentationIdApresentarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/leads/submit/$slug': {
       id: '/api/public/leads/submit/$slug'
       path: '/api/public/leads/submit/$slug'
@@ -1250,6 +1270,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjetosIndexRoute: typeof AuthenticatedProjetosIndexRoute
   AuthenticatedPropostasIndexRoute: typeof AuthenticatedPropostasIndexRoute
   AuthenticatedRoteirosIndexRoute: typeof AuthenticatedRoteirosIndexRoute
+  AuthenticatedApresentacoesPresentationIdApresentarRoute: typeof AuthenticatedApresentacoesPresentationIdApresentarRoute
   AuthenticatedConstrutorRelatoriosReportIdApresentarRoute: typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRoute
   AuthenticatedConstrutorRelatoriosReportIdPdfRoute: typeof AuthenticatedConstrutorRelatoriosReportIdPdfRoute
   AuthenticatedOnboardingOnboardingIdApresentarRoute: typeof AuthenticatedOnboardingOnboardingIdApresentarRoute
@@ -1284,6 +1305,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProjetosIndexRoute: AuthenticatedProjetosIndexRoute,
   AuthenticatedPropostasIndexRoute: AuthenticatedPropostasIndexRoute,
   AuthenticatedRoteirosIndexRoute: AuthenticatedRoteirosIndexRoute,
+  AuthenticatedApresentacoesPresentationIdApresentarRoute:
+    AuthenticatedApresentacoesPresentationIdApresentarRoute,
   AuthenticatedConstrutorRelatoriosReportIdApresentarRoute:
     AuthenticatedConstrutorRelatoriosReportIdApresentarRoute,
   AuthenticatedConstrutorRelatoriosReportIdPdfRoute:
