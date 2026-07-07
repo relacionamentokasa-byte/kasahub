@@ -489,12 +489,15 @@ function PresentationDetail({
                 }
               />
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label>
-                  {slideDraft?.layout === "cards" ? "Cards (um por linha)" : "Texto / corpo"}
-                </Label>
-                {slideDraft?.layout !== "cards" && (
+            {slideDraft?.layout === "cards" ? (
+              <CardsEditor
+                value={slideDraft?.body ?? ""}
+                onChange={(v) => setSlideDraft((p) => ({ ...p, body: v }))}
+              />
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label>Texto / corpo</Label>
                   <Button
                     type="button"
                     size="sm"
@@ -526,29 +529,21 @@ function PresentationDetail({
                   >
                     <List className="size-3" /> Bullet
                   </Button>
-                )}
+                </div>
+                <Textarea
+                  ref={(el) => {
+                    bodyRef.current = el;
+                  }}
+                  rows={6}
+                  placeholder="Aceita quebras de linha. Use • ou - para bullets."
+                  value={slideDraft?.body ?? ""}
+                  onChange={(e) =>
+                    setSlideDraft((p) => ({ ...p, body: e.target.value }))
+                  }
+                />
               </div>
-              <Textarea
-                ref={(el) => {
-                  bodyRef.current = el;
-                }}
-                rows={6}
-                placeholder={
-                  slideDraft?.layout === "cards"
-                    ? "Rótulo | Valor | Descrição\nSegmento | Confecção B2B | Camisetas e moletons\nPraças | 3 estados | GO, MT e DF"
-                    : "Aceita quebras de linha. Use • ou - para bullets."
-                }
-                value={slideDraft?.body ?? ""}
-                onChange={(e) =>
-                  setSlideDraft((p) => ({ ...p, body: e.target.value }))
-                }
-              />
-              {slideDraft?.layout === "cards" && (
-                <p className="text-[10px] text-foreground/40">
-                  Formato: <code>Rótulo | Valor | Descrição</code> — um card por linha (até 3 por linha visual).
-                </p>
-              )}
-            </div>
+            )}
+
             <div className="space-y-1.5">
               <Label>URL da imagem</Label>
               <Input
@@ -600,3 +595,157 @@ function PresentationDetail({
     </div>
   );
 }
+
+type CardItem = { label: string; value: string; description: string };
+
+function parseCardsBody(body: string): CardItem[] {
+  if (!body) return [];
+  return body
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const parts = line.split("|").map((p) => p.trim());
+      return {
+        label: parts[0] ?? "",
+        value: parts[1] ?? "",
+        description: parts[2] ?? "",
+      };
+    });
+}
+
+function serializeCards(cards: CardItem[]): string {
+  return cards
+    .map((c) =>
+      [c.label, c.value, c.description]
+        .map((s) => s.replace(/\|/g, "/").replace(/\n/g, " ").trim())
+        .join(" | "),
+    )
+    .join("\n");
+}
+
+function CardsEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const cards = parseCardsBody(value);
+  const update = (next: CardItem[]) => onChange(serializeCards(next));
+
+  const setField = (i: number, field: keyof CardItem, v: string) => {
+    const next = cards.slice();
+    next[i] = { ...next[i], [field]: v };
+    update(next);
+  };
+
+  const add = () =>
+    update([...cards, { label: "", value: "", description: "" }]);
+  const remove = (i: number) => update(cards.filter((_, idx) => idx !== i));
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir;
+    if (j < 0 || j >= cards.length) return;
+    const next = cards.slice();
+    [next[i], next[j]] = [next[j], next[i]];
+    update(next);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label>Cards</Label>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          className="h-6 px-2 text-[10px] gap-1"
+          onClick={add}
+        >
+          <Plus className="size-3" /> Card
+        </Button>
+      </div>
+
+      {cards.length === 0 && (
+        <p className="text-xs text-foreground/40 italic border border-dashed border-border rounded-lg p-4 text-center">
+          Nenhum card ainda. Adicione o primeiro.
+        </p>
+      )}
+
+      <div className="space-y-3">
+        {cards.map((c, i) => (
+          <div
+            key={i}
+            className="border border-border rounded-lg p-3 space-y-2 bg-surface"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">
+                Card {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-6"
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                >
+                  <ArrowUp className="size-3" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-6"
+                  disabled={i === cards.length - 1}
+                  onClick={() => move(i, 1)}
+                >
+                  <ArrowDown className="size-3" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  className="size-6"
+                  onClick={() => remove(i)}
+                >
+                  <Trash2 className="size-3 text-rose-500" />
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <Label className="text-[10px] text-foreground/50">Rótulo</Label>
+                <Input
+                  placeholder="Ex.: Segmento"
+                  value={c.label}
+                  onChange={(e) => setField(i, "label", e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-[10px] text-foreground/50">Valor</Label>
+                <Input
+                  placeholder="Ex.: Confecção B2B"
+                  value={c.value}
+                  onChange={(e) => setField(i, "value", e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-[10px] text-foreground/50">
+                Descrição (opcional)
+              </Label>
+              <Input
+                placeholder="Ex.: Camisetas e moletons"
+                value={c.description}
+                onChange={(e) => setField(i, "description", e.target.value)}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
