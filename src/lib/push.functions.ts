@@ -26,12 +26,18 @@ function cleanVapidKey(raw: string | undefined, name: string): string {
 function cleanVapidSubject(raw: string | undefined): string {
   const fallback = "mailto:admin@kasahub.app";
   if (!raw) return fallback;
-  let s = raw.trim().replace(/^['"]|['"]$/g, "").replace(/^<|>$/g, "").trim();
+  let s = raw.trim().replace(/["'<>]/g, "").replace(/\s+/g, "").trim();
   if (!s) return fallback;
   if (!/^(mailto:|https?:\/\/)/i.test(s)) {
     s = /@/.test(s) ? `mailto:${s}` : `https://${s}`;
   }
-  return s;
+  try {
+    const u = new URL(s);
+    if (u.protocol !== "mailto:" && u.protocol !== "https:" && u.protocol !== "http:") return fallback;
+    return s;
+  } catch {
+    return fallback;
+  }
 }
 
 export const getVapidPublicKey = createServerFn({ method: "GET" }).handler(async () => {
