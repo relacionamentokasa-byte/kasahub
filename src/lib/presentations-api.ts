@@ -31,6 +31,11 @@ export type PresentationSlide = {
   order_index: number;
 };
 
+export function normalizePresentationText(text?: string | null) {
+  if (!text) return text ?? null;
+  return text.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n").replace(/\r\n?/g, "\n");
+}
+
 // ============== PRESENTATIONS ==============
 export async function fetchPresentations() {
   const { data, error } = await (supabase as any)
@@ -95,7 +100,10 @@ export async function fetchSlides(presentationId: string) {
 export async function upsertSlide(input: Partial<PresentationSlide>) {
   const { data, error } = await (supabase as any)
     .from("presentation_slides")
-    .upsert(input)
+    .upsert({
+      ...input,
+      body: normalizePresentationText(input.body),
+    })
     .select()
     .single();
   if (error) throw error;
