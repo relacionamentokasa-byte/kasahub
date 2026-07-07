@@ -123,8 +123,9 @@ function PresentPage() {
       agency?.brand_primary ||
       "#FFBC45";
     const inkHex = hexLum(stage) < 0.5 ? "#FFFFFF" : "#0B0B14";
+    const brandInkHex = hexLum(brand) < 0.5 ? "#FFFFFF" : "#0B0B14";
+    return { stage, brand, inkHex, inkRgb: hexToRgb(inkHex), brandInkHex };
 
-    return { stage, brand, inkHex, inkRgb: hexToRgb(inkHex) };
   }, [client, agency]);
 
   if (loading) {
