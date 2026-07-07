@@ -61,6 +61,9 @@ export function PushNotificationsCard() {
   async function handleTest() {
     setBusy(true);
     try {
+      await subscribeToPush();
+      setEnabled(true);
+      setPermission(Notification.permission);
       const res = await sendTestPush({ data: undefined as any });
       toast.success(`Push enviado para ${res.sent} dispositivo(s).`);
     } catch (e: any) {

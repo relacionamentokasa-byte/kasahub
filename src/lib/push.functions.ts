@@ -109,6 +109,7 @@ export const sendTestPush = createServerFn({ method: "POST" })
 
     let success = 0;
     const stale: string[] = [];
+    const badJwt: string[] = [];
     const errors: { status?: number; body?: string; message?: string }[] = [];
     await Promise.all(
       subs.map(async (s) => {
@@ -122,6 +123,8 @@ export const sendTestPush = createServerFn({ method: "POST" })
           const e = err as { statusCode?: number; body?: string; message?: string };
           if (e?.statusCode === 404 || e?.statusCode === 410) {
             stale.push(s.id);
+          } else if (e?.statusCode === 403 && /BADJWTTOKEN/i.test(e?.body ?? "")) {
+            badJwt.push(s.id);
           } else {
             errors.push({ status: e?.statusCode, body: e?.body?.slice(0, 200), message: e?.message });
           }
@@ -129,8 +132,18 @@ export const sendTestPush = createServerFn({ method: "POST" })
       }),
     );
 
+    if (success > 0 && badJwt.length > 0) {
+      stale.push(...badJwt);
+    }
+
     if (stale.length > 0) {
       await supabase.from("push_subscriptions").delete().in("id", stale);
+    }
+
+    if (success === 0 && badJwt.length > 0) {
+      throw new Error(
+        "Falha no envio push: inscrição/chaves VAPID incompatíveis. Recarregue a página, desative e ative o push novamente; se persistir, atualize VAPID_PUBLIC_KEY e VAPID_PRIVATE_KEY como um par novo.",
+      );
     }
 
     if (success === 0 && errors.length > 0) {
@@ -140,5 +153,5 @@ export const sendTestPush = createServerFn({ method: "POST" })
       );
     }
 
-    return { sent: success, removed: stale.length, errors: errors.length };
+    return { sent: success, removed: stale.length, errors: errors.length + badJwt.length };
   });

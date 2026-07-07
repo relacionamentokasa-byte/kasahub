@@ -106,6 +106,7 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
 
         let sent = 0;
         const stale: string[] = [];
+        const badJwt: string[] = [];
         await Promise.all(
           subs.map(async (s) => {
             try {
@@ -115,17 +116,23 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
               );
               sent += 1;
             } catch (err: unknown) {
-              const code = (err as { statusCode?: number })?.statusCode;
+              const e = err as { statusCode?: number; body?: string };
+              const code = e?.statusCode;
               if (code === 404 || code === 410) stale.push(s.id);
+              if (code === 403 && /BADJWTTOKEN/i.test(e?.body ?? "")) badJwt.push(s.id);
             }
           }),
         );
+
+        if (sent > 0 && badJwt.length > 0) {
+          stale.push(...badJwt);
+        }
 
         if (stale.length > 0) {
           await supabaseAdmin.from("push_subscriptions").delete().in("id", stale);
         }
 
-        return Response.json({ sent, removed: stale.length });
+        return Response.json({ sent, removed: stale.length, badJwt: badJwt.length });
       },
     },
   },
