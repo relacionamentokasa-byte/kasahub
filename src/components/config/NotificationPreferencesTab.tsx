@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import { runFullNotificationTest } from "@/lib/notification-test-suite";
 import { criarNotificacao } from "@/lib/notifications-api";
+import { PushNotificationsCard } from "./PushNotificationsCard";
 
 
 function ToggleRow({
@@ -207,6 +208,7 @@ export function NotificationPreferencesTab() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <PushNotificationsCard />
       <div className="bg-surface border border-border rounded-2xl p-8 shadow-sm">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
