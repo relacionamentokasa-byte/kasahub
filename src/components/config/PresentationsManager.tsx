@@ -489,12 +489,15 @@ function PresentationDetail({
                 }
               />
             </div>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label>
-                  {slideDraft?.layout === "cards" ? "Cards (um por linha)" : "Texto / corpo"}
-                </Label>
-                {slideDraft?.layout !== "cards" && (
+            {slideDraft?.layout === "cards" ? (
+              <CardsEditor
+                value={slideDraft?.body ?? ""}
+                onChange={(v) => setSlideDraft((p) => ({ ...p, body: v }))}
+              />
+            ) : (
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label>Texto / corpo</Label>
                   <Button
                     type="button"
                     size="sm"
@@ -526,29 +529,21 @@ function PresentationDetail({
                   >
                     <List className="size-3" /> Bullet
                   </Button>
-                )}
+                </div>
+                <Textarea
+                  ref={(el) => {
+                    bodyRef.current = el;
+                  }}
+                  rows={6}
+                  placeholder="Aceita quebras de linha. Use • ou - para bullets."
+                  value={slideDraft?.body ?? ""}
+                  onChange={(e) =>
+                    setSlideDraft((p) => ({ ...p, body: e.target.value }))
+                  }
+                />
               </div>
-              <Textarea
-                ref={(el) => {
-                  bodyRef.current = el;
-                }}
-                rows={6}
-                placeholder={
-                  slideDraft?.layout === "cards"
-                    ? "Rótulo | Valor | Descrição\nSegmento | Confecção B2B | Camisetas e moletons\nPraças | 3 estados | GO, MT e DF"
-                    : "Aceita quebras de linha. Use • ou - para bullets."
-                }
-                value={slideDraft?.body ?? ""}
-                onChange={(e) =>
-                  setSlideDraft((p) => ({ ...p, body: e.target.value }))
-                }
-              />
-              {slideDraft?.layout === "cards" && (
-                <p className="text-[10px] text-foreground/40">
-                  Formato: <code>Rótulo | Valor | Descrição</code> — um card por linha (até 3 por linha visual).
-                </p>
-              )}
-            </div>
+            )}
+
             <div className="space-y-1.5">
               <Label>URL da imagem</Label>
               <Input
