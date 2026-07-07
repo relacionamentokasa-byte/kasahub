@@ -6,7 +6,8 @@ export type PresentationLayout =
   | "image"
   | "split"
   | "quote"
-  | "closing";
+  | "closing"
+  | "cards";
 
 export type Presentation = {
   id: string;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -13,6 +13,8 @@ import {
   Quote,
   Flag,
   Columns2,
+  LayoutGrid,
+  List,
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
@@ -25,7 +27,7 @@ import {
   upsertSlide,
   deleteSlide,
   reorderSlides,
-  normalizePresentationText,
+  
   type Presentation,
   type PresentationSlide,
   type PresentationLayout,
@@ -60,6 +62,7 @@ const LAYOUT_META: Record<
   image: { label: "Imagem", icon: ImageIcon, hint: "Imagem tela cheia" },
   split: { label: "Dividido", icon: Columns2, hint: "Imagem + texto" },
   quote: { label: "Citação", icon: Quote, hint: "Frase de destaque" },
+  cards: { label: "Cards", icon: LayoutGrid, hint: "Quadrados com dados" },
   closing: { label: "Encerramento", icon: Flag, hint: "Slide final com CTA" },
 };
 
@@ -254,6 +257,7 @@ function PresentationDetail({
   const [slideDraft, setSlideDraft] =
     useState<Partial<PresentationSlide> | null>(null);
   const [slideOpen, setSlideOpen] = useState(false);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
 
   const { data: slides = [] } = useQuery({
     queryKey: ["presentation-slides", item.id],
@@ -486,18 +490,64 @@ function PresentationDetail({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Texto / corpo</Label>
+              <div className="flex items-center justify-between">
+                <Label>
+                  {slideDraft?.layout === "cards" ? "Cards (um por linha)" : "Texto / corpo"}
+                </Label>
+                {slideDraft?.layout !== "cards" && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="h-6 px-2 text-[10px] gap-1"
+                    onClick={() => {
+                      const el = bodyRef.current;
+                      const current = slideDraft?.body ?? "";
+                      if (!el) {
+                        setSlideDraft((p) => ({
+                          ...p,
+                          body: (current ? current + "\n" : "") + "• ",
+                        }));
+                        return;
+                      }
+                      const start = el.selectionStart ?? current.length;
+                      const end = el.selectionEnd ?? current.length;
+                      const before = current.slice(0, start);
+                      const after = current.slice(end);
+                      const prefix = before.length === 0 || before.endsWith("\n") ? "• " : "\n• ";
+                      const next = before + prefix + after;
+                      setSlideDraft((p) => ({ ...p, body: next }));
+                      requestAnimationFrame(() => {
+                        el.focus();
+                        const pos = (before + prefix).length;
+                        el.setSelectionRange(pos, pos);
+                      });
+                    }}
+                  >
+                    <List className="size-3" /> Bullet
+                  </Button>
+                )}
+              </div>
               <Textarea
-                rows={5}
-                placeholder="Aceita quebras de linha. Use • para bullets."
+                ref={(el) => {
+                  bodyRef.current = el;
+                }}
+                rows={6}
+                placeholder={
+                  slideDraft?.layout === "cards"
+                    ? "Rótulo | Valor | Descrição\nSegmento | Confecção B2B | Camisetas e moletons\nPraças | 3 estados | GO, MT e DF"
+                    : "Aceita quebras de linha. Use • ou - para bullets."
+                }
                 value={slideDraft?.body ?? ""}
                 onChange={(e) =>
-                  setSlideDraft((p) => ({
-                    ...p,
-                    body: normalizePresentationText(e.target.value),
-                  }))
+                  setSlideDraft((p) => ({ ...p, body: e.target.value }))
                 }
               />
+              {slideDraft?.layout === "cards" && (
+                <p className="text-[10px] text-foreground/40">
+                  Formato: <code>Rótulo | Valor | Descrição</code> — um card por linha (até 3 por linha visual).
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>URL da imagem</Label>
