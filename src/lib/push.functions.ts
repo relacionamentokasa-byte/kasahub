@@ -103,6 +103,7 @@ export const sendTestPush = createServerFn({ method: "POST" })
 
     let success = 0;
     const stale: string[] = [];
+    const errors: { status?: number; body?: string; message?: string }[] = [];
     await Promise.all(
       subs.map(async (s) => {
         try {
@@ -112,8 +113,12 @@ export const sendTestPush = createServerFn({ method: "POST" })
           );
           success += 1;
         } catch (err: unknown) {
-          const statusCode = (err as { statusCode?: number })?.statusCode;
-          if (statusCode === 404 || statusCode === 410) stale.push(s.id);
+          const e = err as { statusCode?: number; body?: string; message?: string };
+          if (e?.statusCode === 404 || e?.statusCode === 410) {
+            stale.push(s.id);
+          } else {
+            errors.push({ status: e?.statusCode, body: e?.body?.slice(0, 200), message: e?.message });
+          }
         }
       }),
     );
@@ -122,5 +127,12 @@ export const sendTestPush = createServerFn({ method: "POST" })
       await supabase.from("push_subscriptions").delete().in("id", stale);
     }
 
-    return { sent: success, removed: stale.length };
+    if (success === 0 && errors.length > 0) {
+      const first = errors[0];
+      throw new Error(
+        `Falha no envio push (status ${first.status ?? "?"}): ${first.message ?? ""}${first.body ? ` — ${first.body}` : ""}`,
+      );
+    }
+
+    return { sent: success, removed: stale.length, errors: errors.length };
   });
