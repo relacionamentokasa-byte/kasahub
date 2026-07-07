@@ -122,9 +122,8 @@ function PresentPage() {
       client?.brand_primary ||
       agency?.brand_primary ||
       "#FFBC45";
-    const inkHex =
-      client?.portal_text_color ||
-      (hexLum(stage) < 0.5 ? "#FFFFFF" : "#0B0B14");
+    const inkHex = hexLum(stage) < 0.5 ? "#FFFFFF" : "#0B0B14";
+
     return { stage, brand, inkHex, inkRgb: hexToRgb(inkHex) };
   }, [client, agency]);
 
