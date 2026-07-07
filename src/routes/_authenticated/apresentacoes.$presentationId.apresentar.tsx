@@ -302,6 +302,8 @@ function SlideView({ slide }: { slide: PresentationSlide }) {
       return <QuoteLayout slide={slide} />;
     case "closing":
       return <ClosingLayout slide={slide} />;
+    case "cards":
+      return <CardsLayout slide={slide} />;
     case "content":
     default:
       return <ContentLayout slide={slide} />;
@@ -322,18 +324,134 @@ function Eyebrow({ text }: { text?: string | null }) {
   );
 }
 
-function BodyText({ text }: { text?: string | null }) {
-  const normalizedText = normalizePresentationText(text);
-  if (!normalizedText) return null;
+// Renders body text with support for:
+// - blank line = paragraph break
+// - lines starting with "- ", "* ", or "• " = bullet list
+function BodyText({ text, className }: { text?: string | null; className?: string }) {
+  const normalized = normalizePresentationText(text);
+  if (!normalized) return null;
+  const blocks: Array<{ type: "p" | "ul"; lines: string[] }> = [];
+  const rawBlocks = normalized.split(/\n\s*\n/);
+  for (const raw of rawBlocks) {
+    const lines = raw.split("\n").map((l) => l.trimEnd()).filter((l) => l.length > 0);
+    if (lines.length === 0) continue;
+    const isList = lines.every((l) => /^\s*([-*•])\s+/.test(l));
+    if (isList) {
+      blocks.push({
+        type: "ul",
+        lines: lines.map((l) => l.replace(/^\s*([-*•])\s+/, "")),
+      });
+    } else {
+      blocks.push({ type: "p", lines });
+    }
+  }
   return (
     <div
-      className="text-lg lg:text-xl leading-relaxed max-w-3xl whitespace-pre-wrap"
+      className={
+        className ??
+        "text-lg lg:text-xl leading-relaxed max-w-3xl space-y-4"
+      }
       style={{ color: `rgb(var(--ink-rgb) / 0.8)` }}
     >
-      {normalizedText}
+      {blocks.map((b, i) =>
+        b.type === "ul" ? (
+          <ul key={i} className="space-y-2 list-none">
+            {b.lines.map((l, j) => (
+              <li key={j} className="flex gap-3">
+                <span
+                  className="mt-[0.6em] size-1.5 rounded-full shrink-0"
+                  style={{ backgroundColor: "var(--brand)" }}
+                />
+                <span>{l}</span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p key={i} className="whitespace-pre-line">
+            {b.lines.join("\n")}
+          </p>
+        ),
+      )}
     </div>
   );
 }
+
+// Parses body into card items. Format per line: "Label | Value | Description"
+// Description is optional. Blank lines are ignored.
+function parseCards(text?: string | null) {
+  const normalized = normalizePresentationText(text);
+  if (!normalized) return [];
+  return normalized
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const parts = line.split("|").map((p) => p.trim());
+      return {
+        label: parts[0] ?? "",
+        value: parts[1] ?? "",
+        description: parts[2] ?? "",
+      };
+    });
+}
+
+function CardsLayout({ slide }: { slide: PresentationSlide }) {
+  const cards = parseCards(slide.body);
+  return (
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <Eyebrow text={slide.eyebrow} />
+        {slide.title && (
+          <h2 className="text-4xl lg:text-5xl font-black tracking-tight leading-[1.05]">
+            {slide.title}
+          </h2>
+        )}
+        {slide.subtitle && (
+          <p
+            className="text-lg lg:text-xl max-w-3xl"
+            style={{ color: `rgb(var(--ink-rgb) / 0.7)` }}
+          >
+            {slide.subtitle}
+          </p>
+        )}
+      </div>
+      <div className="h-px w-full bg-white/10" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {cards.map((c, i) => (
+          <div
+            key={i}
+            className="rounded-2xl p-6 space-y-2 border border-white/10"
+            style={{ backgroundColor: "rgb(0 0 0 / 0.25)" }}
+          >
+            <p
+              className="text-xs uppercase tracking-[0.2em] font-semibold"
+              style={{ color: `rgb(var(--ink-rgb) / 0.55)` }}
+            >
+              {c.label}
+            </p>
+            <p className="text-2xl lg:text-3xl font-black tracking-tight">
+              {c.value}
+            </p>
+            {c.description && (
+              <p
+                className="text-sm"
+                style={{ color: `rgb(var(--ink-rgb) / 0.65)` }}
+              >
+                {c.description}
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+      {slide.cta_label && (
+        <div className="pt-2">
+          <Cta slide={slide} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function Cta({ slide }: { slide: PresentationSlide }) {
   if (!slide.cta_label) return null;
