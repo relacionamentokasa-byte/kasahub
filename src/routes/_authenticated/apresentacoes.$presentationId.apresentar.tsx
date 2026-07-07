@@ -323,15 +323,12 @@ function Eyebrow({ text }: { text?: string | null }) {
 
 function BodyText({ text }: { text?: string | null }) {
   if (!text) return null;
-  const lines = text.split(/\r?\n/).filter(Boolean);
   return (
     <div
-      className="text-lg lg:text-xl leading-relaxed space-y-3 max-w-3xl"
+      className="text-lg lg:text-xl leading-relaxed max-w-3xl whitespace-pre-line"
       style={{ color: `rgb(var(--ink-rgb) / 0.8)` }}
     >
-      {lines.map((l, i) => (
-        <p key={i}>{l}</p>
-      ))}
+      {text}
     </div>
   );
 }
