@@ -32,10 +32,7 @@ function bufferToBase64(buffer: ArrayBuffer | null): string {
 function subscriptionUsesApplicationServerKey(sub: PushSubscription, appServerKey: Uint8Array): boolean {
   const current = sub.options?.applicationServerKey;
   if (!current) return false;
-  const bytes =
-    current instanceof ArrayBuffer
-      ? new Uint8Array(current)
-      : new Uint8Array(current.buffer, current.byteOffset, current.byteLength);
+  const bytes = new Uint8Array(current as ArrayBuffer);
   if (bytes.length !== appServerKey.length) return false;
   return bytes.every((value, index) => value === appServerKey[index]);
 }
