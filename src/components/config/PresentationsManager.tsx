@@ -257,7 +257,7 @@ function PresentationDetail({
   const [slideDraft, setSlideDraft] =
     useState<Partial<PresentationSlide> | null>(null);
   const [slideOpen, setSlideOpen] = useState(false);
-  const bodyRef = useState<{ el: HTMLTextAreaElement | null }>({ el: null })[0];
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
 
   const { data: slides = [] } = useQuery({
     queryKey: ["presentation-slides", item.id],
