@@ -53,6 +53,14 @@ export type OnboardingStep = {
   completed_by: string | null;
 };
 
+export function normalizeOnboardingText(text?: string | null) {
+  if (!text) return text ?? null;
+  return text
+    .replace(/\\r\\n/g, "\n")
+    .replace(/\\n/g, "\n")
+    .replace(/\r\n?/g, "\n");
+}
+
 // ============== TEMPLATES ==============
 export async function fetchOnboardingTemplates() {
   const { data, error } = await (supabase as any)
@@ -77,7 +85,10 @@ export async function fetchTemplateSteps(templateId: string) {
 export async function createTemplate(input: Partial<OnboardingTemplate>) {
   const { data, error } = await (supabase as any)
     .from("onboarding_templates")
-    .insert(input)
+    .insert({
+      ...input,
+      description: normalizeOnboardingText(input.description),
+    })
     .select()
     .single();
   if (error) throw error;
@@ -87,7 +98,10 @@ export async function createTemplate(input: Partial<OnboardingTemplate>) {
 export async function updateTemplate(id: string, input: Partial<OnboardingTemplate>) {
   const { data, error } = await (supabase as any)
     .from("onboarding_templates")
-    .update(input)
+    .update({
+      ...input,
+      description: normalizeOnboardingText(input.description),
+    })
     .eq("id", id)
     .select()
     .single();
@@ -150,7 +164,10 @@ export async function deleteTemplate(id: string) {
 export async function upsertTemplateStep(input: Partial<OnboardingTemplateStep>) {
   const { data, error } = await (supabase as any)
     .from("onboarding_template_steps")
-    .upsert(input)
+    .upsert({
+      ...input,
+      description: normalizeOnboardingText(input.description),
+    })
     .select()
     .single();
   if (error) throw error;
@@ -362,6 +379,9 @@ export async function syncAllOnboardingsForTemplate(templateId: string) {
 
 export async function updateOnboardingStep(id: string, input: Partial<OnboardingStep>) {
   const payload: any = { ...input };
+  if ("description" in input) {
+    payload.description = normalizeOnboardingText(input.description);
+  }
   if (input.status === "done" && !input.completed_at) {
     payload.completed_at = new Date().toISOString();
   }

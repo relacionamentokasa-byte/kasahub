@@ -2,7 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { fetchOnboardingSteps, type OnboardingStep } from "@/lib/onboarding-api";
+import {
+  fetchOnboardingSteps,
+  normalizeOnboardingText,
+  type OnboardingStep,
+} from "@/lib/onboarding-api";
 import { fetchClient } from "@/lib/ops-api";
 import { fetchAgencySettings } from "@/lib/settings-api";
 import { format, differenceInCalendarDays } from "date-fns";
@@ -562,6 +566,16 @@ function StatCard({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ExactDescription({ text }: { text?: string | null }) {
+  const normalized = normalizeOnboardingText(text);
+  if (!normalized) return null;
+  return (
+    <p className="text-sm text-[rgb(var(--ink-rgb)/0.55)] leading-relaxed whitespace-pre-wrap break-words">
+      {normalized}
+    </p>
+  );
+}
+
 function RolesSlide({ steps }: { steps: OnboardingStep[] }) {
   const counts = {
     agency: steps.filter((s) => s.responsible_type === "agency").length,
@@ -752,11 +766,7 @@ function StepsSlide({
                 >
                   {step.title}
                 </h3>
-                {step.description && (
-                  <p className="text-sm text-[rgb(var(--ink-rgb)/0.55)] leading-relaxed line-clamp-3">
-                    {step.description}
-                  </p>
-                )}
+                <ExactDescription text={step.description} />
                 {step.due_date && !isDone && (
                   <p
                     className="text-[11px] inline-flex items-center gap-1.5 font-medium pt-1"
