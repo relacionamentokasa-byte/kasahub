@@ -381,7 +381,9 @@ function CoverSlide({
   onb: { title: string; start_date: string; expected_end_date: string | null };
   client: { name: string; company: string | null; logo_url: string | null };
 }) {
-  const cleanTitle = onb.title.replace(/^Onboarding:\s*/i, "");
+  const cleanTitle = onb.title
+    .replace(/^(onboarding\s*[:\-–]?\s*)+/i, "")
+    .trim() || onb.title;
   return (
     <div className="text-center space-y-10">
       <div className="space-y-3">
