@@ -497,32 +497,56 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
           </div>
 
 
-          <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-center space-y-4">
-            <div className="text-center space-y-1">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Resumo do Contrato</span>
-              <div className="text-3xl font-bold text-primary">
-                {formatCurrency((Number(form.monthly_investment || 0) * Number(form.recurring_months || 0)) + Number(form.one_time_investment || 0))}
-              </div>
-              <p className="text-xs text-muted-foreground">Valor total do investimento</p>
-            </div>
-            
-            <div className="pt-4 border-t border-border space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Mensalidade:</span>
-                <span className="font-medium">{formatCurrency(form.monthly_investment || 0)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Duração:</span>
-                <span className="font-medium">{form.recurring_months || 0} meses</span>
-              </div>
-              {Number(form.one_time_investment || 0) > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Setup:</span>
-                  <span className="font-medium">{formatCurrency(form.one_time_investment || 0)}</span>
+          {(() => {
+            const months = Number(form.recurring_months || 0);
+            const baseMonthly = Number(form.monthly_investment || 0);
+            const setup = Number(form.one_time_investment || 0);
+            const adjs: any[] = Array.isArray((form as any).scheduled_adjustments) ? (form as any).scheduled_adjustments : [];
+            const sorted = [...adjs].filter(a => a && Number(a.from_month) > 0).sort((a, b) => Number(a.from_month) - Number(b.from_month));
+            let recurringTotal = 0;
+            for (let m = 1; m <= months; m++) {
+              const match = [...sorted].reverse().find(a => Number(a.from_month) <= m);
+              recurringTotal += match ? Number(match.value || 0) : baseMonthly;
+            }
+            const grand = recurringTotal + setup;
+            return (
+              <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-center space-y-4">
+                <div className="text-center space-y-1">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Resumo do Contrato</span>
+                  <div className="text-3xl font-bold text-primary">{formatCurrency(grand)}</div>
+                  <p className="text-xs text-muted-foreground">Valor total do investimento</p>
                 </div>
-              )}
-            </div>
-          </div>
+
+                <div className="pt-4 border-t border-border space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Mensalidade base:</span>
+                    <span className="font-medium">{formatCurrency(baseMonthly)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Duração:</span>
+                    <span className="font-medium">{months} meses</span>
+                  </div>
+                  {sorted.map((a, i) => (
+                    <div key={i} className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">A partir do mês {a.from_month}:</span>
+                      <span className="font-medium">{formatCurrency(Number(a.value || 0))}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between pt-2 border-t border-border">
+                    <span className="text-muted-foreground">Total recorrente:</span>
+                    <span className="font-medium">{formatCurrency(recurringTotal)}</span>
+                  </div>
+                  {setup > 0 && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Setup:</span>
+                      <span className="font-medium">{formatCurrency(setup)}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
         </div>
       </section>
 
