@@ -591,6 +591,29 @@ function PublicProposalView() {
               </div>
             )}
 
+            {proposal.contract_type === 'recurring' && Array.isArray(proposal.scheduled_adjustments) && proposal.scheduled_adjustments.length > 0 && (
+              <div className="mb-8 sm:mb-12 bg-white/5 border border-[#ffbc45]/30 rounded-2xl p-5 sm:p-6">
+                <p className="text-[10px] uppercase tracking-widest text-[#ffbc45] font-sans font-bold mb-3">Reajustes Programados</p>
+                <ul className="space-y-2">
+                  <li className="flex justify-between text-sm font-sans text-slate-200">
+                    <span>A partir do mês 1</span>
+                    <span className="font-bold text-white">{formatCurrency(proposal.monthly_investment)}/mês</span>
+                  </li>
+                  {[...proposal.scheduled_adjustments]
+                    .sort((a, b) => a.from_month - b.from_month)
+                    .map((adj, i) => (
+                      <li key={i} className="flex justify-between text-sm font-sans text-slate-200">
+                        <span>A partir do mês {adj.from_month}</span>
+                        <span className="font-bold text-[#ffbc45]">{formatCurrency(adj.value)}/mês</span>
+                      </li>
+                    ))}
+                </ul>
+                <p className="text-xs text-slate-400 mt-3 font-sans">
+                  O valor mensal será ajustado automaticamente conforme o cronograma acima.
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-white/5 p-4 rounded-xl">
                     <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Tipo</p>
