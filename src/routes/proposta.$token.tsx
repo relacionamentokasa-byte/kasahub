@@ -103,6 +103,20 @@ function formatCurrency(value: number, currency = "BRL") {
   );
 }
 
+function computeRecurringTotal(monthly: number, months: number, adjustments?: Array<{ from_month: number; value: number }> | null): number {
+  const base = Number(monthly || 0);
+  const m = Number(months || 0);
+  const sorted = Array.isArray(adjustments)
+    ? [...adjustments].filter(a => a && Number(a.from_month) > 0).sort((a, b) => Number(a.from_month) - Number(b.from_month))
+    : [];
+  let total = 0;
+  for (let i = 1; i <= m; i++) {
+    const match = [...sorted].reverse().find(a => Number(a.from_month) <= i);
+    total += match ? Number(match.value || 0) : base;
+  }
+  return total;
+}
+
 function PublicProposalView() {
   
   const { token } = Route.useParams();
