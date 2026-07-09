@@ -48,6 +48,7 @@ type Proposal = {
   installments?: number | null;
   payment_method?: string | null;
   contract_content?: string | null;
+  scheduled_adjustments?: Array<{ from_month: number; value: number }> | null;
   signature_agency?: string | null;
   signature_client?: string | null;
   signed_at_agency?: string | null;
@@ -100,6 +101,20 @@ function formatCurrency(value: number, currency = "BRL") {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(
     Number(value || 0),
   );
+}
+
+function computeRecurringTotal(monthly: number, months: number, adjustments?: Array<{ from_month: number; value: number }> | null): number {
+  const base = Number(monthly || 0);
+  const m = Number(months || 0);
+  const sorted = Array.isArray(adjustments)
+    ? [...adjustments].filter(a => a && Number(a.from_month) > 0).sort((a, b) => Number(a.from_month) - Number(b.from_month))
+    : [];
+  let total = 0;
+  for (let i = 1; i <= m; i++) {
+    const match = [...sorted].reverse().find(a => Number(a.from_month) <= i);
+    total += match ? Number(match.value || 0) : base;
+  }
+  return total;
 }
 
 function PublicProposalView() {
@@ -308,7 +323,7 @@ function PublicProposalView() {
       monthly_value: formatCurrency(proposal.monthly_investment),
       setup_value: formatCurrency(proposal.one_time_investment),
       total_value: formatCurrency(
-        (proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment,
+        computeRecurringTotal(proposal.monthly_investment, proposal.recurring_months || 12, proposal.scheduled_adjustments) + proposal.one_time_investment,
       ),
       payment_method:
         proposal.payment_method === "credit_card"
@@ -571,7 +586,7 @@ function PublicProposalView() {
                   <div className="hidden md:block w-px h-16 bg-white/20"></div>
                   <div className="flex-1 w-full text-center md:text-right">
                       <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Valor Total</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-white font-display">{formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white font-display">{formatCurrency(computeRecurringTotal(proposal.monthly_investment, proposal.recurring_months || 12, proposal.scheduled_adjustments) + proposal.one_time_investment)}</p>
                   </div>
               </div>
             )}
