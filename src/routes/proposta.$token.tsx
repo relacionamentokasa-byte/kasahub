@@ -323,7 +323,7 @@ function PublicProposalView() {
       monthly_value: formatCurrency(proposal.monthly_investment),
       setup_value: formatCurrency(proposal.one_time_investment),
       total_value: formatCurrency(
-        (proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment,
+        computeRecurringTotal(proposal.monthly_investment, proposal.recurring_months || 12, proposal.scheduled_adjustments) + proposal.one_time_investment,
       ),
       payment_method:
         proposal.payment_method === "credit_card"
