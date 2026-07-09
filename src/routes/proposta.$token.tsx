@@ -48,6 +48,7 @@ type Proposal = {
   installments?: number | null;
   payment_method?: string | null;
   contract_content?: string | null;
+  scheduled_adjustments?: Array<{ from_month: number; value: number }> | null;
   signature_agency?: string | null;
   signature_client?: string | null;
   signed_at_agency?: string | null;
