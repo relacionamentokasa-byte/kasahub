@@ -3643,6 +3643,7 @@ export type Database = {
           recurring_months: number
           responsible_id: string | null
           root_proposal_id: string | null
+          scheduled_adjustments: Json
           scope: string | null
           scope_text: Json | null
           sent_at: string | null
@@ -3718,6 +3719,7 @@ export type Database = {
           recurring_months?: number
           responsible_id?: string | null
           root_proposal_id?: string | null
+          scheduled_adjustments?: Json
           scope?: string | null
           scope_text?: Json | null
           sent_at?: string | null
@@ -3793,6 +3795,7 @@ export type Database = {
           recurring_months?: number
           responsible_id?: string | null
           root_proposal_id?: string | null
+          scheduled_adjustments?: Json
           scope?: string | null
           scope_text?: Json | null
           sent_at?: string | null

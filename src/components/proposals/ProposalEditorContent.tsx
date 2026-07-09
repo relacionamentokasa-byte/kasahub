@@ -403,8 +403,99 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                   </div>
                 </div>
               </div>
+
+              {/* Reajustes programados */}
+              <div className="space-y-3 pt-4 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-semibold">Reajustes programados</Label>
+                    <p className="text-xs text-muted-foreground">Ex.: a partir do mês 4 o valor sobe para R$ 700.</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const list = Array.isArray((form as any).scheduled_adjustments) ? [...(form as any).scheduled_adjustments] : [];
+                      list.push({ from_month: (list[list.length - 1]?.from_month || 1) + 1, value: Number(form.monthly_investment || 0), note: "" });
+                      setForm({ ...form, scheduled_adjustments: list } as any);
+                      setIsDirty(true);
+                    }}
+                  >
+                    <Plus className="size-3.5 mr-1" /> Adicionar
+                  </Button>
+                </div>
+
+                {Array.isArray((form as any).scheduled_adjustments) && (form as any).scheduled_adjustments.length > 0 && (
+                  <div className="space-y-2">
+                    {(form as any).scheduled_adjustments.map((adj: any, idx: number) => (
+                      <div key={idx} className="grid grid-cols-[90px_1fr_1fr_auto] gap-2 items-center bg-muted/30 rounded-lg p-2">
+                        <div className="space-y-1">
+                          <Label className="text-[10px] uppercase text-muted-foreground">A partir do mês</Label>
+                          <Input
+                            type="number"
+                            min={2}
+                            max={Number(form.recurring_months || 12)}
+                            value={adj.from_month || ""}
+                            onChange={e => {
+                              const list = [...(form as any).scheduled_adjustments];
+                              list[idx] = { ...list[idx], from_month: Number(e.target.value) };
+                              setForm({ ...form, scheduled_adjustments: list } as any);
+                              setIsDirty(true);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] uppercase text-muted-foreground">Novo valor mensal</Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">R$</span>
+                            <Input
+                              type="number"
+                              className="pl-9"
+                              value={adj.value || ""}
+                              onChange={e => {
+                                const list = [...(form as any).scheduled_adjustments];
+                                list[idx] = { ...list[idx], value: Number(e.target.value) };
+                                setForm({ ...form, scheduled_adjustments: list } as any);
+                                setIsDirty(true);
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-[10px] uppercase text-muted-foreground">Observação</Label>
+                          <Input
+                            placeholder="Ex.: reajuste anual"
+                            value={adj.note || ""}
+                            onChange={e => {
+                              const list = [...(form as any).scheduled_adjustments];
+                              list[idx] = { ...list[idx], note: e.target.value };
+                              setForm({ ...form, scheduled_adjustments: list } as any);
+                              setIsDirty(true);
+                            }}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="mt-4 text-destructive"
+                          onClick={() => {
+                            const list = (form as any).scheduled_adjustments.filter((_: any, i: number) => i !== idx);
+                            setForm({ ...form, scheduled_adjustments: list } as any);
+                            setIsDirty(true);
+                          }}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
+
 
           <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-center space-y-4">
             <div className="text-center space-y-1">
