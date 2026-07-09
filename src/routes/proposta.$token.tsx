@@ -586,7 +586,7 @@ function PublicProposalView() {
                   <div className="hidden md:block w-px h-16 bg-white/20"></div>
                   <div className="flex-1 w-full text-center md:text-right">
                       <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Valor Total</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-white font-display">{formatCurrency((proposal.monthly_investment * (proposal.recurring_months || 12)) + proposal.one_time_investment)}</p>
+                      <p className="text-2xl sm:text-3xl font-bold text-white font-display">{formatCurrency(computeRecurringTotal(proposal.monthly_investment, proposal.recurring_months || 12, proposal.scheduled_adjustments) + proposal.one_time_investment)}</p>
                   </div>
               </div>
             )}
