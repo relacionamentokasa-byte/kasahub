@@ -962,7 +962,22 @@ function ProposalsPage() {
                         </span>
                       </td>
                       <td className="px-5 py-3 text-right">
-                        {formatCurrency(Number(p.total || 0))}
+                        {(() => {
+                          const months = Number((p as any).recurring_months || 0);
+                          const baseMonthly = Number(p.monthly_investment || 0);
+                          const setup = Number(p.one_time_investment || 0);
+                          const adjs: any[] = Array.isArray((p as any).scheduled_adjustments) ? (p as any).scheduled_adjustments : [];
+                          const sorted = [...adjs].filter(a => a && Number(a.from_month) > 0).sort((a, b) => Number(a.from_month) - Number(b.from_month));
+                          let recurringTotal = 0;
+                          if (months > 0 && baseMonthly > 0) {
+                            for (let m = 1; m <= months; m++) {
+                              const match = [...sorted].reverse().find(a => Number(a.from_month) <= m);
+                              recurringTotal += match ? Number(match.value || 0) : baseMonthly;
+                            }
+                          }
+                          const grand = recurringTotal + setup || Number(p.total || 0);
+                          return formatCurrency(grand);
+                        })()}
                       </td>
                       <td className="px-5 py-3">
                         <Badge className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
