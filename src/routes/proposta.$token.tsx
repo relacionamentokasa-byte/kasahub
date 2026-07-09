@@ -578,7 +578,8 @@ function PublicProposalView() {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8 mb-8 sm:mb-12">
+              <>
+              <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8 mb-6">
                   <div className="flex-1 w-full text-center md:text-left">
                       <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">Investimento Mensal</p>
                       <p className="text-4xl sm:text-5xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.monthly_investment)}</p>
@@ -589,7 +590,18 @@ function PublicProposalView() {
                       <p className="text-2xl sm:text-3xl font-bold text-white font-display">{formatCurrency(computeRecurringTotal(proposal.monthly_investment, proposal.recurring_months || 12, proposal.scheduled_adjustments) + proposal.one_time_investment)}</p>
                   </div>
               </div>
+              {proposal.one_time_investment > 0 && (
+                <div className="mb-8 sm:mb-12 bg-[#ffbc45]/10 border border-[#ffbc45]/40 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest text-[#ffbc45] font-sans font-bold">Entrada / Setup (à vista)</p>
+                    <p className="text-xs text-slate-300 font-sans mt-1">Pagamento único no ato da assinatura</p>
+                  </div>
+                  <p className="text-3xl sm:text-4xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.one_time_investment)}</p>
+                </div>
+              )}
+              </>
             )}
+
 
             {proposal.contract_type === 'recurring' && Array.isArray(proposal.scheduled_adjustments) && proposal.scheduled_adjustments.length > 0 && (
               <div className="mb-8 sm:mb-12 bg-white/5 border border-[#ffbc45]/30 rounded-2xl p-5 sm:p-6">
