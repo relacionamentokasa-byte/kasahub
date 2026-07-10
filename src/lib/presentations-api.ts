@@ -7,7 +7,8 @@ export type PresentationLayout =
   | "split"
   | "quote"
   | "closing"
-  | "cards";
+  | "cards"
+  | "fullbleed";
 
 export type Presentation = {
   id: string;

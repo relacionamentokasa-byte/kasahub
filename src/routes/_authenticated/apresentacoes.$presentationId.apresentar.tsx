@@ -220,15 +220,27 @@ function PresentPage() {
         </button>
       </div>
 
+      {/* Fullbleed background image (PDF pages, etc) */}
+      {cur.layout === "fullbleed" && cur.image_url && (
+        <img
+          key={`bg-${idx}`}
+          src={cur.image_url}
+          alt={cur.title || ""}
+          className="absolute inset-0 w-full h-full object-contain z-20 animate-in fade-in duration-500"
+        />
+      )}
+
       {/* Slide */}
-      <div className="absolute inset-0 grid place-items-center px-10 lg:px-20 pt-24 pb-24">
-        <div
-          key={idx}
-          className="relative w-full max-w-6xl animate-in fade-in slide-in-from-bottom-2 duration-500"
-        >
-          <SlideView slide={cur} />
+      {cur.layout !== "fullbleed" && (
+        <div className="absolute inset-0 grid place-items-center px-10 lg:px-20 pt-24 pb-24">
+          <div
+            key={idx}
+            className="relative w-full max-w-6xl animate-in fade-in slide-in-from-bottom-2 duration-500"
+          >
+            <SlideView slide={cur} />
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Click zones */}
       <button
