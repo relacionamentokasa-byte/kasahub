@@ -215,23 +215,34 @@ export function JobsBoard({
       });
     }
 
-    // Filtro por Responsável (principal, assignee OU equipe envolvida)
+    // Helper: coleta todos os user_ids envolvidos no job (responsável, assignee, team_involved legado e checklist)
+    const collectJobUserIds = (j: any): Set<string> => {
+      const ids = new Set<string>();
+      if (j.main_responsible_id) ids.add(j.main_responsible_id);
+      if (j.assignee_id) ids.add(j.assignee_id);
+      const legacy = j.team_involved || [];
+      legacy.forEach((m: any) => {
+        const id = m?.user_id || m;
+        if (id && typeof id === "string") ids.add(id);
+      });
+      const fromChecklist = teamFromChecklistMap.get(j.id) || [];
+      fromChecklist.forEach((id) => ids.add(id));
+      return ids;
+    };
+
+    // Filtro por Responsável Principal (apenas main_responsible_id / assignee_id)
     if (responsibleId && responsibleId !== "all") {
       result = result.filter((j) => {
         const mainRespId = (j as any).main_responsible_id || j.assignee_id;
-        if (mainRespId === responsibleId) return true;
-        const teamInvolved = (j as any).team_involved || [];
-        return teamInvolved.some((m: any) => (m?.user_id || m) === responsibleId);
+        return mainRespId === responsibleId;
       });
     }
 
-    // Filtro por Equipe Envolvida
+    // Filtro por Equipe Envolvida (qualquer envolvido: responsável, checklist ou team_involved)
     if (teamFilter && teamFilter.length > 0) {
       result = result.filter((j) => {
-        const teamInvolved = (j as any).team_involved || [];
-        return teamFilter.some(userId => 
-          teamInvolved.some((m: any) => (m.user_id || m) === userId)
-        );
+        const ids = collectJobUserIds(j);
+        return teamFilter.some((userId) => ids.has(userId));
       });
     }
 
