@@ -33,8 +33,8 @@ export async function createDmeBatch(input: {
 
   const distinctClients = new Set(dmes.map((d) => d.client_id));
   if (distinctClients.size > 1) throw new Error("Todas as DMEs devem ser do mesmo cliente.");
-  if (dmes.some((d) => !["draft", "pending", "sent", "pending_approval"].includes(d.status))) {
-    throw new Error("Só é possível agrupar DMEs ainda não aprovadas/recusadas.");
+  if (dmes.some((d) => !["draft", "pending", "sent", "pending_approval", "approved"].includes(d.status))) {
+    throw new Error("Só é possível agrupar DMEs ainda não pagas/recusadas.");
   }
 
   const total = dmes.reduce((acc, d) => acc + Number(d.value || 0), 0);
