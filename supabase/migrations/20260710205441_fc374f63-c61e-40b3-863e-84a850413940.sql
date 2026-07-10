@@ -1,0 +1,1 @@
+DELETE FROM public.presentation_slides WHERE presentation_id='c68630fd-43de-4d18-a407-d0e44c939e91'; DELETE FROM public.presentations WHERE id='c68630fd-43de-4d18-a407-d0e44c939e91';
