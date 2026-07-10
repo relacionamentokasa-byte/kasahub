@@ -209,7 +209,7 @@ function DmesPage() {
   }
 
   // Batch selection helpers
-  const ELIGIBLE = ["draft", "pending", "sent", "pending_approval"];
+  const ELIGIBLE = ["draft", "pending", "sent", "pending_approval", "approved"];
   const selectedDmes = useMemo(
     () => dmes.filter((d: any) => selectedIds.has(d.id)),
     [dmes, selectedIds]
