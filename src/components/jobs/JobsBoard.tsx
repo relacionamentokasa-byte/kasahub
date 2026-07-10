@@ -267,7 +267,7 @@ export function JobsBoard({
     }
 
     return result;
-  }, [jobs, query, responsibleId, teamFilter, clientFilterId, priorityFilter, statusFilter]);
+  }, [jobs, query, responsibleId, teamFilter, clientFilterId, priorityFilter, statusFilter, teamFromChecklistMap]);
 
   const clearFilters = () => {
     setQuery("");
