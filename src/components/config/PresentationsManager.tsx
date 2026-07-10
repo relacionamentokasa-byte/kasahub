@@ -64,6 +64,7 @@ const LAYOUT_META: Record<
   quote: { label: "Citação", icon: Quote, hint: "Frase de destaque" },
   cards: { label: "Cards", icon: LayoutGrid, hint: "Quadrados com dados" },
   closing: { label: "Encerramento", icon: Flag, hint: "Slide final com CTA" },
+  fullbleed: { label: "Página cheia", icon: ImageIcon, hint: "Imagem cobrindo o slide inteiro (ex: página de PDF)" },
 };
 
 export function PresentationsManager({ canEdit = true }: { canEdit?: boolean }) {
