@@ -228,6 +228,9 @@ function DmesPage() {
 
   function isSelectable(d: any) {
     if (!ELIGIBLE.includes(d.status)) return false;
+    // Já está em um lote ativo ou consolidado no financeiro? não pode reagrupar
+    if (batchByDme[d.id]) return false;
+    if (d.consolidated_transaction_id) return false;
     if (lockedClientId && d.client_id !== lockedClientId) return false;
     return true;
   }
