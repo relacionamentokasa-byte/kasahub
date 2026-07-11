@@ -406,9 +406,20 @@ function PublicProposalView() {
         .font-display { font-family: 'Funnel Display', sans-serif; }
         .font-sans { font-family: 'Onest', sans-serif; }
 
-        @media print {
-          .no-print { display: none !important; }
+        @page {
+          size: A4;
+          margin: 12mm 10mm;
         }
+        @media print {
+          html, body { background: #fff !important; }
+          .no-print { display: none !important; }
+          .print-avoid-break, .print-avoid-break * { break-inside: avoid; page-break-inside: avoid; }
+          section, .rounded-2xl, .rounded-3xl, article, .card { break-inside: avoid; page-break-inside: avoid; }
+          img, svg { break-inside: avoid; page-break-inside: avoid; max-width: 100% !important; height: auto !important; }
+          h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+
       `}</style>
 
       {/* Sticky Header */}
