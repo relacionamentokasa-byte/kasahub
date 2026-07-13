@@ -291,13 +291,20 @@ function ProposalsPage() {
         service_ids: form.service_ids,
         valid_until: form.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         monthly_investment: form.contract_type === "mensal" ? form.monthly_investment : 0,
-        one_time_investment: form.contract_type === "avulso" ? form.one_time_investment : 0,
-        total: form.contract_type === "mensal" ? form.monthly_investment : form.one_time_investment,
+        one_time_investment: form.one_time_investment || 0,
+        total:
+          form.contract_type === "mensal"
+            ? form.monthly_investment * (
+                form.contract_term === "3_months" ? 3 :
+                form.contract_term === "6_months" ? 6 :
+                form.contract_term === "12_months" ? 12 : 12
+              ) + Number(form.one_time_investment || 0)
+            : form.one_time_investment,
         contract_type: form.contract_type === "mensal" ? "recurring" : "one_time",
         payment_kind: form.contract_type === "mensal" ? "recurring" : "one_time",
         auto_create_jobs: false,
         contract_term: form.contract_term,
-        installments: form.contract_type === "avulso" ? form.installments : 1,
+        installments: form.installments || 1,
         recurring_months: recurring_months,
         payment_method: form.payment_method,
         first_due_date: form.first_due_date,
@@ -681,15 +688,49 @@ function ProposalsPage() {
                               </SelectContent>
                             </Select>
                           </Field>
+                          <Field label="Setup / Entrada (opcional)">
+                            <Input
+                              type="number"
+                              value={form.one_time_investment || ""}
+                              onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })}
+                              placeholder="0,00"
+                            />
+                          </Field>
+                          {form.one_time_investment > 0 && (
+                            <>
+                              <Field label="Parcelar Setup em">
+                                <Select
+                                  value={String(form.installments)}
+                                  onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
+                                >
+                                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                                      <SelectItem key={n} value={String(n)} className="cursor-pointer">
+                                        {n === 1 ? "À vista" : `${n}x`}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </Field>
+                              {form.installments > 1 && (
+                                <Field label="Valor por parcela do Setup">
+                                  <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
+                                    {formatCurrency(form.one_time_investment / (form.installments || 1))}
+                                  </div>
+                                </Field>
+                              )}
+                            </>
+                          )}
                           <Field label="Investimento Total">
                             <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
                               {formatCurrency(
-                                form.monthly_investment * (
+                                (form.monthly_investment * (
                                   form.contract_term === "3_months" ? 3 :
                                   form.contract_term === "6_months" ? 6 :
-                                  form.contract_term === "12_months" ? 12 : 
+                                  form.contract_term === "12_months" ? 12 :
                                   form.contract_term === "monthly" ? 12 : 1
-                                )
+                                )) + Number(form.one_time_investment || 0)
                               )}
                             </div>
                           </Field>
