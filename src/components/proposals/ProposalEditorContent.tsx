@@ -31,6 +31,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
+import { ClientPicker } from "@/components/clients/ClientPicker";
+import { fetchClients } from "@/lib/ops-api";
 import { cn } from "@/lib/utils";
 import { ProposalApprovalDialog } from "./ProposalApprovalDialog";
 import { ProposalSignatureCard } from "./ProposalSignatureCard";
