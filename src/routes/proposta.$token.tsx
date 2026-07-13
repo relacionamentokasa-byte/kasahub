@@ -604,8 +604,14 @@ function PublicProposalView() {
               {proposal.one_time_investment > 0 && (
                 <div className="mb-8 sm:mb-12 bg-[#ffbc45]/10 border border-[#ffbc45]/40 rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                   <div>
-                    <p className="text-[10px] uppercase tracking-widest text-[#ffbc45] font-sans font-bold">Entrada / Setup (à vista)</p>
-                    <p className="text-xs text-slate-300 font-sans mt-1">Pagamento único no ato da assinatura</p>
+                    <p className="text-[10px] uppercase tracking-widest text-[#ffbc45] font-sans font-bold">
+                      Entrada / Setup {(!proposal.installments || proposal.installments <= 1) ? "(à vista)" : `(em ${proposal.installments}x)`}
+                    </p>
+                    <p className="text-xs text-slate-300 font-sans mt-1">
+                      {(!proposal.installments || proposal.installments <= 1)
+                        ? "Pagamento único no ato da assinatura"
+                        : `${proposal.installments}x de ${formatCurrency(proposal.one_time_investment / proposal.installments)}`}
+                    </p>
                   </div>
                   <p className="text-3xl sm:text-4xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.one_time_investment)}</p>
                 </div>
