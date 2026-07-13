@@ -153,6 +153,24 @@ export function ScopeEditor({
     return value;
   };
 
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const ext = file.name.split('.').pop() || 'png';
+      const path = `scope/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage
+        .from('proposal-images')
+        .upload(path, file, { cacheControl: '31536000', upsert: false });
+      if (error) throw error;
+      const { data } = await supabase.storage
+        .from('proposal-images')
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5); // 5 anos
+      return data?.signedUrl ?? null;
+    } catch (e: any) {
+      toast.error('Falha ao enviar imagem: ' + (e?.message || 'erro'));
+      return null;
+    }
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -160,6 +178,7 @@ export function ScopeEditor({
       Heading.configure({
         levels: [1, 2, 3],
       }),
+      Image.configure({ inline: false, allowBase64: true, HTMLAttributes: { class: 'rounded-lg max-w-full h-auto my-3' } }),
     ],
     content: getInitialContent(),
     onUpdate: ({ editor }) => {
@@ -168,6 +187,35 @@ export function ScopeEditor({
     editorProps: {
       attributes: {
         class: 'prose prose-sm dark:prose-invert focus:outline-none min-h-[300px] p-4 max-w-none',
+      },
+      handlePaste: (view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+        for (const item of Array.from(items)) {
+          if (item.type.startsWith('image/')) {
+            const file = item.getAsFile();
+            if (file) {
+              event.preventDefault();
+              uploadImage(file).then((url) => {
+                if (url && editor) editor.chain().focus().setImage({ src: url }).run();
+              });
+              return true;
+            }
+          }
+        }
+        return false;
+      },
+      handleDrop: (view, event) => {
+        const files = event.dataTransfer?.files;
+        if (!files || files.length === 0) return false;
+        const imageFiles = Array.from(files).filter((f) => f.type.startsWith('image/'));
+        if (imageFiles.length === 0) return false;
+        event.preventDefault();
+        imageFiles.forEach(async (file) => {
+          const url = await uploadImage(file);
+          if (url && editor) editor.chain().focus().setImage({ src: url }).run();
+        });
+        return true;
       },
     },
   });
