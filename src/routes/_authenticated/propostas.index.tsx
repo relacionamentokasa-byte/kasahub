@@ -291,13 +291,20 @@ function ProposalsPage() {
         service_ids: form.service_ids,
         valid_until: form.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
         monthly_investment: form.contract_type === "mensal" ? form.monthly_investment : 0,
-        one_time_investment: form.contract_type === "avulso" ? form.one_time_investment : 0,
-        total: form.contract_type === "mensal" ? form.monthly_investment : form.one_time_investment,
+        one_time_investment: form.one_time_investment || 0,
+        total:
+          form.contract_type === "mensal"
+            ? form.monthly_investment * (
+                form.contract_term === "3_months" ? 3 :
+                form.contract_term === "6_months" ? 6 :
+                form.contract_term === "12_months" ? 12 : 12
+              ) + Number(form.one_time_investment || 0)
+            : form.one_time_investment,
         contract_type: form.contract_type === "mensal" ? "recurring" : "one_time",
         payment_kind: form.contract_type === "mensal" ? "recurring" : "one_time",
         auto_create_jobs: false,
         contract_term: form.contract_term,
-        installments: form.contract_type === "avulso" ? form.installments : 1,
+        installments: form.installments || 1,
         recurring_months: recurring_months,
         payment_method: form.payment_method,
         first_due_date: form.first_due_date,
