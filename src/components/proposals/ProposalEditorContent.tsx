@@ -237,14 +237,41 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 placeholder="Ex: Consultoria Mensal 2024"
               />
             </div>
+            <div className="space-y-1.5">
+              <Label>Cliente da base</Label>
+              <ClientPicker
+                value={(form as any).client_id || ""}
+                onChange={(id) => {
+                  const c = (clientsList as any[]).find((x) => x.id === id);
+                  setForm({
+                    ...form,
+                    client_id: id || null,
+                    client_name: c ? (c.company || c.name || form.client_name) : form.client_name,
+                    client_email: c?.email ?? form.client_email,
+                  } as any);
+                  setIsDirty(true);
+                }}
+                allowClear
+                className="w-full"
+              />
+              <p className="text-[11px] text-foreground/50">Selecione para vincular à base de clientes. Você ainda pode ajustar nome/e-mail abaixo.</p>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>Nome do Cliente</Label>
-                <Input value={form.client_name || ""} disabled className="bg-muted/50" />
+                <Input
+                  value={form.client_name || ""}
+                  onChange={(e) => { setForm({ ...form, client_name: e.target.value }); setIsDirty(true); }}
+                  placeholder="Nome exibido na proposta"
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>E-mail</Label>
-                <Input value={form.client_email || ""} disabled className="bg-muted/50" />
+                <Input
+                  value={form.client_email || ""}
+                  onChange={(e) => { setForm({ ...form, client_email: e.target.value }); setIsDirty(true); }}
+                  placeholder="email@cliente.com"
+                />
               </div>
             </div>
             <div className="space-y-1.5">
