@@ -681,15 +681,49 @@ function ProposalsPage() {
                               </SelectContent>
                             </Select>
                           </Field>
+                          <Field label="Setup / Entrada (opcional)">
+                            <Input
+                              type="number"
+                              value={form.one_time_investment || ""}
+                              onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })}
+                              placeholder="0,00"
+                            />
+                          </Field>
+                          {form.one_time_investment > 0 && (
+                            <>
+                              <Field label="Parcelar Setup em">
+                                <Select
+                                  value={String(form.installments)}
+                                  onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
+                                >
+                                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                                      <SelectItem key={n} value={String(n)} className="cursor-pointer">
+                                        {n === 1 ? "À vista" : `${n}x`}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </Field>
+                              {form.installments > 1 && (
+                                <Field label="Valor por parcela do Setup">
+                                  <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
+                                    {formatCurrency(form.one_time_investment / (form.installments || 1))}
+                                  </div>
+                                </Field>
+                              )}
+                            </>
+                          )}
                           <Field label="Investimento Total">
                             <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
                               {formatCurrency(
-                                form.monthly_investment * (
+                                (form.monthly_investment * (
                                   form.contract_term === "3_months" ? 3 :
                                   form.contract_term === "6_months" ? 6 :
-                                  form.contract_term === "12_months" ? 12 : 
+                                  form.contract_term === "12_months" ? 12 :
                                   form.contract_term === "monthly" ? 12 : 1
-                                )
+                                )) + Number(form.one_time_investment || 0)
                               )}
                             </div>
                           </Field>
