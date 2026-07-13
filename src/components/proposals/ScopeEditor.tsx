@@ -240,7 +240,7 @@ export function ScopeEditor({
       <EditorContent editor={editor} />
       <div className="p-2 border-t bg-muted/20">
         <p className="text-[10px] text-muted-foreground italic px-1">
-          Editor de texto rico habilitado. Use a barra de ferramentas para formatar seu escopo.
+          Dica: cole (Ctrl+V) ou arraste imagens direto no editor — elas aparecerão também no link público.
         </p>
       </div>
     </div>
