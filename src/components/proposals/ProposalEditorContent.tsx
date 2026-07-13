@@ -404,6 +404,41 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 </div>
               </div>
 
+              {/* Parcelamento do Setup */}
+              {Number(form.one_time_investment || 0) > 0 && (
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-semibold">Parcelar Setup em</Label>
+                    <Select
+                      value={String(form.installments || 1)}
+                      onValueChange={(v) => {
+                        setForm({ ...form, installments: Number(v) } as any);
+                        setIsDirty(true);
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
+                          <SelectItem key={n} value={String(n)}>
+                            {n === 1 ? "À vista" : `${n}x`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {Number(form.installments || 1) > 1 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-semibold">Valor por parcela</Label>
+                      <div className="h-10 flex items-center px-3 rounded-md bg-muted/40 text-sm font-medium">
+                        {formatCurrency(Number(form.one_time_investment || 0) / Number(form.installments || 1))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Reajustes programados */}
               <div className="space-y-3 pt-4 border-t border-border">
                 <div className="flex items-center justify-between">
