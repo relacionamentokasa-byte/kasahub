@@ -2,6 +2,9 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Heading from '@tiptap/extension-heading';
+import Image from '@tiptap/extension-image';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Bold,
   Italic,
