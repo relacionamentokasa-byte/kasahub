@@ -373,34 +373,36 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="col-span-2 space-y-6">
             <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-6">
-              <div className="space-y-4">
-                <Label className="text-sm font-semibold">Duração do Contrato</Label>
-                <RadioGroup 
-                  value={String(form.recurring_months || "6")} 
-                  onValueChange={val => {
-                    setForm({ ...form, recurring_months: Number(val), contract_type: "recurring" });
-                    setIsDirty(true);
-                  }}
-                  className="flex flex-wrap gap-3"
-                >
-                  {[3, 6, 12].map((months) => (
-                    <div key={months} className="flex items-center">
-                      <RadioGroupItem value={String(months)} id={`r-${months}`} className="sr-only" />
-                      <Label
-                        htmlFor={`r-${months}`}
-                        className={cn(
-                          "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
-                          form.recurring_months === months 
-                            ? "bg-[#FFBC45] border-[#FFBC45] text-black shadow-md scale-105" 
-                            : "bg-surface hover:bg-muted"
-                        )}
-                      >
-                        {months} meses
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
+              {Number(form.monthly_investment || 0) > 0 && (
+                <div className="space-y-4">
+                  <Label className="text-sm font-semibold">Duração do Contrato</Label>
+                  <RadioGroup 
+                    value={String(form.recurring_months || "6")} 
+                    onValueChange={val => {
+                      setForm({ ...form, recurring_months: Number(val), contract_type: "recurring" });
+                      setIsDirty(true);
+                    }}
+                    className="flex flex-wrap gap-3"
+                  >
+                    {[3, 6, 12].map((months) => (
+                      <div key={months} className="flex items-center">
+                        <RadioGroupItem value={String(months)} id={`r-${months}`} className="sr-only" />
+                        <Label
+                          htmlFor={`r-${months}`}
+                          className={cn(
+                            "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
+                            form.recurring_months === months 
+                              ? "bg-[#FFBC45] border-[#FFBC45] text-black shadow-md scale-105" 
+                              : "bg-surface hover:bg-muted"
+                          )}
+                        >
+                          {months} meses
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
