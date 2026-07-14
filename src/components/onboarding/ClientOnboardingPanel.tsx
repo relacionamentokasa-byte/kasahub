@@ -19,7 +19,10 @@ import {
   CalendarIcon,
   Presentation,
   RefreshCw,
+  FileDown,
 } from "lucide-react";
+import { exportOnboardingPdf } from "@/lib/onboarding-pdf";
+import type { Onboarding } from "@/lib/onboarding-api";
 
 import {
   fetchOnboardings,
