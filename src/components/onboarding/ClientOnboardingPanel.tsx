@@ -29,6 +29,7 @@ import {
   updateOnboardingStep,
   deleteOnboarding,
   syncOnboardingWithTemplate,
+  updateOnboardingStartDate,
   type OnboardingStep,
 } from "@/lib/onboarding-api";
 import { Button } from "@/components/ui/button";
