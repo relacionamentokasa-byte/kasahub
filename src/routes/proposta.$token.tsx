@@ -40,9 +40,8 @@ export const Route = createFileRoute("/proposta/$token")({
       ? `${agencyName} apresenta a proposta "${p.title}"${clientName ? ` para ${clientName}` : ""}. Confira o escopo, investimento e assine online.`
       : "Confira a proposta comercial, escopo de serviços e assine online.";
     const origin = loaderData?.origin || "https://kasahub.lovable.app";
-    const rawImage = a?.logo_proposals_url || a?.logo_url || undefined;
-    const image = rawImage
-      ? (rawImage.startsWith("http") ? rawImage : `${origin}${rawImage.startsWith("/") ? "" : "/"}${rawImage}`)
+    const image = p?.public_token
+      ? `${origin}/api/public/og/proposta/${p.public_token}`
       : undefined;
     const meta: Array<Record<string, string>> = [
       { title },
@@ -56,6 +55,8 @@ export const Route = createFileRoute("/proposta/$token")({
     ];
     if (image) {
       meta.push({ property: "og:image", content: image });
+      meta.push({ property: "og:image:width", content: "1200" });
+      meta.push({ property: "og:image:height", content: "630" });
       meta.push({ name: "twitter:image", content: image });
     }
     return { meta };
