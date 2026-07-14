@@ -377,6 +377,73 @@ export async function syncAllOnboardingsForTemplate(templateId: string) {
   return { total: list.length, synced };
 }
 
+/**
+ * Atualiza a data de início do onboarding e recalcula os prazos de todas as
+ * etapas ainda não concluídas com base nos dias configurados no modelo
+ * (onboarding_template_steps.days_after_start).
+ */
+export async function updateOnboardingStartDate(onboardingId: string, startDate: string) {
+  const onbRes = await (supabase as any)
+    .from("onboardings")
+    .select("*")
+    .eq("id", onboardingId)
+    .single();
+  if (onbRes.error) throw onbRes.error;
+  const onb = onbRes.data as Onboarding;
+
+  const stepsRes = await (supabase as any)
+    .from("onboarding_steps")
+    .select("*")
+    .eq("onboarding_id", onboardingId);
+  if (stepsRes.error) throw stepsRes.error;
+  const instSteps = stepsRes.data as OnboardingStep[];
+
+  let tplSteps: OnboardingTemplateStep[] = [];
+  if (onb.template_id) {
+    const tplRes = await (supabase as any)
+      .from("onboarding_template_steps")
+      .select("*")
+      .eq("template_id", onb.template_id);
+    if (tplRes.error) throw tplRes.error;
+    tplSteps = tplRes.data as OnboardingTemplateStep[];
+  }
+
+  const start = new Date(startDate + "T00:00:00");
+  const byTitle = new Map(
+    tplSteps.map((t) => [t.title.trim().toLowerCase(), t.days_after_start]),
+  );
+
+  let maxDays = 0;
+  for (const s of instSteps) {
+    if (s.status === "done") continue;
+    const days = byTitle.get(s.title.trim().toLowerCase());
+    if (days === undefined) continue;
+    const due = new Date(start);
+    due.setDate(due.getDate() + days);
+    const dueStr = due.toISOString().slice(0, 10);
+    if (days > maxDays) maxDays = days;
+    const { error } = await (supabase as any)
+      .from("onboarding_steps")
+      .update({ due_date: dueStr })
+      .eq("id", s.id);
+    if (error) throw error;
+  }
+  // maxDays também considera etapas do modelo (mesmo que done na instância)
+  for (const t of tplSteps) if (t.days_after_start > maxDays) maxDays = t.days_after_start;
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + maxDays);
+
+  const { error } = await (supabase as any)
+    .from("onboardings")
+    .update({
+      start_date: startDate,
+      expected_end_date: end.toISOString().slice(0, 10),
+    })
+    .eq("id", onboardingId);
+  if (error) throw error;
+}
+
 export async function updateOnboardingStep(id: string, input: Partial<OnboardingStep>) {
   const payload: any = { ...input };
   if ("description" in input) {

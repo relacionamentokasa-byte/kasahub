@@ -29,6 +29,7 @@ import {
   updateOnboardingStep,
   deleteOnboarding,
   syncOnboardingWithTemplate,
+  updateOnboardingStartDate,
   type OnboardingStep,
 } from "@/lib/onboarding-api";
 import { Button } from "@/components/ui/button";
@@ -284,16 +285,53 @@ function OnboardingCard({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const startDateMut = useMutation({
+    mutationFn: (d: Date) => updateOnboardingStartDate(onboardingId, format(d, "yyyy-MM-dd")),
+    onSuccess: () => {
+      toast.success("Data de início atualizada — prazos recalculados.");
+      qc.invalidateQueries({ queryKey: ["onboarding-steps", onboardingId] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="bg-surface border border-border rounded-2xl p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h4 className="font-display text-lg font-bold">{title}</h4>
-          <p className="text-[10px] text-foreground/40 mt-1 font-mono-kasa uppercase tracking-wider">
-            Início {format(new Date(startDate), "dd/MM/yy", { locale: ptBR })}
-            {expectedEnd &&
-              ` · Previsão ${format(new Date(expectedEnd), "dd/MM/yy", { locale: ptBR })}`}
-          </p>
+          <div className="flex items-center gap-1.5 mt-1 text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40 flex-wrap">
+            <span>Início</span>
+            {readOnly ? (
+              <span>{format(new Date(startDate + "T00:00:00"), "dd/MM/yy", { locale: ptBR })}</span>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-foreground/5 hover:text-primary transition"
+                    title="Alterar data de início — recalcula todos os prazos com base no modelo"
+                  >
+                    <CalendarIcon className="size-2.5" />
+                    {format(new Date(startDate + "T00:00:00"), "dd/MM/yy", { locale: ptBR })}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={new Date(startDate + "T00:00:00")}
+                    onSelect={(d) => d && startDateMut.mutate(d)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
+            {expectedEnd && (
+              <span>
+                · Previsão {format(new Date(expectedEnd + "T00:00:00"), "dd/MM/yy", { locale: ptBR })}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Badge
