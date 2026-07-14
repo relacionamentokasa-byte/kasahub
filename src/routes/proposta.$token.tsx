@@ -10,23 +10,14 @@ import { useRef } from "react";
 import { toast } from "sonner";
 import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 import { StorageImage } from "@/components/ui/storage-image";
+import { getOrigin } from "@/lib/get-origin";
 
 
 export const Route = createFileRoute("/proposta/$token")({
   ssr: true,
   loader: async ({ params }) => {
     try {
-      let base: string;
-      if (typeof window !== "undefined") {
-        base = window.location.origin;
-      } else {
-        // SSR: build absolute URL from the incoming request headers
-        const { getRequest } = await import("@tanstack/react-start/server");
-        const req = getRequest();
-        const proto = req.headers.get("x-forwarded-proto") ?? "https";
-        const host = req.headers.get("host") ?? "kasahub.lovable.app";
-        base = `${proto}://${host}`;
-      }
+      const base = getOrigin();
       const res = await fetch(`${base}/api/public/proposta/${params.token}`, {
         headers: { "Cache-Control": "no-cache" },
       });
