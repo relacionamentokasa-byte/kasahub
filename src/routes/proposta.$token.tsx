@@ -13,8 +13,56 @@ import { StorageImage } from "@/components/ui/storage-image";
 
 
 export const Route = createFileRoute("/proposta/$token")({
-  ssr: false,
-  head: () => ({ meta: [{ title: "Proposta Comercial" }] }),
+  ssr: true,
+  loader: async ({ params }) => {
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const [{ data: proposal }, { data: agency }] = await Promise.all([
+        supabaseAdmin
+          .from("proposals")
+          .select("title, client_name, number_display, one_time_investment, monthly_investment, total, currency")
+          .eq("public_token", params.token)
+          .maybeSingle(),
+        supabaseAdmin
+          .from("agency_settings")
+          .select("name, logo_proposals_url, logo_url")
+          .order("created_at", { ascending: true })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      return { proposal, agency };
+    } catch {
+      return { proposal: null, agency: null };
+    }
+  },
+  head: ({ loaderData }) => {
+    const p = loaderData?.proposal;
+    const a = loaderData?.agency;
+    const agencyName = a?.name || "Kasa Marketing & Consultoria";
+    const clientName = p?.client_name || "";
+    const title = p
+      ? `Proposta Comercial${clientName ? ` — ${clientName}` : ""} | ${agencyName}`
+      : "Proposta Comercial";
+    const description = p
+      ? `${agencyName} apresenta a proposta "${p.title}"${clientName ? ` para ${clientName}` : ""}. Confira o escopo, investimento e assine online.`
+      : "Confira a proposta comercial, escopo de serviços e assine online.";
+    const image = a?.logo_proposals_url || a?.logo_url || undefined;
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+    ];
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ name: "twitter:image", content: image });
+    }
+    return { meta };
+  },
   component: PublicProposalView,
 });
 
