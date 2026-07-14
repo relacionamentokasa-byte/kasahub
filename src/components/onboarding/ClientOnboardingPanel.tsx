@@ -151,6 +151,7 @@ export function ClientOnboardingPanel({ clientId }: { clientId: string }) {
         <OnboardingCard
           key={onb.id}
           onboardingId={onb.id}
+          onboarding={onb}
           title={onb.title}
           status={onb.status}
           progress={onb.progress_percentage}
