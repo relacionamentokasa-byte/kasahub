@@ -395,7 +395,7 @@ function PublicProposalView() {
     });
   }, [data]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen grid place-items-center bg-white text-slate-600">
         <div className="flex flex-col items-center gap-4">
