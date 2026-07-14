@@ -47,6 +47,15 @@ async function imageToDataURL(url: string): Promise<string | null> {
   }
 }
 
+function measureImageRatio(dataUrl: string): Promise<number> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth / (img.naturalHeight || 1));
+    img.onerror = () => resolve(1.5);
+    img.src = dataUrl;
+  });
+}
+
 const STATUS_LABEL: Record<OnboardingStep["status"], string> = {
   pending: "Pendente",
   in_progress: "Em andamento",
@@ -95,7 +104,20 @@ export async function exportOnboardingPdf(onboarding: Onboarding) {
   if (logoUrl) {
     const du = await imageToDataURL(logoUrl);
     if (du) {
-      try { doc.addImage(du, "PNG", M, 30, 90, 60, undefined, "FAST"); } catch {}
+      try {
+        const maxW = 120;
+        const maxH = 70;
+        const ratio = await measureImageRatio(du);
+        let lw = maxW;
+        let lh = maxW / ratio;
+        if (lh > maxH) {
+          lh = maxH;
+          lw = maxH * ratio;
+        }
+        const lx = M;
+        const ly = 30 + (maxH - lh) / 2;
+        doc.addImage(du, "PNG", lx, ly, lw, lh, undefined, "MEDIUM");
+      } catch {}
     }
   }
 
