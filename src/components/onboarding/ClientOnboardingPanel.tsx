@@ -389,6 +389,26 @@ function OnboardingCard({
               </Link>
             </Button>
           )}
+          {onboarding && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              title="Exportar onboarding em PDF"
+              onClick={async () => {
+                try {
+                  toast.loading("Gerando PDF...", { id: "onb-pdf" });
+                  await exportOnboardingPdf(onboarding);
+                  toast.success("PDF gerado", { id: "onb-pdf" });
+                } catch (e) {
+                  toast.error((e as Error).message, { id: "onb-pdf" });
+                }
+              }}
+            >
+              <FileDown className="size-3.5" />
+              Exportar PDF
+            </Button>
+          )}
           {!readOnly && onDelete && (
             <Button variant="ghost" size="icon" onClick={onDelete} className="size-8">
               <Trash2 className="size-3.5 text-rose-500/70" />
