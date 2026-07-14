@@ -47,6 +47,15 @@ async function imageToDataURL(url: string): Promise<string | null> {
   }
 }
 
+function measureImageRatio(dataUrl: string): Promise<number> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img.naturalWidth / (img.naturalHeight || 1));
+    img.onerror = () => resolve(1.5);
+    img.src = dataUrl;
+  });
+}
+
 const STATUS_LABEL: Record<OnboardingStep["status"], string> = {
   pending: "Pendente",
   in_progress: "Em andamento",
