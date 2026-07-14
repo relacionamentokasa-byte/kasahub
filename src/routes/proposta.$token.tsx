@@ -705,34 +705,44 @@ function PublicProposalView() {
               </div>
             )}
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Tipo</p>
-                    <p className="text-sm font-bold font-sans capitalize">
-                      {proposal.contract_type === 'recurring' ? 'Recorrente' : (proposal.contract_type === 'one_time' || proposal.contract_type === 'avulso') ? 'Avulso' : proposal.contract_type}
-                    </p>
+            {(() => {
+              const setupOnly = proposal.monthly_investment <= 0 && proposal.one_time_investment > 0;
+              const cols = setupOnly ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-2 md:grid-cols-4';
+              return (
+                <div className={`grid ${cols} gap-4`}>
+                    <div className="bg-white/5 p-4 rounded-xl">
+                        <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Tipo</p>
+                        <p className="text-sm font-bold font-sans capitalize">
+                          {proposal.contract_type === 'recurring' ? 'Recorrente' : (proposal.contract_type === 'one_time' || proposal.contract_type === 'avulso') ? 'Avulso' : proposal.contract_type}
+                        </p>
+                    </div>
+                    {!setupOnly && (
+                      <div className="bg-white/5 p-4 rounded-xl">
+                          <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Validade</p>
+                          <p className="text-sm font-bold font-sans">{
+                            proposal.contract_term === "indeterminado" 
+                              ? "Prazo Indeterminado" 
+                              : proposal.contract_term === "monthly" 
+                                ? "Mensal"
+                                : proposal.contract_term?.includes("_months")
+                                  ? `${proposal.contract_term.replace("_months", "")} meses`
+                                  : `${proposal.recurring_months || 12} meses`
+                          }</p>
+                      </div>
+                    )}
+                    <div className="bg-white/5 p-4 rounded-xl">
+                        <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Início</p>
+                        <p className="text-sm font-bold font-sans">{proposal.service_start_date ? new Date(proposal.service_start_date + 'T00:00:00').toLocaleDateString("pt-BR") : 'A definir'}</p>
+                    </div>
+                    {!setupOnly && (
+                      <div className="bg-white/5 p-4 rounded-xl">
+                          <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Dia de Cobrança</p>
+                          <p className="text-sm font-bold font-sans">{String(proposal.billing_day || (proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—"))}</p>
+                      </div>
+                    )}
                 </div>
-                <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Validade</p>
-                    <p className="text-sm font-bold font-sans">{
-                      proposal.contract_term === "indeterminado" 
-                        ? "Prazo Indeterminado" 
-                        : proposal.contract_term === "monthly" 
-                          ? "Mensal"
-                          : proposal.contract_term?.includes("_months")
-                            ? `${proposal.contract_term.replace("_months", "")} meses`
-                            : `${proposal.recurring_months || 12} meses`
-                    }</p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Início</p>
-                    <p className="text-sm font-bold font-sans">{proposal.service_start_date ? new Date(proposal.service_start_date + 'T00:00:00').toLocaleDateString("pt-BR") : 'A definir'}</p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-xl">
-                    <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Dia de Cobrança</p>
-                    <p className="text-sm font-bold font-sans">{String(proposal.billing_day || (proposal.first_due_date ? new Date(proposal.first_due_date!).getDate() : "—"))}</p>
-                </div>
-            </div>
+              );
+            })()}
         </div>
 
         {/* Contract */}
