@@ -191,11 +191,11 @@ export async function exportOnboardingPdf(onboarding: Onboarding) {
     },
     alternateRowStyles: { fillColor: K.soft },
     columnStyles: {
-      0: { cellWidth: 22, halign: "center" },
+      0: { cellWidth: 30, halign: "center" },
       1: { cellWidth: "auto" },
-      2: { cellWidth: 65 },
-      3: { cellWidth: 50 },
-      4: { cellWidth: 70 },
+      2: { cellWidth: 72, halign: "center" },
+      3: { cellWidth: 62, halign: "center" },
+      4: { cellWidth: 78, halign: "center" },
     },
     didParseCell: (data) => {
       if (data.section === "body" && data.column.index === 4) {
