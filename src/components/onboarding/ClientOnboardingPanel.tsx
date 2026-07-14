@@ -234,6 +234,7 @@ export function ClientOnboardingPanel({ clientId }: { clientId: string }) {
 
 function OnboardingCard({
   onboardingId,
+  onboarding,
   title,
   status,
   progress,
@@ -243,6 +244,7 @@ function OnboardingCard({
   readOnly = false,
 }: {
   onboardingId: string;
+  onboarding?: Onboarding;
   title: string;
   status: string;
   progress: number;
