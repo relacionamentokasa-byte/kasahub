@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ImageResponse } from "workers-og";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const formatBRL = (n: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n || 0);
+
+const escapeXml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 export const Route = createFileRoute("/api/public/og/proposta/$token")({
   server: {
     handlers: {
       GET: async ({ params }) => {
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const token = params.token;
 
         const { data: proposal } = await supabaseAdmin
@@ -19,60 +21,48 @@ export const Route = createFileRoute("/api/public/og/proposta/$token")({
 
         const { data: agency } = await supabaseAdmin
           .from("agency_settings")
-          .select("name, logo_proposals_url, logo_url")
+          .select("name")
           .limit(1)
           .maybeSingle();
 
         const agencyName = agency?.name || "Kasa Marketing & Consultoria";
         const clientName = proposal?.client_name || "";
-        const title = proposal?.title || "Proposta Comercial";
+        const title = (proposal?.title || "Proposta Comercial").slice(0, 60);
         const monthly = proposal?.monthly_investment || 0;
         const setup = proposal?.one_time_investment || 0;
         const months = proposal?.recurring_months || 12;
         const setupOnly = monthly <= 0 && setup > 0;
-        const highlight = setupOnly
-          ? formatBRL(setup)
-          : `${formatBRL(monthly)}/mês`;
+        const highlight = setupOnly ? formatBRL(setup) : `${formatBRL(monthly)}/mês`;
         const highlightLabel = setupOnly ? "Investimento" : "Investimento mensal";
         const totalLabel = setupOnly
           ? "Pagamento único"
           : `Total ${months}m: ${formatBRL(monthly * months + setup)}`;
 
-        const logo = agency?.logo_proposals_url || agency?.logo_url || "";
+        const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b0f1a"/>
+      <stop offset="50%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#1a1030"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <text x="70" y="90" font-family="Arial, sans-serif" font-size="22" fill="#94a3b8" letter-spacing="2">${escapeXml(agencyName.toUpperCase())}</text>
+  <text x="1130" y="90" text-anchor="end" font-family="Arial, sans-serif" font-size="22" fill="#ffbc45" letter-spacing="3">PROPOSTA COMERCIAL</text>
+  ${clientName ? `<text x="70" y="270" font-family="Arial, sans-serif" font-size="28" fill="#94a3b8">Para <tspan fill="#ffffff" font-weight="700">${escapeXml(clientName)}</tspan></text>` : ""}
+  <text x="70" y="345" font-family="Arial, sans-serif" font-size="56" font-weight="800" fill="#ffffff">${escapeXml(title)}</text>
+  <line x1="70" y1="490" x2="1130" y2="490" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+  <text x="70" y="525" font-family="Arial, sans-serif" font-size="20" fill="#94a3b8" letter-spacing="2">${escapeXml(highlightLabel.toUpperCase())}</text>
+  <text x="70" y="585" font-family="Arial, sans-serif" font-size="60" font-weight="800" fill="#ffbc45">${escapeXml(highlight)}</text>
+  <text x="1130" y="525" text-anchor="end" font-family="Arial, sans-serif" font-size="20" fill="#94a3b8">Assine online</text>
+  <text x="1130" y="560" text-anchor="end" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#ffffff">kasahub.lovable.app</text>
+  <text x="1130" y="590" text-anchor="end" font-family="Arial, sans-serif" font-size="18" fill="#cbd5e1">${escapeXml(totalLabel)}</text>
+</svg>`;
 
-        const html = `
-          <div style="height:100%;width:100%;display:flex;flex-direction:column;justify-content:space-between;padding:70px;background:linear-gradient(135deg,#0b0f1a 0%,#111827 50%,#1a1030 100%);color:#ffffff;font-family:sans-serif;">
-            <div style="display:flex;align-items:center;justify-content:space-between;">
-              <div style="display:flex;align-items:center;gap:16px;">
-                ${logo ? `<img src="${logo}" style="height:56px;width:auto;" />` : ""}
-                <span style="font-size:22px;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;">${agencyName}</span>
-              </div>
-              <div style="font-size:22px;color:#ffbc45;letter-spacing:3px;text-transform:uppercase;">Proposta Comercial</div>
-            </div>
-
-            <div style="display:flex;flex-direction:column;gap:20px;">
-              ${clientName ? `<div style="font-size:28px;color:#94a3b8;">Para <span style="color:#fff;font-weight:700;">${clientName}</span></div>` : ""}
-              <div style="font-size:64px;font-weight:800;line-height:1.05;max-width:1000px;">${title}</div>
-            </div>
-
-            <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid rgba(255,255,255,0.15);padding-top:32px;">
-              <div style="display:flex;flex-direction:column;">
-                <span style="font-size:20px;color:#94a3b8;letter-spacing:2px;text-transform:uppercase;">${highlightLabel}</span>
-                <span style="font-size:68px;font-weight:800;color:#ffbc45;">${highlight}</span>
-                <span style="font-size:20px;color:#cbd5e1;margin-top:4px;">${totalLabel}</span>
-              </div>
-              <div style="display:flex;flex-direction:column;align-items:flex-end;">
-                <span style="font-size:20px;color:#94a3b8;">Assine online</span>
-                <span style="font-size:26px;color:#fff;font-weight:700;">kasahub.lovable.app</span>
-              </div>
-            </div>
-          </div>
-        `;
-
-        return new ImageResponse(html, {
-          width: 1200,
-          height: 630,
+        return new Response(svg, {
           headers: {
+            "Content-Type": "image/svg+xml; charset=utf-8",
             "Cache-Control": "public, max-age=300, s-maxage=300",
           },
         });
