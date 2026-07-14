@@ -373,34 +373,36 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="col-span-2 space-y-6">
             <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-6">
-              <div className="space-y-4">
-                <Label className="text-sm font-semibold">Duração do Contrato</Label>
-                <RadioGroup 
-                  value={String(form.recurring_months || "6")} 
-                  onValueChange={val => {
-                    setForm({ ...form, recurring_months: Number(val), contract_type: "recurring" });
-                    setIsDirty(true);
-                  }}
-                  className="flex flex-wrap gap-3"
-                >
-                  {[3, 6, 12].map((months) => (
-                    <div key={months} className="flex items-center">
-                      <RadioGroupItem value={String(months)} id={`r-${months}`} className="sr-only" />
-                      <Label
-                        htmlFor={`r-${months}`}
-                        className={cn(
-                          "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
-                          form.recurring_months === months 
-                            ? "bg-[#FFBC45] border-[#FFBC45] text-black shadow-md scale-105" 
-                            : "bg-surface hover:bg-muted"
-                        )}
-                      >
-                        {months} meses
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </div>
+              {Number(form.monthly_investment || 0) > 0 && (
+                <div className="space-y-4">
+                  <Label className="text-sm font-semibold">Duração do Contrato</Label>
+                  <RadioGroup 
+                    value={String(form.recurring_months || "6")} 
+                    onValueChange={val => {
+                      setForm({ ...form, recurring_months: Number(val), contract_type: "recurring" });
+                      setIsDirty(true);
+                    }}
+                    className="flex flex-wrap gap-3"
+                  >
+                    {[3, 6, 12].map((months) => (
+                      <div key={months} className="flex items-center">
+                        <RadioGroupItem value={String(months)} id={`r-${months}`} className="sr-only" />
+                        <Label
+                          htmlFor={`r-${months}`}
+                          className={cn(
+                            "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
+                            form.recurring_months === months 
+                              ? "bg-[#FFBC45] border-[#FFBC45] text-black shadow-md scale-105" 
+                              : "bg-surface hover:bg-muted"
+                          )}
+                        >
+                          {months} meses
+                        </Label>
+                      </div>
+                    ))}
+                  </RadioGroup>
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -587,24 +589,28 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 </div>
 
                 <div className="pt-4 border-t border-border space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mensalidade base:</span>
-                    <span className="font-medium">{formatCurrency(baseMonthly)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Duração:</span>
-                    <span className="font-medium">{months} meses</span>
-                  </div>
-                  {sorted.map((a, i) => (
-                    <div key={i} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">A partir do mês {a.from_month}:</span>
-                      <span className="font-medium">{formatCurrency(Number(a.value || 0))}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between pt-2 border-t border-border">
-                    <span className="text-muted-foreground">Total recorrente:</span>
-                    <span className="font-medium">{formatCurrency(recurringTotal)}</span>
-                  </div>
+                  {baseMonthly > 0 && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mensalidade base:</span>
+                        <span className="font-medium">{formatCurrency(baseMonthly)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Duração:</span>
+                        <span className="font-medium">{months} meses</span>
+                      </div>
+                      {sorted.map((a, i) => (
+                        <div key={i} className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">A partir do mês {a.from_month}:</span>
+                          <span className="font-medium">{formatCurrency(Number(a.value || 0))}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between pt-2 border-t border-border">
+                        <span className="text-muted-foreground">Total recorrente:</span>
+                        <span className="font-medium">{formatCurrency(recurringTotal)}</span>
+                      </div>
+                    </>
+                  )}
                   {setup > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Setup:</span>
