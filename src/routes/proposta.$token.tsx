@@ -16,18 +16,25 @@ export const Route = createFileRoute("/proposta/$token")({
   ssr: true,
   loader: async ({ params }) => {
     try {
-      const base =
-        typeof window === "undefined"
-          ? process.env.SITE_URL || "http://localhost:8080"
-          : window.location.origin;
+      let base: string;
+      if (typeof window !== "undefined") {
+        base = window.location.origin;
+      } else {
+        // SSR: build absolute URL from the incoming request headers
+        const { getRequest } = await import("@tanstack/react-start/server");
+        const req = getRequest();
+        const proto = req.headers.get("x-forwarded-proto") ?? "https";
+        const host = req.headers.get("host") ?? "kasahub.lovable.app";
+        base = `${proto}://${host}`;
+      }
       const res = await fetch(`${base}/api/public/proposta/${params.token}`, {
         headers: { "Cache-Control": "no-cache" },
       });
-      if (!res.ok) return { proposal: null, agency: null };
+      if (!res.ok) return { proposal: null, agency: null, origin: base };
       const json = await res.json();
-      return { proposal: json.proposal, agency: json.agency };
+      return { proposal: json.proposal, agency: json.agency, origin: base };
     } catch {
-      return { proposal: null, agency: null };
+      return { proposal: null, agency: null, origin: "https://kasahub.lovable.app" };
     }
   },
   head: ({ loaderData }) => {
