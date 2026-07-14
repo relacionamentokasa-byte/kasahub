@@ -161,7 +161,10 @@ function computeRecurringTotal(monthly: number, months: number, adjustments?: Ar
 }
 
 function PublicProposalView() {
-  
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { token } = Route.useParams();
   const [data, setData] = useState<{
     proposal: Proposal;
