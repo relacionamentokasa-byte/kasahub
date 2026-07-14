@@ -645,6 +645,20 @@ function PublicProposalView() {
                   </div>
                 )}
               </div>
+            ) : proposal.monthly_investment <= 0 && proposal.one_time_investment > 0 ? (
+              <div className="flex flex-col items-center md:items-start mb-8 sm:mb-12">
+                <div className="w-full text-center md:text-left mb-2">
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">
+                    Entrada / Setup {(!proposal.installments || proposal.installments <= 1) ? "(à vista)" : `(em ${proposal.installments}x)`}
+                  </p>
+                  <p className="text-5xl sm:text-6xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.one_time_investment)}</p>
+                </div>
+                {proposal.installments && proposal.installments > 1 && (
+                  <p className="text-lg sm:text-xl font-medium text-slate-400 font-sans">
+                    {proposal.installments}x de {formatCurrency(proposal.one_time_investment / proposal.installments)}
+                  </p>
+                )}
+              </div>
             ) : (
               <>
               <div className="flex flex-col md:flex-row items-center gap-6 sm:gap-8 mb-6">
