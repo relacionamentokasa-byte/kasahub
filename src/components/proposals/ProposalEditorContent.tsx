@@ -589,24 +589,28 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 </div>
 
                 <div className="pt-4 border-t border-border space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Mensalidade base:</span>
-                    <span className="font-medium">{formatCurrency(baseMonthly)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Duração:</span>
-                    <span className="font-medium">{months} meses</span>
-                  </div>
-                  {sorted.map((a, i) => (
-                    <div key={i} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">A partir do mês {a.from_month}:</span>
-                      <span className="font-medium">{formatCurrency(Number(a.value || 0))}</span>
-                    </div>
-                  ))}
-                  <div className="flex justify-between pt-2 border-t border-border">
-                    <span className="text-muted-foreground">Total recorrente:</span>
-                    <span className="font-medium">{formatCurrency(recurringTotal)}</span>
-                  </div>
+                  {baseMonthly > 0 && (
+                    <>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Mensalidade base:</span>
+                        <span className="font-medium">{formatCurrency(baseMonthly)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Duração:</span>
+                        <span className="font-medium">{months} meses</span>
+                      </div>
+                      {sorted.map((a, i) => (
+                        <div key={i} className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">A partir do mês {a.from_month}:</span>
+                          <span className="font-medium">{formatCurrency(Number(a.value || 0))}</span>
+                        </div>
+                      ))}
+                      <div className="flex justify-between pt-2 border-t border-border">
+                        <span className="text-muted-foreground">Total recorrente:</span>
+                        <span className="font-medium">{formatCurrency(recurringTotal)}</span>
+                      </div>
+                    </>
+                  )}
                   {setup > 0 && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Setup:</span>
