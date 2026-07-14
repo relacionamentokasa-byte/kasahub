@@ -19,7 +19,10 @@ import {
   CalendarIcon,
   Presentation,
   RefreshCw,
+  FileDown,
 } from "lucide-react";
+import { exportOnboardingPdf } from "@/lib/onboarding-pdf";
+import type { Onboarding } from "@/lib/onboarding-api";
 
 import {
   fetchOnboardings,
@@ -148,6 +151,7 @@ export function ClientOnboardingPanel({ clientId }: { clientId: string }) {
         <OnboardingCard
           key={onb.id}
           onboardingId={onb.id}
+          onboarding={onb}
           title={onb.title}
           status={onb.status}
           progress={onb.progress_percentage}
@@ -230,6 +234,7 @@ export function ClientOnboardingPanel({ clientId }: { clientId: string }) {
 
 function OnboardingCard({
   onboardingId,
+  onboarding,
   title,
   status,
   progress,
@@ -239,6 +244,7 @@ function OnboardingCard({
   readOnly = false,
 }: {
   onboardingId: string;
+  onboarding?: Onboarding;
   title: string;
   status: string;
   progress: number;
@@ -381,6 +387,26 @@ function OnboardingCard({
                 <Presentation className="size-3.5" />
                 Apresentar
               </Link>
+            </Button>
+          )}
+          {onboarding && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 h-8"
+              title="Exportar onboarding em PDF"
+              onClick={async () => {
+                try {
+                  toast.loading("Gerando PDF...", { id: "onb-pdf" });
+                  await exportOnboardingPdf(onboarding);
+                  toast.success("PDF gerado", { id: "onb-pdf" });
+                } catch (e) {
+                  toast.error((e as Error).message, { id: "onb-pdf" });
+                }
+              }}
+            >
+              <FileDown className="size-3.5" />
+              Exportar PDF
             </Button>
           )}
           {!readOnly && onDelete && (
