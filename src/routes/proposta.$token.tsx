@@ -713,7 +713,7 @@ function PublicProposalView() {
                     <div className="bg-white/5 p-4 rounded-xl">
                         <p className="text-[9px] uppercase tracking-widest text-slate-400 font-sans">Tipo</p>
                         <p className="text-sm font-bold font-sans capitalize">
-                          {proposal.contract_type === 'recurring' ? 'Recorrente' : (proposal.contract_type === 'one_time' || proposal.contract_type === 'avulso') ? 'Avulso' : proposal.contract_type}
+                          {setupOnly ? 'Avulso' : proposal.contract_type === 'recurring' ? 'Recorrente' : (proposal.contract_type === 'one_time' || proposal.contract_type === 'avulso') ? 'Avulso' : proposal.contract_type}
                         </p>
                     </div>
                     {!setupOnly && (
