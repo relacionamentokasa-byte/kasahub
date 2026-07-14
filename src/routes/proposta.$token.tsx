@@ -48,7 +48,11 @@ export const Route = createFileRoute("/proposta/$token")({
     const description = p
       ? `${agencyName} apresenta a proposta "${p.title}"${clientName ? ` para ${clientName}` : ""}. Confira o escopo, investimento e assine online.`
       : "Confira a proposta comercial, escopo de serviços e assine online.";
-    const image = a?.logo_proposals_url || a?.logo_url || undefined;
+    const origin = loaderData?.origin || "https://kasahub.lovable.app";
+    const rawImage = a?.logo_proposals_url || a?.logo_url || undefined;
+    const image = rawImage
+      ? (rawImage.startsWith("http") ? rawImage : `${origin}${rawImage.startsWith("/") ? "" : "/"}${rawImage}`)
+      : undefined;
     const meta: Array<Record<string, string>> = [
       { title },
       { name: "description", content: description },
