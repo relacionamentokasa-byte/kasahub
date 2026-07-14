@@ -10,23 +10,14 @@ import { useRef } from "react";
 import { toast } from "sonner";
 import { ScopeRenderer } from "@/components/proposals/ScopeRenderer";
 import { StorageImage } from "@/components/ui/storage-image";
+import { getOrigin } from "@/lib/get-origin";
 
 
 export const Route = createFileRoute("/proposta/$token")({
   ssr: true,
   loader: async ({ params }) => {
     try {
-      let base: string;
-      if (typeof window !== "undefined") {
-        base = window.location.origin;
-      } else {
-        // SSR: build absolute URL from the incoming request headers
-        const { getRequest } = await import("@tanstack/react-start/server");
-        const req = getRequest();
-        const proto = req.headers.get("x-forwarded-proto") ?? "https";
-        const host = req.headers.get("host") ?? "kasahub.lovable.app";
-        base = `${proto}://${host}`;
-      }
+      const base = getOrigin();
       const res = await fetch(`${base}/api/public/proposta/${params.token}`, {
         headers: { "Cache-Control": "no-cache" },
       });
@@ -643,6 +634,20 @@ function PublicProposalView() {
                       {proposal.installments}x de {formatCurrency((proposal.total || proposal.one_time_investment) / proposal.installments)}
                     </p>
                   </div>
+                )}
+              </div>
+            ) : proposal.monthly_investment <= 0 && proposal.one_time_investment > 0 ? (
+              <div className="flex flex-col items-center md:items-start mb-8 sm:mb-12">
+                <div className="w-full text-center md:text-left mb-2">
+                  <p className="text-[10px] uppercase tracking-widest text-slate-400 font-sans">
+                    Entrada / Setup {(!proposal.installments || proposal.installments <= 1) ? "(à vista)" : `(em ${proposal.installments}x)`}
+                  </p>
+                  <p className="text-5xl sm:text-6xl font-bold text-[#ffbc45] font-display">{formatCurrency(proposal.one_time_investment)}</p>
+                </div>
+                {proposal.installments && proposal.installments > 1 && (
+                  <p className="text-lg sm:text-xl font-medium text-slate-400 font-sans">
+                    {proposal.installments}x de {formatCurrency(proposal.one_time_investment / proposal.installments)}
+                  </p>
                 )}
               </div>
             ) : (
