@@ -69,6 +69,7 @@ import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } fro
 import { Route as AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.pdf'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.apresentar'
 import { Route as AuthenticatedApresentacoesPresentationIdApresentarRouteImport } from './routes/_authenticated/apresentacoes.$presentationId.apresentar'
+import { Route as ApiPublicOgPropostaTokenRouteImport } from './routes/api/public/og/proposta.$token'
 import { Route as ApiPublicLeadsSubmitSlugRouteImport } from './routes/api/public/leads/submit.$slug'
 
 const ConviteRoute = ConviteRouteImport.update({
@@ -393,6 +394,12 @@ const AuthenticatedApresentacoesPresentationIdApresentarRoute =
     path: '/apresentacoes/$presentationId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicOgPropostaTokenRoute =
+  ApiPublicOgPropostaTokenRouteImport.update({
+    id: '/api/public/og/proposta/$token',
+    path: '/api/public/og/proposta/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicLeadsSubmitSlugRoute =
   ApiPublicLeadsSubmitSlugRouteImport.update({
     id: '/api/public/leads/submit/$slug',
@@ -461,6 +468,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/construtor-relatorios/$reportId/': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
   '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
+  '/api/public/og/proposta/$token': typeof ApiPublicOgPropostaTokenRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -523,6 +531,7 @@ export interface FileRoutesByTo {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/construtor-relatorios/$reportId': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
   '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
+  '/api/public/og/proposta/$token': typeof ApiPublicOgPropostaTokenRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -587,6 +596,7 @@ export interface FileRoutesById {
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
   '/_authenticated/construtor-relatorios/$reportId/': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
   '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
+  '/api/public/og/proposta/$token': typeof ApiPublicOgPropostaTokenRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -651,6 +661,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/construtor-relatorios/$reportId/'
     | '/api/public/leads/submit/$slug'
+    | '/api/public/og/proposta/$token'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -713,6 +724,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/construtor-relatorios/$reportId'
     | '/api/public/leads/submit/$slug'
+    | '/api/public/og/proposta/$token'
   id:
     | '__root__'
     | '/_authenticated'
@@ -776,6 +788,7 @@ export interface FileRouteTypes {
     | '/lovable/email/queue/process'
     | '/_authenticated/construtor-relatorios/$reportId/'
     | '/api/public/leads/submit/$slug'
+    | '/api/public/og/proposta/$token'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -809,6 +822,7 @@ export interface RootRouteChildren {
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
   ApiPublicLeadsSubmitSlugRoute: typeof ApiPublicLeadsSubmitSlugRoute
+  ApiPublicOgPropostaTokenRoute: typeof ApiPublicOgPropostaTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1233,6 +1247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApresentacoesPresentationIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/og/proposta/$token': {
+      id: '/api/public/og/proposta/$token'
+      path: '/api/public/og/proposta/$token'
+      fullPath: '/api/public/og/proposta/$token'
+      preLoaderRoute: typeof ApiPublicOgPropostaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/leads/submit/$slug': {
       id: '/api/public/leads/submit/$slug'
       path: '/api/public/leads/submit/$slug'
@@ -1352,6 +1373,7 @@ const rootRouteChildren: RootRouteChildren = {
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
   ApiPublicLeadsSubmitSlugRoute: ApiPublicLeadsSubmitSlugRoute,
+  ApiPublicOgPropostaTokenRoute: ApiPublicOgPropostaTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
