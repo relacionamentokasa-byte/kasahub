@@ -13,8 +13,51 @@ import { StorageImage } from "@/components/ui/storage-image";
 
 
 export const Route = createFileRoute("/proposta/$token")({
-  ssr: false,
-  head: () => ({ meta: [{ title: "Proposta Comercial" }] }),
+  ssr: true,
+  loader: async ({ params }) => {
+    try {
+      const base =
+        typeof window === "undefined"
+          ? process.env.SITE_URL || "http://localhost:8080"
+          : window.location.origin;
+      const res = await fetch(`${base}/api/public/proposta/${params.token}`, {
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (!res.ok) return { proposal: null, agency: null };
+      const json = await res.json();
+      return { proposal: json.proposal, agency: json.agency };
+    } catch {
+      return { proposal: null, agency: null };
+    }
+  },
+  head: ({ loaderData }) => {
+    const p = loaderData?.proposal;
+    const a = loaderData?.agency;
+    const agencyName = a?.name || "Kasa Marketing & Consultoria";
+    const clientName = p?.client_name || "";
+    const title = p
+      ? `Proposta Comercial${clientName ? ` — ${clientName}` : ""} | ${agencyName}`
+      : "Proposta Comercial";
+    const description = p
+      ? `${agencyName} apresenta a proposta "${p.title}"${clientName ? ` para ${clientName}` : ""}. Confira o escopo, investimento e assine online.`
+      : "Confira a proposta comercial, escopo de serviços e assine online.";
+    const image = a?.logo_proposals_url || a?.logo_url || undefined;
+    const meta: Array<Record<string, string>> = [
+      { title },
+      { name: "description", content: description },
+      { property: "og:title", content: title },
+      { property: "og:description", content: description },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: image ? "summary_large_image" : "summary" },
+      { name: "twitter:title", content: title },
+      { name: "twitter:description", content: description },
+    ];
+    if (image) {
+      meta.push({ property: "og:image", content: image });
+      meta.push({ name: "twitter:image", content: image });
+    }
+    return { meta };
+  },
   component: PublicProposalView,
 });
 
@@ -118,7 +161,10 @@ function computeRecurringTotal(monthly: number, months: number, adjustments?: Ar
 }
 
 function PublicProposalView() {
-  
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { token } = Route.useParams();
   const [data, setData] = useState<{
     proposal: Proposal;
@@ -349,7 +395,7 @@ function PublicProposalView() {
     });
   }, [data]);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen grid place-items-center bg-white text-slate-600">
         <div className="flex flex-col items-center gap-4">
