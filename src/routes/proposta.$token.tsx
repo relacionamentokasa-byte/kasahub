@@ -16,21 +16,16 @@ export const Route = createFileRoute("/proposta/$token")({
   ssr: true,
   loader: async ({ params }) => {
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const [{ data: proposal }, { data: agency }] = await Promise.all([
-        supabaseAdmin
-          .from("proposals")
-          .select("title, client_name, number_display, one_time_investment, monthly_investment, total, currency")
-          .eq("public_token", params.token)
-          .maybeSingle(),
-        supabaseAdmin
-          .from("agency_settings")
-          .select("name, logo_proposals_url, logo_url")
-          .order("created_at", { ascending: true })
-          .limit(1)
-          .maybeSingle(),
-      ]);
-      return { proposal, agency };
+      const base =
+        typeof window === "undefined"
+          ? process.env.SITE_URL || "http://localhost:8080"
+          : window.location.origin;
+      const res = await fetch(`${base}/api/public/proposta/${params.token}`, {
+        headers: { "Cache-Control": "no-cache" },
+      });
+      if (!res.ok) return { proposal: null, agency: null };
+      const json = await res.json();
+      return { proposal: json.proposal, agency: json.agency };
     } catch {
       return { proposal: null, agency: null };
     }
