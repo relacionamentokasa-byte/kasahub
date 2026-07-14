@@ -285,6 +285,16 @@ function OnboardingCard({
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const startDateMut = useMutation({
+    mutationFn: (d: Date) => updateOnboardingStartDate(onboardingId, format(d, "yyyy-MM-dd")),
+    onSuccess: () => {
+      toast.success("Data de início atualizada — prazos recalculados.");
+      qc.invalidateQueries({ queryKey: ["onboarding-steps", onboardingId] });
+      qc.invalidateQueries({ queryKey: ["onboardings"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   return (
     <div className="bg-surface border border-border rounded-2xl p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
