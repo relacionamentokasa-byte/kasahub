@@ -96,6 +96,57 @@ export async function rejectBatch(token: string, reason: string) {
   if (!res.ok) throw new Error(json?.error || "Erro ao recusar");
 }
 
+/**
+ * Exclui um lote de DMEs. Só permitido se ainda não foi pago
+ * (transação consolidada não está com status "paid").
+ * Também cancela a transação consolidada pendente e desvincula as DMEs.
+ */
+export async function deleteDmeBatch(batchId: string) {
+  const { data: batch, error: bErr } = await supabase
+    .from("dme_batches" as any)
+    .select("id, consolidated_transaction_id, status")
+    .eq("id", batchId)
+    .maybeSingle();
+  if (bErr) throw bErr;
+  if (!batch) throw new Error("Lote não encontrado.");
+  const b = batch as any;
+
+  if (b.consolidated_transaction_id) {
+    const { data: tx } = await supabase
+      .from("transactions")
+      .select("status")
+      .eq("id", b.consolidated_transaction_id)
+      .maybeSingle();
+    if (tx?.status === "paid") {
+      throw new Error("Este lote já foi pago e não pode ser excluído.");
+    }
+    // Cancela a transação consolidada pendente
+    await supabase
+      .from("transactions")
+      .update({ status: "cancelled" })
+      .eq("id", b.consolidated_transaction_id);
+  }
+
+  // Desvincula DMEs do lote consolidado
+  const { data: items } = await supabase
+    .from("dme_batch_items" as any)
+    .select("extra_demand_id")
+    .eq("batch_id", batchId);
+  const dmeIds = (items ?? []).map((i: any) => i.extra_demand_id);
+  if (dmeIds.length) {
+    await supabase
+      .from("extra_demands")
+      .update({ consolidated_transaction_id: null })
+      .in("id", dmeIds);
+  }
+
+  await supabase.from("dme_batch_items" as any).delete().eq("batch_id", batchId);
+  const { error: delErr } = await supabase.from("dme_batches" as any).delete().eq("id", batchId);
+  if (delErr) throw delErr;
+}
+
+
+
 
 /**
  * Adiciona uma nova DME a um lote já consolidado no financeiro.
