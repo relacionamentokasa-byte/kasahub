@@ -9,7 +9,7 @@ import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
 } from "@/lib/ops-api";
-import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction } from "@/lib/dme-batches-api";
+import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction, deleteDmeBatch } from "@/lib/dme-batches-api";
 import { generateDmeBatchPdf, generateConsolidatedTxPdf } from "@/lib/dme-batch-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
@@ -111,7 +111,7 @@ function DmesPage() {
   });
   // Todos os lotes ativos (independente dos filtros da tabela) — para permitir
   // adicionar uma nova DME ao lote mesmo que nenhuma DME do lote esteja visível.
-  const { data: activeBatches = [] } = useQuery<any[]>({
+  const { data: activeBatchesRaw = [] } = useQuery<any[]>({
     queryKey: ["dme-batches-active"],
     staleTime: 30_000,
     placeholderData: (prev) => prev,
@@ -122,9 +122,19 @@ function DmesPage() {
         .neq("status", "cancelled")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      const rows = (data ?? []) as any[];
+      const txIds = rows.map((r) => r.consolidated_transaction_id).filter(Boolean);
+      let txMap = new Map<string, string>();
+      if (txIds.length) {
+        const { data: txs } = await supabase.from("transactions").select("id, status").in("id", txIds);
+        txMap = new Map((txs ?? []).map((t: any) => [t.id, t.status]));
+      }
+      return rows.map((r) => ({ ...r, _tx_status: r.consolidated_transaction_id ? txMap.get(r.consolidated_transaction_id) ?? null : null }));
     },
   });
+  const activeBatches = useMemo(() => activeBatchesRaw.filter((b: any) => b._tx_status !== "paid"), [activeBatchesRaw]);
+  const paidBatches = useMemo(() => activeBatchesRaw.filter((b: any) => b._tx_status === "paid"), [activeBatchesRaw]);
+
 
   // DMEs consolidadas via `consolidated_transaction_id` em extra_demands
   // (sem registro em dme_batches). Permite "Adicionar DME" mesmo quando
@@ -201,6 +211,17 @@ function DmesPage() {
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       toast.success("DME removida");
     },
+  });
+  const deleteBatchMut = useMutation({
+    mutationFn: (id: string) => deleteDmeBatch(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
+      qc.invalidateQueries({ queryKey: ["extra_demands"] });
+      qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Lote excluído.");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir lote."),
   });
 
   function copyLink(token: string) {
@@ -385,6 +406,20 @@ function DmesPage() {
                     >
                       <PlusCircle className="size-4" /> Adicionar DME
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        if (confirm(`Excluir este lote com ${count} DME${count !== 1 ? "s" : ""}? A cobrança consolidada pendente será cancelada e as DMEs voltarão a ser individuais.`)) {
+                          deleteBatchMut.mutate(b.id);
+                        }
+                      }}
+                      disabled={deleteBatchMut.isPending}
+                      className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      title="Excluir lote (só se ainda não foi pago)"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                 </div>
               );
@@ -436,6 +471,40 @@ function DmesPage() {
           </div>
         </div>
       )}
+
+      {paidBatches.length > 0 && (
+        <details className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+          <summary className="cursor-pointer font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+            <Check className="size-5" /> Lotes pagos ({paidBatches.length}) — clique para ver histórico
+          </summary>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
+            {paidBatches.map((b: any) => {
+              const count = (b.dme_batch_items ?? []).length;
+              const clientName = b.clients?.company || b.clients?.name || "Cliente";
+              return (
+                <div key={b.id} className="rounded-xl border border-emerald-500/20 bg-background p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{clientName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      💰 Pago · {count} DME{count !== 1 ? "s" : ""} · total {brl(Number(b.total_value || 0))}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadBatchPdf(b.id)}
+                    className="gap-2 shrink-0"
+                  >
+                    <FileDown className="size-4" /> PDF
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
+
+
 
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <Table>
