@@ -212,6 +212,17 @@ function DmesPage() {
       toast.success("DME removida");
     },
   });
+  const deleteBatchMut = useMutation({
+    mutationFn: (id: string) => deleteDmeBatch(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
+      qc.invalidateQueries({ queryKey: ["extra_demands"] });
+      qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      toast.success("Lote excluído.");
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir lote."),
+  });
 
   function copyLink(token: string) {
     navigator.clipboard.writeText(getDmePublicUrl(token));
