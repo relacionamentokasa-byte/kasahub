@@ -377,15 +377,26 @@ function DmesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDownloadBatchPdf(b.id)}
-                      className="gap-2"
-                      title="Gerar PDF do lote para enviar ao cliente"
-                    >
-                      <FileDown className="size-4" /> PDF
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline" className="gap-2" title="Gerar PDF do lote">
+                          <FileDown className="size-4" /> PDF
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Gerar PDF</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "approval")}>
+                          Solicitação de aprovação (pendentes)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "approved")}>
+                          Apenas DMEs já aprovadas
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "all")}>
+                          Lote completo (todas)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       size="sm"
                       variant="outline"
