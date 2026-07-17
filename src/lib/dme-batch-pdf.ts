@@ -144,7 +144,12 @@ async function drawPdfFooter(
   doc.text(`Gerado em ${new Date().toLocaleString("pt-BR")}`, margin, pageH - 10);
 }
 
-export async function generateDmeBatchPdf(batchId: string): Promise<void> {
+export type DmeBatchPdfMode = "approval" | "approved" | "all";
+
+export async function generateDmeBatchPdf(
+  batchId: string,
+  mode: DmeBatchPdfMode = "all",
+): Promise<void> {
   const { data: batch, error: bErr } = await supabase
     .from("dme_batches" as any)
     .select("*, clients(name, company, logo_url)")
@@ -157,14 +162,36 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   const { data: items, error: iErr } = await supabase
     .from("dme_batch_items" as any)
     .select(
-      "extra_demand_id, extra_demands(id, number_display, title, description, value, due_date)",
+      "extra_demand_id, extra_demands(id, number_display, title, description, value, due_date, status)",
     )
     .eq("batch_id", batchId);
   if (iErr) throw iErr;
 
-  const dmes = (items ?? [])
+  const allDmes = (items ?? [])
     .map((i: any) => i.extra_demands)
     .filter(Boolean);
+
+  const APPROVED_STATUSES = new Set(["approved", "completed", "paid"]);
+  const PENDING_STATUSES = new Set(["draft", "pending", "sent", "pending_approval"]);
+
+  const dmes =
+    mode === "approved"
+      ? allDmes.filter((d: any) => APPROVED_STATUSES.has(d.status))
+      : mode === "approval"
+        ? allDmes.filter((d: any) => PENDING_STATUSES.has(d.status))
+        : allDmes;
+
+  if (dmes.length === 0) {
+    throw new Error(
+      mode === "approved"
+        ? "Nenhuma DME aprovada neste lote ainda."
+        : mode === "approval"
+          ? "Nenhuma DME pendente de aprovação neste lote."
+          : "Este lote não tem DMEs.",
+    );
+  }
+
+  const total = dmes.reduce((s: number, d: any) => s + Number(d.value || 0), 0);
 
   const { data: agency } = await supabase
     .from("agency_settings")
@@ -186,11 +213,21 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   doc.setTextColor(255, 188, 69);
   doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(10);
-  doc.text("SOLICITAÇÃO DE APROVAÇÃO", margin, 35);
+  const kicker =
+    mode === "approved"
+      ? "DEMANDAS APROVADAS"
+      : mode === "approval"
+        ? "SOLICITAÇÃO DE APROVAÇÃO"
+        : "DEMANDAS EXTRAS — LOTE";
+  doc.text(kicker, margin, 35);
   doc.setTextColor(244, 247, 245);
   doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(20);
-  doc.text("Demandas Extras — Lote", margin, 60);
+  const title =
+    mode === "approved"
+      ? "Demandas Extras — Aprovadas"
+      : "Demandas Extras — Lote";
+  doc.text(title, margin, 60);
   doc.setFont(FONT_BODY, "normal");
   doc.setFontSize(11);
   doc.setTextColor(156, 177, 176);
@@ -211,7 +248,13 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
   doc.setTextColor(15, 23, 25);
   doc.setFont(FONT_TITLE, "bold");
   doc.setFontSize(12);
-  doc.text(`${dmes.length} demanda${dmes.length !== 1 ? "s" : ""} para aprovação`, margin, y);
+  const heading =
+    mode === "approved"
+      ? `${dmes.length} demanda${dmes.length !== 1 ? "s" : ""} aprovada${dmes.length !== 1 ? "s" : ""}`
+      : mode === "approval"
+        ? `${dmes.length} demanda${dmes.length !== 1 ? "s" : ""} para aprovação`
+        : `${dmes.length} demanda${dmes.length !== 1 ? "s" : ""}`;
+  doc.text(heading, margin, y);
   y += 8;
 
   // Table
@@ -220,15 +263,13 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
     head: [["#", "Demanda", "Prazo", "Valor"]],
     body: dmes.map((d: any) => [
       sanitize(d.number_display || ""),
-      sanitize(
-        [d.title, d.description].filter(Boolean).join("\n"),
-      ),
+      sanitize([d.title, d.description].filter(Boolean).join("\n")),
       d.due_date
         ? new Date(d.due_date + "T00:00:00").toLocaleDateString("pt-BR")
         : "—",
       brl(Number(d.value || 0)),
     ]),
-    foot: [["", "", "TOTAL", brl(Number(b.total_value || 0))]],
+    foot: [["", "", "TOTAL", brl(total)]],
     styles: {
       font: FONT_BODY,
       fontSize: 9,
@@ -266,33 +307,36 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
     doc.setFont(FONT_BODY, "normal");
     doc.setTextColor(107, 128, 127);
     doc.text(
-      `Vencimento sugerido: ${new Date(b.due_date + "T00:00:00").toLocaleDateString("pt-BR")}`,
+      `${mode === "approved" ? "Vencimento" : "Vencimento sugerido"}: ${new Date(b.due_date + "T00:00:00").toLocaleDateString("pt-BR")}`,
       margin,
       afterY,
     );
     afterY += 18;
   }
 
-  // Approval link box
-  const approvalUrl = getDmeBatchPublicUrl(b.public_token);
-  doc.setDrawColor(255, 188, 69);
-  doc.setFillColor(255, 240, 210);
-  doc.roundedRect(margin, afterY, pageW - margin * 2, 70, 8, 8, "FD");
-  doc.setFont(FONT_TITLE, "bold");
-  doc.setFontSize(11);
-  doc.setTextColor(15, 23, 25);
-  doc.text("Aprovar online (assinatura digital)", margin + 16, afterY + 22);
-  doc.setFont(FONT_BODY, "normal");
-  doc.setFontSize(9);
-  doc.setTextColor(60, 70, 70);
-  doc.text(
-    "Acesse o link abaixo para revisar, aprovar ou recusar este lote:",
-    margin + 16,
-    afterY + 38,
-  );
-  doc.setTextColor(20, 60, 120);
-  doc.setFont(FONT_BODY, "bold");
-  doc.textWithLink(sanitize(approvalUrl), margin + 16, afterY + 56, { url: approvalUrl });
+  // Approval link box — só quando ainda existe algo pendente pra aprovar
+  if (mode !== "approved") {
+    const approvalUrl = getDmeBatchPublicUrl(b.public_token);
+    doc.setDrawColor(255, 188, 69);
+    doc.setFillColor(255, 240, 210);
+    doc.roundedRect(margin, afterY, pageW - margin * 2, 70, 8, 8, "FD");
+    doc.setFont(FONT_TITLE, "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 25);
+    doc.text("Aprovar online (assinatura digital)", margin + 16, afterY + 22);
+    doc.setFont(FONT_BODY, "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(60, 70, 70);
+    doc.text(
+      "Acesse o link abaixo para revisar, aprovar ou recusar este lote:",
+      margin + 16,
+      afterY + 38,
+    );
+    doc.setTextColor(20, 60, 120);
+    doc.setFont(FONT_BODY, "bold");
+    doc.textWithLink(sanitize(approvalUrl), margin + 16, afterY + 56, { url: approvalUrl });
+  }
+
 
   await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin, FONT_TITLE, FONT_BODY });
 
@@ -300,7 +344,8 @@ export async function generateDmeBatchPdf(batchId: string): Promise<void> {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
-  doc.save(`lote-dmes-${clientSlug || "cliente"}.pdf`);
+  const suffix = mode === "approved" ? "-aprovadas" : mode === "approval" ? "-aprovacao" : "";
+  doc.save(`lote-dmes${suffix}-${clientSlug || "cliente"}.pdf`);
 }
 
 /**

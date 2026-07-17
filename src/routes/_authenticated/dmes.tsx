@@ -28,6 +28,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { TableRowsSkeleton } from "@/components/ui/loading-skeletons";
@@ -281,9 +284,12 @@ function DmesPage() {
     }
   }
 
-  async function handleDownloadBatchPdf(batchId: string) {
+  async function handleDownloadBatchPdf(
+    batchId: string,
+    mode: "approval" | "approved" | "all" = "all",
+  ) {
     try {
-      await generateDmeBatchPdf(batchId);
+      await generateDmeBatchPdf(batchId, mode);
       toast.success("PDF gerado.");
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao gerar PDF.");
@@ -371,15 +377,26 @@ function DmesPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDownloadBatchPdf(b.id)}
-                      className="gap-2"
-                      title="Gerar PDF do lote para enviar ao cliente"
-                    >
-                      <FileDown className="size-4" /> PDF
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline" className="gap-2" title="Gerar PDF do lote">
+                          <FileDown className="size-4" /> PDF
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Gerar PDF</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "approval")}>
+                          Solicitação de aprovação (pendentes)
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "approved")}>
+                          Apenas DMEs já aprovadas
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "all")}>
+                          Lote completo (todas)
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <Button
                       size="sm"
                       variant="outline"
