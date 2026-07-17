@@ -281,9 +281,12 @@ function DmesPage() {
     }
   }
 
-  async function handleDownloadBatchPdf(batchId: string) {
+  async function handleDownloadBatchPdf(
+    batchId: string,
+    mode: "approval" | "approved" | "all" = "all",
+  ) {
     try {
-      await generateDmeBatchPdf(batchId);
+      await generateDmeBatchPdf(batchId, mode);
       toast.success("PDF gerado.");
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao gerar PDF.");
