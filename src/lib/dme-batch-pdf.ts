@@ -344,7 +344,8 @@ export async function generateDmeBatchPdf(
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
-  doc.save(`lote-dmes-${clientSlug || "cliente"}.pdf`);
+  const suffix = mode === "approved" ? "-aprovadas" : mode === "approval" ? "-aprovacao" : "";
+  doc.save(`lote-dmes${suffix}-${clientSlug || "cliente"}.pdf`);
 }
 
 /**
