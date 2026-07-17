@@ -111,7 +111,7 @@ function DmesPage() {
   });
   // Todos os lotes ativos (independente dos filtros da tabela) — para permitir
   // adicionar uma nova DME ao lote mesmo que nenhuma DME do lote esteja visível.
-  const { data: activeBatches = [] } = useQuery<any[]>({
+  const { data: activeBatchesRaw = [] } = useQuery<any[]>({
     queryKey: ["dme-batches-active"],
     staleTime: 30_000,
     placeholderData: (prev) => prev,
@@ -122,9 +122,19 @@ function DmesPage() {
         .neq("status", "cancelled")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data ?? [];
+      const rows = (data ?? []) as any[];
+      const txIds = rows.map((r) => r.consolidated_transaction_id).filter(Boolean);
+      let txMap = new Map<string, string>();
+      if (txIds.length) {
+        const { data: txs } = await supabase.from("transactions").select("id, status").in("id", txIds);
+        txMap = new Map((txs ?? []).map((t: any) => [t.id, t.status]));
+      }
+      return rows.map((r) => ({ ...r, _tx_status: r.consolidated_transaction_id ? txMap.get(r.consolidated_transaction_id) ?? null : null }));
     },
   });
+  const activeBatches = useMemo(() => activeBatchesRaw.filter((b: any) => b._tx_status !== "paid"), [activeBatchesRaw]);
+  const paidBatches = useMemo(() => activeBatchesRaw.filter((b: any) => b._tx_status === "paid"), [activeBatchesRaw]);
+
 
   // DMEs consolidadas via `consolidated_transaction_id` em extra_demands
   // (sem registro em dme_batches). Permite "Adicionar DME" mesmo quando
