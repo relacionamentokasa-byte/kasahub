@@ -472,6 +472,40 @@ function DmesPage() {
         </div>
       )}
 
+      {paidBatches.length > 0 && (
+        <details className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">
+          <summary className="cursor-pointer font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
+            <Check className="size-5" /> Lotes pagos ({paidBatches.length}) — clique para ver histórico
+          </summary>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
+            {paidBatches.map((b: any) => {
+              const count = (b.dme_batch_items ?? []).length;
+              const clientName = b.clients?.company || b.clients?.name || "Cliente";
+              return (
+                <div key={b.id} className="rounded-xl border border-emerald-500/20 bg-background p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold truncate">{clientName}</div>
+                    <div className="text-xs text-muted-foreground">
+                      💰 Pago · {count} DME{count !== 1 ? "s" : ""} · total {brl(Number(b.total_value || 0))}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleDownloadBatchPdf(b.id)}
+                    className="gap-2 shrink-0"
+                  >
+                    <FileDown className="size-4" /> PDF
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
+
+
+
       <div className="rounded-2xl border border-border bg-card overflow-hidden">
         <Table>
           <TableHeader>
