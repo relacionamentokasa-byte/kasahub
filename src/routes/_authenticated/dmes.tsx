@@ -406,6 +406,20 @@ function DmesPage() {
                     >
                       <PlusCircle className="size-4" /> Adicionar DME
                     </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        if (confirm(`Excluir este lote com ${count} DME${count !== 1 ? "s" : ""}? A cobrança consolidada pendente será cancelada e as DMEs voltarão a ser individuais.`)) {
+                          deleteBatchMut.mutate(b.id);
+                        }
+                      }}
+                      disabled={deleteBatchMut.isPending}
+                      className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      title="Excluir lote (só se ainda não foi pago)"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
                   </div>
                 </div>
               );
