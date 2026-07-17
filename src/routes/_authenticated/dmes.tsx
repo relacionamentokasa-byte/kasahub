@@ -171,7 +171,7 @@ function DmesPage() {
         const txId = r.consolidated_transaction_id;
         if (existingBatchTxIds.has(txId)) continue;
         const tx = txMap.get(txId);
-        if (!tx || tx.status === "cancelled") continue;
+        if (!tx || tx.status === "cancelled" || tx.status === "paid") continue;
         if (!groups[txId]) {
           groups[txId] = {
             consolidated_transaction_id: txId,
