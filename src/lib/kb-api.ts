@@ -56,7 +56,7 @@ export async function listKbDocuments(filter: KbFilter = {}): Promise<KbDocument
   }
   const { data, error } = await q;
   if (error) throw error;
-  let rows = (data ?? []) as KbDocument[];
+  let rows = (data ?? []) as unknown as KbDocument[];
 
   if (filter.favoritesOnly || filter.onlyMine) {
     const { data: u } = await supabase.auth.getUser();
@@ -95,7 +95,7 @@ export async function createKbDocument(input: {
     .select("*")
     .single();
   if (error) throw error;
-  return data as KbDocument;
+  return data as unknown as KbDocument;
 }
 
 export async function updateKbDocument(id: string, patch: Partial<KbDocument>) {
@@ -106,7 +106,7 @@ export async function updateKbDocument(id: string, patch: Partial<KbDocument>) {
     .select("*")
     .single();
   if (error) throw error;
-  return data as KbDocument;
+  return data as unknown as KbDocument;
 }
 
 export async function deleteKbDocument(id: string) {

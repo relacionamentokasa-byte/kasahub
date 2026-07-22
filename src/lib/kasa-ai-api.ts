@@ -28,7 +28,7 @@ export async function listThreads(): Promise<AiThread[]> {
     .order("pinned", { ascending: false })
     .order("updated_at", { ascending: false });
   if (error) throw error;
-  return (data ?? []) as AiThread[];
+  return (data ?? []) as unknown as AiThread[];
 }
 
 export async function createThread(title = "Nova conversa"): Promise<AiThread> {
@@ -40,7 +40,7 @@ export async function createThread(title = "Nova conversa"): Promise<AiThread> {
     .select("*")
     .single();
   if (error) throw error;
-  return data as AiThread;
+  return data as unknown as AiThread;
 }
 
 export async function renameThread(id: string, title: string) {
@@ -65,7 +65,7 @@ export async function fetchMessages(threadId: string): Promise<AiMessage[]> {
     .eq("thread_id", threadId)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return (data ?? []) as AiMessage[];
+  return (data ?? []) as unknown as AiMessage[];
 }
 
 export async function insertMessage(input: {
@@ -89,5 +89,5 @@ export async function insertMessage(input: {
     .from("ai_threads" as any)
     .update({ updated_at: new Date().toISOString() })
     .eq("id", input.thread_id);
-  return data as AiMessage;
+  return data as unknown as AiMessage;
 }
