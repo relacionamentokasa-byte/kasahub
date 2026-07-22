@@ -292,6 +292,77 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_messages: {
+        Row: {
+          content: string
+          context_used: Json | null
+          created_at: string
+          id: string
+          model: string | null
+          parts: Json | null
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Insert: {
+          content?: string
+          context_used?: Json | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          parts?: Json | null
+          role: string
+          thread_id: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          context_used?: Json | null
+          created_at?: string
+          id?: string
+          model?: string | null
+          parts?: Json | null
+          role?: string
+          thread_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "ai_threads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_threads: {
+        Row: {
+          created_at: string
+          id: string
+          pinned: boolean
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       approval_item_comments: {
         Row: {
           approval_item_id: string
@@ -2192,6 +2263,74 @@ export type Database = {
             columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "job_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_documents: {
+        Row: {
+          category: string
+          client_id: string | null
+          content: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          favorited_by: string[]
+          file_name: string | null
+          file_path: string | null
+          file_type: string | null
+          id: string
+          segment: string | null
+          source_ref: string | null
+          source_type: string
+          tags: string[]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          client_id?: string | null
+          content?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          favorited_by?: string[]
+          file_name?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          segment?: string | null
+          source_ref?: string | null
+          source_type?: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          client_id?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          favorited_by?: string[]
+          file_name?: string | null
+          file_path?: string | null
+          file_type?: string | null
+          id?: string
+          segment?: string | null
+          source_ref?: string | null
+          source_type?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]

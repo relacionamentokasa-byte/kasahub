@@ -23,6 +23,8 @@ import {
   Rocket,
   CalendarDays,
   Film,
+  Bot,
+  BookOpen,
 
 
   Loader2,
@@ -85,6 +87,13 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     ],
   },
 
+  {
+    label: "IA",
+    items: [
+      { title: "Kasa AI", url: "/kasa-ai", icon: Bot, module: "dashboard" },
+      { title: "Biblioteca", url: "/biblioteca", icon: BookOpen, module: "dashboard" },
+    ],
+  },
   {
     label: "Sistema",
     items: [
