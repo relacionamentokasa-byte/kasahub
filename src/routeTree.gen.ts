@@ -40,8 +40,10 @@ import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedRoteirosIndexRouteImport } from './routes/_authenticated/roteiros.index'
 import { Route as AuthenticatedPropostasIndexRouteImport } from './routes/_authenticated/propostas.index'
 import { Route as AuthenticatedProjetosIndexRouteImport } from './routes/_authenticated/projetos.index'
+import { Route as AuthenticatedKasaAiIndexRouteImport } from './routes/_authenticated/kasa-ai.index'
 import { Route as AuthenticatedConstrutorRelatoriosIndexRouteImport } from './routes/_authenticated/construtor-relatorios.index'
 import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
+import { Route as AuthenticatedBibliotecaIndexRouteImport } from './routes/_authenticated/biblioteca.index'
 import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
 import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
 import { Route as AuthenticatedRoteirosScriptIdRouteImport } from './routes/_authenticated/roteiros.$scriptId'
@@ -232,6 +234,12 @@ const AuthenticatedProjetosIndexRoute =
     path: '/projetos/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedKasaAiIndexRoute =
+  AuthenticatedKasaAiIndexRouteImport.update({
+    id: '/kasa-ai/',
+    path: '/kasa-ai/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedConstrutorRelatoriosIndexRoute =
   AuthenticatedConstrutorRelatoriosIndexRouteImport.update({
     id: '/construtor-relatorios/',
@@ -242,6 +250,12 @@ const AuthenticatedClientesIndexRoute =
   AuthenticatedClientesIndexRouteImport.update({
     id: '/clientes/',
     path: '/clientes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedBibliotecaIndexRoute =
+  AuthenticatedBibliotecaIndexRouteImport.update({
+    id: '/biblioteca/',
+    path: '/biblioteca/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ApiPublicManifestRoute = ApiPublicManifestRouteImport.update({
@@ -442,8 +456,10 @@ export interface FileRoutesByFullPath {
   '/roteiros/$scriptId': typeof AuthenticatedRoteirosScriptIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/biblioteca/': typeof AuthenticatedBibliotecaIndexRoute
   '/clientes/': typeof AuthenticatedClientesIndexRoute
   '/construtor-relatorios/': typeof AuthenticatedConstrutorRelatoriosIndexRoute
+  '/kasa-ai/': typeof AuthenticatedKasaAiIndexRoute
   '/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/roteiros/': typeof AuthenticatedRoteirosIndexRoute
@@ -505,8 +521,10 @@ export interface FileRoutesByTo {
   '/roteiros/$scriptId': typeof AuthenticatedRoteirosScriptIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaIndexRoute
   '/clientes': typeof AuthenticatedClientesIndexRoute
   '/construtor-relatorios': typeof AuthenticatedConstrutorRelatoriosIndexRoute
+  '/kasa-ai': typeof AuthenticatedKasaAiIndexRoute
   '/projetos': typeof AuthenticatedProjetosIndexRoute
   '/propostas': typeof AuthenticatedPropostasIndexRoute
   '/roteiros': typeof AuthenticatedRoteirosIndexRoute
@@ -570,8 +588,10 @@ export interface FileRoutesById {
   '/_authenticated/roteiros/$scriptId': typeof AuthenticatedRoteirosScriptIdRoute
   '/api/public/favicon': typeof ApiPublicFaviconRoute
   '/api/public/manifest': typeof ApiPublicManifestRoute
+  '/_authenticated/biblioteca/': typeof AuthenticatedBibliotecaIndexRoute
   '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
   '/_authenticated/construtor-relatorios/': typeof AuthenticatedConstrutorRelatoriosIndexRoute
+  '/_authenticated/kasa-ai/': typeof AuthenticatedKasaAiIndexRoute
   '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/_authenticated/roteiros/': typeof AuthenticatedRoteirosIndexRoute
@@ -635,8 +655,10 @@ export interface FileRouteTypes {
     | '/roteiros/$scriptId'
     | '/api/public/favicon'
     | '/api/public/manifest'
+    | '/biblioteca/'
     | '/clientes/'
     | '/construtor-relatorios/'
+    | '/kasa-ai/'
     | '/projetos/'
     | '/propostas/'
     | '/roteiros/'
@@ -698,8 +720,10 @@ export interface FileRouteTypes {
     | '/roteiros/$scriptId'
     | '/api/public/favicon'
     | '/api/public/manifest'
+    | '/biblioteca'
     | '/clientes'
     | '/construtor-relatorios'
+    | '/kasa-ai'
     | '/projetos'
     | '/propostas'
     | '/roteiros'
@@ -762,8 +786,10 @@ export interface FileRouteTypes {
     | '/_authenticated/roteiros/$scriptId'
     | '/api/public/favicon'
     | '/api/public/manifest'
+    | '/_authenticated/biblioteca/'
     | '/_authenticated/clientes/'
     | '/_authenticated/construtor-relatorios/'
+    | '/_authenticated/kasa-ai/'
     | '/_authenticated/projetos/'
     | '/_authenticated/propostas/'
     | '/_authenticated/roteiros/'
@@ -1044,6 +1070,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjetosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/kasa-ai/': {
+      id: '/_authenticated/kasa-ai/'
+      path: '/kasa-ai'
+      fullPath: '/kasa-ai/'
+      preLoaderRoute: typeof AuthenticatedKasaAiIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/construtor-relatorios/': {
       id: '/_authenticated/construtor-relatorios/'
       path: '/construtor-relatorios'
@@ -1056,6 +1089,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes'
       fullPath: '/clientes/'
       preLoaderRoute: typeof AuthenticatedClientesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/biblioteca/': {
+      id: '/_authenticated/biblioteca/'
+      path: '/biblioteca'
+      fullPath: '/biblioteca/'
+      preLoaderRoute: typeof AuthenticatedBibliotecaIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/api/public/manifest': {
@@ -1286,8 +1326,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProjetosProjectIdRoute: typeof AuthenticatedProjetosProjectIdRoute
   AuthenticatedPropostasProposalIdRoute: typeof AuthenticatedPropostasProposalIdRoute
   AuthenticatedRoteirosScriptIdRoute: typeof AuthenticatedRoteirosScriptIdRoute
+  AuthenticatedBibliotecaIndexRoute: typeof AuthenticatedBibliotecaIndexRoute
   AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
   AuthenticatedConstrutorRelatoriosIndexRoute: typeof AuthenticatedConstrutorRelatoriosIndexRoute
+  AuthenticatedKasaAiIndexRoute: typeof AuthenticatedKasaAiIndexRoute
   AuthenticatedProjetosIndexRoute: typeof AuthenticatedProjetosIndexRoute
   AuthenticatedPropostasIndexRoute: typeof AuthenticatedPropostasIndexRoute
   AuthenticatedRoteirosIndexRoute: typeof AuthenticatedRoteirosIndexRoute
@@ -1320,9 +1362,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProjetosProjectIdRoute: AuthenticatedProjetosProjectIdRoute,
   AuthenticatedPropostasProposalIdRoute: AuthenticatedPropostasProposalIdRoute,
   AuthenticatedRoteirosScriptIdRoute: AuthenticatedRoteirosScriptIdRoute,
+  AuthenticatedBibliotecaIndexRoute: AuthenticatedBibliotecaIndexRoute,
   AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
   AuthenticatedConstrutorRelatoriosIndexRoute:
     AuthenticatedConstrutorRelatoriosIndexRoute,
+  AuthenticatedKasaAiIndexRoute: AuthenticatedKasaAiIndexRoute,
   AuthenticatedProjetosIndexRoute: AuthenticatedProjetosIndexRoute,
   AuthenticatedPropostasIndexRoute: AuthenticatedPropostasIndexRoute,
   AuthenticatedRoteirosIndexRoute: AuthenticatedRoteirosIndexRoute,
