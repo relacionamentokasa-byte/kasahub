@@ -22,7 +22,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { ClientPicker } from "@/components/clients/ClientPicker";
 import {
   listThreads, createThread, deleteThread, renameThread, togglePinThread,
-  fetchMessages, insertMessage, type AiThread, type AiMessage,
+  fetchMessages, type AiThread, type AiMessage,
 } from "@/lib/kasa-ai-api";
 import { listKbDocuments, createKbDocument, KB_CATEGORIES, type KbDocument } from "@/lib/kb-api";
 import { sendChatMessage } from "@/lib/kasa-ai.functions";
@@ -107,9 +107,8 @@ function KasaAIPage() {
   });
 
   const chatMut = useMutation({
-    mutationFn: async (payload: { text: string; tid: string }) => {
+    mutationFn: async (payload: { text: string; tid: string | null }) => {
       const history = messagesQ.data ?? [];
-      await insertMessage({ thread_id: payload.tid, role: "user", content: payload.text });
       const messages = [
         ...history.map((m) => ({ role: m.role, content: m.content })),
         { role: "user" as const, content: payload.text },
@@ -117,29 +116,18 @@ function KasaAIPage() {
       const res = await send({
         data: {
           messages,
+          userText: payload.text,
+          threadId: payload.tid,
           clientId: clientId || null,
           knowledgeIds: knowledgeIds.length ? knowledgeIds : undefined,
           model,
         },
       });
-      await insertMessage({
-        thread_id: payload.tid,
-        role: "assistant",
-        content: res.content,
-        context_used: { sources: res.sources },
-        model: res.model,
-      });
-      // Auto-title
-      const curr = threadsQ.data?.find((t) => t.id === payload.tid);
-      if (curr && curr.title === "Nova conversa") {
-        const title = payload.text.slice(0, 60);
-        await renameThread(payload.tid, title);
-        qc.invalidateQueries({ queryKey: ["ai-threads"] });
-      }
       return res;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["ai-messages", threadId] });
+    onSuccess: (res: any) => {
+      if (res?.threadId) setThreadId(res.threadId);
+      qc.invalidateQueries({ queryKey: ["ai-messages", res?.threadId ?? threadId] });
       qc.invalidateQueries({ queryKey: ["ai-threads"] });
     },
     onError: (err: any) => toast.error(err?.message || "Erro ao enviar mensagem"),
@@ -148,15 +136,8 @@ function KasaAIPage() {
   async function sendText(raw: string) {
     const text = raw.trim();
     if (!text) return;
-    let tid = threadId;
-    if (!tid) {
-      const t = await createThread("Nova conversa");
-      qc.invalidateQueries({ queryKey: ["ai-threads"] });
-      setThreadId(t.id);
-      tid = t.id;
-    }
     setInput("");
-    chatMut.mutate({ text, tid });
+    chatMut.mutate({ text, tid: threadId });
   }
 
   async function handleSend() {

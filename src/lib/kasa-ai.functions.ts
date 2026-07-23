@@ -12,6 +12,8 @@ const InputSchema = z.object({
   clientId: z.string().uuid().nullable().optional(),
   knowledgeIds: z.array(z.string().uuid()).optional(),
   model: z.string().optional(),
+  threadId: z.string().uuid().nullable().optional(),
+  userText: z.string().min(1),
 });
 
 type ContextSource = {
@@ -176,9 +178,62 @@ ${ctx.text ? `## Contexto disponível\n${ctx.text}` : "Sem contexto de cliente o
     const json = await res.json();
     const content: string = json?.choices?.[0]?.message?.content ?? "";
 
+    // Persist thread + messages server-side using authenticated context.
+    // This eliminates client-side FK races between createThread and insertMessage.
+    const userId = context.userId;
+    let threadId = data.threadId ?? null;
+
+    if (threadId) {
+      // Verify the thread belongs to this user; if not, treat as missing.
+      const { data: existing } = await supabase
+        .from("ai_threads")
+        .select("id")
+        .eq("id", threadId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (!existing) threadId = null;
+    }
+
+    if (!threadId) {
+      const title = data.userText.slice(0, 60) || "Nova conversa";
+      const { data: t, error: tErr } = await supabase
+        .from("ai_threads")
+        .insert({ title, user_id: userId })
+        .select("id")
+        .single();
+      if (tErr || !t) throw new Error(tErr?.message || "Falha ao criar conversa");
+      threadId = t.id as string;
+    }
+
+    // Insert user + assistant messages
+    const { error: mUserErr } = await supabase.from("ai_messages").insert({
+      thread_id: threadId,
+      user_id: userId,
+      role: "user",
+      content: data.userText,
+    });
+    if (mUserErr) throw new Error(mUserErr.message);
+
+    const { error: mAsstErr } = await supabase.from("ai_messages").insert({
+      thread_id: threadId,
+      user_id: userId,
+      role: "assistant",
+      content,
+      context_used: { sources: ctx.sources },
+      model: modelId,
+    });
+    if (mAsstErr) throw new Error(mAsstErr.message);
+
+    // Bump thread updated_at
+    await supabase
+      .from("ai_threads")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", threadId);
+
     return {
       content,
       model: modelId,
       sources: ctx.sources,
+      threadId,
     };
   });
