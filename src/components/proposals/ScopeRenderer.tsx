@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import DOMPurify from "isomorphic-dompurify";
 
 export function ScopeRenderer({
   text,
