@@ -20,6 +20,8 @@ import { SuppliersManagerDialog } from "@/components/finance/SuppliersManagerDia
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
 import { EmitirBoletoDialog } from "@/components/finance/EmitirBoletoDialog";
+import { useServerFn } from "@tanstack/react-start";
+import { getBoletoSignedUrl } from "@/lib/inter/boletos.functions";
 import { ReciboDialog } from "@/components/finance/ReciboDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
