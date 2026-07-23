@@ -31,14 +31,27 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
     ? `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`
     : null;
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    try {
+      const res = await fetch(url, { credentials: "omit" });
+      if (!res.ok) throw new Error(String(res.status));
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+    } catch {
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
   };
 
   return (
@@ -80,15 +93,15 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-auto flex items-center justify-center p-4 relative">
+        <div className="flex-1 min-h-0 overflow-auto flex items-center justify-center p-4 relative">
           {isImage ? (
             <img
               src={url}
               alt={fileName}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full w-auto h-auto object-contain"
             />
           ) : isPDF ? (
-            <PdfDocumentViewer url={url} fileName={fileName} showActions={false} className="h-full rounded-sm" />
+            <PdfDocumentViewer url={url} fileName={fileName} showActions={false} className="h-full w-full rounded-sm" />
           ) : isOffice && officeViewerUrl ? (
             <iframe
               src={officeViewerUrl}
@@ -96,7 +109,12 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
               title={fileName}
             />
           ) : isVideo ? (
-            <video src={url} controls className="max-w-full max-h-full" />
+            <video
+              src={url}
+              controls
+              playsInline
+              className="max-w-full max-h-full w-auto h-auto object-contain"
+            />
           ) : isAudio ? (
             <audio src={url} controls className="w-full max-w-md" />
           ) : (

@@ -63,7 +63,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus, GripVertical, Clapperboard, ClipboardList } from "lucide-react";
+import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus, GripVertical, Clapperboard, ClipboardList, Download } from "lucide-react";
 import { UnifiedTimeline } from "@/components/timeline/UnifiedTimeline";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
@@ -1053,28 +1053,43 @@ export function JobSheet({
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   try {
-                                    const marker = '/job-attachments/';
-                                    const idx = file.file_url.indexOf(marker);
-                                    const path = idx >= 0 ? file.file_url.slice(idx + marker.length) : null;
-                                    let href = file.file_url;
-                                    if (path) {
-                                      const { data } = supabase.storage
-                                        .from('job-attachments')
-                                        .getPublicUrl(path, { download: file.file_name });
-                                      href = data.publicUrl;
-                                    }
+                                    const res = await fetch(file.file_url, { credentials: "omit" });
+                                    if (!res.ok) throw new Error(String(res.status));
+                                    const blob = await res.blob();
+                                    const objectUrl = URL.createObjectURL(blob);
                                     const a = document.createElement('a');
-                                    a.href = href;
+                                    a.href = objectUrl;
                                     a.download = file.file_name;
                                     document.body.appendChild(a);
                                     a.click();
                                     a.remove();
+                                    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
                                   } catch (err: any) {
-                                    toast.error('Erro ao baixar: ' + (err?.message || err));
+                                    // Fallback via signed download URL preserving filename
+                                    try {
+                                      const marker = '/job-attachments/';
+                                      const idx = file.file_url.indexOf(marker);
+                                      const path = idx >= 0 ? file.file_url.slice(idx + marker.length) : null;
+                                      let href = file.file_url;
+                                      if (path) {
+                                        const { data } = supabase.storage
+                                          .from('job-attachments')
+                                          .getPublicUrl(path, { download: file.file_name });
+                                        href = data.publicUrl;
+                                      }
+                                      const a = document.createElement('a');
+                                      a.href = href;
+                                      a.download = file.file_name;
+                                      document.body.appendChild(a);
+                                      a.click();
+                                      a.remove();
+                                    } catch {
+                                      toast.error('Erro ao baixar: ' + (err?.message || err));
+                                    }
                                   }
                                 }}
                               >
-                                <ExternalLink className="size-3.5" />
+                                <Download className="size-3.5" />
                               </Button>
                               <Button
                                 variant="secondary"
