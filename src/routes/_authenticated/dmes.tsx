@@ -188,8 +188,23 @@ function DmesPage() {
   });
 
   const filtered = useMemo(
-    () => dmes.filter((d: any) => !search || d.title?.toLowerCase().includes(search.toLowerCase()) || d.number_display?.toLowerCase().includes(search.toLowerCase())),
-    [dmes, search]
+    () =>
+      dmes.filter((d: any) => {
+        // DMEs já agrupadas em um lote ou consolidadas numa cobrança do
+        // financeiro não aparecem individualmente — o lote consolidado já é
+        // exibido no card "Lotes ativos" acima, mostrando apenas o total.
+        if (batchByDme[d.id]) return false;
+        if (d.consolidated_transaction_id) return false;
+        if (search) {
+          const q = search.toLowerCase();
+          if (
+            !d.title?.toLowerCase().includes(q) &&
+            !d.number_display?.toLowerCase().includes(q)
+          ) return false;
+        }
+        return true;
+      }),
+    [dmes, search, batchByDme]
   );
 
   const approveMut = useMutation({
