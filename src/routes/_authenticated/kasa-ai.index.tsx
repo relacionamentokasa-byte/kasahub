@@ -474,7 +474,7 @@ function EmptyState({ onPick }: { onPick: (s: string) => void }) {
       </p>
       <div className="mt-6 grid gap-2 max-w-xl mx-auto">
         {suggestions.map((s) => (
-          <Card key={s} className="p-3 text-sm text-left hover:bg-muted cursor-pointer">{s}</Card>
+          <Card key={s} onClick={() => onPick(s)} className="p-3 text-sm text-left hover:bg-muted cursor-pointer transition-colors">{s}</Card>
         ))}
       </div>
     </div>
