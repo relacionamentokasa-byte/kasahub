@@ -456,7 +456,7 @@ function MessageBubble({
   );
 }
 
-function EmptyState() {
+function EmptyState({ onPick }: { onPick: (s: string) => void }) {
   const suggestions = [
     "Crie um calendário editorial de 4 semanas para o cliente selecionado",
     "Gere um roteiro de reels de 30s sobre lançamento de produto",
