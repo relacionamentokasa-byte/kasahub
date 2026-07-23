@@ -326,6 +326,24 @@ function FinancialPage() {
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
 
+  const { data: boletosAtivos = [] } = useQuery({
+    queryKey: ["boletos_inter", "ativos"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("boletos_inter")
+        .select("id, transaction_id, situacao, pdf_path, emitido_em")
+        .not("situacao", "in", "(CANCELADO,EXPIRADO)");
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+  const boletoByTx = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const b of boletosAtivos as any[]) if (b.transaction_id) m.set(b.transaction_id, b);
+    return m;
+  }, [boletosAtivos]);
+
   const nextMonth = () => {
     const next = new Date(selectedDate);
     next.setMonth(next.getMonth() + 1);
