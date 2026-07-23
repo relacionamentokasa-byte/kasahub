@@ -22,7 +22,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { ClientPicker } from "@/components/clients/ClientPicker";
 import {
   listThreads, createThread, deleteThread, renameThread, togglePinThread,
-  fetchMessages, insertMessage, type AiThread, type AiMessage,
+  fetchMessages, type AiThread, type AiMessage,
 } from "@/lib/kasa-ai-api";
 import { listKbDocuments, createKbDocument, KB_CATEGORIES, type KbDocument } from "@/lib/kb-api";
 import { sendChatMessage } from "@/lib/kasa-ai.functions";
