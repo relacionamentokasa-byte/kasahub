@@ -56,7 +56,7 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-5xl w-[95vw] h-[90vh] flex flex-col p-0 overflow-hidden bg-black/95 border-white/10">
+      <DialogContent className="max-w-none w-screen h-screen sm:rounded-none flex flex-col p-0 overflow-hidden bg-black border-none">
         <DialogHeader className="p-4 border-b border-white/10 flex flex-row items-center justify-between space-y-0 bg-black">
           <DialogTitle className="text-white text-sm font-medium truncate flex-1 pr-4">
             {fileName}
