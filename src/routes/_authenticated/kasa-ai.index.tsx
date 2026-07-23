@@ -145,8 +145,8 @@ function KasaAIPage() {
     onError: (err: any) => toast.error(err?.message || "Erro ao enviar mensagem"),
   });
 
-  async function handleSend() {
-    const text = input.trim();
+  async function sendText(raw: string) {
+    const text = raw.trim();
     if (!text) return;
     let tid = threadId;
     if (!tid) {
@@ -157,6 +157,10 @@ function KasaAIPage() {
     }
     setInput("");
     chatMut.mutate({ text, tid });
+  }
+
+  async function handleSend() {
+    await sendText(input);
   }
 
   const lastAssistant = useMemo(() => {
