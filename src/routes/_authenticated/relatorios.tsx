@@ -1000,6 +1000,27 @@ function FinancialPage() {
                           Não-op
                         </span>
                       )}
+                      {boletoByTx.get(t.id) && (() => {
+                        const b = boletoByTx.get(t.id);
+                        const isPaid = b.situacao === "RECEBIDO";
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => openBoletoPdf(b.id)}
+                            title={`Boleto Inter · ${b.situacao}`}
+                            className={cn(
+                              "inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border transition-colors cursor-pointer",
+                              isPaid
+                                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
+                                : "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30 hover:bg-orange-500/25"
+                            )}
+                          >
+                            <Barcode className="size-3" />
+                            {isPaid ? "Boleto pago" : "Boleto emitido"}
+                          </button>
+                        );
+                      })()}
+
                     </div>
                     <div className="flex flex-col gap-0.5">
                       {t.is_internal ? (
