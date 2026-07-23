@@ -129,6 +129,15 @@ function FinancialPage() {
   const [deletingTx, setDeletingTx] = useState<any | null>(null);
   const [boletoTx, setBoletoTx] = useState<any | null>(null);
   const [reciboTx, setReciboTx] = useState<any | null>(null);
+  const getSignedUrlFn = useServerFn(getBoletoSignedUrl);
+  const openBoletoPdf = async (boletoId: string) => {
+    try {
+      const r = await getSignedUrlFn({ data: { boletoId } });
+      if (r?.url) window.open(r.url, "_blank");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Não foi possível abrir o boleto.");
+    }
+  };
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
