@@ -26,7 +26,7 @@ export async function createDmeBatch(input: {
 
   const { data: dmes, error: dmesErr } = await supabase
     .from("extra_demands")
-    .select("id, client_id, value, status")
+    .select("id, client_id, value, status, due_date, transaction_id, consolidated_transaction_id")
     .in("id", input.extra_demand_ids);
   if (dmesErr) throw dmesErr;
   if (!dmes?.length) throw new Error("DMEs não encontradas.");
@@ -36,8 +36,15 @@ export async function createDmeBatch(input: {
   if (dmes.some((d) => !["draft", "pending", "sent", "pending_approval", "approved"].includes(d.status))) {
     throw new Error("Só é possível agrupar DMEs ainda não pagas/recusadas.");
   }
+  if (dmes.some((d: any) => d.consolidated_transaction_id)) {
+    throw new Error("Uma ou mais DMEs já estão em um lote consolidado.");
+  }
 
   const total = dmes.reduce((acc, d) => acc + Number(d.value || 0), 0);
+  const maxDue = dmes.reduce<string | null>((acc, d: any) => {
+    if (!d.due_date) return acc;
+    return !acc || d.due_date > acc ? d.due_date : acc;
+  }, null);
 
   const { data: { user } } = await supabase.auth.getUser();
   const { data: batch, error: bErr } = await supabase
@@ -45,7 +52,7 @@ export async function createDmeBatch(input: {
     .insert({
       client_id: input.client_id,
       total_value: total,
-      due_date: input.due_date ?? null,
+      due_date: input.due_date ?? maxDue,
       notes: input.notes ?? null,
       created_by: user?.id ?? null,
     })
@@ -59,6 +66,49 @@ export async function createDmeBatch(input: {
   }));
   const { error: itemsErr } = await supabase.from("dme_batch_items" as any).insert(items);
   if (itemsErr) throw itemsErr;
+
+  // Consolida cobranças: cancela as transações individuais pendentes das DMEs
+  // já aprovadas e cria UMA cobrança consolidada no financeiro.
+  const individualTxIds = (dmes as any[])
+    .map((d) => d.transaction_id)
+    .filter((id): id is string => !!id);
+
+  if (individualTxIds.length) {
+    await supabase
+      .from("transactions")
+      .update({ status: "cancelled" })
+      .in("id", individualTxIds)
+      .eq("status", "pending");
+  }
+
+  const batchShort = String((batch as any).id).slice(0, 8);
+  const { data: consolidatedTx, error: txErr } = await supabase
+    .from("transactions")
+    .insert({
+      description: `Cobrança consolidada — ${dmes.length} DMEs (Lote ${batchShort})`,
+      amount: total,
+      type: "income",
+      kind: "income",
+      status: "pending",
+      due_date:
+        input.due_date ??
+        maxDue ??
+        new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10),
+      client_id: input.client_id,
+    })
+    .select()
+    .single();
+  if (txErr) throw txErr;
+
+  await supabase
+    .from("extra_demands")
+    .update({ consolidated_transaction_id: (consolidatedTx as any).id })
+    .in("id", input.extra_demand_ids);
+
+  await supabase
+    .from("dme_batches" as any)
+    .update({ consolidated_transaction_id: (consolidatedTx as any).id })
+    .eq("id", (batch as any).id);
 
   return batch as unknown as DmeBatch;
 }
