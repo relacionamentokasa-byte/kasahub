@@ -93,15 +93,15 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
           </div>
         </DialogHeader>
 
-        <div className="flex-1 overflow-auto flex items-center justify-center p-4 relative">
+        <div className="flex-1 min-h-0 overflow-auto flex items-center justify-center p-4 relative">
           {isImage ? (
             <img
               src={url}
               alt={fileName}
-              className="max-w-full max-h-full object-contain"
+              className="max-w-full max-h-full w-auto h-auto object-contain"
             />
           ) : isPDF ? (
-            <PdfDocumentViewer url={url} fileName={fileName} showActions={false} className="h-full rounded-sm" />
+            <PdfDocumentViewer url={url} fileName={fileName} showActions={false} className="h-full w-full rounded-sm" />
           ) : isOffice && officeViewerUrl ? (
             <iframe
               src={officeViewerUrl}
@@ -109,7 +109,12 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
               title={fileName}
             />
           ) : isVideo ? (
-            <video src={url} controls className="max-w-full max-h-full" />
+            <video
+              src={url}
+              controls
+              playsInline
+              className="max-w-full max-h-full w-auto h-auto object-contain"
+            />
           ) : isAudio ? (
             <audio src={url} controls className="w-full max-w-md" />
           ) : (
