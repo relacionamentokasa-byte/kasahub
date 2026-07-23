@@ -234,7 +234,7 @@ function KasaAIPage() {
         <ScrollArea className="flex-1" ref={scrollRef as any}>
           <div className="max-w-3xl mx-auto p-6 space-y-6">
             {(!messagesQ.data || messagesQ.data.length === 0) && !chatMut.isPending ? (
-              <EmptyState />
+              <EmptyState onPick={(s) => { setInput(s); setTimeout(() => handleSend(), 0); }} />
             ) : (
               messagesQ.data?.map((m) => (
                 <MessageBubble key={m.id} message={m} onSaveKnowledge={(c) => setSaveOpen({ content: c })} />
