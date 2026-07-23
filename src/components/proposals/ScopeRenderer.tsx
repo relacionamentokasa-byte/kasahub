@@ -60,7 +60,7 @@ export function ScopeRenderer({
           "prose prose-sm max-w-none text-[#0c1618] prose-headings:text-[#0c1618] prose-p:leading-relaxed prose-li:leading-relaxed", 
           className
         )}
-        dangerouslySetInnerHTML={{ __html: content }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(content) }}
       />
     );
   }
