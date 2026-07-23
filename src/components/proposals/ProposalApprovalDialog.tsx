@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import DOMPurify from "isomorphic-dompurify";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -237,7 +238,7 @@ export function ProposalApprovalDialog({ proposalId, open, onOpenChange, onAppro
               <Section icon={<FileText className="size-4" />} title="Contrato Jurídico">
                 <div
                   className="prose prose-sm max-w-none max-h-60 overflow-y-auto rounded-md border border-border bg-surface/50 p-3 text-foreground/80"
-                  dangerouslySetInnerHTML={{ __html: String((proposal as any).contract_content) }}
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(String((proposal as any).contract_content)) }}
                 />
               </Section>
             )}
