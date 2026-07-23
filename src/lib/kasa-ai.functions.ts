@@ -12,6 +12,8 @@ const InputSchema = z.object({
   clientId: z.string().uuid().nullable().optional(),
   knowledgeIds: z.array(z.string().uuid()).optional(),
   model: z.string().optional(),
+  threadId: z.string().uuid().nullable().optional(),
+  userText: z.string().min(1),
 });
 
 type ContextSource = {
