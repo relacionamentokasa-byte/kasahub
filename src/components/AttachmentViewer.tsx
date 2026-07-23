@@ -56,7 +56,7 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-none w-screen h-screen sm:rounded-none flex flex-col p-0 overflow-hidden bg-black border-none">
+      <DialogContent className="!max-w-none !w-screen !h-[100dvh] !max-h-[100dvh] sm:!rounded-none !flex !flex-col !p-0 !gap-0 !overflow-hidden bg-black border-none">
         <DialogHeader className="p-4 border-b border-white/10 flex flex-row items-center justify-between space-y-0 bg-black">
           <DialogTitle className="text-white text-sm font-medium truncate flex-1 pr-4">
             {fileName}
@@ -93,12 +93,12 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
           </div>
         </DialogHeader>
 
-        <div className="flex-1 min-h-0 min-w-0 overflow-hidden flex items-center justify-center p-4 relative">
+        <div className="flex-1 min-h-0 min-w-0 overflow-hidden flex items-center justify-center p-2 sm:p-4 relative">
           {isImage ? (
             <img
               src={url}
               alt={fileName}
-              className="h-full w-full object-contain"
+              className="max-h-full max-w-full w-auto h-auto object-contain"
             />
           ) : isPDF ? (
             <PdfDocumentViewer url={url} fileName={fileName} showActions={false} className="h-full w-full rounded-sm" />
@@ -113,7 +113,7 @@ export function AttachmentViewer({ url, fileName, isOpen, onClose }: AttachmentV
               src={url}
               controls
               playsInline
-              className="h-full w-full object-contain"
+              className="max-h-full max-w-full w-auto h-auto object-contain"
             />
           ) : isAudio ? (
             <audio src={url} controls className="w-full max-w-md" />
