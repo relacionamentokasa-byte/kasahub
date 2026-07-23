@@ -1150,7 +1150,7 @@ function FinancialPage() {
                           </Tooltip>
                         </TooltipProvider>
                       )}
-                      {t.type === "income" && t.client_id && (t.status === "pending" || t.status === "overdue") && (
+                      {t.type === "income" && t.client_id && (t.status === "pending" || t.status === "overdue") && !boletoByTx.get(t.id) && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
