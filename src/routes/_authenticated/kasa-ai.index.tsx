@@ -145,8 +145,8 @@ function KasaAIPage() {
     onError: (err: any) => toast.error(err?.message || "Erro ao enviar mensagem"),
   });
 
-  async function handleSend() {
-    const text = input.trim();
+  async function sendText(raw: string) {
+    const text = raw.trim();
     if (!text) return;
     let tid = threadId;
     if (!tid) {
@@ -157,6 +157,10 @@ function KasaAIPage() {
     }
     setInput("");
     chatMut.mutate({ text, tid });
+  }
+
+  async function handleSend() {
+    await sendText(input);
   }
 
   const lastAssistant = useMemo(() => {
@@ -234,7 +238,7 @@ function KasaAIPage() {
         <ScrollArea className="flex-1" ref={scrollRef as any}>
           <div className="max-w-3xl mx-auto p-6 space-y-6">
             {(!messagesQ.data || messagesQ.data.length === 0) && !chatMut.isPending ? (
-              <EmptyState />
+              <EmptyState onPick={(s: string) => { sendText(s); }} />
             ) : (
               messagesQ.data?.map((m) => (
                 <MessageBubble key={m.id} message={m} onSaveKnowledge={(c) => setSaveOpen({ content: c })} />
@@ -452,7 +456,7 @@ function MessageBubble({
   );
 }
 
-function EmptyState() {
+function EmptyState({ onPick }: { onPick: (s: string) => void }) {
   const suggestions = [
     "Crie um calendário editorial de 4 semanas para o cliente selecionado",
     "Gere um roteiro de reels de 30s sobre lançamento de produto",
@@ -470,7 +474,7 @@ function EmptyState() {
       </p>
       <div className="mt-6 grid gap-2 max-w-xl mx-auto">
         {suggestions.map((s) => (
-          <Card key={s} className="p-3 text-sm text-left hover:bg-muted cursor-pointer">{s}</Card>
+          <Card key={s} onClick={() => onPick(s)} className="p-3 text-sm text-left hover:bg-muted cursor-pointer transition-colors">{s}</Card>
         ))}
       </div>
     </div>
