@@ -20,6 +20,8 @@ import { SuppliersManagerDialog } from "@/components/finance/SuppliersManagerDia
 import { BaixaDialog } from "@/components/finance/BaixaDialog";
 import { DeleteTransactionDialog } from "@/components/finance/DeleteTransactionDialog";
 import { EmitirBoletoDialog } from "@/components/finance/EmitirBoletoDialog";
+import { useServerFn } from "@tanstack/react-start";
+import { getBoletoSignedUrl } from "@/lib/inter/boletos.functions";
 import { ReciboDialog } from "@/components/finance/ReciboDialog";
 import { FinancialRulesPanel } from "@/components/dashboard/FinancialRulesPanel";
 import { InlineClientPicker } from "@/components/finance/InlineClientPicker";
@@ -127,6 +129,15 @@ function FinancialPage() {
   const [deletingTx, setDeletingTx] = useState<any | null>(null);
   const [boletoTx, setBoletoTx] = useState<any | null>(null);
   const [reciboTx, setReciboTx] = useState<any | null>(null);
+  const getSignedUrlFn = useServerFn(getBoletoSignedUrl);
+  const openBoletoPdf = async (boletoId: string) => {
+    try {
+      const r = await getSignedUrlFn({ data: { boletoId } });
+      if (r?.url) window.open(r.url, "_blank");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Não foi possível abrir o boleto.");
+    }
+  };
   const [selectedDate, setSelectedDate] = useState(new Date());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -325,6 +336,24 @@ function FinancialPage() {
   });
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
+
+  const { data: boletosAtivos = [] } = useQuery({
+    queryKey: ["boletos_inter", "ativos"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("boletos_inter")
+        .select("id, transaction_id, situacao, pdf_path, emitido_em")
+        .not("situacao", "in", "(CANCELADO,EXPIRADO)");
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30_000,
+  });
+  const boletoByTx = useMemo(() => {
+    const m = new Map<string, any>();
+    for (const b of boletosAtivos as any[]) if (b.transaction_id) m.set(b.transaction_id, b);
+    return m;
+  }, [boletosAtivos]);
 
   const nextMonth = () => {
     const next = new Date(selectedDate);
@@ -971,6 +1000,27 @@ function FinancialPage() {
                           Não-op
                         </span>
                       )}
+                      {boletoByTx.get(t.id) && (() => {
+                        const b = boletoByTx.get(t.id);
+                        const isPaid = b.situacao === "RECEBIDO";
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => openBoletoPdf(b.id)}
+                            title={`Boleto Inter · ${b.situacao}`}
+                            className={cn(
+                              "inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border transition-colors cursor-pointer",
+                              isPaid
+                                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
+                                : "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30 hover:bg-orange-500/25"
+                            )}
+                          >
+                            <Barcode className="size-3" />
+                            {isPaid ? "Boleto pago" : "Boleto emitido"}
+                          </button>
+                        );
+                      })()}
+
                     </div>
                     <div className="flex flex-col gap-0.5">
                       {t.is_internal ? (
@@ -1100,7 +1150,7 @@ function FinancialPage() {
                           </Tooltip>
                         </TooltipProvider>
                       )}
-                      {t.type === "income" && t.client_id && (t.status === "pending" || t.status === "overdue") && (
+                      {t.type === "income" && t.client_id && (t.status === "pending" || t.status === "overdue") && !boletoByTx.get(t.id) && (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
