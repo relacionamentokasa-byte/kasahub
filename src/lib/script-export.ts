@@ -107,6 +107,53 @@ export async function exportScriptPDF(opts: {
     margin: { left: margin, right: margin },
   });
 
+  // Referências visuais
+  const withRefs = scenes
+    .slice()
+    .sort((a, b) => a.scene_number - b.scene_number)
+    .filter((s) => !!s.reference_image_url);
+
+  if (withRefs.length) {
+    const pageH = doc.internal.pageSize.getHeight();
+    let ry = ((doc as any).lastAutoTable?.finalY ?? y) + 28;
+    const ensure = (need: number) => {
+      if (ry + need > pageH - 40) { doc.addPage(); ry = 50; }
+    };
+    ensure(40);
+    doc.setTextColor(30, 30, 30);
+    doc.setFont(FONT_TITLE, "bold");
+    doc.setFontSize(11);
+    doc.text("Referencias visuais", margin, ry);
+    ry += 16;
+
+    const cols = 3;
+    const gap = 12;
+    const boxW = (pageW - margin * 2 - gap * (cols - 1)) / cols;
+    const boxH = boxW * 0.75;
+
+    for (let i = 0; i < withRefs.length; i += cols) {
+      const row = withRefs.slice(i, i + cols);
+      ensure(boxH + 26);
+      for (let c = 0; c < row.length; c++) {
+        const s = row[c];
+        const x = margin + c * (boxW + gap);
+        const dataUrl = await imageToDataURL(s.reference_image_url!);
+        doc.setDrawColor(220, 220, 220);
+        doc.setFillColor(248, 248, 245);
+        doc.roundedRect(x, ry, boxW, boxH, 6, 6, "FD");
+        if (dataUrl) {
+          const fit = await fitContain(dataUrl, boxW - 8, boxH - 8);
+          tryAddImage(doc, dataUrl, x + 4 + fit.ox, ry + 4 + fit.oy, fit.w, fit.h);
+        }
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(90, 90, 90);
+        doc.text(`Cena ${s.scene_number}`, x, ry + boxH + 12);
+      }
+      ry += boxH + 26;
+    }
+  }
+
   const slug = (s: string) => sanitize(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const parts = [
     slug(script.jobs?.title ?? ""),
