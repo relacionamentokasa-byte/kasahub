@@ -6,6 +6,48 @@ import {
 } from "@/lib/scripts-api";
 import { SOCIAL_LABEL } from "@/lib/editorial-api";
 import { registerBoletimFonts } from "@/lib/pdf-fonts";
+import { resolveStorageUrl } from "@/lib/use-storage-url";
+
+async function imageToDataURL(url: string): Promise<string | null> {
+  const signed = (await resolveStorageUrl(url)) ?? url;
+  try {
+    const res = await fetch(signed);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result as string);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function tryAddImage(doc: jsPDF, dataUrl: string, x: number, y: number, w: number, h: number) {
+  try { doc.addImage(dataUrl, "JPEG", x, y, w, h, undefined, "FAST"); return true; }
+  catch {
+    try { doc.addImage(dataUrl, "PNG", x, y, w, h, undefined, "FAST"); return true; }
+    catch {
+      try { doc.addImage(dataUrl, "WEBP" as any, x, y, w, h, undefined, "FAST"); return true; } catch { return false; }
+    }
+  }
+}
+
+/** Ajusta a imagem inteira dentro do box (sem cortar). */
+async function fitContain(dataUrl: string, boxW: number, boxH: number) {
+  return new Promise<{ w: number; h: number; ox: number; oy: number }>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(boxW / img.width, boxH / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      resolve({ w, h, ox: (boxW - w) / 2, oy: (boxH - h) / 2 });
+    };
+    img.onerror = () => resolve({ w: boxW, h: boxH, ox: 0, oy: 0 });
+    img.src = dataUrl;
+  });
+}
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
@@ -106,6 +148,53 @@ export async function exportScriptPDF(opts: {
     },
     margin: { left: margin, right: margin },
   });
+
+  // Referências visuais
+  const withRefs = scenes
+    .slice()
+    .sort((a, b) => a.scene_number - b.scene_number)
+    .filter((s) => !!s.reference_image_url);
+
+  if (withRefs.length) {
+    const pageH = doc.internal.pageSize.getHeight();
+    let ry = ((doc as any).lastAutoTable?.finalY ?? y) + 28;
+    const ensure = (need: number) => {
+      if (ry + need > pageH - 40) { doc.addPage(); ry = 50; }
+    };
+    ensure(40);
+    doc.setTextColor(30, 30, 30);
+    doc.setFont(FONT_TITLE, "bold");
+    doc.setFontSize(11);
+    doc.text("Referencias visuais", margin, ry);
+    ry += 16;
+
+    const cols = 3;
+    const gap = 12;
+    const boxW = (pageW - margin * 2 - gap * (cols - 1)) / cols;
+    const boxH = boxW * 0.75;
+
+    for (let i = 0; i < withRefs.length; i += cols) {
+      const row = withRefs.slice(i, i + cols);
+      ensure(boxH + 26);
+      for (let c = 0; c < row.length; c++) {
+        const s = row[c];
+        const x = margin + c * (boxW + gap);
+        const dataUrl = await imageToDataURL(s.reference_image_url!);
+        doc.setDrawColor(220, 220, 220);
+        doc.setFillColor(248, 248, 245);
+        doc.roundedRect(x, ry, boxW, boxH, 6, 6, "FD");
+        if (dataUrl) {
+          const fit = await fitContain(dataUrl, boxW - 8, boxH - 8);
+          tryAddImage(doc, dataUrl, x + 4 + fit.ox, ry + 4 + fit.oy, fit.w, fit.h);
+        }
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(90, 90, 90);
+        doc.text(`Cena ${s.scene_number}`, x, ry + boxH + 12);
+      }
+      ry += boxH + 26;
+    }
+  }
 
   const slug = (s: string) => sanitize(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const parts = [

@@ -4,6 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, X, Clapperboard, Clock, ExternalLink } from "lucide-react";
 import type { ScriptScene } from "@/lib/scripts-api";
+import { useStorageUrl } from "@/lib/use-storage-url";
+
+function SceneRefImage({ url }: { url: string }) {
+  const src = useStorageUrl(url);
+  if (!src) return <div className="rounded-2xl w-[380px] h-[280px] border border-white/10 bg-white/5 animate-pulse" />;
+  return (
+    <img
+      src={src}
+      alt="Referência"
+      className="rounded-2xl max-h-[70vh] object-contain border border-white/10 bg-black"
+    />
+  );
+}
+
 
 interface Props {
   open: boolean;
@@ -94,12 +108,9 @@ export function ScriptPresentation({ open, onOpenChange, title, scenes }: Props)
           </div>
 
           {current.reference_image_url && (
-            <img
-              src={current.reference_image_url}
-              alt="Referência"
-              className="rounded-2xl max-h-[70vh] object-contain border border-white/10 bg-black"
-            />
+            <SceneRefImage url={current.reference_image_url} />
           )}
+
         </div>
 
         {/* Nav */}
