@@ -94,12 +94,9 @@ export function ScriptPresentation({ open, onOpenChange, title, scenes }: Props)
           </div>
 
           {current.reference_image_url && (
-            <img
-              src={current.reference_image_url}
-              alt="Referência"
-              className="rounded-2xl max-h-[70vh] object-contain border border-white/10 bg-black"
-            />
+            <SceneRefImage url={current.reference_image_url} />
           )}
+
         </div>
 
         {/* Nav */}
