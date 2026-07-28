@@ -228,8 +228,12 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={imprimir} className="gap-2">
-            <Printer className="size-4" /> Imprimir / Salvar PDF
+          <Button variant="outline" onClick={imprimir} className="gap-2">
+            <Printer className="size-4" /> Imprimir
+          </Button>
+          <Button onClick={baixarPdf} disabled={exporting} className="gap-2">
+            {exporting ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+            Exportar PDF
           </Button>
         </DialogFooter>
       </DialogContent>
