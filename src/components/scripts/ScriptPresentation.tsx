@@ -8,12 +8,12 @@ import { useStorageUrl } from "@/lib/use-storage-url";
 
 function SceneRefImage({ url }: { url: string }) {
   const src = useStorageUrl(url);
-  if (!src) return <div className="rounded-2xl w-[380px] h-[280px] border border-white/10 bg-white/5 animate-pulse" />;
+  if (!src) return <div className="rounded-2xl w-full lg:w-[46vw] h-[70vh] border border-white/10 bg-white/5 animate-pulse" />;
   return (
     <img
       src={src}
       alt="Referência"
-      className="rounded-2xl max-h-[70vh] object-contain border border-white/10 bg-black"
+      className="rounded-2xl w-full lg:w-[46vw] max-h-[78vh] object-contain border border-white/10 bg-black"
     />
   );
 }
@@ -69,7 +69,7 @@ export function ScriptPresentation({ open, onOpenChange, title, scenes }: Props)
         </div>
 
         {/* Scene body */}
-        <div className="flex-1 overflow-y-auto px-12 py-8 grid lg:grid-cols-[1fr_auto] gap-8 items-start">
+        <div className="flex-1 overflow-y-auto px-12 py-8 grid lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8 max-w-4xl">
             <div className="flex items-center gap-4">
               <div className="size-16 rounded-2xl bg-[#FFBC45] text-[#0C1618] grid place-items-center font-display font-bold text-3xl">
