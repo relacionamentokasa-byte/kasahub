@@ -8,12 +8,12 @@ import { useStorageUrl } from "@/lib/use-storage-url";
 
 function SceneRefImage({ url }: { url: string }) {
   const src = useStorageUrl(url);
-  if (!src) return <div className="rounded-2xl w-[380px] h-[280px] border border-white/10 bg-white/5 animate-pulse" />;
+  if (!src) return <div className="rounded-2xl w-full lg:w-[46vw] h-[70vh] border border-white/10 bg-white/5 animate-pulse" />;
   return (
     <img
       src={src}
       alt="Referência"
-      className="rounded-2xl max-h-[70vh] object-contain border border-white/10 bg-black"
+      className="rounded-2xl w-full lg:w-[46vw] max-h-[78vh] object-contain border border-white/10 bg-black"
     />
   );
 }
