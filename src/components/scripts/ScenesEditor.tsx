@@ -111,7 +111,8 @@ function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean
         </Label>
         <div className="flex flex-wrap items-start gap-3">
           {local.reference_image_url ? (
-            <div className="relative group">
+            <div className="relative group w-full max-w-md">
+
               <SceneRefImage url={local.reference_image_url} />
               {!disabled && (
                 <button
