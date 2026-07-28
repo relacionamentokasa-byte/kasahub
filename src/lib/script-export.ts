@@ -6,6 +6,48 @@ import {
 } from "@/lib/scripts-api";
 import { SOCIAL_LABEL } from "@/lib/editorial-api";
 import { registerBoletimFonts } from "@/lib/pdf-fonts";
+import { resolveStorageUrl } from "@/lib/use-storage-url";
+
+async function imageToDataURL(url: string): Promise<string | null> {
+  const signed = (await resolveStorageUrl(url)) ?? url;
+  try {
+    const res = await fetch(signed);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result as string);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function tryAddImage(doc: jsPDF, dataUrl: string, x: number, y: number, w: number, h: number) {
+  try { doc.addImage(dataUrl, "JPEG", x, y, w, h, undefined, "FAST"); return true; }
+  catch {
+    try { doc.addImage(dataUrl, "PNG", x, y, w, h, undefined, "FAST"); return true; }
+    catch {
+      try { doc.addImage(dataUrl, "WEBP" as any, x, y, w, h, undefined, "FAST"); return true; } catch { return false; }
+    }
+  }
+}
+
+/** Ajusta a imagem inteira dentro do box (sem cortar). */
+async function fitContain(dataUrl: string, boxW: number, boxH: number) {
+  return new Promise<{ w: number; h: number; ox: number; oy: number }>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(boxW / img.width, boxH / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      resolve({ w, h, ox: (boxW - w) / 2, oy: (boxH - h) / 2 });
+    };
+    img.onerror = () => resolve({ w: boxW, h: boxH, ox: 0, oy: 0 });
+    img.src = dataUrl;
+  });
+}
 
 function sanitize(s?: string | null): string {
   if (s == null) return "";
