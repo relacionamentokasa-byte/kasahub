@@ -15,6 +15,14 @@ import { toast } from "sonner";
 import {
   addScene, updateScene, deleteScene, reorderScenes, uploadSceneReference, type ScriptScene,
 } from "@/lib/scripts-api";
+import { useStorageUrl } from "@/lib/use-storage-url";
+
+function SceneRefImage({ url }: { url: string }) {
+  const src = useStorageUrl(url);
+  if (!src) return <div className="size-24 rounded-md border border-border bg-muted animate-pulse" />;
+  return <img src={src} alt="Referência" className="size-24 rounded-md object-cover border border-border" />;
+}
+
 
 function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean }) {
   const qc = useQueryClient();
