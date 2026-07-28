@@ -19,8 +19,14 @@ import { useStorageUrl } from "@/lib/use-storage-url";
 
 function SceneRefImage({ url }: { url: string }) {
   const src = useStorageUrl(url);
-  if (!src) return <div className="size-24 rounded-md border border-border bg-muted animate-pulse" />;
-  return <img src={src} alt="Referência" className="size-24 rounded-md object-cover border border-border" />;
+  if (!src) return <div className="w-full max-w-md h-64 rounded-lg border border-border bg-muted animate-pulse" />;
+  return (
+    <img
+      src={src}
+      alt="Referência"
+      className="w-full max-w-md max-h-[420px] rounded-lg object-contain bg-black/5 border border-border"
+    />
+  );
 }
 
 
