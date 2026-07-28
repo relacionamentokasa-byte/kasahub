@@ -168,10 +168,10 @@ export async function exportScriptPDF(opts: {
     doc.text("Referencias visuais", margin, ry);
     ry += 16;
 
-    const cols = 3;
-    const gap = 12;
+    const cols = 2;
+    const gap = 16;
     const boxW = (pageW - margin * 2 - gap * (cols - 1)) / cols;
-    const boxH = boxW * 0.75;
+    const boxH = boxW * 0.85;
 
     for (let i = 0; i < withRefs.length; i += cols) {
       const row = withRefs.slice(i, i + cols);
