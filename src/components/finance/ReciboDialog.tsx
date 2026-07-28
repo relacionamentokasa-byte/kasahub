@@ -62,6 +62,7 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   const [local, setLocal] = useState("");
   const [loading, setLoading] = useState(false);
   const [dmes, setDmes] = useState<any[]>([]);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     if (!open || !transaction) return;
