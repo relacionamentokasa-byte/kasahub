@@ -98,7 +98,7 @@ function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean
         <div className="flex flex-wrap items-start gap-3">
           {local.reference_image_url ? (
             <div className="relative group">
-              <img src={local.reference_image_url} alt="Ref" className="size-24 rounded-md object-cover border border-border" />
+              <SceneRefImage url={local.reference_image_url} />
               {!disabled && (
                 <button
                   onClick={() => { setLocal({ ...local, reference_image_url: null }); save.mutate({ reference_image_url: null }); }}
