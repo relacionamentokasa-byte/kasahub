@@ -69,7 +69,7 @@ export function ScriptPresentation({ open, onOpenChange, title, scenes }: Props)
         </div>
 
         {/* Scene body */}
-        <div className="flex-1 overflow-y-auto px-12 py-8 grid lg:grid-cols-[1fr_auto] gap-8 items-start">
+        <div className="flex-1 overflow-y-auto px-12 py-8 grid lg:grid-cols-2 gap-8 items-start">
           <div className="space-y-8 max-w-4xl">
             <div className="flex items-center gap-4">
               <div className="size-16 rounded-2xl bg-[#FFBC45] text-[#0C1618] grid place-items-center font-display font-bold text-3xl">
