@@ -112,18 +112,77 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   const valor = Number(transaction.amount || 0);
   const dataPg = transaction.payment_date || transaction.due_date;
 
-  function imprimir() {
-    const html = buildHtml({
+  function currentHtml() {
+    return buildHtml({
       agency, numero, valor, valorExtenso: valorPorExtenso(valor),
       pagador, pagadorDoc, refer, local, dataPg, dmes,
     });
-    const w = window.open("", "_blank", "width=820,height=900");
-    if (!w) return;
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 350);
   }
+
+  function withIframe(html: string, cb: (iframe: HTMLIFrameElement) => void | Promise<void>) {
+    const iframe = document.createElement("iframe");
+    iframe.style.cssText = "position:fixed;right:0;bottom:0;width:820px;height:1160px;opacity:0;border:0;pointer-events:none;";
+    document.body.appendChild(iframe);
+    const doc = iframe.contentWindow!.document;
+    doc.open();
+    doc.write(html);
+    doc.close();
+    const run = async () => {
+      await new Promise((r) => setTimeout(r, 400));
+      try { await cb(iframe); } finally { iframe.remove(); }
+    };
+    run();
+  }
+
+  function imprimir() {
+    const html = currentHtml().replace("<script>window.onafterprint=()=>window.close()</script>", "");
+    withIframe(html, async (iframe) => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      await new Promise((r) => setTimeout(r, 1500));
+    });
+  }
+
+  async function baixarPdf() {
+    setExporting(true);
+    try {
+      const html = currentHtml().replace("<script>window.onafterprint=()=>window.close()</script>", "");
+      await new Promise<void>((resolve) => {
+        withIframe(html, async (iframe) => {
+          const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+            import("html2canvas"),
+            import("jspdf"),
+          ]);
+          const doc = iframe.contentWindow!.document;
+          const el = (doc.querySelector(".sheet") as HTMLElement) || doc.body;
+          const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+          const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+          const pw = pdf.internal.pageSize.getWidth();
+          const ph = pdf.internal.pageSize.getHeight();
+          const margin = 10;
+          const w = pw - margin * 2;
+          const h = (canvas.height / canvas.width) * w;
+          const img = canvas.toDataURL("image/jpeg", 0.95);
+          if (h <= ph - margin * 2) {
+            pdf.addImage(img, "JPEG", margin, margin, w, h);
+          } else {
+            let y = 0;
+            const pageH = ph - margin * 2;
+            while (y < h) {
+              if (y > 0) pdf.addPage();
+              pdf.addImage(img, "JPEG", margin, margin - y, w, h);
+              y += pageH;
+            }
+          }
+          pdf.save(`${numero || "recibo"}.pdf`);
+          resolve();
+        });
+      });
+    } finally {
+      setExporting(false);
+    }
+  }
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
