@@ -234,6 +234,14 @@ function EditorialPage() {
           defaultDate={dialog.date}
         />
       )}
+
+      <ExportEditorialDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        clientId={clientId}
+        clientName={clients.find(c => c.id === clientId)?.name ?? "Cliente"}
+        defaultDate={cursor}
+      />
     </div>
   );
 }
