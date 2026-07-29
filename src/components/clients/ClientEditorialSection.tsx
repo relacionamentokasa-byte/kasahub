@@ -197,6 +197,15 @@ export function ClientEditorialSection({ clientId, clientName, clientLogoUrl }: 
         post={dialog.post}
         defaultDate={dialog.date}
       />
+
+      <ExportEditorialDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        clientId={clientId}
+        clientName={clientName}
+        clientLogoUrl={clientLogoUrl}
+        defaultDate={cursor}
+      />
     </div>
   );
 }
