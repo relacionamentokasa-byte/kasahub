@@ -34,6 +34,8 @@ function EditorialPage() {
   const [view, setView] = useState<"month" | "week" | "feed" | "list" | "timeline">("feed");
   const [filters, setFilters] = useState<{ social?: SocialNetwork; ct?: EditorialContentType; status?: EditorialStatus }>({});
   const [dialog, setDialog] = useState<{ open: boolean; post?: EditorialPost | null; date?: Date | null }>({ open: false });
+  const [exportOpen, setExportOpen] = useState(false);
+
 
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
