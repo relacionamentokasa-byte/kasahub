@@ -27,7 +27,9 @@ export function ClientEditorialSection({ clientId, clientName, clientLogoUrl }: 
   const [view, setView] = useState<"month" | "week" | "feed" | "list" | "timeline">("feed");
   const [filters, setFilters] = useState<{ social?: SocialNetwork; ct?: EditorialContentType; status?: EditorialStatus }>({});
   const [dialog, setDialog] = useState<{ open: boolean; post?: EditorialPost | null; date?: Date | null }>({ open: false });
+  const [exportOpen, setExportOpen] = useState(false);
   const [strategy, setStrategy] = useState("");
+
   const qc = useQueryClient();
 
   const year = cursor.getFullYear();
