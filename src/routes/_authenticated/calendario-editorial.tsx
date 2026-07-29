@@ -40,9 +40,9 @@ function EditorialPage() {
 
   const range = useMemo(() => {
     if (view === "month" || view === "feed" || view === "list") {
-      // Wide window: previous month through next 2 months (good for Feed/List/Month).
-      const from = new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1).toISOString();
-      const to = new Date(cursor.getFullYear(), cursor.getMonth() + 2, 1).toISOString();
+      // Apenas o mês selecionado.
+      const from = new Date(cursor.getFullYear(), cursor.getMonth(), 1).toISOString();
+      const to = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0, 23, 59, 59).toISOString();
       return { from, to };
     } else {
       // Week / Timeline: 2-week window centered on cursor.
