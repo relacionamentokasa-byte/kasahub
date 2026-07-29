@@ -121,21 +121,15 @@ export function ClientEditorialSection({ clientId, clientName, clientLogoUrl }: 
         </Select>
 
         <div className="ml-auto flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-9 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5" disabled={posts.length === 0}>
-                <Download className="size-4 mr-1.5" /> Exportar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => exportEditorialPostsPDF({ clientName, clientLogoUrl: clientLogoUrl ?? null, strategy, cursor, posts })}>
-                <FileText className="size-4 mr-2" /> PDF (para o cliente)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => exportEditorialPostsCSV({ clientName, cursor, posts })}>
-                <Download className="size-4 mr-2" /> CSV (planilha)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5"
+            onClick={() => setExportOpen(true)}
+          >
+            <Download className="size-4 mr-1.5" /> Exportar
+          </Button>
+
           <Button
             size="sm"
             className="h-9 rounded-full px-4"
