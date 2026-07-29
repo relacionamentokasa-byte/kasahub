@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Download, FileText, Share2, LayoutGrid, Activity, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Download, Share2, LayoutGrid, Activity, ChevronLeft, ChevronRight } from "lucide-react";
 import { EditorialMonthGrid } from "@/components/editorial/EditorialMonthGrid";
 import { EditorialWeekList } from "@/components/editorial/EditorialWeekList";
 import { EditorialFeedGrid } from "@/components/editorial/EditorialFeedGrid";
@@ -18,11 +18,10 @@ import { EditorialList } from "@/components/editorial/EditorialList";
 import { EditorialTimeline } from "@/components/editorial/EditorialTimeline";
 import { EditorialPostDialog } from "@/components/editorial/EditorialPostDialog";
 import { SocialIcon } from "@/components/editorial/SocialIcon";
-import { exportEditorialPostsPDF, exportEditorialPostsCSV } from "@/lib/editorial-export";
+import { ExportEditorialDialog } from "@/components/editorial/ExportEditorialDialog";
 import { ClientPicker } from "@/components/clients/ClientPicker";
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+
+
 
 export const Route = createFileRoute("/_authenticated/calendario-editorial")({
   head: () => ({ meta: [{ title: "Calendário Editorial — KASA HUB" }] }),
@@ -35,6 +34,8 @@ function EditorialPage() {
   const [view, setView] = useState<"month" | "week" | "feed" | "list" | "timeline">("feed");
   const [filters, setFilters] = useState<{ social?: SocialNetwork; ct?: EditorialContentType; status?: EditorialStatus }>({});
   const [dialog, setDialog] = useState<{ open: boolean; post?: EditorialPost | null; date?: Date | null }>({ open: false });
+  const [exportOpen, setExportOpen] = useState(false);
+
 
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
@@ -150,31 +151,16 @@ function EditorialPage() {
 
         <div className="ml-auto flex items-center gap-2">
           <div className="hidden md:block h-6 w-px bg-foreground/10 mx-1" />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-9 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5" disabled={!clientId || posts.length === 0}>
-                <Download className="size-4 mr-1.5" /> Exportar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => exportEditorialPostsPDF({
-                  clientName: clients.find(c => c.id === clientId)?.name ?? "Cliente",
-                  cursor, posts,
-                })}
-              >
-                <FileText className="size-4 mr-2" /> PDF (para o cliente)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => exportEditorialPostsCSV({
-                  clientName: clients.find(c => c.id === clientId)?.name ?? "Cliente",
-                  cursor, posts,
-                })}
-              >
-                <Download className="size-4 mr-2" /> CSV (planilha)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5"
+            disabled={!clientId}
+            onClick={() => setExportOpen(true)}
+          >
+            <Download className="size-4 mr-1.5" /> Exportar
+          </Button>
+
           <Button
             size="sm"
             className="h-9 rounded-full px-4"
@@ -248,6 +234,14 @@ function EditorialPage() {
           defaultDate={dialog.date}
         />
       )}
+
+      <ExportEditorialDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        clientId={clientId}
+        clientName={clients.find(c => c.id === clientId)?.name ?? "Cliente"}
+        defaultDate={cursor}
+      />
     </div>
   );
 }
