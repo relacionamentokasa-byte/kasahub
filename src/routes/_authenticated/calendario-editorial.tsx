@@ -80,6 +80,35 @@ function EditorialPage() {
 
         <div className="hidden md:block h-6 w-px bg-foreground/10 mx-1" />
 
+        <div className="flex items-center gap-1 rounded-full border border-foreground/10 bg-transparent px-1 h-9">
+          <Button
+            variant="ghost" size="icon" className="size-7 rounded-full"
+            onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}
+            aria-label="Mês anterior"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="text-xs font-mono-kasa capitalize px-2 min-w-[8.5rem] text-center">
+            {cursor.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}
+          </span>
+          <Button
+            variant="ghost" size="icon" className="size-7 rounded-full"
+            onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}
+            aria-label="Próximo mês"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+          <Button
+            variant="ghost" size="sm" className="h-7 rounded-full text-[11px] px-2"
+            onClick={() => setCursor(new Date())}
+          >
+            Hoje
+          </Button>
+        </div>
+
+        <div className="hidden md:block h-6 w-px bg-foreground/10 mx-1" />
+
+
         <Select value={filters.social ?? "all"} onValueChange={(v) => setFilters(f => ({ ...f, social: v === "all" ? undefined : v as SocialNetwork }))}>
           <SelectTrigger className={`h-9 rounded-full border-foreground/10 bg-transparent hover:bg-foreground/5 transition-colors px-3 gap-2 w-auto min-w-[8.5rem] ${filters.social ? "text-primary border-primary/40 bg-primary/5" : "text-foreground/70"}`}>
             <Share2 className="size-3.5 opacity-70" />
