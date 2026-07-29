@@ -151,31 +151,16 @@ function EditorialPage() {
 
         <div className="ml-auto flex items-center gap-2">
           <div className="hidden md:block h-6 w-px bg-foreground/10 mx-1" />
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-9 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5" disabled={!clientId || posts.length === 0}>
-                <Download className="size-4 mr-1.5" /> Exportar
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => exportEditorialPostsPDF({
-                  clientName: clients.find(c => c.id === clientId)?.name ?? "Cliente",
-                  cursor, posts,
-                })}
-              >
-                <FileText className="size-4 mr-2" /> PDF (para o cliente)
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => exportEditorialPostsCSV({
-                  clientName: clients.find(c => c.id === clientId)?.name ?? "Cliente",
-                  cursor, posts,
-                })}
-              >
-                <Download className="size-4 mr-2" /> CSV (planilha)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-9 rounded-full text-foreground/70 hover:text-foreground hover:bg-foreground/5"
+            disabled={!clientId}
+            onClick={() => setExportOpen(true)}
+          >
+            <Download className="size-4 mr-1.5" /> Exportar
+          </Button>
+
           <Button
             size="sm"
             className="h-9 rounded-full px-4"
