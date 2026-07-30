@@ -97,17 +97,22 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   };
 
   const today = new Date().toISOString().split("T")[0];
+  const CANCELLED = new Set(["cancelled", "canceled", "cancelado", "cancelada", "estornado"]);
 
   trans?.forEach((t: any) => {
     const amount = Number(t.amount);
     const isNaoOp = t.nature === "nao_operacional";
+    const status = (t.status || "").toLowerCase();
+
+    // Lançamentos cancelados não entram em nenhum indicador
+    if (CANCELLED.has(status)) return;
 
     if (t.type === "income") {
       if (isNaoOp) {
         stats.naoOperacionalReceitas += amount;
         return; // não entra em faturamento/previsto
       }
-      if (t.status === "paid") stats.recebidasReceitas += amount;
+      if (status === "paid") stats.recebidasReceitas += amount;
       else stats.previstasReceitas += amount;
 
       if (t.due_date > today) stats.parcelasFuturas += amount;
@@ -116,10 +121,11 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
         stats.naoOperacionalDespesas += amount;
         return;
       }
-      if (t.status === "paid") stats.pagasDespesas += amount;
+      if (status === "paid") stats.pagasDespesas += amount;
       else stats.previstasDespesas += amount;
     }
   });
+
 
   return stats;
 }

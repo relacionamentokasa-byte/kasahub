@@ -92,13 +92,17 @@ export function ResumoFinanceiroSection() {
     const clientesPagantes = new Set<string>();
 
     for (const t of transactions) {
+      const status = (t.status || "").toLowerCase();
+      // Lançamentos cancelados não entram em nenhum indicador
+      if (["cancelled", "canceled", "cancelado", "cancelada", "estornado"].includes(status)) continue;
       const amount = Number(t.amount || 0);
       const isIncome = (t.type ?? t.kind) === "income";
       const isExpense = (t.type ?? t.kind) === "expense";
-      const isPaid = PAID_STATUSES.has((t.status || "").toLowerCase());
+      const isPaid = PAID_STATUSES.has(status);
       const isNaoOp = t.nature === "nao_operacional";
       const proLab = isProLaboreCat(t.categorias_financeiras?.nome);
       const invest = isInvestimentoCat(t.categorias_financeiras?.nome);
+
 
       if (isIncome) {
         receitasPrevistas += amount;
