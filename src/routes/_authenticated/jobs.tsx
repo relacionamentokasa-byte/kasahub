@@ -3,7 +3,15 @@ import { JobsBoard } from "@/components/jobs/JobsBoard";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
   head: () => ({ meta: [{ title: "Jobs — KASA HUB" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
+  validateSearch: (
+    s: Record<string, unknown>,
+  ): {
+    openJobId?: string;
+    jobId?: string;
+    new?: true;
+    clientId?: string;
+    launchProductId?: string;
+  } => ({
     openJobId: (s.openJobId as string) || (s.jobId as string) || undefined,
     jobId: (s.jobId as string) || undefined,
     new: s.new === "1" || s.new === true || s.new === "true" || undefined,
