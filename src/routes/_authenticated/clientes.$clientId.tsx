@@ -379,7 +379,7 @@ function ClientDetail() {
                         </div>
                         
                         <Button asChild variant="outline" size="sm" className="w-full mt-2 rounded-xl text-[10px] uppercase font-bold tracking-widest gap-2 h-9">
-                          <Link to={`/propostas/${contract.proposal_id}`}>
+                          <Link to="/propostas/$proposalId" params={{ proposalId: contract.proposal_id }}>
                             <FileText className="size-3" /> Detalhes do Contrato
                           </Link>
                         </Button>
@@ -430,7 +430,7 @@ function ClientDetail() {
                           </TableCell>
                           <TableCell className="text-center py-4">
                              <Button asChild variant="ghost" size="sm" className="h-8 text-[10px] uppercase font-bold tracking-widest rounded-lg">
-                               <Link to={`/propostas/${p.id}`}>Editar</Link>
+                               <Link to="/propostas/$proposalId" params={{ proposalId: p.id }}>Editar</Link>
                              </Button>
                           </TableCell>
                         </TableRow>
