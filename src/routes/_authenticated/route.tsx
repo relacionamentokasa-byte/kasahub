@@ -41,7 +41,7 @@ export const Route = createFileRoute("/_authenticated")({
 });
 
 function ShellLayout() {
-  const { user } = Route.useRouteContext();
+  const { user } = Route.useRouteContext() as { user?: { id?: string } };
   const [showSplash, setShowSplash] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
     return !sessionStorage.getItem(SPLASH_KEY);

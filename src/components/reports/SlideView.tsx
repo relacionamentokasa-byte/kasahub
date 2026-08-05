@@ -185,7 +185,7 @@ export function SlideView({
           {p.title ? heading(p.title) : null}
           {p.body ? (
             <div
-              className="mt-10 text-[32px] leading-[1.45] text-neutral-700 max-w-[1500px] whitespace-pre-wrap"
+              className="mt-10 text-[32px] leading-[1.45] text-neutral-700 w-full text-justify hyphens-auto whitespace-pre-wrap"
               dangerouslySetInnerHTML={{ __html: simpleMd(p.body) }}
             />
           ) : null}
@@ -202,7 +202,7 @@ export function SlideView({
             ) : <span className="text-[28px] text-neutral-400">Sem imagem</span>}
           </div>
           {p.caption ? (
-            <p className="mt-6 text-[24px] text-neutral-500">{p.caption}</p>
+            <p className="mt-6 text-[24px] text-neutral-500 w-full text-justify hyphens-auto">{p.caption}</p>
           ) : null}
         </div>,
       );
@@ -269,7 +269,7 @@ export function SlideView({
         <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
           {p.title ? heading(p.title, "sm") : null}
           {p.chartSubtitle ? (
-            <p className="mt-3 text-[28px] text-neutral-500 leading-tight max-w-[1500px]">
+            <p className="mt-3 text-[28px] text-neutral-500 leading-tight w-full text-justify hyphens-auto">
               {p.chartSubtitle}
             </p>
           ) : null}
@@ -285,7 +285,7 @@ export function SlideView({
           </div>
           {p.chartNote ? (
             <div
-              className="mt-6 rounded-2xl border-l-4 px-8 py-5 bg-neutral-50 text-[26px] leading-[1.4] text-neutral-700 whitespace-pre-wrap"
+              className="mt-6 rounded-2xl border-l-4 px-8 py-5 bg-neutral-50 text-[26px] leading-[1.4] text-neutral-700 w-full text-justify hyphens-auto whitespace-pre-wrap"
               style={{ borderColor: color }}
             >
               <p className="text-[18px] font-mono uppercase tracking-[0.18em] mb-2" style={{ color }}>Observações</p>
@@ -302,7 +302,7 @@ export function SlideView({
       return shell(
         <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
           {p.title ? heading(p.title, "sm") : null}
-          <ul className="mt-10 space-y-5 max-w-[1500px]">
+          <ul className="mt-10 space-y-5 w-full">
             {items.map((it, i) => (
               <li key={i} className="flex items-start gap-6 text-[32px] text-neutral-800">
                 <span
@@ -311,7 +311,7 @@ export function SlideView({
                 >
                   {it.done ? "✓" : "•"}
                 </span>
-                <span className={it.done ? "" : "text-neutral-400"}>{it.label}</span>
+                <span className={`flex-1 text-justify hyphens-auto ${it.done ? "" : "text-neutral-400"}`}>{it.label}</span>
               </li>
             ))}
           </ul>
@@ -328,10 +328,10 @@ export function SlideView({
               { t: p.leftTitle, b: p.leftBody, c: "#737373" },
               { t: p.rightTitle, b: p.rightBody, c: color },
             ].map((col, i) => (
-              <div key={i} className="rounded-3xl p-12 flex flex-col" style={{ backgroundColor: i === 1 ? `${color}10` : "#fafafa" }}>
+              <div key={i} className="rounded-3xl px-12 py-12 flex flex-col" style={{ backgroundColor: i === 1 ? `${color}10` : "#fafafa" }}>
                 <p className="text-[28px] font-mono uppercase tracking-[0.18em]" style={{ color: col.c }}>{col.t}</p>
                 <div
-                  className="mt-6 text-[30px] leading-[1.45] text-neutral-700 whitespace-pre-wrap"
+                  className="mt-6 text-[30px] leading-[1.45] text-neutral-700 w-full text-justify hyphens-auto whitespace-pre-wrap"
                   dangerouslySetInnerHTML={{ __html: simpleMd(col.b || "") }}
                 />
               </div>
@@ -345,7 +345,7 @@ export function SlideView({
       return shell(
         <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
           {p.title ? heading(p.title, "sm") : null}
-          <ol className="mt-10 space-y-6 max-w-[1500px]">
+          <ol className="mt-10 space-y-6 w-full">
             {items.map((it, i) => (
               <li key={i} className="flex items-start gap-8 text-[32px] text-neutral-800">
                 <span
@@ -354,7 +354,7 @@ export function SlideView({
                 >
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <span className="pt-3">{it}</span>
+                <span className="pt-3 flex-1 text-justify hyphens-auto">{it}</span>
               </li>
             ))}
           </ol>
