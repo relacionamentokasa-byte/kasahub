@@ -269,7 +269,7 @@ export function SlideView({
         <div className="absolute inset-0 flex flex-col px-32 pt-40 pb-24">
           {p.title ? heading(p.title, "sm") : null}
           {p.chartSubtitle ? (
-            <p className="mt-3 text-[28px] text-neutral-500 leading-tight max-w-[1500px]">
+            <p className="mt-3 text-[28px] text-neutral-500 leading-tight w-full text-justify hyphens-auto">
               {p.chartSubtitle}
             </p>
           ) : null}
