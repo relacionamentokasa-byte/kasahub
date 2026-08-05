@@ -185,7 +185,7 @@ export function SlideView({
           {p.title ? heading(p.title) : null}
           {p.body ? (
             <div
-              className="mt-10 text-[32px] leading-[1.45] text-neutral-700 max-w-[1500px] whitespace-pre-wrap"
+              className="mt-10 text-[32px] leading-[1.45] text-neutral-700 w-full text-justify hyphens-auto whitespace-pre-wrap"
               dangerouslySetInnerHTML={{ __html: simpleMd(p.body) }}
             />
           ) : null}
