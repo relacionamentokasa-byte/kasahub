@@ -71,8 +71,32 @@ export function NewJobDialog({
   const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
+  const [form, setForm] = useState({
+    title: defaultTitle ?? "",
+    description: defaultDescription ?? "",
+    priority: "normal",
+    due_date: defaultDueDate ?? "",
+    project_id: defaultProjectId ?? "",
+    client_id: defaultClientId ?? "",
+    contract_id: defaultContractId ?? "",
+    service_id: "",
+    period: defaultPeriod ?? "",
+    main_responsible_id: "",
+    team_involved_ids: [] as string[],
+    launch_product_id: defaultLaunchProductId ?? "",
+    editorial_post_id: defaultEditorialPostId ?? "",
+  });
+
   useEffect(() => {
     if (open) {
+      console.log("[NewJobDialog] Sincronizando formulário com props:", {
+        defaultTitle,
+        defaultDescription,
+        defaultDueDate,
+        defaultClientId,
+        defaultEditorialPostId
+      });
+      
       setForm((f) => ({
         ...f,
         title: defaultTitle ?? f.title ?? "",
@@ -98,22 +122,6 @@ export function NewJobDialog({
     defaultLaunchProductId,
     defaultEditorialPostId
   ]);
-
-  const [form, setForm] = useState({
-    title: defaultTitle ?? "",
-    description: defaultDescription ?? "",
-    priority: "normal",
-    due_date: defaultDueDate ?? "",
-    project_id: defaultProjectId ?? "",
-    client_id: defaultClientId ?? "",
-    contract_id: defaultContractId ?? "",
-    service_id: "",
-    period: defaultPeriod ?? "",
-    main_responsible_id: "",
-    team_involved_ids: [] as string[],
-    launch_product_id: defaultLaunchProductId ?? "",
-    editorial_post_id: defaultEditorialPostId ?? "",
-  });
 
   // Projetos dependem do cliente selecionado (cascade)
   const selectedClientId = form.client_id;

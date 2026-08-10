@@ -185,9 +185,15 @@ export function JobsBoard({
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
     if (isNew && stages.length > 0 && !newStage) {
+      console.log("[JobsBoard] Auto-abertura disparada. Parâmetros:", {
+        initialTitle,
+        initialDescription,
+        initialDueDate,
+        initialClientId
+      });
       setNewStage(stages[0]);
     }
-  }, [initialOpenNew, stages, newStage]);
+  }, [initialOpenNew, stages, newStage, initialTitle, initialDescription, initialDueDate, initialClientId]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
