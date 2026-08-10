@@ -184,11 +184,13 @@ export function JobsBoard({
   // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid)
   const autoOpenedRef = useRef(false);
   useEffect(() => {
-    if (initialOpenNew && !autoOpenedRef.current && stages.length > 0) {
+    const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
+    if (isNew && !autoOpenedRef.current && stages.length > 0) {
+      console.log("[JobsBoard] Auto-opening NewJobDialog with props:", { initialTitle, initialDescription });
       autoOpenedRef.current = true;
       setNewStage(stages[0]);
     }
-  }, [initialOpenNew, stages]);
+  }, [initialOpenNew, stages, initialTitle, initialDescription]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
