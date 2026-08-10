@@ -108,7 +108,8 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     naoOperacionalDespesas: 0,
   };
 
-  const today = new Date().toISOString().split("T")[0];
+  // variable 'today' already declared above
+
   const CANCELLED = new Set(["cancelled", "canceled", "cancelado", "cancelada", "estornado"]);
 
   trans?.forEach((t: any) => {
