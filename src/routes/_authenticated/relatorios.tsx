@@ -542,7 +542,7 @@ function FinancialPage() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa uppercase font-bold tracking-wider">Gestão · Financeiro</span>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">apareceu essas notificações aqui pra min, o que seria?</h1>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">Fluxo de Caixa</h1>
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
         </div>
         <div className="flex gap-2">
