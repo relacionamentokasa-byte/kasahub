@@ -66,6 +66,10 @@ export function JobsBoard({
   initialOpenNew,
   initialClientId,
   initialLaunchProductId,
+  initialTitle,
+  initialDescription,
+  initialDueDate,
+  initialEditorialPostId,
 }: {
   projectId?: string;
   clientId?: string;
@@ -77,6 +81,10 @@ export function JobsBoard({
   initialOpenNew?: boolean;
   initialClientId?: string;
   initialLaunchProductId?: string;
+  initialTitle?: string;
+  initialDescription?: string;
+  initialDueDate?: string;
+  initialEditorialPostId?: string;
 }) {
   const qc = useQueryClient();
   const [period, setPeriod] = useState<string>("all");
@@ -408,6 +416,21 @@ export function JobsBoard({
             {title}
           </h1>
         </div>
+        
+        <NewJobDialog
+          stage={newStage}
+          open={!!newStage}
+          onOpenChange={(o) => !o && setNewStage(null)}
+          defaultClientId={initialClientId}
+          defaultTitle={initialTitle}
+          defaultDescription={initialDescription}
+          defaultDueDate={initialDueDate}
+          defaultEditorialPostId={initialEditorialPostId}
+          onCreated={(j) => {
+            setNewStage(null);
+            setOpenId(j.id);
+          }}
+        />
         
         <div className="flex flex-wrap items-center gap-2">
           {activeFiltersCount > 0 && (

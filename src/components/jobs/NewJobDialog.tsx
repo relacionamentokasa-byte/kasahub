@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createJob, createProject, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
@@ -44,6 +45,7 @@ export function NewJobDialog({
   defaultDescription,
   defaultDueDate,
   defaultLaunchProductId,
+  defaultEditorialPostId,
   lockLaunchProduct,
   onCreated,
 }: {
@@ -59,10 +61,12 @@ export function NewJobDialog({
   defaultDescription?: string;
   defaultDueDate?: string;
   defaultLaunchProductId?: string;
+  defaultEditorialPostId?: string;
   lockLaunchProduct?: boolean;
   onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
@@ -81,6 +85,7 @@ export function NewJobDialog({
     main_responsible_id: "",
     team_involved_ids: [] as string[],
     launch_product_id: defaultLaunchProductId ?? "",
+    editorial_post_id: defaultEditorialPostId ?? "",
   });
 
   // Projetos dependem do cliente selecionado (cascade)
@@ -203,6 +208,7 @@ export function NewJobDialog({
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
         dme_id: defaultDmeId || null,
         launch_product_id: form.launch_product_id || null,
+        editorial_post_id: form.editorial_post_id || null,
       };
 
       const data = await createJob(payload as any);
@@ -251,8 +257,17 @@ export function NewJobDialog({
       qc.invalidateQueries({ queryKey: ctx?.globalQk });
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["jobs-by-dme"] });
-
-      toast.success("Job criado");
+      
+      // Se veio de um post editorial, vincula e redireciona de volta para o calendário com o cliente selecionado
+      if (form.editorial_post_id) {
+        supabase.from("editorial_posts").update({ job_id: (job as any).id } as any).eq("id", form.editorial_post_id).then(() => {
+          qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+          toast.success("Job criado e post vinculado!");
+          navigate({ to: "/calendario-editorial", search: { clientId: form.client_id } as any });
+        });
+      } else {
+        toast.success("Job criado");
+      }
       onCreated?.(job as Job);
       onOpenChange(false);
       setForm({
@@ -268,6 +283,7 @@ export function NewJobDialog({
         main_responsible_id: "",
         team_involved_ids: [],
         launch_product_id: defaultLaunchProductId ?? "",
+        editorial_post_id: defaultEditorialPostId ?? "",
       });
     },
     onError: (e: Error, _, ctx) => {
