@@ -34,7 +34,7 @@ function JobsRoute() {
   return (
     <div className="pb-20 md:pb-0 h-full">
       <JobsBoard
-        title="Jobs da agência"
+        title="Gestão de Jobs"
         eyebrow="Operação · Jobs"
         initialOpenId={openJobId}
         initialOpenNew={openNew}

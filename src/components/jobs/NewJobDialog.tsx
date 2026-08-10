@@ -335,14 +335,29 @@ export function NewJobDialog({
       <DialogContent className="bg-surface border-border max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            Novo job{stage ? ` · ${stage.name}` : ""}
+            {form.editorial_post_id ? "Converter em job" : `Novo job${stage ? ` · ${stage.name}` : ""}`}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Título do Job</Label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex: Criação de Logo" />
+            <Input 
+              value={form.title} 
+              onChange={(e) => setForm({ ...form, title: e.target.value })} 
+              placeholder="Ex: Criação de Logo" 
+              className={!form.title ? "border-destructive" : ""}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>BRIEFING</Label>
+            <Textarea 
+              value={form.description} 
+              onChange={(e) => setForm({ ...form, description: e.target.value })} 
+              placeholder="Descreva a demanda..." 
+              rows={4}
+            />
           </div>
 
 
@@ -495,7 +510,7 @@ export function NewJobDialog({
                 <div className="space-y-1.5">
                   <Label className={!form.due_date ? "text-red-500" : ""}>Prazo</Label>
                   <Input 
-                    type="date" 
+                    type="datetime-local" 
                     value={form.due_date} 
                     onChange={(e) => setForm({ ...form, due_date: e.target.value })} 
                     className={!form.due_date ? "border-red-500 focus-visible:ring-red-500" : ""}
@@ -567,7 +582,7 @@ export function NewJobDialog({
             disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id || !form.due_date}
             className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[100px]"
           >
-            {mut.isPending ? "Criando..." : "Criar Job"}
+            {mut.isPending ? "Criando..." : form.editorial_post_id ? "Converter e Criar Job" : "Criar Job"}
           </Button>
         </DialogFooter>
       </DialogContent>
