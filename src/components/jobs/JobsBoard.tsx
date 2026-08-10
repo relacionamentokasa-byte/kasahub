@@ -425,6 +425,7 @@ export function JobsBoard({
           defaultTitle={initialTitle}
           defaultDescription={initialDescription}
           defaultDueDate={initialDueDate}
+          defaultLaunchProductId={initialLaunchProductId}
           defaultEditorialPostId={initialEditorialPostId}
           onCreated={(j) => {
             setNewStage(null);
