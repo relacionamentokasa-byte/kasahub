@@ -342,7 +342,12 @@ export function NewJobDialog({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Título do Job</Label>
-            <Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Ex: Criação de Logo" />
+            <Input 
+              value={form.title} 
+              onChange={(e) => setForm({ ...form, title: e.target.value })} 
+              placeholder="Ex: Criação de Logo" 
+              className={!form.title ? "border-destructive" : ""}
+            />
           </div>
 
 

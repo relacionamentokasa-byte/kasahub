@@ -120,10 +120,11 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
     searchParams.set("title", post.title);
     if (post.description) searchParams.set("description", post.description);
     
-    // Format date for <input type="date" />: YYYY-MM-DD
+    // Format date for <input type="datetime-local" />: YYYY-MM-DDTHH:mm
     const date = new Date(post.scheduled_at);
-    const isoDate = date.toISOString().split("T")[0];
-    searchParams.set("dueDate", isoDate);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const localDateTime = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+    searchParams.set("dueDate", localDateTime);
     
     searchParams.set("editorialPostId", post.id);
 
