@@ -184,9 +184,7 @@ export function JobsBoard({
   // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid ou converteu post editorial)
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
-    console.log("[JobsBoard] checking auto-open (sync):", { isNew, stagesCount: stages.length, newStageOpen: !!newStage });
     if (isNew && stages.length > 0 && !newStage) {
-      console.log("[JobsBoard] autoOpen triggered");
       setNewStage(stages[0]);
     }
   }, [initialOpenNew, stages, newStage]);
