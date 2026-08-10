@@ -251,7 +251,7 @@ export function NewJobDialog({
 
       return { prev, prevGlobal, qk, globalQk };
     },
-    onSuccess: (job, __, ctx) => {
+    onSuccess: async (job, __, ctx) => {
       // Invalidate both keys to ensure we get real data from DB
       qc.invalidateQueries({ queryKey: ctx?.qk });
       qc.invalidateQueries({ queryKey: ctx?.globalQk });
@@ -260,11 +260,18 @@ export function NewJobDialog({
       
       // Se veio de um post editorial, vincula e redireciona de volta para o calendário com o cliente selecionado
       if (form.editorial_post_id) {
-        supabase.from("editorial_posts").update({ job_id: (job as any).id } as any).eq("id", form.editorial_post_id).then(() => {
-          qc.invalidateQueries({ queryKey: ["editorial-posts"] });
-          toast.success("Job criado e post vinculado!");
-          navigate({ to: "/calendario-editorial", search: { clientId: form.client_id } as any });
-        });
+        // Primeiro atualiza o post editorial com o ID do job e a descrição (copy) como briefing
+        await supabase
+          .from("editorial_posts")
+          .update({ 
+            job_id: (job as any).id,
+            description: form.description // Garante que a descrição final do job também reflita no post se alterada
+          } as any)
+          .eq("id", form.editorial_post_id);
+
+        qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+        toast.success("Job criado e post vinculado!");
+        navigate({ to: "/calendario-editorial", search: { clientId: form.client_id } as any });
       } else {
         toast.success("Job criado");
       }
