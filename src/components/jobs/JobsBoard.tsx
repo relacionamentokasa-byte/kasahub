@@ -78,7 +78,7 @@ export function JobsBoard({
   eyebrow?: string;
   showPeriodFilter?: boolean;
   initialOpenId?: string;
-  initialOpenNew?: boolean;
+  initialOpenNew?: boolean | string;
   initialClientId?: string;
   initialLaunchProductId?: string;
   initialTitle?: string;
