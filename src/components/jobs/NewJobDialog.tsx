@@ -251,7 +251,7 @@ export function NewJobDialog({
 
       return { prev, prevGlobal, qk, globalQk };
     },
-    onSuccess: (job, __, ctx) => {
+    onSuccess: async (job, __, ctx) => {
       // Invalidate both keys to ensure we get real data from DB
       qc.invalidateQueries({ queryKey: ctx?.qk });
       qc.invalidateQueries({ queryKey: ctx?.globalQk });
