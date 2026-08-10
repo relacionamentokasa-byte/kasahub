@@ -114,11 +114,19 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
 
   const convertToJob = () => {
     if (!post) return;
+    const searchParams = new URLSearchParams();
+    searchParams.set("new", "true");
+    searchParams.set("clientId", post.client_id);
+    searchParams.set("title", post.title);
+    if (post.description) searchParams.set("description", post.description);
+    searchParams.set("dueDate", post.scheduled_at);
+    searchParams.set("editorialPostId", post.id);
+
     navigate({
       to: "/jobs",
-      search: { new: true, clientId: post.client_id } as any,
+      search: Object.fromEntries(searchParams.entries()) as any,
     });
-    toast.info("Crie o Job com base neste post e vincule depois pelo campo Job ID.");
+    toast.info("As informações do post foram levadas para o novo Job.");
     onOpenChange(false);
   };
 
