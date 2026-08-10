@@ -186,15 +186,14 @@ export function JobsBoard({
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
     if (isNew && !autoOpenedRef.current && stages.length > 0) {
-      console.log("[JobsBoard] Auto-opening NewJobDialog with props:", { 
+      console.log("[JobsBoard] Auto-opening NewJobDialog", { 
         initialTitle, 
-        initialDescription,
-        initialClientId 
+        initialDescription
       });
       autoOpenedRef.current = true;
       setNewStage(stages[0]);
     }
-  }, [initialOpenNew, stages, initialTitle, initialDescription, initialClientId]);
+  }, [initialOpenNew, stages, initialTitle, initialDescription, initialClientId, initialEditorialPostId]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
