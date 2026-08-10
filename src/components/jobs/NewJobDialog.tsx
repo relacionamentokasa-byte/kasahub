@@ -87,28 +87,42 @@ export function NewJobDialog({
     editorial_post_id: defaultEditorialPostId ?? "",
   });
 
+  const initializedRef = useRef(false);
+
   useEffect(() => {
     if (open) {
-      console.log("[NewJobDialog] Sincronizando formulário com props:", {
-        defaultTitle,
-        defaultDescription,
-        defaultDueDate,
-        defaultClientId,
-        defaultEditorialPostId
-      });
+      // Se estamos convertendo post editorial, forçamos o preenchimento mesmo que já tenha sido inicializado
+      // porque o usuário pode ter fechado e clicado em outro post
+      const isConversion = !!defaultEditorialPostId;
       
-      setForm((f) => ({
-        ...f,
-        title: defaultTitle ?? f.title ?? "",
-        description: defaultDescription ?? f.description ?? "",
-        due_date: defaultDueDate ?? f.due_date ?? "",
-        project_id: defaultProjectId ?? f.project_id ?? "",
-        client_id: defaultClientId ?? f.client_id ?? "",
-        contract_id: defaultContractId ?? f.contract_id ?? "",
-        period: defaultPeriod ?? f.period ?? "",
-        launch_product_id: defaultLaunchProductId ?? f.launch_product_id ?? "",
-        editorial_post_id: defaultEditorialPostId ?? f.editorial_post_id ?? "",
-      }));
+      if (!initializedRef.current || isConversion) {
+        console.log("[NewJobDialog] Sincronizando formulário com props (Início):", {
+          defaultTitle,
+          defaultDescription,
+          defaultDueDate,
+          defaultClientId,
+          defaultEditorialPostId
+        });
+        
+        setForm((f) => ({
+          ...f,
+          title: defaultTitle ?? f.title ?? "",
+          description: defaultDescription ?? f.description ?? "",
+          due_date: defaultDueDate ?? f.due_date ?? "",
+          project_id: defaultProjectId ?? f.project_id ?? "",
+          client_id: defaultClientId ?? f.client_id ?? "",
+          contract_id: defaultContractId ?? f.contract_id ?? "",
+          period: defaultPeriod ?? f.period ?? "",
+          launch_product_id: defaultLaunchProductId ?? f.launch_product_id ?? "",
+          editorial_post_id: defaultEditorialPostId ?? f.editorial_post_id ?? "",
+        }));
+
+        if (!isConversion) {
+           initializedRef.current = true;
+        }
+      }
+    } else {
+      initializedRef.current = false;
     }
   }, [
     open,
