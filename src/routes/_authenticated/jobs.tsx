@@ -40,6 +40,10 @@ function JobsRoute() {
         initialOpenNew={openNew}
         initialClientId={clientId}
         initialLaunchProductId={launchProductId}
+        initialTitle={Route.useSearch().title}
+        initialDescription={Route.useSearch().description}
+        initialDueDate={Route.useSearch().dueDate}
+        initialEditorialPostId={Route.useSearch().editorialPostId}
       />
     </div>
   );
