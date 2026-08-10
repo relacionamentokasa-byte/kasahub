@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { createJob, createProject, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
@@ -65,6 +66,7 @@ export function NewJobDialog({
   onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
