@@ -220,6 +220,19 @@ function ScriptEditor({ scriptId, jobId }: { scriptId: string; jobId: string }) 
           </div>
         </div>
 
+        <div className="space-y-1.5">
+          <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest flex items-center gap-1.5">
+            Conceito do Vídeo
+          </Label>
+          <textarea
+            value={current.video_concept || ""}
+            onChange={(e) => setLocal({ ...current, video_concept: e.target.value })}
+            onBlur={() => current.video_concept !== script?.video_concept && save.mutate({ video_concept: current.video_concept })}
+            placeholder="Descreva o conceito criativo ou a ideia central do vídeo..."
+            className="w-full min-h-[80px] bg-background border border-input rounded-md px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all"
+          />
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <div className="space-y-1">
             <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Tipo</Label>
