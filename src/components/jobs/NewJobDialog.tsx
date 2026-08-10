@@ -71,34 +71,6 @@ export function NewJobDialog({
   const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
-  useEffect(() => {
-    if (open) {
-      setForm((f) => ({
-        ...f,
-        title: defaultTitle ?? f.title ?? "",
-        description: defaultDescription ?? f.description ?? "",
-        due_date: defaultDueDate ?? f.due_date ?? "",
-        project_id: defaultProjectId ?? f.project_id ?? "",
-        client_id: defaultClientId ?? f.client_id ?? "",
-        contract_id: defaultContractId ?? f.contract_id ?? "",
-        period: defaultPeriod ?? f.period ?? "",
-        launch_product_id: defaultLaunchProductId ?? f.launch_product_id ?? "",
-        editorial_post_id: defaultEditorialPostId ?? f.editorial_post_id ?? "",
-      }));
-    }
-  }, [
-    open,
-    defaultTitle,
-    defaultDescription,
-    defaultDueDate,
-    defaultProjectId,
-    defaultClientId,
-    defaultContractId,
-    defaultPeriod,
-    defaultLaunchProductId,
-    defaultEditorialPostId
-  ]);
-
   const [form, setForm] = useState({
     title: defaultTitle ?? "",
     description: defaultDescription ?? "",
@@ -114,6 +86,56 @@ export function NewJobDialog({
     launch_product_id: defaultLaunchProductId ?? "",
     editorial_post_id: defaultEditorialPostId ?? "",
   });
+
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (open) {
+      // Se estamos convertendo post editorial, forçamos o preenchimento mesmo que já tenha sido inicializado
+      // porque o usuário pode ter fechado e clicado em outro post
+      const isConversion = !!defaultEditorialPostId;
+      
+      if (!initializedRef.current || isConversion) {
+        console.log("[NewJobDialog] Sincronizando formulário com props (Início):", {
+          defaultTitle,
+          defaultDescription,
+          defaultDueDate,
+          defaultClientId,
+          defaultEditorialPostId
+        });
+        
+        setForm((f) => ({
+          ...f,
+          title: defaultTitle ?? f.title ?? "",
+          description: defaultDescription ?? f.description ?? "",
+          due_date: defaultDueDate ?? f.due_date ?? "",
+          project_id: defaultProjectId ?? f.project_id ?? "",
+          client_id: defaultClientId ?? f.client_id ?? "",
+          contract_id: defaultContractId ?? f.contract_id ?? "",
+          period: defaultPeriod ?? f.period ?? "",
+          launch_product_id: defaultLaunchProductId ?? f.launch_product_id ?? "",
+          editorial_post_id: defaultEditorialPostId ?? f.editorial_post_id ?? "",
+        }));
+
+        if (!isConversion) {
+           initializedRef.current = true;
+        }
+      }
+    } else {
+      initializedRef.current = false;
+    }
+  }, [
+    open,
+    defaultTitle,
+    defaultDescription,
+    defaultDueDate,
+    defaultProjectId,
+    defaultClientId,
+    defaultContractId,
+    defaultPeriod,
+    defaultLaunchProductId,
+    defaultEditorialPostId
+  ]);
 
   // Projetos dependem do cliente selecionado (cascade)
   const selectedClientId = form.client_id;
