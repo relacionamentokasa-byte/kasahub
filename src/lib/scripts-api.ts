@@ -120,7 +120,7 @@ export async function createScript(input: {
     .select()
     .single();
   if (error) throw error;
-  return data as Script;
+  return data as unknown as Script;
 }
 
 export async function updateScript(id: string, patch: Partial<Script>) {
@@ -131,7 +131,7 @@ export async function updateScript(id: string, patch: Partial<Script>) {
     .select()
     .single();
   if (error) throw error;
-  return data as Script;
+  return data as unknown as Script;
 }
 
 export async function deleteScript(id: string) {
