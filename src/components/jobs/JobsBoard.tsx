@@ -70,6 +70,7 @@ export function JobsBoard({
   initialDescription,
   initialDueDate,
   initialEditorialPostId,
+  onCloseNew,
 }: {
   projectId?: string;
   clientId?: string;
@@ -85,6 +86,7 @@ export function JobsBoard({
   initialDescription?: string;
   initialDueDate?: string;
   initialEditorialPostId?: string;
+  onCloseNew?: () => void;
 }) {
   const qc = useQueryClient();
   const [period, setPeriod] = useState<string>("all");
