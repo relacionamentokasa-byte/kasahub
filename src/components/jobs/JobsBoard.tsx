@@ -181,24 +181,14 @@ export function JobsBoard({
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
 
-  // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid)
-  const autoOpenedRef = useRef(false);
+  // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid ou converteu post editorial)
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
-    if (isNew && !autoOpenedRef.current && stages.length > 0) {
-      console.log("[JobsBoard] autoOpen active, stage[0]:", stages[0].name);
-      autoOpenedRef.current = true;
+    if (isNew && stages.length > 0 && !newStage) {
+      console.log("[JobsBoard] autoOpen active, opening NewJobDialog");
       setNewStage(stages[0]);
     }
-    
-    // Se mudarem os parâmetros de busca, reinicia o ref para permitir abrir novamente com novos dados
-    if (isNew && autoOpenedRef.current) {
-       // Apenas reset se o dialog estiver fechado
-       if (!newStage) {
-          // opcional: autoOpenedRef.current = false;
-       }
-    }
-  }, [initialOpenNew, stages]);
+  }, [initialOpenNew, stages, newStage]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
