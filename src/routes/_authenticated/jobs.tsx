@@ -31,6 +31,7 @@ export const Route = createFileRoute("/_authenticated/jobs")({
 
 function JobsRoute() {
   const search = Route.useSearch();
+  console.log("[JobsRoute] Current search params:", search);
   return (
     <div className="pb-20 md:pb-0 h-full">
       <JobsBoard
