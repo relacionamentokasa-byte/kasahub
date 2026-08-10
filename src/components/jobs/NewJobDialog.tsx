@@ -350,6 +350,16 @@ export function NewJobDialog({
             />
           </div>
 
+          <div className="space-y-1.5">
+            <Label>BRIEFING</Label>
+            <Textarea 
+              value={form.description} 
+              onChange={(e) => setForm({ ...form, description: e.target.value })} 
+              placeholder="Descreva a demanda..." 
+              rows={4}
+            />
+          </div>
+
 
           <Tabs defaultValue="vinc" className="w-full">
             <TabsList className="grid w-full grid-cols-2 bg-muted/20">
@@ -500,7 +510,7 @@ export function NewJobDialog({
                 <div className="space-y-1.5">
                   <Label className={!form.due_date ? "text-red-500" : ""}>Prazo</Label>
                   <Input 
-                    type="date" 
+                    type="datetime-local" 
                     value={form.due_date} 
                     onChange={(e) => setForm({ ...form, due_date: e.target.value })} 
                     className={!form.due_date ? "border-red-500 focus-visible:ring-red-500" : ""}
