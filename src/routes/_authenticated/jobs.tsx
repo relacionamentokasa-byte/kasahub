@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
 
 export const Route = createFileRoute("/_authenticated/jobs")({
@@ -31,6 +32,24 @@ export const Route = createFileRoute("/_authenticated/jobs")({
 
 function JobsRoute() {
   const search = Route.useSearch();
+  const navigate = useNavigate();
+
+  const handleCloseNew = () => {
+    navigate({
+      to: "/_authenticated/jobs",
+      search: (prev: any) => {
+        const next = { ...prev };
+        delete next.new;
+        delete next.title;
+        delete next.description;
+        delete next.dueDate;
+        delete next.editorialPostId;
+        return next;
+      },
+      replace: true,
+    });
+  };
+
   return (
     <div className="pb-20 md:pb-0 h-full">
       <JobsBoard
@@ -44,6 +63,7 @@ function JobsRoute() {
         initialDescription={search.description}
         initialDueDate={search.dueDate}
         initialEditorialPostId={search.editorialPostId}
+        onCloseNew={handleCloseNew}
       />
     </div>
   );
