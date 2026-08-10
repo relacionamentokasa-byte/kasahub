@@ -71,6 +71,36 @@ export function NewJobDialog({
   const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
+  useEffect(() => {
+    if (open) {
+      setForm({
+        title: defaultTitle ?? "",
+        description: defaultDescription ?? "",
+        priority: "normal",
+        due_date: defaultDueDate ?? "",
+        project_id: defaultProjectId ?? "",
+        client_id: defaultClientId ?? "",
+        contract_id: defaultContractId ?? "",
+        service_id: "",
+        period: defaultPeriod ?? "",
+        main_responsible_id: "",
+        team_involved_ids: [] as string[],
+        launch_product_id: defaultLaunchProductId ?? "",
+        editorial_post_id: defaultEditorialPostId ?? "",
+      });
+    }
+  }, [
+    open,
+    defaultTitle,
+    defaultDescription,
+    defaultDueDate,
+    defaultProjectId,
+    defaultClientId,
+    defaultContractId,
+    defaultPeriod,
+    defaultLaunchProductId,
+    defaultEditorialPostId
+  ]);
 
   const [form, setForm] = useState({
     title: defaultTitle ?? "",
