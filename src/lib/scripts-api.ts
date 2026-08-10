@@ -15,6 +15,7 @@ export interface Script {
   estimated_duration_sec: number | null;
   video_format: ScriptVideoFormat | null;
   status: ScriptStatus;
+  video_concept: string | null;
   created_at: string;
   updated_at: string;
 }
