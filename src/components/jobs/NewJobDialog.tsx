@@ -73,14 +73,6 @@ export function NewJobDialog({
 
   useEffect(() => {
     if (open) {
-      console.log("[NewJobDialog] Opening with props:", { 
-        defaultTitle, 
-        defaultDescription, 
-        defaultDueDate, 
-        defaultEditorialPostId,
-        defaultClientId 
-      });
-      
       setForm((f) => ({
         ...f,
         title: defaultTitle ?? f.title ?? "",

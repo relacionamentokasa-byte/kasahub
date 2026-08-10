@@ -419,10 +419,7 @@ export function JobsBoard({
         <NewJobDialog
           stage={newStage}
           open={!!newStage}
-          onOpenChange={(o) => {
-            console.log("[JobsBoard] onOpenChange:", o);
-            if (!o) setNewStage(null);
-          }}
+          onOpenChange={(o) => !o && setNewStage(null)}
           defaultClientId={initialClientId}
           defaultTitle={initialTitle}
           defaultDescription={initialDescription}
