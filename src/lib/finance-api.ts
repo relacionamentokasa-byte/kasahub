@@ -83,12 +83,17 @@ export async function fetchContracts(filters: { clientId?: string } = {}) {
 }
 
 export async function fetchFinanceStats(filters: { startDate?: string; endDate?: string } = {}) {
+  const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
     .select("amount, type, status, due_date, nature");
 
-  if (filters.startDate) q = q.gte("due_date", filters.startDate);
-  if (filters.endDate) q = q.lte("due_date", filters.endDate);
+  if (filters.startDate && filters.endDate) {
+    q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
+  } else {
+    if (filters.startDate) q = q.gte("due_date", filters.startDate);
+    if (filters.endDate) q = q.lte("due_date", filters.endDate);
+  }
 
   const { data: trans, error } = await q;
   if (error) throw error;
