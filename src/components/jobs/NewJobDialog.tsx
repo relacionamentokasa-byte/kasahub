@@ -121,6 +121,8 @@ export function NewJobDialog({
            initializedRef.current = true;
         }
       }
+    } else {
+      initializedRef.current = false;
     }
   }, [
     open,
