@@ -15,6 +15,7 @@ export async function fetchTransactions(filters: {
   startDate?: string;
   endDate?: string;
 } = {}) {
+  const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
     .select("*, clients(id, name, company, logo_url), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)")
@@ -24,8 +25,14 @@ export async function fetchTransactions(filters: {
   if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
   if (filters.type && filters.type !== "all") q = q.eq("type", filters.type);
   if (filters.categoryId && filters.categoryId !== "all") q = q.eq("category_id", filters.categoryId);
-  if (filters.startDate) q = q.gte("due_date", filters.startDate);
-  if (filters.endDate) q = q.lte("due_date", filters.endDate);
+  
+  if (filters.startDate && filters.endDate) {
+    // Incluir atrasados (não pagos/cancelados) mesmo fora do período
+    q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
+  } else {
+    if (filters.startDate) q = q.gte("due_date", filters.startDate);
+    if (filters.endDate) q = q.lte("due_date", filters.endDate);
+  }
 
   const { data, error } = await q;
   if (error) throw error;
@@ -76,12 +83,17 @@ export async function fetchContracts(filters: { clientId?: string } = {}) {
 }
 
 export async function fetchFinanceStats(filters: { startDate?: string; endDate?: string } = {}) {
+  const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
     .select("amount, type, status, due_date, nature");
 
-  if (filters.startDate) q = q.gte("due_date", filters.startDate);
-  if (filters.endDate) q = q.lte("due_date", filters.endDate);
+  if (filters.startDate && filters.endDate) {
+    q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
+  } else {
+    if (filters.startDate) q = q.gte("due_date", filters.startDate);
+    if (filters.endDate) q = q.lte("due_date", filters.endDate);
+  }
 
   const { data: trans, error } = await q;
   if (error) throw error;
@@ -96,7 +108,8 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     naoOperacionalDespesas: 0,
   };
 
-  const today = new Date().toISOString().split("T")[0];
+  // variable 'today' already declared above
+
   const CANCELLED = new Set(["cancelled", "canceled", "cancelado", "cancelada", "estornado"]);
 
   trans?.forEach((t: any) => {
