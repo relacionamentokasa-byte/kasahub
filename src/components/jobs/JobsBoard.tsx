@@ -183,12 +183,10 @@ export function JobsBoard({
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
 
-  const lastOpenNewRef = useRef<string | boolean | undefined>(undefined);
-
   // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid ou converteu post editorial)
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
-    if (isNew && stages.length > 0 && !newStage && lastOpenNewRef.current !== initialOpenNew) {
+    if (isNew && stages.length > 0 && !newStage) {
       console.log("[JobsBoard] Auto-abertura disparada. Parâmetros:", {
         initialTitle,
         initialDescription,
@@ -196,11 +194,6 @@ export function JobsBoard({
         initialClientId
       });
       setNewStage(stages[0]);
-      lastOpenNewRef.current = initialOpenNew;
-    }
-    
-    if (!isNew) {
-      lastOpenNewRef.current = undefined;
     }
   }, [initialOpenNew, stages, newStage, initialTitle, initialDescription, initialDueDate, initialClientId]);
 
