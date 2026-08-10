@@ -119,7 +119,12 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
     searchParams.set("clientId", post.client_id);
     searchParams.set("title", post.title);
     if (post.description) searchParams.set("description", post.description);
-    searchParams.set("dueDate", post.scheduled_at);
+    
+    // Format date for <input type="date" />: YYYY-MM-DD
+    const date = new Date(post.scheduled_at);
+    const isoDate = date.toISOString().split("T")[0];
+    searchParams.set("dueDate", isoDate);
+    
     searchParams.set("editorialPostId", post.id);
 
     navigate({
