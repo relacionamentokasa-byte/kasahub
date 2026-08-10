@@ -44,6 +44,7 @@ export function NewJobDialog({
   defaultDescription,
   defaultDueDate,
   defaultLaunchProductId,
+  defaultEditorialPostId,
   lockLaunchProduct,
   onCreated,
 }: {

@@ -66,6 +66,10 @@ export function JobsBoard({
   initialOpenNew,
   initialClientId,
   initialLaunchProductId,
+  initialTitle,
+  initialDescription,
+  initialDueDate,
+  initialEditorialPostId,
 }: {
   projectId?: string;
   clientId?: string;
