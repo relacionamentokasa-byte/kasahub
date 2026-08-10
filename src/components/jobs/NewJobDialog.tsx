@@ -335,7 +335,7 @@ export function NewJobDialog({
       <DialogContent className="bg-surface border-border max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
-            Novo job{stage ? ` · ${stage.name}` : ""}
+            {form.editorial_post_id ? "Converter em job" : `Novo job${stage ? ` · ${stage.name}` : ""}`}
           </DialogTitle>
         </DialogHeader>
         
@@ -582,7 +582,7 @@ export function NewJobDialog({
             disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || !form.service_id || !form.due_date}
             className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[100px]"
           >
-            {mut.isPending ? "Criando..." : "Criar Job"}
+            {mut.isPending ? "Criando..." : form.editorial_post_id ? "Converter e Criar Job" : "Criar Job"}
           </Button>
         </DialogFooter>
       </DialogContent>
