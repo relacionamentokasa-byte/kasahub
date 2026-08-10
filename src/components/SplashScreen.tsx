@@ -128,11 +128,11 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
         />
 
         {/* Saudação */}
-        <p className="font-display text-xl md:text-2xl font-light text-black/85 tracking-tight animate-[splash-fade_700ms_ease-out_300ms_both]">
+        <p className="font-display text-xl md:text-2xl font-light text-[#0C1618]/85 tracking-tight animate-[splash-fade_700ms_ease-out_300ms_both]">
           {greeting()}
           {name ? (
             <>
-              , <span className="font-semibold text-black">{name}</span>
+              , <span className="font-semibold text-[#0C1618]">{name}</span>
             </>
           ) : null}
           .
@@ -156,7 +156,7 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
           <div className="h-5 flex items-center justify-center overflow-hidden">
             <p
               key={phraseIdx}
-              className="font-mono-kasa text-[11px] md:text-xs uppercase tracking-[0.32em] text-black/60 animate-[splash-phrase_600ms_ease-out_both]"
+              className="font-mono-kasa text-[11px] md:text-xs uppercase tracking-[0.32em] text-[#0C1618]/60 animate-[splash-phrase_600ms_ease-out_both]"
             >
               {BRAND_PHRASES[phraseIdx]}
             </p>

@@ -148,11 +148,11 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold uppercase tracking-wider text-foreground/50">Status Atual:</span>
           <Badge className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border-none", 
-            form.status === "Rascunho" ? "bg-gray-200 text-gray-800" :
-            form.status === "Enviada" ? "bg-blue-100 text-blue-800" :
-            form.status === "Aprovada" ? "bg-green-100 text-green-800" :
-            form.status === "Recusada" ? "bg-red-100 text-red-800" :
-            form.status === "Encerrada" ? "bg-slate-700 text-white" : ""
+            form.status === "Rascunho" ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200" :
+            form.status === "Enviada" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200" :
+            form.status === "Aprovada" ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200" :
+            form.status === "Recusada" ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200" :
+            form.status === "Encerrada" ? "bg-slate-700 text-white dark:bg-slate-600" : ""
           )}>
             {form.status}
           </Badge>
