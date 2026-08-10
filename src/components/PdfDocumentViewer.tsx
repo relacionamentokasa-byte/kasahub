@@ -85,12 +85,12 @@ export function PdfDocumentViewer({
   };
 
   return (
-    <div className={cn("flex h-full min-h-0 w-full flex-col bg-slate-100", className)}>
+    <div className={cn("flex h-full min-h-0 w-full flex-col bg-slate-100 dark:bg-slate-900/50", className)}>
       {showActions && (
-        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-2.5">
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-3 py-2.5">
           <div className="min-w-0 flex items-center gap-2">
-            <span className="shrink-0 rounded bg-red-100 px-1.5 py-0.5 text-[9px] font-black text-red-600">PDF</span>
-            <span className="truncate text-xs font-bold text-slate-800">{fileName}</span>
+            <span className="shrink-0 rounded bg-red-100 dark:bg-red-950/50 px-1.5 py-0.5 text-[9px] font-black text-red-600 dark:text-red-400">PDF</span>
+            <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200">{fileName}</span>
             {state.status === "ready" && (
               <span className="hidden shrink-0 text-[10px] font-semibold text-slate-400 sm:inline">
                 {state.totalPages} pág.

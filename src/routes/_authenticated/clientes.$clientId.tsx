@@ -216,8 +216,8 @@ function ClientDetail() {
                     {client?.company || client?.name}
                   </h1>
                   <Badge variant="outline" className={`rounded-full uppercase tracking-widest text-[10px] border-2 ${
-                    client?.status === 'active' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 
-                    client?.status === 'paused' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5' : 
+                    client?.status === 'active' ? 'border-green-500/20 text-green-500 bg-green-500/5 dark:bg-green-500/10' : 
+                    client?.status === 'paused' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5 dark:bg-amber-500/10' : 
                     'border-foreground/10 text-foreground/40'
                   }`}>
                     {client?.status === 'active' ? 'Ativo' : client?.status === 'paused' ? 'Pausado' : 'Inativo'}
