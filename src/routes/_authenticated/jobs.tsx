@@ -30,20 +30,20 @@ export const Route = createFileRoute("/_authenticated/jobs")({
 });
 
 function JobsRoute() {
-  const { openJobId, new: openNew, clientId, launchProductId } = Route.useSearch();
+  const search = Route.useSearch();
   return (
     <div className="pb-20 md:pb-0 h-full">
       <JobsBoard
         title="Gestão de Jobs"
         eyebrow="Operação · Jobs"
-        initialOpenId={openJobId}
-        initialOpenNew={openNew}
-        initialClientId={clientId}
-        initialLaunchProductId={launchProductId}
-        initialTitle={Route.useSearch().title}
-        initialDescription={Route.useSearch().description}
-        initialDueDate={Route.useSearch().dueDate}
-        initialEditorialPostId={Route.useSearch().editorialPostId}
+        initialOpenId={search.openJobId}
+        initialOpenNew={search.new}
+        initialClientId={search.clientId}
+        initialLaunchProductId={search.launchProductId}
+        initialTitle={search.title}
+        initialDescription={search.description}
+        initialDueDate={search.dueDate}
+        initialEditorialPostId={search.editorialPostId}
       />
     </div>
   );

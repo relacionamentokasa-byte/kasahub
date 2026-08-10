@@ -78,7 +78,7 @@ export function JobsBoard({
   eyebrow?: string;
   showPeriodFilter?: boolean;
   initialOpenId?: string;
-  initialOpenNew?: boolean;
+  initialOpenNew?: boolean | string;
   initialClientId?: string;
   initialLaunchProductId?: string;
   initialTitle?: string;
@@ -181,14 +181,13 @@ export function JobsBoard({
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
 
-  // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid)
-  const autoOpenedRef = useRef(false);
+  // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid ou converteu post editorial)
   useEffect(() => {
-    if (initialOpenNew && !autoOpenedRef.current && stages.length > 0) {
-      autoOpenedRef.current = true;
+    const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
+    if (isNew && stages.length > 0 && !newStage) {
       setNewStage(stages[0]);
     }
-  }, [initialOpenNew, stages]);
+  }, [initialOpenNew, stages, newStage]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
