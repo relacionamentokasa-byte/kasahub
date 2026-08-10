@@ -29,7 +29,8 @@ export const Route = createFileRoute("/_authenticated/calendario-editorial")({
 });
 
 function EditorialPage() {
-  const [clientId, setClientId] = useState<string>("");
+  const { clientId: searchClientId } = Route.useSearch() as any;
+  const [clientId, setClientId] = useState<string>(searchClientId || "");
   const [cursor, setCursor] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "feed" | "list" | "timeline">("feed");
   const [filters, setFilters] = useState<{ social?: SocialNetwork; ct?: EditorialContentType; status?: EditorialStatus }>({});

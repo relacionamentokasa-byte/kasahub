@@ -256,14 +256,16 @@ export function NewJobDialog({
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["jobs-by-dme"] });
       
-      // Se veio de um post editorial, vincula e limpa
+      // Se veio de um post editorial, vincula e redireciona de volta para o calendário com o cliente selecionado
       if (form.editorial_post_id) {
         supabase.from("editorial_posts").update({ job_id: (job as any).id } as any).eq("id", form.editorial_post_id).then(() => {
           qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+          toast.success("Job criado e post vinculado!");
+          navigate({ to: "/calendario-editorial", search: { clientId: form.client_id } as any });
         });
+      } else {
+        toast.success("Job criado");
       }
-
-      toast.success("Job criado");
       onCreated?.(job as Job);
       onOpenChange(false);
       setForm({
