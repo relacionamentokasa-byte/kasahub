@@ -73,19 +73,29 @@ export function NewJobDialog({
 
   useEffect(() => {
     if (open) {
-      console.log("[NewJobDialog] Opening with props:", { defaultTitle, defaultDescription, defaultDueDate });
-      setForm((prev) => ({
-        ...prev,
-        title: defaultTitle ?? prev.title ?? "",
-        description: defaultDescription ?? prev.description ?? "",
-        due_date: defaultDueDate ?? prev.due_date ?? "",
-        project_id: defaultProjectId ?? prev.project_id ?? "",
-        client_id: defaultClientId ?? prev.client_id ?? "",
-        contract_id: defaultContractId ?? prev.contract_id ?? "",
-        period: defaultPeriod ?? prev.period ?? "",
-        launch_product_id: defaultLaunchProductId ?? prev.launch_product_id ?? "",
-        editorial_post_id: defaultEditorialPostId ?? prev.editorial_post_id ?? "",
-      }));
+      console.log("[NewJobDialog] Opening with props:", { 
+        defaultTitle, 
+        defaultDescription, 
+        defaultDueDate, 
+        defaultEditorialPostId,
+        defaultClientId 
+      });
+      
+      setForm({
+        title: defaultTitle ?? "",
+        description: defaultDescription ?? "",
+        priority: "normal",
+        due_date: defaultDueDate ?? "",
+        project_id: defaultProjectId ?? "",
+        client_id: defaultClientId ?? "",
+        contract_id: defaultContractId ?? "",
+        service_id: "",
+        period: defaultPeriod ?? "",
+        main_responsible_id: "",
+        team_involved_ids: [] as string[],
+        launch_product_id: defaultLaunchProductId ?? "",
+        editorial_post_id: defaultEditorialPostId ?? "",
+      });
     }
   }, [
     open,
