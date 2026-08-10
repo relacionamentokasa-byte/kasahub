@@ -185,11 +185,18 @@ export function JobsBoard({
   const autoOpenedRef = useRef(false);
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
-    console.log("[JobsBoard] autoOpen effect check:", { isNew, stagesLength: stages.length, autoOpened: autoOpenedRef.current });
     if (isNew && !autoOpenedRef.current && stages.length > 0) {
-      console.log("[JobsBoard] Triggering open NewJobDialog");
+      console.log("[JobsBoard] autoOpen active, stage[0]:", stages[0].name);
       autoOpenedRef.current = true;
       setNewStage(stages[0]);
+    }
+    
+    // Se mudarem os parâmetros de busca, reinicia o ref para permitir abrir novamente com novos dados
+    if (isNew && autoOpenedRef.current) {
+       // Apenas reset se o dialog estiver fechado
+       if (!newStage) {
+          // opcional: autoOpenedRef.current = false;
+       }
     }
   }, [initialOpenNew, stages]);
 
