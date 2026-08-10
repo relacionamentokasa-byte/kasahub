@@ -308,11 +308,12 @@ export function NewJobDialog({
       // Se veio de um post editorial, vincula e redireciona de volta para o calendário com o cliente selecionado
       if (form.editorial_post_id) {
         // Primeiro atualiza o post editorial com o ID do job e a descrição (copy) como briefing
+        // Isso garante que o botão "Converter em Job" desapareça do diálogo de edição do post
         await supabase
           .from("editorial_posts")
           .update({ 
             job_id: (job as any).id,
-            description: form.description // Garante que a descrição final do job também reflita no post se alterada
+            description: form.description 
           } as any)
           .eq("id", form.editorial_post_id);
 

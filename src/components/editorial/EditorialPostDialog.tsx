@@ -132,6 +132,11 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
       to: "/jobs",
       search: Object.fromEntries(searchParams.entries()) as any,
     });
+    
+    // The requirement says "Converter em Job deve sumir/desaparecer do Calendário - Editar"
+    // We already have `post.job_id` logic to hide it in the UI, but we can also update it immediately
+    // to prevent multiple clicks before the job is actually created (though the job creation handles it).
+    
     toast.info("As informações do post foram levadas para o novo Job.");
     onOpenChange(false);
   };
