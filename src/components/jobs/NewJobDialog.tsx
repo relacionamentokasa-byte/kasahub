@@ -81,21 +81,18 @@ export function NewJobDialog({
         defaultClientId 
       });
       
-      setForm({
-        title: defaultTitle ?? "",
-        description: defaultDescription ?? "",
-        priority: "normal",
-        due_date: defaultDueDate ?? "",
-        project_id: defaultProjectId ?? "",
-        client_id: defaultClientId ?? "",
-        contract_id: defaultContractId ?? "",
-        service_id: "",
-        period: defaultPeriod ?? "",
-        main_responsible_id: "",
-        team_involved_ids: [] as string[],
-        launch_product_id: defaultLaunchProductId ?? "",
-        editorial_post_id: defaultEditorialPostId ?? "",
-      });
+      setForm((f) => ({
+        ...f,
+        title: defaultTitle ?? f.title ?? "",
+        description: defaultDescription ?? f.description ?? "",
+        due_date: defaultDueDate ?? f.due_date ?? "",
+        project_id: defaultProjectId ?? f.project_id ?? "",
+        client_id: defaultClientId ?? f.client_id ?? "",
+        contract_id: defaultContractId ?? f.contract_id ?? "",
+        period: defaultPeriod ?? f.period ?? "",
+        launch_product_id: defaultLaunchProductId ?? f.launch_product_id ?? "",
+        editorial_post_id: defaultEditorialPostId ?? f.editorial_post_id ?? "",
+      }));
     }
   }, [
     open,
