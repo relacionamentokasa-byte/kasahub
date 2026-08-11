@@ -112,7 +112,7 @@ type Proposal = {
   service_start_date?: string | null;
   billing_day: number;
   number_display?: string | null;
-  contract_template_id?: uuid | string | null;
+  contract_template_id?: string | null;
   is_special_negotiation?: boolean;
   payment_installments_config?: Array<{ percent: number; due_kind: string; due_date?: string }> | null;
 };
