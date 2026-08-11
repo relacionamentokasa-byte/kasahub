@@ -301,7 +301,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   if (!input.due_date) throw new Error("Prazo final é obrigatório");
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
-  if (!input.service_id && !(input as any).editorial_post_id) throw new Error("Um job deve estar vinculado a um serviço.");
+  if (!input.service_id && !(input as any).editorial_post_id && !input.launch_product_id) throw new Error("Um job deve estar vinculado a um serviço, post editorial ou produto.");
   
   
   const project = await fetchProject(input.project_id);
