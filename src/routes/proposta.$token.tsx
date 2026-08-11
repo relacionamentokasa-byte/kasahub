@@ -113,6 +113,8 @@ type Proposal = {
   billing_day: number;
   number_display?: string | null;
   contract_template_id?: string | null;
+  is_special_negotiation?: boolean;
+  payment_installments_config?: Array<{ percent: number; due_kind: string; due_date?: string }> | null;
 };
 type Agency = {
   name: string;
