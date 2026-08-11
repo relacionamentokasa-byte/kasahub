@@ -70,6 +70,7 @@ export function JobsBoard({
   initialDescription,
   initialDueDate,
   initialEditorialPostId,
+  initialCoverUrl,
   onCloseNew,
 }: {
   projectId?: string;
