@@ -86,6 +86,7 @@ export function JobsBoard({
   initialDescription?: string;
   initialDueDate?: string;
   initialEditorialPostId?: string;
+  initialCoverUrl?: string;
   onCloseNew?: () => void;
 }) {
   const qc = useQueryClient();
@@ -193,7 +194,9 @@ export function JobsBoard({
         initialTitle,
         initialDescription,
         initialDueDate,
-        initialClientId
+        initialClientId,
+        initialEditorialPostId,
+        initialCoverUrl
       });
       setNewStage(stages[0]);
       lastOpenNewRef.current = initialOpenNew;
@@ -202,7 +205,7 @@ export function JobsBoard({
     if (!isNew) {
       lastOpenNewRef.current = undefined;
     }
-  }, [initialOpenNew, stages, newStage, initialTitle, initialDescription, initialDueDate, initialClientId]);
+  }, [initialOpenNew, stages, newStage, initialTitle, initialDescription, initialDueDate, initialClientId, initialCoverUrl]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -446,6 +449,7 @@ export function JobsBoard({
           defaultDueDate={initialDueDate}
           defaultLaunchProductId={initialLaunchProductId}
           defaultEditorialPostId={initialEditorialPostId}
+          defaultCoverUrl={initialCoverUrl}
           onCreated={(j) => {
             setNewStage(null);
             onCloseNew?.();

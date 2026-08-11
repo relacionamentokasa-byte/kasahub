@@ -46,6 +46,7 @@ export function NewJobDialog({
   defaultDueDate,
   defaultLaunchProductId,
   defaultEditorialPostId,
+  defaultCoverUrl,
   lockLaunchProduct,
   onCreated,
 }: {
@@ -61,8 +62,9 @@ export function NewJobDialog({
   defaultDescription?: string;
   defaultDueDate?: string;
   defaultLaunchProductId?: string;
-  defaultEditorialPostId?: string;
-  lockLaunchProduct?: boolean;
+    defaultEditorialPostId?: string;
+    defaultCoverUrl?: string;
+    lockLaunchProduct?: boolean;
   onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
@@ -101,7 +103,8 @@ export function NewJobDialog({
           defaultDescription,
           defaultDueDate,
           defaultClientId,
-          defaultEditorialPostId
+          defaultEditorialPostId,
+          defaultCoverUrl
         });
         
         setForm((f) => ({
@@ -132,7 +135,8 @@ export function NewJobDialog({
     defaultContractId,
     defaultPeriod,
     defaultLaunchProductId,
-    defaultEditorialPostId
+    defaultEditorialPostId,
+    defaultCoverUrl
   ]);
 
   // Projetos dependem do cliente selecionado (cascade)
@@ -377,6 +381,24 @@ export function NewJobDialog({
               rows={4}
             />
           </div>
+
+          {defaultCoverUrl && (
+            <div className="space-y-1.5 p-3 rounded-xl border border-primary/20 bg-primary/5 animate-in fade-in zoom-in-95">
+              <Label className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2 block">
+                Imagem de Referência (Calendário)
+              </Label>
+              <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
+                <img 
+                  src={defaultCoverUrl} 
+                  alt="Referência" 
+                  className="w-full h-full object-contain bg-muted/20"
+                />
+              </div>
+              <p className="text-[10px] text-foreground/50 mt-1 italic">
+                Esta imagem será salva como briefing visual ao criar o job.
+              </p>
+            </div>
+          )}
 
 
           <Tabs defaultValue="vinc" className="w-full">
