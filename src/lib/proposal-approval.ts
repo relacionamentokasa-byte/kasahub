@@ -218,32 +218,26 @@ export async function approveProposal(
 
 
   // 6. Step 5: Geração Automática do Financeiro (Receita Prevista)
-  // A primeira parcela cai exatamente na "Data do 1º Vencimento" e as demais
-  // são incrementadas em +1 mês mantendo o mesmo dia (clamp para o último dia do mês).
   let txCreated = 0;
-  const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
-  // Parse YYYY-MM-DD sem conversão de timezone
-  const [fy, fm, fd] = firstDueRaw.split("-").map(Number);
-  const dayOfMonth = fd;
-  const baseYear = fy;
-  const baseMonth0 = fm - 1;
-
-  // Injeção automática de categoria financeira para alimentar o Dashboard
-  // (MRR ← Fee Mensal, Receita Avulsa ← Job Avulso)
+  const transactions: any[] = [];
+  
+  // Injeção automática de categoria financeira
   const { data: catRows } = await sb
     .from("categorias_financeiras")
     .select("id, nome")
     .in("nome", ["Fee Mensal", "Job Avulso"]);
-  const feeMensalId =
-    catRows?.find((c: any) => c.nome === "Fee Mensal")?.id ?? null;
-  const jobAvulsoId =
-    catRows?.find((c: any) => c.nome === "Job Avulso")?.id ?? null;
+  const feeMensalId = catRows?.find((c: any) => c.nome === "Fee Mensal")?.id ?? null;
+  const jobAvulsoId = catRows?.find((c: any) => c.nome === "Job Avulso")?.id ?? null;
 
-  const transactions: any[] = [];
-
-  // A. Geração das parcelas mensais (Recorrência) — gera EXATAMENTE installmentsCount lançamentos
+  // A. Geração das parcelas mensais (Fee)
   const monthlyAmount = Number(proposal.monthly_investment || 0);
   if (monthlyAmount > 0 && installmentsCount > 0) {
+    const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
+    const [fy, fm, fd] = firstDueRaw.split("-").map(Number);
+    const dayOfMonth = fd;
+    const baseYear = fy;
+    const baseMonth0 = fm - 1;
+
     for (let i = 0; i < installmentsCount; i++) {
       const due = safeBillingDay(baseYear, baseMonth0 + i, dayOfMonth);
       transactions.push({
@@ -262,22 +256,84 @@ export async function approveProposal(
     }
   }
 
-  // B. Geração do Setup (Investimento Único)
+  // B. Geração do Setup / Investimento (Único ou Especial)
   const setupAmount = Number(proposal.one_time_investment || 0);
   if (setupAmount > 0) {
-    transactions.push({
-      client_id: clientId,
-      proposal_id: proposal.id,
-      contract_id: contractId,
-      category_id: jobAvulsoId,
-      amount: setupAmount,
-      due_date: proposal.first_due_date ?? ymd(new Date()),
-      description: `Setup / Investimento Único - ${proposal.title}`,
-      status: "pending",
-      type: "income",
-      kind: "income",
-      is_recurring: false,
-    });
+    if (proposal.is_special_negotiation && Array.isArray(proposal.payment_installments_config) && proposal.payment_installments_config.length > 0) {
+      // Negociação Especial: segue as parcelas configuradas
+      const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
+      const baseDate = new Date(firstDueRaw + "T12:00:00");
+
+      proposal.payment_installments_config.forEach((inst: any, idx: number) => {
+        let dueDate = firstDueRaw;
+        
+        if (inst.due_kind === "custom" && inst.due_date) {
+          dueDate = inst.due_date;
+        } else if (inst.due_kind !== "entrada") {
+          const days = parseInt(inst.due_kind.replace("_dias", ""));
+          if (!isNaN(days)) {
+            const d = new Date(baseDate.getTime());
+            d.setDate(d.getDate() + days);
+            dueDate = ymd(d);
+          }
+        }
+
+        const parcelAmount = (setupAmount * Number(inst.percent || 0)) / 100;
+        
+        transactions.push({
+          client_id: clientId,
+          proposal_id: proposal.id,
+          contract_id: contractId,
+          category_id: jobAvulsoId,
+          amount: parcelAmount,
+          due_date: dueDate,
+          description: `Parcela ${idx + 1}/${proposal.payment_installments_config.length} Setup - ${proposal.title}`,
+          status: "pending",
+          type: "income",
+          kind: "income",
+          is_recurring: false,
+        });
+      });
+    } else {
+      // Padrão: 30% entrada + 70% em 30 dias (se installmentsCount legado não for usado para setup)
+      // Nota: o sistema anterior usava installments fixos, vamos manter compatibilidade ou aplicar a nova regra 30/70.
+      // O requisito diz: "30% de entrada + 70% em 30 dias. Essa deve ser a condição padrão."
+      
+      const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
+      const baseDate = new Date(firstDueRaw + "T12:00:00");
+      const thirtyDaysLater = new Date(baseDate.getTime());
+      thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+
+      // Parcela 1 (30%)
+      transactions.push({
+        client_id: clientId,
+        proposal_id: proposal.id,
+        contract_id: contractId,
+        category_id: jobAvulsoId,
+        amount: setupAmount * 0.3,
+        due_date: firstDueRaw,
+        description: `Setup (Entrada 30%) - ${proposal.title}`,
+        status: "pending",
+        type: "income",
+        kind: "income",
+        is_recurring: false,
+      });
+
+      // Parcela 2 (70%)
+      transactions.push({
+        client_id: clientId,
+        proposal_id: proposal.id,
+        contract_id: contractId,
+        category_id: jobAvulsoId,
+        amount: setupAmount * 0.7,
+        due_date: ymd(thirtyDaysLater),
+        description: `Setup (30 dias 70%) - ${proposal.title}`,
+        status: "pending",
+        type: "income",
+        kind: "income",
+        is_recurring: false,
+      });
+    }
   }
 
   if (transactions.length) {
