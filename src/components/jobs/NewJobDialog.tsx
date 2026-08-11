@@ -459,6 +459,7 @@ export function NewJobDialog({
                 <div className="space-y-1.5">
                   <Label>Serviço Vinculado</Label>
                   <Select value={form.service_id || undefined} onValueChange={(v) => setForm({ ...form, service_id: v })}>
+                    <SelectTrigger className={!form.service_id && !form.editorial_post_id ? "border-destructive" : ""}>
                     <SelectTrigger className={!form.service_id ? "border-destructive" : ""}><SelectValue placeholder="Selecione o Serviço" /></SelectTrigger>
                     <SelectContent>
                       {services.map((s) => (

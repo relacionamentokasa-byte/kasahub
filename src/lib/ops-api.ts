@@ -330,7 +330,11 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   // If it's from an editorial post, we relax the service_id requirement
   const isEditorial = !!(cleanInput as any).editorial_post_id;
   if (!cleanInput.client_id || !cleanInput.project_id || (!cleanInput.service_id && !isEditorial)) {
-    throw new Error("Vínculos obrigatórios ausentes: Cliente, Projeto e Serviço.");
+    const missing = [];
+    if (!cleanInput.client_id) missing.push("Cliente");
+    if (!cleanInput.project_id) missing.push("Projeto");
+    if (!cleanInput.service_id && !isEditorial) missing.push("Serviço");
+    throw new Error(`Vínculos obrigatórios ausentes: ${missing.join(", ")}.`);
   }
 
   console.log("createJob: Final payload after cleaning", cleanInput);
