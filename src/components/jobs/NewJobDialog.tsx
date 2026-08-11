@@ -120,10 +120,10 @@ export function NewJobDialog({
           editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
         }));
 
-        if (!isConversion) {
-           initializedRef.current = true;
-        }
+        initializedRef.current = true;
       }
+    } else {
+      initializedRef.current = false;
     }
   }, [
     open,
