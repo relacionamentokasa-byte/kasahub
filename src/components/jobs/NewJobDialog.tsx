@@ -184,10 +184,16 @@ export function NewJobDialog({
     if (!selectedClientId) return;
     
     setForm((f) => {
+      // Se não houver projetos carregados ainda, não fazemos nada para evitar limpar precoce
+      if (isFetchingProjects && projects.length === 0) return f;
+
       // Se já temos um projeto vinculado a esse cliente, não limpamos
       if (f.project_id && projects.some(p => p.id === f.project_id && p.client_id === selectedClientId)) {
         return f;
       }
+      
+      // Se estamos inicializando (open acabou de mudar para true), não limpamos
+      if (!initializedRef.current) return f;
       
       return {
         ...f,
@@ -196,7 +202,7 @@ export function NewJobDialog({
       };
     });
     autoCreatingProjectRef.current = false;
-  }, [selectedClientId, projects, defaultProjectId, lockLaunchProduct]);
+  }, [selectedClientId, projects, defaultProjectId, lockLaunchProduct, isFetchingProjects]);
 
   // Auto-preenche dados quando um projeto é escolhido
   useEffect(() => {
