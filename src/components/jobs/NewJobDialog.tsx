@@ -93,8 +93,7 @@ export function NewJobDialog({
 
   useEffect(() => {
     if (open) {
-      // Se estamos convertendo post editorial, forçamos o preenchimento mesmo que já tenha sido inicializado
-      // porque o usuário pode ter fechado e clicado em outro post
+      // Se estamos convertendo post editorial, forçamos o preenchimento
       const isConversion = !!defaultEditorialPostId;
       
       if (!initializedRef.current || isConversion) {
@@ -104,7 +103,8 @@ export function NewJobDialog({
           defaultDueDate,
           defaultClientId,
           defaultEditorialPostId,
-          defaultCoverUrl
+          defaultCoverUrl,
+          isConversion
         });
         
         setForm((f) => ({
@@ -120,7 +120,13 @@ export function NewJobDialog({
           editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
         }));
 
-        initializedRef.current = true;
+        if (isConversion) {
+          // Se for conversão, marcamos como inicializado para não entrar em loop,
+          // mas permitimos que o efeito rode novamente se as props mudarem
+          initializedRef.current = true;
+        } else {
+          initializedRef.current = true;
+        }
       }
     } else {
       initializedRef.current = false;
@@ -189,6 +195,11 @@ export function NewJobDialog({
 
       // Se já temos um projeto vinculado a esse cliente, não limpamos
       if (f.project_id && projects.some(p => p.id === f.project_id && p.client_id === selectedClientId)) {
+        return f;
+      }
+
+      // Se o projeto atual é o defaultProjectId que veio via URL, não limpamos
+      if (f.project_id && f.project_id === defaultProjectId) {
         return f;
       }
       
