@@ -308,19 +308,20 @@ function PublicProposalView() {
 
     setSigning(true);
     try {
-      console.log("[proposta sign] enviando", { token, name: signerName, sigLen: signatureData.length });
-      const res = await fetch(`/api/public/proposta/${token}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          accepted_name: signerName,
-          accepted_cpf: signerCpf,
-          accepted_role: signerRole,
-          accepted_email: signerEmail,
+      const payload = {
+          accepted_name: signerName.trim(),
+          accepted_cpf: signerCpf.trim(),
+          accepted_role: signerRole.trim(),
+          accepted_email: signerEmail.trim(),
           signature_data: signatureData,
           accepted_terms: true,
           accepted_representation: true,
-        }),
+        };
+      console.log("[proposta sign] enviando payload", { ...payload, signature_data: payload.signature_data.length + " bytes" });
+      const res = await fetch(`/api/public/proposta/${token}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
       const j = await res.json().catch(() => ({}));
       console.log("[proposta sign] resposta", res.status, j);

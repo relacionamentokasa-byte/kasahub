@@ -132,11 +132,21 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
 
           let body: z.infer<typeof SignSchema>;
           try {
-            body = SignSchema.parse(await request.json());
+            const rawBody = await request.json();
+            console.log("[API Public Proposal POST] Received body keys:", Object.keys(rawBody));
+            body = SignSchema.parse(rawBody);
           } catch (e) {
             console.error("[API Public Proposal POST] Validation Error:", e);
+            if (e instanceof z.ZodError) {
+              console.error("[API Public Proposal POST] Zod issues:", e.issues);
+              const missingFields = e.issues.map(i => i.path.join('.')).join(', ');
+              return Response.json(
+                { error: `Campos inválidos ou ausentes: ${missingFields}. Verifique se preencheu seu e-mail corretamente.` },
+                { status: 400 },
+              );
+            }
             return Response.json(
-              { error: "Preencha todos os campos obrigatórios, desenhe sua assinatura e aceite os termos." },
+              { error: "Erro ao processar os dados. Preencha todos os campos obrigatórios, desenhe sua assinatura e aceite os termos." },
               { status: 400 },
             );
           }
