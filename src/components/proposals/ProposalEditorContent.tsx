@@ -44,6 +44,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  DEFAULT_INSTALLMENTS, 
+  PaymentInstallment, 
+  calculateInstallmentValues,
+  DUE_KIND_OPTIONS
+} from "@/lib/proposal-negotiation";
 import { SheetContentSkeleton } from "@/components/ui/loading-skeletons";
 
 export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
