@@ -759,6 +759,17 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 </div>
 
                 <div className="pt-4 border-t border-border space-y-2 text-sm">
+                  {form.is_special_negotiation && (form as any).payment_installments_config?.length > 0 && setup > 0 && (
+                    <div className="space-y-1 pb-2 border-b border-border/50">
+                      <span className="text-[10px] uppercase font-bold text-primary">Distribuição do Setup:</span>
+                      {(form as any).payment_installments_config.map((inst: any, idx: number) => (
+                        <div key={idx} className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">{idx + 1}ª parcela ({inst.percent}%):</span>
+                          <span className="font-medium">{formatCurrency((setup * inst.percent) / 100)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {baseMonthly > 0 && (
                     <>
                       <div className="flex justify-between">
