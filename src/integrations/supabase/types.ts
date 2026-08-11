@@ -3779,6 +3779,7 @@ export type Database = {
           internal_approval_at: string | null
           internal_approval_by: string | null
           intro: string | null
+          is_special_negotiation: boolean | null
           lead_id: string | null
           monthly_investment: number
           notes: string | null
@@ -3786,6 +3787,7 @@ export type Database = {
           one_time_investment: number
           owner_id: string | null
           parent_id: string | null
+          payment_installments_config: Json | null
           payment_kind: string
           payment_method: string | null
           public_token: string
@@ -3855,6 +3857,7 @@ export type Database = {
           internal_approval_at?: string | null
           internal_approval_by?: string | null
           intro?: string | null
+          is_special_negotiation?: boolean | null
           lead_id?: string | null
           monthly_investment?: number
           notes?: string | null
@@ -3862,6 +3865,7 @@ export type Database = {
           one_time_investment?: number
           owner_id?: string | null
           parent_id?: string | null
+          payment_installments_config?: Json | null
           payment_kind?: string
           payment_method?: string | null
           public_token?: string
@@ -3931,6 +3935,7 @@ export type Database = {
           internal_approval_at?: string | null
           internal_approval_by?: string | null
           intro?: string | null
+          is_special_negotiation?: boolean | null
           lead_id?: string | null
           monthly_investment?: number
           notes?: string | null
@@ -3938,6 +3943,7 @@ export type Database = {
           one_time_investment?: number
           owner_id?: string | null
           parent_id?: string | null
+          payment_installments_config?: Json | null
           payment_kind?: string
           payment_method?: string | null
           public_token?: string
