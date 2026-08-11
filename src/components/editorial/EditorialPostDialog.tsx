@@ -114,28 +114,33 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
 
   const convertToJob = () => {
     if (!post) return;
+    
+    // Garantir que temos os dados mais recentes do formulário
     const searchParams = new URLSearchParams();
     searchParams.set("new", "true");
     searchParams.set("clientId", post.client_id);
-    searchParams.set("title", post.title);
-    if (post.description) searchParams.set("description", post.description);
+    searchParams.set("title", form.title); // Usa o título atual do formulário
+    if (form.description) searchParams.set("description", form.description); // Usa a descrição atual do formulário
     
     // Format date for <input type="datetime-local" />: YYYY-MM-DDTHH:mm
-    const date = new Date(post.scheduled_at);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const localDateTime = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-    searchParams.set("dueDate", localDateTime);
+    // Usamos o scheduled_at do FORMULÁRIO, não do post original
+    searchParams.set("dueDate", form.scheduled_at);
     
     searchParams.set("editorialPostId", post.id);
     
     // Pass cover_url if it exists to be used as briefing image reference if needed
-    if (post.cover_url) {
-      searchParams.set("coverUrl", post.cover_url);
+    if (form.cover_url) {
+      searchParams.set("coverUrl", form.cover_url);
     }
+
+    console.log("[EditorialPostDialog] Navegando para /jobs com:", Object.fromEntries(searchParams.entries()));
 
     navigate({
       to: "/jobs",
-      search: Object.fromEntries(searchParams.entries()) as any,
+      search: (prev: any) => ({
+        ...prev,
+        ...Object.fromEntries(searchParams.entries())
+      }) as any,
     });
     
     toast.info("As informações do post foram levadas para o novo Job.");
