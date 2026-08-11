@@ -197,6 +197,11 @@ export function NewJobDialog({
       if (f.project_id && projects.some(p => p.id === f.project_id && p.client_id === selectedClientId)) {
         return f;
       }
+
+      // Se o projeto atual é o defaultProjectId que veio via URL, não limpamos
+      if (f.project_id && f.project_id === defaultProjectId) {
+        return f;
+      }
       
       // Se estamos inicializando (open acabou de mudar para true), não limpamos
       if (!initializedRef.current) return f;
