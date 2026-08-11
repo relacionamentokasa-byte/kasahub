@@ -99,8 +99,17 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     const setup = Number(form.one_time_investment || 0);
     const total = (monthly * months) + setup;
 
+    // Validation for special negotiation
+    if (form.is_special_negotiation) {
+      const installments = (form as any).payment_installments_config || [];
+      const sum = installments.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
+      if (Math.abs(sum - 100) > 0.01) {
+        toast.error("As porcentagens das parcelas devem totalizar 100%.");
+        return;
+      }
+    }
+
     // Sincroniza o snapshot do contrato com o modelo selecionado.
-    // A página pública renderiza `contract_content` (cópia), não busca pelo template_id.
     const templateId = (form as any).contract_template_id;
     const selectedTemplate = templateId
       ? contractTemplates.find((t) => t.id === templateId)
@@ -447,36 +456,190 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                 </div>
               </div>
 
-              {/* Parcelamento do Setup */}
+              {/* Parcelamento do Setup / Investimento */}
               {Number(form.one_time_investment || 0) > 0 && (
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Parcelar Setup em</Label>
-                    <Select
-                      value={String(form.installments || 1)}
-                      onValueChange={(v) => {
-                        setForm({ ...form, installments: Number(v) } as any);
+                <div className="space-y-6 pt-2 border-t border-border/50">
+                  <div className="flex items-center space-x-2 bg-muted/30 p-3 rounded-xl border border-border/50">
+                    <Checkbox 
+                      id="special-negotiation" 
+                      checked={!!form.is_special_negotiation}
+                      onCheckedChange={(checked) => {
+                        const isSpecial = !!checked;
+                        const patch: any = { is_special_negotiation: isSpecial };
+                        
+                        if (isSpecial && (!form.payment_installments_config || (form as any).payment_installments_config.length === 0)) {
+                          patch.payment_installments_config = DEFAULT_INSTALLMENTS;
+                        }
+                        
+                        setForm({ ...form, ...patch });
                         setIsDirty(true);
                       }}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
-                          <SelectItem key={n} value={String(n)}>
-                            {n === 1 ? "À vista" : `${n}x`}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    />
+                    <div className="grid gap-1.5 leading-none">
+                      <Label
+                        htmlFor="special-negotiation"
+                        className="text-sm font-bold uppercase tracking-wider cursor-pointer"
+                      >
+                        Negociação Especial
+                      </Label>
+                      <p className="text-[11px] text-muted-foreground">
+                        Habilite para personalizar livremente as parcelas e porcentagens.
+                      </p>
+                    </div>
                   </div>
-                  {Number(form.installments || 1) > 1 && (
-                    <div className="space-y-2">
-                      <Label className="text-sm font-semibold">Valor por parcela</Label>
-                      <div className="h-10 flex items-center px-3 rounded-md bg-muted/40 text-sm font-medium">
-                        {formatCurrency(Number(form.one_time_investment || 0) / Number(form.installments || 1))}
+
+                  {!form.is_special_negotiation ? (
+                    <div className="grid grid-cols-2 gap-4 animate-reveal">
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold">Condição de pagamento</Label>
+                        <div className="h-10 flex items-center px-3 rounded-md bg-muted/20 border border-border/50 text-sm font-medium text-foreground/70 italic">
+                          30% de entrada + 70% em 30 dias
+                        </div>
                       </div>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-semibold">Resumo simplificado</Label>
+                        <div className="text-[11px] text-muted-foreground mt-1">
+                          As parcelas seguirão o padrão 30/70. Para alterar, marque "Negociação Especial".
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 animate-reveal">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-bold uppercase tracking-wider text-primary">Condições de Pagamento</Label>
+                        {(() => {
+                          const insts = (form as any).payment_installments_config || [];
+                          const sum = insts.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
+                          const isError = Math.abs(sum - 100) > 0.01;
+                          return (
+                            <Badge variant={isError ? "destructive" : "outline"} className="font-bold">
+                              Total: {sum}% {isError && "(!)"}
+                            </Badge>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="space-y-4">
+                        {((form as any).payment_installments_config || []).map((inst: PaymentInstallment, idx: number) => (
+                          <div key={inst.id} className="relative grid grid-cols-1 md:grid-cols-[60px_1fr_1fr_1fr_auto] gap-4 items-end bg-muted/20 border border-border/40 p-4 rounded-2xl">
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Parcela</Label>
+                              <div className="h-10 flex items-center justify-center font-bold text-lg text-primary/40">
+                                {idx + 1}º
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Percentual (%)</Label>
+                              <div className="relative">
+                                <Input
+                                  type="number"
+                                  value={inst.percent}
+                                  onChange={(e) => {
+                                    const list = [...(form as any).payment_installments_config];
+                                    list[idx] = { ...list[idx], percent: Number(e.target.value) };
+                                    setForm({ ...form, payment_installments_config: list });
+                                    setIsDirty(true);
+                                  }}
+                                  className="pr-8 font-bold"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">%</span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Vencimento</Label>
+                              <Select
+                                value={inst.due_kind}
+                                onValueChange={(val) => {
+                                  const list = [...(form as any).payment_installments_config];
+                                  list[idx] = { ...list[idx], due_kind: val };
+                                  setForm({ ...form, payment_installments_config: list });
+                                  setIsDirty(true);
+                                }}
+                              >
+                                <SelectTrigger className="font-medium">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {DUE_KIND_OPTIONS.map(opt => (
+                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor Estimado</Label>
+                              <div className="h-10 flex items-center px-3 rounded-md bg-background border border-border/50 text-sm font-bold text-primary">
+                                {formatCurrency((Number(form.one_time_investment || 0) * inst.percent) / 100)}
+                              </div>
+                            </div>
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => {
+                                const list = (form as any).payment_installments_config.filter((_: any, i: number) => i !== idx);
+                                setForm({ ...form, payment_installments_config: list });
+                                setIsDirty(true);
+                              }}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+
+                            {inst.due_kind === "custom" && (
+                              <div className="col-span-full pt-2 animate-reveal">
+                                <Label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 block">Escolha a data específica</Label>
+                                <Input 
+                                  type="date" 
+                                  value={inst.due_date || ""}
+                                  onChange={(e) => {
+                                    const list = [...(form as any).payment_installments_config];
+                                    list[idx] = { ...list[idx], due_date: e.target.value };
+                                    setForm({ ...form, payment_installments_config: list });
+                                    setIsDirty(true);
+                                  }}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full border-dashed border-2 hover:border-primary hover:text-primary transition-all rounded-xl py-6 group"
+                        onClick={() => {
+                          const list = Array.isArray((form as any).payment_installments_config) ? [...(form as any).payment_installments_config] : [];
+                          const sum = list.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
+                          list.push({ 
+                            id: crypto.randomUUID(), 
+                            percent: Math.max(0, 100 - sum), 
+                            due_kind: "30_dias" 
+                          });
+                          setForm({ ...form, payment_installments_config: list });
+                          setIsDirty(true);
+                        }}
+                      >
+                        <Plus className="size-4 mr-2 group-hover:scale-110 transition-transform" />
+                        Adicionar Parcela
+                      </Button>
+
+                      {(() => {
+                        const sum = ((form as any).payment_installments_config || []).reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
+                        if (Math.abs(sum - 100) > 0.01) {
+                          return (
+                            <p className="text-xs text-destructive font-bold text-center animate-bounce">
+                              As porcentagens das parcelas devem totalizar 100%. Atualmente: {sum}%
+                            </p>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   )}
                 </div>
