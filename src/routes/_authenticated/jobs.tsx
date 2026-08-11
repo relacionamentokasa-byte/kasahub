@@ -56,7 +56,7 @@ function JobsRoute() {
   return (
     <div className="pb-20 md:pb-0 h-full">
       <JobsBoard
-        title="Esta é uma solicitação de implementação de código. Aplique a instrução abaixo gerando os arquivos, componentes, lógica e estilos necessários: por gentileza não mude nenhum titulo a mesmo que seja solicitado, não mude nada que não seja solicitado."
+        title="Gestão de Jobs"
         eyebrow="Operação · Jobs"
         initialOpenId={search.openJobId}
         initialOpenNew={search.new}
