@@ -16,6 +16,7 @@ export const Route = createFileRoute("/_authenticated/jobs")({
     description?: string;
     dueDate?: string;
     editorialPostId?: string;
+    coverUrl?: string;
   } => ({
     openJobId: (s.openJobId as string) || (s.jobId as string) || undefined,
     jobId: (s.jobId as string) || undefined,
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/_authenticated/jobs")({
     description: (s.description as string) || undefined,
     dueDate: (s.dueDate as string) || undefined,
     editorialPostId: (s.editorialPostId as string) || undefined,
+    coverUrl: (s.coverUrl as string) || undefined,
   }),
   component: JobsRoute,
 });
@@ -44,6 +46,7 @@ function JobsRoute() {
         delete next.description;
         delete next.dueDate;
         delete next.editorialPostId;
+        delete next.coverUrl;
         return next;
       },
       replace: true,
@@ -63,6 +66,7 @@ function JobsRoute() {
         initialDescription={search.description}
         initialDueDate={search.dueDate}
         initialEditorialPostId={search.editorialPostId}
+        initialCoverUrl={search.coverUrl}
         onCloseNew={handleCloseNew}
       />
     </div>
