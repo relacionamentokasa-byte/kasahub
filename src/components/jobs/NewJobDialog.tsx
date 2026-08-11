@@ -179,15 +179,24 @@ export function NewJobDialog({
 
 
   // Ao trocar de cliente, limpa projeto e produto de lançamento (a menos que o produto venha travado pela URL)
+  // Mas evitamos limpar se o valor atual já corresponde a um valor padrão (evita loop infinito na inicialização)
   useEffect(() => {
-    setForm((f) => ({
-      ...f,
-      project_id: "",
-      launch_product_id: lockLaunchProduct ? f.launch_product_id : "",
-    }));
+    if (!selectedClientId) return;
+    
+    setForm((f) => {
+      // Se já temos um projeto vinculado a esse cliente, não limpamos
+      if (f.project_id && projects.some(p => p.id === f.project_id && p.client_id === selectedClientId)) {
+        return f;
+      }
+      
+      return {
+        ...f,
+        project_id: f.project_id === defaultProjectId ? f.project_id : "",
+        launch_product_id: lockLaunchProduct ? f.launch_product_id : "",
+      };
+    });
     autoCreatingProjectRef.current = false;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedClientId]);
+  }, [selectedClientId, projects, defaultProjectId, lockLaunchProduct]);
 
   // Auto-preenche dados quando um projeto é escolhido
   useEffect(() => {
