@@ -329,11 +329,12 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   // Garantir que campos obrigatórios não são nulos após limpeza
   // If it's from an editorial post, we relax the service_id requirement
   const isEditorial = !!(cleanInput as any).editorial_post_id;
-  if (!cleanInput.client_id || !cleanInput.project_id || (!cleanInput.service_id && !isEditorial)) {
+  const isLaunchProduct = !!cleanInput.launch_product_id;
+  if (!cleanInput.client_id || !cleanInput.project_id || (!cleanInput.service_id && !isEditorial && !isLaunchProduct)) {
     const missing = [];
     if (!cleanInput.client_id) missing.push("Cliente");
     if (!cleanInput.project_id) missing.push("Projeto");
-    if (!cleanInput.service_id && !isEditorial) missing.push("Serviço");
+    if (!cleanInput.service_id && !isEditorial && !isLaunchProduct) missing.push("Serviço");
     throw new Error(`Vínculos obrigatórios ausentes: ${missing.join(", ")}.`);
   }
 
