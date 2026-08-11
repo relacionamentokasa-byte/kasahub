@@ -36,7 +36,7 @@ function JobsRoute() {
 
   const handleCloseNew = () => {
     navigate({
-      to: "/_authenticated/jobs",
+      to: "/jobs",
       search: (prev: any) => {
         const next = { ...prev };
         delete next.new;

@@ -106,15 +106,15 @@ export function NewJobDialog({
         
         setForm((f) => ({
           ...f,
-          title: defaultTitle ?? f.title ?? "",
-          description: defaultDescription ?? f.description ?? "",
-          due_date: defaultDueDate ?? f.due_date ?? "",
-          project_id: defaultProjectId ?? f.project_id ?? "",
-          client_id: defaultClientId ?? f.client_id ?? "",
-          contract_id: defaultContractId ?? f.contract_id ?? "",
-          period: defaultPeriod ?? f.period ?? "",
-          launch_product_id: defaultLaunchProductId ?? f.launch_product_id ?? "",
-          editorial_post_id: defaultEditorialPostId ?? f.editorial_post_id ?? "",
+          title: defaultTitle || f.title || "",
+          description: defaultDescription || f.description || "",
+          due_date: defaultDueDate || f.due_date || "",
+          project_id: defaultProjectId || f.project_id || "",
+          client_id: defaultClientId || f.client_id || "",
+          contract_id: defaultContractId || f.contract_id || "",
+          period: defaultPeriod || f.period || "",
+          launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
+          editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
         }));
 
         if (!isConversion) {
@@ -459,7 +459,9 @@ export function NewJobDialog({
                 <div className="space-y-1.5">
                   <Label>Serviço Vinculado</Label>
                   <Select value={form.service_id || undefined} onValueChange={(v) => setForm({ ...form, service_id: v })}>
-                    <SelectTrigger className={!form.service_id ? "border-destructive" : ""}><SelectValue placeholder="Selecione o Serviço" /></SelectTrigger>
+                    <SelectTrigger className={!form.service_id && !form.editorial_post_id ? "border-destructive" : ""}>
+                      <SelectValue placeholder="Selecione o Serviço" />
+                    </SelectTrigger>
                     <SelectContent>
                       {services.map((s) => (
                         <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
