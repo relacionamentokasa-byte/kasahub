@@ -301,7 +301,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   if (!input.due_date) throw new Error("Prazo final é obrigatório");
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
-  if (!input.service_id) throw new Error("Um job deve estar vinculado a um serviço.");
+  if (!input.service_id && !input.editorial_post_id) throw new Error("Um job deve estar vinculado a um serviço.");
   
   
   const project = await fetchProject(input.project_id);
@@ -320,13 +320,17 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
 
   // Limpeza de campos UUID vazios para evitar erro de sintaxe
   const cleanInput = Object.entries(finalInput).reduce((acc, [key, value]) => {
-    acc[key] = (value === "" || value === undefined || value === "null" || value === "undefined") ? null : value;
+    // Only nullify if it's explicitly an empty string or the string 'null'/'undefined' 
+    // BUT we must keep actual nulls/undefineds as they are to avoid issues
+    acc[key] = (value === "" || value === "null" || value === "undefined") ? null : value;
     return acc;
   }, {} as any);
 
   // Garantir que campos obrigatórios não são nulos após limpeza
-  if (!cleanInput.client_id || !cleanInput.project_id || !cleanInput.service_id) {
-    throw new Error("Vínculos obrigatórios ausentes: Cliente, Projeto, Serviço e Contrato.");
+  // If it's from an editorial post, we relax the service_id requirement
+  const isEditorial = !!cleanInput.editorial_post_id;
+  if (!cleanInput.client_id || !cleanInput.project_id || (!cleanInput.service_id && !isEditorial)) {
+    throw new Error("Vínculos obrigatórios ausentes: Cliente, Projeto e Serviço.");
   }
 
   console.log("createJob: Final payload after cleaning", cleanInput);
