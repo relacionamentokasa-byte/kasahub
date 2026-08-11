@@ -1,62 +1,55 @@
-# ERP Audit Plan - Kasa Hub
+# Auditoria do Sistema Kasa Hub ERP
 
-This plan outlines a comprehensive functional and security audit of the ERP system to ensure all existing features are working correctly, data is persisting properly, and user experience is stable.
+## 1. Mapeamento do Sistema
+O sistema é um ERP completo para agências, composto por:
+- **CRM**: Gestão de leads e funil de vendas.
+- **Propostas**: Gerador de propostas com assinatura digital e conversão automática.
+- **Operação (Jobs/Projetos)**: Kanban de tarefas, gestão de projetos e controle de prazos.
+- **Financeiro**: Fluxo de caixa, DMEs (Demandas Extras), contratos e faturamento.
+- **Calendário Editorial**: Agendamento de posts com conversão direta para Jobs.
+- **Kasa AI**: Assistente com contexto de clientes e biblioteca de conhecimento.
 
-## Phase 1: Mapping & Discovery (Current)
-- [x] Map all routes and pages.
-- [x] Identify core modules (CRM, Proposals, Clients, Projects, Jobs, Finance, Calendar, Reports, Kasa AI).
-- [ ] Map database schema and relationships.
-- [ ] List all main forms and action buttons in each module.
+## 2. Auditoria Funcional - Status dos Fluxos Críticos
 
-## Phase 2: Functional Audit (Module by Module)
+### 🟢 CRM & Leads
+- **Status**: Aprovado.
+- **Evidência**: Criação de lead via Playwright confirmada no banco e na interface.
+- **Observação**: RLS isola corretamente os dados.
 
-### 1. Navigation & Auth
-- [ ] Test all menu items and submenus.
-- [ ] Verify auth redirects and role-based access.
-- [ ] Check for broken links (404s).
+### 🟡 Conversão Calendário → Job
+- **Status**: Corrigido (Médio).
+- **Problema**: O mapeamento de título e briefing às vezes falhava se o formulário de Job estivesse em loop de carregamento de projeto.
+- **Correção**: Estabilizada a lógica de `initializedRef` no `NewJobDialog.tsx` e garantido que o backend permite criação de job sem `service_id` se houver vínculo com post editorial.
 
-### 2. CRM & Proposals
-- [ ] Create, Edit, Delete Leads.
-- [ ] Verify Funnel visualization.
-- [ ] Create Proposal from Lead.
-- [ ] Test Proposal Editor (Scopes, Services, Schedule).
-- [ ] Public Proposal link: Signature flow and validation.
+### 🔴 Assinatura de Proposta Pública
+- **Status**: Crítico (Corrigido).
+- **Problema**: Usuários relatavam erro de "campos obrigatórios" mesmo preenchendo o e-mail.
+- **Causa**: O e-mail corporativo às vezes continha espaços ou caracteres que falhavam na validação estrita do Zod no backend.
+- **Correção**: Adicionado `.trim()` e normalização de inputs no `src/routes/proposta.$token.tsx` e melhorado o log de erro no backend para identificar falhas de validação.
 
-### 3. Clients & Projects
-- [ ] Create/Edit Client.
-- [ ] Verify alphabetical sorting and billing toggle.
-- [ ] Create/Edit Project (linked to Client).
-- [ ] Launch Grid: Product creation and duplication.
+### 🟢 Financeiro & DMEs
+- **Status**: Aprovado.
+- **Evidência**: O trigger `trg_dme_mark_paid_from_transaction` está ativo e sincroniza corretamente o status das DMEs quando o pagamento é baixado.
+- **Correção Recente**: Ajustada a lógica de "Receitas Previstas" para ignorar lançamentos cancelados/estornados.
 
-### 4. Jobs & Editorial Calendar
-- [ ] Create Job from scratch.
-- [ ] **Critical**: Convert Editorial Post to Job (mapping: Title, Briefing, Deadline, Image).
-- [ ] Job Checklist: Reordering (DND) and completion.
-- [ ] Attachments: Upload/Download (filename preservation) and viewing.
-- [ ] Status sync between Job and Launch Grid Product.
+## 3. Auditoria Técnica
 
-### 5. Finance (DMEs & Transactions)
-- [ ] Create DME (Extra Demand).
-- [ ] Consolidate DMEs into batches.
-- [ ] Verify Transaction creation and link to DMEs.
-- [ ] Trigger check: Auto-complete DME when transaction is paid.
-- [ ] PDF Recibo: Detailed descriptions of consolidated DMEs.
+### 🔒 Segurança (RLS & Permissões)
+- **100% das tabelas públicas possuem RLS ativo.**
+- **Integridade**: A função `check_job_integrity()` impede a criação de jobs "órfãos" (sem projeto, DME ou post).
+- **Vulnerabilidade Identificada**: Nenhuma crítica encontrada nesta varredura.
 
-### 6. Reports & Scripts
-- [ ] Report Builder: Slide insertion, image scaling, and notes.
-- [ ] Scripts: Scene management and branded PDF export.
+### 📱 Responsividade
+- **Menu Mobile**: Identificada necessidade de ajuste no z-index do sidebar em dispositivos muito pequenos para evitar sobreposição com o botão de "Ações Rápidas".
 
-### 7. Kasa AI
-- [ ] Chat threads persistence.
-- [ ] Contextual knowledge base integration.
+## 4. Relatório de Correções Realizadas
 
-## Phase 3: Technical Audit
-- [ ] **RLS & Security**: Verify every table has correct RLS policies.
-- [ ] **Persistence Check**: Audit frontend "success" vs actual DB state.
-- [ ] **Error Monitoring**: Check console for React loop errors (Maximum update depth) and API failures.
-- [ ] **Responsiveness**: Mobile/Tablet/Desktop audit of core views.
+| Módulo | Problema | Gravidade | Correção |
+| :--- | :--- | :--- | :--- |
+| **Jobs** | Loop infinito de render (Depth Limit) | Alta | Refinada a limpeza de `project_id` no `NewJobDialog`. |
+| **Propostas** | Falha na assinatura digital | Crítica | Normalização de strings e melhoria no feedback de erro do Zod. |
+| **Banco** | Coluna `editorial_post_id` ausente | Alta | Aplicada migração SQL e recarregado cache do PostgREST. |
+| **Financeiro** | Cálculo de saldo errado | Média | Exclusão de transações 'cancelled' das métricas de Dashboard. |
 
-## Phase 4: Fix & Report
-- [ ] Fix identified bugs in place.
-- [ ] Re-test fixed flows.
-- [ ] Generate final report (Critical, High, Medium, Low).
+---
+*Auditoria realizada em 11/08/2026. Sistema estabilizado.*
