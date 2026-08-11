@@ -301,7 +301,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   if (!input.due_date) throw new Error("Prazo final é obrigatório");
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
-  if (!input.service_id && !input.editorial_post_id) throw new Error("Um job deve estar vinculado a um serviço.");
+  if (!input.service_id && !(input as any).editorial_post_id) throw new Error("Um job deve estar vinculado a um serviço.");
   
   
   const project = await fetchProject(input.project_id);
@@ -328,7 +328,7 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
 
   // Garantir que campos obrigatórios não são nulos após limpeza
   // If it's from an editorial post, we relax the service_id requirement
-  const isEditorial = !!cleanInput.editorial_post_id;
+  const isEditorial = !!(cleanInput as any).editorial_post_id;
   if (!cleanInput.client_id || !cleanInput.project_id || (!cleanInput.service_id && !isEditorial)) {
     throw new Error("Vínculos obrigatórios ausentes: Cliente, Projeto e Serviço.");
   }
