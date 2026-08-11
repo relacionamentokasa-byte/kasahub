@@ -37,7 +37,7 @@ function JobsRoute() {
   const handleCloseNew = () => {
     navigate({
       to: "/jobs",
-      search: (prev: any) => ({
+      search: (prev: any) => {
         const next = { ...prev };
         delete next.new;
         delete next.title;
@@ -45,7 +45,7 @@ function JobsRoute() {
         delete next.dueDate;
         delete next.editorialPostId;
         return next;
-      }),
+      },
       replace: true,
     });
   };
