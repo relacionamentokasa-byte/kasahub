@@ -310,9 +310,9 @@ function PublicProposalView() {
     try {
       const payload = {
           accepted_name: signerName.trim(),
-          accepted_cpf: signerCpf.trim(),
+          accepted_cpf: signerCpf.trim().replace(/\s/g, ""),
           accepted_role: signerRole.trim(),
-          accepted_email: signerEmail.trim(),
+          accepted_email: signerEmail.trim().toLowerCase(),
           signature_data: signatureData,
           accepted_terms: true,
           accepted_representation: true,
