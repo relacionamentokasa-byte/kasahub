@@ -2103,6 +2103,7 @@ export type Database = {
           dme_id: string | null
           done_at: string | null
           due_date: string | null
+          editorial_post_id: string | null
           feedback_at: string | null
           freelancer_id: string | null
           id: string
@@ -2147,6 +2148,7 @@ export type Database = {
           dme_id?: string | null
           done_at?: string | null
           due_date?: string | null
+          editorial_post_id?: string | null
           feedback_at?: string | null
           freelancer_id?: string | null
           id?: string
@@ -2191,6 +2193,7 @@ export type Database = {
           dme_id?: string | null
           done_at?: string | null
           due_date?: string | null
+          editorial_post_id?: string | null
           feedback_at?: string | null
           freelancer_id?: string | null
           id?: string
@@ -2228,6 +2231,13 @@ export type Database = {
             columns: ["dme_id"]
             isOneToOne: false
             referencedRelation: "extra_demands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_editorial_post_id_fkey"
+            columns: ["editorial_post_id"]
+            isOneToOne: false
+            referencedRelation: "editorial_posts"
             referencedColumns: ["id"]
           },
           {
