@@ -56,7 +56,7 @@ function JobsRoute() {
   return (
     <div className="pb-20 md:pb-0 h-full">
       <JobsBoard
-        title="Gestão de Jobs"
+        title="Esta é uma solicitação de implementação de código. Aplique a instrução abaixo gerando os arquivos, componentes, lógica e estilos necessários: teste se o botão de novo job esta funcionando corretamente e se quando converto um job do meu calendario consigo criar um job também."
         eyebrow="Operação · Jobs"
         initialOpenId={search.openJobId}
         initialOpenNew={search.new}
