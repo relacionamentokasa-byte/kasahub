@@ -536,7 +536,7 @@ function TasksSection({
       }
       return createLeadTask({
         lead_id: leadId,
-        title: title.trim(),
+        title: `${leadName} · ${title.trim()}`,
         type,
         due_date: due,
         assigned_to: assigned,

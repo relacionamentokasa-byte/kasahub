@@ -63,7 +63,7 @@ export function CrmFunnel({
                 type="button"
                 onClick={() => setOpenStageId(row.stage.id)}
                 className="w-full group relative"
-                aria-label={`Ver leads em ${row.stage.name}`}
+                aria-label={`Ver oportunidades em ${row.stage.name}`}
               >
                 <div className="relative w-full h-20">
                   <svg
@@ -171,7 +171,7 @@ export function CrmFunnel({
               ))}
               {openRow.items.length === 0 && (
                 <p className="text-xs text-foreground/40 text-center py-6">
-                  Nenhum lead nesta etapa.
+                  Nenhuma oportunidade nesta etapa.
                 </p>
               )}
             </ul>
@@ -201,15 +201,15 @@ function FunnelSummary({
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="font-display font-semibold text-sm">Resumo do funil</h3>
-      <Metric label="Leads no funil" value={String(totalLeads)} />
+      <h3 className="font-display font-semibold text-sm">Resumo da Gestão</h3>
+      <Metric label="Oportunidades no funil" value={String(totalLeads)} />
       <Metric label="Valor em pipeline" value={formatCurrency(totalValue)} />
       <Metric label="Ticket médio" value={formatCurrency(avgTicket)} />
       {overallConv !== null && (
         <Metric label="Conversão geral" value={`${overallConv}%`} />
       )}
       <p className="text-[10px] text-foreground/40 mt-2">
-        Clique em uma faixa do funil para ver os leads dentro dela.
+        Clique em uma faixa do funil para ver as oportunidades dentro dela.
       </p>
     </div>
   );
