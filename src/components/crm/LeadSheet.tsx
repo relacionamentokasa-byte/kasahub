@@ -121,7 +121,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
-      toast.success("Lead atualizado");
+      toast.success("Oportunidade atualizada");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -140,7 +140,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
     mutationFn: () => deleteLead(lead.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
-      toast.success("Lead removido");
+      toast.success("Oportunidade removida");
       onClose();
     },
   });
@@ -157,7 +157,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
   const proposalMut = useMutation({
     mutationFn: () =>
       createProposal({
-        title: `Proposta · ${lead.company ?? lead.name}`,
+        title: `Proposta · ${lead.name}`,
         client_name: lead.company ?? lead.name,
         client_email: lead.email,
         lead_id: lead.id,
@@ -180,7 +180,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
 
       <div className="mt-6 grid gap-4">
         <div className="grid grid-cols-2 gap-3">
-          <F label="Nome">
+          <F label="Título da Oportunidade">
             <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </F>
           <F label="Empresa">
@@ -255,7 +255,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
             </Select>
           </F>
         </div>
-        <F label="Responsável pelo lead">
+        <F label="Responsável pela oportunidade">
           <Select
             value={form.owner_id ?? "unassigned"}
             onValueChange={(v) => setForm({ ...form, owner_id: v === "unassigned" ? null : v })}
@@ -308,11 +308,11 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem onClick={() => {
-                  const text = `Olá, ${form.name}. Vi seu interesse em nossos serviços e gostaria de entender melhor sua necessidade.`;
+                  const text = `Olá! Gostaria de falar sobre a oportunidade "${form.name}".`;
                   const phone = form.phone?.replace(/\D/g, "");
                   if (phone) {
                     window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(text)}`, "_blank");
-                    noteMut.mutate({ type: "whatsapp", content: "Apresentação via WhatsApp" });
+                    noteMut.mutate({ type: "whatsapp", content: "Apresentação da oportunidade iniciada via WhatsApp" });
                   }
                 }}>Apresentação</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => {
@@ -377,7 +377,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
           <Button
             variant="ghost"
             onClick={() => {
-              if (confirm("Excluir este lead?")) delMut.mutate();
+              if (confirm("Excluir esta oportunidade?")) delMut.mutate();
             }}
             className="ml-auto text-destructive hover:text-destructive"
           >
@@ -390,6 +390,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
           tasks={tasks}
           profiles={profiles as any}
           defaultAssignee={form.owner_id ?? null}
+          leadName={lead.name}
         />
 
         <div className="border-t border-border pt-5 mt-2">
