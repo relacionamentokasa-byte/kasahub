@@ -354,7 +354,7 @@ function Column({
       qc.invalidateQueries({ queryKey: ["crm", "stages"] });
       toast.success("Etapa removida");
     },
-    onError: (e: Error) => toast.error("Não é possível excluir uma etapa que contém oportunidades.");
+    onError: (e: Error) => toast.error("Não é possível excluir uma etapa que contém oportunidades."),
   });
 
   return (
@@ -424,7 +424,7 @@ function LeadCard({
     mutationFn: () => deleteLead(lead.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
-      toast.success("Lead removido");
+      toast.success("Oportunidade removida");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -445,10 +445,10 @@ function LeadCard({
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
-          if (confirm(`Remover lead "${lead.name}"?`)) delMut.mutate();
+          if (confirm(`Remover oportunidade "${lead.name}"?`)) delMut.mutate();
         }}
         className="absolute top-1.5 right-1.5 p-1.5 rounded-md text-destructive opacity-0 group-hover:opacity-100 hover:bg-destructive/10 transition"
-        aria-label="Excluir lead"
+        aria-label="Excluir oportunidade"
       >
         <Trash2 className="size-3.5" />
       </button>
