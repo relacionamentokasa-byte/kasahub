@@ -489,11 +489,13 @@ function TasksSection({
   tasks,
   profiles = [],
   defaultAssignee = null,
+  leadName,
 }: {
   leadId: string;
   tasks: LeadTask[];
   profiles?: ProfileLite[];
   defaultAssignee?: string | null;
+  leadName: string;
 }) {
   const qc = useQueryClient();
   const [title, setTitle] = useState("");
