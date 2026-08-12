@@ -395,7 +395,7 @@ function Inner({ lead, stages, onClose }: { lead: Lead; stages: Stage[]; onClose
 
         <div className="border-t border-border pt-5 mt-2">
           <h3 className="font-display font-semibold text-sm capitalize text-foreground/60 mb-3 flex items-center gap-2">
-            <Activity className="size-4" /> Atividade
+            <Activity className="size-4" /> Atividades da Oportunidade
           </h3>
           <div className="flex gap-2 mb-3">
             <Select value={noteType} onValueChange={setNoteType}>
