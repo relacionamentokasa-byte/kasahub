@@ -54,7 +54,7 @@ export function NewLeadDialog({
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
-      toast.success("Lead criado");
+      toast.success("Oportunidade criada");
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -65,15 +65,15 @@ export function NewLeadDialog({
       <DialogContent className="bg-surface border-border">
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">
-            Novo lead · <span className="text-primary">{stage.name}</span>
+            Nova oportunidade · <span className="text-primary">{stage.name}</span>
           </DialogTitle>
         </DialogHeader>
         <div className="grid gap-4">
-          <Field label="Nome *">
+          <Field label="Título da Oportunidade *">
             <Input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nome do contato"
+              placeholder="Ex: Projeto Branding / Campanha Verão"
               autoFocus
             />
           </Field>
@@ -127,7 +127,7 @@ export function NewLeadDialog({
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </Field>
-            <Field label="Telefone / WhatsApp *">
+            <Field label="Contato / WhatsApp *">
               <Input
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -160,7 +160,7 @@ export function NewLeadDialog({
             onClick={() => mut.mutate()}
             className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
           >
-            {mut.isPending ? "Criando…" : "Criar lead"}
+            {mut.isPending ? "Criando…" : "Criar oportunidade"}
           </Button>
         </DialogFooter>
       </DialogContent>

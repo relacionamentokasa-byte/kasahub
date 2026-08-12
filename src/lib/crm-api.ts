@@ -84,7 +84,7 @@ export async function createLead(input: {
   await recordTimelineEvent({
     lead_id: data.id,
     type: 'lead_created',
-    title: `Novo Lead criado: ${data.name}`,
+    title: `Nova Oportunidade criada: ${data.name}`,
     description: `Origem: ${data.source || 'Não informada'}`
   });
 
@@ -124,7 +124,7 @@ export async function deleteLeadStage(id: string) {
   // Check if stage has leads
   const { count } = await supabase.from("leads").select("id", { count: "exact", head: true }).eq("stage_id", id);
   if (count && count > 0) {
-    throw new Error(`Não é possível excluir uma coluna que contém ${count} leads. Mova os leads para outra coluna primeiro.`);
+    throw new Error(`Não é possível excluir uma etapa que contém oportunidades. Mova as oportunidades para outra etapa primeiro.`);
   }
   const { error } = await supabase.from("lead_stages").delete().eq("id", id);
   if (error) throw error;
@@ -153,7 +153,7 @@ export async function addActivity(leadId: string, type: string, content: string)
 
   if (content.includes('@')) {
     await handleMentions(content, {
-      title: `Atividade no Lead: ${lead?.name}`,
+      title: `Atividade na Oportunidade: ${lead?.name}`,
       link: `/crm`,
       originType: 'leads',
       originId: leadId
