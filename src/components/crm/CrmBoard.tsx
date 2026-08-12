@@ -143,10 +143,10 @@ export function CrmBoard() {
     },
     onError: (_e, _v, ctx) => {
       if (ctx?.prev) qc.setQueryData(["crm", "leads"], ctx.prev);
-      toast.error("Não foi possível mover o lead");
+      toast.error("Não foi possível mover a oportunidade");
     },
     onSuccess: (_, { stage }) => {
-      if (stage.is_won) toast.success("🎉 Lead fechado! Gere a proposta na aba Propostas.");
+      if (stage.is_won) toast.success("🎉 Oportunidade fechada! Gere a proposta na aba Propostas.");
     },
   });
 
@@ -171,10 +171,10 @@ export function CrmBoard() {
       <div className="px-4 sm:px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <span className="text-primary text-[10px] capitalize">
-            Comercial · CRM
+            Comercial · Oportunidades
           </span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            Funil comercial
+            Gestão de oportunidades
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
@@ -203,7 +203,7 @@ export function CrmBoard() {
           <div className="relative flex-1 sm:flex-none min-w-[120px]">
             <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
             <Input
-              placeholder="Buscar lead, empresa, e-mail…"
+              placeholder="Buscar oportunidade, empresa, e-mail…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9 h-11 sm:h-10 w-full sm:w-56 bg-surface border-border"
@@ -247,7 +247,7 @@ export function CrmBoard() {
               onChange={(e) => setWhatsappFilter(e.target.value as any)}
               className="bg-transparent border-none outline-none text-xs text-foreground/70"
             >
-              <option value="all">Todos os Leads</option>
+              <option value="all">Todas oportunidades</option>
               <option value="yes">Com WhatsApp</option>
               <option value="no">Sem WhatsApp</option>
             </select>
@@ -256,14 +256,14 @@ export function CrmBoard() {
             onClick={() => setNewLeadStage(stages[0] ?? null)}
             className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
           >
-            <Plus className="size-4" /> Novo lead
+            <Plus className="size-4" /> Nova oportunidade
           </Button>
         </div>
       </div>
 
       {/* KPIs */}
       <div className="px-4 sm:px-6 lg:px-10 pb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Novos leads no mês" value={String(kpis.monthLeads)} />
+        <KpiCard label="Novas oportunidades no mês" value={String(kpis.monthLeads)} />
         <KpiCard label="Conversão geral" value={`${kpis.convRate}%`} />
         <KpiCard label="Valor ganho no mês" value={formatCurrency(kpis.wonValueMonth)} />
         <KpiCard label="Pipeline em aberto" value={formatCurrency(kpis.pipelineValue)} />
@@ -352,9 +352,9 @@ function Column({
     mutationFn: () => deleteLeadStage(stage.id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "stages"] });
-      toast.success("Coluna removida");
+      toast.success("Etapa removida");
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) => toast.error("Não é possível excluir uma etapa que contém oportunidades.");
   });
 
   return (
@@ -372,10 +372,10 @@ function Column({
         <div className="flex items-center gap-1">
           <button
             onClick={() => {
-              if (confirm(`Remover a coluna "${stage.name}"?`)) delStageMut.mutate();
+              if (confirm(`Remover a etapa "${stage.name}"?`)) delStageMut.mutate();
             }}
             className="size-6 rounded-md hover:bg-destructive/10 grid place-items-center text-foreground/20 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
-            aria-label="Excluir coluna"
+            aria-label="Excluir etapa"
           >
             <Trash2 className="size-3" />
           </button>
