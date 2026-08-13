@@ -115,25 +115,32 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
   const convertToJob = () => {
     if (!post) return;
     
-    // Garantir que temos os dados mais recentes do formulário
+    // Mapeamento obrigatório conforme PRD:
+    // Título -> Título do Job
+    // Descrição / Copy -> BRIEFING
+    // Data e hora -> Prazo Final
+    
     const searchParams = new URLSearchParams();
     searchParams.set("new", "true");
     searchParams.set("clientId", post.client_id);
-    searchParams.set("title", form.title); // Usa o título atual do formulário
-    if (form.description) searchParams.set("description", form.description); // Usa a descrição atual do formulário
+    searchParams.set("title", form.title);
     
-    // Format date for <input type="datetime-local" />: YYYY-MM-DDTHH:mm
-    // Usamos o scheduled_at do FORMULÁRIO, não do post original
+    // O briefing no formulário de Job deve ser preenchido com a descrição do post
+    if (form.description) {
+      searchParams.set("description", form.description);
+    }
+    
+    // O Prazo Final no Job deve receber o scheduled_at do post
+    // Mantemos o formato datetime-local (YYYY-MM-DDTHH:mm) que o NewJobDialog espera
     searchParams.set("dueDate", form.scheduled_at);
     
     searchParams.set("editorialPostId", post.id);
     
-    // Pass cover_url if it exists to be used as briefing image reference if needed
     if (form.cover_url) {
       searchParams.set("coverUrl", form.cover_url);
     }
 
-    console.log("[EditorialPostDialog] Navegando para /jobs com:", Object.fromEntries(searchParams.entries()));
+    console.log("[EditorialPostDialog] Convertendo post para Job. Payload:", Object.fromEntries(searchParams.entries()));
 
     navigate({
       to: "/jobs",
@@ -143,7 +150,6 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
       }) as any,
     });
     
-    toast.info("As informações do post foram levadas para o novo Job.");
     onOpenChange(false);
   };
 
