@@ -313,7 +313,9 @@ function FinancialPage() {
     status: "all",
     type: "all",
     categoryId: "all",
-    search: ""
+    search: "",
+    nfStatus: "all",
+    boletoStatus: "all",
   });
   const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
   const [quickChip, setQuickChip] = useState<"none" | "today" | "week" | "overdue" | "paid_month" | "missing_links">("none");
@@ -461,6 +463,9 @@ function FinancialPage() {
   })();
 
   const filteredTransactions = transactions.filter((t: any) => {
+    if (filter.nfStatus !== "all" && (t.nf_status || "pendente") !== filter.nfStatus) return false;
+    if (filter.boletoStatus !== "all" && (t.boleto_internal_status || "nao_se_aplica") !== filter.boletoStatus) return false;
+
     if (!showCancelled && t.status === "cancelled") return false;
     const matchSearch =
       t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
