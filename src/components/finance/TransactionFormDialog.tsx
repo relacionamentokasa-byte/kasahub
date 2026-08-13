@@ -80,6 +80,8 @@ const transactionSchema = z.object({
   boleto_linha_digitavel: z.string().max(200).nullable().optional(),
   boleto_pix_copia_cola: z.string().max(2000).nullable().optional(),
   is_internal: z.boolean().optional(),
+  nf_status: z.enum(["pendente", "emitida", "nao_necessaria"]).optional(),
+  boleto_internal_status: z.enum(["pendente", "emitido", "nao_se_aplica"]).optional(),
 });
 
 
@@ -111,6 +113,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
       due_date: new Date(),
       nature: "operacional",
       is_internal: false,
+      nf_status: "pendente",
+      boleto_internal_status: "nao_se_aplica",
     },
   });
 
@@ -138,6 +142,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_linha_digitavel: transaction.boleto_linha_digitavel || "",
         boleto_pix_copia_cola: transaction.boleto_pix_copia_cola || "",
         is_internal: !!transaction.is_internal,
+        nf_status: (transaction.nf_status as any) || "pendente",
+        boleto_internal_status: (transaction.boleto_internal_status as any) || "nao_se_aplica",
       });
 
     } else {
@@ -147,6 +153,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         due_date: new Date(),
         nature: "operacional",
         is_internal: false,
+        nf_status: "pendente",
+        boleto_internal_status: "nao_se_aplica",
       });
     }
   }, [open, transaction]);
@@ -226,6 +234,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
           boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
           boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
           is_internal: !!values.is_internal,
+          nf_status: values.nf_status,
+          boleto_internal_status: values.boleto_internal_status,
         };
         return updateTransaction(transaction.id, patch);
       }
@@ -251,6 +261,8 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         boleto_linha_digitavel: values.type === "income" ? (values.boleto_linha_digitavel?.trim() || null) : null,
         boleto_pix_copia_cola: values.type === "income" ? (values.boleto_pix_copia_cola?.trim() || null) : null,
         is_internal: !!values.is_internal,
+        nf_status: values.nf_status || "pendente",
+        boleto_internal_status: values.boleto_internal_status || "nao_se_aplica",
       };
 
       if (partnerId && values.type === "expense") {

@@ -4478,6 +4478,7 @@ export type Database = {
       transactions: {
         Row: {
           amount: number
+          boleto_internal_status: string | null
           boleto_linha_digitavel: string | null
           boleto_pdf_path: string | null
           boleto_pix_copia_cola: string | null
@@ -4497,6 +4498,7 @@ export type Database = {
           kind: string | null
           motivo_diferenca: string | null
           nature: string
+          nf_status: string | null
           notes: string | null
           number_display: string | null
           observacao_diferenca: string | null
@@ -4514,6 +4516,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          boleto_internal_status?: string | null
           boleto_linha_digitavel?: string | null
           boleto_pdf_path?: string | null
           boleto_pix_copia_cola?: string | null
@@ -4533,6 +4536,7 @@ export type Database = {
           kind?: string | null
           motivo_diferenca?: string | null
           nature?: string
+          nf_status?: string | null
           notes?: string | null
           number_display?: string | null
           observacao_diferenca?: string | null
@@ -4550,6 +4554,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          boleto_internal_status?: string | null
           boleto_linha_digitavel?: string | null
           boleto_pdf_path?: string | null
           boleto_pix_copia_cola?: string | null
@@ -4569,6 +4574,7 @@ export type Database = {
           kind?: string | null
           motivo_diferenca?: string | null
           nature?: string
+          nf_status?: string | null
           notes?: string | null
           number_display?: string | null
           observacao_diferenca?: string | null
