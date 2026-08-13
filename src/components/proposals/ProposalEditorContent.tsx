@@ -29,7 +29,6 @@ import {
   Copy,
   Check
 } from "lucide-react";
-import { distributeEqually, calculateInstallmentValues } from "@/lib/proposal-negotiation";
 import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
 import { ClientPicker } from "@/components/clients/ClientPicker";
@@ -50,6 +49,7 @@ import {
   DEFAULT_INSTALLMENTS, 
   PaymentInstallment, 
   calculateInstallmentValues,
+  distributeEqually,
   DUE_KIND_OPTIONS
 } from "@/lib/proposal-negotiation";
 import { SheetContentSkeleton } from "@/components/ui/loading-skeletons";
