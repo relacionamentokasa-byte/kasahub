@@ -259,79 +259,44 @@ export async function approveProposal(
   // B. Geração do Setup / Investimento (Único ou Especial)
   const setupAmount = Number(proposal.one_time_investment || 0);
   if (setupAmount > 0) {
-    // Padrão: 30% entrada + 70% em 30 dias (se 2 parcelas) ou uniforme se mais.
-    const instCount = Number(proposal.installments || 2);
+    const isSpecial = !!proposal.is_special_negotiation;
+    const instCount = Number(proposal.installments || 1);
     const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
     const baseDate = new Date(firstDueRaw + "T12:00:00");
 
-    if (instCount === 1) {
-      transactions.push({
-        client_id: clientId,
-        proposal_id: proposal.id,
-        contract_id: contractId,
-        category_id: jobAvulsoId,
-        amount: setupAmount,
-        due_date: firstDueRaw,
-        description: `Setup (À vista) - ${proposal.title}`,
-        status: "pending",
-        type: "income",
-        kind: "income",
-        is_recurring: false,
-      });
-    } else if (instCount === 2) {
-      // Regra específica 30/70 para 2 parcelas
-      const thirtyDaysLater = new Date(baseDate.getTime());
-      thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
+    let installments: any[] = [];
 
-      transactions.push({
-        client_id: clientId,
-        proposal_id: proposal.id,
-        contract_id: contractId,
-        category_id: jobAvulsoId,
-        amount: setupAmount * 0.3,
-        due_date: firstDueRaw,
-        description: `Setup (Entrada 30%) - ${proposal.title}`,
-        status: "pending",
-        type: "income",
-        kind: "income",
-        is_recurring: false,
-      });
-
-      transactions.push({
-        client_id: clientId,
-        proposal_id: proposal.id,
-        contract_id: contractId,
-        category_id: jobAvulsoId,
-        amount: setupAmount * 0.7,
-        due_date: ymd(thirtyDaysLater),
-        description: `Setup (30 dias 70%) - ${proposal.title}`,
-        status: "pending",
-        type: "income",
-        kind: "income",
-        is_recurring: false,
-      });
+    if (isSpecial && Array.isArray((proposal as any).payment_installments_config)) {
+      installments = (proposal as any).payment_installments_config.slice(0, instCount);
     } else {
-      // Uniforme para 3+ parcelas
-      const installmentValue = setupAmount / instCount;
-      for (let i = 0; i < instCount; i++) {
-        const d = new Date(baseDate.getTime());
-        d.setDate(d.getDate() + (i * 30));
-        
-        transactions.push({
-          client_id: clientId,
-          proposal_id: proposal.id,
-          contract_id: contractId,
-          category_id: jobAvulsoId,
-          amount: installmentValue,
-          due_date: ymd(d),
-          description: `Setup (Parcela ${i + 1}/${instCount}) - ${proposal.title}`,
-          status: "pending",
-          type: "income",
-          kind: "income",
-          is_recurring: false,
-        });
-      }
+      // Comportamento Padrão: Divisão igualitária (Não utiliza 30/70 como padrão)
+      const { distributeEqually } = await import("./proposal-negotiation");
+      installments = distributeEqually(100, instCount);
     }
+
+    const { calculateInstallmentValues } = await import("./proposal-negotiation");
+    const values = calculateInstallmentValues(setupAmount, installments);
+
+    values.forEach((inst, i) => {
+      const d = new Date(baseDate.getTime());
+      d.setDate(d.getDate() + (i * 30));
+
+      transactions.push({
+        client_id: clientId,
+        proposal_id: proposal.id,
+        contract_id: contractId,
+        category_id: jobAvulsoId,
+        amount: inst.value,
+        due_date: ymd(d),
+        description: instCount === 1 
+          ? `Setup (À vista) - ${proposal.title}`
+          : `Setup (Parcela ${i + 1}/${instCount}${isSpecial ? ' - Negociação Especial' : ''}) - ${proposal.title}`,
+        status: "pending",
+        type: "income",
+        kind: "income",
+        is_recurring: false,
+      });
+    });
   }
 
   if (transactions.length) {
