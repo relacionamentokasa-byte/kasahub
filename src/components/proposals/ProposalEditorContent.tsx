@@ -489,19 +489,41 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                   </div>
 
                   {!form.is_special_negotiation ? (
-                    <div className="grid grid-cols-2 gap-4 animate-reveal">
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold">Condição de pagamento</Label>
-                        <div className="h-10 flex items-center px-3 rounded-md bg-muted/20 border border-border/50 text-sm font-medium text-foreground/70 italic">
-                          30% de entrada + 70% em 30 dias
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-sm font-semibold">Resumo simplificado</Label>
-                        <div className="text-[11px] text-muted-foreground mt-1">
-                          As parcelas seguirão o padrão 30/70. Para alterar, marque "Negociação Especial".
-                        </div>
-                      </div>
+                    <div className="space-y-4 animate-reveal">
+                      <Label className="text-sm font-semibold">Parcelamento do Setup</Label>
+                      <RadioGroup 
+                        value={String(form.installments || "2")} 
+                        onValueChange={val => {
+                          setForm({ ...form, installments: Number(val) });
+                          setIsDirty(true);
+                        }}
+                        className="flex flex-wrap gap-3"
+                      >
+                        {[1, 2, 3, 4, 5, 6].map((n) => (
+                          <div key={n} className="flex items-center">
+                            <RadioGroupItem value={String(n)} id={`i-${n}`} className="sr-only" />
+                            <Label
+                              htmlFor={`i-${n}`}
+                              className={cn(
+                                "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
+                                (form.installments || 2) === n 
+                                  ? "bg-primary border-primary text-black shadow-md scale-105" 
+                                  : "bg-surface hover:bg-muted"
+                              )}
+                            >
+                              {n}x {n === 2 ? "(30/70)" : ""}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        {(form.installments || 2) === 2 
+                          ? "O padrão 30/70 será aplicado: 30% na entrada e 70% em 30 dias."
+                          : (form.installments || 2) === 1
+                            ? "Pagamento integral à vista no primeiro vencimento."
+                            : `O valor será dividido em ${form.installments} parcelas mensais.`
+                        }
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-6 animate-reveal">
