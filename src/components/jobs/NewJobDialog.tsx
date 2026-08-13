@@ -102,16 +102,17 @@ export function NewJobDialog({
       });
 
       // Só preenche se as props existirem (conversão ou link direto)
-      // Usamos um sinalizador para preencher apenas uma vez por abertura
-      const shouldPopulate = !!(defaultTitle || defaultDescription || defaultDueDate || defaultClientId);
+      const hasInitialData = !!(defaultTitle || defaultDescription || defaultDueDate || defaultClientId);
       
-      if (shouldPopulate) {
+      if (hasInitialData) {
         setForm((f) => {
-          // Se o título já está preenchido e as props não mudaram, evitamos sobrescrever
-          if (f.title === defaultTitle && f.description === defaultDescription && f.due_date === defaultDueDate) {
+          // Se já existe um editorialPostId no formulário e ele é o mesmo que recebemos,
+          // significa que já populamos este formulário para esta conversão específica.
+          // Não sobrescrevemos para não perder edições manuais do usuário antes do save.
+          if (f.editorial_post_id && f.editorial_post_id === defaultEditorialPostId) {
             return f;
           }
-          
+
           const next = {
             ...f,
             title: defaultTitle || f.title || "",
@@ -124,12 +125,13 @@ export function NewJobDialog({
             launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
             editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
           };
-          console.log("[NewJobDialog] Estado do formulário atualizado via props:", next);
+          console.log("[NewJobDialog] Estado do formulário populado:", next);
           return next;
         });
       }
     } else {
-      // Quando fechar, resetar o formulário para garantir que a próxima abertura (manual ou conversão) esteja limpa
+      // Quando fechar, resetar o formulário COMPLETO para garantir que a próxima abertura
+      // (seja manual ou outra conversão) comece do zero.
       setForm({
         title: "",
         description: "",
@@ -141,7 +143,7 @@ export function NewJobDialog({
         service_id: "",
         period: "",
         main_responsible_id: "",
-        team_involved_ids: [] as string[],
+        team_involved_ids: [],
         launch_product_id: "",
         editorial_post_id: "",
       });
