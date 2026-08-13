@@ -101,22 +101,28 @@ export function NewJobDialog({
         defaultProjectId
       });
 
-      setForm((f) => {
-        const next = {
-          ...f,
-          title: defaultTitle || f.title || "",
-          description: defaultDescription || f.description || "",
-          due_date: defaultDueDate || f.due_date || "",
-          project_id: defaultProjectId || f.project_id || "",
-          client_id: defaultClientId || f.client_id || "",
-          contract_id: defaultContractId || f.contract_id || "",
-          period: defaultPeriod || f.period || "",
-          launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
-          editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
-        };
-        console.log("[NewJobDialog] Estado do formulário atualizado:", next);
-        return next;
-      });
+      // Só preenche se as props existirem (conversão ou link direto)
+      // e o formulário estiver vazio ou prestes a ser preenchido pela primeira vez nesta abertura.
+      if (defaultTitle || defaultDescription || defaultDueDate || defaultClientId) {
+        setForm((f) => {
+          // Se o formulário já tem dados E não é uma mudança de props (mesmas props), mantemos o estado atual
+          // Isso evita sobrescrever o que o usuário digitou se houver re-render por outras razões.
+          const next = {
+            ...f,
+            title: defaultTitle || f.title || "",
+            description: defaultDescription || f.description || "",
+            due_date: defaultDueDate || f.due_date || "",
+            project_id: defaultProjectId || f.project_id || "",
+            client_id: defaultClientId || f.client_id || "",
+            contract_id: defaultContractId || f.contract_id || "",
+            period: defaultPeriod || f.period || "",
+            launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
+            editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
+          };
+          console.log("[NewJobDialog] Estado do formulário atualizado via props:", next);
+          return next;
+        });
+      }
     } else {
       // Quando fechar, resetar o formulário para garantir que a próxima abertura (manual ou conversão) esteja limpa
       setForm({
@@ -145,8 +151,7 @@ export function NewJobDialog({
     defaultContractId,
     defaultPeriod,
     defaultLaunchProductId,
-    defaultEditorialPostId,
-    defaultCoverUrl
+    defaultEditorialPostId
   ]);
 
   // Projetos dependem do cliente selecionado (cascade)
