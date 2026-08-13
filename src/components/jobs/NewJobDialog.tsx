@@ -341,8 +341,7 @@ export function NewJobDialog({
           .from("editorial_posts")
           .update({ 
             job_id: (job as any).id,
-            // Sincronizamos o status para 'converted' ou similar se existir, 
-            // mas por padrão apenas vinculamos o job_id
+            status: 'converted'
           } as any)
           .eq("id", form.editorial_post_id);
 
