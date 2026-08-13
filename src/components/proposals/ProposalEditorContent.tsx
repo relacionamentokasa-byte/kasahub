@@ -473,7 +473,6 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                           
                           let newConfig = (form as any).payment_installments_config;
                           if (!isSpecial) {
-                            const { distributeEqually } = require("@/lib/proposal-negotiation");
                             newConfig = distributeEqually(100, installmentsCount);
                           }
 
@@ -493,7 +492,6 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                     value={String(form.installments || "1")}
                     onValueChange={(val) => {
                       const count = Number(val);
-                      const { distributeEqually } = require("@/lib/proposal-negotiation");
                       const newConfig = distributeEqually(100, count);
                       
                       setForm({ 
