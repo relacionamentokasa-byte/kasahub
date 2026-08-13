@@ -457,213 +457,43 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
               </div>
 
               {/* Parcelamento do Setup / Investimento */}
+              {/* Parcelamento do Setup / Investimento */}
               {Number(form.one_time_investment || 0) > 0 && (
-                <div className="space-y-6 pt-2 border-t border-border/50">
-                  <div className="flex items-center space-x-2 bg-muted/30 p-3 rounded-xl border border-border/50">
-                    <Checkbox 
-                      id="special-negotiation" 
-                      checked={!!form.is_special_negotiation}
-                      onCheckedChange={(checked) => {
-                        const isSpecial = !!checked;
-                        const patch: any = { is_special_negotiation: isSpecial };
-                        
-                        if (isSpecial && (!form.payment_installments_config || (form as any).payment_installments_config.length === 0)) {
-                          patch.payment_installments_config = DEFAULT_INSTALLMENTS;
-                        }
-                        
-                        setForm({ ...form, ...patch });
-                        setIsDirty(true);
-                      }}
-                    />
-                    <div className="grid gap-1.5 leading-none">
-                      <Label
-                        htmlFor="special-negotiation"
-                        className="text-sm font-bold uppercase tracking-wider cursor-pointer"
-                      >
-                        Negociação Especial
-                      </Label>
-                      <p className="text-[11px] text-muted-foreground">
-                        Habilite para personalizar livremente as parcelas e porcentagens.
-                      </p>
-                    </div>
-                  </div>
-
-                  {!form.is_special_negotiation ? (
-                    <div className="space-y-4 animate-reveal">
-                      <Label className="text-sm font-semibold">Parcelamento do Setup</Label>
-                      <RadioGroup 
-                        value={String(form.installments || "2")} 
-                        onValueChange={val => {
-                          setForm({ ...form, installments: Number(val) });
-                          setIsDirty(true);
-                        }}
-                        className="flex flex-wrap gap-3"
-                      >
-                        {[1, 2, 3, 4, 5, 6].map((n) => (
-                          <div key={n} className="flex items-center">
-                            <RadioGroupItem value={String(n)} id={`i-${n}`} className="sr-only" />
-                            <Label
-                              htmlFor={`i-${n}`}
-                              className={cn(
-                                "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
-                                (form.installments || 2) === n 
-                                  ? "bg-primary border-primary text-black shadow-md scale-105" 
-                                  : "bg-surface hover:bg-muted"
-                              )}
-                            >
-                              {n}x {n === 2 ? "(30/70)" : ""}
-                            </Label>
-                          </div>
-                        ))}
-                      </RadioGroup>
-                      <p className="text-[11px] text-muted-foreground mt-1">
-                        {(form.installments || 2) === 2 
-                          ? "O padrão 30/70 será aplicado: 30% na entrada e 70% em 30 dias."
-                          : (form.installments || 2) === 1
-                            ? "Pagamento integral à vista no primeiro vencimento."
-                            : `O valor será dividido em ${form.installments} parcelas mensais.`
-                        }
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-6 animate-reveal">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-sm font-bold uppercase tracking-wider text-primary">Condições de Pagamento</Label>
-                        {(() => {
-                          const insts = (form as any).payment_installments_config || [];
-                          const sum = insts.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
-                          const isError = Math.abs(sum - 100) > 0.01;
-                          return (
-                            <Badge variant={isError ? "destructive" : "outline"} className="font-bold">
-                              Total: {sum}% {isError && "(!)"}
-                            </Badge>
-                          );
-                        })()}
+                <div className="space-y-4 pt-2 border-t border-border/50">
+                  <Label className="text-sm font-semibold">Parcelamento do Setup</Label>
+                  <RadioGroup 
+                    value={String(form.installments || "2")} 
+                    onValueChange={val => {
+                      setForm({ ...form, installments: Number(val) });
+                      setIsDirty(true);
+                    }}
+                    className="flex flex-wrap gap-3"
+                  >
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                      <div key={n} className="flex items-center">
+                        <RadioGroupItem value={String(n)} id={`i-${n}`} className="sr-only" />
+                        <Label
+                          htmlFor={`i-${n}`}
+                          className={cn(
+                            "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
+                            (form.installments || 2) === n 
+                              ? "bg-primary border-primary text-black shadow-md scale-105" 
+                              : "bg-surface hover:bg-muted"
+                          )}
+                        >
+                          {n}x {n === 2 ? "(30/70)" : ""}
+                        </Label>
                       </div>
-
-                      <div className="space-y-4">
-                        {((form as any).payment_installments_config || []).map((inst: PaymentInstallment, idx: number) => (
-                          <div key={inst.id} className="relative grid grid-cols-1 md:grid-cols-[60px_1fr_1fr_1fr_auto] gap-4 items-end bg-muted/20 border border-border/40 p-4 rounded-2xl">
-                            <div className="space-y-1.5">
-                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Parcela</Label>
-                              <div className="h-10 flex items-center justify-center font-bold text-lg text-primary/40">
-                                {idx + 1}º
-                              </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Percentual (%)</Label>
-                              <div className="relative">
-                                <Input
-                                  type="number"
-                                  value={inst.percent}
-                                  onChange={(e) => {
-                                    const list = [...(form as any).payment_installments_config];
-                                    list[idx] = { ...list[idx], percent: Number(e.target.value) };
-                                    setForm({ ...form, payment_installments_config: list });
-                                    setIsDirty(true);
-                                  }}
-                                  className="pr-8 font-bold"
-                                />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-bold">%</span>
-                              </div>
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Vencimento</Label>
-                              <Select
-                                value={inst.due_kind}
-                                onValueChange={(val) => {
-                                  const list = [...(form as any).payment_installments_config];
-                                  list[idx] = { ...list[idx], due_kind: val };
-                                  setForm({ ...form, payment_installments_config: list });
-                                  setIsDirty(true);
-                                }}
-                              >
-                                <SelectTrigger className="font-medium">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {DUE_KIND_OPTIONS.map(opt => (
-                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-
-                            <div className="space-y-1.5">
-                              <Label className="text-[10px] uppercase font-bold text-muted-foreground">Valor Estimado</Label>
-                              <div className="h-10 flex items-center px-3 rounded-md bg-background border border-border/50 text-sm font-bold text-primary">
-                                {formatCurrency((Number(form.one_time_investment || 0) * inst.percent) / 100)}
-                              </div>
-                            </div>
-
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive hover:bg-destructive/10"
-                              onClick={() => {
-                                const list = (form as any).payment_installments_config.filter((_: any, i: number) => i !== idx);
-                                setForm({ ...form, payment_installments_config: list });
-                                setIsDirty(true);
-                              }}
-                            >
-                              <Trash2 className="size-4" />
-                            </Button>
-
-                            {inst.due_kind === "custom" && (
-                              <div className="col-span-full pt-2 animate-reveal">
-                                <Label className="text-[10px] uppercase font-bold text-muted-foreground mb-1 block">Escolha a data específica</Label>
-                                <Input 
-                                  type="date" 
-                                  value={inst.due_date || ""}
-                                  onChange={(e) => {
-                                    const list = [...(form as any).payment_installments_config];
-                                    list[idx] = { ...list[idx], due_date: e.target.value };
-                                    setForm({ ...form, payment_installments_config: list });
-                                    setIsDirty(true);
-                                  }}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full border-dashed border-2 hover:border-primary hover:text-primary transition-all rounded-xl py-6 group"
-                        onClick={() => {
-                          const list = Array.isArray((form as any).payment_installments_config) ? [...(form as any).payment_installments_config] : [];
-                          const sum = list.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
-                          list.push({ 
-                            id: crypto.randomUUID(), 
-                            percent: Math.max(0, 100 - sum), 
-                            due_kind: "30_dias" 
-                          });
-                          setForm({ ...form, payment_installments_config: list });
-                          setIsDirty(true);
-                        }}
-                      >
-                        <Plus className="size-4 mr-2 group-hover:scale-110 transition-transform" />
-                        Adicionar Parcela
-                      </Button>
-
-                      {(() => {
-                        const sum = ((form as any).payment_installments_config || []).reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
-                        if (Math.abs(sum - 100) > 0.01) {
-                          return (
-                            <p className="text-xs text-destructive font-bold text-center animate-bounce">
-                              As porcentagens das parcelas devem totalizar 100%. Atualmente: {sum}%
-                            </p>
-                          );
-                        }
-                        return null;
-                      })()}
-                    </div>
-                  )}
+                    ))}
+                  </RadioGroup>
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {(form.installments || 2) === 2 
+                      ? "O padrão 30/70 será aplicado: 30% na entrada e 70% em 30 dias."
+                      : (form.installments || 2) === 1
+                        ? "Pagamento integral à vista no primeiro vencimento."
+                        : `O valor será dividido em ${form.installments} parcelas mensais.`
+                    }
+                  </p>
                 </div>
               )}
 
