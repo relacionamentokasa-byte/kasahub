@@ -126,8 +126,6 @@ export function NewJobDialog({
       }
     } else {
       initializedRef.current = false;
-      // Resetar formulário ao fechar para não "sujar" a próxima abertura manual
-      // Mas apenas se não houver um salvamento em curso (o onSuccess já cuida do reset definitivo)
     }
   }, [
     open,
@@ -139,7 +137,6 @@ export function NewJobDialog({
     defaultContractId,
     defaultPeriod,
     defaultLaunchProductId,
-    defaultEditorial_post_id,
     defaultEditorialPostId,
     defaultCoverUrl
   ]);
