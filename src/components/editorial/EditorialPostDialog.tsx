@@ -142,6 +142,10 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
 
     console.log("[EditorialPostDialog] Convertendo post para Job. Payload:", Object.fromEntries(searchParams.entries()));
 
+    // Ao converter, fechamos o diálogo atual para evitar conflitos de estado
+    onOpenChange(false);
+
+    // Navegamos para a rota de Jobs passando os parâmetros
     navigate({
       to: "/jobs",
       search: (prev: any) => ({
@@ -149,8 +153,6 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
         ...Object.fromEntries(searchParams.entries())
       }) as any,
     });
-    
-    onOpenChange(false);
   };
 
   return (
