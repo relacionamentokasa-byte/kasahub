@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useConversionStore } from "@/lib/conversion-store";
 import { createJob, createProject, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
 import { listProductsByClient } from "@/lib/launch-grids-api";
 
@@ -89,24 +90,35 @@ export function NewJobDialog({
     editorial_post_id: "",
   });
 
+  const { conversionData, clearConversionData } = useConversionStore();
+  const initializationRef = useRef(false);
 
-  const initializationRef = useRef<{ id?: string; open: boolean }>({ open: false });
-
-  // Sincroniza formulário com props de entrada APENAS na abertura ou se mudar o editorial_post_id
+  // Sincroniza formulário com conversionData ou props APENAS na abertura
   useEffect(() => {
     if (open) {
-      const isNewActivation = !initializationRef.current.open;
-      const isDifferentPost = defaultEditorialPostId && initializationRef.current.id !== defaultEditorialPostId;
+      if (initializationRef.current) return;
 
-      if (isNewActivation || isDifferentPost) {
-        console.log("[NewJobDialog] Populando formulário com dados de conversão:", {
-          title: defaultTitle,
-          description: defaultDescription,
-          dueDate: defaultDueDate,
-          clientId: defaultClientId,
-          editorialPostId: defaultEditorialPostId
+      console.log("[NewJobDialog] Inicializando formulário. conversionData:", conversionData);
+
+      if (conversionData) {
+        // Fluxo de CONVERSÃO (Prioridade máxima)
+        setForm({
+          title: conversionData.title,
+          description: conversionData.briefing,
+          due_date: conversionData.dueDate,
+          client_id: conversionData.clientId,
+          editorial_post_id: conversionData.sourcePostId,
+          project_id: "",
+          contract_id: "",
+          period: "",
+          launch_product_id: "",
+          priority: "normal",
+          service_id: "",
+          main_responsible_id: "",
+          team_involved_ids: [],
         });
-
+      } else {
+        // Fluxo MANUAL (ou via props legadas)
         setForm({
           title: defaultTitle || "",
           description: defaultDescription || "",
@@ -122,17 +134,15 @@ export function NewJobDialog({
           main_responsible_id: "",
           team_involved_ids: [],
         });
-        
-        initializationRef.current = { 
-          open: true, 
-          id: defaultEditorialPostId
-        };
       }
+      
+      initializationRef.current = true;
     } else {
-      // Quando fechar, limpamos o ref para permitir uma nova inicialização na próxima abertura
-      if (initializationRef.current.open) {
-        console.log("[NewJobDialog] Fechando e resetando formulário.");
-        initializationRef.current = { open: false, id: undefined };
+      // Quando fechar, limpamos TUDO
+      if (initializationRef.current) {
+        console.log("[NewJobDialog] Fechando e resetando estado.");
+        initializationRef.current = false;
+        clearConversionData();
         setForm({
           title: "",
           description: "",
@@ -150,18 +160,7 @@ export function NewJobDialog({
         });
       }
     }
-  }, [
-    open,
-    defaultTitle,
-    defaultDescription,
-    defaultDueDate,
-    defaultProjectId,
-    defaultClientId,
-    defaultContractId,
-    defaultPeriod,
-    defaultLaunchProductId,
-    defaultEditorialPostId
-  ]);
+  }, [open, conversionData, clearConversionData, defaultTitle, defaultDescription, defaultDueDate, defaultClientId, defaultEditorialPostId, defaultProjectId, defaultContractId, defaultPeriod, defaultLaunchProductId]);
 
   // Projetos dependem do cliente selecionado (cascade)
   const selectedClientId = form.client_id;
@@ -196,9 +195,9 @@ export function NewJobDialog({
     queryFn: () => listProductsByClient(selectedClientId),
     enabled: !!selectedClientId && clientHasGrid,
   });
-  const lockedProduct = lockLaunchProduct && form.launch_product_id
+  const lockedProduct = (lockLaunchProduct || conversionData?.coverUrl) && form.launch_product_id
     ? (launchProducts.find((p) => p.id === form.launch_product_id)
-        ?? { id: form.launch_product_id, name: "Produto vinculado", image_url: null as string | null })
+        ?? { id: form.launch_product_id, name: "Produto vinculado", image_url: conversionData?.coverUrl || null })
     : null;
 
 
@@ -209,7 +208,8 @@ export function NewJobDialog({
     
     setForm((f) => {
       // Se estamos em processo de inicialização de conversão, NÃO limpamos o projeto
-      if (initializationRef.current.open && f.project_id === defaultProjectId) {
+      // Usamos a lógica de que se o cliente acaba de ser setado por conversão, não resetamos campos vinculados imediatamente
+      if (initializationRef.current && (conversionData || defaultEditorialPostId)) {
         return f;
       }
 
@@ -434,14 +434,14 @@ export function NewJobDialog({
             />
           </div>
 
-          {defaultCoverUrl && (
+          {(conversionData?.coverUrl || defaultCoverUrl) && (
             <div className="space-y-1.5 p-3 rounded-xl border border-primary/20 bg-primary/5 animate-in fade-in zoom-in-95">
               <Label className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2 block">
                 Imagem de Referência (Calendário)
               </Label>
               <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
                 <img 
-                  src={defaultCoverUrl} 
+                  src={conversionData?.coverUrl || defaultCoverUrl} 
                   alt="Referência" 
                   className="w-full h-full object-contain bg-muted/20"
                 />

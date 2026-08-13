@@ -115,43 +115,31 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
   const convertToJob = () => {
     if (!post) return;
     
-    // Mapeamento obrigatório conforme PRD:
-    // Título -> Título do Job
-    // Descrição / Copy -> BRIEFING
-    // Data e hora -> Prazo Final
-    
-    const searchParams = new URLSearchParams();
-    searchParams.set("new", "true");
-    searchParams.set("clientId", post.client_id);
-    searchParams.set("title", form.title);
-    
-    // O briefing no formulário de Job deve ser preenchido com a descrição do post
-    if (form.description) {
-      searchParams.set("description", form.description);
-    }
-    
-    // O Prazo Final no Job deve receber o scheduled_at do post
-    // No EditorialPostDialog, form.scheduled_at já está no formato YYYY-MM-DDTHH:mm
-    searchParams.set("dueDate", form.scheduled_at);
-    
-    searchParams.set("editorialPostId", post.id);
-    
-    if (form.cover_url) {
-      searchParams.set("coverUrl", form.cover_url);
-    }
+    // Importamos dinamicamente para evitar ciclos ou dependências desnecessárias no topo
+    import("@/lib/conversion-store").then(({ useConversionStore }) => {
+      useConversionStore.getState().setConversionData({
+        title: form.title,
+        briefing: form.description || "",
+        dueDate: form.scheduled_at, // Já está no formato YYYY-MM-DDTHH:mm
+        clientId: post.client_id,
+        sourcePostId: post.id,
+        coverUrl: form.cover_url || undefined
+      });
 
-    console.log("[EditorialPostDialog] Convertendo post para Job. Payload:", Object.fromEntries(searchParams.entries()));
+      console.log("[EditorialPostDialog] Dados de conversão salvos no Store.");
 
-    // Ao converter, fechamos o diálogo atual para evitar conflitos de estado
-    onOpenChange(false);
+      // Ao converter, fechamos o diálogo atual
+      onOpenChange(false);
 
-    // Navegamos para a rota de Jobs passando os parâmetros
-    navigate({
-      to: "/jobs",
-      search: (prev: any) => ({
-        ...prev,
-        ...Object.fromEntries(searchParams.entries())
-      }) as any,
+      // Navegamos para a rota de Jobs com a flag simplificada
+      navigate({
+        to: "/jobs",
+        search: (prev: any) => ({
+          ...prev,
+          new: "true",
+          editorialPostId: post.id // Mantemos apenas para referência na URL se necessário, mas não como fonte de dados
+        }) as any,
+      });
     });
   };
 
