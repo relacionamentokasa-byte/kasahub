@@ -193,14 +193,18 @@ export function JobsBoard({
     if (isNew && stages.length > 0) {
       // Se não há modal aberto, abrimos o primeiro estágio
       if (!newStage) {
-        console.log("[JobsBoard] Abrindo modal de Novo Job via parâmetros de URL.");
+        console.log("[JobsBoard] Abrindo modal de Novo Job via parâmetros de URL. Props:", {
+          initialTitle,
+          initialDescription,
+          initialDueDate
+        });
         setNewStage(stages[0]);
       }
     } else if (!isNew && newStage) {
       // Se a URL não diz mais 'new', mas o modal está aberto (ex: fechou o modal e a URL atualizou)
       setNewStage(null);
     }
-  }, [initialOpenNew, stages, newStage]);
+  }, [initialOpenNew, stages, newStage, initialTitle, initialDescription, initialDueDate]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
