@@ -30,18 +30,23 @@ import { InlineFreelancerPicker } from "@/components/finance/InlineFreelancerPic
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
 import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
 import {
-  Receipt,
-  FileBadge,
-  BadgeCheck,
-  CheckCircle,
-  Clock,
-  Ban,
-  Filter,
-  Download,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { 
+  TrendingUp, 
+  TrendingDown, 
+  Wallet, 
+  Calendar, 
+  Filter, 
+  Download, 
   Plus,
   Search,
   MoreVertical,
   CheckCircle2,
+  Clock,
   AlertCircle,
   FileSpreadsheet,
   Upload,
@@ -54,7 +59,12 @@ import {
   Pencil,
   CreditCard,
   Barcode,
+  Receipt,
   Home,
+  FileBadge,
+  BadgeCheck,
+  CheckCircle,
+  Ban,
 } from "lucide-react";
 
 
@@ -1123,7 +1133,16 @@ function FinancialPage() {
                     )}
                   </TableCell>
                   <TableCell className="py-4 text-center">
-                    <StatusBadge status={effectiveStatus} dueDate={t.due_date} />
+                    <div className="flex flex-col items-center gap-2">
+                      <StatusBadge status={effectiveStatus} dueDate={t.due_date} />
+                      <div className="flex items-center gap-1.5">
+                        <InternalControls 
+                          transactionId={t.id}
+                          nfStatus={t.nf_status || "pendente"}
+                          boletoStatus={t.boleto_internal_status || "nao_se_aplica"}
+                        />
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center justify-end gap-1">
