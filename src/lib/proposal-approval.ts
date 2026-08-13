@@ -295,44 +295,79 @@ export async function approveProposal(
         });
       });
     } else {
-      // Padrão: 30% entrada + 70% em 30 dias (se installmentsCount legado não for usado para setup)
-      // Nota: o sistema anterior usava installments fixos, vamos manter compatibilidade ou aplicar a nova regra 30/70.
-      // O requisito diz: "30% de entrada + 70% em 30 dias. Essa deve ser a condição padrão."
-      
+      // Padrão: 30% entrada + 70% em 30 dias (se 2 parcelas) ou uniforme se mais.
+      const instCount = Number(proposal.installments || 2);
       const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
       const baseDate = new Date(firstDueRaw + "T12:00:00");
-      const thirtyDaysLater = new Date(baseDate.getTime());
-      thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
 
-      // Parcela 1 (30%)
-      transactions.push({
-        client_id: clientId,
-        proposal_id: proposal.id,
-        contract_id: contractId,
-        category_id: jobAvulsoId,
-        amount: setupAmount * 0.3,
-        due_date: firstDueRaw,
-        description: `Setup (Entrada 30%) - ${proposal.title}`,
-        status: "pending",
-        type: "income",
-        kind: "income",
-        is_recurring: false,
-      });
+      if (instCount === 1) {
+        transactions.push({
+          client_id: clientId,
+          proposal_id: proposal.id,
+          contract_id: contractId,
+          category_id: jobAvulsoId,
+          amount: setupAmount,
+          due_date: firstDueRaw,
+          description: `Setup (À vista) - ${proposal.title}`,
+          status: "pending",
+          type: "income",
+          kind: "income",
+          is_recurring: false,
+        });
+      } else if (instCount === 2) {
+        // Regra específica 30/70 para 2 parcelas
+        const thirtyDaysLater = new Date(baseDate.getTime());
+        thirtyDaysLater.setDate(thirtyDaysLater.getDate() + 30);
 
-      // Parcela 2 (70%)
-      transactions.push({
-        client_id: clientId,
-        proposal_id: proposal.id,
-        contract_id: contractId,
-        category_id: jobAvulsoId,
-        amount: setupAmount * 0.7,
-        due_date: ymd(thirtyDaysLater),
-        description: `Setup (30 dias 70%) - ${proposal.title}`,
-        status: "pending",
-        type: "income",
-        kind: "income",
-        is_recurring: false,
-      });
+        transactions.push({
+          client_id: clientId,
+          proposal_id: proposal.id,
+          contract_id: contractId,
+          category_id: jobAvulsoId,
+          amount: setupAmount * 0.3,
+          due_date: firstDueRaw,
+          description: `Setup (Entrada 30%) - ${proposal.title}`,
+          status: "pending",
+          type: "income",
+          kind: "income",
+          is_recurring: false,
+        });
+
+        transactions.push({
+          client_id: clientId,
+          proposal_id: proposal.id,
+          contract_id: contractId,
+          category_id: jobAvulsoId,
+          amount: setupAmount * 0.7,
+          due_date: ymd(thirtyDaysLater),
+          description: `Setup (30 dias 70%) - ${proposal.title}`,
+          status: "pending",
+          type: "income",
+          kind: "income",
+          is_recurring: false,
+        });
+      } else {
+        // Uniforme para 3+ parcelas
+        const installmentValue = setupAmount / instCount;
+        for (let i = 0; i < instCount; i++) {
+          const d = new Date(baseDate.getTime());
+          d.setDate(d.getDate() + (i * 30));
+          
+          transactions.push({
+            client_id: clientId,
+            proposal_id: proposal.id,
+            contract_id: contractId,
+            category_id: jobAvulsoId,
+            amount: installmentValue,
+            due_date: ymd(d),
+            description: `Setup (Parcela ${i + 1}/${instCount}) - ${proposal.title}`,
+            status: "pending",
+            type: "income",
+            kind: "income",
+            is_recurring: false,
+          });
+        }
+      }
     }
   }
 

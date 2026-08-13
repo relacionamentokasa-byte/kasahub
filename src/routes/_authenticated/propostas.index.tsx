@@ -458,7 +458,7 @@ function ProposalsPage() {
         <div>
           <span className="text-primary text-[10px] uppercase font-bold tracking-wider">Comercial · Propostas</span>
           <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            {showTrash ? "Lixeira" : "Propostas"}
+            {showTrash ? "Lixeira" : "certo, habilitamos anteriormente nas propostas a negociação especial, porem o parcelamento padrão foi removido, gostaria que o parcelamento padrão voltasse e a negociação especial também continuasse, pois ela só será usada em momentos especificos."}
           </h1>
           <p className="text-foreground/60 mt-2 max-w-xl text-sm">
             {showTrash 
