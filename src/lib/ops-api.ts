@@ -198,7 +198,7 @@ export async function fetchProjectStats(projectId: string) {
 export const JOB_STATUS_LABELS: Record<string, { label: string, color: string }> = {
   not_started: { label: 'Nova Demanda', color: '#374151' },
   in_progress: { label: 'Em Andamento', color: '#3b82f6' },
-  review: { label: 'Em Revisão', color: '#ffbc45' },
+  review: { label: 'Em Correção', color: '#ffbc45' },
   done: { label: 'Concluído', color: '#22c55e' },
   paused: { label: 'Aguardando Cliente', color: '#f97316' },
 };
@@ -394,7 +394,7 @@ function stageToStatus(stage: { name?: string | null; is_done?: boolean | null }
   if (!stage) return null;
   if (stage.is_done) return 'done';
   const n = (stage.name || '').toLowerCase();
-  if (n.includes('revis')) return 'review';
+  if (n.includes('correç') || n.includes('revis')) return 'review';
   if (n.includes('aguardando')) return 'paused';
   if (n.includes('andamento')) return 'in_progress';
   if (n.includes('nova') || n.includes('demanda')) return 'not_started';
@@ -405,7 +405,7 @@ function statusToStageId(status: string, stages: Array<{ id: string; name: strin
   const find = (pred: (s: typeof stages[number]) => boolean) => stages.find(pred)?.id ?? null;
   switch (status) {
     case 'done': return find(s => !!s.is_done);
-    case 'review': return find(s => (s.name || '').toLowerCase().includes('revis'));
+    case 'review': return find(s => (s.name || '').toLowerCase().includes('correç') || (s.name || '').toLowerCase().includes('revis'));
     case 'paused': return find(s => (s.name || '').toLowerCase().includes('aguardando'));
     case 'in_progress': return find(s => (s.name || '').toLowerCase().includes('andamento'));
     case 'not_started': {
