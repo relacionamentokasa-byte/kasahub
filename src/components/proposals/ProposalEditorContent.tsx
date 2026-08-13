@@ -460,40 +460,122 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
               {/* Parcelamento do Setup / Investimento */}
               {Number(form.one_time_investment || 0) > 0 && (
                 <div className="space-y-4 pt-2 border-t border-border/50">
-                  <Label className="text-sm font-semibold">Parcelamento do Setup</Label>
-                  <RadioGroup 
-                    value={String(form.installments || "2")} 
-                    onValueChange={val => {
-                      setForm({ ...form, installments: Number(val) });
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold">Parcelar Setup em</Label>
+                    <div className="flex items-center gap-2">
+                      <Checkbox 
+                        id="special-neg"
+                        checked={form.is_special_negotiation || false}
+                        onCheckedChange={(checked) => {
+                          const isSpecial = checked === true;
+                          const installmentsCount = Number(form.installments || 1);
+                          
+                          let newConfig = (form as any).payment_installments_config;
+                          if (!isSpecial) {
+                            const { distributeEqually } = require("@/lib/proposal-negotiation");
+                            newConfig = distributeEqually(100, installmentsCount);
+                          }
+
+                          setForm({ 
+                            ...form, 
+                            is_special_negotiation: isSpecial,
+                            payment_installments_config: newConfig
+                          } as any);
+                          setIsDirty(true);
+                        }}
+                      />
+                      <Label htmlFor="special-neg" className="text-xs font-medium cursor-pointer">Negociação especial</Label>
+                    </div>
+                  </div>
+
+                  <Select
+                    value={String(form.installments || "1")}
+                    onValueChange={(val) => {
+                      const count = Number(val);
+                      const { distributeEqually } = require("@/lib/proposal-negotiation");
+                      const newConfig = distributeEqually(100, count);
+                      
+                      setForm({ 
+                        ...form, 
+                        installments: count,
+                        payment_installments_config: form.is_special_negotiation ? (form as any).payment_installments_config : newConfig
+                      } as any);
                       setIsDirty(true);
                     }}
-                    className="flex flex-wrap gap-3"
                   >
-                    {[1, 2, 3, 4, 5, 6].map((n) => (
-                      <div key={n} className="flex items-center">
-                        <RadioGroupItem value={String(n)} id={`i-${n}`} className="sr-only" />
-                        <Label
-                          htmlFor={`i-${n}`}
-                          className={cn(
-                            "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
-                            (form.installments || 2) === n 
-                              ? "bg-primary border-primary text-black shadow-md scale-105" 
-                              : "bg-surface hover:bg-muted"
-                          )}
-                        >
-                          {n}x {n === 2 ? "(30/70)" : ""}
-                        </Label>
+                    <SelectTrigger className="w-full bg-surface border-border">
+                      <SelectValue placeholder="Selecione o parcelamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">À vista</SelectItem>
+                      {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
+                        <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {form.is_special_negotiation && (
+                    <div className="space-y-3 p-4 bg-muted/30 rounded-xl border border-border animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Customizar Porcentagens</span>
+                        {(() => {
+                          const installments = (form as any).payment_installments_config || [];
+                          const sum = installments.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
+                          const isError = Math.abs(sum - 100) > 0.01;
+                          return (
+                            <Badge variant={isError ? "destructive" : "outline"} className="text-[10px]">
+                              Total: {sum.toFixed(1)}% {isError && "(!)"}
+                            </Badge>
+                          );
+                        })()}
                       </div>
-                    ))}
-                  </RadioGroup>
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    {(form.installments || 2) === 2 
-                      ? "O padrão 30/70 será aplicado: 30% na entrada e 70% em 30 dias."
-                      : (form.installments || 2) === 1
-                        ? "Pagamento integral à vista no primeiro vencimento."
-                        : `O valor será dividido em ${form.installments} parcelas mensais.`
-                    }
-                  </p>
+                      
+                      <div className="grid gap-3">
+                        {((form as any).payment_installments_config || []).slice(0, Number(form.installments || 1)).map((inst: any, idx: number) => (
+                          <div key={idx} className="flex items-center gap-3">
+                            <span className="text-xs font-medium min-w-[70px]">{idx + 1}ª parcela:</span>
+                            <div className="relative flex-1">
+                              <Input 
+                                type="number"
+                                value={inst.percent || ""}
+                                onChange={(e) => {
+                                  const list = [...((form as any).payment_installments_config || [])];
+                                  list[idx] = { ...list[idx], percent: Number(e.target.value) };
+                                  setForm({ ...form, payment_installments_config: list } as any);
+                                  setIsDirty(true);
+                                }}
+                                className="pr-8"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
+                            </div>
+                            <div className="w-[100px] text-right text-xs font-medium">
+                              {formatCurrency((Number(form.one_time_investment || 0) * Number(inst.percent || 0)) / 100)}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {(() => {
+                        const installments = (form as any).payment_installments_config || [];
+                        const sum = installments.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
+                        if (Math.abs(sum - 100) > 0.01) {
+                          return <p className="text-[10px] text-destructive font-medium mt-2">As porcentagens devem totalizar 100%.</p>;
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  )}
+
+                  {!form.is_special_negotiation && (
+                    <div className="space-y-2">
+                      {calculateInstallmentValues(Number(form.one_time_investment || 0), (form as any).payment_installments_config || []).map((inst, idx) => (
+                        <div key={idx} className="flex justify-between text-xs text-muted-foreground">
+                          <span>{idx + 1}ª parcela:</span>
+                          <span className="font-medium text-foreground">{formatCurrency(inst.value || 0)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
