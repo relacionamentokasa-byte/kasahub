@@ -108,7 +108,11 @@ export function NewJobDialog({
       
       if (hasInitialData) {
         // Evitamos sobrescrever se as props forem as mesmas da última inicialização nesta abertura
-        const currentInit = { id: defaultEditorialPostId || 'direct', title: defaultTitle || 'no-title' };
+        const currentInit = { 
+          id: defaultEditorialPostId || 'direct', 
+          title: defaultTitle || 'no-title' 
+        };
+
         if (
           initializationRef.current.id === currentInit.id && 
           initializationRef.current.title === currentInit.title
@@ -118,10 +122,9 @@ export function NewJobDialog({
         }
 
         setForm((f) => {
-          // Se o formulário já tem um título diferente do padrão inicial e não é a primeira vez, 
-          // não sobrescrevemos o que o usuário pode ter digitado
-          if (f.title && f.title !== "" && initializationRef.current.title) {
-             return f;
+          // Se já preenchemos este formulário nesta abertura, não sobrescrevemos
+          if (initializationRef.current.id || initializationRef.current.title) {
+            return f;
           }
 
           const next = {
