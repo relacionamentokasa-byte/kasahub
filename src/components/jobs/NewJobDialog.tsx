@@ -107,7 +107,7 @@ export function NewJobDialog({
           editorialPostId: defaultEditorialPostId
         });
 
-        const newFormData = {
+        setForm({
           title: defaultTitle || "",
           description: defaultDescription || "",
           due_date: defaultDueDate || "",
@@ -120,11 +120,8 @@ export function NewJobDialog({
           priority: "normal",
           service_id: "",
           main_responsible_id: "",
-          team_involved_ids: [] as string[],
-        };
-
-        console.log("[NewJobDialog] Definindo estado inicial do formulário:", newFormData);
-        setForm(newFormData);
+          team_involved_ids: [],
+        });
         
         initializationRef.current = { 
           open: true, 
