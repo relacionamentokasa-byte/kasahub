@@ -24,9 +24,47 @@ export const DEFAULT_INSTALLMENTS: PaymentInstallment[] = [
   { id: "2", percent: 70, due_kind: "30_dias" },
 ];
 
+/**
+ * Distributes value equally across N installments, with rounding correction in the last one.
+ */
+export const distributeEqually = (total: number, count: number): PaymentInstallment[] => {
+  if (count <= 1) return [{ id: "1", percent: 100, due_kind: "entrada" }];
+  
+  const percentPerInstallment = Math.floor((100 / count) * 100) / 100;
+  const installments: PaymentInstallment[] = [];
+  
+  let currentSum = 0;
+  for (let i = 1; i < count; i++) {
+    installments.push({
+      id: String(i),
+      percent: percentPerInstallment,
+      due_kind: i === 1 ? "entrada" : `${(i - 1) * 30}_dias`
+    });
+    currentSum += percentPerInstallment;
+  }
+  
+  // Last installment gets the remainder to sum exactly 100%
+  const remainder = Math.round((100 - currentSum) * 100) / 100;
+  installments.push({
+    id: String(count),
+    percent: remainder,
+    due_kind: `${(count - 1) * 30}_dias`
+  });
+  
+  return installments;
+};
+
 export const calculateInstallmentValues = (total: number, installments: PaymentInstallment[]) => {
-  return installments.map(inst => ({
-    ...inst,
-    value: (total * inst.percent) / 100
-  }));
+  let distributedTotal = 0;
+  const results = installments.map((inst, idx) => {
+    const isLast = idx === installments.length - 1;
+    if (isLast) {
+      const lastValue = Math.round((total - distributedTotal) * 100) / 100;
+      return { ...inst, value: lastValue };
+    }
+    const val = Math.round(((total * inst.percent) / 100) * 100) / 100;
+    distributedTotal += val;
+    return { ...inst, value: val };
+  });
+  return results;
 };
