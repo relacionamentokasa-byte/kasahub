@@ -93,18 +93,16 @@ export function NewJobDialog({
 
   useEffect(() => {
     if (open) {
-      // Se estamos convertendo post editorial, forçamos o preenchimento
+      // Se estamos convertendo post editorial, forçamos o preenchimento apenas na abertura
+      // A prop defaultEditorialPostId é o sinalizador de que viemos do calendário
       const isConversion = !!defaultEditorialPostId;
       
-      if (!initializedRef.current || isConversion) {
-        console.log("[NewJobDialog] Sincronizando formulário com props (Início):", {
+      if (!initializedRef.current) {
+        console.log("[NewJobDialog] Inicializando formulário. Conversão:", isConversion, {
           defaultTitle,
           defaultDescription,
           defaultDueDate,
-          defaultClientId,
-          defaultEditorialPostId,
-          defaultCoverUrl,
-          isConversion
+          defaultClientId
         });
         
         setForm((f) => ({
@@ -120,16 +118,16 @@ export function NewJobDialog({
           editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
         }));
 
+        initializedRef.current = true;
+        
         if (isConversion) {
-          // Se for conversão, marcamos como inicializado para não entrar em loop,
-          // mas permitimos que o efeito rode novamente se as props mudarem
-          initializedRef.current = true;
-        } else {
-          initializedRef.current = true;
+          toast.success("As informações do post foram levadas para o novo Job.");
         }
       }
     } else {
       initializedRef.current = false;
+      // Resetar formulário ao fechar para não "sujar" a próxima abertura manual
+      // Mas apenas se não houver um salvamento em curso (o onSuccess já cuida do reset definitivo)
     }
   }, [
     open,
@@ -141,6 +139,7 @@ export function NewJobDialog({
     defaultContractId,
     defaultPeriod,
     defaultLaunchProductId,
+    defaultEditorial_post_id,
     defaultEditorialPostId,
     defaultCoverUrl
   ]);
@@ -337,18 +336,26 @@ export function NewJobDialog({
       
       // Se veio de um post editorial, vincula e redireciona de volta para o calendário com o cliente selecionado
       if (form.editorial_post_id) {
-        // Primeiro atualiza o post editorial com o ID do job e a descrição (copy) como briefing
+        // Primeiro atualiza o post editorial com o ID do job
         // Isso garante que o botão "Converter em Job" desapareça do diálogo de edição do post
-        await supabase
+        const { error: linkError } = await supabase
           .from("editorial_posts")
           .update({ 
             job_id: (job as any).id,
-            description: form.description 
+            // A descrição no post deve ser mantida, não sobrescrevemos com o briefing editado do job 
+            // a menos que queiramos manter sincronia total. O PRD não pede sincronia inversa.
           } as any)
           .eq("id", form.editorial_post_id);
 
+        if (linkError) {
+          console.error("[NewJobDialog] Erro ao vincular post ao job:", linkError);
+          // Não lançamos erro aqui para não invalidar a criação do Job que já foi bem sucedida
+          toast.warning("Job criado, mas houve um erro ao vincular o post editorial.");
+        } else {
+          toast.success("Job criado e post vinculado com sucesso!");
+        }
+
         qc.invalidateQueries({ queryKey: ["editorial-posts"] });
-        toast.success("Job criado e post vinculado!");
         navigate({ to: "/calendario-editorial", search: { clientId: form.client_id } as any });
       } else {
         toast.success("Job criado");
@@ -360,15 +367,15 @@ export function NewJobDialog({
         description: "",
         priority: "normal",
         due_date: "",
-        project_id: defaultProjectId ?? "",
-        client_id: defaultClientId ?? "",
+        project_id: "",
+        client_id: "",
         contract_id: "",
         service_id: "",
-        period: defaultPeriod ?? "",
+        period: "",
         main_responsible_id: "",
         team_involved_ids: [],
-        launch_product_id: defaultLaunchProductId ?? "",
-        editorial_post_id: defaultEditorialPostId ?? "",
+        launch_product_id: "",
+        editorial_post_id: "",
       });
     },
     onError: (e: Error, _, ctx) => {
