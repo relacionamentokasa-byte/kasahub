@@ -90,41 +90,52 @@ export function NewJobDialog({
   });
 
 
-  const initializationRef = useRef<{ id?: string; title?: string; open: boolean }>({ open: false });
+  const initializationRef = useRef<{ id?: string; open: boolean }>({ open: false });
 
   // Sincroniza formulário com props de entrada APENAS na abertura ou se mudar o editorial_post_id
   useEffect(() => {
     if (open) {
-      console.log("[NewJobDialog] Modal aberto. Props:", { defaultTitle, defaultEditorialPostId });
-      
       const isNewActivation = !initializationRef.current.open;
       const isDifferentPost = defaultEditorialPostId && initializationRef.current.id !== defaultEditorialPostId;
 
       if (isNewActivation || isDifferentPost) {
-        setForm((f) => ({
-          ...f,
-          title: defaultTitle || f.title || "",
-          description: defaultDescription || f.description || "",
-          due_date: defaultDueDate || f.due_date || "",
-          project_id: defaultProjectId || f.project_id || "",
-          client_id: defaultClientId || f.client_id || "",
-          contract_id: defaultContractId || f.contract_id || "",
-          period: defaultPeriod || f.period || "",
-          launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
-          editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
-        }));
+        console.log("[NewJobDialog] Populando formulário com dados de conversão:", {
+          title: defaultTitle,
+          description: defaultDescription,
+          dueDate: defaultDueDate,
+          clientId: defaultClientId,
+          editorialPostId: defaultEditorialPostId
+        });
+
+        const newFormData = {
+          title: defaultTitle || "",
+          description: defaultDescription || "",
+          due_date: defaultDueDate || "",
+          project_id: defaultProjectId || "",
+          client_id: defaultClientId || "",
+          contract_id: defaultContractId || "",
+          period: defaultPeriod || "",
+          launch_product_id: defaultLaunchProductId || "",
+          editorial_post_id: defaultEditorialPostId || "",
+          priority: "normal",
+          service_id: "",
+          main_responsible_id: "",
+          team_involved_ids: [] as string[],
+        };
+
+        console.log("[NewJobDialog] Definindo estado inicial do formulário:", newFormData);
+        setForm(newFormData);
         
         initializationRef.current = { 
           open: true, 
-          id: defaultEditorialPostId, 
-          title: defaultTitle 
+          id: defaultEditorialPostId
         };
-        console.log("[NewJobDialog] Formulário inicializado com sucesso.");
       }
     } else {
+      // Quando fechar, limpamos o ref para permitir uma nova inicialização na próxima abertura
       if (initializationRef.current.open) {
-        console.log("[NewJobDialog] Fechando e resetando.");
-        initializationRef.current = { open: false };
+        console.log("[NewJobDialog] Fechando e resetando formulário.");
+        initializationRef.current = { open: false, id: undefined };
         setForm({
           title: "",
           description: "",
@@ -200,6 +211,11 @@ export function NewJobDialog({
     if (!selectedClientId) return;
     
     setForm((f) => {
+      // Se estamos em processo de inicialização de conversão, NÃO limpamos o projeto
+      if (initializationRef.current.open && f.project_id === defaultProjectId) {
+        return f;
+      }
+
       // Se não houver projetos carregados ainda, não fazemos nada para evitar limpar precoce
       if (isFetchingProjects && projects.length === 0) return f;
 
@@ -213,10 +229,9 @@ export function NewJobDialog({
         return f;
       }
       
-      
       return {
         ...f,
-        project_id: f.project_id === defaultProjectId ? f.project_id : "",
+        project_id: "",
         launch_product_id: lockLaunchProduct ? f.launch_product_id : "",
       };
     });
@@ -593,8 +608,11 @@ export function NewJobDialog({
                   <Label className={!form.due_date ? "text-red-500" : ""}>Prazo</Label>
                   <Input 
                     type="datetime-local" 
-                    value={form.due_date} 
-                    onChange={(e) => setForm({ ...form, due_date: e.target.value })} 
+                    value={form.due_date || ""} 
+                    onChange={(e) => {
+                      console.log("[NewJobDialog] Alterando due_date manual para:", e.target.value);
+                      setForm({ ...form, due_date: e.target.value });
+                    }} 
                     className={!form.due_date ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
                   {!form.due_date && (

@@ -131,7 +131,7 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
     }
     
     // O Prazo Final no Job deve receber o scheduled_at do post
-    // Mantemos o formato datetime-local (YYYY-MM-DDTHH:mm) que o NewJobDialog espera
+    // No EditorialPostDialog, form.scheduled_at já está no formato YYYY-MM-DDTHH:mm
     searchParams.set("dueDate", form.scheduled_at);
     
     searchParams.set("editorialPostId", post.id);
