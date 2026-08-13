@@ -404,15 +404,12 @@ export function NewJobDialog({
     },
   });
 
-  console.log("[NewJobDialog] Renderizando com form.due_date:", form.due_date);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-surface border-border max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
             {form.editorial_post_id ? "Converter em job" : `Novo job${stage ? ` · ${stage.name}` : ""}`}
-            {form.due_date && <span className="text-[10px] ml-2 text-muted-foreground">(Prazo: {form.due_date})</span>}
           </DialogTitle>
         </DialogHeader>
         
@@ -606,23 +603,14 @@ export function NewJobDialog({
                 </div>
                 <div className="space-y-1.5">
                   <Label className={!form.due_date ? "text-red-500" : ""}>Prazo</Label>
-                  <input 
+                  <Input 
                     type="datetime-local" 
                     value={form.due_date || ""} 
                     onChange={(e) => {
                       console.log("[NewJobDialog] Alterando due_date manual para:", e.target.value);
                       setForm({ ...form, due_date: e.target.value });
-                    }}
-                    style={{
-                      display: 'block',
-                      width: '100%',
-                      padding: '8px',
-                      borderRadius: '6px',
-                      border: '1px solid var(--border)',
-                      backgroundColor: 'transparent',
-                      color: 'inherit'
-                    }}
-                    className={!form.due_date ? "border-red-500" : ""}
+                    }} 
+                    className={!form.due_date ? "border-red-500 focus-visible:ring-red-500" : ""}
                   />
                   {!form.due_date && (
                     <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
