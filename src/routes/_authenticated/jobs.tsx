@@ -45,6 +45,7 @@ function JobsRoute() {
         delete next.title;
         delete next.description;
         delete next.dueDate;
+        delete next.clientId;
         delete next.editorialPostId;
         delete next.coverUrl;
         return next;
