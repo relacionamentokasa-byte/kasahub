@@ -185,28 +185,22 @@ export function JobsBoard({
   const [newStage, setNewStage] = useState<JobStage | null>(null);
   const [query, setQuery] = useState("");
 
-  const lastOpenNewRef = useRef<string | boolean | undefined>(undefined);
+  
 
   // Auto-abre o dialog "Novo Job" quando vier via ?new=1 (ex: clicou em "Criar job" num produto do grid ou converteu post editorial)
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
-    if (isNew && stages.length > 0 && !newStage && lastOpenNewRef.current !== initialOpenNew) {
-      console.log("[JobsBoard] Auto-abertura disparada. Parâmetros:", {
-        initialTitle,
-        initialDescription,
-        initialDueDate,
-        initialClientId,
-        initialEditorialPostId,
-        initialCoverUrl
-      });
-      setNewStage(stages[0]);
-      lastOpenNewRef.current = initialOpenNew;
+    if (isNew && stages.length > 0) {
+      // Se não há modal aberto, abrimos o primeiro estágio
+      if (!newStage) {
+        console.log("[JobsBoard] Abrindo modal de Novo Job via parâmetros de URL.");
+        setNewStage(stages[0]);
+      }
+    } else if (!isNew && newStage) {
+      // Se a URL não diz mais 'new', mas o modal está aberto (ex: fechou o modal e a URL atualizou)
+      setNewStage(null);
     }
-    
-    if (!isNew) {
-      lastOpenNewRef.current = undefined;
-    }
-  }, [initialOpenNew, stages, newStage, initialTitle, initialDescription, initialDueDate, initialClientId, initialCoverUrl]);
+  }, [initialOpenNew, stages, newStage]);
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));

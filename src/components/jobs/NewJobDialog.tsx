@@ -89,7 +89,6 @@ export function NewJobDialog({
     editorial_post_id: "",
   });
 
-  const initializedRef = useRef(false);
 
   useEffect(() => {
     if (open) {
@@ -203,8 +202,6 @@ export function NewJobDialog({
         return f;
       }
       
-      // Se estamos inicializando (open acabou de mudar para true), não limpamos
-      if (!initializedRef.current) return f;
       
       return {
         ...f,
