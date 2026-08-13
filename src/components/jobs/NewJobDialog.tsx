@@ -603,14 +603,23 @@ export function NewJobDialog({
                 </div>
                 <div className="space-y-1.5">
                   <Label className={!form.due_date ? "text-red-500" : ""}>Prazo</Label>
-                  <Input 
+                  <input 
                     type="datetime-local" 
                     value={form.due_date || ""} 
                     onChange={(e) => {
                       console.log("[NewJobDialog] Alterando due_date manual para:", e.target.value);
                       setForm({ ...form, due_date: e.target.value });
-                    }} 
-                    className={!form.due_date ? "border-red-500 focus-visible:ring-red-500" : ""}
+                    }}
+                    style={{
+                      display: 'block',
+                      width: '100%',
+                      padding: '8px',
+                      borderRadius: '6px',
+                      border: '1px solid var(--border)',
+                      backgroundColor: 'transparent',
+                      color: 'inherit'
+                    }}
+                    className={!form.due_date ? "border-red-500" : ""}
                   />
                   {!form.due_date && (
                     <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
