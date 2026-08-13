@@ -90,45 +90,57 @@ export function NewJobDialog({
   });
 
 
+  const initializationRef = useRef<{ id?: string; title?: string; open: boolean }>({ open: false });
+
+  // Sincroniza formulário com props de entrada APENAS na abertura ou se mudar o editorial_post_id
   useEffect(() => {
     if (open) {
-      console.log("[NewJobDialog] Modal aberto. Props recebidas:", {
-        defaultTitle,
-        defaultDescription,
-        defaultDueDate,
-        defaultClientId,
-        defaultEditorialPostId
-      });
+      console.log("[NewJobDialog] Modal aberto. Props:", { defaultTitle, defaultEditorialPostId });
+      
+      const isNewActivation = !initializationRef.current.open;
+      const isDifferentPost = defaultEditorialPostId && initializationRef.current.id !== defaultEditorialPostId;
 
-      setForm((f) => ({
-        ...f,
-        title: defaultTitle || f.title || "",
-        description: defaultDescription || f.description || "",
-        due_date: defaultDueDate || f.due_date || "",
-        project_id: defaultProjectId || f.project_id || "",
-        client_id: defaultClientId || f.client_id || "",
-        contract_id: defaultContractId || f.contract_id || "",
-        period: defaultPeriod || f.period || "",
-        launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
-        editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
-      }));
+      if (isNewActivation || isDifferentPost) {
+        setForm((f) => ({
+          ...f,
+          title: defaultTitle || f.title || "",
+          description: defaultDescription || f.description || "",
+          due_date: defaultDueDate || f.due_date || "",
+          project_id: defaultProjectId || f.project_id || "",
+          client_id: defaultClientId || f.client_id || "",
+          contract_id: defaultContractId || f.contract_id || "",
+          period: defaultPeriod || f.period || "",
+          launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
+          editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
+        }));
+        
+        initializationRef.current = { 
+          open: true, 
+          id: defaultEditorialPostId, 
+          title: defaultTitle 
+        };
+        console.log("[NewJobDialog] Formulário inicializado com sucesso.");
+      }
     } else {
-      // Quando fechar, resetar o formulário para garantir que a próxima abertura (manual ou conversão) esteja limpa
-      setForm({
-        title: "",
-        description: "",
-        priority: "normal",
-        due_date: "",
-        project_id: "",
-        client_id: "",
-        contract_id: "",
-        service_id: "",
-        period: "",
-        main_responsible_id: "",
-        team_involved_ids: [] as string[],
-        launch_product_id: "",
-        editorial_post_id: "",
-      });
+      if (initializationRef.current.open) {
+        console.log("[NewJobDialog] Fechando e resetando.");
+        initializationRef.current = { open: false };
+        setForm({
+          title: "",
+          description: "",
+          priority: "normal",
+          due_date: "",
+          project_id: "",
+          client_id: "",
+          contract_id: "",
+          service_id: "",
+          period: "",
+          main_responsible_id: "",
+          team_involved_ids: [],
+          launch_product_id: "",
+          editorial_post_id: "",
+        });
+      }
     }
   }, [
     open,
@@ -140,8 +152,7 @@ export function NewJobDialog({
     defaultContractId,
     defaultPeriod,
     defaultLaunchProductId,
-    defaultEditorialPostId,
-    defaultCoverUrl
+    defaultEditorialPostId
   ]);
 
   // Projetos dependem do cliente selecionado (cascade)
