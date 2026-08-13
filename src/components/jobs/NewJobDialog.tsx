@@ -74,58 +74,62 @@ export function NewJobDialog({
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
   const [form, setForm] = useState({
-    title: defaultTitle ?? "",
-    description: defaultDescription ?? "",
+    title: "",
+    description: "",
     priority: "normal",
-    due_date: defaultDueDate ?? "",
-    project_id: defaultProjectId ?? "",
-    client_id: defaultClientId ?? "",
-    contract_id: defaultContractId ?? "",
+    due_date: "",
+    project_id: "",
+    client_id: "",
+    contract_id: "",
     service_id: "",
-    period: defaultPeriod ?? "",
+    period: "",
     main_responsible_id: "",
     team_involved_ids: [] as string[],
-    launch_product_id: defaultLaunchProductId ?? "",
-    editorial_post_id: defaultEditorialPostId ?? "",
+    launch_product_id: "",
+    editorial_post_id: "",
   });
 
   const initializedRef = useRef(false);
 
   useEffect(() => {
     if (open) {
-      // Se estamos convertendo post editorial, forçamos o preenchimento apenas na abertura
-      // A prop defaultEditorialPostId é o sinalizador de que viemos do calendário
-      const isConversion = !!defaultEditorialPostId;
-      
-      if (!initializedRef.current) {
-        console.log("[NewJobDialog] Inicializando formulário. Conversão:", isConversion, {
-          defaultTitle,
-          defaultDescription,
-          defaultDueDate,
-          defaultClientId
-        });
-        
-        setForm((f) => ({
-          ...f,
-          title: defaultTitle || f.title || "",
-          description: defaultDescription || f.description || "",
-          due_date: defaultDueDate || f.due_date || "",
-          project_id: defaultProjectId || f.project_id || "",
-          client_id: defaultClientId || f.client_id || "",
-          contract_id: defaultContractId || f.contract_id || "",
-          period: defaultPeriod || f.period || "",
-          launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
-          editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
-        }));
+      console.log("[NewJobDialog] Modal aberto. Props recebidas:", {
+        defaultTitle,
+        defaultDescription,
+        defaultDueDate,
+        defaultClientId,
+        defaultEditorialPostId
+      });
 
-        initializedRef.current = true;
-        
-        if (isConversion) {
-          toast.success("As informações do post foram levadas para o novo Job.");
-        }
-      }
+      setForm((f) => ({
+        ...f,
+        title: defaultTitle || f.title || "",
+        description: defaultDescription || f.description || "",
+        due_date: defaultDueDate || f.due_date || "",
+        project_id: defaultProjectId || f.project_id || "",
+        client_id: defaultClientId || f.client_id || "",
+        contract_id: defaultContractId || f.contract_id || "",
+        period: defaultPeriod || f.period || "",
+        launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
+        editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
+      }));
     } else {
-      initializedRef.current = false;
+      // Quando fechar, resetar o formulário para garantir que a próxima abertura (manual ou conversão) esteja limpa
+      setForm({
+        title: "",
+        description: "",
+        priority: "normal",
+        due_date: "",
+        project_id: "",
+        client_id: "",
+        contract_id: "",
+        service_id: "",
+        period: "",
+        main_responsible_id: "",
+        team_involved_ids: [] as string[],
+        launch_product_id: "",
+        editorial_post_id: "",
+      });
     }
   }, [
     open,
