@@ -90,6 +90,8 @@ export function NewJobDialog({
   });
 
 
+  const initializationRef = useRef<{ id?: string; title?: string }>({});
+
   useEffect(() => {
     if (open) {
       console.log("[NewJobDialog] Modal aberto. Props recebidas:", {
@@ -105,14 +107,16 @@ export function NewJobDialog({
       const hasInitialData = !!(defaultTitle || defaultDescription || defaultDueDate || defaultClientId);
       
       if (hasInitialData) {
-        setForm((f) => {
-          // Se já existe um editorialPostId no formulário e ele é o mesmo que recebemos,
-          // significa que já populamos este formulário para esta conversão específica.
-          // Não sobrescrevemos para não perder edições manuais do usuário antes do save.
-          if (f.editorial_post_id && f.editorial_post_id === defaultEditorialPostId) {
-            return f;
-          }
+        // Evitamos sobrescrever se as props forem as mesmas da última inicialização nesta abertura
+        const currentInit = { id: defaultEditorialPostId, title: defaultTitle };
+        if (
+          initializationRef.current.id === currentInit.id && 
+          initializationRef.current.title === currentInit.title
+        ) {
+          return;
+        }
 
+        setForm((f) => {
           const next = {
             ...f,
             title: defaultTitle || f.title || "",
@@ -128,10 +132,11 @@ export function NewJobDialog({
           console.log("[NewJobDialog] Estado do formulário populado:", next);
           return next;
         });
+        
+        initializationRef.current = currentInit;
       }
     } else {
-      // Quando fechar, resetar o formulário COMPLETO para garantir que a próxima abertura
-      // (seja manual ou outra conversão) comece do zero.
+      initializationRef.current = {};
       setForm({
         title: "",
         description: "",
