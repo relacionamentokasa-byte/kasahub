@@ -92,27 +92,15 @@ export function NewJobDialog({
 
   const initializationRef = useRef<{ id?: string; title?: string; open: boolean }>({ open: false });
 
+  // Sincroniza formulário com props de entrada APENAS na abertura ou se mudar o editorial_post_id
   useEffect(() => {
     if (open) {
-      console.log("[NewJobDialog] Modal aberto. Props recebidas:", {
-        defaultTitle,
-        defaultDescription,
-        defaultDueDate,
-        defaultClientId,
-        defaultEditorialPostId,
-        defaultProjectId
-      });
-
-      // Se já estava aberto e preenchido, e o open não mudou de false para true, 
-      // não preenchemos novamente para evitar loops de re-render limpando o form
-      if (initializationRef.current.open) {
-        return;
-      }
-
-      // Só preenche se as props existirem (conversão ou link direto)
-      const hasInitialData = !!(defaultTitle || defaultDescription || defaultDueDate || defaultClientId);
+      console.log("[NewJobDialog] Modal aberto. Props:", { defaultTitle, defaultEditorialPostId });
       
-      if (hasInitialData) {
+      const isNewActivation = !initializationRef.current.open;
+      const isDifferentPost = defaultEditorialPostId && initializationRef.current.id !== defaultEditorialPostId;
+
+      if (isNewActivation || isDifferentPost) {
         setForm((f) => ({
           ...f,
           title: defaultTitle || f.title || "",
@@ -125,14 +113,18 @@ export function NewJobDialog({
           launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
           editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
         }));
-        console.log("[NewJobDialog] Formulário preenchido com dados iniciais.");
+        
+        initializationRef.current = { 
+          open: true, 
+          id: defaultEditorialPostId, 
+          title: defaultTitle 
+        };
+        console.log("[NewJobDialog] Formulário inicializado com sucesso.");
       }
-      
-      initializationRef.current.open = true;
     } else {
       if (initializationRef.current.open) {
-        console.log("[NewJobDialog] Modal fechado. Resetando estado.");
-        initializationRef.current.open = false;
+        console.log("[NewJobDialog] Fechando e resetando.");
+        initializationRef.current = { open: false };
         setForm({
           title: "",
           description: "",
@@ -150,26 +142,18 @@ export function NewJobDialog({
         });
       }
     }
-  }, [open]);
-
-  // Sincroniza props se elas mudarem enquanto o modal já está aberto (ex: mudou de post no calendário sem fechar - raro mas possível)
-  useEffect(() => {
-    if (open && (defaultTitle || defaultDescription || defaultDueDate || defaultClientId)) {
-      setForm((f) => {
-         // Só atualiza se for um post editorial diferente
-         if (defaultEditorialPostId && f.editorial_post_id === defaultEditorialPostId) return f;
-         
-         return {
-            ...f,
-            title: defaultTitle || f.title,
-            description: defaultDescription || f.description,
-            due_date: defaultDueDate || f.due_date,
-            client_id: defaultClientId || f.client_id,
-            editorial_post_id: defaultEditorialPostId || f.editorial_post_id
-         };
-      });
-    }
-  }, [defaultTitle, defaultDescription, defaultDueDate, defaultClientId, defaultEditorialPostId, open]);
+  }, [
+    open,
+    defaultTitle,
+    defaultDescription,
+    defaultDueDate,
+    defaultProjectId,
+    defaultClientId,
+    defaultContractId,
+    defaultPeriod,
+    defaultLaunchProductId,
+    defaultEditorialPostId
+  ]);
 
   // Projetos dependem do cliente selecionado (cascade)
   const selectedClientId = form.client_id;
