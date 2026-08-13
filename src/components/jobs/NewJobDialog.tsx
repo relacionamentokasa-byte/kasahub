@@ -102,11 +102,16 @@ export function NewJobDialog({
       });
 
       // Só preenche se as props existirem (conversão ou link direto)
-      // e o formulário estiver vazio ou prestes a ser preenchido pela primeira vez nesta abertura.
-      if (defaultTitle || defaultDescription || defaultDueDate || defaultClientId) {
+      // Usamos um sinalizador para preencher apenas uma vez por abertura
+      const shouldPopulate = !!(defaultTitle || defaultDescription || defaultDueDate || defaultClientId);
+      
+      if (shouldPopulate) {
         setForm((f) => {
-          // Se o formulário já tem dados E não é uma mudança de props (mesmas props), mantemos o estado atual
-          // Isso evita sobrescrever o que o usuário digitou se houver re-render por outras razões.
+          // Se o título já está preenchido e as props não mudaram, evitamos sobrescrever
+          if (f.title === defaultTitle && f.description === defaultDescription && f.due_date === defaultDueDate) {
+            return f;
+          }
+          
           const next = {
             ...f,
             title: defaultTitle || f.title || "",
