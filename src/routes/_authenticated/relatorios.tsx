@@ -61,6 +61,10 @@ import {
   Barcode,
   Receipt,
   Home,
+  FileBadge,
+  BadgeCheck,
+  CheckCircle,
+  Ban,
 } from "lucide-react";
 
 
@@ -309,7 +313,9 @@ function FinancialPage() {
     status: "all",
     type: "all",
     categoryId: "all",
-    search: ""
+    search: "",
+    nfStatus: "all",
+    boletoStatus: "all",
   });
   const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
   const [quickChip, setQuickChip] = useState<"none" | "today" | "week" | "overdue" | "paid_month" | "missing_links">("none");
@@ -457,6 +463,9 @@ function FinancialPage() {
   })();
 
   const filteredTransactions = transactions.filter((t: any) => {
+    if (filter.nfStatus !== "all" && (t.nf_status || "pendente") !== filter.nfStatus) return false;
+    if (filter.boletoStatus !== "all" && (t.boleto_internal_status || "nao_se_aplica") !== filter.boletoStatus) return false;
+
     if (!showCancelled && t.status === "cancelled") return false;
     const matchSearch =
       t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
@@ -744,6 +753,36 @@ function FinancialPage() {
             </SelectContent>
           </Select>
         </div>
+        <div className="w-full sm:w-40 space-y-1.5">
+          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Nota Fiscal</label>
+          <Select value={filter.nfStatus || "all"} onValueChange={v => setFilter({ ...filter, nfStatus: v })}>
+            <SelectTrigger className="h-10 rounded-xl text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas NF</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="emitida">Emitida</SelectItem>
+              <SelectItem value="nao_necessaria">Não necessária</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-full sm:w-40 space-y-1.5">
+          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Boleto Interno</label>
+          <Select value={filter.boletoStatus || "all"} onValueChange={v => setFilter({ ...filter, boletoStatus: v })}>
+            <SelectTrigger className="h-10 rounded-xl text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos Boletos</SelectItem>
+              <SelectItem value="pendente">Pendente</SelectItem>
+              <SelectItem value="emitido">Emitido</SelectItem>
+              <SelectItem value="nao_se_aplica">Não se aplica</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="w-full sm:w-40 space-y-1.5">
           <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Status</label>
           <Select value={filter.status} onValueChange={v => setFilter({ ...filter, status: v })}>
@@ -1129,7 +1168,16 @@ function FinancialPage() {
                     )}
                   </TableCell>
                   <TableCell className="py-4 text-center">
-                    <StatusBadge status={effectiveStatus} dueDate={t.due_date} />
+                    <div className="flex flex-col items-center gap-2">
+                      <StatusBadge status={effectiveStatus} dueDate={t.due_date} />
+                      <div className="flex items-center gap-1.5">
+                        <InternalControls 
+                          transactionId={t.id}
+                          nfStatus={t.nf_status || "pendente"}
+                          boletoStatus={t.boleto_internal_status || "nao_se_aplica"}
+                        />
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center justify-end gap-1">
@@ -1350,5 +1398,93 @@ function StatusBadge({ status, dueDate }: { status: string; dueDate?: string | n
     <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2", cls)}>
       {label}
     </Badge>
+  );
+}
+
+function InternalControls({ 
+  transactionId, 
+  nfStatus, 
+  boletoStatus 
+}: { 
+  transactionId: string; 
+  nfStatus: string; 
+  boletoStatus: string;
+}) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (patch: any) => updateTransaction(transactionId, patch),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["finance-stats"] });
+    },
+  });
+
+  const nfConfig: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+    pendente: { label: "NF Pendente", icon: Clock, color: "text-orange-600", bg: "bg-orange-500/10" },
+    emitida: { label: "NF Emitida", icon: BadgeCheck, color: "text-emerald-600", bg: "bg-emerald-500/10" },
+    nao_necessaria: { label: "NF Não Necessária", icon: Ban, color: "text-muted-foreground", bg: "bg-muted" },
+  };
+
+  const boletoConfig: Record<string, { label: string; icon: any; color: string; bg: string }> = {
+    pendente: { label: "Boleto Pendente", icon: Clock, color: "text-orange-600", bg: "bg-orange-500/10" },
+    emitido: { label: "Boleto Emitido", icon: CheckCircle, color: "text-emerald-600", bg: "bg-emerald-500/10" },
+    nao_se_aplica: { label: "Boleto Não se Aplica", icon: Ban, color: "text-muted-foreground", bg: "bg-muted" },
+  };
+
+  const nf = nfConfig[nfStatus] || nfConfig.pendente;
+  const bol = boletoConfig[boletoStatus] || boletoConfig.nao_se_aplica;
+
+  return (
+    <div className="flex items-center gap-1.5">
+      <TooltipProvider>
+        <DropdownMenu>
+          <Tooltip>
+            <DropdownMenuTrigger asChild>
+              <TooltipTrigger asChild>
+                <button className={cn("size-6 rounded-md flex items-center justify-center transition-colors hover:opacity-80", nf.bg, nf.color)}>
+                  <nf.icon className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+            </DropdownMenuTrigger>
+            <TooltipContent>{nf.label}</TooltipContent>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem onClick={() => mutation.mutate({ nf_status: "pendente" })}>
+                <Clock className="size-4 mr-2 text-orange-600" /> Pendente
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => mutation.mutate({ nf_status: "emitida" })}>
+                <BadgeCheck className="size-4 mr-2 text-emerald-600" /> Emitida
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => mutation.mutate({ nf_status: "nao_necessaria" })}>
+                <Ban className="size-4 mr-2 text-muted-foreground" /> Não necessária
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </Tooltip>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <Tooltip>
+            <DropdownMenuTrigger asChild>
+              <TooltipTrigger asChild>
+                <button className={cn("size-6 rounded-md flex items-center justify-center transition-colors hover:opacity-80", bol.bg, bol.color)}>
+                  <bol.icon className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+            </DropdownMenuTrigger>
+            <TooltipContent>{bol.label}</TooltipContent>
+            <DropdownMenuContent align="center">
+              <DropdownMenuItem onClick={() => mutation.mutate({ boleto_internal_status: "pendente" })}>
+                <Clock className="size-4 mr-2 text-orange-600" /> Pendente
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => mutation.mutate({ boleto_internal_status: "emitido" })}>
+                <CheckCircle className="size-4 mr-2 text-emerald-600" /> Emitido
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => mutation.mutate({ boleto_internal_status: "nao_se_aplica" })}>
+                <Ban className="size-4 mr-2 text-muted-foreground" /> Não se aplica
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </Tooltip>
+        </DropdownMenu>
+      </TooltipProvider>
+    </div>
   );
 }
