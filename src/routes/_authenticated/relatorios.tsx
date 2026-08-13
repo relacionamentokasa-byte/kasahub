@@ -30,23 +30,18 @@ import { InlineFreelancerPicker } from "@/components/finance/InlineFreelancerPic
 import { InlineDuePicker } from "@/components/finance/InlineDuePicker";
 import { InlineCategoryPicker } from "@/components/finance/InlineCategoryPicker";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Wallet, 
-  Calendar, 
-  Filter, 
-  Download, 
+  Receipt,
+  FileBadge,
+  BadgeCheck,
+  CheckCircle,
+  Clock,
+  Ban,
+  Filter,
+  Download,
   Plus,
   Search,
   MoreVertical,
   CheckCircle2,
-  Clock,
   AlertCircle,
   FileSpreadsheet,
   Upload,
@@ -59,7 +54,6 @@ import {
   Pencil,
   CreditCard,
   Barcode,
-  Receipt,
   Home,
 } from "lucide-react";
 
