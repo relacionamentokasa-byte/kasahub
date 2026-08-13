@@ -245,7 +245,7 @@ type CalendarEventRow = {
 const STATUS_MAP: Record<string, { emoji: string; label: string; cls: string }> = {
   not_started: { emoji: "📥", label: "Novas Demandas", cls: "bg-[#9CA3AF] text-white border-[#9CA3AF]" },
   in_progress: { emoji: "⚙️", label: "Em Andamento", cls: "bg-[#3B82F6] text-white border-[#3B82F6]" },
-  review: { emoji: "🔍", label: "Em Revisão", cls: "bg-[var(--portal-primary)] text-white border-[var(--portal-primary)]" },
+  review: { emoji: "🔍", label: "Em Correção", cls: "bg-[var(--portal-primary)] text-white border-[var(--portal-primary)]" },
   adjustments: { emoji: "👤", label: "Aguardando Cliente", cls: "bg-[#F97316] text-white border-[#F97316]" },
   done: { emoji: "🏁", label: "Concluído", cls: "bg-[#10B981] text-white border-[#10B981]" },
   cancelled: { emoji: "❌", label: "Cancelado", cls: "bg-rose-500 text-white border-rose-500" },

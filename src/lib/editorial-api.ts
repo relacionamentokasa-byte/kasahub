@@ -57,7 +57,7 @@ export const CONTENT_TYPE_LABEL: Record<EditorialContentType, string> = {
 export const STATUS_LABEL: Record<EditorialStatus, string> = {
   planned: "Planejado",
   in_production: "Em produção",
-  review: "Revisão",
+  review: "Correção",
   approved: "Aprovado",
 };
 
