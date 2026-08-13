@@ -404,12 +404,15 @@ export function NewJobDialog({
     },
   });
 
+  console.log("[NewJobDialog] Renderizando com form.due_date:", form.due_date);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="bg-surface border-border max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
             {form.editorial_post_id ? "Converter em job" : `Novo job${stage ? ` · ${stage.name}` : ""}`}
+            {form.due_date && <span className="text-[10px] ml-2 text-muted-foreground">(Prazo: {form.due_date})</span>}
           </DialogTitle>
         </DialogHeader>
         
