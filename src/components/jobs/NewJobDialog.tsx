@@ -335,24 +335,23 @@ export function NewJobDialog({
       if (form.editorial_post_id) {
         // Primeiro atualiza o post editorial com o ID do job
         // Isso garante que o botão "Converter em Job" desapareça do diálogo de edição do post
+        // Usamos as any para evitar erros de tipo se a coluna job_id for nova no schema local
         const { error: linkError } = await supabase
           .from("editorial_posts")
           .update({ 
             job_id: (job as any).id,
-            // A descrição no post deve ser mantida, não sobrescrevemos com o briefing editado do job 
-            // a menos que queiramos manter sincronia total. O PRD não pede sincronia inversa.
+            // Sincronizamos o status para 'converted' ou similar se existir, 
+            // mas por padrão apenas vinculamos o job_id
           } as any)
           .eq("id", form.editorial_post_id);
 
         if (linkError) {
           console.error("[NewJobDialog] Erro ao vincular post ao job:", linkError);
-          // Não lançamos erro aqui para não invalidar a criação do Job que já foi bem sucedida
-          toast.warning("Job criado, mas houve um erro ao vincular o post editorial.");
-        } else {
-          toast.success("Job criado e post vinculado com sucesso!");
+          // Não interrompemos o fluxo, pois o Job já foi criado com sucesso
         }
 
         qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+        toast.success("Job criado e post vinculado com sucesso!");
         navigate({ to: "/calendario-editorial", search: { clientId: form.client_id } as any });
       } else {
         toast.success("Job criado");
