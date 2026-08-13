@@ -29,6 +29,7 @@ import {
   Copy,
   Check
 } from "lucide-react";
+import { distributeEqually, calculateInstallmentValues } from "@/lib/proposal-negotiation";
 import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
 import { ClientPicker } from "@/components/clients/ClientPicker";
