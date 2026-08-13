@@ -108,15 +108,22 @@ export function NewJobDialog({
       
       if (hasInitialData) {
         // Evitamos sobrescrever se as props forem as mesmas da última inicialização nesta abertura
-        const currentInit = { id: defaultEditorialPostId, title: defaultTitle };
+        const currentInit = { id: defaultEditorialPostId || 'direct', title: defaultTitle || 'no-title' };
         if (
           initializationRef.current.id === currentInit.id && 
           initializationRef.current.title === currentInit.title
         ) {
+          console.log("[NewJobDialog] Ignorando re-inicialização redundante.");
           return;
         }
 
         setForm((f) => {
+          // Se o formulário já tem um título diferente do padrão inicial e não é a primeira vez, 
+          // não sobrescrevemos o que o usuário pode ter digitado
+          if (f.title && f.title !== "" && initializationRef.current.title) {
+             return f;
+          }
+
           const next = {
             ...f,
             title: defaultTitle || f.title || "",
@@ -129,13 +136,14 @@ export function NewJobDialog({
             launch_product_id: defaultLaunchProductId || f.launch_product_id || "",
             editorial_post_id: defaultEditorialPostId || f.editorial_post_id || "",
           };
-          console.log("[NewJobDialog] Estado do formulário populado:", next);
+          console.log("[NewJobDialog] Estado do formulário populado com sucesso:", next);
           return next;
         });
         
         initializationRef.current = currentInit;
       }
     } else {
+      console.log("[NewJobDialog] Resetando estado e ref de inicialização.");
       initializationRef.current = {};
       setForm({
         title: "",
