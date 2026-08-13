@@ -195,9 +195,9 @@ export function NewJobDialog({
     queryFn: () => listProductsByClient(selectedClientId),
     enabled: !!selectedClientId && clientHasGrid,
   });
-  const lockedProduct = lockLaunchProduct && form.launch_product_id
+  const lockedProduct = (lockLaunchProduct || conversionData?.coverUrl) && form.launch_product_id
     ? (launchProducts.find((p) => p.id === form.launch_product_id)
-        ?? { id: form.launch_product_id, name: "Produto vinculado", image_url: null as string | null })
+        ?? { id: form.launch_product_id, name: "Produto vinculado", image_url: conversionData?.coverUrl || null })
     : null;
 
 
