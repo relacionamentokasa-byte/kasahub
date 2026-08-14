@@ -3,11 +3,12 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
-  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase, Layers, PlusCircle, FileDown,
+  Plus, Trash2, Link as LinkIcon, Check, X, Loader2, Sparkles, Search, Filter, Briefcase, Layers, PlusCircle, FileDown, Pencil, AlertTriangle,
 } from "lucide-react";
 import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
+  updateExtraDemandWithFinance,
 } from "@/lib/ops-api";
 import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction, deleteDmeBatch } from "@/lib/dme-batches-api";
 import { generateDmeBatchPdf, generateConsolidatedTxPdf } from "@/lib/dme-batch-pdf";
@@ -66,6 +67,7 @@ function DmesPage() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [creatingBatch, setCreatingBatch] = useState(false);
   const [addItemFor, setAddItemFor] = useState<any | null>(null);
+  const [editingDme, setEditingDme] = useState<any | null>(null);
 
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
@@ -690,6 +692,14 @@ function DmesPage() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setEditingDme(d)}
+                        title="Editar demanda"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
                       <Button size="icon" variant="ghost" onClick={() => { if (confirm("Excluir esta DME?")) delMut.mutate(d.id); }} className="text-red-500">
                         <Trash2 className="size-4" />
                       </Button>
@@ -719,6 +729,8 @@ function DmesPage() {
           navigate({ to: "/jobs", search: { openJobId: (job as any).id } });
         }}
       />
+
+      <EditDmeDialog dme={editingDme} onOpenChange={(o) => { if (!o) setEditingDme(null); }} />
 
       <AddDmeToBatchDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
     </div>
@@ -1010,5 +1022,206 @@ function DmeDraftRow({
         </Select>
       </div>
     </div>
+  );
+}
+
+// ============= Edição de DME (inclusive aprovada) =============
+function EditDmeDialog({ dme, onOpenChange }: { dme: any | null; onOpenChange: (o: boolean) => void }) {
+  const qc = useQueryClient();
+  const [form, setForm] = useState<Draft>(blankDraft());
+
+  const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: () => fetchClients() });
+  const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
+  const { data: contracts = [] } = useQuery({
+    queryKey: ["contracts", { clientId: form.client_id }],
+    queryFn: () => (form.client_id ? fetchContracts({ clientId: form.client_id }) : Promise.resolve([])),
+    enabled: !!form.client_id,
+  });
+
+  // Lançamento financeiro vinculado (por ID) — usado apenas para bloquear
+  // alterações quando já estiver pago.
+  const { data: linkedTx } = useQuery<any | null>({
+    queryKey: ["dme-linked-tx", dme?.id],
+    enabled: !!dme?.id,
+    queryFn: async () => {
+      const txId = dme.consolidated_transaction_id || dme.transaction_id;
+      if (txId) {
+        const { data } = await supabase.from("transactions").select("id, status, amount, due_date").eq("id", txId).maybeSingle();
+        return data ?? null;
+      }
+      const { data } = await supabase
+        .from("transactions")
+        .select("id, status, amount, due_date")
+        .eq("extra_demand_id", dme.id)
+        .neq("status", "cancelled")
+        .maybeSingle();
+      return data ?? null;
+    },
+  });
+
+  const dmeKey = dme?.id ?? "";
+  const [loadedKey, setLoadedKey] = useState("");
+  if (dme && dmeKey !== loadedKey) {
+    setLoadedKey(dmeKey);
+    setForm({
+      client_id: dme.client_id ?? "",
+      contract_id: dme.contract_id ?? "",
+      responsible_id: dme.responsible_id ?? "",
+      title: dme.title ?? "",
+      description: dme.description ?? "",
+      value: dme.value != null ? String(dme.value) : "",
+      deadline_days: dme.deadline_days != null ? String(dme.deadline_days) : "",
+      due_date: dme.due_date ?? "",
+    });
+  }
+
+  const financePaid = linkedTx?.status === "paid";
+  const isApproved = dme?.status === "approved";
+
+  const mut = useMutation({
+    mutationFn: async () => {
+      if (!dme) throw new Error("Demanda não encontrada.");
+      if (!form.title.trim()) throw new Error("Informe o título da demanda.");
+      const value = Number((form.value || "").toString().replace(",", "."));
+      if (!value || value <= 0) throw new Error("A demanda precisa ter valor maior que zero.");
+      if (!form.due_date) throw new Error("Informe a data de vencimento.");
+      return updateExtraDemandWithFinance(dme.id, {
+        title: form.title,
+        description: form.description,
+        client_id: form.client_id,
+        contract_id: form.contract_id || null,
+        responsible_id: form.responsible_id || null,
+        deadline_days: form.deadline_days ? Number(form.deadline_days) : null,
+        // Campos financeiros não são enviados quando o lançamento está pago.
+        ...(financePaid ? {} : { value, due_date: form.due_date }),
+      });
+    },
+    onSuccess: (res: any) => {
+      qc.invalidateQueries({ queryKey: ["extra_demands"] });
+      qc.invalidateQueries({ queryKey: ["transactions"] });
+      qc.invalidateQueries({ queryKey: ["dmes-consolidated-tx-groups"] });
+      qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
+      qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
+      toast.success("Demanda atualizada com sucesso.");
+      if (res?.financeSynced) toast.info("Lançamento financeiro vinculado atualizado.");
+      if (res?.financeWarning) toast.warning(res.financeWarning);
+      setLoadedKey("");
+      onOpenChange(false);
+    },
+    onError: (e: any) => toast.error(e?.message ?? "Erro ao atualizar demanda"),
+  });
+
+  return (
+    <Dialog open={!!dme} onOpenChange={(o) => { if (!o) { setLoadedKey(""); onOpenChange(false); } }}>
+      <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="size-5 text-primary" /> Editar {dme?.number_display ?? "DME"}
+          </DialogTitle>
+          <DialogDescription>
+            Atualize os dados desta demanda. O número e o status
+            {isApproved ? " (Aprovada)" : ""} permanecem inalterados.
+          </DialogDescription>
+        </DialogHeader>
+
+        {financePaid && (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 flex gap-2 text-sm text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+            <span>
+              Esta demanda possui um lançamento financeiro já pago. Não é possível alterar o valor automaticamente.
+            </span>
+          </div>
+        )}
+
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs">Cliente *</Label>
+              <Select value={form.client_id} onValueChange={(v) => setForm((f) => ({ ...f, client_id: v, contract_id: "" }))}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {clients.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs">Contrato (opcional)</Label>
+              <Select
+                value={form.contract_id || "none"}
+                onValueChange={(v) => setForm((f) => ({ ...f, contract_id: v === "none" ? "" : v }))}
+                disabled={!form.client_id}
+              >
+                <SelectTrigger><SelectValue placeholder="Sem contrato" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Avulsa (sem contrato)</SelectItem>
+                  {contracts.map((c: any) => (
+                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs">Título *</Label>
+            <Input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} />
+          </div>
+
+          <div>
+            <Label className="text-xs">Descrição (escopo)</Label>
+            <Textarea rows={3} value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} />
+          </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label className="text-xs">Valor *</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={form.value}
+                disabled={financePaid}
+                onChange={(e) => setForm((f) => ({ ...f, value: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label className="text-xs">Prazo (dias)</Label>
+              <Input type="number" value={form.deadline_days} onChange={(e) => setForm((f) => ({ ...f, deadline_days: e.target.value }))} />
+            </div>
+            <div>
+              <Label className="text-xs">Vencimento da cobrança *</Label>
+              <Input
+                type="date"
+                value={form.due_date}
+                disabled={financePaid}
+                onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label className="text-xs">Responsável interno</Label>
+            <Select value={form.responsible_id || "none"} onValueChange={(v) => setForm((f) => ({ ...f, responsible_id: v === "none" ? "" : v }))}>
+              <SelectTrigger><SelectValue placeholder="Quem cuida desta DME?" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Sem responsável</SelectItem>
+                {profiles.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name || "Sem nome"}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={() => { setLoadedKey(""); onOpenChange(false); }}>Cancelar</Button>
+          <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="gap-2">
+            {mut.isPending && <Loader2 className="size-4 animate-spin" />}
+            Salvar alterações
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
