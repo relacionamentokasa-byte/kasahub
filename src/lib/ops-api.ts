@@ -863,7 +863,7 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
 
   // 4. Atualizar a DME (status e histórico de aprovação são preservados —
   //    nenhum campo de status/approved_at é enviado).
-  const dmePatch: Record<string, any> = {};
+  const dmePatch: Database["public"]["Tables"]["extra_demands"]["Update"] & Record<string, any> = {};
   if (patch.title !== undefined) dmePatch.title = patch.title.trim();
   if (patch.description !== undefined) dmePatch.description = patch.description?.trim() || null;
   if (patch.client_id !== undefined) dmePatch.client_id = patch.client_id;
@@ -875,7 +875,7 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
 
   const { data: updated, error: updErr } = await supabase
     .from("extra_demands")
-    .update(dmePatch)
+    .update(dmePatch as any)
     .eq("id", id)
     .select()
     .single();
@@ -886,7 +886,7 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
   let financeWarning: string | null = null;
 
   if (linkedTx && linkedTx.status !== "paid" && linkedTx.status !== "cancelled" && (valueChanged || dueDateChanged)) {
-    const txPatch: Record<string, any> = {};
+    const txPatch: Database["public"]["Tables"]["transactions"]["Update"] & Record<string, any> = {};
 
     if (dueDateChanged && !isConsolidated) txPatch.due_date = nextDueDate;
 
@@ -913,7 +913,7 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
     }
 
     if (Object.keys(txPatch).length > 0) {
-      const { error: txErr } = await supabase.from("transactions").update(txPatch).eq("id", linkedTx.id);
+      const { error: txErr } = await supabase.from("transactions").update(txPatch as any).eq("id", linkedTx.id);
       if (txErr) {
         // Reverte a DME para preservar a consistência DME ↔ financeiro.
         await supabase
