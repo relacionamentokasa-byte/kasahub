@@ -104,7 +104,8 @@ export function NewJobDialog({
         // Fluxo de CONVERSÃO (Prioridade máxima)
         setForm({
           title: conversionData.title,
-          description: conversionData.briefing,
+          description: "", // Resetamos briefing para que vá para as observações
+          operational_observations: conversionData.briefing, // O briefing do calendário vai para observações operacionais
           due_date: conversionData.dueDate,
           client_id: conversionData.clientId,
           editorial_post_id: conversionData.sourcePostId,
