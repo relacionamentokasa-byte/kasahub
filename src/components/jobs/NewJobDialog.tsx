@@ -432,12 +432,23 @@ export function NewJobDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label htmlFor="job-description-field">BRIEFING</Label>
+            <Label htmlFor="job-description-field">BRIEFING (Principal)</Label>
             <Textarea 
               id="job-description-field"
               value={form.description} 
               onChange={(e) => setForm({ ...form, description: e.target.value })} 
-              placeholder="Descreva a demanda..." 
+              placeholder="Briefing principal da demanda..." 
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="job-observations-field">OBSERVAÇÕES OPERACIONAIS</Label>
+            <Textarea 
+              id="job-observations-field"
+              value={form.operational_observations} 
+              onChange={(e) => setForm({ ...form, operational_observations: e.target.value })} 
+              placeholder="Referências, links, detalhes extras (mapeado do calendário)..." 
               rows={4}
             />
           </div>
