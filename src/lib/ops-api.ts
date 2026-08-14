@@ -885,7 +885,8 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
   let financeSynced = false;
   let financeWarning: string | null = null;
 
-  if (linkedTx && linkedTx.status !== "paid" && linkedTx.status !== "cancelled" && (valueChanged || dueDateChanged)) {
+  const titleChanged = patch.title !== undefined && patch.title.trim() !== dme.title;
+  if (linkedTx && linkedTx.status !== "paid" && linkedTx.status !== "cancelled" && (valueChanged || dueDateChanged || titleChanged)) {
     const txPatch: Database["public"]["Tables"]["transactions"]["Update"] & Record<string, any> = {};
 
     if (dueDateChanged && !isConsolidated) txPatch.due_date = nextDueDate;
