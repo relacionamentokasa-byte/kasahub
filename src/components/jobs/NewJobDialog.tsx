@@ -149,6 +149,7 @@ export function NewJobDialog({
         setForm({
           title: "",
           description: "",
+          operational_observations: "",
           priority: "normal",
           due_date: "",
           project_id: "",
@@ -296,6 +297,7 @@ export function NewJobDialog({
       const payload = {
         title: form.title,
         description: form.description || null,
+        operational_observations: form.operational_observations || null,
         priority: form.priority,
         due_date: form.due_date || null,
         project_id: form.project_id || null,
@@ -387,6 +389,7 @@ export function NewJobDialog({
       setForm({
         title: "",
         description: "",
+        operational_observations: "",
         priority: "normal",
         due_date: "",
         project_id: "",
