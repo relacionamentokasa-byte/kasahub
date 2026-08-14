@@ -76,7 +76,8 @@ export function NewJobDialog({
 
   const [form, setForm] = useState({
     title: "",
-    description: "",
+    description: "", // Campo 'description' do banco (Briefing)
+    operational_observations: "", // Campo 'operational_observations' do banco
     priority: "normal",
     due_date: "",
     project_id: "",
@@ -104,7 +105,8 @@ export function NewJobDialog({
         // Fluxo de CONVERSÃO (Prioridade máxima)
         setForm({
           title: conversionData.title,
-          description: conversionData.briefing,
+          description: "", // Campo 'description' (Briefing principal) - mantemos limpo para conversão
+          operational_observations: conversionData.briefing, // Briefing do calendário mapeado para 'operational_observations'
           due_date: conversionData.dueDate,
           client_id: conversionData.clientId,
           editorial_post_id: conversionData.sourcePostId,
@@ -122,6 +124,7 @@ export function NewJobDialog({
         setForm({
           title: defaultTitle || "",
           description: defaultDescription || "",
+          operational_observations: "",
           due_date: defaultDueDate || "",
           project_id: defaultProjectId || "",
           client_id: defaultClientId || "",
@@ -146,6 +149,7 @@ export function NewJobDialog({
         setForm({
           title: "",
           description: "",
+          operational_observations: "",
           priority: "normal",
           due_date: "",
           project_id: "",
@@ -293,6 +297,7 @@ export function NewJobDialog({
       const payload = {
         title: form.title,
         description: form.description || null,
+        operational_observations: form.operational_observations || null,
         priority: form.priority,
         due_date: form.due_date || null,
         project_id: form.project_id || null,
@@ -384,6 +389,7 @@ export function NewJobDialog({
       setForm({
         title: "",
         description: "",
+        operational_observations: "",
         priority: "normal",
         due_date: "",
         project_id: "",
@@ -415,8 +421,9 @@ export function NewJobDialog({
         
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Título do Job</Label>
+            <Label htmlFor="job-title-field">Título do Job</Label>
             <Input 
+              id="job-title-field"
               value={form.title} 
               onChange={(e) => setForm({ ...form, title: e.target.value })} 
               placeholder="Ex: Criação de Logo" 
@@ -425,11 +432,23 @@ export function NewJobDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>BRIEFING</Label>
+            <Label htmlFor="job-description-field">BRIEFING (Principal)</Label>
             <Textarea 
+              id="job-description-field"
               value={form.description} 
               onChange={(e) => setForm({ ...form, description: e.target.value })} 
-              placeholder="Descreva a demanda..." 
+              placeholder="Briefing principal da demanda..." 
+              rows={3}
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="job-observations-field">OBSERVAÇÕES OPERACIONAIS</Label>
+            <Textarea 
+              id="job-observations-field"
+              value={form.operational_observations} 
+              onChange={(e) => setForm({ ...form, operational_observations: e.target.value })} 
+              placeholder="Referências, links, detalhes extras (mapeado do calendário)..." 
               rows={4}
             />
           </div>
