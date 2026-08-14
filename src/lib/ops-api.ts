@@ -789,6 +789,166 @@ export async function updateExtraDemand(id: string, patch: Database["public"]["T
   return data;
 }
 
+export type DmeEditPatch = {
+  title?: string;
+  description?: string | null;
+  client_id?: string;
+  contract_id?: string | null;
+  responsible_id?: string | null;
+  value?: number;
+  due_date?: string | null;
+  deadline_days?: number | null;
+};
+
+/**
+ * Edita uma DME (inclusive já aprovada) preservando status, ID e histórico de
+ * aprovação, e mantendo o lançamento financeiro VINCULADO sincronizado.
+ *
+ * Regras:
+ * - Nunca cria nova DME nem novo lançamento financeiro.
+ * - O vínculo com o financeiro é sempre por ID (`transaction_id` /
+ *   `consolidated_transaction_id`), nunca por valor/nome/cliente/data.
+ * - Financeiro pago: bloqueia alteração de valor/vencimento.
+ * - Status do financeiro, `nf_status` e `boleto_internal_status` nunca são
+ *   alterados automaticamente.
+ */
+export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPatch) {
+  // 1. Estado atual da DME
+  const { data: current, error: curErr } = await supabase
+    .from("extra_demands")
+    .select("id, title, description, value, due_date, status, transaction_id, consolidated_transaction_id, number_display")
+    .eq("id", id)
+    .single();
+  if (curErr) throw curErr;
+  const dme = current as any;
+
+  const nextValue = patch.value !== undefined ? Number(patch.value) : Number(dme.value);
+  const nextDueDate = patch.due_date !== undefined ? patch.due_date : dme.due_date;
+  const valueChanged = Number(dme.value) !== nextValue;
+  const dueDateChanged = (dme.due_date ?? null) !== (nextDueDate ?? null);
+
+  if (!nextValue || nextValue <= 0) throw new Error("Toda DME precisa ter um valor maior que zero.");
+  if (!nextDueDate) throw new Error("Informe a data de vencimento da cobrança.");
+
+  // 2. Localizar o lançamento financeiro REALMENTE vinculado (por ID)
+  const linkedTxId: string | null = dme.consolidated_transaction_id || dme.transaction_id || null;
+  let linkedTx: any = null;
+  if (linkedTxId) {
+    const { data: tx } = await supabase
+      .from("transactions")
+      .select("id, amount, due_date, status, description")
+      .eq("id", linkedTxId)
+      .maybeSingle();
+    linkedTx = tx ?? null;
+  }
+  if (!linkedTx && dme.status === "approved") {
+    // Fallback pelo vínculo estrutural (FK extra_demand_id) — ainda é vínculo por ID.
+    const { data: tx } = await supabase
+      .from("transactions")
+      .select("id, amount, due_date, status, description")
+      .eq("extra_demand_id", id)
+      .neq("status", "cancelled")
+      .maybeSingle();
+    linkedTx = tx ?? null;
+  }
+
+  const isConsolidated = !!dme.consolidated_transaction_id && linkedTx?.id === dme.consolidated_transaction_id;
+
+  // 3. Proteção: financeiro já pago
+  if (linkedTx && linkedTx.status === "paid" && (valueChanged || dueDateChanged)) {
+    throw new Error(
+      "Esta demanda possui um lançamento financeiro já pago. Não é possível alterar o valor automaticamente.",
+    );
+  }
+
+  // 4. Atualizar a DME (status e histórico de aprovação são preservados —
+  //    nenhum campo de status/approved_at é enviado).
+  const dmePatch: Record<string, any> = {};
+  if (patch.title !== undefined) dmePatch.title = patch.title.trim();
+  if (patch.description !== undefined) dmePatch.description = patch.description?.trim() || null;
+  if (patch.client_id !== undefined) dmePatch.client_id = patch.client_id;
+  if (patch.contract_id !== undefined) dmePatch.contract_id = patch.contract_id || null;
+  if (patch.responsible_id !== undefined) dmePatch.responsible_id = patch.responsible_id || null;
+  if (patch.deadline_days !== undefined) dmePatch.deadline_days = patch.deadline_days ?? null;
+  if (valueChanged) dmePatch.value = nextValue;
+  if (dueDateChanged) dmePatch.due_date = nextDueDate;
+
+  const { data: updated, error: updErr } = await supabase
+    .from("extra_demands")
+    .update(dmePatch)
+    .eq("id", id)
+    .select()
+    .single();
+  if (updErr) throw updErr;
+
+  // 5. Sincronizar o lançamento EXISTENTE (nunca criar outro)
+  let financeSynced = false;
+  let financeWarning: string | null = null;
+
+  if (linkedTx && linkedTx.status !== "paid" && linkedTx.status !== "cancelled" && (valueChanged || dueDateChanged)) {
+    const txPatch: Record<string, any> = {};
+
+    if (dueDateChanged && !isConsolidated) txPatch.due_date = nextDueDate;
+
+    if (valueChanged) {
+      if (isConsolidated) {
+        // Recalcula o total do lançamento consolidado a partir das DMEs vinculadas.
+        const { data: siblings } = await supabase
+          .from("extra_demands")
+          .select("value")
+          .eq("consolidated_transaction_id", linkedTx.id);
+        txPatch.amount = (siblings ?? []).reduce((acc: number, s: any) => acc + Number(s.value || 0), 0);
+      } else {
+        txPatch.amount = nextValue;
+      }
+    }
+
+    // Descrição só é sincronizada quando o lançamento é exclusivo da DME e a
+    // relação de descrição já existe hoje (número + título).
+    if (!isConsolidated && patch.title !== undefined && dme.number_display) {
+      const legacy = `${dme.number_display} - ${dme.title}`;
+      if ((linkedTx.description || "") === legacy) {
+        txPatch.description = `${dme.number_display} - ${dmePatch.title ?? dme.title}`;
+      }
+    }
+
+    if (Object.keys(txPatch).length > 0) {
+      const { error: txErr } = await supabase.from("transactions").update(txPatch).eq("id", linkedTx.id);
+      if (txErr) {
+        // Reverte a DME para preservar a consistência DME ↔ financeiro.
+        await supabase
+          .from("extra_demands")
+          .update({ value: dme.value, due_date: dme.due_date })
+          .eq("id", id);
+        throw new Error(
+          "Falha ao atualizar o lançamento financeiro vinculado. A alteração de valor/vencimento foi revertida para manter a consistência.",
+        );
+      }
+      financeSynced = true;
+      if (isConsolidated) {
+        financeWarning =
+          "Esta DME faz parte de uma cobrança consolidada: o total foi recalculado, mas revise Nota Fiscal e Boleto do lançamento.";
+      }
+    }
+  } else if (!linkedTx && (valueChanged || dueDateChanged) && dme.status === "approved") {
+    financeWarning = "Nenhum lançamento financeiro vinculado foi encontrado para esta DME.";
+  }
+
+  await logAudit("update", "dme", id, {
+    value: dme.value,
+    due_date: dme.due_date,
+    title: dme.title,
+    description: dme.description,
+  }, {
+    ...dmePatch,
+    finance_transaction_id: linkedTx?.id ?? null,
+    finance_synced: financeSynced,
+  });
+
+  return { dme: updated, financeSynced, financeWarning, financePaid: linkedTx?.status === "paid" };
+}
+
+
 export async function deleteExtraDemand(id: string) {
   const { error } = await supabase.from("extra_demands").delete().eq("id", id);
   if (error) throw error;
