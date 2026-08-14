@@ -425,8 +425,9 @@ export function NewJobDialog({
           </div>
 
           <div className="space-y-1.5">
-            <Label>BRIEFING</Label>
+            <Label htmlFor="job-description-field">BRIEFING</Label>
             <Textarea 
+              id="job-description-field"
               value={form.description} 
               onChange={(e) => setForm({ ...form, description: e.target.value })} 
               placeholder="Descreva a demanda..." 
