@@ -76,7 +76,8 @@ export function NewJobDialog({
 
   const [form, setForm] = useState({
     title: "",
-    description: "",
+    description: "", // Campo 'description' do banco (Briefing)
+    operational_observations: "", // Campo 'operational_observations' do banco
     priority: "normal",
     due_date: "",
     project_id: "",
