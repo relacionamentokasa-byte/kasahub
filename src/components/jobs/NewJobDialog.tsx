@@ -415,8 +415,9 @@ export function NewJobDialog({
         
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <Label>Título do Job</Label>
+            <Label htmlFor="job-title-field">Título do Job</Label>
             <Input 
+              id="job-title-field"
               value={form.title} 
               onChange={(e) => setForm({ ...form, title: e.target.value })} 
               placeholder="Ex: Criação de Logo" 
