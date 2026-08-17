@@ -4,6 +4,7 @@ export type DmeBatch = {
   id: string;
   client_id: string;
   public_token: string;
+  friendly_number: string;
   status: "pending" | "approved" | "rejected" | "cancelled";
   total_value: number;
   consolidated_transaction_id: string | null;
@@ -26,7 +27,7 @@ export async function createDmeBatch(input: {
 
   const { data: dmes, error: dmesErr } = await supabase
     .from("extra_demands")
-    .select("id, client_id, value, status, due_date, transaction_id, consolidated_transaction_id")
+    .select("id, client_id, value, status, due_date, transaction_id, consolidated_transaction_id, number_display")
     .in("id", input.extra_demand_ids);
   if (dmesErr) throw dmesErr;
   if (!dmes?.length) throw new Error("DMEs não encontradas.");
@@ -56,7 +57,7 @@ export async function createDmeBatch(input: {
       notes: input.notes ?? null,
       created_by: user?.id ?? null,
     })
-    .select()
+    .select("*, friendly_number")
     .single();
   if (bErr) throw bErr;
 
@@ -81,11 +82,11 @@ export async function createDmeBatch(input: {
       .eq("status", "pending");
   }
 
-  const batchShort = String((batch as any).id).slice(0, 8);
+  const batchNumber = (batch as any).friendly_number || String((batch as any).id).slice(0, 8);
   const { data: consolidatedTx, error: txErr } = await supabase
     .from("transactions")
     .insert({
-      description: `Cobrança consolidada — ${dmes.length} DMEs (Lote ${batchShort})`,
+      description: `Cobrança consolidada — ${dmes.length} DMEs (Lote ${batchNumber})`,
       amount: total,
       type: "income",
       kind: "income",
@@ -216,7 +217,7 @@ export async function addDmeToConsolidatedBatch(input: {
 
   const { data: batch, error: bErr } = await supabase
     .from("dme_batches" as any)
-    .select("id, client_id, total_value, consolidated_transaction_id, status")
+    .select("id, client_id, total_value, consolidated_transaction_id, status, friendly_number")
     .eq("id", input.batch_id)
     .maybeSingle();
   if (bErr) throw bErr;
@@ -293,7 +294,7 @@ export async function addDmeToConsolidatedBatch(input: {
 export async function fetchBatchForDme(extra_demand_id: string) {
   const { data, error } = await supabase
     .from("dme_batch_items" as any)
-    .select("batch_id, dme_batches(id, status, total_value, consolidated_transaction_id, client_id)")
+    .select("batch_id, dme_batches(id, status, total_value, consolidated_transaction_id, client_id, friendly_number)")
     .eq("extra_demand_id", extra_demand_id)
     .maybeSingle();
   if (error) throw error;

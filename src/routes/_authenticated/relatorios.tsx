@@ -1032,7 +1032,13 @@ function FinancialPage() {
                         className="font-semibold text-sm text-left hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer"
                         title="Editar lançamento"
                       >
-                        {t.description}
+                        {(() => {
+                          const dme = (t as any).extra_demands;
+                          if (dme) {
+                            return `${dme.number_display} - ${dme.title}`;
+                          }
+                          return t.description;
+                        })()}
                       </button>
                       {isNaoOp && (
                         <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
