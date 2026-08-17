@@ -1034,9 +1034,17 @@ function FinancialPage() {
                       >
                         {(() => {
                           const dme = (t as any).extra_demands;
+                          const batch = (t as any).dme_batches;
+                          const batchData = Array.isArray(batch) ? batch[0] : batch;
+
                           if (dme) {
                             return `${dme.number_display} - ${dme.title}`;
                           }
+
+                          if (batchData?.friendly_number) {
+                            return `Lote ${batchData.friendly_number}`;
+                          }
+
                           return t.description;
                         })()}
                       </button>
