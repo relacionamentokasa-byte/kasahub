@@ -1042,7 +1042,9 @@ function FinancialPage() {
                           }
 
                           if (batchData?.friendly_number) {
-                            return `Lote ${batchData.friendly_number}`;
+                            const count = batchData.items_count?.[0]?.count || 0;
+                            const formattedFriendly = String(batchData.friendly_number).padStart(4, '0');
+                            return `Cobrança consolidada — ${count} DMEs (Lote ${formattedFriendly})`;
                           }
 
                           return t.description;
