@@ -313,6 +313,15 @@ function DmesPage() {
     }
   }
 
+  async function handleDownloadSinglePdf(dmeId: string) {
+    try {
+      await generateSingleDmePdf(dmeId);
+      toast.success("PDF da DME gerado.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao gerar PDF.");
+    }
+  }
+
 
   return (
     <div className="p-6 lg:p-10 max-w-[1500px] mx-auto space-y-6">
