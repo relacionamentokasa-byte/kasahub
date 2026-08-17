@@ -234,13 +234,18 @@ function DmesPage() {
     },
   });
   const deleteBatchMut = useMutation({
-    mutationFn: (id: string) => deleteDmeBatch(id),
-    onSuccess: () => {
+    mutationFn: ({ id, restore }: { id: string, restore: boolean }) => deleteDmeBatch(id, restore),
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Lote excluído.");
+      
+      const msg = data.count_restored > 0 
+        ? `Lote ${data.friendly_number} excluído. ${data.count_restored} lançamento(s) financeiro(s) restaurado(s).`
+        : `Lote ${data.friendly_number} excluído.`;
+      toast.success(msg);
+      setUnconsolidatingBatch(null);
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir lote."),
   });
