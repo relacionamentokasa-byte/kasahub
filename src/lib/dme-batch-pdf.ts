@@ -146,6 +146,83 @@ async function drawPdfFooter(
 
 export type DmeBatchPdfMode = "approval" | "approved" | "all";
 
+/**
+ * Gera um PDF para uma única DME individualmente.
+ */
+export async function generateSingleDmePdf(dmeId: string): Promise<void> {
+  const { data: dme, error } = await supabase
+    .from("extra_demands")
+    .select("*, clients(name, company, logo_url)")
+    .eq("id", dmeId)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!dme) throw new Error("DME não encontrada.");
+
+  const { data: agency } = await supabase
+    .from("agency_settings")
+    .select("name, logo_url, dme_pdf_footer")
+    .maybeSingle();
+
+  const d = dme as any;
+  const clientLogo = await imageToDataURL(d.clients?.logo_url);
+
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const fonts = await registerBoletimFonts(doc);
+  const FONT_TITLE = fonts.funnel ? "Funnel" : "helvetica";
+  const FONT_BODY = fonts.onest ? "Onest" : "helvetica";
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 40;
+
+  // Header
+  doc.setFillColor(12, 22, 24);
+  doc.rect(0, 0, pageW, 90, "F");
+  doc.setTextColor(255, 188, 69);
+  doc.setFont(FONT_TITLE, "bold");
+  doc.setFontSize(10);
+  doc.text("DEMANDA EXTRA INDIVIDUAL", margin, 35);
+  doc.setTextColor(244, 247, 245);
+  doc.setFont(FONT_TITLE, "bold");
+  doc.setFontSize(20);
+  doc.text(`DME ${d.number_display || ""}`, margin, 60);
+  doc.setFont(FONT_BODY, "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(156, 177, 176);
+  doc.text(sanitize(d.clients?.company || d.clients?.name || "Cliente"), margin, 78);
+
+  drawClientLogo(doc, clientLogo, pageW, margin);
+
+  if (agency?.name && !clientLogo) {
+    doc.setFontSize(9);
+    doc.text(sanitize(agency.name), pageW - margin, 35, { align: "right" });
+  }
+
+  autoTable(doc, {
+    startY: 120,
+    head: [["#", "Demanda", "Prazo", "Valor"]],
+    body: [[
+      sanitize(d.number_display || ""),
+      sanitize([d.title, d.description].filter(Boolean).join("\n")),
+      d.due_date ? new Date(d.due_date + "T00:00:00").toLocaleDateString("pt-BR") : "—",
+      brl(Number(d.value || 0)),
+    ]],
+    styles: { font: FONT_BODY, fontSize: 9, cellPadding: 8, textColor: [15, 23, 25], lineColor: [228, 232, 230], lineWidth: 0.5 },
+    headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold", fontSize: 9, font: FONT_TITLE },
+    columnStyles: {
+      0: { cellWidth: 60, fontStyle: "bold" },
+      2: { cellWidth: 70, halign: "center" },
+      3: { cellWidth: 90, halign: "right", fontStyle: "bold" },
+    },
+    margin: { left: margin, right: margin },
+  });
+
+  await drawPdfFooter(doc, { footerText: agency?.dme_pdf_footer, pageW, margin, FONT_TITLE, FONT_BODY });
+
+  const fileName = sanitize(`${d.number_display || "DME"} - ${d.title || "Demanda"}`)
+    .replace(/[/\\?%*:|"<>]/g, "-");
+  doc.save(`${fileName}.pdf`);
+}
+
 export async function generateDmeBatchPdf(
   batchId: string,
   mode: DmeBatchPdfMode = "all",
