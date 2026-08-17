@@ -1361,6 +1361,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           due_date: string | null
+          friendly_number: string | null
           id: string
           notes: string | null
           public_token: string
@@ -1378,6 +1379,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           due_date?: string | null
+          friendly_number?: string | null
           id?: string
           notes?: string | null
           public_token?: string
@@ -1395,6 +1397,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           due_date?: string | null
+          friendly_number?: string | null
           id?: string
           notes?: string | null
           public_token?: string
