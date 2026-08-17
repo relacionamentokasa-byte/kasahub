@@ -18,7 +18,7 @@ export async function fetchTransactions(filters: {
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), clients(id, name, company, logo_url), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)")
+    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches!dme_batches_consolidated_transaction_id_fkey(id, friendly_number), clients(id, name, company, logo_url), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)")
     .order("due_date", { ascending: false });
 
   if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);

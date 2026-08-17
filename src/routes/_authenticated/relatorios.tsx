@@ -1034,9 +1034,20 @@ function FinancialPage() {
                       >
                         {(() => {
                           const dme = (t as any).extra_demands;
+                          const batch = (t as any).dme_batches;
+
                           if (dme) {
                             return `${dme.number_display} - ${dme.title}`;
                           }
+
+                          if (batch) {
+                            const friendlyNumber = batch.friendly_number;
+                            // Se tiver friendly_number, usa o formato "Lote XXX"
+                            if (friendlyNumber) {
+                              return `Lote ${friendlyNumber}`;
+                            }
+                          }
+
                           return t.description;
                         })()}
                       </button>
