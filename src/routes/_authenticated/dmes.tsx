@@ -753,6 +753,13 @@ function DmesPage() {
       <EditDmeDialog dme={editingDme} onOpenChange={(o) => { if (!o) setEditingDme(null); }} />
 
       <AddDmeToBatchDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
+
+      <UnconsolidateDialog 
+        batch={unconsolidatingBatch} 
+        onOpenChange={(o) => { if (!o) setUnconsolidatingBatch(null); }}
+        isPending={deleteBatchMut.isPending}
+        onConfirm={(restore) => deleteBatchMut.mutate({ id: unconsolidatingBatch.id, restore })}
+      />
     </div>
   );
 }
