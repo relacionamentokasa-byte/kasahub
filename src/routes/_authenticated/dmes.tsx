@@ -95,7 +95,7 @@ function DmesPage() {
     },
   });
 
-  const { data: batchByDme = {} } = useQuery<Record<string, { id: string; status: string; total_value: number; consolidated_transaction_id: string | null }>>({
+  const { data: batchByDme = {} } = useQuery<Record<string, { id: string; status: string; total_value: number; consolidated_transaction_id: string | null; friendly_number?: string }>>({
     queryKey: ["batches-by-dme", dmeIdsKey],
     enabled: dmeIdsKey.length > 0,
     staleTime: 30_000,
@@ -104,7 +104,7 @@ function DmesPage() {
       const ids = dmeIdsKey.split(",");
       const { data, error } = await supabase
         .from("dme_batch_items" as any)
-        .select("extra_demand_id, dme_batches(id, status, total_value, consolidated_transaction_id)")
+        .select("extra_demand_id, dme_batches(id, status, total_value, consolidated_transaction_id, friendly_number)")
         .in("extra_demand_id", ids);
       if (error) throw error;
       const map: Record<string, any> = {};
@@ -397,7 +397,7 @@ function DmesPage() {
               return (
                 <div key={b.id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold truncate">{clientName}</div>
+                    <div className="text-sm font-semibold truncate">{clientName} · Lote {b.friendly_number || b.id.slice(0, 8)}</div>
                     <div className="text-xs text-muted-foreground">
                       {count} DME{count !== 1 ? "s" : ""} no lote · total {brl(Number(b.total_value || 0))}
                     </div>
