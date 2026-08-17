@@ -77,7 +77,7 @@ export function NewJobDialog({
   const [form, setForm] = useState({
     title: "",
     description: "", // Campo 'description' do banco (Briefing)
-    operational_observations: "", // Campo 'operational_observations' do banco
+    
     priority: "normal",
     due_date: "",
     project_id: "",
@@ -105,8 +105,7 @@ export function NewJobDialog({
         // Fluxo de CONVERSÃO (Prioridade máxima)
         setForm({
           title: conversionData.title,
-          description: "", // Campo 'description' (Briefing principal) - mantemos limpo para conversão
-          operational_observations: conversionData.briefing, // Briefing do calendário mapeado para 'operational_observations'
+          description: conversionData.briefing, // Briefing do calendário mapeado para 'description'
           due_date: conversionData.dueDate,
           client_id: conversionData.clientId,
           editorial_post_id: conversionData.sourcePostId,
@@ -124,7 +123,6 @@ export function NewJobDialog({
         setForm({
           title: defaultTitle || "",
           description: defaultDescription || "",
-          operational_observations: "",
           due_date: defaultDueDate || "",
           project_id: defaultProjectId || "",
           client_id: defaultClientId || "",
@@ -149,7 +147,6 @@ export function NewJobDialog({
         setForm({
           title: "",
           description: "",
-          operational_observations: "",
           priority: "normal",
           due_date: "",
           project_id: "",
@@ -297,7 +294,7 @@ export function NewJobDialog({
       const payload = {
         title: form.title,
         description: form.description || null,
-        operational_observations: form.operational_observations || null,
+        
         priority: form.priority,
         due_date: form.due_date || null,
         project_id: form.project_id || null,

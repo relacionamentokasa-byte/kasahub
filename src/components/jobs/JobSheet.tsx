@@ -218,7 +218,7 @@ export function JobSheet({
   const open = !!job;
   const [draft, setDraft] = useState("");
   const [title, setTitle] = useState(job?.title || "");
-  const [observations, setObservations] = useState((job as any)?.operational_observations || "");
+  const [observations, setObservations] = useState(job?.description || "");
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
@@ -301,7 +301,7 @@ export function JobSheet({
   useEffect(() => {
     if (job) {
       setTitle(job.title);
-      setObservations((job as any).operational_observations || "");
+      setObservations(job.description || "");
     }
   }, [job?.id]);
 
@@ -1246,25 +1246,11 @@ export function JobSheet({
                       </div>
                       <Textarea
                         rows={14}
-                        value={(job as any).description || ""}
-                        readOnly
-                        placeholder="Sem briefing disponível."
-                        className="bg-background text-base leading-relaxed border-border min-h-[320px] text-foreground placeholder:text-foreground/50 p-4 resize-none"
-                      />
-                    </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <ClipboardList className="size-4 text-primary" />
-                        <Label className="text-xs font-bold uppercase tracking-wider">Observações Operacionais</Label>
-                      </div>
-                      <Textarea
-                        rows={10}
                         value={observations}
                         onChange={(e) => setObservations(e.target.value)}
-                        onBlur={() => observations !== (job as any).operational_observations && updateMut.mutate({ operational_observations: observations } as any)}
-                        placeholder="Registros internos da equipe, contexto da demanda, referências, observações estratégicas..."
-                        className="bg-background text-base leading-relaxed border-border min-h-[200px] text-foreground placeholder:text-foreground/50 p-4 resize-y"
+                        onBlur={() => observations !== job.description && updateMut.mutate({ description: observations } as any)}
+                        placeholder="Descreva aqui o briefing completo do job..."
+                        className="bg-background text-base leading-relaxed border-border min-h-[400px] text-foreground placeholder:text-foreground/50 p-4 resize-y"
                       />
                     </div>
                   </AccordionContent>
