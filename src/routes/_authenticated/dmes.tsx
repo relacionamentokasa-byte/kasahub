@@ -704,6 +704,15 @@ function DmesPage() {
                       <Button
                         size="icon"
                         variant="ghost"
+                        onClick={() => handleDownloadSinglePdf(d.id)}
+                        className="text-primary"
+                        title="Baixar PDF individual"
+                      >
+                        <FileDown className="size-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
                         onClick={() => setEditingDme(d)}
                         title="Editar demanda"
                       >
