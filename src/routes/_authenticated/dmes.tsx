@@ -11,7 +11,7 @@ import {
   updateExtraDemandWithFinance,
 } from "@/lib/ops-api";
 import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction, deleteDmeBatch } from "@/lib/dme-batches-api";
-import { generateDmeBatchPdf, generateConsolidatedTxPdf } from "@/lib/dme-batch-pdf";
+import { generateDmeBatchPdf, generateConsolidatedTxPdf, generateSingleDmePdf } from "@/lib/dme-batch-pdf";
 import { supabase } from "@/integrations/supabase/client";
 import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
@@ -308,6 +308,15 @@ function DmesPage() {
     try {
       await generateDmeBatchPdf(batchId, mode);
       toast.success("PDF gerado.");
+    } catch (e: any) {
+      toast.error(e?.message ?? "Erro ao gerar PDF.");
+    }
+  }
+
+  async function handleDownloadSinglePdf(dmeId: string) {
+    try {
+      await generateSingleDmePdf(dmeId);
+      toast.success("PDF da DME gerado.");
     } catch (e: any) {
       toast.error(e?.message ?? "Erro ao gerar PDF.");
     }
@@ -692,6 +701,15 @@ function DmesPage() {
                           </Button>
                         </>
                       )}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDownloadSinglePdf(d.id)}
+                        className="text-primary"
+                        title="Baixar PDF individual"
+                      >
+                        <FileDown className="size-4" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"
