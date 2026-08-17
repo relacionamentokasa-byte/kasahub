@@ -1034,18 +1034,15 @@ function FinancialPage() {
                       >
                         {(() => {
                           const dme = (t as any).extra_demands;
-                          const batch = (t as any).dme_batches?.[0] || (t as any).dme_batches;
+                          const batch = (t as any).dme_batches;
+                          const batchData = Array.isArray(batch) ? batch[0] : batch;
 
                           if (dme) {
                             return `${dme.number_display} - ${dme.title}`;
                           }
 
-                          if (batch) {
-                            const friendlyNumber = batch.friendly_number;
-                            // Se tiver friendly_number, usa o formato "Lote XXX"
-                            if (friendlyNumber) {
-                              return `Lote ${friendlyNumber}`;
-                            }
+                          if (batchData?.friendly_number) {
+                            return `Lote ${batchData.friendly_number}`;
                           }
 
                           return t.description;
