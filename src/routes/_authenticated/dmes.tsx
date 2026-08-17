@@ -1245,3 +1245,68 @@ function EditDmeDialog({ dme, onOpenChange }: { dme: any | null; onOpenChange: (
     </Dialog>
   );
 }
+
+function UnconsolidateDialog({ batch, onOpenChange, onConfirm, isPending }: { 
+  batch: any; 
+  onOpenChange: (open: boolean) => void; 
+  onConfirm: (restore: boolean) => void;
+  isPending: boolean;
+}) {
+  if (!batch) return null;
+
+  return (
+    <Dialog open={!!batch} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="size-5 text-amber-500" />
+            Desfazer lote?
+          </DialogTitle>
+          <DialogDescription className="space-y-3 pt-2">
+            <p>
+              Este lote (Lote {batch.friendly_number || batch.id.slice(0, 8)}) possui DMEs com lançamentos financeiros individuais que foram cancelados durante a consolidação.
+            </p>
+            <p className="font-medium text-foreground">
+              Como deseja tratar esses lançamentos?
+            </p>
+            <div className="text-xs bg-muted p-3 rounded-lg border space-y-2">
+              <p>
+                <strong>Restaurar:</strong> Reativa as transações individuais originais para "Pendente". Apenas as que foram efetivamente canceladas no momento da consolidação serão afetadas.
+              </p>
+              <p>
+                <strong>Manter:</strong> As transações individuais continuarão canceladas. As DMEs serão desvinculadas mas sem lançamento financeiro ativo.
+              </p>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)} 
+            disabled={isPending}
+            className="sm:order-1"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            variant="secondary" 
+            onClick={() => onConfirm(false)} 
+            disabled={isPending}
+            className="sm:order-2"
+          >
+            Manter lançamentos cancelados
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={() => onConfirm(true)} 
+            disabled={isPending}
+            className="gap-2 sm:order-3 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isPending && <Loader2 className="size-4 animate-spin" />}
+            Restaurar lançamentos individuais
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
