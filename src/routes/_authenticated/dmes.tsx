@@ -529,7 +529,7 @@ function DmesPage() {
                   <div className="min-w-0">
                     <div className="text-sm font-semibold truncate">{clientName}</div>
                     <div className="text-xs text-muted-foreground">
-                      💰 Pago · {count} DME{count !== 1 ? "s" : ""} · total {brl(Number(b.total_value || 0))}
+                      💰 Pago · {count} DME{count !== 1 ? "s" : ""} · Lote {b.friendly_number || b.id.slice(0, 8)} · total {brl(Number(b.total_value || 0))}
                     </div>
                   </div>
                   <Button
@@ -611,7 +611,7 @@ function DmesPage() {
                         return (
                           <>
                             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px]">
-                              <Layers className="size-3 mr-1" /> EM LOTE
+                              <Layers className="size-3 mr-1" /> LOTE {b.friendly_number || b.id.slice(0, 8)}
                             </Badge>
                             <Button
                               size="sm"
