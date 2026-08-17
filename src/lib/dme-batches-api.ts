@@ -148,52 +148,35 @@ export async function rejectBatch(token: string, reason: string) {
 }
 
 /**
- * Exclui um lote de DMEs. Só permitido se ainda não foi pago
- * (transação consolidada não está com status "paid").
- * Também cancela a transação consolidada pendente e desvincula as DMEs.
+ * Exclui um lote de DMEs através de uma operação atômica no banco (RPC).
+ * @param batchId ID do lote a ser excluído.
+ * @param restoreIndividualTransactions Se TRUE, restaura as transações individuais canceladas para 'pending'.
  */
-export async function deleteDmeBatch(batchId: string) {
-  const { data: batch, error: bErr } = await supabase
-    .from("dme_batches" as any)
-    .select("id, consolidated_transaction_id, status")
-    .eq("id", batchId)
-    .maybeSingle();
-  if (bErr) throw bErr;
-  if (!batch) throw new Error("Lote não encontrado.");
-  const b = batch as any;
+export async function deleteDmeBatch(batchId: string, restoreIndividualTransactions: boolean = false) {
+  const { data, error } = await supabase.rpc("unconsolidate_dme_batch", {
+    p_batch_id: batchId,
+    p_restore_individual_transactions: restoreIndividualTransactions,
+  });
 
-  if (b.consolidated_transaction_id) {
-    const { data: tx } = await supabase
-      .from("transactions")
-      .select("status")
-      .eq("id", b.consolidated_transaction_id)
-      .maybeSingle();
-    if (tx?.status === "paid") {
+  if (error) {
+    // Tratamento de erros específicos retornados pela RPC (ex: lote pago)
+    if (error.message.includes("paga")) {
       throw new Error("Este lote já foi pago e não pode ser excluído.");
     }
-    // Cancela a transação consolidada pendente
-    await supabase
-      .from("transactions")
-      .update({ status: "cancelled" })
-      .eq("id", b.consolidated_transaction_id);
+    throw error;
   }
 
-  // Desvincula DMEs do lote consolidado
-  const { data: items } = await supabase
-    .from("dme_batch_items" as any)
-    .select("extra_demand_id")
-    .eq("batch_id", batchId);
-  const dmeIds = (items ?? []).map((i: any) => i.extra_demand_id);
-  if (dmeIds.length) {
-    await supabase
-      .from("extra_demands")
-      .update({ consolidated_transaction_id: null })
-      .in("id", dmeIds);
-  }
-
-  await supabase.from("dme_batch_items" as any).delete().eq("batch_id", batchId);
-  const { error: delErr } = await supabase.from("dme_batches" as any).delete().eq("id", batchId);
-  if (delErr) throw delErr;
+  return data as {
+    batch_id: string;
+    friendly_number: string;
+    consolidated_transaction_id: string | null;
+    restored_transaction_ids: string[];
+    kept_cancelled_tx_ids: string[];
+    dme_ids: string[];
+    count_restored: number;
+    count_dmes: number;
+    option_restored: boolean;
+  };
 }
 
 

@@ -4876,6 +4876,10 @@ export type Database = {
         Args: { p_reason: string; p_token: string }
         Returns: undefined
       }
+      unconsolidate_dme_batch: {
+        Args: { p_batch_id: string; p_restore_individual_transactions: boolean }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "ceo" | "gestor" | "operador" | "cliente"

@@ -68,6 +68,7 @@ function DmesPage() {
   const [creatingBatch, setCreatingBatch] = useState(false);
   const [addItemFor, setAddItemFor] = useState<any | null>(null);
   const [editingDme, setEditingDme] = useState<any | null>(null);
+  const [unconsolidatingBatch, setUnconsolidatingBatch] = useState<any | null>(null);
 
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
@@ -233,13 +234,18 @@ function DmesPage() {
     },
   });
   const deleteBatchMut = useMutation({
-    mutationFn: (id: string) => deleteDmeBatch(id),
-    onSuccess: () => {
+    mutationFn: ({ id, restore }: { id: string, restore: boolean }) => deleteDmeBatch(id, restore),
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ["dme-batches-active"] });
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["batches-by-dme"] });
       qc.invalidateQueries({ queryKey: ["transactions"] });
-      toast.success("Lote excluído.");
+      
+      const msg = data.count_restored > 0 
+        ? `Lote ${data.friendly_number} excluído. ${data.count_restored} lançamento(s) financeiro(s) restaurado(s).`
+        : `Lote ${data.friendly_number} excluído.`;
+      toast.success(msg);
+      setUnconsolidatingBatch(null);
     },
     onError: (e: any) => toast.error(e?.message ?? "Erro ao excluir lote."),
   });
@@ -452,11 +458,7 @@ function DmesPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => {
-                        if (confirm(`Excluir este lote com ${count} DME${count !== 1 ? "s" : ""}? A cobrança consolidada pendente será cancelada e as DMEs voltarão a ser individuais.`)) {
-                          deleteBatchMut.mutate(b.id);
-                        }
-                      }}
+                      onClick={() => setUnconsolidatingBatch(b)}
                       disabled={deleteBatchMut.isPending}
                       className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
                       title="Excluir lote (só se ainda não foi pago)"
@@ -751,6 +753,13 @@ function DmesPage() {
       <EditDmeDialog dme={editingDme} onOpenChange={(o) => { if (!o) setEditingDme(null); }} />
 
       <AddDmeToBatchDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
+
+      <UnconsolidateDialog 
+        batch={unconsolidatingBatch} 
+        onOpenChange={(o) => { if (!o) setUnconsolidatingBatch(null); }}
+        isPending={deleteBatchMut.isPending}
+        onConfirm={(restore) => deleteBatchMut.mutate({ id: unconsolidatingBatch.id, restore })}
+      />
     </div>
   );
 }
@@ -1237,6 +1246,71 @@ function EditDmeDialog({ dme, onOpenChange }: { dme: any | null; onOpenChange: (
           <Button onClick={() => mut.mutate()} disabled={mut.isPending} className="gap-2">
             {mut.isPending && <Loader2 className="size-4 animate-spin" />}
             Salvar alterações
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function UnconsolidateDialog({ batch, onOpenChange, onConfirm, isPending }: { 
+  batch: any; 
+  onOpenChange: (open: boolean) => void; 
+  onConfirm: (restore: boolean) => void;
+  isPending: boolean;
+}) {
+  if (!batch) return null;
+
+  return (
+    <Dialog open={!!batch} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="size-5 text-amber-500" />
+            Desfazer lote?
+          </DialogTitle>
+          <DialogDescription className="space-y-3 pt-2">
+            <p>
+              Este lote (Lote {batch.friendly_number || batch.id.slice(0, 8)}) possui DMEs com lançamentos financeiros individuais que foram cancelados durante a consolidação.
+            </p>
+            <p className="font-medium text-foreground">
+              Como deseja tratar esses lançamentos?
+            </p>
+            <div className="text-xs bg-muted p-3 rounded-lg border space-y-2">
+              <p>
+                <strong>Restaurar:</strong> Reativa as transações individuais originais para "Pendente". Apenas as que foram efetivamente canceladas no momento da consolidação serão afetadas.
+              </p>
+              <p>
+                <strong>Manter:</strong> As transações individuais continuarão canceladas. As DMEs serão desvinculadas mas sem lançamento financeiro ativo.
+              </p>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="flex flex-col sm:flex-row gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)} 
+            disabled={isPending}
+            className="sm:order-1"
+          >
+            Cancelar
+          </Button>
+          <Button 
+            variant="secondary" 
+            onClick={() => onConfirm(false)} 
+            disabled={isPending}
+            className="sm:order-2"
+          >
+            Manter lançamentos cancelados
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={() => onConfirm(true)} 
+            disabled={isPending}
+            className="gap-2 sm:order-3 bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isPending && <Loader2 className="size-4 animate-spin" />}
+            Restaurar lançamentos individuais
           </Button>
         </DialogFooter>
       </DialogContent>
