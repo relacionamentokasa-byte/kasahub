@@ -846,6 +846,11 @@ function DmesPage() {
         isPending={deleteBatchMut.isPending}
         onConfirm={(restore) => deleteBatchMut.mutate({ id: unconsolidatingBatch.id, restore })}
       />
+
+      <ViewBatchDmesDialog
+        batch={viewingBatch}
+        onOpenChange={(o) => { if (!o) setViewingBatch(null); }}
+      />
     </div>
   );
 }
