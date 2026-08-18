@@ -146,7 +146,7 @@ async function fetchSaudeNegocio(refDate: Date) {
   const todayISO = new Date().toISOString().slice(0, 10);
   const { data: yearIncomes } = await supabase
     .from("transactions")
-    .select("amount, paid_value, valor_real, status, kind, type, nature, payment_date")
+    .select("amount, valor_previsto, paid_value, valor_real, status, kind, type, nature, payment_date")
     .eq("type", "income")
     .gte("payment_date", yearStart)
     .lte("payment_date", todayISO);
