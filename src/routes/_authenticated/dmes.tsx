@@ -125,7 +125,7 @@ function DmesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dme_batches" as any)
-        .select("id, public_token, status, total_value, consolidated_transaction_id, client_id, created_at, friendly_number, clients(name, company), dme_batch_items(extra_demand_id), transactions!dme_batches_consolidated_transaction_id_fkey(due_date)")
+        .select("id, public_token, status, total_value, consolidated_transaction_id, client_id, created_at, friendly_number, clients(name, company), dme_batch_items(extra_demand_id), transactions!dme_batches_consolidated_transaction_id_fkey(due_date, valor_previsto, amount)")
         .neq("status", "cancelled")
         .order("created_at", { ascending: false });
       if (error) throw error;
