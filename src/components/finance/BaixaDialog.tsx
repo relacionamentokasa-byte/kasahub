@@ -48,7 +48,9 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
   useEffect(() => {
     if (transaction && open) {
       const ref =
-        transaction.valor_real ?? transaction.valor_previsto ?? transaction.amount ?? 0;
+        transaction.valor_previsto && Number(transaction.valor_previsto) > 0 
+          ? transaction.valor_previsto 
+          : (transaction.amount ?? 0);
       setPaidValue(String(ref));
       setPaidDate(todayLocal());
       setMethod(transaction.payment_method || "PIX");
@@ -56,7 +58,7 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
     }
   }, [transaction, open]);
 
-  const previsto = Number(transaction?.valor_previsto ?? transaction?.amount ?? 0);
+  const previsto = Number(transaction?.valor_previsto) > 0 ? Number(transaction.valor_previsto) : Number(transaction?.amount ?? 0);
   const real = transaction?.valor_real != null ? Number(transaction.valor_real) : null;
   const pago = parseFloat(paidValue.replace(",", ".")) || 0;
   const diffBoleto = real != null ? real - previsto : 0;
