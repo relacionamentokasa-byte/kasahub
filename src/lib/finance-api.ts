@@ -113,7 +113,7 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const CANCELLED = new Set(["cancelled", "canceled", "cancelado", "cancelada", "estornado"]);
 
   trans?.forEach((t: any) => {
-    const amount = Number(t.amount);
+    const amount = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
     const isNaoOp = t.nature === "nao_operacional";
     const status = (t.status || "").toLowerCase();
 
