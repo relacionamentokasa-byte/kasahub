@@ -521,7 +521,7 @@ function DmesPage() {
                         size="sm"
                         variant="outline"
                         className="gap-2 h-8 text-[11px]"
-                        onClick={() => setUnconsolidatingBatch(b)}
+                        onClick={() => setViewingBatch(b)}
                       >
                         <Layers className="size-3.5" /> Ver DMEs
                       </Button>
