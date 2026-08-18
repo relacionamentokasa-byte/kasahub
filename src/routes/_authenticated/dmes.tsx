@@ -179,6 +179,7 @@ function DmesPage() {
       // Lotes que já existem em dme_batches — não duplicar
       const existingBatchTxIds = new Set(
         (activeBatchesRaw ?? [])
+          .filter((b: any) => b.status !== 'cancelled')
           .map((b: any) => b.consolidated_transaction_id)
           .filter(Boolean)
       );
