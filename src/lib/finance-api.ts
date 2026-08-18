@@ -86,7 +86,7 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("amount, type, status, due_date, nature");
+    .select("amount, valor_previsto, type, status, due_date, nature");
 
   if (filters.startDate && filters.endDate) {
     q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
