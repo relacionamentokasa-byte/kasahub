@@ -69,6 +69,7 @@ function DmesPage() {
   const [addItemFor, setAddItemFor] = useState<any | null>(null);
   const [editingDme, setEditingDme] = useState<any | null>(null);
   const [unconsolidatingBatch, setUnconsolidatingBatch] = useState<any | null>(null);
+  const [viewingBatch, setViewingBatch] = useState<any | null>(null);
 
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["extra_demands", { status: statusFilter, clientId: prefClientId }],
