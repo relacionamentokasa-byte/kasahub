@@ -836,7 +836,7 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
   if (linkedTxId) {
     const { data: tx } = await supabase
       .from("transactions")
-      .select("id, amount, due_date, status, description")
+      .select("id, amount, valor_previsto, due_date, status, description")
       .eq("id", linkedTxId)
       .maybeSingle();
     linkedTx = tx ?? null;
