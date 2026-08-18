@@ -392,97 +392,154 @@ function DmesPage() {
       )}
 
       {(activeBatches.length > 0 || consolidatedTxGroups.length > 0) && (
-        <div className="rounded-2xl border-2 border-primary/50 bg-primary/10 p-4 space-y-3 shadow-sm">
-          <div className="flex items-center gap-2 font-semibold text-primary">
-            <Layers className="size-5" /> Lotes ativos — adicione uma nova DME a um lote existente
+        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-6 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 font-semibold text-primary text-lg">
+              <Layers className="size-5" /> Lotes ativos
+            </div>
+            <p className="text-xs text-muted-foreground hidden sm:block">
+              Agrupamentos de DMEs para cobrança unificada
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {activeBatches.map((b: any) => {
               const count = (b.dme_batch_items ?? []).length;
-              const clientName = b.clients?.company || b.clients?.name || "Cliente";
+              const clientName = b.clients?.company || b.clients?.name || "Clientes diversos";
+              const formattedBatch = String(b.friendly_number || "").padStart(4, '0');
+              const dueDate = b.transactions?.due_date ? new Date(b.transactions.due_date + 'T12:00:00Z').toLocaleDateString('pt-BR') : '—';
+              
               return (
-                <div key={b.id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold truncate">{clientName} · Lote {b.friendly_number || b.id.slice(0, 8)}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {count} DME{count !== 1 ? "s" : ""} no lote · total {brl(Number(b.total_value || 0))}
+                <div key={b.id} className="group relative flex flex-col rounded-xl border border-primary/20 bg-background p-5 transition-all hover:shadow-md hover:border-primary/40">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-primary/70 mb-1">
+                        Lote {formattedBatch}
+                      </div>
+                      <h3 className="font-semibold text-sm truncate pr-2" title={clientName}>
+                        {clientName}
+                      </h3>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-bold text-foreground">
+                        {brl(Number(b.total_value || 0))}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground font-medium">
+                        {count} DME{count !== 1 ? "s" : ""}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="sm" variant="outline" className="gap-2" title="Gerar PDF do lote">
-                          <FileDown className="size-4" /> PDF
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Gerar PDF</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "approval")}>
-                          Solicitação de aprovação (pendentes)
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "approved")}>
-                          Apenas DMEs já aprovadas
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDownloadBatchPdf(b.id, "all")}>
-                          Lote completo (todas)
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+
+                  <div className="mt-auto space-y-4">
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pb-3 border-b border-primary/5">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">Vencimento:</span>
+                        <span>{dueDate}</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        size="sm"
+                        className="col-span-2 gap-2 h-9"
+                        onClick={() => setAddItemFor({
+                          client_id: b.client_id,
+                          clients: b.clients,
+                          contract_id: null,
+                          _batch: b,
+                        })}
+                      >
+                        <PlusCircle className="size-4" /> Adicionar DME
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="sm" variant="outline" className="gap-2 h-8 text-[11px]">
+                            <FileDown className="size-3.5" /> PDF
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-56">
+                          <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Gerar PDF do Lote</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-sm py-2" onClick={() => handleDownloadBatchPdf(b.id, "approval")}>
+                            Solicitação de aprovação (pendentes)
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-sm py-2" onClick={() => handleDownloadBatchPdf(b.id, "approved")}>
+                            Apenas DMEs já aprovadas
+                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-sm py-2" onClick={() => handleDownloadBatchPdf(b.id, "all")}>
+                            Lote completo (todas)
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-2 h-8 text-[11px]"
+                        onClick={() => setUnconsolidatingBatch(b)}
+                      >
+                        <Layers className="size-3.5" /> Ver DMEs
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={async () => {
-                        const url = getDmeBatchPublicUrl(b.public_token);
-                        await navigator.clipboard.writeText(url);
-                        toast.success("Link de aprovação copiado.");
-                      }}
-                      className="gap-2"
-                      title="Copiar link de aprovação"
-                    >
-                      <LinkIcon className="size-4" /> Link
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => setAddItemFor({
-                        client_id: b.client_id,
-                        clients: b.clients,
-                        contract_id: null,
-                        _batch: b,
-                      })}
-                      className="gap-2"
-                      title="Criar uma nova DME e somar na cobrança consolidada deste lote"
-                    >
-                      <PlusCircle className="size-4" /> Adicionar DME
-                    </Button>
-                    <Button
-                      size="sm"
+                      size="icon"
                       variant="ghost"
+                      className="size-6 text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => setUnconsolidatingBatch(b)}
-                      disabled={deleteBatchMut.isPending}
-                      className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      title="Excluir lote (só se ainda não foi pago)"
+                      title="Excluir Lote"
                     >
-                      <Trash2 className="size-4" />
+                      <Trash2 className="size-3.5" />
                     </Button>
                   </div>
                 </div>
               );
             })}
+
             {consolidatedTxGroups.map((g: any) => {
-              const clientName = g.clients?.company || g.clients?.name || "Cliente";
+              const clientName = g.clients?.company || g.clients?.name || "Clientes diversos";
               return (
-                <div key={g.consolidated_transaction_id} className="rounded-xl border border-primary/30 bg-background p-3 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold truncate">{clientName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {g.count} DME{g.count !== 1 ? "s" : ""} consolidada{g.count !== 1 ? "s" : ""} · total {brl(Number(g.total_value || 0))}
+                <div key={g.consolidated_transaction_id} className="group flex flex-col rounded-xl border border-primary/20 bg-background p-5 transition-all hover:shadow-md hover:border-primary/40">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 mb-1">
+                        Consolidado Financeiro
+                      </div>
+                      <h3 className="font-semibold text-sm truncate pr-2" title={clientName}>
+                        {clientName}
+                      </h3>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-bold text-foreground">
+                        {brl(Number(g.total_value || 0))}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground font-medium">
+                        {g.count} DME{g.count !== 1 ? "s" : ""}
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+
+                  <div className="mt-auto grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      className="col-span-2 gap-2 h-9"
+                      onClick={() => setAddItemFor({
+                        client_id: g.client_id,
+                        clients: g.clients,
+                        contract_id: null,
+                        _consolidatedTx: g,
+                      })}
+                    >
+                      <PlusCircle className="size-4" /> Adicionar DME
+                    </Button>
+                    
                     <Button
                       size="sm"
                       variant="outline"
+                      className="col-span-2 gap-2 h-8 text-[11px]"
                       onClick={async () => {
                         try {
                           await generateConsolidatedTxPdf(g.consolidated_transaction_id);
@@ -491,23 +548,8 @@ function DmesPage() {
                           toast.error(e?.message ?? "Erro ao gerar PDF.");
                         }
                       }}
-                      className="gap-2"
-                      title="Gerar PDF do lote consolidado para enviar ao cliente"
                     >
-                      <FileDown className="size-4" /> PDF
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => setAddItemFor({
-                        client_id: g.client_id,
-                        clients: g.clients,
-                        contract_id: null,
-                        _consolidatedTx: g,
-                      })}
-                      className="gap-2"
-                      title="Criar uma nova DME e somar na cobrança consolidada do financeiro"
-                    >
-                      <PlusCircle className="size-4" /> Adicionar DME
+                      <FileDown className="size-3.5" /> Gerar PDF Consolidado
                     </Button>
                   </div>
                 </div>
