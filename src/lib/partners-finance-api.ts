@@ -77,6 +77,7 @@ export async function createPartnerAdvance(input: {
       status: "paid",
       description: `Vale Sócio - ${partnerName}${input.description ? ` - ${input.description}` : ""}`,
       amount: input.amount,
+      valor_previsto: input.amount,
       due_date: input.advance_date,
       payment_date: input.advance_date,
       category: "Vale Sócio",

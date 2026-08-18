@@ -153,6 +153,7 @@ export async function confirmDistribution(input: ConfirmDistributionInput) {
         status: "pending",
         description,
         amount: net,
+        valor_previsto: net,
         due_date: input.due_date,
         category,
         conta_id: input.conta_id,

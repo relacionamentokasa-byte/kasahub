@@ -246,6 +246,7 @@ export async function approveProposal(
         contract_id: contractId,
         category_id: feeMensalId,
         amount: monthlyAmount,
+        valor_previsto: monthlyAmount,
         due_date: ymd(due),
         description: `Mensalidade ${proposal.title} (${i + 1}/${installmentsCount})`,
         status: "pending",
@@ -287,6 +288,7 @@ export async function approveProposal(
         contract_id: contractId,
         category_id: jobAvulsoId,
         amount: inst.value,
+        valor_previsto: inst.value,
         due_date: ymd(d),
         description: instCount === 1 
           ? `Setup (À vista) - ${proposal.title}`
