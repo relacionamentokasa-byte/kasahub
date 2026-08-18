@@ -845,7 +845,7 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
     // Fallback pelo vínculo estrutural (FK extra_demand_id) — ainda é vínculo por ID.
     const { data: tx } = await supabase
       .from("transactions")
-      .select("id, amount, due_date, status, description")
+      .select("id, amount, valor_previsto, due_date, status, description")
       .eq("extra_demand_id", id)
       .neq("status", "cancelled")
       .maybeSingle();
@@ -898,9 +898,12 @@ export async function updateExtraDemandWithFinance(id: string, patch: DmeEditPat
           .from("extra_demands")
           .select("value")
           .eq("consolidated_transaction_id", linkedTx.id);
-        txPatch.amount = (siblings ?? []).reduce((acc: number, s: any) => acc + Number(s.value || 0), 0);
+        const newAmount = (siblings ?? []).reduce((acc: number, s: any) => acc + Number(s.value || 0), 0);
+        txPatch.amount = newAmount;
+        txPatch.valor_previsto = newAmount;
       } else {
         txPatch.amount = nextValue;
+        txPatch.valor_previsto = nextValue;
       }
     }
 
