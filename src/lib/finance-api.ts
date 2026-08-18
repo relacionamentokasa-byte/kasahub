@@ -86,7 +86,7 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("amount, type, status, due_date, nature");
+    .select("amount, valor_previsto, type, status, due_date, nature");
 
   if (filters.startDate && filters.endDate) {
     q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
@@ -113,7 +113,7 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const CANCELLED = new Set(["cancelled", "canceled", "cancelado", "cancelada", "estornado"]);
 
   trans?.forEach((t: any) => {
-    const amount = Number(t.amount);
+    const amount = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
     const isNaoOp = t.nature === "nao_operacional";
     const status = (t.status || "").toLowerCase();
 

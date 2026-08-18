@@ -88,6 +88,7 @@ export async function createDmeBatch(input: {
     .insert({
       description: `Cobrança consolidada — ${dmes.length} DMEs (Lote ${batchNumber})`,
       amount: total,
+      valor_previsto: total,
       type: "income",
       kind: "income",
       status: "pending",

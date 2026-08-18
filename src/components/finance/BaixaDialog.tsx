@@ -71,7 +71,7 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
         status: "paid" as any,
         payment_date: paidDate,
         paid_value: pago,
-        amount: pago,
+        valor_real: pago,
         payment_method: method,
         notes: notes || null,
       } as any);

@@ -50,7 +50,7 @@ export async function fetchDistributionSummary(month: string): Promise<Distribut
   // Operational paid transactions in month
   const { data: txs, error: txErr } = await supabase
     .from("transactions")
-    .select("id, kind, type, amount, nature, status, payment_date, due_date, category")
+    .select("id, kind, type, amount, valor_previsto, nature, status, payment_date, due_date, category")
     .eq("status", "paid")
     .eq("nature", "operacional")
     .gte("payment_date", start)
@@ -60,7 +60,7 @@ export async function fetchDistributionSummary(month: string): Promise<Distribut
   let income = 0;
   let expense = 0;
   for (const t of (txs || []) as any[]) {
-    const amount = Number(t.amount || 0);
+    const amount = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
     if (t.kind === "income" || t.type === "income") income += amount;
     else if (t.kind === "expense" || t.type === "expense") {
       // Exclui categorias internas para não dupla-contar
@@ -153,6 +153,7 @@ export async function confirmDistribution(input: ConfirmDistributionInput) {
         status: "pending",
         description,
         amount: net,
+        valor_previsto: net,
         due_date: input.due_date,
         category,
         conta_id: input.conta_id,

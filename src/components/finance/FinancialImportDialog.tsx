@@ -216,6 +216,7 @@ export function FinancialImportDialog({ open, onOpenChange }: { open: boolean, o
         transactionsToInsert.push({
           description,
           amount,
+          valor_previsto: amount,
           type,
           status,
           due_date: dueDate,

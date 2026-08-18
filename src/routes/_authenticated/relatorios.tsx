@@ -233,7 +233,7 @@ function FinancialPage() {
               };
               const due_date = parseDateBR(getCol("data", "data de vencimento", "vencimento"));
               const description = String(getCol("descricao", "descrição", "description") || "Importação");
-              let amount = parseAmountBR(getCol("valor", "amount"));
+              let amount = parseAmountBR(getCol("valor", "amount", "valor previsto"));
               let type = mapType(getCol("tipo", "type"));
 
               // Fallback: infer type from amount sign when "Tipo" is missing/unrecognized
@@ -270,7 +270,7 @@ function FinancialPage() {
             return;
           }
 
-          const { error } = await supabase.from("transactions").insert(payload);
+          const { error } = await supabase.from("transactions").insert(payload.map(p => ({ ...p, valor_previsto: p.amount })));
           if (error) {
             toast.error("Erro na importação: " + error.message);
           } else {
@@ -504,7 +504,7 @@ function FinancialPage() {
 
   const proLaboreMes = transactions
     .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
-    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
 
   // Projeção: considera tudo que está previsto no mês (pagos + pendentes),
   // excluindo Pró-labore e Investimento (contabilizados em blocos separados).
@@ -516,7 +516,7 @@ function FinancialPage() {
         !isProLabore(getCatName(t)) &&
         !isInvestimento(getCatName(t)),
     )
-    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
 
   const investimentoRealizado = transactions
     .filter(
@@ -524,11 +524,11 @@ function FinancialPage() {
         t.type === "expense" &&
         isInvestimento(getCatName(t)),
     )
-    .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
 
   const totals = filteredTransactions.reduce(
     (acc: { receitas: number; despesas: number; proLabore: number; naoOperacional: number }, t: any) => {
-      const v = Number(t.amount || 0);
+      const v = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
       const proLab = isProLabore(getCatName(t));
       const isNaoOp = t.nature === "nao_operacional";
       if (t.type === "income") {
@@ -975,7 +975,7 @@ function FinancialPage() {
               </TableRow>
             ) : (
               filteredTransactions.map((t: any) => {
-                const previsto = (Number(t.valor_previsto) > 0 ? Number(t.valor_previsto) : Number(t.amount)) || 0;
+                const previsto = Number(t.valor_previsto) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
                 const diff = real != null ? real - previsto : 0;
                 const hasDiff = real != null && Math.abs(diff) > 0.005;
