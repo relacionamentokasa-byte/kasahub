@@ -31,7 +31,7 @@ async function fetchSaudeNegocio(refDate: Date) {
   const { data: txData, error: txErr } = await supabase
     .from("transactions")
     .select(
-      "amount, type, kind, nature, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
+      "amount, valor_previsto, type, kind, nature, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
     )
     .gte("due_date", monthStartDate)
     .lte("due_date", monthEndDate);
@@ -62,10 +62,11 @@ async function fetchSaudeNegocio(refDate: Date) {
     return false;
   };
 
-  const mrr = incomes.filter(isRecurringTx).reduce((acc, t) => acc + Number(t.amount || 0), 0);
+  const getAmount = (t: any) => Number(Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount) || 0;
+  const mrr = incomes.filter(isRecurringTx).reduce((acc, t) => acc + getAmount(t), 0);
   const avulsa = incomes
     .filter((t) => !isRecurringTx(t) && isAvulsoTx(t))
-    .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+    .reduce((acc, t) => acc + getAmount(t), 0);
 
   // Receita efetivamente recebida no mês (alimenta a Meta de Faturamento).
   // Apenas transações com status de sucesso são contabilizadas — Pendente/Atrasado/Agendado são ignorados.
