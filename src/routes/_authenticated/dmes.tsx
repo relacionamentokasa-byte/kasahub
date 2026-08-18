@@ -161,37 +161,61 @@ function DmesPage() {
     staleTime: 30_000,
     placeholderData: (prev) => prev,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // 1. Buscamos todas as DMEs que possuem transação consolidada
+      const { data: dmeRows, error: dmeError } = await supabase
         .from("extra_demands")
-        .select("id, value, client_id, consolidated_transaction_id, clients(name, company)")
+        .select("id, client_id, consolidated_transaction_id, clients(name, company)")
         .not("consolidated_transaction_id", "is", null);
-      if (error) throw error;
-      const rows = (data ?? []) as any[];
-      if (!rows.length) return [];
+      if (dmeError) throw dmeError;
+      if (!dmeRows || dmeRows.length === 0) return [];
+
+      // 2. Buscamos os IDs das transações consolidadas que já estão vinculadas a algum lote
+      // via tabela dme_batch_items (o vínculo definitivo entre DME e Lote)
+      const { data: batchItems, error: itemsError } = await supabase
+        .from("dme_batch_items" as any)
+        .select("extra_demand_id, batch_id");
+      if (itemsError) throw itemsError;
+
+      const dmeToBatchId = new Map((batchItems ?? []).map((i: any) => [i.extra_demand_id, i.batch_id]));
       
-      const txIds = Array.from(new Set(rows.map((r) => r.consolidated_transaction_id)));
-      const { data: txs } = await supabase
+      // 3. Identificamos quais transações consolidadas pertencem a DMEs que estão em lotes
+      const txIdsInBatches = new Set<string>();
+      dmeRows.forEach(row => {
+        if (row.consolidated_transaction_id && dmeToBatchId.has(row.id)) {
+          txIdsInBatches.add(row.consolidated_transaction_id);
+        }
+      });
+
+      // 4. Também verificamos o vínculo direto na tabela dme_batches (se existir)
+      const { data: batchesDirect, error: batchesError } = await supabase
+        .from("dme_batches" as any)
+        .select("consolidated_transaction_id")
+        .not("consolidated_transaction_id", "is", null);
+      if (!batchesError && batchesDirect) {
+        batchesDirect.forEach((b: any) => txIdsInBatches.add(b.consolidated_transaction_id));
+      }
+
+      // 5. Agora filtramos as transações para o fluxo legado
+      const uniqueTxIds = Array.from(new Set(dmeRows.map((r) => r.consolidated_transaction_id)));
+      // IMPORTANTE: Filtragem definitiva. Se a transação está em QUALQUER lote, ela sai daqui.
+      const legacyTxIds = uniqueTxIds.filter(id => id && !txIdsInBatches.has(id));
+      
+      if (legacyTxIds.length === 0) return [];
+
+      const { data: txs, error: txError } = await supabase
         .from("transactions")
         .select("id, amount, status")
-        .in("id", txIds);
+        .in("id", legacyTxIds);
+      if (txError) throw txError;
+      
       const txMap = new Map((txs ?? []).map((t: any) => [t.id, t]));
 
-      // Lotes que já existem em dme_batches — não duplicar
-      const existingBatchTxIds = new Set(
-        (activeBatchesRaw ?? [])
-          .filter((b: any) => b.status !== 'cancelled')
-          .map((b: any) => b.consolidated_transaction_id)
-          .filter(Boolean)
-      );
-
       const groups: Record<string, any> = {};
-      for (const r of rows) {
+      for (const r of dmeRows) {
         const txId = r.consolidated_transaction_id;
-        // Se a transação já pertence a um dme_batch, ignoramos para não duplicar o card
-        if (existingBatchTxIds.has(txId)) continue;
+        if (!txId || txIdsInBatches.has(txId)) continue;
         
         const tx = txMap.get(txId);
-        // Transações canceladas ou pagas não aparecem como "Lotes Ativos"
         if (!tx || tx.status === "cancelled" || tx.status === "paid") continue;
 
         if (!groups[txId]) {
