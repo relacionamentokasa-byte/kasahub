@@ -166,7 +166,7 @@ function DmesPage() {
         .in("id", txIds);
       const txMap = new Map((txs ?? []).map((t: any) => [t.id, t]));
 
-      // Filtrar apenas transações que NÃO estão vinculadas a um dme_batch
+      // Lotes que já existem em dme_batches — não duplicar
       const existingBatchTxIds = new Set(
         (activeBatchesRaw ?? [])
           .map((b: any) => b.consolidated_transaction_id)
