@@ -128,7 +128,17 @@ function DmesPage() {
         .neq("status", "cancelled")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      const rows = (data ?? []) as any[];
+
+      // Deduplicação estrita por dme_batch.id para garantir que cada lote apareça uma única vez
+      const rawRows = (data ?? []) as any[];
+      const uniqueBatchesMap = new Map();
+      rawRows.forEach(row => {
+        if (!uniqueBatchesMap.has(row.id)) {
+          uniqueBatchesMap.set(row.id, row);
+        }
+      });
+      const rows = Array.from(uniqueBatchesMap.values());
+
       const txIds = rows.map((r) => r.consolidated_transaction_id).filter(Boolean);
       let txMap = new Map<string, string>();
       if (txIds.length) {
