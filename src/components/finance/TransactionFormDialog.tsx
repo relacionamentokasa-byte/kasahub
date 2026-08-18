@@ -126,7 +126,7 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
         type: (transaction.type as any) || "income",
         category: transaction.category || "",
         description: transaction.description || "",
-        amount: Number(transaction.valor_previsto ?? transaction.amount ?? 0),
+        amount: (Number(transaction.valor_previsto) > 0 ? Number(transaction.valor_previsto) : Number(transaction.amount)) || 0,
         due_date: transaction.due_date ? new Date(transaction.due_date + "T00:00:00") : new Date(),
         status: (transaction.status === "paid" ? "paid" : "pending") as any,
         client_id: transaction.client_id || "none",

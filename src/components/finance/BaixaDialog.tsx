@@ -48,7 +48,9 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
   useEffect(() => {
     if (transaction && open) {
       const ref =
-        transaction.valor_real ?? transaction.valor_previsto ?? transaction.amount ?? 0;
+        transaction.valor_previsto && Number(transaction.valor_previsto) > 0 
+          ? transaction.valor_previsto 
+          : (transaction.amount ?? 0);
       setPaidValue(String(ref));
       setPaidDate(todayLocal());
       setMethod(transaction.payment_method || "PIX");
