@@ -1403,3 +1403,96 @@ function UnconsolidateDialog({ batch, onOpenChange, onConfirm, isPending }: {
     </Dialog>
   );
 }
+
+function ViewBatchDmesDialog({ batch, onOpenChange }: { 
+  batch: any; 
+  onOpenChange: (open: boolean) => void; 
+}) {
+  const { data: dmes = [], isLoading } = useQuery({
+    queryKey: ["batch-dmes", batch?.id],
+    enabled: !!batch?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dme_batch_items" as any)
+        .select("extra_demands(*, clients(name, company))")
+        .eq("batch_id", batch.id);
+      if (error) throw error;
+      return (data || []).map((i: any) => i.extra_demands).filter(Boolean);
+    },
+  });
+
+  if (!batch) return null;
+
+  const totalValue = dmes.reduce((acc, d) => acc + Number(d.value || 0), 0);
+  const formattedBatch = String(batch.friendly_number || "").padStart(4, '0');
+
+  return (
+    <Dialog open={!!batch} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Layers className="size-5 text-primary" />
+            Visualizar DMEs — Lote {formattedBatch}
+          </DialogTitle>
+          <DialogDescription>
+            {batch.clients?.company || batch.clients?.name || "Cliente"}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="py-4">
+          <div className="rounded-xl border border-border overflow-hidden bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nº</TableHead>
+                  <TableHead>Título</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead>Vencimento</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRowsSkeleton rows={3} columns={4} />
+                ) : dmes.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                      Nenhuma DME vinculada a este lote.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  dmes.map((d: any) => (
+                    <TableRow key={d.id}>
+                      <TableCell className="font-mono text-xs">{d.number_display}</TableCell>
+                      <TableCell className="max-w-[300px]">
+                        <div className="font-medium truncate" title={d.title}>{d.title}</div>
+                        {d.description && <div className="text-[10px] text-muted-foreground truncate">{d.description}</div>}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">{brl(Number(d.value))}</TableCell>
+                      <TableCell className="text-sm">
+                        {d.due_date ? new Date(d.due_date + 'T12:00:00Z').toLocaleDateString('pt-BR') : '—'}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between px-2">
+            <div className="text-xs text-muted-foreground">
+              Total: <strong>{dmes.length} DME{dmes.length !== 1 ? 's' : ''}</strong>
+            </div>
+            <div className="text-lg font-bold text-primary flex items-center gap-2">
+              <span className="text-xs font-normal text-muted-foreground">Soma do Lote:</span>
+              {brl(totalValue)}
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button onClick={() => onOpenChange(false)}>Fechar</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
