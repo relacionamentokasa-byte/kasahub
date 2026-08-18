@@ -143,9 +143,10 @@ function DmesPage() {
 
 
   // DMEs consolidadas via `consolidated_transaction_id` em extra_demands
-  // (sem registro em dme_batches). Permite "Adicionar DME" mesmo quando
-  // a junção foi feita diretamente no financeiro.
-  const { data: consolidatedTxGroups = [] } = useQuery<any[]>({
+  // que NÃO possuem um registro correspondente em dme_batches.
+  // Isso acontece quando DMEs são vinculadas manualmente no financeiro 
+  // sem passar pela criação formal de um Lote.
+  const { data: legacyConsolidatedTxGroups = [] } = useQuery<any[]>({
     queryKey: ["dmes-consolidated-tx-groups"],
     staleTime: 30_000,
     placeholderData: (prev) => prev,
@@ -157,24 +158,31 @@ function DmesPage() {
       if (error) throw error;
       const rows = (data ?? []) as any[];
       if (!rows.length) return [];
+      
       const txIds = Array.from(new Set(rows.map((r) => r.consolidated_transaction_id)));
       const { data: txs } = await supabase
         .from("transactions")
         .select("id, amount, status")
         .in("id", txIds);
       const txMap = new Map((txs ?? []).map((t: any) => [t.id, t]));
-      // Lotes que já existem em dme_batches — não duplicar
+
+      // Filtrar apenas transações que NÃO estão vinculadas a um dme_batch
       const existingBatchTxIds = new Set(
-        (activeBatches ?? [])
+        (activeBatchesRaw ?? [])
           .map((b: any) => b.consolidated_transaction_id)
           .filter(Boolean)
       );
+
       const groups: Record<string, any> = {};
       for (const r of rows) {
         const txId = r.consolidated_transaction_id;
+        // Se a transação já pertence a um dme_batch, ignoramos para não duplicar o card
         if (existingBatchTxIds.has(txId)) continue;
+        
         const tx = txMap.get(txId);
+        // Transações canceladas ou pagas não aparecem como "Lotes Ativos"
         if (!tx || tx.status === "cancelled" || tx.status === "paid") continue;
+
         if (!groups[txId]) {
           groups[txId] = {
             consolidated_transaction_id: txId,
@@ -391,7 +399,7 @@ function DmesPage() {
         </div>
       )}
 
-      {(activeBatches.length > 0 || consolidatedTxGroups.length > 0) && (
+      {(activeBatches.length > 0 || legacyConsolidatedTxGroups.length > 0) && (
         <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-6 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 font-semibold text-primary text-lg">
@@ -499,7 +507,7 @@ function DmesPage() {
               );
             })}
 
-            {consolidatedTxGroups.map((g: any) => {
+            {legacyConsolidatedTxGroups.map((g: any) => {
               const clientName = g.clients?.company || g.clients?.name || "Clientes diversos";
               return (
                 <div key={g.consolidated_transaction_id} className="group flex flex-col rounded-xl border border-primary/20 bg-background p-5 transition-all hover:shadow-md hover:border-primary/40">
