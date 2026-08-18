@@ -551,7 +551,233 @@ function FinancialPage() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa uppercase font-bold tracking-wider">Gestão · Financeiro</span>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">Fluxo de Caixa</h1>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">Agora vamos implementar a correção estrutural identificada na auditoria.
+
+IMPORTANTE: não faça nenhuma migração ou alteração retroativa nos 57 registros existentes nesta etapa.
+
+OBJETIVO
+
+Garantir que todo NOVO lançamento financeiro seja criado com:
+
+amount = valor_previsto
+
+quando ainda não existe baixa/pagamento/recebimento.
+
+MODELO FINANCEIRO OFICIAL
+
+Estabelecer estas regras em todos os fluxos:
+
+- amount = valor original/base do lançamento
+
+- valor_previsto = valor que deveria ser pago/recebido
+
+- valor_real = valor efetivamente pago/recebido
+
+- diferença = valor_real - valor_previsto
+
+Na criação de um lançamento:
+
+amount deve ser igual a valor_previsto.
+
+valor_real deve permanecer nulo/zero até existir uma baixa.
+
+Na baixa:
+
+- NÃO alterar amount.
+
+- NÃO alterar valor_previsto.
+
+- Preencher/atualizar apenas valor_real com o valor efetivamente pago/recebido.
+
+- Calcular a diferença com base em valor_real - valor_previsto.
+
+- Preservar motivo e observação.
+
+- Não destruir o valor originalmente previsto.
+
+FLUXOS QUE DEVEM SER CORRIGIDOS
+
+Revise todos os pontos identificados na auditoria:
+
+1. Demandas Extras
+
+2. Lotes consolidados de DMEs
+
+3. Jobs
+
+4. Setups / Investimentos
+
+5. Mensalidades / contratos
+
+6. Lançamentos manuais
+
+7. Importação de planilhas
+
+8. Qualquer outro fluxo que insira registros na tabela transactions
+
+Para cada INSERT em transactions, garantir que:
+
+amount e valor_previsto sejam preenchidos corretamente.
+
+Não quero simplesmente adicionar um fallback na interface.
+
+Quero corrigir a origem da persistência.
+
+IMPORTANTE SOBRE EDIÇÃO
+
+Ao editar um lançamento que ainda não foi pago:
+
+- Se o usuário alterar o valor previsto, atualizar amount e valor_previsto de forma consistente.
+
+- Se já existir valor_real/baixa, NÃO sobrescrever o histórico automaticamente.
+
+- Se o lançamento já estiver pago, preservar o valor original e tratar qualquer alteração conforme as regras atuais de ajuste financeiro.
+
+IMPORTANTE SOBRE BAIXA
+
+Revise o BaixaDialog e qualquer função/API responsável pela baixa.
+
+O comportamento correto deve ser:
+
+Exemplo:
+
+Antes da baixa:
+
+amount = 850
+
+valor_previsto = 850
+
+valor_real = null
+
+Baixa de 481,30:
+
+amount = 850
+
+valor_previsto = 850
+
+valor_real = 481,30
+
+diferença = -368,70
+
+NÃO fazer:
+
+amount = 481,30
+
+porque isso destruiria o valor original do lançamento.
+
+FALLBACK DA INTERFACE
+
+Mantenha temporariamente o fallback:
+
+valor_previsto > 0 ? valor_previsto : amount
+
+para evitar que registros históricos inconsistentes voltem a aparecer como R$ 0,00.
+
+Porém, esse fallback deve ser tratado apenas como proteção de interface, não como solução da inconsistência.
+
+TESTES OBRIGATÓRIOS
+
+Depois da implementação, teste pelo menos:
+
+1. DME individual
+
+   Criar uma DME e verificar transaction:
+
+   amount = valor_previsto.
+
+2. Lote DME
+
+   Criar um lote e verificar:
+
+   amount = valor_previsto.
+
+3. Job
+
+   Gerar lançamento financeiro e verificar:
+
+   amount = valor_previsto.
+
+4. Setup
+
+   Criar parcela e verificar:
+
+   amount = valor_previsto.
+
+5. Mensalidade
+
+   Criar lançamento e verificar:
+
+   amount = valor_previsto.
+
+6. Lançamento manual
+
+   Criar lançamento e verificar:
+
+   amount = valor_previsto.
+
+7. Baixa sem diferença
+
+   Previsto R$ 850
+
+   Real R$ 850
+
+   Diferença R$ 0.
+
+8. Baixa com desconto
+
+   Previsto R$ 850
+
+   Real R$ 481,30
+
+   Diferença -R$ 368,70
+
+   Motivo: Desconto.
+
+9. Baixa com acréscimo
+
+   Previsto R$ 850
+
+   Real R$ 900
+
+   Diferença +R$ 50.
+
+10. Persistência
+
+    Recarregar a página e verificar se os valores continuam corretos.
+
+11. Registros históricos
+
+    Confirmar que nenhum dos 57 registros inconsistentes foi alterado nesta etapa.
+
+12. Financeiro
+
+    Confirmar que os valores exibidos na listagem, edição e baixa continuam consistentes.
+
+AUDITORIA FINAL
+
+Ao terminar, informe:
+
+- todos os arquivos modificados;
+
+- todos os fluxos de criação corrigidos;
+
+- todos os testes executados;
+
+- se algum fluxo ainda cria valor_previsto = 0;
+
+- se algum fluxo possui regra diferente;
+
+- confirmação de que amount NÃO é alterado durante a baixa;
+
+- confirmação de que os 57 registros antigos NÃO foram alterados.
+
+NÃO faça migração dos dados antigos.
+
+NÃO faça UPDATE em massa.
+
+NÃO altere os 57 registros existentes.
+
+Primeiro corrija apenas os fluxos futuros e valide completamente.</h1>
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
         </div>
         <div className="flex gap-2">
