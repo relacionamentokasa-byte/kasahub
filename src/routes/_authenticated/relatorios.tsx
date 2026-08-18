@@ -233,7 +233,7 @@ function FinancialPage() {
               };
               const due_date = parseDateBR(getCol("data", "data de vencimento", "vencimento"));
               const description = String(getCol("descricao", "descrição", "description") || "Importação");
-              let amount = parseAmountBR(getCol("valor", "amount"));
+              let amount = parseAmountBR(getCol("valor", "amount", "valor previsto"));
               let type = mapType(getCol("tipo", "type"));
 
               // Fallback: infer type from amount sign when "Tipo" is missing/unrecognized

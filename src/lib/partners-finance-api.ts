@@ -119,6 +119,18 @@ export async function cancelPartnerAdvance(id: string) {
 
 export async function settlePartnerAdvance(id: string, settled_amount: number, total: number) {
   const status = settled_amount >= total ? "settled" : settled_amount > 0 ? "partially_settled" : "open";
+  
+  // Se for quitação total, atualizamos o valor_real/paid_value da transação se ela existir
+  const { data: adv } = await supabase.from("partner_advances" as any).select("transaction_id").eq("id", id).single();
+  if (adv?.transaction_id && status === "settled") {
+    await supabase.from("transactions").update({
+      status: "paid",
+      paid_value: total,
+      valor_real: total,
+      payment_date: new Date().toISOString().slice(0, 10)
+    } as any).eq("id", adv.transaction_id);
+  }
+
   const { error } = await supabase
     .from("partner_advances" as any)
     .update({ settled_amount, status })
