@@ -270,7 +270,7 @@ function FinancialPage() {
             return;
           }
 
-          const { error } = await supabase.from("transactions").insert(payload);
+          const { error } = await supabase.from("transactions").insert(payload.map(p => ({ ...p, valor_previsto: p.amount })));
           if (error) {
             toast.error("Erro na importação: " + error.message);
           } else {
