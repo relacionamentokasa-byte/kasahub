@@ -7,6 +7,21 @@ export type TransactionUpdate = Database["public"]["Tables"]["transactions"]["Up
 export type Category = Database["public"]["Tables"]["transaction_categories"]["Row"];
 export type Contract = Database["public"]["Tables"]["contracts"]["Row"];
 
+const PRO_LABORE = "pro-labore";
+const normalize = (s: string | null | undefined) =>
+  (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const isProLabore = (name: string | null | undefined) =>
+  normalize(name) === PRO_LABORE;
+
+const isInvestimento = (name: string | null | undefined) =>
+  normalize(name).includes("investimento");
+
 export async function fetchTransactions(filters: {
   clientId?: string;
   status?: string;
