@@ -1035,7 +1035,7 @@ function FinancialPage() {
                   }
                   onCheckedChange={(c) => {
                     if (c) {
-                      setSelectedIds(new Set(filteredTransactions.map((t: any) => t.id)));
+                      setSelectedIds(new Set(transactions.map((t: any) => t.id)));
                     } else {
                       setSelectedIds(new Set());
                     }
