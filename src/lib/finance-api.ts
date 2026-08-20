@@ -114,8 +114,6 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
 
   trans?.forEach((t: any) => {
     // Se o cliente associado estiver com cobrança suspensa, desconsidera para indicadores OPERACIONAIS
-    // Mas note: o MRR (na SaudeNegocioSection) e o histórico geral (relatorios.tsx) podem ter lógicas próprias.
-    // Aqui estamos em fetchFinanceStats que alimenta os cards de topo do Financeiro.
     const isSuspended = t.clients?.financial_collection_status === 'suspended';
     
     const amount = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
@@ -126,13 +124,14 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     if (CANCELLED.has(status)) return;
     
     // Se estiver suspenso, não entra no operacional de A Receber/Previsto, mas entra no histórico total se for Pago.
-    // Se for Pendente e Suspenso, removemos da visão operacional aqui.
-    if (isSuspended && status !== "paid") return;
+    // Lançamentos PAGO de clientes suspensos CONTINUAM nos indicadores de faturamento/histórico.
+    const isOperationalView = status !== "paid";
+    if (isSuspended && isOperationalView) return;
 
     if (t.type === "income") {
       if (isNaoOp) {
         stats.naoOperacionalReceitas += amount;
-        return; // não entra em faturamento/previsto
+        return;
       }
       if (status === "paid") stats.recebidasReceitas += amount;
       else stats.previstasReceitas += amount;
