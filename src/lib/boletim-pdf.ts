@@ -1,7 +1,7 @@
 import type { LaunchGridProduct, LaunchGridBoletim } from "@/lib/launch-grids-api";
 
-export async function exportBoletimPDF(product: LaunchGridProduct, grid: LaunchGridBoletim) {
-  const { exportBoletimPDF: realExport } = await import("./boletim-pdf-real");
+export async function exportBoletimPdf(product: LaunchGridProduct, grid: LaunchGridBoletim) {
+  const { exportBoletimPdf: realExport } = await import("./boletim-pdf-real");
   return realExport(product, grid);
 }
 

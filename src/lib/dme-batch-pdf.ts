@@ -1,4 +1,14 @@
-export async function exportDmeBatchPDF(batch: any, dmes: any[], agency: any) {
-  const { exportDmeBatchPDF: realExport } = await import("./dme-batch-pdf-real");
-  return realExport(batch, dmes, agency);
+export async function generateSingleDmePdf(dmeId: string): Promise<void> {
+  const { generateSingleDmePdf: real } = await import("./dme-batch-pdf-real");
+  return real(dmeId);
+}
+
+export async function generateDmeBatchPdf(batch: any, dmes: any[], agency: any) {
+  const { generateDmeBatchPdf: real } = await import("./dme-batch-pdf-real");
+  return real(batch, dmes, agency);
+}
+
+export async function generateConsolidatedTxPdf(consolidatedTransactionId: string): Promise<void> {
+  const { generateConsolidatedTxPdf: real } = await import("./dme-batch-pdf-real");
+  return real(consolidatedTransactionId);
 }
