@@ -1,3 +1,145 @@
+<h1>Quero realizar uma AUDITORIA COMPLETA DE SAÚDE, PERFORMANCE, ESTABILIDADE E INTEGRIDADE do ERP inteiro.
+
+IMPORTANTE:
+
+NÃO altere código.
+
+NÃO corrija bugs.
+
+NÃO altere banco de dados.
+
+NÃO faça migrations.
+
+NÃO remova arquivos.
+
+NÃO faça limpeza.
+
+Quero somente diagnóstico.
+
+Analise os principais módulos do ERP:
+
+- Dashboard
+
+- CRM
+
+- Propostas
+
+- Clientes
+
+- Projetos
+
+- Jobs
+
+- Demandas Extras
+
+- Parceiros
+
+- Agenda
+
+- Financeiro
+
+- Relatórios
+
+- Construtor de Relatórios
+
+- Kasa AI
+
+Para cada módulo, verifique:
+
+1. Erros no console.
+
+2. Erros de API/Supabase.
+
+3. Queries lentas ou excessivas.
+
+4. Chamadas duplicadas.
+
+5. Renders excessivos.
+
+6. Loading infinito ou travamentos.
+
+7. Listas sem paginação carregando muitos registros.
+
+8. Componentes muito pesados.
+
+9. Problemas de estado/cache.
+
+10. Erros silenciosos onde uma falha de API pode ser interpretada como "nenhum dado".
+
+11. Possíveis duplicações de registros.
+
+12. Problemas de estabilidade.
+
+Também analise a estrutura geral do projeto para identificar:
+
+- arquivos duplicados;
+
+- componentes antigos não utilizados;
+
+- código morto;
+
+- dependências desnecessárias;
+
+- assets muito pesados;
+
+- imagens/fontes/PDFs pesados;
+
+- arquivos JS/TS duplicados;
+
+- problemas de bundle/build;
+
+- bibliotecas que podem estar deixando o carregamento inicial pesado.
+
+Analise também o banco:
+
+- quantidade de registros nas principais tabelas;
+
+- queries que trabalham com muitos registros;
+
+- JOINs complexos;
+
+- N+1 queries;
+
+- falta de paginação;
+
+- possíveis problemas de índices;
+
+- consultas que podem ficar lentas conforme o ERP crescer.
+
+IMPORTANTE:
+
+Não altere nada.
+
+No final, apresente somente um diagnóstico organizado por prioridade:
+
+CRÍTICO
+
+ALTO
+
+MÉDIO
+
+BAIXO
+
+Para cada problema informe:
+
+- módulo;
+
+- arquivo;
+
+- problema;
+
+- causa provável;
+
+- impacto;
+
+- evidência;
+
+- recomendação.
+
+Também informe os 10 problemas mais importantes encontrados.
+
+Comece pela auditoria e não faça nenhuma correção.</h1>
+
 import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
