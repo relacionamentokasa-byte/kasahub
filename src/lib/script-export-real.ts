@@ -1,0 +1,207 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import {
+  type Script, type ScriptScene,
+  SCRIPT_CONTENT_LABEL, SCRIPT_STATUS_LABEL,
+} from "@/lib/scripts-api";
+import { SOCIAL_LABEL } from "@/lib/editorial-api";
+import { registerBoletimFonts } from "@/lib/pdf-fonts";
+import { resolveStorageUrl } from "@/lib/use-storage-url";
+
+async function imageToDataURL(url: string): Promise<string | null> {
+  const signed = (await resolveStorageUrl(url)) ?? url;
+  try {
+    const res = await fetch(signed);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result as string);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function tryAddImage(doc: jsPDF, dataUrl: string, x: number, y: number, w: number, h: number) {
+  try { doc.addImage(dataUrl, "JPEG", x, y, w, h, undefined, "FAST"); return true; }
+  catch {
+    try { doc.addImage(dataUrl, "PNG", x, y, w, h, undefined, "FAST"); return true; }
+    catch {
+      try { doc.addImage(dataUrl, "WEBP" as any, x, y, w, h, undefined, "FAST"); return true; } catch { return false; }
+    }
+  }
+}
+
+/** Ajusta a imagem inteira dentro do box (sem cortar). */
+async function fitContain(dataUrl: string, boxW: number, boxH: number) {
+  return new Promise<{ w: number; h: number; ox: number; oy: number }>((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(boxW / img.width, boxH / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      resolve({ w, h, ox: (boxW - w) / 2, oy: (boxH - h) / 2 });
+    };
+    img.onerror = () => resolve({ w: boxW, h: boxH, ox: 0, oy: 0 });
+    img.src = dataUrl;
+  });
+}
+
+function sanitize(s?: string | null): string {
+  if (s == null) return "";
+  let out = String(s).normalize("NFC");
+  out = out.replace(
+    /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2300}-\u{23FF}\u{1F000}-\u{1F02F}\u{1F100}-\u{1F1FF}\u{FE0F}]/gu,
+    "",
+  );
+  out = out.replace(/[^\u0000-\u00FF\n]/g, "");
+  return out.replace(/[ \t]+/g, " ").trim();
+}
+
+const formatLabel: Record<string, string> = {
+  vertical: "Vertical (9:16)",
+  horizontal: "Horizontal (16:9)",
+  square: "Quadrado (1:1)",
+};
+
+export async function exportScriptPDF(opts: {
+  script: Script & { clients?: { name: string } | null; jobs?: { title: string } | null };
+  scenes: ScriptScene[];
+}) {
+  const { script, scenes } = opts;
+  const doc = new jsPDF({ unit: "pt", format: "a4" });
+  const fonts = await registerBoletimFonts(doc);
+  const FONT_TITLE = fonts.funnel ? "Funnel" : "helvetica";
+  const FONT_BODY = fonts.onest ? "Onest" : "helvetica";
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 36;
+
+  // Header
+  doc.setFillColor(12, 22, 24);
+  doc.rect(0, 0, pageW, 100, "F");
+  doc.setTextColor(255, 188, 69);
+  doc.setFont(FONT_TITLE, "bold");
+  doc.setFontSize(11);
+  doc.text("ROTEIRO", margin, 32);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont(FONT_TITLE, "bold");
+  doc.setFontSize(20);
+  const titleLines = doc.splitTextToSize(sanitize(script.title || "Sem titulo"), pageW - margin * 2);
+  doc.text(titleLines.slice(0, 2), margin, 56);
+  doc.setFont(FONT_BODY, "normal");
+  doc.setFontSize(9);
+  const meta = [
+    script.clients?.name ? `Cliente: ${sanitize(script.clients.name)}` : null,
+    script.jobs?.title ? `Job: ${sanitize(script.jobs.title)}` : null,
+  ].filter(Boolean).join("   ·   ");
+  if (meta) doc.text(meta, margin, 88);
+
+  // Info block
+  let y = 130;
+  doc.setTextColor(30, 30, 30);
+  doc.setFont(FONT_TITLE, "bold");
+  doc.setFontSize(11);
+  doc.text("Informacoes", margin, y);
+  y += 14;
+  doc.setFont(FONT_BODY, "normal");
+  doc.setFontSize(10);
+  const totalDur = scenes.reduce((a, s) => a + (s.duration_sec ?? 0), 0);
+  const lines = [
+    `Tipo: ${SCRIPT_CONTENT_LABEL[script.content_type]}`,
+    `Plataforma: ${SOCIAL_LABEL[script.platform as keyof typeof SOCIAL_LABEL] ?? script.platform}`,
+    `Formato: ${script.video_format ? formatLabel[script.video_format] : "—"}`,
+    `Duracao estimada: ${script.estimated_duration_sec ?? totalDur}s`,
+    `Status: ${SCRIPT_STATUS_LABEL[script.status]}`,
+    `Total de cenas: ${scenes.length}`,
+  ];
+  lines.forEach((l) => { doc.text(sanitize(l), margin, y); y += 14; });
+
+  y += 8;
+
+  // Scenes table
+  const body = scenes
+    .slice()
+    .sort((a, b) => a.scene_number - b.scene_number)
+    .map((s) => [
+      String(s.scene_number),
+      s.duration_sec != null ? `${s.duration_sec}s` : "—",
+      sanitize(s.visual ?? ""),
+      sanitize(s.speech ?? ""),
+      sanitize(s.production_notes ?? ""),
+    ]);
+
+  autoTable(doc, {
+    startY: y,
+    head: [["#", "Dur.", "Visual", "Fala / Narracao", "Notas de producao"]],
+    body,
+    styles: { font: FONT_BODY, fontSize: 9, cellPadding: 6, valign: "top", textColor: [30, 30, 30], lineColor: [220, 220, 220] },
+    headStyles: { fillColor: [12, 22, 24], textColor: [255, 188, 69], fontStyle: "bold", font: FONT_TITLE },
+    alternateRowStyles: { fillColor: [248, 248, 245] },
+    columnStyles: {
+      0: { cellWidth: 28, halign: "center" },
+      1: { cellWidth: 40, halign: "center" },
+      2: { cellWidth: 150 },
+      3: { cellWidth: 170 },
+      4: { cellWidth: "auto" },
+    },
+    margin: { left: margin, right: margin },
+  });
+
+  // Referências visuais
+  const withRefs = scenes
+    .slice()
+    .sort((a, b) => a.scene_number - b.scene_number)
+    .filter((s) => !!s.reference_image_url);
+
+  if (withRefs.length) {
+    const pageH = doc.internal.pageSize.getHeight();
+    let ry = ((doc as any).lastAutoTable?.finalY ?? y) + 28;
+    const ensure = (need: number) => {
+      if (ry + need > pageH - 40) { doc.addPage(); ry = 50; }
+    };
+    ensure(40);
+    doc.setTextColor(30, 30, 30);
+    doc.setFont(FONT_TITLE, "bold");
+    doc.setFontSize(11);
+    doc.text("Referencias visuais", margin, ry);
+    ry += 16;
+
+    const cols = 2;
+    const gap = 16;
+    const boxW = (pageW - margin * 2 - gap * (cols - 1)) / cols;
+    const boxH = boxW * 0.85;
+
+    for (let i = 0; i < withRefs.length; i += cols) {
+      const row = withRefs.slice(i, i + cols);
+      ensure(boxH + 26);
+      for (let c = 0; c < row.length; c++) {
+        const s = row[c];
+        const x = margin + c * (boxW + gap);
+        const dataUrl = await imageToDataURL(s.reference_image_url!);
+        doc.setDrawColor(220, 220, 220);
+        doc.setFillColor(248, 248, 245);
+        doc.roundedRect(x, ry, boxW, boxH, 6, 6, "FD");
+        if (dataUrl) {
+          const fit = await fitContain(dataUrl, boxW - 8, boxH - 8);
+          tryAddImage(doc, dataUrl, x + 4 + fit.ox, ry + 4 + fit.oy, fit.w, fit.h);
+        }
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(90, 90, 90);
+        doc.text(`Cena ${s.scene_number}`, x, ry + boxH + 12);
+      }
+      ry += boxH + 26;
+    }
+  }
+
+  const slug = (s: string) => sanitize(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const parts = [
+    slug(script.jobs?.title ?? ""),
+    slug(script.clients?.name ?? ""),
+    slug(script.title ?? "roteiro"),
+    new Date().toISOString().slice(0, 10),
+  ].filter(Boolean);
+  doc.save(`${parts.join("-") || "roteiro"}.pdf`);
+}
