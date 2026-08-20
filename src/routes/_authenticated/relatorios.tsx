@@ -1056,7 +1056,7 @@ function FinancialPage() {
           <TableBody>
             {isLoading ? (
               <TableRowsSkeleton rows={6} columns={9} />
-            ) : filteredTransactions.length === 0 ? (
+            ) : transactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-64 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
