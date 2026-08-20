@@ -1346,6 +1346,70 @@ function FinancialPage() {
             className={saldoPeriodo >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}
           />
         </div>
+        </div>
+        
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 bg-surface border-t border-border">
+            <div className="text-xs text-foreground/40 font-mono-kasa uppercase">
+              Página {page} de {totalPages} · {totalCount} registros
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full h-8 text-xs font-bold uppercase tracking-widest gap-1"
+                disabled={page <= 1}
+                onClick={() => {
+                  setPage(prev => Math.max(1, prev - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                <ChevronLeft className="size-3.5" /> Anterior
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pNum = i + 1;
+                  if (totalPages > 5 && page > 3) {
+                    pNum = page - 2 + i;
+                    if (pNum + (4 - i) > totalPages) pNum = totalPages - 4 + i;
+                  }
+                  if (pNum <= 0) return null;
+                  if (pNum > totalPages) return null;
+
+                  return (
+                    <Button
+                      key={pNum}
+                      variant={page === pNum ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "size-8 rounded-full p-0 text-xs font-bold transition-all",
+                        page === pNum ? "bg-primary text-primary-foreground" : "hover:bg-primary/10 hover:text-primary"
+                      )}
+                      onClick={() => {
+                        setPage(pNum);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                    >
+                      {pNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full h-8 text-xs font-bold uppercase tracking-widest gap-1"
+                disabled={page >= totalPages}
+                onClick={() => {
+                  setPage(prev => Math.min(totalPages, prev + 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                Próximo <ChevronRight className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
