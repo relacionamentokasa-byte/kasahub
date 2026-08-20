@@ -492,8 +492,6 @@ function FinancialPage() {
         if (t.client_id) return false;
       } else if (t.type === "expense") {
         if (t.client_id || t.supplier_id || t.freelancer_id || t.partner_id) return false;
-      } else {
-        return false;
       }
     }
     return true;
@@ -528,10 +526,11 @@ function FinancialPage() {
 
   const totals = filteredTransactions.reduce(
     (acc: { receitas: number; despesas: number; proLabore: number; naoOperacional: number }, t: any) => {
+      const isSuspended = t.clients?.financial_collection_status === 'suspended';
       const v = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
       const proLab = isProLabore(getCatName(t));
       const isNaoOp = t.nature === "nao_operacional";
-      if (t.type === "income") {
+      if (t.type === "income" && !isSuspended) {
         if (isNaoOp) acc.naoOperacional += v;
         else acc.receitas += v;
       } else if (t.type === "expense" && proLab) {
@@ -975,6 +974,7 @@ function FinancialPage() {
               </TableRow>
             ) : (
               filteredTransactions.map((t: any) => {
+                const isSuspended = t.clients?.financial_collection_status === 'suspended';
                 const previsto = Number(t.valor_previsto) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
                 const diff = real != null ? real - previsto : 0;
@@ -984,7 +984,7 @@ function FinancialPage() {
                 const isNaoOp = t.nature === "nao_operacional";
                 const todayStr = new Date().toISOString().slice(0, 10);
                 const effectiveStatus =
-                  t.status === "pending" && t.due_date && t.due_date < todayStr
+                  t.status === "pending" && t.due_date && t.due_date < todayStr && !isSuspended
                     ? "overdue"
                     : t.status;
                 return (
@@ -992,7 +992,9 @@ function FinancialPage() {
                   key={t.id}
                   className={cn(
                     "group transition-colors",
-                    effectiveStatus === "paid"
+                    isSuspended && t.status !== 'paid'
+                      ? "opacity-60 grayscale-[0.5] hover:bg-muted/10 border-l-2 border-l-amber-500/30"
+                      : effectiveStatus === "paid"
                       ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
                       : effectiveStatus === "overdue"
                       ? "bg-red-500/10 hover:bg-red-500/15 border-l-2 border-l-red-600"
@@ -1151,13 +1153,18 @@ function FinancialPage() {
                     />
                   </TableCell>
                   <TableCell className={cn("py-4 text-right font-semibold text-sm tabular-nums", typeColor)}>
-                    {sign} {brl(previsto)}
+                    <div className="flex flex-col items-end">
+                      <span>{sign} {brl(previsto)}</span>
+                      {t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid' && (
+                        <span className="text-[9px] font-bold text-amber-500 uppercase">Cobrança Suspensa</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className={cn("py-4 text-right text-sm tabular-nums", real != null ? typeColor : "text-foreground/30")}>
                     {real != null ? `${sign} ${brl(real)}` : "—"}
                   </TableCell>
                   <TableCell className="py-4 text-right">
-                    {hasDiff ? (
+                    {hasDiff && t.clients?.financial_collection_status !== 'suspended' ? (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
