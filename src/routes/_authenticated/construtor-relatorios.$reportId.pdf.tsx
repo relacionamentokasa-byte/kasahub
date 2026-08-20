@@ -14,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/construtor-relatorios/$rep
 });
 
 function ReportPdfPage() {
-  const { reportId } = Route.useParams();
+  const { reportId } = Route.useParams() as any;
   const reportQ = useQuery({ queryKey: ["report", reportId], queryFn: () => fetchReport(reportId) });
   const clientQ = useQuery({
     queryKey: ["client", reportQ.data?.client_id],
