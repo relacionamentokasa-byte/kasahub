@@ -898,12 +898,12 @@ function FinancialPage() {
                 <Checkbox
                   checked={
                     transactions.length > 0 &&
-                    transactions.filter((t: any) => !(t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid')).every((t: any) => selectedIds.has(t.id))
+                    transactions.length > 0 && transactions.every((t: any) => selectedIds.has(t.id))
                   }
 
                   onCheckedChange={(c) => {
                     if (c) {
-                      setSelectedIds(new Set(transactions.filter((t: any) => !(t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid')).map((t: any) => t.id)));
+                      setSelectedIds(new Set(transactions.map((t: any) => t.id)));
                     } else {
                       setSelectedIds(new Set());
                     }
@@ -924,7 +924,7 @@ function FinancialPage() {
           <TableBody>
             {isLoading ? (
               <TableRowsSkeleton rows={6} columns={9} />
-            ) : transactions.filter((t: any) => !(t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid')).length === 0 ? (
+            ) : transactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-64 text-center">
 

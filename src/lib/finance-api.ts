@@ -109,6 +109,9 @@ export async function fetchTransactions(filters: {
     q = q.neq("status", "cancelled");
   }
 
+  // 8. Regra de Suspensão Financeira (Visão Operacional)
+  // Lançamentos pendentes de clientes suspensos são ocultados da visão principal
+  q = q.or(`status.eq.paid,and(clients.financial_collection_status.neq.suspended)`);
 
   const { data, error, count } = await q.range(from, to);
   if (error) throw error;
