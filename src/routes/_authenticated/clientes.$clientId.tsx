@@ -170,11 +170,12 @@ function ClientDetail() {
   const mrr = contracts
     .filter((c: any) => c.status === "active")
     .reduce((sum: number, c: any) => sum + Number(c.monthly_value || 0), 0);
+  const isClientSuspended = client?.financial_collection_status === 'suspended';
   const overdueIncomeCount = transactions.filter(
-    (t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && t.due_date && t.due_date < todayIso,
+    (t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && t.due_date && t.due_date < todayIso && !isClientSuspended,
   ).length;
   const paidIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "paid").length;
-  const pendingIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending").length;
+  const pendingIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && !isClientSuspended).length;
   const activeJobsCount = (jobs as any[]).filter(
     (j) => !j.done_at && !["done", "cancelled", "archived"].includes(j.status),
   ).length;
