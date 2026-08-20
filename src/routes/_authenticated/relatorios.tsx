@@ -547,97 +547,24 @@ function FinancialPage() {
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   })();
 
-  const filteredTransactions = transactions.filter((t: any) => {
-    // REGRA DEFINITIVA: Excluir da visão operacional transações pending/overdue de clientes suspensos
-    const isSuspended = (t.clients as any)?.financial_collection_status === "suspended";
-    const status = (t.status || "").toLowerCase();
-    const isPaid = status === "paid" || status === "recebido" || status === "pago";
+  // Notação: Precisamos de indicadores do período completo para "totals" e blocos de resumo.
+  // Já temos o hook fetchFinanceStats, mas alguns blocos locais ainda usam "transactions" (paginada).
+  // Para manter a correção, os totais devem vir de fetchFinanceStats ou de uma query completa.
+  // Como as regras de despesasReaisOperacionais/investimentoRealizado são customizadas, 
+  // vamos usar os indicadores que já temos calculados em fetchFinanceStats se possível.
 
-    if (isSuspended && !isPaid && !showCancelled) {
-      // Omitir da visão operacional principal se o cliente estiver suspenso e não for histórico/pago
-      return false;
-    }
+  const proLaboreMes = stats?.proLaboreMes || 0;
+  const despesasReaisOperacionais = stats?.despesasReaisOperacionais || 0;
+  const investimentoRealizado = stats?.investimentoRealizado || 0;
 
-    if (filter.nfStatus !== "all" && (t.nf_status || "pendente") !== filter.nfStatus) return false;
-    if (filter.boletoStatus !== "all" && (t.boleto_internal_status || "nao_se_aplica") !== filter.boletoStatus) return false;
-
-    if (!showCancelled && t.status === "cancelled") return false;
-    const matchSearch =
-      (t.description || "").toLowerCase().includes(filter.search.toLowerCase()) ||
-      (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
-      (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase());
-    if (!matchSearch) return false;
-    const proLab = isProLabore(getCatName(t));
-    if (quickFilter === "income" && t.type !== "income") return false;
-    if (quickFilter === "expense_op" && !(t.type === "expense" && !proLab)) return false;
-    if (quickFilter === "pro_labore" && !proLab) return false;
-
-    if (quickChip === "today") {
-      if ((t.due_date || "").slice(0, 10) !== todayStrLocal) return false;
-    } else if (quickChip === "week") {
-      const d = (t.due_date || "").slice(0, 10);
-      if (!d || d < todayStrLocal || d > weekFromTodayStr) return false;
-    } else if (quickChip === "overdue") {
-      if (t.status !== "pending" || !t.due_date || t.due_date >= todayStrLocal) return false;
-    } else if (quickChip === "paid_month") {
-      if (t.status !== "paid") return false;
-    } else if (quickChip === "missing_links") {
-      // Receita sem cliente OU despesa sem qualquer vínculo (cliente, fornecedor, freelancer, parceiro)
-      if (t.type === "income") {
-        if (t.client_id) return false;
-      } else if (t.type === "expense") {
-        if (t.client_id || t.supplier_id || t.freelancer_id || t.partner_id) return false;
-      }
-    }
-    return true;
-  }).sort((a: any, b: any) => (a.due_date || "").localeCompare(b.due_date || ""));
-
-
-  const cancelledCount = transactions.filter((t: any) => t.status === "cancelled").length;
-
-  const proLaboreMes = transactions
-    .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
-    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
-
-  // Projeção: considera tudo que está previsto no mês (pagos + pendentes),
-  // excluindo Pró-labore e Investimento (contabilizados em blocos separados).
-  const despesasReaisOperacionais = transactions
-    .filter(
-      (t: any) =>
-        t.type === "expense" &&
-        t.nature !== "nao_operacional" &&
-        !isProLabore(getCatName(t)) &&
-        !isInvestimento(getCatName(t)),
-    )
-    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
-
-  const investimentoRealizado = transactions
-    .filter(
-      (t: any) =>
-        t.type === "expense" &&
-        isInvestimento(getCatName(t)),
-    )
-    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
-
-  const totals = filteredTransactions.reduce(
-    (acc: { receitas: number; despesas: number; proLabore: number; naoOperacional: number }, t: any) => {
-      const isSuspended = t.clients?.financial_collection_status === 'suspended';
-      const v = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
-      const proLab = isProLabore(getCatName(t));
-      const isNaoOp = t.nature === "nao_operacional";
-      if (t.type === "income" && !isSuspended) {
-        if (isNaoOp) acc.naoOperacional += v;
-        else acc.receitas += v;
-      } else if (t.type === "expense" && proLab) {
-        acc.proLabore += v;
-      } else if (t.type === "expense") {
-        if (isNaoOp) acc.naoOperacional += v;
-        else acc.despesas += v;
-      }
-      return acc;
-    },
-    { receitas: 0, despesas: 0, proLabore: 0, naoOperacional: 0 },
-  );
+  // Adaptar o objeto 'totals' para usar os valores vindos de 'stats'
+  const totals = {
+    receitas: stats?.recebidasReceitas || 0,
+    despesas: stats?.pagasDespesas || 0,
+    proLabore: stats?.proLaboreMes || 0,
+    naoOperacional: (stats?.naoOperacionalReceitas || 0) + (stats?.naoOperacionalDespesas || 0)
+  };
+  
   const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
 
   return (
