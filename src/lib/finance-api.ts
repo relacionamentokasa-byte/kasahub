@@ -7,6 +7,21 @@ export type TransactionUpdate = Database["public"]["Tables"]["transactions"]["Up
 export type Category = Database["public"]["Tables"]["transaction_categories"]["Row"];
 export type Contract = Database["public"]["Tables"]["contracts"]["Row"];
 
+const PRO_LABORE = "pro-labore";
+const normalize = (s: string | null | undefined) =>
+  (s || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+const isProLabore = (name: string | null | undefined) =>
+  normalize(name) === PRO_LABORE;
+
+const isInvestimento = (name: string | null | undefined) =>
+  normalize(name).includes("investimento");
+
 export async function fetchTransactions(filters: {
   clientId?: string;
   status?: string;
@@ -14,11 +29,18 @@ export async function fetchTransactions(filters: {
   categoryId?: string;
   startDate?: string;
   endDate?: string;
+  page?: number;
+  pageSize?: number;
 } = {}) {
+  const page = filters.page || 1;
+  const pageSize = filters.pageSize || 50;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)")
+    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)", { count: "exact" })
     .order("due_date", { ascending: false });
 
   if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
@@ -27,16 +49,15 @@ export async function fetchTransactions(filters: {
   if (filters.categoryId && filters.categoryId !== "all") q = q.eq("category_id", filters.categoryId);
   
   if (filters.startDate && filters.endDate) {
-    // Incluir atrasados (não pagos/cancelados) mesmo fora do período
     q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
   } else {
     if (filters.startDate) q = q.gte("due_date", filters.startDate);
     if (filters.endDate) q = q.lte("due_date", filters.endDate);
   }
 
-  const { data, error } = await q;
+  const { data, error, count } = await q.range(from, to);
   if (error) throw error;
-  return data || [];
+  return { data: data || [], count: count || 0 };
 }
 
 export async function createTransaction(input: TransactionInsert) {
@@ -106,6 +127,10 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     parcelasFuturas: 0,
     naoOperacionalReceitas: 0,
     naoOperacionalDespesas: 0,
+    proLaboreMes: 0,
+    despesasReaisOperacionais: 0,
+    investimentoRealizado: 0,
+    cancelledCount: 0,
   };
 
   // variable 'today' already declared above
@@ -113,6 +138,10 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const CANCELLED = new Set(["cancelled", "canceled", "cancelado", "cancelada", "estornado"]);
 
   trans?.forEach((t: any) => {
+    const getCatName = (item: any) => (item.categorias_financeiras as any)?.nome || item.category || "";
+    const proLab = isProLabore(getCatName(t));
+    const inv = isInvestimento(getCatName(t));
+    
     // Se o cliente associado estiver com cobrança suspensa, desconsidera para indicadores OPERACIONAIS
     const isSuspended = t.clients?.financial_collection_status === 'suspended';
     
@@ -120,11 +149,13 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     const isNaoOp = t.nature === "nao_operacional";
     const status = (t.status || "").toLowerCase();
 
-    // Lançamentos cancelados não entram em nenhum indicador
-    if (CANCELLED.has(status)) return;
+    // Lançamentos cancelados
+    if (CANCELLED.has(status)) {
+      stats.cancelledCount++;
+      return;
+    }
     
     // Se estiver suspenso, não entra no operacional de A Receber/Previsto, mas entra no histórico total se for Pago.
-    // Lançamentos PAGO de clientes suspensos CONTINUAM nos indicadores de faturamento/histórico.
     const isOperationalView = status !== "paid";
     if (isSuspended && isOperationalView) return;
 
@@ -142,6 +173,11 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
         stats.naoOperacionalDespesas += amount;
         return;
       }
+      
+      if (proLab) stats.proLaboreMes += amount;
+      else if (inv) stats.investimentoRealizado += amount;
+      else stats.despesasReaisOperacionais += amount;
+
       if (status === "paid") stats.pagasDespesas += amount;
       else stats.previstasDespesas += amount;
     }

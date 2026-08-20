@@ -75,11 +75,12 @@ function ClientDetail() {
     enabled: !!client
   });
 
-  const { data: transactions = [] } = useQuery({ 
+  const { data: transactionsResponse } = useQuery({ 
     queryKey: ["client-transactions", clientId], 
-    queryFn: () => fetchTransactions({ clientId }),
+    queryFn: () => fetchTransactions({ clientId, pageSize: 1000 }), // Aumentar limite para visão 360 do cliente
     enabled: !!client
   });
+  const transactions = transactionsResponse?.data || [];
 
   const { data: jobs = [] } = useQuery({
     queryKey: ["client-jobs-summary", clientId],

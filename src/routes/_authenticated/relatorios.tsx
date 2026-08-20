@@ -1,76 +1,5 @@
-<h1>Agora quero corrigir APENAS o carregamento desnecessário das bibliotecas de PDF.
 
-A auditoria identificou importações estáticas de:
-
-- jsPDF
-
-- html2canvas
-
-em arquivos que fazem parte do carregamento inicial do ERP.
-
-Objetivo:
-
-As bibliotecas de PDF devem ser carregadas somente quando o usuário realmente solicitar a geração de um PDF.
-
-Faça importação dinâmica/lazy loading onde for seguro.
-
-Exemplo:
-
-Usuário abre o ERP → jsPDF não é carregado.
-
-Usuário clica em Gerar PDF → biblioteca é carregada → PDF é gerado normalmente.
-
-NÃO altere:
-
-- layout dos PDFs;
-
-- conteúdo;
-
-- fontes;
-
-- logos;
-
-- qualidade;
-
-- nomes dos arquivos;
-
-- armazenamento;
-
-- dados financeiros;
-
-- DMEs;
-
-- Jobs;
-
-- clientes;
-
-- banco de dados.
-
-Não refatore outras partes do ERP.
-
-Não remova arquivos.
-
-Não altere funcionalidades que não estejam relacionadas ao carregamento das bibliotecas de PDF.
-
-Depois da alteração, teste todos os fluxos existentes que utilizam PDF e confirme que continuam funcionando exatamente como antes.
-
-Também verifique se o bundle inicial realmente diminuiu.
-
-Informe:
-
-- arquivos modificados;
-
-- quais imports foram convertidos para dynamic import;
-
-- tamanho do bundle antes/depois, se disponível;
-
-- quais fluxos de PDF foram testados;
-
-- se houve alguma regressão.
-
-Faça somente essa otimização.</h1>
-
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { 
@@ -389,11 +318,19 @@ function FinancialPage() {
     nfStatus: "all",
     boletoStatus: "all",
   });
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
+
   const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
   const [quickChip, setQuickChip] = useState<"none" | "today" | "week" | "overdue" | "paid_month" | "missing_links">("none");
   const [showCancelled, setShowCancelled] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
+
+  // Reset page on filter change
+  useEffect(() => {
+    setPage(1);
+  }, [filter, quickFilter, quickChip, showCancelled]);
 
   const periodFilters = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -408,10 +345,15 @@ function FinancialPage() {
     queryFn: () => fetchFinanceStats(periodFilters) 
   });
   
-  const { data: transactions = [], isLoading } = useQuery({ 
-    queryKey: ["transactions", { ...filter, ...periodFilters }], 
-    queryFn: () => fetchTransactions({ ...filter, ...periodFilters }) 
+  const { data: transactionsData, isLoading } = useQuery({ 
+    queryKey: ["transactions", { ...filter, ...periodFilters, page }], 
+    queryFn: () => fetchTransactions({ ...filter, ...periodFilters, page, pageSize }) 
   });
+
+  const transactions = transactionsData?.data || [];
+  const totalCount = transactionsData?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
 
@@ -534,101 +476,30 @@ function FinancialPage() {
     return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
   })();
 
-  const filteredTransactions = transactions.filter((t: any) => {
-    // REGRA DEFINITIVA: Excluir da visão operacional transações pending/overdue de clientes suspensos
-    const isSuspended = (t.clients as any)?.financial_collection_status === "suspended";
-    const status = (t.status || "").toLowerCase();
-    const isPaid = status === "paid" || status === "recebido" || status === "pago";
+  // Notação: Precisamos de indicadores do período completo para "totals" e blocos de resumo.
+  // Já temos o hook fetchFinanceStats, mas alguns blocos locais ainda usam "transactions" (paginada).
+  // Para manter a correção, os totais devem vir de fetchFinanceStats ou de uma query completa.
+  // Como as regras de despesasReaisOperacionais/investimentoRealizado são customizadas, 
+  // vamos usar os indicadores que já temos calculados em fetchFinanceStats se possível.
 
-    if (isSuspended && !isPaid && !showCancelled) {
-      // Omitir da visão operacional principal se o cliente estiver suspenso e não for histórico/pago
-      return false;
-    }
+  const proLaboreMes = stats?.proLaboreMes || 0;
+  const despesasReaisOperacionais = stats?.despesasReaisOperacionais || 0;
+  const investimentoRealizado = stats?.investimentoRealizado || 0;
 
-    if (filter.nfStatus !== "all" && (t.nf_status || "pendente") !== filter.nfStatus) return false;
-    if (filter.boletoStatus !== "all" && (t.boleto_internal_status || "nao_se_aplica") !== filter.boletoStatus) return false;
-
-    if (!showCancelled && t.status === "cancelled") return false;
-    const matchSearch =
-      (t.description || "").toLowerCase().includes(filter.search.toLowerCase()) ||
-      (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
-      (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase());
-    if (!matchSearch) return false;
-    const proLab = isProLabore(getCatName(t));
-    if (quickFilter === "income" && t.type !== "income") return false;
-    if (quickFilter === "expense_op" && !(t.type === "expense" && !proLab)) return false;
-    if (quickFilter === "pro_labore" && !proLab) return false;
-
-    if (quickChip === "today") {
-      if ((t.due_date || "").slice(0, 10) !== todayStrLocal) return false;
-    } else if (quickChip === "week") {
-      const d = (t.due_date || "").slice(0, 10);
-      if (!d || d < todayStrLocal || d > weekFromTodayStr) return false;
-    } else if (quickChip === "overdue") {
-      if (t.status !== "pending" || !t.due_date || t.due_date >= todayStrLocal) return false;
-    } else if (quickChip === "paid_month") {
-      if (t.status !== "paid") return false;
-    } else if (quickChip === "missing_links") {
-      // Receita sem cliente OU despesa sem qualquer vínculo (cliente, fornecedor, freelancer, parceiro)
-      if (t.type === "income") {
-        if (t.client_id) return false;
-      } else if (t.type === "expense") {
-        if (t.client_id || t.supplier_id || t.freelancer_id || t.partner_id) return false;
-      }
-    }
-    return true;
-  }).sort((a: any, b: any) => (a.due_date || "").localeCompare(b.due_date || ""));
-
-
-  const cancelledCount = transactions.filter((t: any) => t.status === "cancelled").length;
-
-  const proLaboreMes = transactions
-    .filter((t: any) => t.type === "expense" && isProLabore(getCatName(t)))
-    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
-
-  // Projeção: considera tudo que está previsto no mês (pagos + pendentes),
-  // excluindo Pró-labore e Investimento (contabilizados em blocos separados).
-  const despesasReaisOperacionais = transactions
-    .filter(
-      (t: any) =>
-        t.type === "expense" &&
-        t.nature !== "nao_operacional" &&
-        !isProLabore(getCatName(t)) &&
-        !isInvestimento(getCatName(t)),
-    )
-    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
-
-  const investimentoRealizado = transactions
-    .filter(
-      (t: any) =>
-        t.type === "expense" &&
-        isInvestimento(getCatName(t)),
-    )
-    .reduce((acc: number, t: any) => acc + Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount)), 0);
-
-  const totals = filteredTransactions.reduce(
-    (acc: { receitas: number; despesas: number; proLabore: number; naoOperacional: number }, t: any) => {
-      const isSuspended = t.clients?.financial_collection_status === 'suspended';
-      const v = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
-      const proLab = isProLabore(getCatName(t));
-      const isNaoOp = t.nature === "nao_operacional";
-      if (t.type === "income" && !isSuspended) {
-        if (isNaoOp) acc.naoOperacional += v;
-        else acc.receitas += v;
-      } else if (t.type === "expense" && proLab) {
-        acc.proLabore += v;
-      } else if (t.type === "expense") {
-        if (isNaoOp) acc.naoOperacional += v;
-        else acc.despesas += v;
-      }
-      return acc;
-    },
-    { receitas: 0, despesas: 0, proLabore: 0, naoOperacional: 0 },
-  );
+  // Adaptar o objeto 'totals' para usar os valores vindos de 'stats'
+  const totals = {
+    receitas: stats?.recebidasReceitas || 0,
+    despesas: stats?.pagasDespesas || 0,
+    proLabore: stats?.proLaboreMes || 0,
+    naoOperacional: (stats?.naoOperacionalReceitas || 0) + (stats?.naoOperacionalDespesas || 0)
+  };
+  
+  const cancelledCount = stats?.cancelledCount || 0;
   const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
+
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa uppercase font-bold tracking-wider">Gestão · Financeiro</span>
@@ -896,12 +767,12 @@ function FinancialPage() {
       {/* Quick chips */}
       <div className="flex flex-wrap items-center gap-2">
         {(() => {
-          const missingLinksCount = transactions.filter((t: any) => {
+          const missingLinksCount = transactionsData?.data?.filter((t: any) => {
             if (t.status === "cancelled") return false;
             if (t.type === "income") return !t.client_id;
             if (t.type === "expense") return !t.client_id && !t.supplier_id && !t.freelancer_id && !t.partner_id;
             return false;
-          }).length;
+          }).length || 0;
           const chips = [
             { id: "none", label: "Tudo" },
             { id: "today", label: "Hoje" },
@@ -1017,12 +888,12 @@ function FinancialPage() {
               <TableHead className="w-10 py-4">
                 <Checkbox
                   checked={
-                    filteredTransactions.length > 0 &&
-                    filteredTransactions.every((t: any) => selectedIds.has(t.id))
+                    transactions.length > 0 &&
+                    transactions.every((t: any) => selectedIds.has(t.id))
                   }
                   onCheckedChange={(c) => {
                     if (c) {
-                      setSelectedIds(new Set(filteredTransactions.map((t: any) => t.id)));
+                      setSelectedIds(new Set(transactions.map((t: any) => t.id)));
                     } else {
                       setSelectedIds(new Set());
                     }
@@ -1043,7 +914,7 @@ function FinancialPage() {
           <TableBody>
             {isLoading ? (
               <TableRowsSkeleton rows={6} columns={9} />
-            ) : filteredTransactions.length === 0 ? (
+            ) : transactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-64 text-center">
                   <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
@@ -1055,7 +926,7 @@ function FinancialPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTransactions.map((t: any) => {
+              transactions.map((t: any) => {
                 const isSuspended = t.clients?.financial_collection_status === 'suspended';
                 const previsto = Number(t.valor_previsto) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
@@ -1404,6 +1275,70 @@ function FinancialPage() {
             className={saldoPeriodo >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}
           />
         </div>
+        
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 bg-surface border-t border-border">
+            <div className="text-xs text-foreground/40 font-mono-kasa uppercase">
+              Página {page} de {totalPages} · {totalCount} registros
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full h-8 text-xs font-bold uppercase tracking-widest gap-1"
+                disabled={page <= 1}
+                onClick={() => {
+                  setPage(prev => Math.max(1, prev - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                <ChevronLeft className="size-3.5" /> Anterior
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pNum = i + 1;
+                  if (totalPages > 5 && page > 3) {
+                    pNum = page - 2 + i;
+                    if (pNum + (4 - i) > totalPages) pNum = totalPages - 4 + i;
+                  }
+                  if (pNum <= 0) return null;
+                  if (pNum > totalPages) return null;
+
+                  return (
+                    <Button
+                      key={pNum}
+                      variant={page === pNum ? "default" : "ghost"}
+                      size="sm"
+                      className={cn(
+                        "size-8 rounded-full p-0 text-xs font-bold transition-all",
+                        page === pNum ? "bg-primary text-primary-foreground" : "hover:bg-primary/10 hover:text-primary"
+                      )}
+                      onClick={() => {
+                        setPage(pNum);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                    >
+                      {pNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full h-8 text-xs font-bold uppercase tracking-widest gap-1"
+                disabled={page >= totalPages}
+                onClick={() => {
+                  setPage(prev => Math.min(totalPages, prev + 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+              >
+                Próximo <ChevronRight className="size-3.5" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       <FinancialImportDialog open={importOpen} onOpenChange={setImportOpen} />
@@ -1437,9 +1372,9 @@ function FinancialPage() {
         transaction={reciboTx}
       />
     </div>
-
   );
 }
+
 
 function TotalCell({ label, value, className }: { label: string; value: number; className?: string }) {
   return (
