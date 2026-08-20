@@ -6,8 +6,8 @@ import { fetchClient } from "@/lib/ops-api";
 import { SlideView } from "@/components/reports/SlideView";
 import type { Slide } from "@/components/reports/types";
 import { useFocusMode } from "@/contexts/FocusModeContext";
-import jsPDF from "jspdf";
-import { toJpeg } from "html-to-image";
+// jsPDF e html-to-image serão importados dinamicamente no useEffect
+
 
 export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/pdf")({
   component: ReportPdfPage,
