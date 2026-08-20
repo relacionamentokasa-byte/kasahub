@@ -565,6 +565,8 @@ function FinancialPage() {
     naoOperacional: (stats?.naoOperacionalReceitas || 0) + (stats?.naoOperacionalDespesas || 0)
   };
   
+  const cancelledCount = stats?.cancelledCount || 0;
+  
   const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
 
   return (
