@@ -3,9 +3,11 @@ export async function generateSingleDmePdf(dmeId: string): Promise<void> {
   return real(dmeId);
 }
 
-export async function generateDmeBatchPdf(batch: any, dmes: any[], agency: any) {
+export type DmeBatchPdfMode = "approval" | "approved" | "all";
+
+export async function generateDmeBatchPdf(batchId: string, mode: DmeBatchPdfMode = "all") {
   const { generateDmeBatchPdf: real } = await import("./dme-batch-pdf-real");
-  return real(batch, dmes, agency);
+  return real(batchId, mode);
 }
 
 export async function generateConsolidatedTxPdf(consolidatedTransactionId: string): Promise<void> {
