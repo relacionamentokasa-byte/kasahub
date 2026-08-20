@@ -239,6 +239,9 @@ function ClientDetail() {
                <div className="text-right hidden sm:block">
                  <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none">A Receber</p>
                  <p className="text-lg font-bold text-blue-500 mt-1">{brl(pendingRevenue)}</p>
+                 {suspendedRevenue > 0 && (
+                   <p className="text-[10px] font-medium text-amber-500/60 mt-0.5">Suspenso: {brl(suspendedRevenue)}</p>
+                 )}
                </div>
             </div>
           </div>
@@ -478,6 +481,21 @@ function ClientDetail() {
             {/* Conteúdo: Financeiro */}
             <TabsContent value="financeiro" className="m-0 animate-reveal">
                <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+                 <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/10">
+                   <div className="flex items-center gap-3">
+                     <span className="text-[10px] font-mono-kasa uppercase text-foreground/40 font-bold">Situação das cobranças:</span>
+                     <Badge variant="outline" className={cn(
+                       "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2",
+                       client?.financial_collection_status === 'active' 
+                         ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5" 
+                         : "border-amber-500/20 text-amber-500 bg-amber-500/5"
+                     )}>
+                       {client?.financial_collection_status === 'active' ? 'Ativas' : 'Suspensas'}
+                     </Badge>
+                   </div>
+                   
+                   <FinancialCollectionToggle clientId={clientId} currentStatus={client?.financial_collection_status} />
+                 </div>
                  <Table>
                    <TableHeader className="bg-muted/30">
                      <TableRow>
@@ -489,8 +507,13 @@ function ClientDetail() {
                    </TableHeader>
                    <TableBody>
                      {transactions.map(t => (
-                       <TableRow key={t.id}>
-                         <TableCell className="text-sm py-4">{new Date(t.due_date).toLocaleDateString()}</TableCell>
+                       <TableRow key={t.id} className={cn(client?.financial_collection_status === 'suspended' && t.status !== 'paid' && "opacity-60 grayscale-[0.5]")}>
+                         <TableCell className="text-sm py-4">
+                           {new Date(t.due_date).toLocaleDateString()}
+                           {client?.financial_collection_status === 'suspended' && t.status !== 'paid' && (
+                             <div className="text-[9px] font-bold text-amber-500 uppercase mt-0.5">Cobrança Suspensa</div>
+                           )}
+                         </TableCell>
                          <TableCell className="font-medium text-sm py-4">{t.description}</TableCell>
                          <TableCell className={`text-right text-sm py-4 font-bold ${t.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
                            {t.type === 'income' ? '+' : '-'} {brl(Number(t.amount))}

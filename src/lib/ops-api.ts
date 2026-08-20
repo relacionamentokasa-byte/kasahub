@@ -739,7 +739,7 @@ export function priorityLabel(p: string) {
 export async function fetchExtraDemands(filters: { clientId?: string; contractId?: string; status?: string } = {}) {
   let q = supabase
     .from("extra_demands")
-    .select("*, clients(id, name, company), contracts!extra_demands_contract_id_fkey(id, title), responsible:profiles!extra_demands_responsible_profile_fkey(id, display_name, full_name)")
+    .select("*, clients(id, name, company, financial_collection_status), contracts!extra_demands_contract_id_fkey(id, title), responsible:profiles!extra_demands_responsible_profile_fkey(id, display_name, full_name)")
     .order("created_at", { ascending: false });
   if (filters.clientId) q = q.eq("client_id", filters.clientId);
   if (filters.contractId) q = q.eq("contract_id", filters.contractId);
