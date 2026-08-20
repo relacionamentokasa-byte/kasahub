@@ -962,8 +962,7 @@ function FinancialPage() {
                   key={t.id}
                   className={cn(
                     "group transition-colors",
-
-                      : effectiveStatus === "paid"
+                    effectiveStatus === "paid"
                       ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
                       : effectiveStatus === "overdue"
                       ? "bg-red-500/10 hover:bg-red-500/15 border-l-2 border-l-red-600"
@@ -971,6 +970,7 @@ function FinancialPage() {
                       ? "bg-amber-500/5 hover:bg-amber-500/10 border-l-2 border-l-amber-500/60"
                       : "hover:bg-muted/10",
                   )}
+
                 >
                   <TableCell className="py-4 w-10">
                     <Checkbox
