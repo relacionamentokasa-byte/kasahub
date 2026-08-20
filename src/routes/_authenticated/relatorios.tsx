@@ -1372,8 +1372,9 @@ function FinancialPage() {
         transaction={reciboTx}
       />
     </div>
-
   );
+}
+
 }
 
 function TotalCell({ label, value, className }: { label: string; value: number; className?: string }) {
