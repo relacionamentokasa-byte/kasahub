@@ -346,11 +346,20 @@ function FinancialPage() {
   });
   
   const { data: transactionsData, isLoading } = useQuery({ 
-    queryKey: ["transactions", { ...filter, ...periodFilters, page }], 
-    queryFn: () => fetchTransactions({ ...filter, ...periodFilters, page, pageSize }) 
+    queryKey: ["transactions", { ...filter, ...periodFilters, quickFilter, quickChip, showCancelled, page }], 
+    queryFn: () => fetchTransactions({ 
+      ...filter, 
+      ...periodFilters, 
+      quickFilter, 
+      quickChip, 
+      showCancelled, 
+      page, 
+      pageSize 
+    }) 
   });
 
   const transactions = transactionsData?.data || [];
+
   const totalCount = transactionsData?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -889,8 +898,9 @@ function FinancialPage() {
                 <Checkbox
                   checked={
                     transactions.length > 0 &&
-                    transactions.every((t: any) => selectedIds.has(t.id))
+                    transactions.length > 0 && transactions.every((t: any) => selectedIds.has(t.id))
                   }
+
                   onCheckedChange={(c) => {
                     if (c) {
                       setSelectedIds(new Set(transactions.map((t: any) => t.id)));
@@ -917,6 +927,7 @@ function FinancialPage() {
             ) : transactions.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={9} className="h-64 text-center">
+
                   <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
                     <div className="size-16 rounded-full bg-muted flex items-center justify-center">
                       <Wallet className="size-8" />
@@ -927,7 +938,6 @@ function FinancialPage() {
               </TableRow>
             ) : (
               transactions.map((t: any) => {
-                const isSuspended = t.clients?.financial_collection_status === 'suspended';
                 const previsto = Number(t.valor_previsto) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
                 const diff = real != null ? real - previsto : 0;
@@ -937,17 +947,16 @@ function FinancialPage() {
                 const isNaoOp = t.nature === "nao_operacional";
                 const todayStr = new Date().toISOString().slice(0, 10);
                 const effectiveStatus =
-                  t.status === "pending" && t.due_date && t.due_date < todayStr && !isSuspended
+                  t.status === "pending" && t.due_date && t.due_date < todayStr
                     ? "overdue"
                     : t.status;
+
                 return (
                 <TableRow
                   key={t.id}
                   className={cn(
                     "group transition-colors",
-                    isSuspended && t.status !== 'paid'
-                      ? "opacity-60 grayscale-[0.5] hover:bg-muted/10 border-l-2 border-l-amber-500/30"
-                      : effectiveStatus === "paid"
+                    effectiveStatus === "paid"
                       ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
                       : effectiveStatus === "overdue"
                       ? "bg-red-500/10 hover:bg-red-500/15 border-l-2 border-l-red-600"
@@ -955,6 +964,7 @@ function FinancialPage() {
                       ? "bg-amber-500/5 hover:bg-amber-500/10 border-l-2 border-l-amber-500/60"
                       : "hover:bg-muted/10",
                   )}
+
                 >
                   <TableCell className="py-4 w-10">
                     <Checkbox

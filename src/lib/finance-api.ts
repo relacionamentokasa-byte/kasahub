@@ -31,6 +31,13 @@ export async function fetchTransactions(filters: {
   endDate?: string;
   page?: number;
   pageSize?: number;
+  search?: string;
+  nfStatus?: string;
+  boletoStatus?: string;
+  quickFilter?: string;
+  quickChip?: string;
+  showCancelled?: boolean;
+
 } = {}) {
   const page = filters.page || 1;
   const pageSize = filters.pageSize || 50;
@@ -42,18 +49,69 @@ export async function fetchTransactions(filters: {
     .from("transactions")
     .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)", { count: "exact" })
     .order("due_date", { ascending: false });
-
-  if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
-  if (filters.status && filters.status !== "all") q = q.eq("status", filters.status);
-  if (filters.type && filters.type !== "all") q = q.eq("type", filters.type);
-  if (filters.categoryId && filters.categoryId !== "all") q = q.eq("category_id", filters.categoryId);
   
-  if (filters.startDate && filters.endDate) {
-    q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  // 1. Período ou Atrasados
+  if (filters.quickChip === "overdue") {
+    q = q.lt("due_date", todayStr).eq("status", "pending");
+  } else if (filters.startDate && filters.endDate) {
+    q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${todayStr},status.eq.pending)`);
   } else {
     if (filters.startDate) q = q.gte("due_date", filters.startDate);
     if (filters.endDate) q = q.lte("due_date", filters.endDate);
   }
+
+  // 2. Filtros Básicos
+  if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
+  if (filters.status && filters.status !== "all" && filters.status !== "overdue") q = q.eq("status", filters.status);
+  if (filters.status === "overdue") q = q.lt("due_date", todayStr).eq("status", "pending");
+  if (filters.type && filters.type !== "all") q = q.eq("type", filters.type);
+  if (filters.categoryId && filters.categoryId !== "all") q = q.eq("category_id", filters.categoryId);
+
+  // 3. Busca Textual
+  if (filters.search) {
+    q = q.or(`description.ilike.%${filters.search}%,client_name_search.ilike.%${filters.search}%`);
+  }
+
+  // 4. Status Internos
+  if (filters.nfStatus && filters.nfStatus !== "all") q = q.eq("nf_status", filters.nfStatus);
+  if (filters.boletoStatus && filters.boletoStatus !== "all") q = q.eq("boleto_internal_status", filters.boletoStatus);
+
+  // 5. Quick Filters (Natureza/Tipo)
+  if (filters.quickFilter === "income") {
+    q = q.eq("type", "income");
+  } else if (filters.quickFilter === "expense_op") {
+    q = q.eq("type", "expense").eq("nature", "operacional");
+  } else if (filters.quickFilter === "pro_labore") {
+    // Pro-labore é uma categoria específica.
+    // Buscamos transações do tipo despesa onde a categoria associada tem nome "pro-labore"
+    q = q.eq("type", "expense").ilike("categorias_financeiras.nome", "%pro-labore%");
+  }
+
+  // 6. Quick Chips (Datas/Vínculos)
+  if (filters.quickChip === "today") {
+    q = q.eq("due_date", todayStr);
+  } else if (filters.quickChip === "week") {
+    const nextWeek = new Date();
+    nextWeek.setDate(nextWeek.getDate() + 7);
+    const nextWeekStr = nextWeek.toISOString().split("T")[0];
+    q = q.gte("due_date", todayStr).lte("due_date", nextWeekStr);
+  } else if (filters.quickChip === "paid_month") {
+    q = q.eq("status", "paid");
+  } else if (filters.quickChip === "missing_links") {
+    // Filtro complexo de vínculos or(client_id.is.null, ...)
+    q = q.or('client_id.is.null,supplier_id.is.null,freelancer_id.is.null');
+  }
+
+  // 7. Cancelados
+  if (!filters.showCancelled) {
+    q = q.neq("status", "cancelled");
+  }
+
+  // 8. Regra de Suspensão Financeira (Visão Operacional)
+  // Lançamentos pendentes de clientes suspensos são ocultados da visão principal
+  q = q.or(`status.eq.paid,and(clients.financial_collection_status.neq.suspended)`);
 
   const { data, error, count } = await q.range(from, to);
   if (error) throw error;
