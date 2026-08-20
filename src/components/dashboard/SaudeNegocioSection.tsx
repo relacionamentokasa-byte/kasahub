@@ -31,7 +31,7 @@ async function fetchSaudeNegocio(refDate: Date) {
   const { data: txData, error: txErr } = await supabase
     .from("transactions")
     .select(
-      "amount, valor_previsto, type, kind, nature, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type)"
+      "amount, valor_previsto, type, kind, nature, is_recurring, due_date, status, contract_id, proposal_id, client_id, categorias_financeiras(nome), contracts(type), proposals(contract_type), clients(financial_collection_status)"
     )
     .gte("due_date", monthStartDate)
     .lte("due_date", monthEndDate);
@@ -41,7 +41,10 @@ async function fetchSaudeNegocio(refDate: Date) {
   // Receitas operacionais do mês — INDEPENDENTE de status (Pendente, Atrasado, Recebido).
   // Receitas não-operacionais (aporte, consórcio, investimento) NÃO entram em faturamento.
   const incomes = txs.filter(
-    (t) => (t.kind || t.type) === "income" && t.nature !== "nao_operacional"
+    (t) => 
+      (t.kind || t.type) === "income" && 
+      t.nature !== "nao_operacional" &&
+      t.clients?.financial_collection_status !== 'suspended'
   );
 
   const isRecurringTx = (t: any) => {
@@ -146,7 +149,7 @@ async function fetchSaudeNegocio(refDate: Date) {
   const todayISO = new Date().toISOString().slice(0, 10);
   const { data: yearIncomes } = await supabase
     .from("transactions")
-    .select("amount, valor_previsto, paid_value, valor_real, status, kind, type, nature, payment_date")
+    .select("amount, valor_previsto, paid_value, valor_real, status, kind, type, nature, payment_date, clients(financial_collection_status)")
     .eq("type", "income")
     .gte("payment_date", yearStart)
     .lte("payment_date", todayISO);
@@ -155,6 +158,7 @@ async function fetchSaudeNegocio(refDate: Date) {
     .filter((t: any) =>
       (t.kind || t.type) === "income"
       && t.nature !== "nao_operacional"
+      && t.clients?.financial_collection_status !== 'suspended'
       && (PAID_STATUSES.has(String(t.status || "").toLowerCase()) || !!t.payment_date)
     )
     .reduce(

@@ -492,7 +492,7 @@ function FinancialPage() {
         if (t.client_id) return false;
       } else if (t.type === "expense") {
         if (t.client_id || t.supplier_id || t.freelancer_id || t.partner_id) return false;
-      } else {
+    if (t.type === "expense") {
         return false;
       }
     }
