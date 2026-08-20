@@ -14,11 +14,18 @@ export async function fetchTransactions(filters: {
   categoryId?: string;
   startDate?: string;
   endDate?: string;
+  page?: number;
+  pageSize?: number;
 } = {}) {
+  const page = filters.page || 1;
+  const pageSize = filters.pageSize || 50;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)")
+    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)", { count: "exact" })
     .order("due_date", { ascending: false });
 
   if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
@@ -27,16 +34,15 @@ export async function fetchTransactions(filters: {
   if (filters.categoryId && filters.categoryId !== "all") q = q.eq("category_id", filters.categoryId);
   
   if (filters.startDate && filters.endDate) {
-    // Incluir atrasados (não pagos/cancelados) mesmo fora do período
     q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
   } else {
     if (filters.startDate) q = q.gte("due_date", filters.startDate);
     if (filters.endDate) q = q.lte("due_date", filters.endDate);
   }
 
-  const { data, error } = await q;
+  const { data, error, count } = await q.range(from, to);
   if (error) throw error;
-  return data || [];
+  return { data: data || [], count: count || 0 };
 }
 
 export async function createTransaction(input: TransactionInsert) {
