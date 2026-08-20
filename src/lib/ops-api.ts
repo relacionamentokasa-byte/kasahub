@@ -222,37 +222,50 @@ export async function fetchJobAttachments(jobId: string) {
     .order("created_at", { ascending: false });
   if (error) throw error;
 
-  // Gerar URLs assinadas para o ambiente interno (bucket privado)
-  const dataWithUrls = await Promise.all((data || []).map(async (att) => {
-    try {
-      // Sanitização básica da URL para evitar path traversal ou injeção
-      const urlParts = att.file_url.split('/job-attachments/');
-      if (urlParts.length < 2) return att;
-      
-      const path = urlParts[1];
-      // Impedir tentativa de acessar outros diretórios
-      if (path.includes('..') || path.startsWith('/')) {
-        console.warn("Possível tentativa de path traversal detectada:", path);
-        return att;
-      }
-      
-      const { data: signedData, error: signError } = await supabase.storage
-        .from('job-attachments')
-        .createSignedUrl(path, 3600);
-        
-      if (signError) throw signError;
+  if (!data?.length) return [];
 
+  // Extrair paths e mapear para os objetos originais
+  const paths: string[] = [];
+  const validAttachments = data.filter(att => {
+    const urlParts = att.file_url.split('/job-attachments/');
+    if (urlParts.length < 2) return false;
+    
+    const path = urlParts[1];
+    if (path.includes('..') || path.startsWith('/')) {
+      console.warn("Possível tentativa de path traversal detectada:", path);
+      return false;
+    }
+    paths.push(path);
+    return true;
+  });
+
+  if (paths.length === 0) return data;
+
+  try {
+    // Gerar URLs assinadas em lote (batch)
+    const { data: signedUrls, error: signError } = await supabase.storage
+      .from('job-attachments')
+      .createSignedUrls(paths, 3600);
+      
+    if (signError) throw signError;
+
+    // Criar um mapa de path -> signedUrl para remontagem eficiente
+    const urlMap = new Map(signedUrls?.map(item => [item.path, item.signedUrl]) || []);
+
+    return data.map(att => {
+      const urlParts = att.file_url.split('/job-attachments/');
+      const path = urlParts[1];
+      const signedUrl = urlMap.get(path);
+      
       return {
         ...att,
-        file_url: signedData?.signedUrl || att.file_url
+        file_url: signedUrl || att.file_url
       };
-    } catch (e) {
-      console.warn("Erro ao gerar URL assinada para anexo", e);
-      return att;
-    }
-  }));
-
-  return dataWithUrls;
+    });
+  } catch (e) {
+    console.warn("Erro ao gerar URLs assinadas em lote para anexos", e);
+    return data;
+  }
 }
 
 export async function addJobAttachment(input: {
