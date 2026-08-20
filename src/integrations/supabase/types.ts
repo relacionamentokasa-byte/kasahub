@@ -976,6 +976,9 @@ export type Database = {
           created_at: string
           document: string | null
           email: string | null
+          financial_collection_date: string | null
+          financial_collection_reason: string | null
+          financial_collection_status: string
           financial_contact_email: string | null
           financial_contact_name: string | null
           financial_contact_phone: string | null
@@ -1020,6 +1023,9 @@ export type Database = {
           created_at?: string
           document?: string | null
           email?: string | null
+          financial_collection_date?: string | null
+          financial_collection_reason?: string | null
+          financial_collection_status?: string
           financial_contact_email?: string | null
           financial_contact_name?: string | null
           financial_contact_phone?: string | null
@@ -1064,6 +1070,9 @@ export type Database = {
           created_at?: string
           document?: string | null
           email?: string | null
+          financial_collection_date?: string | null
+          financial_collection_reason?: string | null
+          financial_collection_status?: string
           financial_contact_email?: string | null
           financial_contact_name?: string | null
           financial_contact_phone?: string | null
