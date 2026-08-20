@@ -1,40 +1,38 @@
-# Plano de Implementação — Suspensão de Cobranças Financeiras
+# Plano de Ajuste na Implementação de Suspensão Financeira
 
-Adição de uma configuração persistente para suspender a consideração de lançamentos financeiros de um cliente nos indicadores de "A Receber" e cobranças ativas, sem alterar o status operacional ou excluir dados.
+Ajustar a lógica de exibição do módulo Financeiro para que lançamentos de clientes com cobrança suspensa sejam omitidos da visão operacional (contas a receber e indicadores ativos), mantendo-os acessíveis apenas no histórico individual do cliente e em relatórios históricos globais.
 
-## Alterações no Banco de Dados (Supabase)
+## Objetivos
+- Ocultar transações pendentes/atrasadas de clientes suspensos da listagem principal do Financeiro.
+- Excluir valores suspensos dos indicadores operacionais de "A Receber" e "Atrasados".
+- Preservar transações pagas nos relatórios e histórico.
+- Garantir que não haja alteração nos dados das transações (`status`, `amount`, etc.).
+- Manter a visibilidade total na aba Financeiro do próprio cliente, com separação visual clara.
 
-1.  **Nova Migração:**
-    *   Adicionar à tabela `public.clients`:
-        *   `financial_collection_status`: TEXT (default 'active', check IN ('active', 'suspended'))
-        *   `financial_collection_date`: TIMESTAMPTZ
-        *   `financial_collection_reason`: TEXT
-        *   `financial_collection_user_id`: UUID (FK para profiles)
+## Etapas de Implementação
 
-## Módulos e Lógica (Backend/Frontend)
+### 1. Auditoria e Mapeamento
+Identificar todos os pontos de consumo de transações:
+- `src/lib/finance-api.ts`: Central de carregamento de dados e cálculo de estatísticas.
+- `src/routes/_authenticated/financeiro.tsx`: Listagem principal (visão operacional).
+- `src/routes/_authenticated/relatorios.tsx`: Relatórios e indicadores globais.
+- `src/components/dashboard/SaudeNegocioSection.tsx`: Dashboards executivos.
+- `src/routes/_authenticated/clientes.$clientId.tsx`: Histórico individual.
 
-1.  **Tipos e API (`src/lib/ops-api.ts`):**
-    *   Atualizar interface `Client`.
-    *   Implementar `updateClientFinancialStatus`.
+### 2. Ajustes na API e Lógica de Negócio
+- **Filtragem na Listagem Principal:** Modificar a busca ou o processamento de transações no módulo Financeiro para omitir itens `pending` ou `overdue` de clientes com `financial_collection_status === 'suspended'`.
+- **Refinamento de Indicadores:** Atualizar as funções de cálculo de totais para que a suspensão financeira remova o peso desses lançamentos do "A Receber" operacional.
 
-2.  **Visão do Cliente (`src/routes/_authenticated/clientes.$clientId.tsx`):**
-    *   **Indicadores:** Alterar cálculo de `pendingRevenue` para somar apenas se `financial_collection_status === 'active'`.
-    *   **Nova Seção:** Exibir "Cobranças suspensas: R$ X" caso existam valores e o cliente esteja suspenso.
-    *   **Interface de Toggle:** Adicionar botão discreto no cabeçalho da aba Financeiro para [ Suspender / Reativar ].
-    *   **Diálogos:** Criar `FinancialSuspensionDialog` (com motivo) e `FinancialReactivationDialog`.
+### 3. Ajustes na Interface (UI)
+- **Financeiro Principal:** Garantir que a listagem não exiba os itens suspensos.
+- **Detalhe do Cliente:** Reforçar a separação visual entre "A Receber" (Ativo) e "Cobranças Suspensas" na aba Financeiro, conforme já iniciado.
 
-3.  **Indicadores Globais e Relatórios:**
-    *   `src/lib/finance-api.ts`: Atualizar `fetchFinanceStats` para filtrar transações de clientes suspensos.
-    *   `src/routes/_authenticated/relatorios.tsx`: Ajustar loops de soma para respeitar o flag do cliente.
-    *   `src/components/dashboard/SaudeNegocioSection.tsx`: Garantir que o faturamento operacional (MRR) ignore clientes suspensos.
+### 4. Validação e Testes
+- Testar com cliente suspenso: confirmar que pendentes somem do financeiro geral mas ficam no histórico do cliente.
+- Testar reativação: confirmar volta automática sem alteração de valores.
+- Verificar MRR: garantir que a regra de MRR não foi afetada.
 
-## Detalhes Técnicos (Segurança e RLS)
-
-*   Garantir que as novas colunas na tabela `clients` estejam protegidas pelas políticas de RLS existentes (apenas usuários autenticados/gestores podem alterar).
-*   Manter a integridade de todas as transações, DMEs e Lotes (nada é alterado ou excluído).
-
-## Testes de Verificação
-
-1.  Verificar que um cliente suspenso mantém suas transações na aba Financeiro com rótulo "SUSPENSA".
-2.  Validar que o valor "A Receber" global no Dashboard diminui ao suspender um cliente.
-3.  Confirmar que a reativação restaura os valores imediatamente.
+## Detalhes Técnicos
+- A suspensão é baseada no `financial_collection_status` do cliente relacionado via `INNER JOIN` ou verificação pós-fetch.
+- Uso de filtros em tempo de renderização ou na query para não afetar a persistência dos dados.
+- Sem migrações de banco de dados adicionais; apenas lógica de visualização.
