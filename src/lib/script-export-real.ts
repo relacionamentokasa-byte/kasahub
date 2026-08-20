@@ -66,7 +66,7 @@ const formatLabel: Record<string, string> = {
   square: "Quadrado (1:1)",
 };
 
-export async function exportScriptPDF(opts: {
+export async function exportScriptPdf(opts: {
   script: Script & { clients?: { name: string } | null; jobs?: { title: string } | null };
   scenes: ScriptScene[];
 }) {
