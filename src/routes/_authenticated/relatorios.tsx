@@ -346,11 +346,20 @@ function FinancialPage() {
   });
   
   const { data: transactionsData, isLoading } = useQuery({ 
-    queryKey: ["transactions", { ...filter, ...periodFilters, page }], 
-    queryFn: () => fetchTransactions({ ...filter, ...periodFilters, page, pageSize }) 
+    queryKey: ["transactions", { ...filter, ...periodFilters, quickFilter, quickChip, showCancelled, page }], 
+    queryFn: () => fetchTransactions({ 
+      ...filter, 
+      ...periodFilters, 
+      quickFilter, 
+      quickChip, 
+      showCancelled, 
+      page, 
+      pageSize 
+    }) 
   });
 
   const transactions = transactionsData?.data || [];
+
   const totalCount = transactionsData?.count || 0;
   const totalPages = Math.ceil(totalCount / pageSize);
 
