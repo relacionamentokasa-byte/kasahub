@@ -112,6 +112,10 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     parcelasFuturas: 0,
     naoOperacionalReceitas: 0,
     naoOperacionalDespesas: 0,
+    proLaboreMes: 0,
+    despesasReaisOperacionais: 0,
+    investimentoRealizado: 0,
+    cancelledCount: 0,
   };
 
   // variable 'today' already declared above
