@@ -974,6 +974,7 @@ function FinancialPage() {
               </TableRow>
             ) : (
               filteredTransactions.map((t: any) => {
+                const isSuspended = t.clients?.financial_collection_status === 'suspended';
                 const previsto = Number(t.valor_previsto) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
                 const diff = real != null ? real - previsto : 0;
@@ -983,7 +984,7 @@ function FinancialPage() {
                 const isNaoOp = t.nature === "nao_operacional";
                 const todayStr = new Date().toISOString().slice(0, 10);
                 const effectiveStatus =
-                  t.status === "pending" && t.due_date && t.due_date < todayStr
+                  t.status === "pending" && t.due_date && t.due_date < todayStr && !isSuspended
                     ? "overdue"
                     : t.status;
                 return (
@@ -991,7 +992,9 @@ function FinancialPage() {
                   key={t.id}
                   className={cn(
                     "group transition-colors",
-                    effectiveStatus === "paid"
+                    isSuspended && t.status !== 'paid'
+                      ? "opacity-60 grayscale-[0.5] hover:bg-muted/10 border-l-2 border-l-amber-500/30"
+                      : effectiveStatus === "paid"
                       ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
                       : effectiveStatus === "overdue"
                       ? "bg-red-500/10 hover:bg-red-500/15 border-l-2 border-l-red-600"
