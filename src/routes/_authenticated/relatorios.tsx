@@ -670,13 +670,10 @@ Procure por:
 
 fetchTransactions() agora retorna:
 
-{
-
+{"{"}
   data: Transaction[],
-
   count: number
-
-}
+{"}"}
 
 Confirme que relatorios.tsx está consumindo corretamente:
 
