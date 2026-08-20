@@ -938,12 +938,6 @@ function FinancialPage() {
               </TableRow>
             ) : (
               transactions.map((t: any) => {
-                const isSuspended = t.clients?.financial_collection_status === 'suspended';
-                
-                // Regra de suspensão financeira (visão operacional)
-                // Se o cliente estiver suspenso e o lançamento não estiver pago, ele não deve aparecer
-                if (isSuspended && t.status !== 'paid') return null;
-
                 const previsto = Number(t.valor_previsto) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
                 const diff = real != null ? real - previsto : 0;
