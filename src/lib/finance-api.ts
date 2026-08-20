@@ -111,7 +111,9 @@ export async function fetchTransactions(filters: {
 
   // 8. Regra de Suspensão Financeira (Visão Operacional)
   // Lançamentos pendentes de clientes suspensos são ocultados da visão principal
-  q = q.or(`status.eq.paid,and(clients.financial_collection_status.neq.suspended)`);
+  // NOTA: Evitamos .or() com tabelas relacionadas para prevenir erro PGRST100
+  q = q.not("status", "in", "(pending,overdue)").or(`client_id.is.null,clients.financial_collection_status.neq.suspended`);
+
 
   const { data, error, count } = await q.range(from, to);
   if (error) throw error;
