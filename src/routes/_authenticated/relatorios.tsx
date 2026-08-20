@@ -492,8 +492,6 @@ function FinancialPage() {
         if (t.client_id) return false;
       } else if (t.type === "expense") {
         if (t.client_id || t.supplier_id || t.freelancer_id || t.partner_id) return false;
-    if (t.type === "expense") {
-        return false;
       }
     }
     return true;
@@ -528,10 +526,11 @@ function FinancialPage() {
 
   const totals = filteredTransactions.reduce(
     (acc: { receitas: number; despesas: number; proLabore: number; naoOperacional: number }, t: any) => {
+      const isSuspended = t.clients?.financial_collection_status === 'suspended';
       const v = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
       const proLab = isProLabore(getCatName(t));
       const isNaoOp = t.nature === "nao_operacional";
-      if (t.type === "income") {
+      if (t.type === "income" && !isSuspended) {
         if (isNaoOp) acc.naoOperacional += v;
         else acc.receitas += v;
       } else if (t.type === "expense" && proLab) {
@@ -1151,13 +1150,18 @@ function FinancialPage() {
                     />
                   </TableCell>
                   <TableCell className={cn("py-4 text-right font-semibold text-sm tabular-nums", typeColor)}>
-                    {sign} {brl(previsto)}
+                    <div className="flex flex-col items-end">
+                      <span>{sign} {brl(previsto)}</span>
+                      {t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid' && (
+                        <span className="text-[9px] font-bold text-amber-500 uppercase">Cobrança Suspensa</span>
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell className={cn("py-4 text-right text-sm tabular-nums", real != null ? typeColor : "text-foreground/30")}>
                     {real != null ? `${sign} ${brl(real)}` : "—"}
                   </TableCell>
                   <TableCell className="py-4 text-right">
-                    {hasDiff ? (
+                    {hasDiff && t.clients?.financial_collection_status !== 'suspended' ? (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
