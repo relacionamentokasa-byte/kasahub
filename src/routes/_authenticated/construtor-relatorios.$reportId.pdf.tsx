@@ -6,15 +6,14 @@ import { fetchClient } from "@/lib/ops-api";
 import { SlideView } from "@/components/reports/SlideView";
 import type { Slide } from "@/components/reports/types";
 import { useFocusMode } from "@/contexts/FocusModeContext";
-// jsPDF e html-to-image serão importados dinamicamente no useEffect
-
 
 export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/pdf")({
   component: ReportPdfPage,
 });
 
 function ReportPdfPage() {
-  const { reportId } = Route.useParams() as any;
+  const params = Route.useParams() as any;
+  const reportId = params.reportId;
   const reportQ = useQuery({ queryKey: ["report", reportId], queryFn: () => fetchReport(reportId) });
   const clientQ = useQuery({
     queryKey: ["client", reportQ.data?.client_id],
@@ -46,7 +45,14 @@ function ReportPdfPage() {
 
     const run = async () => {
       try {
-        // wait for fonts + images
+        setStatus("Carregando bibliotecas de PDF...");
+        const [jsPDFModule, htmlToImageModule] = await Promise.all([
+          import("jspdf"),
+          import("html-to-image")
+        ]);
+        const jsPDF = jsPDFModule.default;
+        const { toJpeg } = htmlToImageModule;
+
         setStatus("Carregando fontes e imagens...");
         await (document as any).fonts?.ready;
         await new Promise((r) => setTimeout(r, 800));
@@ -112,7 +118,6 @@ function ReportPdfPage() {
         )}
       </div>
 
-      {/* Off-screen render area — exactly 1920x1080 per slide, matching Apresentar */}
       <div
         ref={containerRef}
         style={{
