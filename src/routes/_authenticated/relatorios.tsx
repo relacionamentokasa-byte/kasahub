@@ -632,7 +632,7 @@ Informe:
 
 2. Verifique se transactionsData.data contém registros.
 
-3. Se data.length > 0, acompanhe os dados até a renderização e descubra exatamente onde eles são eliminados.
+3. Se data.length {'>'} 0, acompanhe os dados até a renderização e descubra exatamente onde eles são eliminados.
 
 Procure por:
 
