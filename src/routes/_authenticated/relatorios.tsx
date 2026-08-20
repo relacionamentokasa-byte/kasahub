@@ -1068,7 +1068,7 @@ function FinancialPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              filteredTransactions.map((t: any) => {
+              transactions.map((t: any) => {
                 const isSuspended = t.clients?.financial_collection_status === 'suspended';
                 const previsto = Number(t.valor_previsto) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
