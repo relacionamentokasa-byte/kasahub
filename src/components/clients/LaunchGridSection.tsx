@@ -769,8 +769,7 @@ function ProductSheet({
           tipo_arte: tipoArte,
         },
         statusLabel,
-      } as any,
-      grid as any
+      } as any
     );
   };
 
