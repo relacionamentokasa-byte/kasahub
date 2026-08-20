@@ -909,12 +909,12 @@ function FinancialPage() {
       {/* Quick chips */}
       <div className="flex flex-wrap items-center gap-2">
         {(() => {
-          const missingLinksCount = transactions.filter((t: any) => {
+          const missingLinksCount = transactionsData?.data?.filter((t: any) => {
             if (t.status === "cancelled") return false;
             if (t.type === "income") return !t.client_id;
             if (t.type === "expense") return !t.client_id && !t.supplier_id && !t.freelancer_id && !t.partner_id;
             return false;
-          }).length;
+          }).length || 0;
           const chips = [
             { id: "none", label: "Tudo" },
             { id: "today", label: "Hoje" },
