@@ -44,11 +44,19 @@ export async function fetchTransactions(filters: {
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  // Obtemos os IDs dos clientes suspensos para filtrar na query principal (evita PGRST100)
+  const { data: suspendedClients } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("financial_collection_status", "suspended");
+  
+  const suspendedIds = (suspendedClients || []).map(c => c.id);
+
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)", { count: "exact" })
-    .order("due_date", { ascending: false });
+    .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)", { count: "exact" });
+
   
   const todayStr = new Date().toISOString().split("T")[0];
 
