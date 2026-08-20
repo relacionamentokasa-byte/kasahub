@@ -7,7 +7,7 @@ import { SlideView } from "@/components/reports/SlideView";
 import type { Slide } from "@/components/reports/types";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 
-export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/pdf")({
+export const Route = createFileRoute("/_authenticated/construtor-relatorios/pdf")({
   component: ReportPdfPage,
 });
 
