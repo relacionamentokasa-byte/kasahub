@@ -1375,7 +1375,6 @@ function FinancialPage() {
   );
 }
 
-}
 
 function TotalCell({ label, value, className }: { label: string; value: number; className?: string }) {
   return (
