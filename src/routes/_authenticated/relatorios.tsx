@@ -747,7 +747,7 @@ C) Quantos registros existem imediatamente antes da renderização da tabela.
 
 D) Qual operação transforma o resultado em zero, caso isso esteja acontecendo.
 
-E) Se existe incompatibilidade entre { data, count } e o código que anteriormente esperava um array.
+E) Se existe incompatibilidade entre {"{ data, count }"} e o código que anteriormente esperava um array.
 
 F) Valores reais dos filtros ativos.
 
