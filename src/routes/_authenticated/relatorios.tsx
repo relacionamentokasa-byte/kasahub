@@ -566,10 +566,8 @@ function FinancialPage() {
   };
   
   const cancelledCount = stats?.cancelledCount || 0;
-  
   const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
 
-  return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
