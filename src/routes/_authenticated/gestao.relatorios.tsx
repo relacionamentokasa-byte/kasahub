@@ -88,10 +88,11 @@ function RelatoriosGestaoPage() {
     return { startDate: iso(start), endDate: iso(end), months };
   }, [range]);
 
-  const { data: transactions = [], isLoading: tLoading } = useQuery({
+  const { data: transactionsResponse, isLoading: tLoading } = useQuery({
     queryKey: ["gestao-relatorios", "transactions", startDate, endDate],
-    queryFn: () => fetchTransactions({ startDate, endDate }),
+    queryFn: () => fetchTransactions({ startDate, endDate, pageSize: 5000 }), // Módulo de gestão precisa de todos os dados do período
   });
+  const transactions = transactionsResponse?.data || [];
 
   const { data: clients = [] } = useQuery({
     queryKey: ["clients"],
