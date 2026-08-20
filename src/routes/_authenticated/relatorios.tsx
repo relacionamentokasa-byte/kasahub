@@ -1275,13 +1275,13 @@ function FinancialPage() {
             className={saldoPeriodo >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}
           />
         </div>
-        </div>
         
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 bg-surface border-t border-border">
             <div className="text-xs text-foreground/40 font-mono-kasa uppercase">
               Página {page} de {totalPages} · {totalCount} registros
             </div>
+
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
