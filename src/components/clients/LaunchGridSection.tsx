@@ -474,7 +474,7 @@ function EmptyProducts() {
 /* ============= STATUSES DIALOG ============= */
 function StatusesDialog({
   gridId, statuses, onClose,
-}: { grid: LaunchGridBoletim; gridId: string; statuses: LaunchGridStatus[]; onClose: () => void }) {
+}: { gridId: string; statuses: LaunchGridStatus[]; onClose: () => void }) {
   const qc = useQueryClient();
   const [label, setLabel] = useState("");
   const [color, setColor] = useState("#3b82f6");
@@ -557,7 +557,7 @@ function StatusesDialog({
 function MultiImageUploader({
   gridId, label, value, onChange, maxImages,
 }: {
-  grid: LaunchGridBoletim; gridId: string;
+  gridId: string;
   label: string;
   value: string[];
   onChange: (next: string[]) => void;
@@ -628,9 +628,9 @@ function MultiImageUploader({
 
 /* ============= PRODUCT SHEET ============= */
 function ProductSheet({
-  gridId, clientId, statuses, grid, product, defaultStatusId, onClose,
+  gridId, clientId, statuses, product, defaultStatusId, onClose,
 }: {
-  grid: LaunchGridBoletim; gridId: string;
+  gridId: string;
   clientId: string;
   statuses: LaunchGridStatus[];
   product?: LaunchGridProduct;

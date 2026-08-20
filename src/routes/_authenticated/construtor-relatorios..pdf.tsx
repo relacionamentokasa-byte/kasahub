@@ -7,12 +7,13 @@ import { SlideView } from "@/components/reports/SlideView";
 import type { Slide } from "@/components/reports/types";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 
-export const Route = createFileRoute("/_authenticated/construtor-relatorios/pdf")({
+export const Route = createFileRoute("/_authenticated/construtor-relatorios/$reportId/pdf")({
   component: ReportPdfPage,
 });
 
 function ReportPdfPage() {
-  const { reportId } = Route.useParams();
+  const params = Route.useParams() as any;
+  const reportId = params.reportId;
   const reportQ = useQuery({ queryKey: ["report", reportId], queryFn: () => fetchReport(reportId) });
   const clientQ = useQuery({
     queryKey: ["client", reportQ.data?.client_id],
@@ -44,14 +45,14 @@ function ReportPdfPage() {
 
     const run = async () => {
       try {
-        // Carregamento dinâmico das bibliotecas
         setStatus("Carregando bibliotecas de PDF...");
-        const [jsPDF, { toJpeg }] = await Promise.all([
-          import("jspdf").then(m => m.default),
+        const [jsPDFModule, htmlToImageModule] = await Promise.all([
+          import("jspdf"),
           import("html-to-image")
         ]);
+        const jsPDF = jsPDFModule.default;
+        const { toJpeg } = htmlToImageModule;
 
-        // wait for fonts + images
         setStatus("Carregando fontes e imagens...");
         await (document as any).fonts?.ready;
         await new Promise((r) => setTimeout(r, 800));
@@ -60,13 +61,13 @@ function ReportPdfPage() {
         if (!container) return;
         const slideEls = Array.from(container.querySelectorAll<HTMLElement>("[data-pdf-slide]"));
 
-        const pdf = new (jsPDF as any)({ orientation: "landscape", unit: "px", format: [1920, 1080] });
+        const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1920, 1080] });
 
         for (let i = 0; i < slideEls.length; i++) {
           setStatus(`Renderizando slide ${i + 1} de ${slideEls.length}...`);
           setProgress(Math.round(((i) / slideEls.length) * 100));
           const el = slideEls[i];
-          const img = await (toJpeg as any)(el, {
+          const img = await toJpeg(el, {
             width: 1920,
             height: 1080,
             canvasWidth: 1920,
@@ -117,7 +118,6 @@ function ReportPdfPage() {
         )}
       </div>
 
-      {/* Off-screen render area — exactly 1920x1080 per slide, matching Apresentar */}
       <div
         ref={containerRef}
         style={{
