@@ -1,64 +1,40 @@
-<h1>Quero corrigir APENAS a performance de carregamento dos anexos dos Jobs.
+<h1>Faça apenas uma validação da otimização anterior.
 
-Problema identificado:
+NÃO altere código.
 
-O arquivo src/lib/ops-api.ts usa createSignedUrl individualmente para cada anexo dentro de um Promise.all.
+NÃO altere banco.
 
-Hoje:
+NÃO altere Storage.
 
-10 anexos = 10 chamadas de assinatura.
+NÃO altere job_attachments.
 
-20 anexos = 20 chamadas de assinatura.
+Abra Jobs reais no ambiente autenticado e valide:
 
-Isso está aumentando o tempo de abertura do JobSheet.
+1. Job sem anexos.
 
-Faça uma alteração cirúrgica para utilizar createSignedUrls (plural) e gerar as URLs assinadas em lote, caso seja compatível com a implementação atual do Supabase.
+2. Job com poucos anexos.
 
-REGRA CRÍTICA:
+3. Job com muitos anexos.
 
-Os anexos são dados importantes.
+Confirme no navegador/network:
 
-NÃO:
+- quantidade real de requests para geração das URLs;
 
-- exclua arquivos;
+- se createSignedUrls está sendo chamado corretamente;
 
-- altere arquivos no Storage;
+- se todos os anexos continuam aparecendo;
 
-- altere paths/storage_path;
+- se todos continuam abrindo/baixando;
 
-- altere IDs;
+- se IDs e paths permanecem iguais;
 
-- altere registros de job_attachments;
+- se não existem erros no console.
 
-- crie novos anexos;
+Também confirme por que src/routes/_authenticated/relatorios.tsx foi modificado e qual alteração foi feita nesse arquivo.
 
-- mova ou renomeie arquivos;
+Não faça nenhuma correção nesta etapa.
 
-- altere bucket ou permissões.
-
-A única alteração permitida é a forma como as URLs temporárias são geradas.
-
-Antes/depois, valide um Job com:
-
-- 0 anexos;
-
-- 1 anexo;
-
-- 10+ anexos.
-
-Confirme que:
-
-- todos os anexos continuam aparecendo;
-
-- todos continuam abrindo/baixando;
-
-- quantidade, IDs e paths permanecem iguais;
-
-- o número de requests diminuiu.
-
-Não faça nenhuma outra otimização ou refatoração.
-
-Ao final, informe os arquivos modificados e as métricas antes/depois.</h1>
+Quero somente o resultado da validação.</h1>
 
 import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
