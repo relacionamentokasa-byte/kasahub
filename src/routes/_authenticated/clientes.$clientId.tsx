@@ -157,8 +157,12 @@ function ClientDetail() {
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   const pendingRevenue = transactions
-    .filter(t => t.type === "income" && t.status === "pending")
-    .reduce((sum, t) => sum + Number(t.amount), 0);
+    .filter(t => t.type === 'income' && t.status !== 'paid' && client?.financial_collection_status !== 'suspended')
+    .reduce((acc, t) => acc + (Number(t.valor_previsto) > 0 ? Number(t.valor_previsto) : Number(t.amount)), 0);
+
+  const suspendedRevenue = transactions
+    .filter(t => t.type === 'income' && t.status !== 'paid' && client?.financial_collection_status === 'suspended')
+    .reduce((acc, t) => acc + (Number(t.valor_previsto) > 0 ? Number(t.valor_previsto) : Number(t.amount)), 0);
 
   const todayIso = new Date().toISOString().slice(0, 10);
   const mrr = contracts
@@ -663,5 +667,91 @@ function ClientDmesTab({ clientId }: { clientId: string }) {
         </div>
       )}
     </div>
+  );
+}
+
+function FinancialCollectionToggle({ clientId, currentStatus }: { clientId: string; currentStatus?: string }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const qc = useQueryClient();
+  const isSuspended = currentStatus === 'suspended';
+
+  const mutation = useMutation({
+    mutationFn: async () => {
+      const nextStatus = isSuspended ? 'active' : 'suspended';
+      const patch = {
+        financial_collection_status: nextStatus as any,
+        financial_collection_date: nextStatus === 'suspended' ? new Date().toISOString() : null,
+        financial_collection_reason: nextStatus === 'suspended' ? reason : null,
+      };
+      const { error } = await supabase.from("clients").update(patch).eq("id", clientId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["client", clientId] });
+      qc.invalidateQueries({ queryKey: ["finance-stats"] });
+      toast.success(isSuspended ? "Cobranças reativadas" : "Cobranças suspensas");
+      setOpen(false);
+      setReason("");
+    }
+  });
+
+  return (
+    <>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className={cn(
+          "h-8 rounded-full text-[10px] font-bold uppercase tracking-widest px-4",
+          isSuspended ? "hover:bg-emerald-500/10 hover:text-emerald-500" : "hover:bg-amber-500/10 hover:text-amber-500"
+        )}
+        onClick={() => setOpen(true)}
+      >
+        {isSuspended ? "Reativar cobranças" : "Suspender cobranças"}
+      </Button>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{isSuspended ? "Reativar cobranças?" : "Suspender cobranças?"}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <p className="text-sm text-foreground/60 leading-relaxed">
+              {isSuspended 
+                ? "Os lançamentos financeiros deste cliente voltarão a participar dos recebíveis operacionais e indicadores globais."
+                : "Os lançamentos deste cliente não serão excluídos nem cancelados. Eles continuarão no histórico financeiro, mas deixarão de ser considerados nos recebíveis operacionais."}
+            </p>
+            
+            {!isSuspended && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 font-bold">Motivo da suspensão (opcional)</label>
+                <Select value={reason} onValueChange={setReason}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Selecione um motivo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cliente inadimplente">Cliente inadimplente</SelectItem>
+                    <SelectItem value="Cliente não responde">Cliente não responde</SelectItem>
+                    <SelectItem value="Cobrança interrompida">Cobrança interrompida</SelectItem>
+                    <SelectItem value="Contrato encerrado">Contrato encerrado</SelectItem>
+                    <SelectItem value="Outro">Outro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" className="rounded-xl" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button 
+              className={cn("rounded-xl", isSuspended ? "bg-emerald-500 hover:bg-emerald-600" : "bg-amber-500 hover:bg-amber-600")}
+              onClick={() => mutation.mutate()}
+              disabled={mutation.isPending}
+            >
+              {mutation.isPending ? "Processando..." : (isSuspended ? "Reativar cobranças" : "Suspender cobranças")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
