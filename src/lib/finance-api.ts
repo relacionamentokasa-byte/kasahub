@@ -123,6 +123,10 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const CANCELLED = new Set(["cancelled", "canceled", "cancelado", "cancelada", "estornado"]);
 
   trans?.forEach((t: any) => {
+    const getCatName = (item: any) => (item.categorias_financeiras as any)?.nome || item.category || "";
+    const proLab = isProLabore(getCatName(t));
+    const inv = isInvestimento(getCatName(t));
+    
     // Se o cliente associado estiver com cobrança suspensa, desconsidera para indicadores OPERACIONAIS
     const isSuspended = t.clients?.financial_collection_status === 'suspended';
     
@@ -130,11 +134,13 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     const isNaoOp = t.nature === "nao_operacional";
     const status = (t.status || "").toLowerCase();
 
-    // Lançamentos cancelados não entram em nenhum indicador
-    if (CANCELLED.has(status)) return;
+    // Lançamentos cancelados
+    if (CANCELLED.has(status)) {
+      stats.cancelledCount++;
+      return;
+    }
     
     // Se estiver suspenso, não entra no operacional de A Receber/Previsto, mas entra no histórico total se for Pago.
-    // Lançamentos PAGO de clientes suspensos CONTINUAM nos indicadores de faturamento/histórico.
     const isOperationalView = status !== "paid";
     if (isSuspended && isOperationalView) return;
 
@@ -152,6 +158,11 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
         stats.naoOperacionalDespesas += amount;
         return;
       }
+      
+      if (proLab) stats.proLaboreMes += amount;
+      else if (inv) stats.investimentoRealizado += amount;
+      else stats.despesasReaisOperacionais += amount;
+
       if (status === "paid") stats.pagasDespesas += amount;
       else stats.previstasDespesas += amount;
     }
