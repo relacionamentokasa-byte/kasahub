@@ -512,7 +512,111 @@ function FinancialPage() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa uppercase font-bold tracking-wider">Gestão · Financeiro</span>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">Fluxo de Caixa</h1>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1 whitespace-pre-wrap">Esta é uma solicitação de implementação de código. Aplique a instrução abaixo gerando os arquivos, componentes, lógica e estilos necessários: NÃO EDITE O CÓDIGO.
+
+Esta tarefa é SOMENTE DIAGNÓSTICO.
+
+O Financeiro está com um bug: os indicadores aparecem normalmente, mas a tabela de lançamentos fica vazia.
+
+Você deve INVESTIGAR O RUNTIME da aplicação e me retornar os valores reais.
+
+NÃO altere absolutamente nada na interface.
+
+NÃO altere:
+
+- títulos;
+
+- textos;
+
+- labels;
+
+- layout;
+
+- componentes;
+
+- estilos;
+
+- banco;
+
+- dados;
+
+- regras financeiras.
+
+NÃO crie nenhum texto de diagnóstico dentro da aplicação.
+
+NÃO modifique nenhum arquivo.
+
+Se precisar usar logs, use SOMENTE console/logs temporários e não altere a interface.
+
+INVESTIGUE AGORA:
+
+1. Abra o Financeiro autenticado.
+
+2. Reproduza o problema em Agosto/2026.
+
+3. Inspecione `fetchTransactions()`.
+
+4. Descubra o retorno real:
+
+   - data.length
+
+   - count
+
+   - page
+
+   - pageSize
+
+   - from
+
+   - to
+
+5. Inspecione `transactionsData.data`.
+
+6. Conte quantos registros existem imediatamente antes da renderização da tabela.
+
+7. Descubra em qual ponto os registros passam a ser zero.
+
+8. Verifique se `relatorios.tsx` ainda trata o retorno como `Transaction[]` em algum lugar, apesar de agora ser `{"{ data, count }"}`.
+
+9. Verifique filtros aplicados depois da resposta da API.
+
+10. Compare `fetchTransactions()` com `fetchFinanceStats()`.
+
+NÃO CORRIJA O BUG.
+
+NÃO ALTERE O H1.
+
+NÃO ALTERE NENHUM TEXTO.
+
+NÃO ALTERE NENHUM ARQUIVO.
+
+Ao terminar, NÃO diga que corrigiu.
+
+Retorne SOMENTE um diagnóstico contendo:
+
+- registros retornados pelo Supabase;
+
+- `data.length`;
+
+- `count`;
+
+- page/pageSize;
+
+- from/to;
+
+- quantidade imediatamente antes da renderização;
+
+- ponto exato onde os registros desaparecem;
+
+- arquivo e linha aproximada;
+
+- causa raiz.
+
+Se você não conseguir acessar o runtime, diga explicitamente:
+
+"Não consegui executar a auditoria de runtime."
+
+Não invente resultados e não faça alterações como substituição da auditoria.</h1>
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
         </div>
         <div className="flex gap-2">
