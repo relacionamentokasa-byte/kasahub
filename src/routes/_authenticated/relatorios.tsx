@@ -898,11 +898,12 @@ function FinancialPage() {
                 <Checkbox
                   checked={
                     transactions.length > 0 &&
-                    transactions.every((t: any) => selectedIds.has(t.id))
+                    transactions.filter((t: any) => !(t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid')).every((t: any) => selectedIds.has(t.id))
                   }
+
                   onCheckedChange={(c) => {
                     if (c) {
-                      setSelectedIds(new Set(transactions.map((t: any) => t.id)));
+                      setSelectedIds(new Set(transactions.filter((t: any) => !(t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid')).map((t: any) => t.id)));
                     } else {
                       setSelectedIds(new Set());
                     }
@@ -961,8 +962,6 @@ function FinancialPage() {
                   key={t.id}
                   className={cn(
                     "group transition-colors",
-                    isSuspended && t.status !== 'paid'
-                      ? "opacity-60 grayscale-[0.5] hover:bg-muted/10 border-l-2 border-l-amber-500/30"
 
                       : effectiveStatus === "paid"
                       ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
