@@ -749,26 +749,28 @@ function ProductSheet({
   const handleExportPdf = async () => {
     const { exportBoletimPdf } = await import("@/lib/boletim-pdf");
     const statusLabel = statuses.find((s) => s.id === statusId)?.label;
-    await exportBoletimPdf({
-      name,
-      image_url: imageUrl,
-      due_date: dueDate || null,
-      description: product?.description ?? null,
-      notes: product?.notes ?? null,
-      links: product?.links ?? [],
-      skus: product?.skus ?? [],
-      boletim: {
-        categoria, colecao, imagens: imgs, briefing_criacao: briefing,
-        regulatorio_verso: regulatorio, benchmark, volumetria,
-        aspecto_fisico: aspecto, acondicionar,
-        descricao_embalagem: descEmbalagem, responsaveis,
-        embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
-        tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
-        valvula_cor: valvulaCor, valvula_fornecedor: valvulaFornecedor,
-        tipo_arte: tipoArte,
-      },
-      statusLabel,
-    });
+    await exportBoletimPdf(
+      {
+        name,
+        image_url: imageUrl,
+        due_date: dueDate || null,
+        description: product?.description ?? null,
+        notes: product?.notes ?? null,
+        links: product?.links ?? [],
+        skus: product?.skus ?? [],
+        boletim: {
+          categoria, colecao, imagens: imgs, briefing_criacao: briefing,
+          regulatorio_verso: regulatorio, benchmark, volumetria,
+          aspecto_fisico: aspecto, acondicionar,
+          descricao_embalagem: descEmbalagem, responsaveis,
+          embalagem_cor: embalagemCor, embalagem_fornecedor: embalagemFornecedor,
+          tampa_cor: tampaCor, tampa_fornecedor: tampaFornecedor,
+          valvula_cor: valvulaCor, valvula_fornecedor: valvulaFornecedor,
+          tipo_arte: tipoArte,
+        },
+        statusLabel,
+      } as any
+    );
   };
 
   return (

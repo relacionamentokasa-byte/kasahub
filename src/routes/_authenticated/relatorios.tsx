@@ -1,40 +1,74 @@
-<h1>Faça apenas uma validação da otimização anterior.
+<h1>Agora quero corrigir APENAS o carregamento desnecessário das bibliotecas de PDF.
 
-NÃO altere código.
+A auditoria identificou importações estáticas de:
 
-NÃO altere banco.
+- jsPDF
 
-NÃO altere Storage.
+- html2canvas
 
-NÃO altere job_attachments.
+em arquivos que fazem parte do carregamento inicial do ERP.
 
-Abra Jobs reais no ambiente autenticado e valide:
+Objetivo:
 
-1. Job sem anexos.
+As bibliotecas de PDF devem ser carregadas somente quando o usuário realmente solicitar a geração de um PDF.
 
-2. Job com poucos anexos.
+Faça importação dinâmica/lazy loading onde for seguro.
 
-3. Job com muitos anexos.
+Exemplo:
 
-Confirme no navegador/network:
+Usuário abre o ERP → jsPDF não é carregado.
 
-- quantidade real de requests para geração das URLs;
+Usuário clica em Gerar PDF → biblioteca é carregada → PDF é gerado normalmente.
 
-- se createSignedUrls está sendo chamado corretamente;
+NÃO altere:
 
-- se todos os anexos continuam aparecendo;
+- layout dos PDFs;
 
-- se todos continuam abrindo/baixando;
+- conteúdo;
 
-- se IDs e paths permanecem iguais;
+- fontes;
 
-- se não existem erros no console.
+- logos;
 
-Também confirme por que src/routes/_authenticated/relatorios.tsx foi modificado e qual alteração foi feita nesse arquivo.
+- qualidade;
 
-Não faça nenhuma correção nesta etapa.
+- nomes dos arquivos;
 
-Quero somente o resultado da validação.</h1>
+- armazenamento;
+
+- dados financeiros;
+
+- DMEs;
+
+- Jobs;
+
+- clientes;
+
+- banco de dados.
+
+Não refatore outras partes do ERP.
+
+Não remova arquivos.
+
+Não altere funcionalidades que não estejam relacionadas ao carregamento das bibliotecas de PDF.
+
+Depois da alteração, teste todos os fluxos existentes que utilizam PDF e confirme que continuam funcionando exatamente como antes.
+
+Também verifique se o bundle inicial realmente diminuiu.
+
+Informe:
+
+- arquivos modificados;
+
+- quais imports foram convertidos para dynamic import;
+
+- tamanho do bundle antes/depois, se disponível;
+
+- quais fluxos de PDF foram testados;
+
+- se houve alguma regressão.
+
+Faça somente essa otimização.</h1>
 
 import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
