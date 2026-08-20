@@ -1,38 +1,40 @@
-# Plano de Correção Estrutural do Modelo Financeiro
+# Plano de Implementação — Suspensão de Cobranças Financeiras
 
-Garantir a consistência entre `amount` e `valor_previsto` em todos os fluxos de criação e edição, além de separar claramente a "intenção" (previsto) do "fato" (real) durante a baixa.
+Adição de uma configuração persistente para suspender a consideração de lançamentos financeiros de um cliente nos indicadores de "A Receber" e cobranças ativas, sem alterar o status operacional ou excluir dados.
 
-## Alterações Técnicas
+## Alterações no Banco de Dados (Supabase)
 
-### 1. Sincronização na Criação e Edição
-Garantir que `valor_previsto` seja sempre preenchido com o valor base do lançamento e que `amount` o acompanhe enquanto não houver pagamento.
+1.  **Nova Migração:**
+    *   Adicionar à tabela `public.clients`:
+        *   `financial_collection_status`: TEXT (default 'active', check IN ('active', 'suspended'))
+        *   `financial_collection_date`: TIMESTAMPTZ
+        *   `financial_collection_reason`: TEXT
+        *   `financial_collection_user_id`: UUID (FK para profiles)
 
-- **`src/components/finance/TransactionFormDialog.tsx`**:
-  - Na criação: definir explicitamente `valor_previsto: values.amount` e `amount: values.amount`.
-  - Na edição de pendentes: atualizar ambos consistentemente se o valor for alterado.
-- **`src/lib/ops-api.ts`**:
-  - Atualizar funções que geram lançamentos (Jobs, Setups) para incluir `valor_previsto` igual ao `amount`.
-- **`src/lib/dme-batches-api.ts`**:
-  - Na criação de lotes consolidados, preencher `valor_previsto` na transação criada.
-- **`src/components/finance/FinancialImportDialog.tsx`**:
-  - Incluir `valor_previsto` no objeto de inserção em lote.
+## Módulos e Lógica (Backend/Frontend)
 
-### 2. Fluxo de Baixa (Preservação de Histórico)
-Alterar a lógica de baixa para não sobrescrever o `amount` original, usando apenas `valor_real` para o fato financeiro.
+1.  **Tipos e API (`src/lib/ops-api.ts`):**
+    *   Atualizar interface `Client`.
+    *   Implementar `updateClientFinancialStatus`.
 
-- **`src/components/finance/BaixaDialog.tsx`**:
-  - Remover a alteração de `amount` no payload do `updateTransaction`.
-  - Atualizar `valor_real` (e possivelmente `status: 'paid'`).
-  - *Nota*: A interface já calcula a diferença visualmente; garantiremos que a persistência siga a nova regra.
+2.  **Visão do Cliente (`src/routes/_authenticated/clientes.$clientId.tsx`):**
+    *   **Indicadores:** Alterar cálculo de `pendingRevenue` para somar apenas se `financial_collection_status === 'active'`.
+    *   **Nova Seção:** Exibir "Cobranças suspensas: R$ X" caso existam valores e o cliente esteja suspenso.
+    *   **Interface de Toggle:** Adicionar botão discreto no cabeçalho da aba Financeiro para [ Suspender / Reativar ].
+    *   **Diálogos:** Criar `FinancialSuspensionDialog` (com motivo) e `FinancialReactivationDialog`.
 
-### 3. Proteção de Interface (Fallback)
-Manter temporariamente a lógica de exibição para registros antigos que não possuem `valor_previsto`.
+3.  **Indicadores Globais e Relatórios:**
+    *   `src/lib/finance-api.ts`: Atualizar `fetchFinanceStats` para filtrar transações de clientes suspensos.
+    *   `src/routes/_authenticated/relatorios.tsx`: Ajustar loops de soma para respeitar o flag do cliente.
+    *   `src/components/dashboard/SaudeNegocioSection.tsx`: Garantir que o faturamento operacional (MRR) ignore clientes suspensos.
 
-- **`src/routes/_authenticated/relatorios.tsx`** e componentes de listagem:
-  - Continuar usando `valor_previsto > 0 ? valor_previsto : amount` apenas para renderização.
+## Detalhes Técnicos (Segurança e RLS)
 
-## Testes de Validação
-- Criar DME e verificar `amount == valor_previsto`.
-- Criar Lote DME e verificar `amount == valor_previsto`.
-- Criar Job e verificar `amount == valor_previsto`.
-- Realizar baixa com valor diferente e confirmar que `amount` e `valor_previsto` permanecem intactos, enquanto `valor_real` armazena o valor pago.
+*   Garantir que as novas colunas na tabela `clients` estejam protegidas pelas políticas de RLS existentes (apenas usuários autenticados/gestores podem alterar).
+*   Manter a integridade de todas as transações, DMEs e Lotes (nada é alterado ou excluído).
+
+## Testes de Verificação
+
+1.  Verificar que um cliente suspenso mantém suas transações na aba Financeiro com rótulo "SUSPENSA".
+2.  Validar que o valor "A Receber" global no Dashboard diminui ao suspender um cliente.
+3.  Confirmar que a reativação restaura os valores imediatamente.
