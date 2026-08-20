@@ -50,6 +50,7 @@ import { Route as AuthenticatedRoteirosScriptIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
 import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
 import { Route as AuthenticatedGestaoRelatoriosRouteImport } from './routes/_authenticated/gestao.relatorios'
+import { Route as AuthenticatedConstrutorRelatoriosPdfRouteImport } from './routes/_authenticated/construtor-relatorios..pdf'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdIndexRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.index'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
@@ -292,6 +293,12 @@ const AuthenticatedGestaoRelatoriosRoute =
     path: '/gestao/relatorios',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedConstrutorRelatoriosPdfRoute =
+  AuthenticatedConstrutorRelatoriosPdfRouteImport.update({
+    id: '/construtor-relatorios/pdf',
+    path: '/construtor-relatorios/pdf',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedClientesClientIdRoute =
   AuthenticatedClientesClientIdRouteImport.update({
     id: '/clientes/$clientId',
@@ -450,6 +457,7 @@ export interface FileRoutesByFullPath {
   '/proposal/$token': typeof ProposalTokenRoute
   '/proposta/$token': typeof PropostaTokenRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/construtor-relatorios/pdf': typeof AuthenticatedConstrutorRelatoriosPdfRoute
   '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
@@ -515,6 +523,7 @@ export interface FileRoutesByTo {
   '/proposta/$token': typeof PropostaTokenRoute
   '/': typeof AuthenticatedIndexRoute
   '/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/construtor-relatorios/pdf': typeof AuthenticatedConstrutorRelatoriosPdfRoute
   '/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
@@ -582,6 +591,7 @@ export interface FileRoutesById {
   '/proposta/$token': typeof PropostaTokenRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/clientes/$clientId': typeof AuthenticatedClientesClientIdRoute
+  '/_authenticated/construtor-relatorios/pdf': typeof AuthenticatedConstrutorRelatoriosPdfRoute
   '/_authenticated/gestao/relatorios': typeof AuthenticatedGestaoRelatoriosRoute
   '/_authenticated/projetos/$projectId': typeof AuthenticatedProjetosProjectIdRoute
   '/_authenticated/propostas/$proposalId': typeof AuthenticatedPropostasProposalIdRoute
@@ -649,6 +659,7 @@ export interface FileRouteTypes {
     | '/proposal/$token'
     | '/proposta/$token'
     | '/clientes/$clientId'
+    | '/construtor-relatorios/pdf'
     | '/gestao/relatorios'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
@@ -714,6 +725,7 @@ export interface FileRouteTypes {
     | '/proposta/$token'
     | '/'
     | '/clientes/$clientId'
+    | '/construtor-relatorios/pdf'
     | '/gestao/relatorios'
     | '/projetos/$projectId'
     | '/propostas/$proposalId'
@@ -780,6 +792,7 @@ export interface FileRouteTypes {
     | '/proposta/$token'
     | '/_authenticated/'
     | '/_authenticated/clientes/$clientId'
+    | '/_authenticated/construtor-relatorios/pdf'
     | '/_authenticated/gestao/relatorios'
     | '/_authenticated/projetos/$projectId'
     | '/_authenticated/propostas/$proposalId'
@@ -1140,6 +1153,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGestaoRelatoriosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/construtor-relatorios/pdf': {
+      id: '/_authenticated/construtor-relatorios/pdf'
+      path: '/construtor-relatorios/pdf'
+      fullPath: '/construtor-relatorios/pdf'
+      preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosPdfRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/clientes/$clientId': {
       id: '/_authenticated/clientes/$clientId'
       path: '/clientes/$clientId'
@@ -1322,6 +1342,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedValesRoute: typeof AuthenticatedValesRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedClientesClientIdRoute: typeof AuthenticatedClientesClientIdRoute
+  AuthenticatedConstrutorRelatoriosPdfRoute: typeof AuthenticatedConstrutorRelatoriosPdfRoute
   AuthenticatedGestaoRelatoriosRoute: typeof AuthenticatedGestaoRelatoriosRoute
   AuthenticatedProjetosProjectIdRoute: typeof AuthenticatedProjetosProjectIdRoute
   AuthenticatedPropostasProposalIdRoute: typeof AuthenticatedPropostasProposalIdRoute
@@ -1358,6 +1379,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedValesRoute: AuthenticatedValesRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedClientesClientIdRoute: AuthenticatedClientesClientIdRoute,
+  AuthenticatedConstrutorRelatoriosPdfRoute:
+    AuthenticatedConstrutorRelatoriosPdfRoute,
   AuthenticatedGestaoRelatoriosRoute: AuthenticatedGestaoRelatoriosRoute,
   AuthenticatedProjetosProjectIdRoute: AuthenticatedProjetosProjectIdRoute,
   AuthenticatedPropostasProposalIdRoute: AuthenticatedPropostasProposalIdRoute,
