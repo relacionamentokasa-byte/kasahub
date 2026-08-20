@@ -1,144 +1,64 @@
-<h1>Quero realizar uma AUDITORIA COMPLETA DE SAÚDE, PERFORMANCE, ESTABILIDADE E INTEGRIDADE do ERP inteiro.
+<h1>Quero corrigir APENAS a performance de carregamento dos anexos dos Jobs.
 
-IMPORTANTE:
+Problema identificado:
 
-NÃO altere código.
+O arquivo src/lib/ops-api.ts usa createSignedUrl individualmente para cada anexo dentro de um Promise.all.
 
-NÃO corrija bugs.
+Hoje:
 
-NÃO altere banco de dados.
+10 anexos = 10 chamadas de assinatura.
 
-NÃO faça migrations.
+20 anexos = 20 chamadas de assinatura.
 
-NÃO remova arquivos.
+Isso está aumentando o tempo de abertura do JobSheet.
 
-NÃO faça limpeza.
+Faça uma alteração cirúrgica para utilizar createSignedUrls (plural) e gerar as URLs assinadas em lote, caso seja compatível com a implementação atual do Supabase.
 
-Quero somente diagnóstico.
+REGRA CRÍTICA:
 
-Analise os principais módulos do ERP:
+Os anexos são dados importantes.
 
-- Dashboard
+NÃO:
 
-- CRM
+- exclua arquivos;
 
-- Propostas
+- altere arquivos no Storage;
 
-- Clientes
+- altere paths/storage_path;
 
-- Projetos
+- altere IDs;
 
-- Jobs
+- altere registros de job_attachments;
 
-- Demandas Extras
+- crie novos anexos;
 
-- Parceiros
+- mova ou renomeie arquivos;
 
-- Agenda
+- altere bucket ou permissões.
 
-- Financeiro
+A única alteração permitida é a forma como as URLs temporárias são geradas.
 
-- Relatórios
+Antes/depois, valide um Job com:
 
-- Construtor de Relatórios
+- 0 anexos;
 
-- Kasa AI
+- 1 anexo;
 
-Para cada módulo, verifique:
+- 10+ anexos.
 
-1. Erros no console.
+Confirme que:
 
-2. Erros de API/Supabase.
+- todos os anexos continuam aparecendo;
 
-3. Queries lentas ou excessivas.
+- todos continuam abrindo/baixando;
 
-4. Chamadas duplicadas.
+- quantidade, IDs e paths permanecem iguais;
 
-5. Renders excessivos.
+- o número de requests diminuiu.
 
-6. Loading infinito ou travamentos.
+Não faça nenhuma outra otimização ou refatoração.
 
-7. Listas sem paginação carregando muitos registros.
-
-8. Componentes muito pesados.
-
-9. Problemas de estado/cache.
-
-10. Erros silenciosos onde uma falha de API pode ser interpretada como "nenhum dado".
-
-11. Possíveis duplicações de registros.
-
-12. Problemas de estabilidade.
-
-Também analise a estrutura geral do projeto para identificar:
-
-- arquivos duplicados;
-
-- componentes antigos não utilizados;
-
-- código morto;
-
-- dependências desnecessárias;
-
-- assets muito pesados;
-
-- imagens/fontes/PDFs pesados;
-
-- arquivos JS/TS duplicados;
-
-- problemas de bundle/build;
-
-- bibliotecas que podem estar deixando o carregamento inicial pesado.
-
-Analise também o banco:
-
-- quantidade de registros nas principais tabelas;
-
-- queries que trabalham com muitos registros;
-
-- JOINs complexos;
-
-- N+1 queries;
-
-- falta de paginação;
-
-- possíveis problemas de índices;
-
-- consultas que podem ficar lentas conforme o ERP crescer.
-
-IMPORTANTE:
-
-Não altere nada.
-
-No final, apresente somente um diagnóstico organizado por prioridade:
-
-CRÍTICO
-
-ALTO
-
-MÉDIO
-
-BAIXO
-
-Para cada problema informe:
-
-- módulo;
-
-- arquivo;
-
-- problema;
-
-- causa provável;
-
-- impacto;
-
-- evidência;
-
-- recomendação.
-
-Também informe os 10 problemas mais importantes encontrados.
-
-Comece pela auditoria e não faça nenhuma correção.</h1>
+Ao final, informe os arquivos modificados e as métricas antes/depois.</h1>
 
 import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
