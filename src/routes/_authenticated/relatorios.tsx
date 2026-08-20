@@ -463,12 +463,22 @@ function FinancialPage() {
   })();
 
   const filteredTransactions = transactions.filter((t: any) => {
+    // REGRA DEFINITIVA: Excluir da visão operacional transações pending/overdue de clientes suspensos
+    const isSuspended = (t.clients as any)?.financial_collection_status === "suspended";
+    const status = (t.status || "").toLowerCase();
+    const isPaid = status === "paid" || status === "recebido" || status === "pago";
+
+    if (isSuspended && !isPaid && !showCancelled) {
+      // Omitir da visão operacional principal se o cliente estiver suspenso e não for histórico/pago
+      return false;
+    }
+
     if (filter.nfStatus !== "all" && (t.nf_status || "pendente") !== filter.nfStatus) return false;
     if (filter.boletoStatus !== "all" && (t.boleto_internal_status || "nao_se_aplica") !== filter.boletoStatus) return false;
 
     if (!showCancelled && t.status === "cancelled") return false;
     const matchSearch =
-      t.description.toLowerCase().includes(filter.search.toLowerCase()) ||
+      (t.description || "").toLowerCase().includes(filter.search.toLowerCase()) ||
       (t.clients as any)?.company?.toLowerCase().includes(filter.search.toLowerCase()) ||
       (t.clients as any)?.name?.toLowerCase().includes(filter.search.toLowerCase());
     if (!matchSearch) return false;

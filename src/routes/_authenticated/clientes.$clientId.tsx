@@ -170,11 +170,12 @@ function ClientDetail() {
   const mrr = contracts
     .filter((c: any) => c.status === "active")
     .reduce((sum: number, c: any) => sum + Number(c.monthly_value || 0), 0);
+  const isClientSuspended = client?.financial_collection_status === 'suspended';
   const overdueIncomeCount = transactions.filter(
-    (t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && t.due_date && t.due_date < todayIso,
+    (t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && t.due_date && t.due_date < todayIso && !isClientSuspended,
   ).length;
   const paidIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "paid").length;
-  const pendingIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending").length;
+  const pendingIncomeCount = transactions.filter((t: any) => (t.type === "income" || t.kind === "income") && t.status === "pending" && !isClientSuspended).length;
   const activeJobsCount = (jobs as any[]).filter(
     (j) => !j.done_at && !["done", "cancelled", "archived"].includes(j.status),
   ).length;
@@ -488,53 +489,103 @@ function ClientDetail() {
             <TabsContent value="financeiro" className="m-0 animate-reveal">
                <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
                  <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/10">
-                   <div className="flex items-center gap-3">
-                     <span className="text-[10px] font-mono-kasa uppercase text-foreground/40 font-bold">Situação das cobranças:</span>
-                     <Badge variant="outline" className={cn(
-                       "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2",
-                       client?.financial_collection_status === 'active' 
-                         ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5" 
-                         : "border-amber-500/20 text-amber-500 bg-amber-500/5"
-                     )}>
-                       {client?.financial_collection_status === 'active' ? 'Ativas' : 'Suspensas'}
-                     </Badge>
-                   </div>
-                   
-                   <FinancialCollectionToggle clientId={clientId} currentStatus={client?.financial_collection_status} />
-                 </div>
-                 <Table>
-                   <TableHeader className="bg-muted/30">
-                     <TableRow>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Vencimento</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Descrição</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
-                     </TableRow>
-                   </TableHeader>
-                   <TableBody>
-                     {transactions.map(t => (
-                       <TableRow key={t.id} className={cn(client?.financial_collection_status === 'suspended' && t.status !== 'paid' && "opacity-60 grayscale-[0.5]")}>
-                         <TableCell className="text-sm py-4">
-                           {new Date(t.due_date).toLocaleDateString()}
-                           {client?.financial_collection_status === 'suspended' && t.status !== 'paid' && (
-                             <div className="text-[9px] font-bold text-amber-500 uppercase mt-0.5">Cobrança Suspensa</div>
-                           )}
-                         </TableCell>
-                         <TableCell className="font-medium text-sm py-4">{t.description}</TableCell>
-                         <TableCell className={`text-right text-sm py-4 font-bold ${t.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
-                           {t.type === 'income' ? '+' : '-'} {brl(Number(t.amount))}
-                         </TableCell>
-                         <TableCell className="text-center py-4">
-                           <Badge variant="outline" className={`rounded-full text-[10px] uppercase tracking-widest ${t.status === 'paid' ? 'border-emerald-500/20 text-green-500 bg-green-500/5' : 'text-foreground/40'}`}>
-                             {t.status === 'paid' ? 'Liquidado' : t.status}
-                           </Badge>
-                         </TableCell>
-                       </TableRow>
-                     ))}
-                     {transactions.length === 0 && <TableRow><TableCell colSpan={4} className="h-32 text-center text-foreground/30 italic">Nenhum lançamento financeiro.</TableCell></TableRow>}
-                   </TableBody>
-                 </Table>
-               </div>
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono-kasa uppercase text-foreground/40 font-bold">Situação das cobranças:</span>
+                        <Badge variant="outline" className={cn(
+                          "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2",
+                          client?.financial_collection_status === 'active' 
+                            ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5" 
+                            : "border-amber-500/20 text-amber-500 bg-amber-500/5"
+                        )}>
+                          {client?.financial_collection_status === 'active' ? 'Ativas' : 'Suspensas'}
+                        </Badge>
+                      </div>
+                      {suspendedRevenue > 0 && (
+                        <div className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">
+                          Total Suspenso: {brl(suspendedRevenue)}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <FinancialCollectionToggle clientId={clientId} currentStatus={client?.financial_collection_status} />
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {/* Seção 1: Lançamentos Operacionais (Ativos) */}
+                    <div>
+                      <div className="px-6 py-3 bg-muted/5 border-b border-border">
+                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">Cobranças Ativas / Histórico</h4>
+                      </div>
+                      <Table>
+                        <TableHeader className="bg-muted/30">
+                          <TableRow>
+                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Vencimento</TableHead>
+                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Descrição</TableHead>
+                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor</TableHead>
+                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {transactions
+                            .filter(t => client?.financial_collection_status === 'active' || t.status === 'paid')
+                            .map(t => (
+                            <TableRow key={t.id} className="group">
+                              <TableCell className="text-sm py-4">
+                                {new Date(t.due_date).toLocaleDateString()}
+                              </TableCell>
+                              <TableCell className="font-medium text-sm py-4">{t.description}</TableCell>
+                              <TableCell className={`text-right text-sm py-4 font-bold ${t.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
+                                {t.type === 'income' ? '+' : '-'} {brl(Number(t.amount))}
+                              </TableCell>
+                              <TableCell className="text-center py-4">
+                                <Badge variant="outline" className={`rounded-full text-[10px] uppercase tracking-widest ${t.status === 'paid' ? 'border-emerald-500/20 text-green-500 bg-green-500/5' : 'text-foreground/40'}`}>
+                                  {t.status === 'paid' ? 'Liquidado' : t.status}
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                          {transactions.filter(t => client?.financial_collection_status === 'active' || t.status === 'paid').length === 0 && (
+                            <TableRow><TableCell colSpan={4} className="h-20 text-center text-foreground/30 italic text-xs">Nenhum lançamento ativo ou histórico pago.</TableCell></TableRow>
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+
+                    {/* Seção 2: Cobranças Suspensas (Apenas se o cliente estiver suspenso e houver itens pendentes) */}
+                    {client?.financial_collection_status === 'suspended' && transactions.some(t => t.status !== 'paid') && (
+                      <div className="border-t border-amber-500/10 bg-amber-500/[0.02]">
+                        <div className="px-6 py-3 bg-amber-500/5 border-b border-amber-500/10 flex items-center justify-between">
+                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-600/70">Cobranças Suspensas</h4>
+                          <span className="text-[10px] font-bold text-amber-600/50">{brl(suspendedRevenue)}</span>
+                        </div>
+                        <Table>
+                          <TableBody>
+                            {transactions
+                              .filter(t => t.status !== 'paid')
+                              .map(t => (
+                              <TableRow key={t.id} className="opacity-60 bg-amber-500/[0.01]">
+                                <TableCell className="text-sm py-4 w-[120px]">
+                                  {new Date(t.due_date).toLocaleDateString()}
+                                  <div className="text-[9px] font-bold text-amber-500 uppercase mt-0.5">Suspensa</div>
+                                </TableCell>
+                                <TableCell className="font-medium text-sm py-4">{t.description}</TableCell>
+                                <TableCell className={`text-right text-sm py-4 font-bold text-amber-500/70 w-[150px]`}>
+                                  {brl(Number(t.amount))}
+                                </TableCell>
+                                <TableCell className="text-center py-4 w-[100px]">
+                                  <Badge variant="outline" className="rounded-full text-[9px] uppercase tracking-widest border-amber-500/20 text-amber-600/50">
+                                    {t.status}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    )}
+                  </div>
+                </div>
             </TabsContent>
 
             <TabsContent value="dmes" className="m-0 animate-reveal">
