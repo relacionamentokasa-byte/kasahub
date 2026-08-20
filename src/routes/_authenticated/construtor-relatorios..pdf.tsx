@@ -60,13 +60,13 @@ function ReportPdfPage() {
         if (!container) return;
         const slideEls = Array.from(container.querySelectorAll<HTMLElement>("[data-pdf-slide]"));
 
-        const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1920, 1080] });
+        const pdf = new (jsPDF as any)({ orientation: "landscape", unit: "px", format: [1920, 1080] });
 
         for (let i = 0; i < slideEls.length; i++) {
           setStatus(`Renderizando slide ${i + 1} de ${slideEls.length}...`);
           setProgress(Math.round(((i) / slideEls.length) * 100));
           const el = slideEls[i];
-          const img = await toJpeg(el, {
+          const img = await (toJpeg as any)(el, {
             width: 1920,
             height: 1080,
             canvasWidth: 1920,
