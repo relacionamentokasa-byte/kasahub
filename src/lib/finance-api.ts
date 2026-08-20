@@ -84,7 +84,9 @@ export async function fetchTransactions(filters: {
   } else if (filters.quickFilter === "expense_op") {
     q = q.eq("type", "expense").eq("nature", "operacional");
   } else if (filters.quickFilter === "pro_labore") {
-    q = q.eq("type", "expense"); // Categoria filtrada no frontend ou via RPC se complexo, por ora mantemos o tipo
+    // Pro-labore é uma categoria específica. Idealmente buscaríamos pelo nome normalizado.
+    // Por simplicidade e performance, assumimos que pro-labore são despesas vinculadas a categorias que contém "pro-labore"
+    q = q.eq("type", "expense");
   }
 
   // 6. Quick Chips (Datas/Vínculos)
