@@ -1030,8 +1030,8 @@ function FinancialPage() {
               <TableHead className="w-10 py-4">
                 <Checkbox
                   checked={
-                    filteredTransactions.length > 0 &&
-                    filteredTransactions.every((t: any) => selectedIds.has(t.id))
+                    transactions.length > 0 &&
+                    transactions.every((t: any) => selectedIds.has(t.id))
                   }
                   onCheckedChange={(c) => {
                     if (c) {
