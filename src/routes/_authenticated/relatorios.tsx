@@ -389,11 +389,19 @@ function FinancialPage() {
     nfStatus: "all",
     boletoStatus: "all",
   });
+  const [page, setPage] = useState(1);
+  const pageSize = 50;
+
   const [quickFilter, setQuickFilter] = useState<"all" | "income" | "expense_op" | "pro_labore">("all");
   const [quickChip, setQuickChip] = useState<"none" | "today" | "week" | "overdue" | "paid_month" | "missing_links">("none");
   const [showCancelled, setShowCancelled] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
+
+  // Reset page on filter change
+  useEffect(() => {
+    setPage(1);
+  }, [filter, quickFilter, quickChip, showCancelled]);
 
   const periodFilters = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -408,10 +416,15 @@ function FinancialPage() {
     queryFn: () => fetchFinanceStats(periodFilters) 
   });
   
-  const { data: transactions = [], isLoading } = useQuery({ 
-    queryKey: ["transactions", { ...filter, ...periodFilters }], 
-    queryFn: () => fetchTransactions({ ...filter, ...periodFilters }) 
+  const { data: transactionsData, isLoading } = useQuery({ 
+    queryKey: ["transactions", { ...filter, ...periodFilters, page }], 
+    queryFn: () => fetchTransactions({ ...filter, ...periodFilters, page, pageSize }) 
   });
+
+  const transactions = transactionsData?.data || [];
+  const totalCount = transactionsData?.count || 0;
+  const totalPages = Math.ceil(totalCount / pageSize);
+
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const { data: categories = [] } = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
 
