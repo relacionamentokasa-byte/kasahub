@@ -130,9 +130,8 @@ export async function fetchTransactions(filters: {
   // - Para PAGOS: usar 'payment_date' (data efetiva do movimento)
   // - Para PENDENTES: usar 'due_date' (vencimento)
   // A ordenação é ASC (do mais antigo para o mais recente)
-  q = q.order("status", { ascending: true }) // 'paid' vem depois de 'pending' se usar natural order? Não, queremos um coalesced order.
-  // Como o Supabase/PostgREST não suporta COALESCE no .order(), usamos a lógica:
-  // Se estiver pago, payment_date deve ser usado. Se não, due_date.
+  // A coluna 'effective_date' é uma coluna gerada no banco para este fim.
+  q = q.order("effective_date", { ascending: true });
   // Note: Para garantir ordem cronológica REAL mesclando os dois estados, o ideal seria uma coluna gerada ou view.
   // Como não podemos alterar o banco, usaremos a ordenação que melhor se aproxima ou pediremos ao PostgREST.
   // Infelizmente PostgREST .order() é limitado a colunas reais.
