@@ -4502,6 +4502,7 @@ export type Database = {
           created_at: string | null
           description: string
           due_date: string
+          effective_date: string | null
           extra_demand_id: string | null
           freelancer_id: string | null
           id: string
@@ -4540,6 +4541,7 @@ export type Database = {
           created_at?: string | null
           description: string
           due_date: string
+          effective_date?: string | null
           extra_demand_id?: string | null
           freelancer_id?: string | null
           id?: string
@@ -4578,6 +4580,7 @@ export type Database = {
           created_at?: string | null
           description?: string
           due_date?: string
+          effective_date?: string | null
           extra_demand_id?: string | null
           freelancer_id?: string | null
           id?: string
