@@ -922,10 +922,10 @@ function FinancialPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRowsSkeleton rows={6} columns={9} />
+              <TableRowsSkeleton rows={6} columns={8} />
             ) : transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-64 text-center">
+                <TableCell colSpan={8} className="h-64 text-center">
 
                   <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
                     <div className="size-16 rounded-full bg-muted flex items-center justify-center">
