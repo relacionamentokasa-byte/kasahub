@@ -201,7 +201,7 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("amount, valor_previsto, type, status, due_date, nature");
+    .select("amount, valor_previsto, valor_real, paid_value, type, status, due_date, payment_date, nature, category, categorias_financeiras(nome), clients(financial_collection_status)");
 
   if (filters.startDate && filters.endDate) {
     q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
