@@ -23,7 +23,7 @@ export async function fetchContasBancarias(): Promise<ContaBancariaComSaldo[]> {
 
   const { data: txs, error: txErr } = await (supabase as any)
     .from("transactions")
-    .select("conta_id, amount, type, kind, status")
+    .select("conta_id, amount, valor_previsto, valor_real, paid_value, type, kind, status")
     .eq("status", "paid")
     .not("conta_id", "is", null);
   if (txErr) throw txErr;
@@ -31,7 +31,8 @@ export async function fetchContasBancarias(): Promise<ContaBancariaComSaldo[]> {
   const sums = new Map<string, number>();
   for (const t of (txs || []) as any[]) {
     const isIncome = (t.type ?? t.kind) === "income";
-    const delta = (Number(t.amount) || 0) * (isIncome ? 1 : -1);
+    // Saldo usa o valor efetivamente movimentado (valor_real quando > 0, senão amount)
+    const delta = effectiveAmount(t) * (isIncome ? 1 : -1);
     sums.set(t.conta_id, (sums.get(t.conta_id) || 0) + delta);
   }
   return contas.map((c) => ({
