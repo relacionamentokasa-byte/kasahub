@@ -239,7 +239,8 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     // Se o cliente associado estiver com cobrança suspensa, desconsidera para indicadores OPERACIONAIS
     const isSuspended = t.clients?.financial_collection_status === 'suspended';
     
-    const amount = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
+    // Regra única de valor efetivo (paid → valor_real || amount; pending → valor_previsto || amount)
+    const amount = effectiveAmount(t);
     const isNaoOp = t.nature === "nao_operacional";
     const status = (t.status || "").toLowerCase();
 
