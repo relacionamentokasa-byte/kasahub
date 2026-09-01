@@ -11,6 +11,7 @@ import {
 } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
+import { effectiveAmount } from "@/lib/finance-values";
 import { cn } from "@/lib/utils";
 import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
