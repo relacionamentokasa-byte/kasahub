@@ -914,8 +914,7 @@ function FinancialPage() {
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Vencimento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Descrição / Cliente</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Categoria</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Previsto</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Real</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Valor</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Diferença</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-center">Status</TableHead>
               <TableHead className="w-10"></TableHead>
