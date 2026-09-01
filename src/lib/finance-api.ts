@@ -227,6 +227,9 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     naoOperacionalReceitas: 0,
     naoOperacionalDespesas: 0,
     proLaboreMes: 0,
+    proLaborePago: 0,
+    proLaborePrevisto: 0,
+
     despesasReaisOperacionais: 0,
     investimentoRealizado: 0,
     cancelledCount: 0,
