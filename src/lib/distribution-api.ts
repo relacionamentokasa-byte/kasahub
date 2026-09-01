@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { effectiveAmount } from "@/lib/finance-values";
 import type { CompanyPartner, PartnerAdvance } from "./partners-finance-api";
 
 export const DISTRIBUTION_CATEGORY = "Distribuição Sócios";

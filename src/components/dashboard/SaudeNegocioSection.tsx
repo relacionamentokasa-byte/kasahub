@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { brl } from "@/lib/utils-format";
 import { startOfMonth, endOfMonth, format } from "date-fns";
+import { effectiveAmount } from "@/lib/finance-values";
 
 
 const MRR_KEYWORDS = ["fee", "mensal", "mensalidade", "recorrente", "recorrência", "recorrencia"];

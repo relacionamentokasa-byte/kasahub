@@ -24,6 +24,7 @@ import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 import { fetchProposals } from "@/lib/crm-api";
 import { fetchTransactions, fetchContracts } from "@/lib/finance-api";
+import { effectiveAmount } from "@/lib/finance-values";
 import { fetchProjects, fetchExtraDemands, getDmePublicUrl } from "@/lib/ops-api";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
