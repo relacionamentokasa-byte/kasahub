@@ -17,8 +17,12 @@ const normalize = (s: string | null | undefined) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+// Identificação do Pró-labore: pelo nome da categoria (categorias_financeiras.nome
+// ou o campo legado transactions.category), normalizado sem acentos.
+// Cobre variações como "Pró-labore", "Pro Labore" e "Pró-labore Sócio".
 const isProLabore = (name: string | null | undefined) =>
-  normalize(name) === PRO_LABORE;
+  normalize(name).includes(PRO_LABORE);
+
 
 const isInvestimento = (name: string | null | undefined) =>
   normalize(name).includes("investimento");
@@ -223,6 +227,9 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     naoOperacionalReceitas: 0,
     naoOperacionalDespesas: 0,
     proLaboreMes: 0,
+    proLaborePago: 0,
+    proLaborePrevisto: 0,
+
     despesasReaisOperacionais: 0,
     investimentoRealizado: 0,
     cancelledCount: 0,
@@ -270,12 +277,23 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
         return;
       }
       
-      if (proLab) stats.proLaboreMes += amount;
-      else if (inv) stats.investimentoRealizado += amount;
+      // Pró-labore NÃO é despesa operacional: fica isolado em seu próprio indicador
+      // e não entra em Despesas Previstas / Despesas Pagas / Despesas Operacionais.
+      // (O saldo das contas bancárias continua sendo reduzido normalmente quando pago,
+      //  pois o cálculo de saldo não filtra por categoria.)
+      if (proLab) {
+        stats.proLaboreMes += amount;
+        if (status === "paid") stats.proLaborePago += amount;
+        else stats.proLaborePrevisto += amount;
+        return;
+      }
+
+      if (inv) stats.investimentoRealizado += amount;
       else stats.despesasReaisOperacionais += amount;
 
       if (status === "paid") stats.pagasDespesas += amount;
       else stats.previstasDespesas += amount;
+
     }
   });
 
