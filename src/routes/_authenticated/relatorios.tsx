@@ -11,6 +11,7 @@ import {
 } from "@/lib/finance-api";
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
+import { effectiveAmount } from "@/lib/finance-values";
 import { cn } from "@/lib/utils";
 import { FinancialImportDialog } from "@/components/finance/FinancialImportDialog";
 import { TransactionFormDialog } from "@/components/finance/TransactionFormDialog";
@@ -914,8 +915,7 @@ function FinancialPage() {
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Vencimento</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Descrição / Cliente</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Categoria</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Previsto</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Real</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Valor</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Diferença</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-center">Status</TableHead>
               <TableHead className="w-10"></TableHead>
@@ -923,10 +923,10 @@ function FinancialPage() {
           </TableHeader>
           <TableBody>
             {isLoading ? (
-              <TableRowsSkeleton rows={6} columns={9} />
+              <TableRowsSkeleton rows={6} columns={8} />
             ) : transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="h-64 text-center">
+                <TableCell colSpan={8} className="h-64 text-center">
 
                   <div className="flex flex-col items-center justify-center space-y-3 opacity-40">
                     <div className="size-16 rounded-full bg-muted flex items-center justify-center">
@@ -938,10 +938,12 @@ function FinancialPage() {
               </TableRow>
             ) : (
               transactions.map((t: any) => {
-                const previsto = Number(t.valor_previsto) || 0;
+                // Coluna única de valor: regra do valor efetivamente movimentado
+                const previsto = Number(t.valor_previsto) > 0 ? Number(t.valor_previsto) : Number(t.amount) || 0;
                 const real = t.valor_real != null ? Number(t.valor_real) : null;
-                const diff = real != null ? real - previsto : 0;
-                const hasDiff = real != null && Math.abs(diff) > 0.005;
+                const valorExibido = effectiveAmount(t);
+                const diff = real != null && real > 0 ? real - previsto : 0;
+                const hasDiff = real != null && real > 0 && Math.abs(diff) > 0.005;
                 const sign = t.type === "income" ? "+" : "-";
                 const typeColor = t.type === "income" ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
                 const isNaoOp = t.nature === "nao_operacional";
@@ -1117,14 +1119,11 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className={cn("py-4 text-right font-semibold text-sm tabular-nums", typeColor)}>
                     <div className="flex flex-col items-end">
-                      <span>{sign} {brl(previsto)}</span>
+                      <span>{sign} {brl(valorExibido)}</span>
                       {t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid' && (
                         <span className="text-[9px] font-bold text-amber-500 uppercase">Cobrança Suspensa</span>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell className={cn("py-4 text-right text-sm tabular-nums", real != null ? typeColor : "text-foreground/30")}>
-                    {real != null ? `${sign} ${brl(real)}` : "—"}
                   </TableCell>
                   <TableCell className="py-4 text-right">
                     {hasDiff && t.clients?.financial_collection_status !== 'suspended' ? (

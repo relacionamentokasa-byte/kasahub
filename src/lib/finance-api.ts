@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { effectiveAmount } from "@/lib/finance-values";
 
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
 export type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
@@ -201,7 +202,7 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
   const today = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
-    .select("amount, valor_previsto, type, status, due_date, nature");
+    .select("amount, valor_previsto, valor_real, paid_value, type, status, due_date, payment_date, nature, category, categorias_financeiras(nome), clients(financial_collection_status)");
 
   if (filters.startDate && filters.endDate) {
     q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
@@ -239,7 +240,8 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     // Se o cliente associado estiver com cobrança suspensa, desconsidera para indicadores OPERACIONAIS
     const isSuspended = t.clients?.financial_collection_status === 'suspended';
     
-    const amount = Number(t.status === "paid" ? t.amount : (Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount));
+    // Regra única de valor efetivo (paid → valor_real || amount; pending → valor_previsto || amount)
+    const amount = effectiveAmount(t);
     const isNaoOp = t.nature === "nao_operacional";
     const status = (t.status || "").toLowerCase();
 
