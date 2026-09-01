@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { effectiveAmount } from "@/lib/finance-values";
 
 export type ContaBancaria = {
   id: string;
