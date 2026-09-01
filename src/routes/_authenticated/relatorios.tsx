@@ -512,15 +512,7 @@ function FinancialPage() {
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa uppercase font-bold tracking-wider">Gestão · Financeiro</span>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">Esta é uma solicitação de implementação de código. Aplique a instrução abaixo gerando os arquivos, componentes, lógica e estilos necessários: Fluxo de Caixa
-
-A alteração deve ser feita somente no título principal do módulo.
-
-Não altere nenhum outro texto, título, subtítulo, label, botão ou elemento da interface.
-
-Fora essa alteração específica do título para Fluxo de Caixa, toda a tarefa continua sendo exclusivamente de auditoria e diagnóstico.
-
-Qualquer outra alteração deve resultar em: 0 modificações.</h1>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">Fluxo de Caixa</h1>
           <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
         </div>
         <div className="flex gap-2">
