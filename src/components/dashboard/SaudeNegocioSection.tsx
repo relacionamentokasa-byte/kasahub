@@ -68,7 +68,7 @@ async function fetchSaudeNegocio(refDate: Date) {
     return false;
   };
 
-  const getAmount = (t: any) => Number(Number(t.valor_previsto) > 0 ? t.valor_previsto : t.amount) || 0;
+  const getAmount = (t: any) => effectiveAmount(t);
   const mrr = incomes.filter(isRecurringTx).reduce((acc, t) => acc + getAmount(t), 0);
   const avulsa = incomes
     .filter((t) => !isRecurringTx(t) && isAvulsoTx(t))
@@ -166,7 +166,7 @@ async function fetchSaudeNegocio(refDate: Date) {
     )
     .reduce(
       (acc: number, t: any) =>
-        acc + (Number(t.paid_value ?? t.valor_real ?? t.amount) || 0),
+        acc + effectiveAmount(t),
       0
     );
 

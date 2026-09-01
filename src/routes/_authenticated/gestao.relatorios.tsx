@@ -27,6 +27,7 @@ import {
 
 
 import { fetchTransactions } from "@/lib/finance-api";
+import { effectiveAmount } from "@/lib/finance-values";
 import { PRO_LABORE_CATEGORY, DISTRIBUTION_CATEGORY } from "@/lib/distribution-api";
 import { fetchClients } from "@/lib/ops-api";
 import { brl } from "@/lib/utils-format";
@@ -119,7 +120,7 @@ function RelatoriosGestaoPage() {
       const key = ref.slice(0, 7);
       const bucket = map.get(key);
       if (!bucket) return;
-      const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
+      const amount = effectiveAmount(t);
       const desc = String(t.description || "").toLowerCase();
       const isProLabore =
         t.category === PRO_LABORE_CATEGORY ||
@@ -176,7 +177,7 @@ function RelatoriosGestaoPage() {
     };
 
     transactions.forEach((t: any) => {
-      const amount = Number(t.paid_value ?? t.valor_real ?? t.amount) || 0;
+      const amount = effectiveAmount(t);
       const bucket = ensure(t.client_id);
       if (t.type === "income") {
         const isPaid = t.status === "paid" || !!t.payment_date;
