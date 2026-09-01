@@ -1118,14 +1118,11 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className={cn("py-4 text-right font-semibold text-sm tabular-nums", typeColor)}>
                     <div className="flex flex-col items-end">
-                      <span>{sign} {brl(previsto)}</span>
+                      <span>{sign} {brl(valorExibido)}</span>
                       {t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid' && (
                         <span className="text-[9px] font-bold text-amber-500 uppercase">Cobrança Suspensa</span>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell className={cn("py-4 text-right text-sm tabular-nums", real != null ? typeColor : "text-foreground/30")}>
-                    {real != null ? `${sign} ${brl(real)}` : "—"}
                   </TableCell>
                   <TableCell className="py-4 text-right">
                     {hasDiff && t.clients?.financial_collection_status !== 'suspended' ? (
