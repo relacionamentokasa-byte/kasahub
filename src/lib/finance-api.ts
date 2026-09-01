@@ -17,8 +17,12 @@ const normalize = (s: string | null | undefined) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
+// Identificação do Pró-labore: pelo nome da categoria (categorias_financeiras.nome
+// ou o campo legado transactions.category), normalizado sem acentos.
+// Cobre variações como "Pró-labore", "Pro Labore" e "Pró-labore Sócio".
 const isProLabore = (name: string | null | undefined) =>
-  normalize(name) === PRO_LABORE;
+  normalize(name).includes(PRO_LABORE);
+
 
 const isInvestimento = (name: string | null | undefined) =>
   normalize(name).includes("investimento");
