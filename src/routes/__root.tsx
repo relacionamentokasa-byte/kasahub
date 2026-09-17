@@ -214,7 +214,9 @@ function RootComponent() {
 
         <Outlet />
         <ClientOnly fallback={null}><CriticalNotificationPopup /></ClientOnly>
-        <Suspense fallback={null}><CookieConsent /></Suspense>
+        <ClientOnly fallback={null}>
+          <Suspense fallback={null}><CookieConsent /></Suspense>
+        </ClientOnly>
         <ThemedToaster />
       </ThemeProvider>
     </QueryClientProvider>
