@@ -39,10 +39,10 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
 
           // Aprovações pendentes com clientes
           supabaseAdmin
-            .from("job_approval_items")
+            .from("approval_items")
             .select("id, title")
             .eq("status", "pending")
-            .eq("is_archived", false),
+            .is("archived_at", null),
 
           // Follow-ups e tarefas de CRM para hoje
           supabaseAdmin
@@ -129,6 +129,7 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
             webpush.setVapidDetails(subjectRaw, publicKeyRaw.replace(/\s+/g, ""), privateKeyRaw.replace(/\s+/g, ""));
 
             for (const notif of insertedNotifs) {
+              if (!notif.user_id) continue;
               const { data: subs } = await supabaseAdmin
                 .from("push_subscriptions")
                 .select("id, endpoint, p256dh, auth")
@@ -150,8 +151,12 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
                         payload
                       );
                       pushSentCount++;
-                    } catch (e: any) {
-                      if (e?.statusCode === 404 || e?.statusCode === 410) {
+                    } catch (error: unknown) {
+                      const statusCode =
+                        typeof error === "object" && error !== null && "statusCode" in error
+                          ? Number(error.statusCode)
+                          : undefined;
+                      if (statusCode === 404 || statusCode === 410) {
                         await supabaseAdmin.from("push_subscriptions").delete().eq("id", s.id);
                       }
                     }
