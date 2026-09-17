@@ -6,6 +6,7 @@ import { TopNavigation } from "@/components/TopNavigation";
 import { MobileBottomNavigation } from "@/components/MobileBottomNavigation";
 import { OnboardingWizard } from "@/components/OnboardingWizard";
 import { FloatingActions } from "@/components/FloatingActions";
+import { PushNotificationPrompt } from "@/components/notifications/PushNotificationPrompt";
 
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { FocusModeProvider, useFocusMode } from "@/contexts/FocusModeContext";
@@ -114,6 +115,7 @@ function ShellInner() {
       {!focusMode && <MobileBottomNavigation />}
       {!focusMode && <OnboardingWizard />}
       {!focusMode && <FloatingActions />}
+      {!focusMode && <PushNotificationPrompt />}
     </div>
   );
 }
