@@ -9,7 +9,8 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
 } from "@/lib/push-client";
-import { sendTestPush } from "@/lib/push.functions";
+import { triggerMorningSummaryTest, sendTestPush } from "@/lib/push.functions";
+import { Sun } from "lucide-react";
 
 export function PushNotificationsCard() {
   const [supported, setSupported] = useState(true);
@@ -73,6 +74,21 @@ export function PushNotificationsCard() {
     }
   }
 
+  async function handleMorningTest() {
+    setBusy(true);
+    try {
+      await subscribeToPush();
+      setEnabled(true);
+      setPermission(Notification.permission);
+      const res = await triggerMorningSummaryTest({ data: undefined as any });
+      toast.success(`Resumo matinal enviado para ${res.sent} dispositivo(s)!`);
+    } catch (e: any) {
+      toast.error(e?.message || "Falha ao enviar resumo matinal de teste");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const isIOS =
     typeof navigator !== "undefined" &&
     /iPad|iPhone|iPod/.test(navigator.userAgent) &&
@@ -130,13 +146,19 @@ export function PushNotificationsCard() {
       )}
 
       {enabled && (
-        <div className="mt-4 flex items-center justify-between gap-4">
-          <p className="text-xs text-foreground/50">
-            Push ativo neste dispositivo. Você pode ativar em vários celulares/computadores.
+        <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-muted/20 border border-border/40">
+          <p className="text-xs text-foreground/60">
+            Push ativo neste dispositivo. Dispare um teste para verificar o recebimento imediato:
           </p>
-          <Button size="sm" variant="outline" onClick={handleTest} disabled={busy}>
-            Enviar push de teste
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button size="sm" variant="outline" onClick={handleTest} disabled={busy}>
+              Push Simples
+            </Button>
+            <Button size="sm" variant="default" className="gap-1.5" onClick={handleMorningTest} disabled={busy}>
+              <Sun className="size-3.5" />
+              Resumo Matinal
+            </Button>
+          </div>
         </div>
       )}
 
