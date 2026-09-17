@@ -24,14 +24,20 @@ export const Route = createFileRoute("/_authenticated")({
     }
 
     // Use getSession() — reads from local storage instantly and never hangs on the network.
-    // Falls back with a 3s timeout safety net just in case the auth client is wedged.
-    const sessionPromise = supabase.auth.getSession();
-    const timeout = new Promise<{ data: { session: null }; error: null }>((resolve) =>
-      setTimeout(() => resolve({ data: { session: null }, error: null }), 3000),
-    );
-    const { data } = (await Promise.race([sessionPromise, timeout])) as Awaited<typeof sessionPromise>;
+    // Falls back with a 5s timeout safety net if auth takes long on mobile / slow connection.
+    let user = null;
+    try {
+      const sessionPromise = supabase.auth.getSession();
+      const timeout = new Promise<{ data: { session: null }; error: null }>((resolve) =>
+        setTimeout(() => resolve({ data: { session: null }, error: null }), 5000),
+      );
+      const res = (await Promise.race([sessionPromise, timeout])) as Awaited<typeof sessionPromise>;
+      user = res?.data?.session?.user || null;
+    } catch {
+      user = null;
+    }
 
-    if (!data.session?.user) {
+    if (!user) {
       // Se um cliente sem login tentar acessar a URL interna da proposta por engano (/propostas/$id),
       // busca o token público da proposta e redireciona direto para a visualização pública.
       const proposalMatch = location.pathname.match(/^\/propostas\/([a-zA-Z0-9_-]+)/);
@@ -56,7 +62,7 @@ export const Route = createFileRoute("/_authenticated")({
 
       throw redirect({ to: "/auth" });
     }
-    return { user: data.session.user };
+    return { user };
   },
   component: ShellLayout,
 });
