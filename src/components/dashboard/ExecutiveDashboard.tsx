@@ -20,7 +20,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { fetchApprovals, fetchCalendarEvents } from "@/lib/approvals-api";
+import { fetchCalendarEvents } from "@/lib/approvals-api";
 import { fetchGoogleCalendarConnection } from "@/lib/google-calendar-api";
 
 type FilterRange = 'today' | 'week' | 'month' | 'quarter' | 'year';
@@ -77,12 +77,6 @@ export function ExecutiveDashboard() {
     staleTime: 60_000,
   });
   const transactions = transactionsResponse?.data || [];
-
-  const { data: approvals = [] } = useQuery({
-    queryKey: ["approvals", "all"],
-    queryFn: () => fetchApprovals(),
-    staleTime: 60_000,
-  });
 
   const { data: calendarEvents = [] } = useQuery({
     queryKey: ["calendar-events", "today"],
