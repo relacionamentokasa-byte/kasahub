@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchMyPermissions, canAccess, type ModuleId, type ActionId, type PermissionMap } from "@/lib/permissions-api";
 import { fetchCurrentUserRoles, hasAnyRole } from "@/lib/roles-api";
 
+export type { ModuleId } from "@/lib/permissions-api";
+
 export function usePermissions() {
   const { data: perms = {} as PermissionMap, isLoading: permsLoading, isError: permsError } = useQuery({
     queryKey: ["permissions", "me"],

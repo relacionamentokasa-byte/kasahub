@@ -43,7 +43,7 @@ interface FinancialChartsProps {
   onDraftChange?: (val: string) => void;
   onCommitMeta?: () => void;
   onCancelEditMeta?: () => void;
-  inputRef?: React.RefObject<HTMLInputElement>;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
 }
 
 export function FinancialChartsSection({

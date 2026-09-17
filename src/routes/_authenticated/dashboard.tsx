@@ -9,6 +9,10 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
     meta: [
       { title: "Dashboard Executiva — KASA HUB" },
       { name: "description", content: "Painel de comando da agência." },
+      { property: "og:title", content: "Dashboard Executiva — KASA HUB" },
+      { property: "og:description", content: "Painel de comando da agência." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: DashboardPage,

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/table";
 import { TableRowsSkeleton } from "@/components/ui/loading-skeletons";
 import { brl } from "@/lib/utils-format";
+import { cn } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/_authenticated/dmes")({

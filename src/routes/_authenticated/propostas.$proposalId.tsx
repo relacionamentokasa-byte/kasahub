@@ -5,6 +5,7 @@ import { ArrowLeft, Maximize2, Minimize2, Presentation } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useFocusMode } from "@/contexts/FocusModeContext";
+import { cn } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/_authenticated/propostas/$proposalId")({

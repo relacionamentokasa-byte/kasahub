@@ -48,14 +48,20 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+function ErrorComponent({ error, reset }: { error: unknown; reset: () => void }) {
+  const normalizedError = error instanceof Error
+    ? error
+    : new Error(error == null ? "Erro inesperado sem detalhes" : String(error));
+  console.error(normalizedError);
   const router = useRouter();
   
   useEffect(() => {
-    reportLovableError(error, { 
+    reportLovableError(normalizedError, {
       boundary: "tanstack_root_error_component",
-      componentStack: (error as any).componentStack,
+      componentStack:
+        typeof error === "object" && error !== null && "componentStack" in error
+          ? String(error.componentStack)
+          : undefined,
     });
   }, [error]);
 
@@ -78,7 +84,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border/50">
           <p className="text-[10px] font-mono uppercase tracking-wider text-foreground/40 mb-1">Detalhes técnicos:</p>
           <p className="text-xs font-mono text-rose-500/80 break-words line-clamp-3">
-            {error.message || "Erro desconhecido"}
+            {normalizedError.message}
           </p>
         </div>
 
