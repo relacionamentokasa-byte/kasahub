@@ -19,6 +19,11 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
+    },
     define: {
       'process.env.VITE_NEWS_API_KEY': JSON.stringify(process.env.NEWS_API_KEY),
     },

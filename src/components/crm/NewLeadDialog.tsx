@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -12,9 +13,10 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createLead, type Stage } from "@/lib/crm-api";
+import { createLead, LEAD_SOURCES, type Stage } from "@/lib/crm-api";
 import { fetchPartners } from "@/lib/partners-api";
 import { toast } from "sonner";
+import { Target, Loader2 } from "lucide-react";
 
 export function NewLeadDialog({
   stage,
@@ -49,12 +51,12 @@ export function NewLeadDialog({
         phone: form.phone || null,
         value: form.value ? Number(form.value) : 0,
         source: form.source || null,
-        origin_partner_id: form.source === 'Representante' ? form.origin_partner_id : null,
+        origin_partner_id: form.source === "Representante" ? form.origin_partner_id : null,
         stage_id: stage.id,
       }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["crm", "leads"] });
-      toast.success("Oportunidade criada");
+      toast.success("Oportunidade criada com sucesso!");
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -62,105 +64,151 @@ export function NewLeadDialog({
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-border">
-        <DialogHeader>
-          <DialogTitle className="font-display text-2xl">
-            Nova oportunidade · <span className="text-primary">{stage.name}</span>
+      <DialogContent className="sm:max-w-[540px]">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <Target className="size-5" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Nova Oportunidade</span>
+              <span className="text-xs font-normal text-muted-foreground">•</span>
+              <span
+                className="text-xs px-2 py-0.5 rounded-md font-mono-kasa font-medium text-foreground/80 border border-border/80"
+                style={{ borderLeftColor: stage.color || "#888", borderLeftWidth: "3px" }}
+              >
+                {stage.name}
+              </span>
+            </div>
           </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Cadastre um novo lead e direcione para a etapa do funil comercial.
+          </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4">
+
+        <div className="space-y-3.5 pt-1">
           <Field label="Título da Oportunidade *">
             <Input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Ex: Projeto Branding / Campanha Verão"
+              placeholder="Ex: Branding & Posicionamento"
+              className="h-9 text-xs"
               autoFocus
             />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Empresa">
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Field label="Empresa / Marca">
               <Input
                 value={form.company}
                 onChange={(e) => setForm({ ...form, company: e.target.value })}
+                placeholder="Nome da marca ou negócio"
+                className="h-9 text-xs"
               />
             </Field>
-            <Field label="Origem">
-              <Select 
-                value={form.source} 
+
+            <Field label="Origem do Lead">
+              <Select
+                value={form.source}
                 onValueChange={(v) => setForm({ ...form, source: v })}
               >
-                <SelectTrigger className="bg-background">
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue placeholder="Selecione a origem" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Site">Site</SelectItem>
-                  <SelectItem value="Instagram">Instagram</SelectItem>
-                  <SelectItem value="Google">Google</SelectItem>
-                  <SelectItem value="Indicação">Indicação</SelectItem>
-                  <SelectItem value="Representante">Representante</SelectItem>
+                  {LEAD_SOURCES.map((s) => (
+                    <SelectItem key={s} value={s} className="text-xs">
+                      {s}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
           </div>
-          {form.source === 'Representante' && (
+
+          {form.source === "Representante" && (
             <Field label="Representante Responsável *">
-              <Select 
-                value={form.origin_partner_id} 
+              <Select
+                value={form.origin_partner_id}
                 onValueChange={(v) => setForm({ ...form, origin_partner_id: v })}
               >
-                <SelectTrigger className="bg-background">
-                  <SelectValue placeholder="Selecione o representante" />
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Selecione o parceiro" />
                 </SelectTrigger>
                 <SelectContent>
                   {representatives.map((r: any) => (
-                    <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                    <SelectItem key={r.id} value={r.id} className="text-xs">
+                      {r.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </Field>
           )}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="E-mail">
-              <Input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-            </Field>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Field label="Contato / WhatsApp *">
               <Input
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 placeholder="(62) 99999-9999"
+                className="h-9 text-xs font-mono-kasa tabular-nums"
+              />
+            </Field>
+            <Field label="E-mail de Contato">
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="contato@empresa.com"
+                className="h-9 text-xs"
               />
             </Field>
           </div>
-          <Field label="Valor estimado (R$)">
-            <Input
-              type="number"
-              value={form.value}
-              onChange={(e) => setForm({ ...form, value: e.target.value })}
-              placeholder="0,00"
-            />
+
+          <Field label="Valor Estimado da Oportunidade">
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono-kasa text-muted-foreground">
+                R$
+              </span>
+              <Input
+                type="number"
+                value={form.value}
+                onChange={(e) => setForm({ ...form, value: e.target.value })}
+                placeholder="0,00"
+                className="h-9 text-xs pl-8 font-mono-kasa tabular-nums font-semibold"
+              />
+            </div>
           </Field>
-          <Field label="Notas">
+
+          <Field label="Notas Iniciais / Briefing Rápido">
             <Textarea
               rows={3}
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
+              placeholder="Detalhes ou necessidades identificadas no primeiro contato…"
+              className="text-xs resize-none"
             />
           </Field>
         </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+
+        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            className="h-9 text-xs"
+          >
             Cancelar
           </Button>
           <Button
+            size="sm"
             disabled={!form.name || !form.phone || mut.isPending}
             onClick={() => mut.mutate()}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
+            className="h-9 text-xs font-medium gap-1.5"
           >
-            {mut.isPending ? "Criando…" : "Criar oportunidade"}
+            {mut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Target className="size-3.5" />}
+            Criar Oportunidade
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -170,8 +218,8 @@ export function NewLeadDialog({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1.5">
-      <Label className="text-[11px] capitalize text-foreground/60">
+    <div className="space-y-1">
+      <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
         {label}
       </Label>
       {children}

@@ -15,21 +15,21 @@ export function FloatingActions() {
   ];
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 md:hidden">
+    <div className="fixed bottom-20 right-4 z-40 md:hidden">
       {open && (
-        <div className="absolute bottom-16 right-0 space-y-3 animate-in fade-in slide-in-from-bottom-4">
+        <div className="absolute bottom-14 right-0 space-y-2 animate-in fade-in slide-in-from-bottom-2">
           {actions.map((action, i) => (
             <Link
               key={i}
               to={action.to}
               onClick={() => setOpen(false)}
-              className="flex items-center gap-3 justify-end group"
+              className="flex items-center gap-2 justify-end group"
             >
-              <span className="bg-background/90 backdrop-blur-sm border border-border px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="bg-card/95 backdrop-blur-sm border border-border/60 px-2.5 py-1 rounded text-[11px] font-mono-kasa shadow-xs">
                 {action.label}
               </span>
-              <div className="size-12 rounded-full bg-surface border border-border shadow-lg flex items-center justify-center hover:scale-110 transition-transform">
-                <action.icon className={cn("size-5", action.color)} />
+              <div className="size-9 rounded-md bg-card border border-border/60 shadow-md flex items-center justify-center hover:bg-muted transition-colors">
+                <action.icon className="size-4 text-foreground" />
               </div>
             </Link>
           ))}
@@ -39,11 +39,13 @@ export function FloatingActions() {
         onClick={() => setOpen(!open)}
         size="icon"
         className={cn(
-          "size-14 rounded-full shadow-2xl transition-all duration-300",
-          open ? "rotate-45 bg-destructive hover:bg-destructive/90" : "bg-primary hover:bg-primary/90"
+          "size-10 rounded-md shadow-lg transition-all duration-200 border border-border/60",
+          open
+            ? "rotate-45 bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            : "bg-foreground text-background hover:bg-foreground/90"
         )}
       >
-        {open ? <X className="size-6" /> : <Plus className="size-7" />}
+        {open ? <X className="size-4" /> : <Plus className="size-4" />}
       </Button>
     </div>
   );

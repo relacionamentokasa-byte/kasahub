@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/integracoes")({
 
 function IntegrationsPage() {
   return (
-    <div className="px-6 lg:px-10 py-8 space-y-6 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 w-full mx-auto animate-reveal">
       <header>
         <span className="text-[10px] font-mono-kasa capitalize text-primary font-semibold">
           Sistema · Integrações

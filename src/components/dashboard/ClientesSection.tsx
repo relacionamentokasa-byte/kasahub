@@ -25,59 +25,59 @@ export function ClientesSection({ clients }: { clients: ClientRanking[] }) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider flex items-center gap-2">
-        <Users className="size-4" /> Ranking de Clientes
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+        <Users className="size-3.5" /> Ranking de Clientes
       </h3>
-      <div className="bg-surface border border-border rounded-2xl overflow-hidden">
+      <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left min-w-[400px] sm:min-w-full">
+          <table className="w-full text-left min-w-[320px]">
             <thead>
-              <tr className="border-b border-border bg-muted/20">
-                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40">
+              <tr className="border-b border-border bg-muted/30">
+                <th className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Cliente
                 </th>
-                <th className="px-4 sm:px-6 py-3 text-[10px] font-mono-kasa uppercase text-foreground/40 text-right">
+                <th className="px-4 py-2.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground text-right">
                   Receita
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody className="divide-y divide-border/60">
               {sortedClients.map((c, i) => (
-                <tr key={c.id} className="hover:bg-muted/10 transition-colors">
-                  <td className="px-4 sm:px-6 py-4">
-                    <div className="flex items-center gap-3">
+                <tr key={c.id} className="hover:bg-muted/20 transition-colors">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2.5">
                       <span
-                        className={`text-xs font-mono-kasa w-5 ${
-                          i === 0 ? "text-primary font-bold" : "text-foreground/40"
+                        className={`text-xs font-mono-kasa w-5 shrink-0 ${
+                          i === 0 ? "text-primary font-bold" : "text-muted-foreground"
                         }`}
                       >
-                        {i === 0 ? <Award className="size-4 text-primary" /> : `${i + 1}.`}
+                        {i === 0 ? <Award className="size-3.5 text-primary" /> : `${i + 1}.`}
                       </span>
                       <div className="flex-1 min-w-0">
                         <Link
                           to="/clientes/$clientId"
                           params={{ clientId: c.id }}
-                          className="text-sm font-medium hover:text-primary hover:underline transition-colors block truncate"
+                          className="text-xs font-medium text-foreground hover:text-primary transition-colors block truncate"
                         >
                           {c.name}
                         </Link>
-                        <div className="mt-1.5 h-1 bg-muted/30 rounded-full overflow-hidden">
+                        <div className="mt-1 h-1 bg-muted rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-primary/70 rounded-full transition-all"
+                            className="h-full bg-primary/70 rounded-full transition-all duration-300"
                             style={{ width: `${(c.total / max) * 100}%` }}
                           />
                         </div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 sm:px-6 py-4 text-right text-sm font-mono-kasa text-foreground/80 whitespace-nowrap">
+                  <td className="px-4 py-3 text-right text-xs font-display font-medium tabular-nums text-foreground/90 whitespace-nowrap">
                     {fmt(c.total)}
                   </td>
                 </tr>
               ))}
               {sortedClients.length === 0 && (
                 <tr>
-                  <td colSpan={2} className="px-6 py-8 text-center text-sm text-foreground/40 italic">
+                  <td colSpan={2} className="px-4 py-8 text-center text-xs text-muted-foreground italic">
                     Nenhuma receita registrada no período.
                   </td>
                 </tr>
@@ -89,3 +89,4 @@ export function ClientesSection({ clients }: { clients: ClientRanking[] }) {
     </div>
   );
 }
+

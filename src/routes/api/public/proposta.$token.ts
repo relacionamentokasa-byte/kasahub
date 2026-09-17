@@ -66,7 +66,7 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
             supabaseAdmin
               .from("agency_settings")
               .select(
-                "name, logo_url, logo_proposals_url, brand_primary, brand_secondary, email, phone, website, document, address, agency_signature_url",
+                "name, logo_url, logo_white_url, logo_yellow_url, logo_proposals_url, brand_primary, brand_secondary, email, phone, website, document, address, agency_signature_url",
               )
               .order("created_at", { ascending: true })
               .limit(1)
@@ -86,17 +86,6 @@ export const Route = createFileRoute("/api/public/proposta/$token")({
                   .maybeSingle()
               : Promise.resolve({ data: null }),
           ]);
-
-          // Auto-mark as viewed using a status accepted by the database constraint.
-          if (proposal.status === "Enviada" || proposal.status === "sent") {
-            await supabaseAdmin
-              .from("proposals")
-              .update({ status: "Enviada" })
-              .eq("id", proposal.id);
-            await supabaseAdmin
-              .from("proposal_events")
-              .insert({ proposal_id: proposal.id, type: "viewed" });
-          }
 
           return new Response(
             JSON.stringify({

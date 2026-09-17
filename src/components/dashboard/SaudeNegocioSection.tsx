@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { TrendingUp, Zap, Users, FileText, Target, Pencil, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardKPI } from "./DashboardKPI";
+import { FinancialChartsSection } from "./FinancialChartsSection";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -171,10 +172,56 @@ async function fetchSaudeNegocio(refDate: Date) {
       0
     );
 
+  const normalize = (s: string | null | undefined) =>
+    (s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+  const isProLabore = (name: string | null | undefined) =>
+    normalize(name).includes("pro-labore");
+
+  // Despesas Operacionais do mês (Exclui não-operacional e Pró-Labore, conforme regra do sistema)
+  const expenses = txs.filter(
+    (t) =>
+      (t.kind || t.type) === "expense" &&
+      t.nature !== "nao_operacional" &&
+      !isProLabore(t.categorias_financeiras?.nome)
+  );
+  const despesasPagas = expenses
+    .filter((t) => PAID_STATUSES.has(String(t.status || "").toLowerCase()))
+    .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+  const despesasPrevistas = expenses.reduce((acc, t) => acc + getAmount(t), 0);
+  const receitasPrevistas = incomes.reduce((acc, t) => acc + getAmount(t), 0);
+
+  // Top clientes por faturamento
+  const clientRevenueMap = new Map<string, number>();
+  incomes.forEach((t) => {
+    if (t.client_id) {
+      clientRevenueMap.set(t.client_id, (clientRevenueMap.get(t.client_id) || 0) + getAmount(t));
+    }
+  });
+
+  const { data: clientsData } = await supabase.from("clients").select("id, name, company");
+  const clientsLookup = new Map((clientsData || []).map((c: any) => [c.id, c.company || c.name || "Cliente"]));
+
+  const topClients = Array.from(clientRevenueMap.entries())
+    .map(([id, total]) => ({
+      name: clientsLookup.get(id) || "Cliente",
+      total,
+    }))
+    .sort((a, b) => b.total - a.total);
+
   return {
     mrr,
     avulsa,
     receitaEfetivada,
+    despesasPagas,
+    despesasPrevistas,
+    receitasPrevistas,
+    topClients,
     clientesAtivos,
     clientesFaturadosMes,
     propostasPendentes: propostasPendentes || 0,
@@ -278,135 +325,69 @@ export function SaudeNegocioSection() {
     }
   };
 
+  const totalFaturamento = mrr + avulsa;
+  const mrrShare = totalFaturamento > 0 ? Math.round((mrr / totalFaturamento) * 100) : 0;
+  const avulsoShare = totalFaturamento > 0 ? Math.round((avulsa / totalFaturamento) * 100) : 0;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h3 className="text-sm font-semibold text-foreground/70 uppercase tracking-wider">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Saúde do Negócio
         </h3>
       </div>
 
-
-
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <DashboardKPI
           icon={TrendingUp}
           label="MRR"
           value={brl(mrr)}
-          subValue="Receita recorrente"
+          subValue={totalFaturamento > 0 ? `${mrrShare}% do faturamento` : "Receita recorrente"}
           color="emerald-500"
         />
         <DashboardKPI
           icon={Zap}
-          label="Receita Avulsa (Mês)"
+          label="Receita Avulsa"
           value={brl(avulsa)}
-          subValue="Jobs pontuais"
+          subValue={totalFaturamento > 0 ? `${avulsoShare}% do faturamento` : "Jobs pontuais"}
           color="amber-500"
         />
         <DashboardKPI
           icon={Receipt}
           label="Ticket Médio"
-          value={brl(clientesFaturadosMes > 0 ? (mrr + avulsa) / clientesFaturadosMes : 0)}
-          subValue="(MRR + Avulsa) ÷ clientes que faturaram no mês"
+          value={brl(clientesFaturadosMes > 0 ? totalFaturamento / clientesFaturadosMes : 0)}
+          subValue="Média por cliente ativo"
           color="indigo-500"
         />
         <DashboardKPI
           icon={Users}
           label="Clientes Ativos"
           value={clientesAtivos}
-          subValue="Recorrentes + avulsos do mês (distintos)"
+          subValue="Contratos em carteira"
           color="blue-500"
         />
-        <DashboardKPI
-          icon={FileText}
-          label="Propostas Pendentes"
-          value={propostasPendentes}
-          subValue="Enviadas e rascunhos"
-          color="primary"
-        />
       </div>
 
-      {/* Meta de Faturamento */}
-      <div className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors">
-        <div className="flex items-start justify-between mb-3 gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-              <Target className="size-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">
-                Meta de Faturamento (Mês)
-              </p>
-              <div className="text-xs text-foreground/40 flex items-center gap-1.5 flex-wrap">
-                <span>{brl(faturado)} de</span>
-                {editing ? (
-                  <Input
-                    ref={inputRef}
-                    type="number"
-                    inputMode="decimal"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    onBlur={commit}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") commit();
-                      if (e.key === "Escape") setEditing(false);
-                    }}
-                    className="h-6 w-32 text-xs px-2"
-                    placeholder="0.00"
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setEditing(true)}
-                    className="inline-flex items-center gap-1 hover:text-primary transition-colors"
-                  >
-                    <span className="font-medium">
-                      {meta > 0 ? brl(meta) : "definir meta"}
-                    </span>
-                    <Pencil className="size-3" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-          <p className="text-2xl font-bold tracking-tight text-foreground">
-            {meta > 0 ? `${progresso.toFixed(0)}%` : "—"}
-          </p>
-        </div>
-        <Progress value={progresso} className="h-2" />
-      </div>
-
-      {/* Meta Anual (Jan–Dez) */}
-      <div className="bg-surface border border-border rounded-2xl p-5 hover:border-primary/30 transition-colors">
-        <div className="flex items-start justify-between mb-3 gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="size-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-              <Target className="size-5 text-primary" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-foreground">
-                Meta Anual de Faturamento · {anoRef}
-              </p>
-              <div className="text-xs text-foreground/50">
-                {metaAnual > 0 ? (
-                  <>
-                    {brl(faturadoAnual)} de <span className="font-medium">{brl(metaAnual)}</span>
-                    {" · "}
-                    {progressoAnualRaw >= 100 ? "Meta batida 🎉" : `Faltam ${brl(faltaAnual)}`}
-                  </>
-                ) : (
-                  "Defina a meta anual em agency_goals (period: yearly)"
-                )}
-              </div>
-            </div>
-          </div>
-          <p className={`text-2xl font-bold tracking-tight ${progressoAnualRaw >= 100 ? "text-emerald-600 dark:text-emerald-400" : "text-foreground"}`}>
-            {metaAnual > 0 ? `${progressoAnual.toFixed(0)}%` : "—"}
-          </p>
-        </div>
-        <Progress value={progressoAnual} className="h-2" />
-      </div>
+      {/* Gráficos Financeiros Visuais com Dados Reais e Medidores Circulares de Meta */}
+      <FinancialChartsSection
+        mrr={mrr}
+        avulsa={avulsa}
+        receitaEfetivada={faturado}
+        despesasPagas={data?.despesasPagas || 0}
+        receitasPrevistas={data?.receitasPrevistas || 0}
+        despesasPrevistas={data?.despesasPrevistas || 0}
+        topClients={data?.topClients || []}
+        metaMensal={meta}
+        metaAnual={metaAnual}
+        faturadoAnual={faturadoAnual}
+        editingMeta={editing}
+        draftMeta={draft}
+        onStartEditMeta={() => setEditing(true)}
+        onDraftChange={(val) => setDraft(val)}
+        onCommitMeta={commit}
+        onCancelEditMeta={() => setEditing(false)}
+        inputRef={inputRef}
+      />
     </div>
-
   );
 }

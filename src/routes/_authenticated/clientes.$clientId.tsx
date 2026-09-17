@@ -202,54 +202,55 @@ function ClientDetail() {
 
 
   return (
-    <div className="flex flex-col h-full bg-background/50 animate-reveal">
+    <div className="flex flex-col h-full bg-background animate-reveal">
       {/* Header / Resumo Rápido */}
-      <div className="px-6 lg:px-10 pt-8 pb-6 border-b border-border bg-surface">
-        <div className="max-w-[1600px] mx-auto">
-          <Link to="/clientes" className="inline-flex items-center gap-2 text-xs text-foreground/40 hover:text-primary transition-colors mb-6 group">
-            <ArrowLeft className="size-3.5 group-hover:-translate-x-0.5 transition-transform" /> Voltar para lista
+      <div className="px-4 sm:px-6 lg:px-8 py-4 border-b border-border/60 bg-card">
+        <div className="w-full mx-auto space-y-3">
+          <Link to="/clientes" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-mono-kasa transition-colors group">
+            <ArrowLeft className="size-3 group-hover:-translate-x-0.5 transition-transform" /> Voltar para lista
           </Link>
-          
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="flex items-center gap-5">
-              <div className="size-16 lg:size-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary text-2xl lg:text-3xl font-bold shadow-sm">
+
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="size-11 rounded-lg bg-muted border border-border/60 flex items-center justify-center text-foreground text-base font-mono-kasa font-bold shrink-0">
                 {client?.logo_url ? (
-                  <StorageImage src={client?.logo_url} alt={client?.name} className="size-full object-cover rounded-2xl" />
+                  <StorageImage src={client?.logo_url} alt={client?.name} className="size-full object-cover rounded-lg" />
                 ) : (
                   (client?.company || client?.name)?.[0]?.toUpperCase()
                 )}
               </div>
               <div className="min-w-0">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight break-words">
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  <h1 className="font-display text-xl sm:text-2xl font-bold tracking-tight break-words text-foreground">
                     {client?.company || client?.name}
                   </h1>
-                  <Badge variant="outline" className={`rounded-full uppercase tracking-widest text-[10px] border-2 ${
-                    client?.status === 'active' ? 'border-green-500/20 text-green-500 bg-green-500/5 dark:bg-green-500/10' : 
-                    client?.status === 'paused' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5 dark:bg-amber-500/10' : 
-                    'border-foreground/10 text-foreground/40'
-                  }`}>
+                  <Badge variant="outline" className={cn(
+                    "rounded px-2 py-0 text-[10px] font-mono-kasa font-semibold uppercase tracking-wider border",
+                    client?.status === 'active' ? 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' :
+                    client?.status === 'paused' ? 'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/5' :
+                    'border-border/60 text-muted-foreground bg-muted/20'
+                  )}>
                     {client?.status === 'active' ? 'Ativo' : client?.status === 'paused' ? 'Pausado' : 'Inativo'}
                   </Badge>
                 </div>
-                <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-xs text-foreground/50 font-medium">
-                  {client?.email && <span className="inline-flex items-center gap-2"><Mail className="size-3.5 text-primary/40" />{client?.email}</span>}
-                  {client?.phone && <span className="inline-flex items-center gap-2"><Phone className="size-3.5 text-primary/40" />{client?.phone}</span>}
-                  {client?.document && <span className="inline-flex items-center gap-2"><Building2 className="size-3.5 text-primary/40" />{client?.document}</span>}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted-foreground font-mono-kasa text-[11px]">
+                  {client?.email && <span className="inline-flex items-center gap-1.5"><Mail className="size-3 text-muted-foreground/70" />{client?.email}</span>}
+                  {client?.phone && <span className="inline-flex items-center gap-1.5"><Phone className="size-3 text-muted-foreground/70" />{client?.phone}</span>}
+                  {client?.document && <span className="inline-flex items-center gap-1.5"><Building2 className="size-3 text-muted-foreground/70" />{client?.document}</span>}
                 </div>
               </div>
             </div>
-            
-            <div className="flex items-center gap-3">
-               <div className="text-right hidden sm:block border-r border-border pr-5">
-                 <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none">Receita Total</p>
-                 <p className="text-lg font-bold text-emerald-500 mt-1">{brl(totalRevenue)}</p>
+
+            <div className="flex items-center gap-4">
+               <div className="text-right hidden sm:block border-r border-border/60 pr-4">
+                 <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground leading-none">Receita Paga</p>
+                 <p className="text-base font-mono-kasa font-bold text-foreground tabular-nums mt-1">{brl(totalRevenue)}</p>
                </div>
                <div className="text-right hidden sm:block">
-                 <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none">A Receber</p>
-                 <p className="text-lg font-bold text-blue-500 mt-1">{brl(pendingRevenue)}</p>
+                 <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground leading-none">A Receber</p>
+                 <p className="text-base font-mono-kasa font-bold text-foreground tabular-nums mt-1">{brl(pendingRevenue)}</p>
                  {suspendedRevenue > 0 && (
-                   <p className="text-[10px] font-medium text-amber-500/60 mt-0.5">Suspenso: {brl(suspendedRevenue)}</p>
+                   <p className="text-[10px] font-mono-kasa text-amber-600 dark:text-amber-400 mt-0.5">Suspenso: {brl(suspendedRevenue)}</p>
                  )}
                </div>
             </div>
@@ -270,9 +271,9 @@ function ClientDetail() {
 
       {/* Navegação 360 */}
       <Tabs defaultValue="overview" className="flex-1 flex flex-col">
-        <div className="bg-surface border-b border-border sticky top-0 z-10">
-          <div className="max-w-[1600px] mx-auto px-6 lg:px-10">
-            <TabsList className="bg-transparent border-0 h-auto p-0 gap-8 overflow-x-auto justify-start no-scrollbar">
+        <div className="bg-card border-b border-border/60 sticky top-0 z-10">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <TabsList className="bg-transparent border-0 h-auto p-0 gap-6 overflow-x-auto justify-start no-scrollbar">
               {[
                 { v: "overview", label: "Resumo", icon: Activity },
                 { v: "contratos", label: "Contratos", icon: FileSignature },
@@ -291,17 +292,17 @@ function ClientDetail() {
                 <TabsTrigger
                   key={tab.v}
                   value={tab.v}
-                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-none px-0 py-5 text-xs font-bold uppercase tracking-widest gap-2 transition-all hover:text-foreground/80"
+                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-0 py-3 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
                 >
                   <tab.icon className="size-3.5" />
                   {tab.label}
                   {tab.v === "contratos" && contracts.length > 0 && (
-                    <span className="absolute -top-1 -right-2 flex size-4 items-center justify-center rounded-full bg-emerald-500 text-[8px] text-white">
+                    <span className="flex size-4 items-center justify-center rounded bg-foreground/10 text-[9px] font-mono-kasa font-bold text-foreground">
                       {contracts.length}
                     </span>
                   )}
                   {tab.v === "propostas" && proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length > 0 && (
-                    <span className="absolute -top-1 -right-2 flex size-4 items-center justify-center rounded-full bg-amber-500 text-[8px] text-white">
+                    <span className="flex size-4 items-center justify-center rounded bg-foreground/10 text-[9px] font-mono-kasa font-bold text-foreground">
                       {proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length}
                     </span>
                   )}
@@ -312,99 +313,98 @@ function ClientDetail() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-[1600px] mx-auto px-6 lg:px-10 py-8">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-5">
             
             {/* Conteúdo: Resumo */}
-            <TabsContent value="overview" className="m-0 space-y-8 animate-reveal">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <QuickStatCard title="Propostas" value={proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length} icon={FileText} color="text-amber-500" />
-                <QuickStatCard title="Contratos Ativos" value={contracts.filter(c => c.status === 'active').length} icon={FileSignature} color="text-emerald-500" />
-                <QuickStatCard title="Projetos Ativos" value={projects.filter(p => p.status === 'active').length} icon={FolderKanban} color="text-purple-500" />
-                <QuickStatCard title="Receita Paga" value={brl(totalRevenue)} icon={Wallet} color="text-emerald-500" isText />
+            <TabsContent value="overview" className="m-0 space-y-6 animate-reveal">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                <QuickStatCard title="Propostas" value={proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length} />
+                <QuickStatCard title="Contratos Ativos" value={contracts.filter(c => c.status === 'active').length} />
+                <QuickStatCard title="Projetos Ativos" value={projects.filter(p => p.status === 'active').length} />
+                <QuickStatCard title="Receita Paga" value={brl(totalRevenue)} isText />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <Card className="lg:col-span-2 bg-surface border-border overflow-hidden">
-                  <CardHeader className="border-b border-border bg-muted/20">
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                      <FolderKanban className="size-4 text-primary" /> Projetos em Andamento
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="divide-y divide-border">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 bg-card border border-border/60 rounded-lg overflow-hidden">
+                  <div className="border-b border-border/60 bg-muted/20 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-2">
+                      <FolderKanban className="size-3.5 text-foreground" /> Projetos em Andamento
+                    </span>
+                  </div>
+                  <div>
+                    <div className="divide-y divide-border/60">
                       {projects.slice(0, 5).map(project => (
-                        <div key={project.id} className="flex items-center justify-between p-4 hover:bg-muted/10 transition-colors">
+                        <div key={project.id} className="flex items-center justify-between px-4 py-3 hover:bg-muted/10 transition-colors">
                           <div className="min-w-0">
-                            <p className="font-semibold text-sm truncate">{project.name}</p>
-                            <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mt-0.5">Criado em {new Date(project.created_at).toLocaleDateString()}</p>
+                            <p className="font-medium text-xs truncate text-foreground">{project.name}</p>
+                            <p className="text-[10px] text-muted-foreground font-mono-kasa mt-0.5">Criado em {new Date(project.created_at).toLocaleDateString()}</p>
                           </div>
-                          <Badge variant="outline" className="rounded-full text-[9px] uppercase tracking-tighter">
+                          <Badge variant="outline" className="rounded px-2 py-0 text-[10px] font-mono-kasa uppercase tracking-wider border-border/60 text-muted-foreground bg-muted/20">
                             {project.status}
                           </Badge>
                         </div>
                       ))}
-                      {projects.length === 0 && <p className="text-sm text-foreground/30 italic text-center py-12">Nenhum projeto vinculado.</p>}
+                      {projects.length === 0 && <p className="text-xs text-muted-foreground italic text-center py-8">Nenhum projeto vinculado.</p>}
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
 
-                <Card className="bg-surface border-border overflow-hidden flex flex-col">
-                  <CardHeader className="border-b border-border bg-muted/20">
-                    <CardTitle className="text-sm font-bold uppercase tracking-wider flex items-center gap-2">
-                      <TrendingUp className="size-4 text-primary" /> Histórico Recente
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-6 flex-1 overflow-y-auto">
+                <div className="bg-card border border-border/60 rounded-lg overflow-hidden flex flex-col">
+                  <div className="border-b border-border/60 bg-muted/20 px-4 py-2.5 flex items-center justify-between">
+                    <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-medium flex items-center gap-2">
+                      <TrendingUp className="size-3.5 text-foreground" /> Histórico Recente
+                    </span>
+                  </div>
+                  <div className="p-4 flex-1 overflow-y-auto">
                     <ClientUnifiedTimeline events={unifiedEvents} limit={8} emptyHint="Sem atividades ainda — crie uma proposta ou registre um pagamento." />
-
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </div>
             </TabsContent>
 
             {/* Conteúdo: Contratos (Propostas Aprovadas) */}
-            <TabsContent value="contratos" className="m-0 space-y-6 animate-reveal">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <TabsContent value="contratos" className="m-0 space-y-4 animate-reveal">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {contracts.map(contract => (
-                  <Card key={contract.id} className="bg-surface border-border hover:border-primary/40 transition-all group">
-                    <CardContent className="p-6">
-                      <div className="flex justify-between items-start mb-4">
-                        <Badge variant="outline" className={cn(
-                          "rounded-full text-[9px] uppercase tracking-wider",
-                          contract.status === 'active' ? "border-green-500/20 text-green-500 bg-green-500/5" : "text-foreground/40"
-                        )}>
-                          {contract.status === 'active' ? 'Contrato Ativo' : contract.status}
-                        </Badge>
-                        <FileSignature className="size-4 text-foreground/20 group-hover:text-primary transition-colors" />
+                  <div key={contract.id} className="bg-card border border-border/60 rounded-lg p-4 hover:border-border transition-colors">
+                    <div className="flex justify-between items-start mb-3">
+                      <span className={cn(
+                        "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono-kasa uppercase tracking-wider font-semibold border",
+                        contract.status === 'active'
+                          ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5"
+                          : "border-border/60 text-muted-foreground bg-muted/20"
+                      )}>
+                        {contract.status === 'active' ? 'Ativo' : contract.status}
+                      </span>
+                      <FileSignature className="size-3.5 text-muted-foreground" />
+                    </div>
+                    <h4 className="font-semibold text-sm text-foreground mb-1 truncate">{contract.title}</h4>
+                    <p className="text-[10px] text-muted-foreground font-mono-kasa mb-3">Início: {new Date(contract.start_date).toLocaleDateString()}</p>
+
+                    <div className="space-y-2 pt-3 border-t border-border/60 font-mono-kasa">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[10px] uppercase text-muted-foreground tracking-wider">Fee Mensal</span>
+                        <span className="font-bold text-emerald-500 tabular-nums">{brl(Number(contract.monthly_value))}</span>
                       </div>
-                      <h4 className="font-bold text-sm mb-1">{contract.title}</h4>
-                      <p className="text-[10px] text-foreground/40 font-mono-kasa uppercase mb-4">Início: {new Date(contract.start_date).toLocaleDateString()}</p>
-                      
-                      <div className="space-y-3 pt-4 border-t border-border">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] uppercase text-foreground/40 font-medium tracking-wider">Fee Mensal (MRR)</span>
-                          <span className="text-xs font-bold text-emerald-500">{brl(Number(contract.monthly_value))}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] uppercase text-foreground/40 font-medium tracking-wider">Duração</span>
-                          <span className="text-xs font-bold">{(contract as any).installments_count ? `${(contract as any).installments_count} meses` : 'Recorrente'}</span>
-                        </div>
-                        
-                        <Button asChild variant="outline" size="sm" className="w-full mt-2 rounded-xl text-[10px] uppercase font-bold tracking-widest gap-2 h-9">
-                          <Link to="/propostas/$proposalId" params={{ proposalId: contract.proposal_id || "" }}>
-                            <FileText className="size-3" /> Detalhes do Contrato
-                          </Link>
-                        </Button>
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[10px] uppercase text-muted-foreground tracking-wider">Duração</span>
+                        <span className="font-medium text-foreground">{(contract as any).installments_count ? `${(contract as any).installments_count} meses` : 'Recorrente'}</span>
                       </div>
-                    </CardContent>
-                  </Card>
+
+                      <Button asChild variant="outline" size="sm" className="w-full mt-2 rounded-md text-[11px] font-mono-kasa tracking-tight gap-1.5 h-8 border-border/60">
+                        <Link to="/propostas/$proposalId" params={{ proposalId: contract.proposal_id || "" }}>
+                          <FileText className="size-3.5" /> Detalhes do Contrato
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
                 ))}
                 {contracts.length === 0 && (
-                  <div className="col-span-full h-48 border-2 border-dashed border-border rounded-3xl flex flex-col items-center justify-center text-foreground/30 space-y-3">
-                    <FileSignature className="size-8 opacity-20" />
+                  <div className="col-span-full py-12 border border-dashed border-border/60 rounded-lg flex flex-col items-center justify-center text-muted-foreground space-y-2">
+                    <FileSignature className="size-6 opacity-30" />
                     <div className="text-center">
-                      <p className="text-sm font-bold">Nenhum contrato ativo</p>
-                      <p className="text-[10px] uppercase mt-1">Aprove uma proposta para gerar o contrato</p>
+                      <p className="text-xs font-semibold text-foreground">Nenhum contrato ativo</p>
+                      <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground mt-0.5">Aprove uma proposta para gerar o contrato</p>
                     </div>
                   </div>
                 )}
@@ -413,35 +413,37 @@ function ClientDetail() {
 
             {/* Conteúdo: Propostas */}
             <TabsContent value="propostas" className="m-0 animate-reveal">
-               <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+               <div className="bg-card border border-border/60 rounded-lg overflow-hidden shadow-xs">
                  <Table>
-                   <TableHeader className="bg-muted/30">
-                     <TableRow>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Proposta</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Data</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor Total</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
-                       <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Ação</TableHead>
+                   <TableHeader className="bg-muted/20">
+                     <TableRow className="border-border/60">
+                       <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-muted-foreground">Proposta</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-muted-foreground">Data</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-right text-muted-foreground">Valor Total</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-center text-muted-foreground">Status</TableHead>
+                       <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-center text-muted-foreground">Ação</TableHead>
                      </TableRow>
                    </TableHeader>
-                   <TableBody>
+                   <TableBody className="divide-y divide-border/60">
                      {proposals
                        .filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status))
                        .map(p => (
-                        <TableRow key={p.id} className="group">
-                          <TableCell className="font-medium text-sm py-4">{p.title}</TableCell>
-                          <TableCell className="text-xs text-foreground/40 py-4">{new Date(p.created_at).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right text-sm py-4">{brl(p.total || 0)}</TableCell>
-                          <TableCell className="text-center py-4">
-                            <Badge variant="outline" className={cn(
-                              "rounded-full text-[9px] uppercase tracking-widest",
-                              p.status === 'draft' ? "border-amber-500/20 text-amber-500 bg-amber-500/5" : "border-foreground/10 text-foreground/40"
+                        <TableRow key={p.id} className="border-border/60 hover:bg-muted/10 transition-colors">
+                          <TableCell className="font-medium text-xs py-2.5 text-foreground">{p.title}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground font-mono-kasa py-2.5">{new Date(p.created_at).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-right text-xs font-mono-kasa tabular-nums font-semibold py-2.5">{brl(p.total || 0)}</TableCell>
+                          <TableCell className="text-center py-2.5">
+                            <span className={cn(
+                              "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono-kasa uppercase tracking-wider font-semibold border",
+                              p.status === 'draft' || p.status === 'Rascunho'
+                                ? "border-amber-500/20 text-amber-500 bg-amber-500/5"
+                                : "border-border/60 text-muted-foreground bg-muted/20"
                             )}>
                               {p.status === 'draft' ? 'Rascunho' : p.status}
-                            </Badge>
+                            </span>
                           </TableCell>
-                          <TableCell className="text-center py-4">
-                             <Button asChild variant="ghost" size="sm" className="h-8 text-[10px] uppercase font-bold tracking-widest rounded-lg">
+                          <TableCell className="text-center py-2.5">
+                             <Button asChild variant="ghost" size="sm" className="h-7 px-2.5 text-[11px] font-mono-kasa rounded-md">
                                <Link to="/propostas/$proposalId" params={{ proposalId: p.id }}>Editar</Link>
                              </Button>
                           </TableCell>
@@ -449,9 +451,9 @@ function ClientDetail() {
                       ))}
                      {proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length === 0 && (
                        <TableRow>
-                         <TableCell colSpan={5} className="h-32 text-center text-foreground/30 italic">
-                           <div className="flex flex-col items-center gap-2">
-                             <FileText className="size-5 opacity-20" />
+                         <TableCell colSpan={5} className="py-10 text-center text-muted-foreground italic text-xs">
+                           <div className="flex flex-col items-center gap-1.5">
+                             <FileText className="size-4 opacity-30" />
                              <span>Nenhuma proposta em negociação encontrada.</span>
                            </div>
                          </TableCell>
@@ -489,66 +491,71 @@ function ClientDetail() {
 
             {/* Conteúdo: Financeiro */}
             <TabsContent value="financeiro" className="m-0 animate-reveal">
-               <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
-                 <div className="px-6 py-4 border-b border-border flex items-center justify-between bg-muted/10">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-3">
-                        <span className="text-[10px] font-mono-kasa uppercase text-foreground/40 font-bold">Situação das cobranças:</span>
-                        <Badge variant="outline" className={cn(
-                          "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2",
-                          client?.financial_collection_status === 'active' 
-                            ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5" 
+               <div className="bg-card border border-border/60 rounded-lg overflow-hidden shadow-xs">
+                 <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between bg-muted/20">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono-kasa uppercase text-muted-foreground tracking-wider font-semibold">Situação das cobranças:</span>
+                        <span className={cn(
+                          "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono-kasa uppercase tracking-wider font-semibold border",
+                          client?.financial_collection_status === 'active'
+                            ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5"
                             : "border-amber-500/20 text-amber-500 bg-amber-500/5"
                         )}>
                           {client?.financial_collection_status === 'active' ? 'Ativas' : 'Suspensas'}
-                        </Badge>
+                        </span>
                       </div>
                       {suspendedRevenue > 0 && (
-                        <div className="text-[10px] font-bold text-amber-500 uppercase tracking-tighter">
+                        <div className="text-[10px] font-mono-kasa tabular-nums font-semibold text-amber-500 uppercase tracking-tight">
                           Total Suspenso: {brl(suspendedRevenue)}
                         </div>
                       )}
                     </div>
-                    
+
                     <FinancialCollectionToggle clientId={clientId} currentStatus={client?.financial_collection_status} />
                   </div>
-                  
-                  <div className="space-y-6">
+
+                  <div className="space-y-4">
                     {/* Seção 1: Lançamentos Operacionais (Ativos) */}
                     <div>
-                      <div className="px-6 py-3 bg-muted/5 border-b border-border">
-                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-foreground/50">Cobranças Ativas / Histórico</h4>
+                      <div className="px-4 py-2 bg-muted/10 border-b border-border/60">
+                        <h4 className="text-[10px] font-mono-kasa font-semibold uppercase tracking-wider text-muted-foreground">Cobranças Ativas / Histórico</h4>
                       </div>
                       <Table>
-                        <TableHeader className="bg-muted/30">
-                          <TableRow>
-                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Vencimento</TableHead>
-                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4">Descrição</TableHead>
-                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-right">Valor</TableHead>
-                            <TableHead className="font-mono-kasa text-[10px] uppercase py-4 text-center">Status</TableHead>
+                        <TableHeader className="bg-muted/20">
+                          <TableRow className="border-border/60">
+                            <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-muted-foreground">Vencimento</TableHead>
+                            <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-muted-foreground">Descrição</TableHead>
+                            <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-right text-muted-foreground">Valor</TableHead>
+                            <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 text-center text-muted-foreground">Status</TableHead>
                           </TableRow>
                         </TableHeader>
-                        <TableBody>
+                        <TableBody className="divide-y divide-border/60">
                           {transactions
                             .filter(t => client?.financial_collection_status === 'active' || t.status === 'paid')
                             .map(t => (
-                            <TableRow key={t.id} className="group">
-                              <TableCell className="text-sm py-4">
+                            <TableRow key={t.id} className="border-border/60 hover:bg-muted/10 transition-colors">
+                              <TableCell className="text-xs font-mono-kasa text-muted-foreground py-2.5">
                                 {new Date(t.due_date).toLocaleDateString()}
                               </TableCell>
-                              <TableCell className="font-medium text-sm py-4">{t.description}</TableCell>
-                              <TableCell className={`text-right text-sm py-4 font-bold ${t.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
+                              <TableCell className="font-medium text-xs py-2.5 text-foreground">{t.description}</TableCell>
+                              <TableCell className={`text-right text-xs font-mono-kasa tabular-nums font-semibold py-2.5 ${t.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
                                 {t.type === 'income' ? '+' : '-'} {brl(Number(t.amount))}
                               </TableCell>
-                              <TableCell className="text-center py-4">
-                                <Badge variant="outline" className={`rounded-full text-[10px] uppercase tracking-widest ${t.status === 'paid' ? 'border-emerald-500/20 text-green-500 bg-green-500/5' : 'text-foreground/40'}`}>
+                              <TableCell className="text-center py-2.5">
+                                <span className={cn(
+                                  "inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono-kasa uppercase tracking-wider font-semibold border",
+                                  t.status === 'paid'
+                                    ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5"
+                                    : "border-border/60 text-muted-foreground bg-muted/20"
+                                )}>
                                   {t.status === 'paid' ? 'Liquidado' : t.status}
-                                </Badge>
+                                </span>
                               </TableCell>
                             </TableRow>
                           ))}
                           {transactions.filter(t => client?.financial_collection_status === 'active' || t.status === 'paid').length === 0 && (
-                            <TableRow><TableCell colSpan={4} className="h-20 text-center text-foreground/30 italic text-xs">Nenhum lançamento ativo ou histórico pago.</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={4} className="py-8 text-center text-muted-foreground italic text-xs">Nenhum lançamento ativo ou histórico pago.</TableCell></TableRow>
                           )}
                         </TableBody>
                       </Table>
@@ -556,29 +563,29 @@ function ClientDetail() {
 
                     {/* Seção 2: Cobranças Suspensas (Apenas se o cliente estiver suspenso e houver itens pendentes) */}
                     {client?.financial_collection_status === 'suspended' && transactions.some(t => t.status !== 'paid') && (
-                      <div className="border-t border-amber-500/10 bg-amber-500/[0.02]">
-                        <div className="px-6 py-3 bg-amber-500/5 border-b border-amber-500/10 flex items-center justify-between">
-                          <h4 className="text-[10px] font-bold uppercase tracking-widest text-amber-600/70">Cobranças Suspensas</h4>
-                          <span className="text-[10px] font-bold text-amber-600/50">{brl(suspendedRevenue)}</span>
+                      <div className="border-t border-amber-500/20 bg-amber-500/[0.02]">
+                        <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between">
+                          <h4 className="text-[10px] font-mono-kasa font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">Cobranças Suspensas</h4>
+                          <span className="text-[10px] font-mono-kasa tabular-nums font-semibold text-amber-600 dark:text-amber-400">{brl(suspendedRevenue)}</span>
                         </div>
                         <Table>
-                          <TableBody>
+                          <TableBody className="divide-y divide-border/60">
                             {transactions
                               .filter(t => t.status !== 'paid')
                               .map(t => (
-                              <TableRow key={t.id} className="opacity-60 bg-amber-500/[0.01]">
-                                <TableCell className="text-sm py-4 w-[120px]">
+                              <TableRow key={t.id} className="opacity-60 bg-amber-500/[0.01] border-border/60">
+                                <TableCell className="text-xs font-mono-kasa py-2.5 w-[120px]">
                                   {new Date(t.due_date).toLocaleDateString()}
-                                  <div className="text-[9px] font-bold text-amber-500 uppercase mt-0.5">Suspensa</div>
+                                  <div className="text-[9px] font-mono-kasa font-bold text-amber-500 uppercase mt-0.5">Suspensa</div>
                                 </TableCell>
-                                <TableCell className="font-medium text-sm py-4">{t.description}</TableCell>
-                                <TableCell className={`text-right text-sm py-4 font-bold text-amber-500/70 w-[150px]`}>
+                                <TableCell className="font-medium text-xs py-2.5 text-foreground">{t.description}</TableCell>
+                                <TableCell className="text-right text-xs font-mono-kasa tabular-nums font-semibold text-amber-500/80 w-[150px] py-2.5">
                                   {brl(Number(t.amount))}
                                 </TableCell>
-                                <TableCell className="text-center py-4 w-[100px]">
-                                  <Badge variant="outline" className="rounded-full text-[9px] uppercase tracking-widest border-amber-500/20 text-amber-600/50">
+                                <TableCell className="text-center py-2.5 w-[100px]">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono-kasa uppercase tracking-wider font-semibold border border-amber-500/20 text-amber-600 dark:text-amber-400 bg-amber-500/5">
                                     {t.status}
-                                  </Badge>
+                                  </span>
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -628,19 +635,19 @@ function UnifiedTimelineTab({ events }: { events: ReturnType<typeof buildUnified
 }
 
 
-function QuickStatCard({ title, value, icon: Icon, color, isText = false }: { title: string, value: any, icon: any, color: string, isText?: boolean }) {
+function QuickStatCard({ title, value, isText = false }: { title: string, value: any, icon?: any, color?: string, isText?: boolean }) {
   return (
-    <Card className="bg-surface border-border shadow-sm hover:border-primary/20 transition-colors">
-      <CardContent className="p-5 flex items-center gap-4">
-        <div className={`size-10 rounded-xl bg-background border border-border flex items-center justify-center ${color}`}>
-          <Icon className="size-5" />
-        </div>
-        <div>
-          <p className="text-[10px] font-mono-kasa uppercase text-foreground/30 leading-none mb-1">{title}</p>
-          <h3 className="text-xl font-bold tracking-tight">{value}</h3>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="bg-card border border-border/60 rounded-lg p-3.5">
+      <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+        {title}
+      </span>
+      <div className={cn(
+        "mt-1 font-mono-kasa text-xl font-bold text-foreground tabular-nums",
+        !isText && "tracking-tight"
+      )}>
+        {value}
+      </div>
+    </div>
   );
 }
 

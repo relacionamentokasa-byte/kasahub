@@ -188,51 +188,64 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Printer className="size-5 text-primary" /> Gerar recibo
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <Printer className="size-5" />
+            </div>
+            <span>Emitir Recibo de Pagamento</span>
           </DialogTitle>
-          <DialogDescription>
-            {(transaction as any).number_display ? `${(transaction as any).number_display} · ` : ""}{transaction.description} · {brl(valor)}
+          <DialogDescription className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+            {(transaction as any).number_display && (
+              <span className="font-mono-kasa tabular-nums font-bold text-foreground">
+                {(transaction as any).number_display} •
+              </span>
+            )}
+            <span>{transaction.description}</span> •{" "}
+            <span className="font-mono-kasa tabular-nums font-semibold text-foreground">{brl(valor)}</span>
           </DialogDescription>
         </DialogHeader>
 
         {loading ? (
-          <div className="flex justify-center py-6"><Loader2 className="size-5 animate-spin" /></div>
+          <div className="flex items-center justify-center py-10 text-xs text-muted-foreground font-mono-kasa gap-2">
+            <Loader2 className="size-4 animate-spin text-primary" /> Carregando dados do recibo...
+          </div>
         ) : (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label className="text-xs">Nº do recibo</Label>
-                <Input value={numero} onChange={(e) => setNumero(e.target.value)} />
+          <div className="space-y-3 pt-1">
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Nº do recibo</Label>
+                <Input value={numero} onChange={(e) => setNumero(e.target.value)} className="h-9 text-xs font-mono-kasa tabular-nums" />
               </div>
-              <div>
-                <Label className="text-xs">Local</Label>
-                <Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Cidade/UF" />
+              <div className="space-y-1">
+                <Label className="text-xs font-medium text-muted-foreground">Localidade</Label>
+                <Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Cidade/UF" className="h-9 text-xs" />
               </div>
             </div>
-            <div>
-              <Label className="text-xs">Recebemos de</Label>
-              <Input value={pagador} onChange={(e) => setPagador(e.target.value)} />
+            <div className="space-y-1">
+              <Label className="text-xs font-medium text-muted-foreground">Recebemos de (Pagador)</Label>
+              <Input value={pagador} onChange={(e) => setPagador(e.target.value)} className="h-9 text-xs font-medium" />
             </div>
-            <div>
-              <Label className="text-xs">CPF/CNPJ do pagador</Label>
-              <Input value={pagadorDoc} onChange={(e) => setPagadorDoc(e.target.value)} />
+            <div className="space-y-1">
+              <Label className="text-xs font-medium text-muted-foreground">CPF / CNPJ do pagador</Label>
+              <Input value={pagadorDoc} onChange={(e) => setPagadorDoc(e.target.value)} className="h-9 text-xs font-mono-kasa tabular-nums" />
             </div>
-            <div>
-              <Label className="text-xs">Referente a</Label>
-              <Textarea value={refer} onChange={(e) => setRefer(e.target.value)} rows={3} />
+            <div className="space-y-1">
+              <Label className="text-xs font-medium text-muted-foreground">Referente aos serviços de</Label>
+              <Textarea value={refer} onChange={(e) => setRefer(e.target.value)} rows={3} className="text-xs resize-none" />
             </div>
           </div>
         )}
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button variant="outline" onClick={imprimir} className="gap-2">
-            <Printer className="size-4" /> Imprimir
+        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-9 text-xs">
+            Cancelar
           </Button>
-          <Button onClick={baixarPdf} disabled={exporting} className="gap-2">
-            {exporting ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+          <Button variant="outline" size="sm" onClick={imprimir} className="gap-1.5 h-9 text-xs">
+            <Printer className="size-3.5" /> Imprimir
+          </Button>
+          <Button size="sm" onClick={baixarPdf} disabled={exporting} className="gap-1.5 h-9 text-xs font-medium">
+            {exporting ? <Loader2 className="size-3.5 animate-spin" /> : <Download className="size-3.5" />}
             Exportar PDF
           </Button>
         </DialogFooter>

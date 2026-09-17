@@ -125,6 +125,10 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
           alt="Kasa"
           className="animate-[splash-logo_900ms_ease-out_both] w-auto h-auto object-contain"
           style={{ maxWidth: "min(60vw, 22rem)", maxHeight: "32vh" }}
+          onError={(e) => {
+            // Fallback para a logo do Supabase Storage caso o asset local falhe
+            e.currentTarget.src = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+          }}
         />
 
         {/* Saudação */}

@@ -151,9 +151,9 @@ export function GlobalSearch() {
   return (
     <div
       ref={wrapperRef}
-      className="hidden lg:flex relative items-center gap-3 bg-surface/60 border border-border px-4 h-9 rounded-full w-full max-w-md"
+      className="flex relative items-center gap-2.5 bg-muted/30 hover:bg-muted/50 focus-within:bg-background focus-within:ring-1 focus-within:ring-primary/40 border border-border/70 px-3 h-8 rounded-md w-full transition-all"
     >
-      <Search className="size-4 text-foreground/40 shrink-0" />
+      <Search className="size-3.5 text-muted-foreground shrink-0" />
       <input
         ref={inputRef}
         type="text"
@@ -164,13 +164,13 @@ export function GlobalSearch() {
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        placeholder="Busca global — clientes, tarefas, parceiros, propostas…"
-        className="bg-transparent border-none outline-none text-sm w-full placeholder:text-foreground/40"
+        placeholder="Buscar clientes, jobs, propostas..."
+        className="bg-transparent border-none outline-none text-xs w-full text-foreground placeholder:text-muted-foreground/60"
       />
       {isFetching && debounced.length >= 2 ? (
-        <Loader2 className="size-3.5 text-foreground/40 animate-spin shrink-0" />
+        <Loader2 className="size-3.5 text-muted-foreground animate-spin shrink-0" />
       ) : (
-        <kbd className="text-[10px] font-mono-kasa text-foreground/30 border border-border rounded px-1.5 py-0.5 shrink-0">
+        <kbd className="text-[9px] font-mono-kasa text-muted-foreground/50 border border-border/60 bg-muted/40 rounded px-1 py-0.5 shrink-0 select-none">
           {typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl K"}
         </kbd>
       )}

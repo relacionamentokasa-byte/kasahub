@@ -62,36 +62,36 @@ function CalendarPage() {
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
+    <div className="p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6 animate-reveal">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/80 pb-4 sm:pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <CalendarDays className="size-4 text-primary" />
-            <p className="text-[10px] font-mono-kasa capitalize text-primary/70">
-              Experiência · Calendário
-            </p>
-          </div>
-          <h1 className="font-display text-3xl lg:text-4xl">Agenda Central</h1>
-          <p className="text-sm text-foreground/60 mt-2">
-            Compromissos, jobs, reuniões e financeiro em uma visão única.
+          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-widest font-semibold">
+            Planejamento & Agenda Central
+          </span>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">
+            Agenda Central
+          </h1>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            Compromissos, entregas de jobs, reuniões e vencimentos em visão sincronizada.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2 bg-surface border-border">
-                <Filter className="size-4" />
-                <span>{EVENT_TYPES.find(t => t.id === filter)?.label || "Filtros"}</span>
+              <Button variant="outline" className="flex-1 sm:flex-none gap-1.5 bg-card border-border/80 h-8 text-xs rounded-lg font-medium">
+                <Filter className="size-3 text-muted-foreground" />
+                <span className="truncate">{EVENT_TYPES.find(t => t.id === filter)?.label || "Filtros"}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Filtrar por tipo</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-56 text-xs">
+              <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground font-mono-kasa">Filtrar por tipo</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {EVENT_TYPES.map((type) => (
                 <DropdownMenuCheckboxItem
                   key={type.id}
                   checked={filter === type.id}
                   onCheckedChange={() => setFilter(type.id)}
+                  className="text-xs"
                 >
                   {type.label}
                 </DropdownMenuCheckboxItem>
@@ -100,37 +100,47 @@ function CalendarPage() {
           </DropdownMenu>
 
           <Select value={clientId} onValueChange={setClientId}>
-            <SelectTrigger className="w-48 lg:w-56 bg-surface border-border"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="flex-1 sm:w-48 bg-card border-border/80 h-8 text-xs rounded-lg font-medium">
+              <SelectValue />
+            </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os clientes</SelectItem>
-              {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+              <SelectItem value="all" className="text-xs">Todos os clientes</SelectItem>
+              {clients.map((c) => <SelectItem key={c.id} value={c.id} className="text-xs">{c.company || c.name}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button onClick={() => setNewOpen(true)} className="gap-2">
-            <Plus className="size-4" /> <span className="hidden sm:inline">Novo evento</span>
+          <Button onClick={() => setNewOpen(true)} className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium h-8 px-3 gap-1.5 shadow-xs transition-colors cursor-pointer text-xs">
+            <Plus className="size-3.5" /> <span>Novo Evento</span>
           </Button>
         </div>
       </header>
 
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex items-center bg-surface p-1 rounded-xl border border-border w-fit">
+        <div className="flex items-center bg-card p-1 rounded-xl border border-border/80 w-fit shadow-2xs">
           <Tabs value={view} onValueChange={setView}>
-            <TabsList className="bg-transparent h-8">
-              <TabsTrigger value="month" className="text-xs gap-2"><LayoutGrid className="size-3.5" /> <span className="hidden sm:inline">Mensal</span></TabsTrigger>
-              <TabsTrigger value="week" className="text-xs gap-2"><CalendarIcon className="size-3.5" /> <span className="hidden sm:inline">Semanal</span></TabsTrigger>
-              <TabsTrigger value="day" className="text-xs gap-2"><CalendarIcon className="size-3.5" /> <span className="hidden sm:inline">Diária</span></TabsTrigger>
-              <TabsTrigger value="list" className="text-xs gap-2"><List className="size-3.5" /> <span className="hidden sm:inline">Lista</span></TabsTrigger>
+            <TabsList className="bg-transparent h-8 p-0 gap-1">
+              <TabsTrigger value="month" className="text-xs gap-1.5 h-7 px-3 rounded-lg data-[state=active]:bg-foreground/5 data-[state=active]:text-foreground font-medium">
+                <LayoutGrid className="size-3.5" /> <span className="hidden sm:inline">Mensal</span>
+              </TabsTrigger>
+              <TabsTrigger value="week" className="text-xs gap-1.5 h-7 px-3 rounded-lg data-[state=active]:bg-foreground/5 data-[state=active]:text-foreground font-medium">
+                <CalendarIcon className="size-3.5" /> <span className="hidden sm:inline">Semanal</span>
+              </TabsTrigger>
+              <TabsTrigger value="day" className="text-xs gap-1.5 h-7 px-3 rounded-lg data-[state=active]:bg-foreground/5 data-[state=active]:text-foreground font-medium">
+                <CalendarDays className="size-3.5" /> <span className="hidden sm:inline">Diária</span>
+              </TabsTrigger>
+              <TabsTrigger value="list" className="text-xs gap-1.5 h-7 px-3 rounded-lg data-[state=active]:bg-foreground/5 data-[state=active]:text-foreground font-medium">
+                <List className="size-3.5" /> <span className="hidden sm:inline">Lista</span>
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 px-2 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full animate-pulse">
-            <div className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
-            <span className="text-[9px] font-mono-kasa font-bold text-emerald-500 uppercase tracking-tighter">Realtime On</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+            <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-mono-kasa font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Sincronizado</span>
           </div>
 
-          <div className="flex items-center gap-3 text-[10px] font-mono-kasa text-foreground/40 uppercase">
+          <div className="flex items-center gap-3 text-[10px] font-mono-kasa text-muted-foreground uppercase">
             <div className="flex items-center gap-1.5">
               <div className="size-2 rounded-full bg-primary" />
               <span>Sistema</span>
@@ -143,10 +153,10 @@ function CalendarPage() {
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-border p-1 lg:p-4 overflow-hidden">
+      <div className="bg-card rounded-2xl border border-border p-2 lg:p-4 overflow-hidden shadow-xs">
         {view === "month" && (
-          <CalendarMonth 
-            clientId={clientId === "all" ? undefined : clientId} 
+          <CalendarMonth
+            clientId={clientId === "all" ? undefined : clientId}
             filter={filter}
             onSelectEvent={(e) => {
               setSelectedEvent(e);
@@ -155,8 +165,8 @@ function CalendarPage() {
           />
         )}
         {view === "week" && (
-          <CalendarWeek 
-            clientId={clientId === "all" ? undefined : clientId} 
+          <CalendarWeek
+            clientId={clientId === "all" ? undefined : clientId}
             filter={filter}
             onSelectEvent={(e) => {
               setSelectedEvent(e);
@@ -165,8 +175,8 @@ function CalendarPage() {
           />
         )}
         {view === "day" && (
-          <CalendarDay 
-            clientId={clientId === "all" ? undefined : clientId} 
+          <CalendarDay
+            clientId={clientId === "all" ? undefined : clientId}
             filter={filter}
             onSelectEvent={(e) => {
               setSelectedEvent(e);
@@ -175,8 +185,8 @@ function CalendarPage() {
           />
         )}
         {view === "list" && (
-          <CalendarList 
-            clientId={clientId === "all" ? undefined : clientId} 
+          <CalendarList
+            clientId={clientId === "all" ? undefined : clientId}
             filter={filter}
             onSelectEvent={(e) => {
               setSelectedEvent(e);
@@ -187,12 +197,11 @@ function CalendarPage() {
       </div>
 
       <NewEventDialog open={newOpen} onOpenChange={setNewOpen} />
-      <EventDetailDialog 
-        event={selectedEvent} 
-        open={detailOpen} 
-        onOpenChange={setDetailOpen} 
+      <EventDetailDialog
+        event={selectedEvent}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
       />
-
     </div>
   );
 }

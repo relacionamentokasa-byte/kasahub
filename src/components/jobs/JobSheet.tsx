@@ -116,22 +116,22 @@ function SortableChecklistRow({
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 group py-1.5 px-2 hover:bg-background/50 rounded-lg transition-all"
+      className="flex items-center gap-2 group py-1.5 px-2 hover:bg-muted/30 rounded-md border border-transparent hover:border-border/40 transition-all"
     >
       <button
         type="button"
         {...attributes}
         {...listeners}
-        className="touch-none cursor-grab active:cursor-grabbing text-foreground/30 hover:text-foreground/70 opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
+        className="touch-none cursor-grab active:cursor-grabbing text-muted-foreground/40 hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity p-0.5"
         title="Arraste para reordenar"
         aria-label="Arraste para reordenar"
       >
-        <GripVertical className="size-4" />
+        <GripVertical className="size-3.5" />
       </button>
       <Checkbox
         checked={item.done}
         onCheckedChange={(v) => onToggle(item.id, v === true)}
-        className="size-5 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all duration-300 shrink-0"
+        className="size-4 data-[state=checked]:bg-foreground data-[state=checked]:text-background data-[state=checked]:border-foreground transition-colors shrink-0"
       />
       <div
         className="flex-1 min-w-0 cursor-pointer"
@@ -157,36 +157,39 @@ function SortableChecklistRow({
           onKeyDown={(e) => {
             if (e.key === "Enter") e.currentTarget.blur();
           }}
-          className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-sm transition-all duration-300 ${
-            item.done ? "line-through text-foreground/40 italic" : "font-medium text-foreground"
+          className={`w-full bg-transparent border-none outline-none focus:ring-0 p-0 text-xs transition-colors ${
+            item.done ? "line-through text-muted-foreground/60 italic" : "font-medium text-foreground"
           }`}
         />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 shrink-0">
         <Select
           value={item.responsible_id || "none"}
           onValueChange={(v) => onUpdate(item.id, { responsible_id: v === "none" ? null : v })}
         >
-          <SelectTrigger className="h-7 border-none bg-transparent hover:bg-white/5 p-0 w-auto gap-1 focus:ring-0">
-            <div className="flex items-center gap-1.5 px-2">
-              <Avatar className="size-5">
+          <SelectTrigger className="h-6 border border-border/40 bg-muted/20 hover:bg-muted/40 px-1.5 py-0 rounded text-[11px] gap-1 focus:ring-0">
+            <div className="flex items-center gap-1">
+              <Avatar className="size-3.5 shrink-0">
                 {resp?.avatar_url ? <AvatarImage src={resp.avatar_url} /> : null}
-                <AvatarFallback className="text-[8px] bg-primary/10 text-primary">
-                  {resp ? (resp.display_name || resp.full_name || "?").charAt(0).toUpperCase() : <User className="size-3" />}
+                <AvatarFallback className="text-[7px] bg-muted text-muted-foreground">
+                  {resp ? (resp.display_name || resp.full_name || "?").charAt(0).toUpperCase() : <User className="size-2.5" />}
                 </AvatarFallback>
               </Avatar>
+              <span className="text-[10px] text-muted-foreground truncate max-w-[80px]">
+                {resp ? (resp.display_name || resp.full_name?.split(" ")[0]) : "Atribuir"}
+              </span>
             </div>
           </SelectTrigger>
-          <SelectContent align="end">
+          <SelectContent align="end" className="text-xs font-mono-kasa">
             <SelectItem value="none" className="text-xs">Sem responsável</SelectItem>
             {team.map((p: any) => (
-              <SelectItem key={p.id} value={p.id} className="text-xs">
+              <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
                 <div className="flex items-center gap-2">
                   <Avatar className="size-4">
                     {p.avatar_url && <AvatarImage src={p.avatar_url} />}
-                    <AvatarFallback className="text-[6px]">{(p.display_name || p.full_name || "?").charAt(0)}</AvatarFallback>
+                    <AvatarFallback className="text-[7px]">{(p.display_name || p.full_name || "?").charAt(0)}</AvatarFallback>
                   </Avatar>
-                  {p.display_name || p.full_name}
+                  <span>{p.display_name || p.full_name}</span>
                 </div>
               </SelectItem>
             ))}
@@ -194,9 +197,10 @@ function SortableChecklistRow({
         </Select>
         <button
           onClick={() => onDelete(item.id)}
-          className="opacity-0 group-hover:opacity-100 text-foreground/40 hover:text-destructive transition-all p-1"
+          className="opacity-0 group-hover:opacity-100 text-muted-foreground/50 hover:text-destructive transition-all p-1"
+          title="Remover etapa"
         >
-          <X className="size-4" />
+          <X className="size-3.5" />
         </button>
       </div>
     </div>
@@ -567,29 +571,7 @@ export function JobSheet({
     supabase.auth.getUser().then(({ data }) => setCurrentUser(data.user));
   }, []);
 
-  // Sincroniza team_involved com os responsáveis da execução (fonte única).
-  useEffect(() => {
-    if (!job) return;
-    const derivedIds = Array.from(new Set(
-      (checklist || [])
-        .map((c: any) => c.responsible_id)
-        .filter((id: string | null) => !!id)
-    )) as string[];
-    const currentIds = ((job as any).team_involved || [])
-      .map((m: any) => (typeof m === "string" ? m : m.user_id))
-      .filter(Boolean);
-    const same =
-      derivedIds.length === currentIds.length &&
-      derivedIds.every((id) => currentIds.includes(id));
-    if (same) return;
-    const next = derivedIds.map((id) => ({ user_id: id, role: "Membro" }));
-    updateJob(job.id, { team_involved: next } as any)
-      .then(() => qc.invalidateQueries({ queryKey: ["jobs"] }))
-      .catch(() => {});
-  }, [checklist, job?.id]);
-
-
-  const isAdmin = currentUser?.user_metadata?.role === 'admin' || currentUser?.email === 'admin@ops.com'; // Placeholder check
+  const isAdmin = currentUser?.user_metadata?.role === 'admin' || currentUser?.email === 'admin@ops.com';
 
 
   if (!job) return null;
@@ -604,497 +586,210 @@ export function JobSheet({
         onClose();
       }
     }}>
-      <SheetContent key={job.id} className="bg-surface border-border w-full p-0 sm:max-w-[800px] overflow-hidden flex flex-col h-[100dvh] sm:h-auto [&>button]:hidden sm:[&>button]:inline-flex">
+      <SheetContent key={job.id} className="bg-card border-border/60 w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col h-[100dvh] sm:h-[90vh] sm:rounded-lg sm:my-auto sm:mr-6 shadow-2xl [&>button]:hidden sm:[&>button]:inline-flex">
         <div className="flex flex-col flex-1 overflow-hidden">
-          {/* Main Column: Details (Gestão do Job) */}
-          <div className="flex-1 flex flex-col overflow-y-auto">
-            <div className="p-6 space-y-8 pb-12">
-              <SheetHeader className="space-y-4">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 text-primary">
-                    <CheckCircle2 className="size-5" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Gestão de Job</span>
-                  </div>
-                  <FocusModeButton jobId={job.id} />
-                </div>
-                <SheetTitle className="font-display text-2xl lg:text-3xl">
-                  <input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    onBlur={() => title !== job.title && updateMut.mutate({ title })}
-                    className="bg-transparent border-none outline-none w-full focus:ring-0 p-0 h-auto font-display text-foreground"
-                    placeholder="Título do job"
-                  />
-                </SheetTitle>
-              </SheetHeader>
-
-              <Tabs defaultValue="gestao" className="space-y-6">
-                <TabsList className="bg-background/50">
-                  <TabsTrigger value="gestao" className="gap-1.5"><ClipboardList className="size-3.5" />Gestão</TabsTrigger>
-                  <TabsTrigger value="roteiro" className="gap-1.5"><Clapperboard className="size-3.5" />Roteiro</TabsTrigger>
-                </TabsList>
-                <TabsContent value="gestao" className="space-y-6 mt-0">
-              <div className="space-y-6">
-                {/* STATUS spacer */}
-                <div className="space-y-3">
-                  <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Status</Label>
-                  <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:gap-2">
-                    {[
-                      { id: 'not_started', label: 'Nova Demanda', color: 'bg-[#374151]/20 text-[#374151] border-[#374151]/50', active: 'bg-[#374151] text-white border-[#374151]' },
-                      { id: 'in_progress', label: 'Em Andamento', color: 'bg-[#3b82f6]/20 text-[#3b82f6] border-[#3b82f6]/50', active: 'bg-[#3b82f6] text-white border-[#3b82f6]' },
-                      { id: 'review', label: 'Em Correção', color: 'bg-[#ffbc45]/20 text-[#ffbc45] border-[#ffbc45]/50', active: 'bg-[#ffbc45] text-white border-[#ffbc45]' },
-                      { id: 'done', label: 'Concluído', color: 'bg-[#22c55e]/20 text-[#22c55e] border-[#22c55e]/50', active: 'bg-[#22c55e] text-white border-[#22c55e]' },
-                      { id: 'paused', label: 'Aguardando Cliente', color: 'bg-[#f97316]/20 text-[#f97316] border-[#f97316]/50', active: 'bg-[#f97316] text-white border-[#f97316]' }
-                    ].map((s) => {
-                      const isActive = (job as any).status === s.id;
-                      return (
-                        <button
-                          key={s.id}
-                          onClick={() => updateMut.mutate({ status: s.id, done_at: s.id === 'done' ? new Date().toISOString() : null } as any)}
-                          className={`px-2.5 py-1.5 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border transition-all whitespace-nowrap shrink-0 ${
-                            isActive ? s.active : `${s.color} hover:bg-opacity-30`
-                          }`}
-                        >
-                          {s.label}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* MOSTRAR NO PORTAL */}
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/50 px-4 py-3">
-                  <div className="space-y-0.5">
-                    <Label className="text-xs font-bold flex items-center gap-1.5">
-                      👁️ Mostrar no Minha Kasa
-                    </Label>
-                    <p className="text-[10px] text-foreground/50">Quando ativado, este job aparece no portal do cliente.</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={!!(job as any).show_in_portal}
-                    onChange={(e) => updateMut.mutate({ show_in_portal: e.target.checked } as any)}
-                    className="size-5 accent-primary cursor-pointer"
-                  />
-                </div>
-
-
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
-                  {/* PRIORIDADE */}
-                  <div className="space-y-3">
-                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prioridade</Label>
-                    <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar sm:flex-wrap sm:gap-2">
-                      {[
-                        { id: 'high', label: 'Alta', icon: '🔴', color: 'hover:border-red-500/50', active: 'bg-red-500/20 border-red-500 text-red-500' },
-                        { id: 'normal', label: 'Normal', icon: '🟡', color: 'hover:border-yellow-500/50', active: 'bg-yellow-500/20 border-yellow-500 text-yellow-500' },
-                        { id: 'low', label: 'Baixa', icon: '🟢', color: 'hover:border-green-500/50', active: 'bg-green-500/20 border-green-500 text-green-500' }
-                      ].map((p) => {
-                        const isActive = job.priority === p.id;
-                        return (
-                          <button
-                            key={p.id}
-                            onClick={() => updateMut.mutate({ priority: p.id })}
-                            className={`flex-1 min-w-[80px] flex items-center justify-center gap-1.5 sm:gap-2 h-9 sm:h-10 rounded-lg border border-border text-[9px] sm:text-[10px] font-bold uppercase tracking-wider transition-all whitespace-nowrap shrink-0 ${
-                              isActive ? p.active : `bg-background/50 ${p.color}`
-                            }`}
-                          >
-                            <span>{p.icon}</span>
-                            <span>{p.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* PRAZO FINAL */}
-                  <div className="space-y-3">
-                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Prazo Final</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className={`w-full flex items-center justify-between h-10 px-4 rounded-lg border transition-all text-sm group ${!job.due_date ? "border-red-500/50 bg-red-500/5" : "border-border bg-background/50 hover:border-primary/50"}`}>
-                          <span className={job.due_date ? "text-foreground" : "text-red-400"}>
-                            {job.due_date ? format(new Date(job.due_date + 'T12:00:00'), "dd 'de' MMMM, yyyy", { locale: ptBR }) : "Prazo obrigatório"}
-                          </span>
-                          <Clock className={`size-4 transition-colors ${!job.due_date ? "text-red-400" : "text-foreground/40 group-hover:text-primary"}`} />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 bg-surface border-border" align="start">
-                        <div className="p-3 bg-muted/50 border-b border-border">
-                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Calendário de Entrega</span>
-                        </div>
-                        <Calendar
-                          mode="single"
-                          selected={job.due_date ? new Date(job.due_date + 'T12:00:00') : undefined}
-                          onSelect={(date: Date | undefined) => updateMut.mutate({ due_date: date ? format(date, 'yyyy-MM-dd') : null })}
-                          initialFocus
-                          locale={ptBR}
-                          className="bg-surface text-foreground"
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    {!job.due_date && (
-                      <p className="text-[10px] font-bold text-red-500 flex items-center gap-1 mt-1">
-                        <AlertCircle className="size-3" />
-                        Prazo final é obrigatório
-                      </p>
-                    )}
-                  </div>
-
-                  {/* CLIENTE */}
-                   <div className="space-y-3 col-span-1 sm:col-span-2">
-                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Cliente</Label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <button className="w-full flex items-center gap-3 h-12 px-4 rounded-xl border border-border bg-background/50 hover:border-primary/50 transition-all group">
-                          <div className={`size-8 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs shrink-0 uppercase shadow-sm ${
-                            (clients.find(c => c.id === (job as any).client_id) as any)?.logo_url 
-                            ? "" 
-                            : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][((clients.find(c => c.id === (job as any).client_id)?.id || '0').charCodeAt(0)) % 6]
-                          }`}>
-                            {(clients.find(c => c.id === (job as any).client_id) as any)?.logo_url ? (
-                              <StorageImage src={(clients.find(c => c.id === (job as any).client_id) as any)?.logo_url} className="size-full rounded-full object-cover" />
-                            ) : (
-                              clients.find(c => c.id === (job as any).client_id)?.company?.substring(0, 2) || clients.find(c => c.id === (job as any).client_id)?.name?.substring(0, 2) || "??"
-                            )}
-                          </div>
-
-                          <div className="flex-1 text-left">
-                            <p className="text-xs font-bold text-foreground uppercase tracking-wider">
-                              {clients.find(c => c.id === (job as any).client_id)?.company || clients.find(c => c.id === (job as any).client_id)?.name || "Selecionar Cliente"}
-                            </p>
-                          </div>
-                          <ChevronDown className="size-4 text-foreground/40 group-hover:text-primary transition-colors" />
-                        </button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-[300px] sm:w-[400px] p-0 bg-surface border-border" align="start">
-                        <Command className="bg-transparent">
-                          <CommandInput placeholder="Buscar cliente..." className="h-12 border-none focus:ring-0 bg-transparent text-foreground" />
-                          <CommandList className="max-h-[300px]">
-                            <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
-                            <CommandGroup>
-                              {clients.map((c) => (
-                                <CommandItem
-                                  key={c.id}
-                                  value={c.company || c.name}
-                                  onSelect={() => updateMut.mutate({ client_id: c.id } as any)}
-                                  className="flex items-center gap-3 p-3 hover:bg-primary/10 cursor-pointer aria-selected:bg-primary/10"
-                                >
-                                   <div className={`size-8 rounded-full flex items-center justify-center text-primary-foreground font-bold text-xs uppercase shadow-sm ${
-                                    (c as any).logo_url ? "" : ['bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'][c.id.charCodeAt(0) % 6]
-                                   }`}>
-                                    {(c as any).logo_url ? (
-                                      <StorageImage src={(c as any).logo_url} className="size-full rounded-full object-cover" />
-                                    ) : (
-                                      (c.company || c.name).substring(0, 2)
-                                    )}
-                                   </div>
-
-                                   <span className="text-sm font-medium text-foreground">{c.company || c.name}</span>
-                                  {(job as any).client_id === c.id && <Check className="size-4 text-primary ml-auto" />}
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-
-                  {/* PROJETO */}
-                   <div className="space-y-3 col-span-1 sm:col-span-2">
-                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Projeto</Label>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {projects
-                        .filter(p => !(job as any).client_id || p.client_id === (job as any).client_id)
-                        .map((p) => {
-                          const isSelected = (job as any).project_id === p.id;
-                          return (
-                            <button
-                              key={p.id}
-                              onClick={() => updateMut.mutate({ project_id: p.id } as any)}
-                              className={`p-3 rounded-xl border text-left transition-all ${
-                                isSelected 
-                                  ? "bg-primary/10 border-primary text-primary shadow-[0_0_15px_rgba(255,188,69,0.1)]" 
-                                  : "bg-background/50 border-border hover:border-primary/50 text-foreground/60"
-                              }`}
-                            >
-                              <p className="text-[10px] font-bold uppercase tracking-wider line-clamp-2 leading-tight">
-                                {p.name}
-                              </p>
-                            </button>
-                          );
-                        })}
-                      {projects.filter(p => !(job as any).client_id || p.client_id === (job as any).client_id).length === 0 && (
-                        <p className="text-[10px] text-foreground/40 uppercase font-bold py-2 italic">Nenhum projeto disponível para este cliente</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* SERVIÇO */}
-                   <div className="space-y-3 col-span-1 sm:col-span-2">
-                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Serviço Principal</Label>
-                    <Select
-                      value={(job as any).service_id || ""}
-                      onValueChange={(v) => updateMut.mutate({ service_id: v } as any)}
-                    >
-                      <SelectTrigger className="h-10 bg-background/50 border-border px-4 rounded-lg text-foreground">
-                        <SelectValue placeholder="Selecione o serviço" className="text-foreground" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-surface border-border">
-                        {services.map((s: any) => (
-                          <SelectItem key={s.id} value={s.id} className="text-xs">{s.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* RESPONSÁVEL PRINCIPAL */}
-                   <div className="space-y-3 col-span-1 sm:col-span-2">
-                    <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Responsável Principal</Label>
-                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                      {team.map((p) => {
-                        const isSelected = (job as any).main_responsible_id === p.id;
-                        return (
-                          <button
-                            key={p.id}
-                            onClick={() => updateMut.mutate({ main_responsible_id: p.id } as any)}
-                            className="flex flex-col items-center gap-2 group"
-                          >
-                            <div className={`size-12 rounded-full border-2 transition-all p-0.5 ${
-                              isSelected ? "border-primary scale-110 shadow-[0_0_15px_rgba(255,188,69,0.3)]" : "border-transparent group-hover:border-primary/30"
-                            }`}>
-                              <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                {p.avatar_url ? (
-                                  <StorageImage src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
-                                ) : (
-
-                                  <span className="text-xs font-bold text-foreground/40 uppercase">
-                                    {(p.display_name || p.full_name || "??").substring(0, 2)}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            <span className={`text-[9px] font-bold uppercase tracking-tighter text-center line-clamp-1 w-full ${isSelected ? "text-primary" : "text-foreground/40 group-hover:text-foreground/60"}`}>
-                              {p.display_name || p.full_name?.split(' ')[0]}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* EQUIPE ENVOLVIDA — derivada da execução */}
-                  <div className="space-y-3 col-span-1 sm:col-span-2">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-[10px] uppercase font-bold text-foreground/40 tracking-widest">Equipe Envolvida</Label>
-                      <span className="text-[9px] text-foreground/40 italic">Definida pelos responsáveis da execução</span>
-                    </div>
-                    {(() => {
-                      const ids = Array.from(new Set(
-                        (checklist || [])
-                          .map((c: any) => c.responsible_id)
-                          .filter((id: string | null) => !!id)
-                      )) as string[];
-                      const members = ids
-                        .map((id) => team.find((p) => p.id === id))
-                        .filter(Boolean) as any[];
-                      if (members.length === 0) {
-                        return (
-                          <p className="text-[11px] text-foreground/40 italic">
-                            Atribua responsáveis aos itens da execução para montar a equipe.
-                          </p>
-                        );
-                      }
-                      return (
-                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                          {members.map((p) => (
-                            <div key={p.id} className="flex flex-col items-center gap-2">
-                              <div className="size-12 rounded-full border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(255,188,69,0.3)]">
-                                <div className="size-full rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                                  {p.avatar_url ? (
-                                    <StorageImage src={p.avatar_url} alt={p.display_name || ""} className="size-full object-cover" />
-                                  ) : (
-                                    <span className="text-xs font-bold text-foreground/40 uppercase">
-                                      {(p.display_name || p.full_name || "??").substring(0, 2)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                              <span className="text-[9px] font-bold uppercase tracking-tighter text-center line-clamp-1 w-full text-primary">
-                                {p.display_name || p.full_name?.split(' ')[0]}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
-                  </div>
-
-                </div>
+          {/* Header */}
+          <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/60 bg-card flex items-center justify-between gap-3 sm:gap-4 shrink-0">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground">
+                  Job #{job.id.slice(0, 8)}
+                </span>
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono-kasa uppercase tracking-wider font-semibold border border-border/60 text-muted-foreground bg-muted/20">
+                  {JOB_STATUS_LABELS[job.status as keyof typeof JOB_STATUS_LABELS]?.label || job.status}
+                </span>
               </div>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onBlur={() => title !== job.title && updateMut.mutate({ title })}
+                className="bg-transparent border-none outline-none w-full focus:ring-0 p-0 font-display text-base sm:text-lg lg:text-xl font-bold text-foreground truncate"
+                placeholder="Título do job"
+              />
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <FocusModeButton jobId={job.id} />
+              <button
+                type="button"
+                onClick={onClose}
+                className="sm:hidden p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/20 transition-colors"
+                aria-label="Fechar gaveta"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+          </div>
 
+          <Tabs defaultValue="gestao" className="flex-1 flex flex-col overflow-hidden">
+            <div className="px-4 sm:px-6 border-b border-border/60 bg-card shrink-0">
+              <TabsList className="bg-transparent border-0 h-auto p-0 gap-4 sm:gap-6">
+                <TabsTrigger
+                  value="gestao"
+                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-0 py-2.5 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
+                >
+                  <ClipboardList className="size-3.5" /> Gestão & Execução
+                </TabsTrigger>
+                <TabsTrigger
+                  value="roteiro"
+                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-0 py-2.5 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
+                >
+                  <Clapperboard className="size-3.5" /> Roteiro
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-              <Accordion type="multiple" className="w-full space-y-4">
-                <AccordionItem value="execution" className="border border-border rounded-xl px-4 bg-muted/5 overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline py-4">
-                    <div className="flex items-center gap-2">
-                      <CheckSquare className="size-4 text-primary" />
-                      <span className="text-sm font-bold uppercase tracking-wider">Execução</span>
+            <TabsContent value="gestao" className="flex-1 overflow-hidden mt-0">
+              {/* Executive Layout: Stacked em mobile e 2 Colunas em desktop */}
+              <div className="flex flex-col lg:grid lg:grid-cols-12 h-full overflow-y-auto lg:overflow-hidden">
+                {/* Left Column (Main): Briefing, Checklist, Attachments, Timeline */}
+                <div className="lg:col-span-7 overflow-y-visible lg:overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6 border-b lg:border-b-0 lg:border-r border-border/60">
+                  {/* Briefing Section */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                        <FileText className="size-3.5 text-muted-foreground" /> Briefing & Descrição
+                      </Label>
                     </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="space-y-6 pb-6">
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-foreground/40 uppercase tracking-tighter">Progresso operacional</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-primary">{progressPercent}%</div>
-                          <div className="text-[10px] text-foreground/40 font-mono">{completedStages} de {totalStages} concluídas</div>
-                        </div>
-                      </div>
-                      <Progress value={progressPercent} className="h-2.5 bg-muted" />
-                      
-                      <div className="space-y-2 mt-4">
-                        <DndContext
-                          sensors={dndSensors}
-                          collisionDetection={closestCenter}
-                          onDragEnd={handleChecklistDragEnd}
-                        >
-                          <SortableContext
-                            items={checklist.map((c) => c.id)}
-                            strategy={verticalListSortingStrategy}
-                          >
-                            {checklist.map((item) => (
-                              <SortableChecklistRow
-                                key={item.id}
-                                item={item}
-                                team={team}
-                                jobId={job.id}
-                                onToggle={(id, done) => toggleItemMut.mutate({ id, done })}
-                                onDelete={(id) => delItemMut.mutate(id)}
-                                onUpdate={async (id, patch) => {
-                                  await updateChecklistItem(id, patch);
-                                  qc.invalidateQueries({ queryKey: ["job-checklist", job.id] });
-                                }}
-                              />
-                            ))}
-                          </SortableContext>
-                        </DndContext>
+                    <Textarea
+                      rows={6}
+                      value={observations}
+                      onChange={(e) => setObservations(e.target.value)}
+                      onBlur={() => observations !== job.description && updateMut.mutate({ description: observations } as any)}
+                      placeholder="Descreva o escopo, orientações e objetivos deste job..."
+                      className="text-xs font-normal leading-relaxed bg-muted/20 border-border/60 resize-y rounded-md"
+                    />
+                  </div>
 
-                        <form
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            if (draft.trim()) addItemMut.mutate(draft.trim());
-                          }}
-                          className="flex gap-2 mt-4"
-                        >
-                          <Input
-                            value={draft}
-                            onChange={(e) => setDraft(e.target.value)}
-                            placeholder="Adicionar nova etapa de execução…"
-                            className="h-10 bg-background border-border text-foreground placeholder:text-foreground/50"
-                          />
-                          <Button type="submit" size="icon" className="size-10 shrink-0 text-primary-foreground">
-                            <Plus className="size-5" />
-                          </Button>
-                        </form>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
+                  {/* Checklist (Etapas de Execução) */}
+                  <div className="space-y-3 rounded-lg border border-border/60 p-4 bg-card">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Paperclip className="size-4 text-primary" />
-                        <Label className="text-xs font-bold uppercase tracking-wider">Anexos do Job</Label>
+                        <CheckSquare className="size-4 text-foreground" />
+                        <span className="text-xs font-semibold text-foreground">Etapas de Execução</span>
                       </div>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                      <div className="flex items-center gap-2 text-[11px] font-mono-kasa tabular-nums text-muted-foreground">
+                        <span>{completedStages}/{totalStages}</span>
+                        <span className="font-semibold text-foreground">{progressPercent}%</span>
+                      </div>
+                    </div>
+                    <Progress value={progressPercent} className="h-1.5 bg-muted/40" />
+
+                    <div className="space-y-1.5 pt-2">
+                      <DndContext
+                        sensors={dndSensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleChecklistDragEnd}
+                      >
+                        <SortableContext
+                          items={checklist.map((c) => c.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {checklist.map((item) => (
+                            <SortableChecklistRow
+                              key={item.id}
+                              item={item}
+                              team={team}
+                              jobId={job.id}
+                              onToggle={(id, done) => toggleItemMut.mutate({ id, done })}
+                              onDelete={(id) => delItemMut.mutate(id)}
+                              onUpdate={async (id, patch) => {
+                                await updateChecklistItem(id, patch);
+                                qc.invalidateQueries({ queryKey: ["job-checklist", job.id] });
+                              }}
+                            />
+                          ))}
+                        </SortableContext>
+                      </DndContext>
+
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (draft.trim()) addItemMut.mutate(draft.trim());
+                        }}
+                        className="flex gap-2 pt-2"
+                      >
+                        <Input
+                          value={draft}
+                          onChange={(e) => setDraft(e.target.value)}
+                          placeholder="Adicionar nova etapa de execução…"
+                          className="h-8 text-xs bg-muted/20 border-border/60"
+                        />
+                        <Button
+                          type="submit"
+                          size="sm"
+                          disabled={!draft.trim()}
+                          className="h-8 px-3 text-xs font-mono-kasa bg-foreground text-background hover:bg-foreground/90 shrink-0"
+                        >
+                          <Plus className="size-3.5 mr-1" /> Adicionar
+                        </Button>
+                      </form>
+                    </div>
+                  </div>
+
+                  {/* Anexos */}
+                  <div className="space-y-3 rounded-lg border border-border/60 p-4 bg-card">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Paperclip className="size-4 text-foreground" />
+                        <span className="text-xs font-semibold text-foreground">Anexos ({attachments.length})</span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-7 px-2 text-xs font-mono-kasa text-muted-foreground hover:text-foreground"
+                      >
+                        <FileUp className="size-3.5 mr-1" /> Upload
+                      </Button>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        multiple
+                        onChange={handleFileUpload}
+                      />
+                    </div>
+
+                    {attachments.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                         {attachments.map((file) => (
                           <div
                             key={file.id}
-                            className="group relative bg-background border border-border rounded-xl overflow-hidden hover:border-primary/40 hover:shadow-sm transition-all"
+                            className="group relative bg-muted/20 border border-border/60 rounded-md overflow-hidden hover:border-border transition-all"
                           >
                             <button
                               type="button"
                               onClick={() => setViewerConfig({ url: file.file_url, name: file.file_name })}
                               className="block w-full text-left"
-                              title="Visualizar"
                             >
                               <FileThumbnail
                                 url={file.file_url}
                                 fileName={file.file_name}
                                 fileType={file.file_type}
-                                aspectClass="aspect-[4/3]"
-                                className="rounded-none ring-0 border-b border-border"
+                                aspectClass="aspect-[16/10]"
+                                className="rounded-none ring-0 border-b border-border/60"
                               />
-                              <div className="p-2">
-                                <p className="text-xs font-medium truncate text-foreground/80">{file.file_name}</p>
+                              <div className="p-1.5">
+                                <p className="text-[11px] font-medium truncate text-foreground">{file.file_name}</p>
                               </div>
                             </button>
 
-                            <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-card/90 backdrop-blur-xs p-0.5 rounded border border-border/60">
                               {job.client_id && (
                                 <Button
-                                  variant="secondary"
+                                  variant="ghost"
                                   size="icon"
-                                  className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground shadow-sm"
-                                  title="Enviar para aprovação do cliente"
+                                  className="size-6 text-muted-foreground hover:text-foreground"
+                                  title="Enviar para aprovação"
                                   onClick={(e) => { e.stopPropagation(); setApprovalDialog({ url: file.file_url, name: file.file_name }); }}
                                 >
-                                  <Send className="size-3.5" />
+                                  <Send className="size-3" />
                                 </Button>
                               )}
                               <Button
-                                variant="secondary"
+                                variant="ghost"
                                 size="icon"
-                                className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-primary hover:text-primary-foreground shadow-sm"
-                                title="Baixar com nome original"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  try {
-                                    const res = await fetch(file.file_url, { credentials: "omit" });
-                                    if (!res.ok) throw new Error(String(res.status));
-                                    const blob = await res.blob();
-                                    const objectUrl = URL.createObjectURL(blob);
-                                    const a = document.createElement('a');
-                                    a.href = objectUrl;
-                                    a.download = file.file_name;
-                                    document.body.appendChild(a);
-                                    a.click();
-                                    a.remove();
-                                    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-                                  } catch (err: any) {
-                                    // Fallback via signed download URL preserving filename
-                                    try {
-                                      const marker = '/job-attachments/';
-                                      const idx = file.file_url.indexOf(marker);
-                                      const path = idx >= 0 ? file.file_url.slice(idx + marker.length) : null;
-                                      let href = file.file_url;
-                                      if (path) {
-                                        const { data } = supabase.storage
-                                          .from('job-attachments')
-                                          .getPublicUrl(path, { download: file.file_name });
-                                        href = data.publicUrl;
-                                      }
-                                      const a = document.createElement('a');
-                                      a.href = href;
-                                      a.download = file.file_name;
-                                      document.body.appendChild(a);
-                                      a.click();
-                                      a.remove();
-                                    } catch {
-                                      toast.error('Erro ao baixar: ' + (err?.message || err));
-                                    }
-                                  }
-                                }}
-                              >
-                                <Download className="size-3.5" />
-                              </Button>
-                              <Button
-                                variant="secondary"
-                                size="icon"
-                                className="size-7 h-7 w-7 bg-background/90 backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground shadow-sm"
+                                className="size-6 text-muted-foreground hover:text-destructive"
                                 onClick={async (e) => {
                                   e.stopPropagation();
                                   if (confirm("Deseja remover este anexo?")) {
@@ -1106,205 +801,217 @@ export function JobSheet({
                                   }
                                 }}
                               >
-                                <X className="size-3.5" />
+                                <X className="size-3" />
                               </Button>
                             </div>
                           </div>
                         ))}
                       </div>
+                    )}
 
-                      <div 
-                        onClick={() => fileInputRef.current?.click()}
-                        onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); if (!isDragging) setIsDragging(true); }}
-                        onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }}
-                        onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); if (e.currentTarget === e.target) setIsDragging(false); }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setIsDragging(false);
-                          const files = Array.from(e.dataTransfer.files ?? []);
-                          if (files.length) uploadFiles(files);
-                        }}
-                        className={`border-2 border-dashed rounded-xl p-6 transition-all cursor-pointer flex flex-col items-center justify-center gap-2 ${
-                          isDragging ? "border-primary bg-primary/10 scale-[1.01]" : "border-border hover:border-primary/50 hover:bg-primary/5"
-                        }`}
-                      >
-                        {isUploading ? (
-                          <Loader2 className="size-6 text-primary animate-spin" />
-                        ) : (
-                          <FileUp className={`size-6 ${isDragging ? "text-primary" : "text-foreground/20"}`} />
-                        )}
-                        <div className="text-center">
-                          <p className="text-xs font-bold text-foreground/60">
-                            {isUploading ? "Enviando arquivo..." : isDragging ? "Solte para anexar" : "Clique ou arraste arquivos aqui"}
-                          </p>
-                          <p className="text-[10px] text-foreground/40 uppercase tracking-widest mt-1">Formatos suportados: PDF, JPG, PNG, DOCX</p>
+                    {/* Enviados ao cliente */}
+                    {approvalItems.length > 0 && (
+                      <div className="pt-2 border-t border-border/60 space-y-2">
+                        <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+                          Enviados para Aprovação ({approvalItems.length})
+                        </span>
+                        <div className="space-y-1.5">
+                          {approvalItems.map((it: ApprovalItem) => (
+                            <div key={it.id} className="flex items-center justify-between p-2 rounded-md bg-muted/30 border border-border/60 text-xs">
+                              <span className="truncate font-medium">{it.title}</span>
+                              <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground">
+                                {it.status === 'approved' ? '✓ Aprovado' : it.status === 'rejected' ? 'Ajustes' : 'Aguardando'}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          className="hidden"
-                          multiple
-                          onChange={handleFileUpload}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Histórico & Atividades Accordion */}
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="history" className="border border-border/60 rounded-lg px-4 bg-card overflow-hidden">
+                      <AccordionTrigger className="hover:no-underline py-3 text-xs font-semibold">
+                        <div className="flex items-center gap-2">
+                          <History className="size-3.5 text-muted-foreground" />
+                          <span>Histórico & Atividades</span>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-4">
+                        <UnifiedTimeline jobId={job.id} />
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+                </div>
+
+                {/* Right Sidebar (Properties: 5 cols) */}
+                <div className="lg:col-span-5 overflow-y-auto p-6 space-y-4 bg-muted/10">
+                  <div className="space-y-3.5">
+                    <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold block">
+                      Propriedades
+                    </span>
+
+                    {/* Status */}
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-medium text-muted-foreground">Status</Label>
+                      <Select
+                        value={(job as any).status}
+                        onValueChange={(v) => updateMut.mutate({ status: v, done_at: v === 'done' ? new Date().toISOString() : null } as any)}
+                      >
+                        <SelectTrigger className="h-8 text-xs font-mono-kasa bg-card border-border/60">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="not_started" className="text-xs font-mono-kasa">Nova Demanda</SelectItem>
+                          <SelectItem value="in_progress" className="text-xs font-mono-kasa">Em Andamento</SelectItem>
+                          <SelectItem value="review" className="text-xs font-mono-kasa">Em Correção</SelectItem>
+                          <SelectItem value="done" className="text-xs font-mono-kasa">Concluído</SelectItem>
+                          <SelectItem value="paused" className="text-xs font-mono-kasa">Aguardando Cliente</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Prioridade & Prazo Final */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-medium text-muted-foreground">Prioridade</Label>
+                        <Select
+                          value={job.priority}
+                          onValueChange={(v) => updateMut.mutate({ priority: v })}
+                        >
+                          <SelectTrigger className="h-8 text-xs font-mono-kasa bg-card border-border/60">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="high" className="text-xs font-mono-kasa">Alta</SelectItem>
+                            <SelectItem value="normal" className="text-xs font-mono-kasa">Normal</SelectItem>
+                            <SelectItem value="low" className="text-xs font-mono-kasa">Baixa</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-medium text-muted-foreground">Prazo Final</Label>
+                        <Input
+                          type="date"
+                          value={job.due_date ? format(new Date(job.due_date + 'T12:00:00'), 'yyyy-MM-dd') : ''}
+                          onChange={(e) => updateMut.mutate({ due_date: e.target.value || null })}
+                          className="h-8 text-xs font-mono-kasa bg-card border-border/60"
                         />
                       </div>
                     </div>
 
-                    {approvalItems.length > 0 && (
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-2">
-                          <Send className="size-4 text-primary" />
-                          <Label className="text-xs font-bold uppercase tracking-wider">
-                            Enviados ao cliente ({approvalItems.length})
-                          </Label>
-                        </div>
-                        <div className="space-y-2">
-                          {approvalItems.map((it: ApprovalItem) => {
-                            const isArchived = it.status === "archived";
-                            const statusLabel =
-                              it.status === "approved" ? "Aprovado"
-                              : it.status === "rejected" ? "Ajustes pedidos"
-                              : it.status === "archived" ? "Arquivado"
-                              : "Aguardando";
-                            const statusColor =
-                              it.status === "approved" ? "text-emerald-500"
-                              : it.status === "rejected" ? "text-orange-500"
-                              : it.status === "archived" ? "text-foreground/40"
-                              : "text-blue-500";
-                            return (
-                              <div
-                                key={it.id}
-                                className={`bg-background border rounded-lg group ${isArchived ? "opacity-60" : ""} ${it.status === "rejected" ? "border-orange-500/40" : "border-border"}`}
-                              >
-                                <div className="flex items-center justify-between gap-2 p-2">
-                                  <div className="flex items-center gap-3 overflow-hidden min-w-0">
-                                    <ImageIcon className="size-4 text-foreground/40 shrink-0" />
-                                    <div className="min-w-0">
-                                      <p className="text-xs font-medium truncate text-foreground/80">{it.title}</p>
-                                      <p className={`text-[10px] uppercase tracking-wider font-bold ${statusColor}`}>
-                                        {statusLabel}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-1 shrink-0">
-                                    {it.content_url && (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
-                                        onClick={() => window.open(it.content_url!, "_blank")}
-                                        title="Abrir mídia"
-                                      >
-                                        <ExternalLink className="size-3.5" />
-                                      </Button>
-                                    )}
-                                    {isArchived ? (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-primary"
-                                        title="Restaurar — voltar a aparecer no portal"
-                                        onClick={() => unarchiveApprovalMut.mutate(it.id)}
-                                        disabled={unarchiveApprovalMut.isPending}
-                                      >
-                                        <RotateCcw className="size-3.5" />
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-7 h-7 w-7 text-foreground/40 hover:text-destructive"
-                                        title="Arquivar — remover do portal do cliente"
-                                        onClick={() => {
-                                          if (confirm(`Arquivar "${it.title}"?\n\nO item será removido do portal do cliente, mas fica no seu histórico interno.`)) {
-                                            archiveApprovalMut.mutate(it.id);
-                                          }
-                                        }}
-                                        disabled={archiveApprovalMut.isPending}
-                                      >
-                                        <Archive className="size-3.5" />
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                                {it.status === "rejected" && (
-                                  <RejectedFeedback item={it} />
-                                )}
-                              </div>
-                            );
+                    {/* Responsável Principal */}
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-medium text-foreground block">
+                        Responsável Principal (Dono da Entrega)
+                      </Label>
+                      <Select
+                        value={(job as any).main_responsible_id || "none"}
+                        onValueChange={(v) => updateMut.mutate({ main_responsible_id: v === "none" ? null : v } as any)}
+                      >
+                        <SelectTrigger className="h-8 text-xs bg-card border-border/60">
+                          <SelectValue placeholder="Selecione o responsável" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none" className="text-xs">Sem Responsável</SelectItem>
+                          {team.map((p) => (
+                            <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
+                              {p.display_name || p.full_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
 
-                          })}
-                        </div>
+                    <div className="pt-2 border-t border-border/60 space-y-3">
+                      <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold block">
+                        Contexto & Vínculos
+                      </span>
+
+                      {/* Cliente */}
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-medium text-muted-foreground">Cliente</Label>
+                        <Select
+                          value={(job as any).client_id || "none"}
+                          onValueChange={(v) => updateMut.mutate({ client_id: v === "none" ? null : v } as any)}
+                        >
+                          <SelectTrigger className="h-8 text-xs bg-card border-border/60">
+                            <SelectValue placeholder="Selecione um cliente" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none" className="text-xs">Sem Cliente</SelectItem>
+                            {clients.map((c) => (
+                              <SelectItem key={c.id} value={c.id} className="text-xs cursor-pointer">
+                                {c.company || c.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                    )}
 
-
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle className="size-4 text-primary" />
-                        <Label className="text-xs font-bold uppercase tracking-wider">Briefing</Label>
+                      {/* Projeto */}
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-medium text-muted-foreground">Projeto</Label>
+                        <Select
+                          value={(job as any).project_id || "none"}
+                          onValueChange={(v) => updateMut.mutate({ project_id: v === "none" ? null : v } as any)}
+                        >
+                          <SelectTrigger className="h-8 text-xs bg-card border-border/60">
+                            <SelectValue placeholder="Selecione um projeto" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none" className="text-xs">Sem Projeto</SelectItem>
+                            {projects
+                              .filter(p => !(job as any).client_id || p.client_id === (job as any).client_id)
+                              .map((p) => (
+                                <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
+                                  {p.name}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <Textarea
-                        rows={14}
-                        value={observations}
-                        onChange={(e) => setObservations(e.target.value)}
-                        onBlur={() => observations !== job.description && updateMut.mutate({ description: observations } as any)}
-                        placeholder="Descreva aqui o briefing completo do job..."
-                        className="bg-background text-base leading-relaxed border-border min-h-[400px] text-foreground placeholder:text-foreground/50 p-4 resize-y"
-                      />
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
 
-                <AccordionItem value="internal-notes" className="border border-border rounded-xl px-4 bg-muted/5 overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline py-4">
-                    <div className="flex items-center gap-2">
-                      <Lock className="size-4 text-primary" />
-                      <span className="text-sm font-bold uppercase tracking-wider">Observações Internas</span>
+                      {/* Mostrar no Portal */}
+                      <div className="flex items-center justify-between gap-3 p-2.5 rounded-md border border-border/60 bg-card mt-2">
+                        <div className="space-y-0.5">
+                          <Label className="text-xs font-medium text-foreground">Visível no Portal</Label>
+                          <p className="text-[10px] text-muted-foreground">Minha Kasa</p>
+                        </div>
+                        <Checkbox
+                          checked={!!(job as any).show_in_portal}
+                          onCheckedChange={(v) => updateMut.mutate({ show_in_portal: v === true } as any)}
+                          className="size-4 data-[state=checked]:bg-foreground data-[state=checked]:text-background"
+                        />
+                      </div>
                     </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6">
-                    <InternalNotesSection jobId={job.id} team={team} currentUser={currentUser} />
-                  </AccordionContent>
-                </AccordionItem>
 
-                <AccordionItem value="history" className="border border-border rounded-xl px-4 bg-muted/5 overflow-hidden">
-                  <AccordionTrigger className="hover:no-underline py-4">
-                    <div className="flex items-center gap-2">
-                      <History className="size-4 text-primary" />
-                      <span className="text-sm font-bold uppercase tracking-wider">Atividade</span>
+                    <div className="pt-3 border-t border-border/60 flex items-center justify-between">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => confirm("Tem certeza que deseja remover este job permanentemente?") && deleteMut.mutate()}
+                        className="h-7 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                      >
+                        <Trash2 className="size-3.5 mr-1" /> Excluir
+                      </Button>
+                      <span className="text-[10px] font-mono-kasa text-muted-foreground">
+                        #{job.id.slice(0, 8)}
+                      </span>
                     </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="pb-6">
-                    <UnifiedTimeline jobId={job.id} />
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-
-              <div className="pt-6 border-t border-border flex items-center justify-between">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => confirm("Tem certeza que deseja remover este job permanentemente?") && deleteMut.mutate()}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10 text-[10px] font-bold uppercase tracking-widest h-9 px-3 rounded-lg"
-                >
-                  <Trash2 className="size-3.5 mr-2" /> Excluir job
-                </Button>
-                <div className="flex flex-col items-end opacity-20">
-                  <span className="text-[9px] font-mono font-bold">
-                    UUID: {job.id}
-                  </span>
+                  </div>
                 </div>
               </div>
-                </TabsContent>
-                <TabsContent value="roteiro" className="mt-0">
-                  <JobScriptTab jobId={job.id} defaultTitle={job.title} />
-                </TabsContent>
-              </Tabs>
-            </div>
-          </div>
+            </TabsContent>
 
+            <TabsContent value="roteiro" className="flex-1 overflow-y-auto p-6 mt-0">
+              <JobScriptTab jobId={job.id} defaultTitle={job.title} />
+            </TabsContent>
+          </Tabs>
         </div>
+
         <AttachmentViewer
           url={viewerConfig?.url || ""}
           fileName={viewerConfig?.name || ""}

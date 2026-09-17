@@ -37,7 +37,7 @@ function ReportBuilderListPage() {
   });
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1400px] mx-auto animate-reveal">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 w-full mx-auto animate-reveal">
       <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-border pb-6">
         <div>
           <Link to="/dashboard" className="inline-flex items-center gap-1.5 text-xs text-foreground/50 hover:text-foreground mb-2">

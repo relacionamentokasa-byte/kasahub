@@ -112,44 +112,46 @@ export function CategoriesManagerDialog({ open, onOpenChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Tag className="size-4 text-primary" />
-            Gestão de Categorias
+      <DialogContent className="sm:max-w-[520px]">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <Tag className="size-5" />
+            </div>
+            <span>Categorias Financeiras</span>
           </DialogTitle>
-          <DialogDescription>
-            Organize suas categorias de receitas e despesas.
+          <DialogDescription className="text-xs sm:text-sm text-muted-foreground">
+            Organize os centros de custo, receitas operacionais e despesas.
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as CategoriaTipo)}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="Receita">Receitas</TabsTrigger>
-            <TabsTrigger value="Despesa">Despesas</TabsTrigger>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as CategoriaTipo)} className="pt-2">
+          <TabsList className="grid w-full grid-cols-2 h-9 p-1 bg-muted/60 border border-border/70 rounded-xl">
+            <TabsTrigger value="Receita" className="text-xs font-medium rounded-lg">Receitas</TabsTrigger>
+            <TabsTrigger value="Despesa" className="text-xs font-medium rounded-lg">Despesas</TabsTrigger>
           </TabsList>
 
-          <form onSubmit={handleCreate} className="flex items-center gap-2 mt-4">
+          <form onSubmit={handleCreate} className="flex items-center gap-2 mt-4 bg-muted/40 p-2.5 rounded-xl border border-border/70">
             <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder={`Nova categoria de ${tab.toLowerCase()}...`}
-              className="flex-1"
+              className="flex-1 h-9 text-xs"
             />
-            <Button type="submit" disabled={!newName.trim() || createMutation.isPending} className="gap-1">
+            <Button type="submit" disabled={!newName.trim() || createMutation.isPending} className="gap-1.5 h-9 text-xs font-medium">
               {createMutation.isPending ? (
-                <Loader2 className="size-4 animate-spin" />
+                <Loader2 className="size-3.5 animate-spin" />
               ) : (
-                <Plus className="size-4" />
+                <Plus className="size-3.5" />
               )}
               Adicionar
             </Button>
           </form>
 
-          <TabsContent value="Receita" className="mt-4">
+          <TabsContent value="Receita" className="mt-3">
             {renderList("Receita")}
           </TabsContent>
-          <TabsContent value="Despesa" className="mt-4">
+          <TabsContent value="Despesa" className="mt-3">
             {renderList("Despesa")}
           </TabsContent>
         </Tabs>

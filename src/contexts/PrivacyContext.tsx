@@ -49,9 +49,9 @@ export function PrivacyToggleButton({ className = "" }: { className?: string }) 
       onClick={toggle}
       aria-label={hidden ? "Mostrar valores" : "Ocultar valores"}
       title={hidden ? "Mostrar valores monetários" : "Ocultar valores monetários (modo reunião)"}
-      className={`p-2 transition-colors ${hidden ? "text-primary" : "text-foreground/60 hover:text-foreground"} ${className}`}
+      className={`p-2 transition-colors cursor-pointer ${hidden ? "text-amber-400 bg-amber-400/10" : "text-zinc-400 hover:text-white hover:bg-white/10"} ${className}`}
     >
-      {hidden ? <EyeOff className="size-5" /> : <Eye className="size-5" />}
+      {hidden ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
     </button>
   );
 }

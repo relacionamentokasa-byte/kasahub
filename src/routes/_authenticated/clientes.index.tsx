@@ -69,51 +69,52 @@ function ClientsPage() {
     });
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-[1600px] mx-auto animate-reveal">
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-6">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 w-full mx-auto animate-reveal">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
         <div>
-          <span className="text-primary text-[10px] font-mono-kasa capitalize font-medium">
+          <span className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block font-medium">
             Operação · Relacionamento
           </span>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-0.5">
             Clientes
           </h1>
-          <p className="text-foreground/50 text-xs lg:text-sm mt-1">
+          <p className="text-muted-foreground text-xs mt-0.5">
             Gestão da carteira ativa e parceiros.
           </p>
         </div>
-        <Button 
+        <Button
           onClick={() => setNewDialogOpen(true)}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold gap-2 h-11 px-6 shadow-lg shadow-primary/20"
+          className="bg-foreground text-background hover:bg-foreground/90 rounded-md font-medium h-8 px-3 text-xs gap-1.5 font-mono-kasa shadow-xs self-start sm:self-auto"
         >
-          <Plus className="size-4 shrink-0" /> Novo Cliente
+          <Plus className="size-3.5 shrink-0" /> Novo Cliente
         </Button>
       </header>
 
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
             placeholder="Buscar por nome ou empresa..."
-            className="pl-9 bg-surface border-border rounded-xl h-11"
+            className="pl-8 bg-card border-border/60 rounded-md h-8 text-xs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
+      {/* Tabela Desktop */}
+      <div className="hidden md:block bg-card border border-border/60 rounded-lg overflow-hidden">
         <Table>
           <TableHeader className="bg-muted/30">
-            <TableRow>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Cliente / Empresa</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden md:table-cell">Contato</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-center">Contrato Ativo</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">
+            <TableRow className="border-b border-border/60 hover:bg-transparent">
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 h-auto text-muted-foreground font-medium">Cliente / Empresa</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 h-auto text-muted-foreground font-medium hidden md:table-cell">Contato</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 h-auto text-muted-foreground font-medium text-center">Contrato Ativo</TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 h-auto text-muted-foreground font-medium text-right">
                 <button
                   type="button"
                   onClick={() => setShowBilling((v) => !v)}
-                  className="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                  className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer"
                   aria-label={showBilling ? "Ocultar faturamento" : "Mostrar faturamento"}
                   title={showBilling ? "Ocultar faturamento" : "Mostrar faturamento"}
                 >
@@ -121,21 +122,20 @@ function ClientsPage() {
                   {showBilling ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
                 </button>
               </TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 hidden sm:table-cell text-center">Status</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 h-auto text-muted-foreground font-medium hidden sm:table-cell text-center">Status</TableHead>
+              <TableHead className="w-[80px] py-2.5 h-auto"></TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="divide-y divide-border/60">
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-foreground/40 italic">
-
+                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground text-xs italic">
                   Carregando clientes...
                 </TableCell>
               </TableRow>
             ) : filteredClients.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-32 text-center text-foreground/40 italic">
+                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground text-xs italic">
                   {search ? "Nenhum cliente encontrado para esta busca." : "Nenhum cliente cadastrado."}
                 </TableCell>
               </TableRow>
@@ -144,84 +144,85 @@ function ClientsPage() {
                 const totalBilling = (client.transactions || [])
                   .filter((t: any) => t.type === 'income' && t.status === 'paid')
                   .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
-                
+
                 const hasActiveContract = (client.proposals || [])
                   .some((p: any) => p.status === 'Aprovada');
 
                 return (
-                  <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors">
-                  <TableCell className="py-4">
+                  <TableRow key={client.id} className="group hover:bg-muted/20 transition-colors border-border/60">
+                  <TableCell className="py-2.5">
                     {/* Link obrigatório para Visão 360 */}
-                    <Link 
+                    <Link
                       to="/clientes/$clientId"
                       params={{ clientId: client.id }}
-                      className="flex items-center gap-3 transition-opacity group-hover:opacity-80"
+                      className="flex items-center gap-2.5 transition-opacity group-hover:opacity-80"
                     >
-                      <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0 border border-primary/20">
+                      <div className="size-7 rounded bg-muted flex items-center justify-center text-foreground font-mono-kasa text-xs font-bold shrink-0 border border-border/60">
                         {client.logo_url ? (
-                          <StorageImage src={client.logo_url} alt={client.name} className="size-full object-cover rounded-xl" />
+                          <StorageImage src={client.logo_url} alt={client.name} className="size-full object-cover rounded" />
                         ) : (
                           (client.company || client.name)?.[0]?.toUpperCase()
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="font-semibold text-sm truncate hover:underline hover:text-primary cursor-pointer transition-colors">{client.company || client.name}</div>
-                        <div className="text-[10px] text-foreground/40 font-medium truncate uppercase tracking-tight">{client.company ? client.name : "—"}</div>
+                        <div className="font-medium text-xs truncate hover:underline hover:text-primary cursor-pointer transition-colors text-foreground">{client.company || client.name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono-kasa truncate uppercase tracking-tight">{client.company ? client.name : "—"}</div>
                       </div>
                     </Link>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell py-4">
-                    <div className="space-y-1">
+                  <TableCell className="hidden md:table-cell py-2.5">
+                    <div className="space-y-0.5">
                       {client.email && (
-                        <div className="flex items-center gap-1.5 text-xs text-foreground/60">
-                          <Mail className="size-3 shrink-0 text-primary/50" />
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono-kasa text-[11px]">
+                          <Mail className="size-3 shrink-0 text-muted-foreground/70" />
                           <span className="truncate">{client.email}</span>
                         </div>
                       )}
                       {client.phone && (
-                        <div className="flex items-center gap-1.5 text-xs text-foreground/60">
-                          <Phone className="size-3 shrink-0 text-primary/50" />
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono-kasa text-[11px]">
+                          <Phone className="size-3 shrink-0 text-muted-foreground/70" />
                           <span>{client.phone}</span>
                         </div>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="py-4 text-center">
-                    <Badge 
-                      variant="outline" 
+                  <TableCell className="py-2.5 text-center">
+                    <Badge
+                      variant="outline"
                       className={cn(
-                        "rounded-full px-3 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2",
-                        hasActiveContract 
-                          ? "border-emerald-500/20 text-emerald-500 bg-emerald-500/5" 
-                          : "border-foreground/10 text-foreground/40 bg-foreground/5"
+                        "rounded px-2 py-0 text-[10px] font-mono-kasa font-semibold uppercase tracking-wider border",
+                        hasActiveContract
+                          ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5"
+                          : "border-border/60 text-muted-foreground bg-muted/20"
                       )}
                     >
                       {hasActiveContract ? 'Sim' : 'Não'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="py-4 text-right">
+                  <TableCell className="py-2.5 text-right font-mono-kasa tabular-nums">
                     <span className={cn(
-                      "text-sm font-bold tabular-nums",
+                      "text-xs font-semibold",
                       !showBilling
-                        ? "text-foreground/30 tracking-widest select-none"
-                        : totalBilling > 0 ? "text-foreground" : "text-foreground/20"
+                        ? "text-muted-foreground tracking-widest select-none"
+                        : totalBilling > 0 ? "text-foreground" : "text-muted-foreground"
                     )}>
                       {showBilling ? brl(totalBilling) : "••••••"}
                     </span>
                   </TableCell>
-                  <TableCell className="hidden sm:table-cell py-4 text-center">
-                    <Badge 
-                      variant="outline" 
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2 ${
-                        client.status === 'active' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 
-                        client.status === 'paused' ? 'border-amber-500/20 text-amber-500 bg-amber-500/5' : 
-                        'border-foreground/10 text-foreground/40 bg-foreground/5'
-                      }`}
+                  <TableCell className="hidden sm:table-cell py-2.5 text-center">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded px-2 py-0 text-[10px] font-mono-kasa font-semibold uppercase tracking-wider border",
+                        client.status === 'active' ? 'border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' :
+                        client.status === 'paused' ? 'border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/5' :
+                        'border-border/60 text-muted-foreground bg-muted/20'
+                      )}
                     >
                       {client.status === 'active' ? 'Ativo' : client.status === 'paused' ? 'Pausado' : 'Inativo'}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right py-4">
+                  <TableCell className="text-right py-2.5">
                     <div className="flex items-center justify-end gap-1">
                       {client.portal_slug && (
                         <TooltipProvider>
@@ -231,7 +232,7 @@ function ClientsPage() {
                                 asChild
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 rounded-lg text-primary hover:bg-primary/10"
+                                className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
                               >
                                 <a
                                   href={`/minha-kasa/${client.portal_slug}`}
@@ -240,7 +241,7 @@ function ClientsPage() {
                                   aria-label="Abrir portal do cliente"
                                   onClick={(e) => e.stopPropagation()}
                                 >
-                                  <Globe className="size-4" />
+                                  <Globe className="size-3.5" />
                                 </a>
                               </Button>
                             </TooltipTrigger>
@@ -250,14 +251,14 @@ function ClientsPage() {
                       )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg">
-                            <MoreVertical className="size-4" />
+                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground">
+                            <MoreVertical className="size-3.5" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuContent align="end" className="w-44 text-xs font-mono-kasa">
                           <DropdownMenuItem asChild>
-                            <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="flex items-center gap-2 cursor-pointer">
-                              <ExternalLink className="size-4" /> Ver detalhes
+                            <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="flex items-center gap-2 cursor-pointer text-xs">
+                              <ExternalLink className="size-3.5" /> Ver detalhes
                             </Link>
                           </DropdownMenuItem>
                           {client.portal_slug && (
@@ -266,7 +267,7 @@ function ClientsPage() {
                                 href={`/minha-kasa/${client.portal_slug}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center gap-2 cursor-pointer"
+                                className="flex items-center gap-2 cursor-pointer text-xs"
                               >
                                 <Globe className="size-4" /> Abrir portal
                               </a>
@@ -274,15 +275,15 @@ function ClientsPage() {
                           )}
                           <DropdownMenuItem
                             onClick={() => setEditClient(client)}
-                            className="flex items-center gap-2 cursor-pointer"
+                            className="flex items-center gap-2 cursor-pointer text-xs"
                           >
-                            <Pencil className="size-4" /> Editar
+                            <Pencil className="size-3.5" /> Editar
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => setDeleteClientId(client.id)}
-                            className="flex items-center gap-2 cursor-pointer text-destructive"
+                            className="flex items-center gap-2 cursor-pointer text-destructive text-xs"
                           >
-                            <Trash2 className="size-4" /> Excluir
+                            <Trash2 className="size-3.5" /> Excluir
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -294,6 +295,138 @@ function ClientsPage() {
             )}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Cards Mobile */}
+      <div className="md:hidden space-y-2.5">
+        {isLoading ? (
+          <div className="rounded-xl border border-border/60 bg-card p-6 text-center text-muted-foreground text-xs italic">
+            Carregando clientes...
+          </div>
+        ) : filteredClients.length === 0 ? (
+          <div className="rounded-xl border border-border/60 bg-card p-6 text-center text-muted-foreground text-xs italic">
+            {search ? "Nenhum cliente encontrado." : "Nenhum cliente cadastrado."}
+          </div>
+        ) : (
+          filteredClients.map((client) => {
+            const hasActiveContract = (client.proposals || [])
+              .some((p: any) => p.status === 'Aprovada');
+            const totalBilling = (client.transactions || [])
+              .filter((t: any) => t.type === 'income' && t.status === 'paid')
+              .reduce((acc: number, t: any) => acc + Number(t.amount || 0), 0);
+
+            return (
+              <div
+                key={client.id}
+                className="bg-card border border-border/60 rounded-xl p-3.5 flex flex-col gap-3 shadow-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <Link
+                    to="/clientes/$clientId"
+                    params={{ clientId: client.id }}
+                    className="flex items-center gap-3 min-w-0 flex-1"
+                  >
+                    <div className="size-9 rounded-lg bg-muted flex items-center justify-center text-foreground font-mono-kasa text-xs font-bold shrink-0 border border-border/60">
+                      {client.logo_url ? (
+                        <StorageImage src={client.logo_url} alt={client.name} className="size-full object-cover rounded-lg" />
+                      ) : (
+                        (client.company || client.name)?.[0]?.toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-semibold text-xs truncate text-foreground">
+                        {client.company || client.name}
+                      </div>
+                      {client.company && (
+                        <div className="text-[10px] text-muted-foreground font-mono-kasa truncate">
+                          {client.name}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "rounded px-2 py-0.5 text-[10px] font-mono-kasa font-semibold uppercase tracking-wider border",
+                        hasActiveContract
+                          ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5"
+                          : "border-border/60 text-muted-foreground bg-muted/20"
+                      )}
+                    >
+                      {hasActiveContract ? 'Contrato' : 'Sem contrato'}
+                    </Badge>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground">
+                          <MoreVertical className="size-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44 text-xs font-mono-kasa">
+                        <DropdownMenuItem asChild>
+                          <Link to="/clientes/$clientId" params={{ clientId: client.id }} className="flex items-center gap-2 cursor-pointer text-xs">
+                            <ExternalLink className="size-3.5" /> Ver detalhes
+                          </Link>
+                        </DropdownMenuItem>
+                        {client.portal_slug && (
+                          <DropdownMenuItem asChild>
+                            <a
+                              href={`/minha-kasa/${client.portal_slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 cursor-pointer text-xs"
+                            >
+                              <Globe className="size-3.5" /> Abrir portal
+                            </a>
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuItem
+                          onClick={() => setEditClient(client)}
+                          className="flex items-center gap-2 cursor-pointer text-xs"
+                        >
+                          <Pencil className="size-3.5" /> Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setDeleteClientId(client.id)}
+                          className="flex items-center gap-2 cursor-pointer text-destructive text-xs"
+                        >
+                          <Trash2 className="size-3.5" /> Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/40 text-[11px] font-mono-kasa text-muted-foreground">
+                  <div className="flex items-center gap-3">
+                    {client.phone && (
+                      <a
+                        href={`https://wa.me/${client.phone.replace(/\D/g, "")}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      >
+                        <Phone className="size-3 text-emerald-500" />
+                        <span>{client.phone}</span>
+                      </a>
+                    )}
+                    {client.email && !client.phone && (
+                      <span className="truncate max-w-[180px]">{client.email}</span>
+                    )}
+                  </div>
+
+                  {totalBilling > 0 && (
+                    <span className="font-semibold text-foreground tabular-nums">
+                      {brl(totalBilling)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <NewClientDialog 

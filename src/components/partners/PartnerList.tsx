@@ -63,55 +63,55 @@ export function PartnerList({ type }: Props) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground/30" />
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="relative flex-1 min-w-[240px] max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar..."
-            className="pl-10 bg-surface"
+            placeholder="Buscar por nome, email ou especialidade..."
+            className="pl-9 h-9 bg-card border-border/80 rounded-lg text-xs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <Button onClick={handleNew} className="gap-2">
-          <Plus className="size-4" /> {ctaLabel}
+        <Button onClick={handleNew} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-medium h-9 px-4 gap-2 shadow-xs transition-colors cursor-pointer text-xs">
+          <Plus className="size-3.5" /> {ctaLabel}
         </Button>
       </div>
 
       {filtered.length === 0 ? (
-        <Card className="p-12 text-center bg-surface border-dashed border-border">
-          <p className="text-foreground/50 text-sm">Nenhum cadastro ainda.</p>
-          <Button variant="link" onClick={handleNew} className="mt-2">
+        <Card className="p-12 text-center bg-card border-border/80 rounded-xl shadow-xs">
+          <p className="text-muted-foreground text-xs">Nenhum parceiro encontrado.</p>
+          <Button variant="link" onClick={handleNew} className="mt-2 text-xs text-primary font-medium">
             Cadastrar o primeiro
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {filtered.map((p: any) => (
             <Card
               key={p.id}
               onClick={() => setSheetPartner(p)}
-              className="p-5 bg-surface border-border hover:border-primary/50 transition-colors group cursor-pointer"
+              className="p-4 bg-card border-border/80 hover:border-foreground/30 transition-all rounded-xl shadow-xs hover:shadow-sm group cursor-pointer"
             >
-              <div className="flex items-start justify-between mb-4">
+              <div className="flex items-start justify-between mb-3">
                 <div className="flex gap-3 min-w-0">
-                  <Avatar className="size-12 border border-primary/20 bg-primary/5 rounded-full overflow-hidden shrink-0">
+                  <Avatar className="size-11 border border-border/80 bg-muted rounded-full overflow-hidden shrink-0">
                     <AvatarImage src={p.photo_url || ""} />
-                    <AvatarFallback className="text-lg font-bold text-primary bg-primary/10 uppercase">
+                    <AvatarFallback className="text-sm font-bold text-foreground font-mono-kasa uppercase bg-muted">
                       {p.name?.substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-base leading-tight group-hover:text-primary transition-colors truncate">
+                    <h3 className="font-semibold text-xs leading-tight text-foreground group-hover:text-primary transition-colors truncate">
                       {p.name}
                     </h3>
                     {type === "freelancer" && p.specialty && (
-                      <Badge variant="outline" className="mt-1 text-[10px]">
-                        <Sparkles className="size-2.5 mr-1" /> {p.specialty}
+                      <Badge variant="outline" className="mt-1 text-[10px] font-mono-kasa border-border/80 text-muted-foreground font-normal">
+                        <Sparkles className="size-2.5 mr-1 text-primary" /> {p.specialty}
                       </Badge>
                     )}
                     {type === "representative" && (
-                      <Badge variant="outline" className="mt-1 text-[10px] border-primary/30 text-primary">
+                      <Badge variant="outline" className="mt-1 text-[10px] font-mono-kasa border-primary/30 text-primary bg-primary/5 font-medium">
                         <Calculator className="size-2.5 mr-1" /> 20% / 10%
                       </Badge>
                     )}
@@ -119,34 +119,34 @@ export function PartnerList({ type }: Props) {
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon" className="size-8 shrink-0">
-                      <MoreHorizontal className="size-4" />
+                    <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground hover:text-foreground">
+                      <MoreHorizontal className="size-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenuItem onClick={() => handleEdit(p)} className="gap-2">
+                    <DropdownMenuItem onClick={() => handleEdit(p)} className="gap-2 text-xs">
                       <Edit2 className="size-3.5" /> Editar
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => deleteMut.mutate(p.id)} className="gap-2 text-rose-500">
+                    <DropdownMenuItem onClick={() => deleteMut.mutate(p.id)} className="gap-2 text-xs text-rose-500">
                       <Trash2 className="size-3.5" /> Excluir
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-1 pt-1 border-t border-border/40">
                 {p.email && (
-                  <div className="flex items-center gap-2 text-xs text-foreground/60 truncate">
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground truncate">
                     <Mail className="size-3 shrink-0" /> <span className="truncate">{p.email}</span>
                   </div>
                 )}
                 {p.phone && (
-                  <div className="flex items-center gap-2 text-xs text-foreground/60">
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                     <Phone className="size-3 shrink-0" /> {p.phone}
                   </div>
                 )}
                 {type === "freelancer" && p.hourly_rate != null && (
-                  <div className="text-xs text-emerald-500 font-semibold pt-1">
+                  <div className="text-xs text-emerald-600 dark:text-emerald-400 font-mono-kasa font-bold pt-1">
                     {brl(Number(p.hourly_rate))}/h
                   </div>
                 )}

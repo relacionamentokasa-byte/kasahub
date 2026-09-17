@@ -97,23 +97,28 @@ export function DeleteTransactionDialog({ open, onOpenChange, transaction }: Pro
     return (
       <AlertDialog open={open} onOpenChange={onOpenChange}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir lançamento</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir <strong>{transaction.description}</strong>? Essa ação não pode ser desfeita.
+          <AlertDialogHeader className="space-y-1">
+            <AlertDialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight text-destructive">
+              <div className="size-9 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive shrink-0">
+                <Trash2 className="size-5" />
+              </div>
+              <span>Excluir Lançamento</span>
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs sm:text-sm text-muted-foreground pt-1">
+              Tem certeza que deseja excluir <strong className="text-foreground">{transaction.description}</strong>? Essa ação é permanente e atualizará o saldo bancário e relatórios.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMut.isPending}>Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+            <AlertDialogCancel disabled={deleteMut.isPending} className="h-9 text-xs">Cancelar</AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
                 e.preventDefault();
                 deleteMut.mutate("single");
               }}
               disabled={deleteMut.isPending}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 h-9 text-xs font-medium gap-1.5"
             >
-              {deleteMut.isPending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4 mr-1" />}
+              {deleteMut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -125,34 +130,43 @@ export function DeleteTransactionDialog({ open, onOpenChange, transaction }: Pro
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>Excluir transação parcelada</AlertDialogTitle>
-          <AlertDialogDescription>
-            Esta transação faz parte de um parcelamento (Parcela <strong>{info!.current}</strong> de{" "}
-            <strong>{info!.total}</strong>). Deseja excluir apenas esta parcela ou todas as parcelas futuras também?
+        <AlertDialogHeader className="space-y-1">
+          <AlertDialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight text-destructive">
+            <div className="size-9 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive shrink-0">
+              <Trash2 className="size-5" />
+            </div>
+            <span>Excluir Lançamento Parcelado</span>
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-xs sm:text-sm text-muted-foreground pt-1">
+            Este lançamento faz parte de um parcelamento (Parcela <strong className="font-mono-kasa tabular-nums text-foreground">{info!.current}</strong> de{" "}
+            <strong className="font-mono-kasa tabular-nums text-foreground">{info!.total}</strong>). Deseja excluir apenas esta parcela ou todas as parcelas futuras também?
             {futureCount != null && futureCount > 1 && (
-              <span className="block mt-2 text-xs text-muted-foreground">
-                {futureCount} parcelas serão afetadas se você escolher "esta e as futuras".
+              <span className="block mt-2 text-xs font-mono-kasa text-muted-foreground bg-muted/40 p-2.5 rounded-lg border border-border/70">
+                ⚠️ {futureCount} parcelas serão removidas caso selecione a opção de exclusão em cascata.
               </span>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
-          <AlertDialogCancel disabled={deleteMut.isPending}>Cancelar</AlertDialogCancel>
+        <AlertDialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t border-border/60">
+          <AlertDialogCancel disabled={deleteMut.isPending} className="h-9 text-xs">Cancelar</AlertDialogCancel>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => deleteMut.mutate("single")}
             disabled={deleteMut.isPending}
+            className="h-9 text-xs"
           >
             Excluir apenas esta
           </Button>
           <Button
             variant="destructive"
+            size="sm"
             onClick={() => deleteMut.mutate("future")}
             disabled={deleteMut.isPending}
+            className="h-9 text-xs font-medium gap-1.5"
           >
-            {deleteMut.isPending ? <Loader2 className="size-4 animate-spin mr-1" /> : <Trash2 className="size-4 mr-1" />}
-            Excluir esta e as futuras
+            {deleteMut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+            Excluir esta e futuras
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

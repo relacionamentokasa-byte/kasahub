@@ -47,13 +47,13 @@ export const Route = createFileRoute("/_authenticated/dmes")({
 });
 
 const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
-  draft:      { label: "Rascunho",  cls: "bg-slate-500/10 text-slate-500 border-slate-500/20" },
-  sent:       { label: "Enviada",   cls: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-  pending:    { label: "Aguardando", cls: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
-  approved:   { label: "Aprovada",  cls: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
-  rejected:   { label: "Recusada",  cls: "bg-red-500/10 text-red-500 border-red-500/20" },
-  in_production: { label: "Em produção", cls: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
-  completed:  { label: "Concluída", cls: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" },
+  draft:      { label: "Rascunho",  cls: "text-muted-foreground border-border/80 bg-background" },
+  sent:       { label: "Enviada",   cls: "text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/5" },
+  pending:    { label: "Aguardando", cls: "text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/5" },
+  approved:   { label: "Aprovada",  cls: "text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5" },
+  rejected:   { label: "Recusada",  cls: "text-rose-600 dark:text-rose-400 border-rose-500/30 bg-rose-500/5" },
+  in_production: { label: "Em produção", cls: "text-blue-600 dark:text-blue-400 border-blue-500/30 bg-blue-500/5" },
+  completed:  { label: "Concluída", cls: "text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/5" },
 };
 
 function DmesPage() {
@@ -373,20 +373,110 @@ function DmesPage() {
   }
 
 
+  // KPIs rápidos de DMEs
+  const kpiStats = useMemo(() => {
+    let pendingCount = 0;
+    let pendingVal = 0;
+    let approvedCount = 0;
+    let approvedVal = 0;
+    let completedVal = 0;
+
+    dmes.forEach((d: any) => {
+      const v = Number(d.value || 0);
+      if (d.status === "completed" || d.paid_at) {
+        completedVal += v;
+      } else if (d.status === "approved" || d.status === "in_production") {
+        approvedCount += 1;
+        approvedVal += v;
+      } else if (d.status !== "rejected" && d.status !== "cancelled") {
+        pendingCount += 1;
+        pendingVal += v;
+      }
+    });
+
+    return {
+      pendingCount,
+      pendingVal,
+      approvedCount,
+      approvedVal,
+      completedVal,
+      totalActive: pendingCount + approvedCount,
+    };
+  }, [dmes]);
+
   return (
-    <div className="p-6 lg:p-10 max-w-[1500px] mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6 animate-reveal">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-border/80 pb-6">
         <div>
-          <h1 className="text-3xl font-display font-bold flex items-center gap-3">
-            <Sparkles className="size-7 text-primary" /> Demandas Extras
+          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-widest font-semibold">
+            Receita Avulsa & Operação
+          </span>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">
+            Demandas Extras (DME)
           </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Solicitações pontuais fora do escopo do contrato. Cada DME gera um link de aprovação para o cliente e, ao ser aprovada, um lançamento financeiro automático.
+          <p className="text-muted-foreground text-xs lg:text-sm mt-1">
+            Solicitações fora do escopo do contrato. Cada aprovação alimenta o faturamento avulso no financeiro.
           </p>
         </div>
-        <Button onClick={() => setOpenNew(true)} className="gap-2">
-          <Plus className="size-4" /> Nova DME
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button onClick={() => setOpenNew(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl font-medium h-10 px-5 gap-2 shadow-xs transition-colors cursor-pointer">
+            <Plus className="size-4 shrink-0" /> Nova DME
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Ribbon Executivo - Grid 2x2 no Mobile e 4 cols no Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Aguardando Aprovação
+          </span>
+          <div className="mt-0.5 sm:mt-1 flex items-baseline gap-1 sm:gap-2 flex-wrap">
+            <span className="font-mono-kasa text-sm sm:text-xl font-bold text-foreground tabular-nums truncate">
+              {brl(kpiStats.pendingVal)}
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa">
+              ({kpiStats.pendingCount})
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Aprovadas / Execução
+          </span>
+          <div className="mt-0.5 sm:mt-1 flex items-baseline gap-1 sm:gap-2 flex-wrap">
+            <span className="font-mono-kasa text-sm sm:text-xl font-bold text-foreground tabular-nums truncate">
+              {brl(kpiStats.approvedVal)}
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa">
+              ({kpiStats.approvedCount})
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Lotes Ativos
+          </span>
+          <div className="mt-0.5 sm:mt-1 flex items-baseline gap-1 sm:gap-2 flex-wrap">
+            <span className="font-mono-kasa text-base sm:text-xl font-bold text-foreground tabular-nums">
+              {activeBatches.length + legacyConsolidatedTxGroups.length}
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa">
+              cobranças
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Liquidado
+          </span>
+          <div className="mt-0.5 sm:mt-1 font-mono-kasa text-sm sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums truncate">
+            {brl(kpiStats.completedVal)}
+          </div>
+        </div>
       </div>
 
       <div className="flex items-center gap-3 flex-wrap">
@@ -396,31 +486,34 @@ function DmesPage() {
             placeholder="Buscar por título ou número..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
+            className="pl-9 h-9 bg-card border-border/80 rounded-lg text-xs"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[200px]"><Filter className="size-3.5 mr-2" /><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-[200px] h-9 bg-card border-border/80 rounded-lg text-xs font-medium">
+            <Filter className="size-3.5 mr-2 text-muted-foreground" />
+            <SelectValue />
+          </SelectTrigger>
           <SelectContent>
             <SelectItem value="active">Ativas (em andamento)</SelectItem>
             <SelectItem value="all">Todas</SelectItem>
             <SelectItem value="pending">Aguardando aprovação</SelectItem>
             <SelectItem value="approved">Aprovadas</SelectItem>
-            <SelectItem value="completed">💰 Pagas / concluídas</SelectItem>
+            <SelectItem value="completed">Pagas / concluídas</SelectItem>
             <SelectItem value="rejected">Recusadas</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {selectedIds.size > 0 && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3 text-sm">
             <Layers className="size-5 text-primary" />
             <span className="font-medium">
               {selectedIds.size} DME{selectedIds.size > 1 ? "s" : ""} selecionada{selectedIds.size > 1 ? "s" : ""}
             </span>
             <span className="text-muted-foreground">
-              · Total <span className="font-mono font-semibold text-foreground">{brl(selectedTotal)}</span>
+              · Total <span className="font-mono-kasa font-semibold text-foreground">{brl(selectedTotal)}</span>
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -436,56 +529,56 @@ function DmesPage() {
       )}
 
       {(activeBatches.length > 0 || legacyConsolidatedTxGroups.length > 0) && (
-        <div className="rounded-2xl border border-primary/20 bg-primary/5 p-6 space-y-6 shadow-sm">
+        <div className="rounded-2xl border border-border/80 bg-muted/30 p-5 space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-semibold text-primary text-lg">
-              <Layers className="size-5" /> Lotes ativos
+            <div className="flex items-center gap-2 font-semibold text-foreground text-sm uppercase tracking-wider font-mono-kasa">
+              <Layers className="size-4 text-primary" /> Lotes Ativos de Cobrança
             </div>
-            <p className="text-xs text-muted-foreground hidden sm:block">
-              Agrupamentos de DMEs para cobrança unificada
+            <p className="text-xs text-muted-foreground hidden sm:block font-mono-kasa">
+              Agrupamentos de DMEs unificadas no financeiro
             </p>
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {activeBatches.map((b: any) => {
               const count = (b.dme_batch_items ?? []).length;
               const clientName = b.clients?.company || b.clients?.name || "Clientes diversos";
               const formattedBatch = String(b.friendly_number || "").padStart(4, '0');
               const dueDate = b.transactions?.due_date ? new Date(b.transactions.due_date + 'T12:00:00Z').toLocaleDateString('pt-BR') : '—';
-              
+
               return (
-                <div key={b.id} className="group relative flex flex-col rounded-xl border border-primary/20 bg-background p-5 transition-all hover:shadow-md hover:border-primary/40">
-                  <div className="flex items-start justify-between mb-4">
+                <div key={b.id} className="group relative flex flex-col rounded-xl border border-border/80 bg-card p-4 transition-all hover:shadow-xs hover:border-border">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-primary/70 mb-1">
-                        Lote {formattedBatch}
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono-kasa mb-0.5">
+                        Lote #{formattedBatch}
                       </div>
-                      <h3 className="font-semibold text-sm truncate pr-2" title={clientName}>
+                      <h3 className="font-semibold text-xs text-foreground truncate pr-2" title={clientName}>
                         {clientName}
                       </h3>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-sm font-bold text-foreground">
+                    <div className="text-right shrink-0 font-mono-kasa">
+                      <div className="text-xs font-bold text-foreground tabular-nums">
                         {brl(Number(b.total_value || 0))}
                       </div>
-                      <div className="text-[10px] text-muted-foreground font-medium">
+                      <div className="text-[10px] text-muted-foreground">
                         {count} DME{count !== 1 ? "s" : ""}
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-auto space-y-4">
-                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pb-3 border-b border-primary/5">
+                  <div className="mt-auto space-y-3">
+                    <div className="flex items-center justify-between text-[10px] font-mono-kasa text-muted-foreground pb-2.5 border-t border-border/40 pt-2">
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">Vencimento:</span>
-                        <span>{dueDate}</span>
+                        <span>Vencimento:</span>
+                        <strong className="text-foreground">{dueDate}</strong>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <Button
                         size="sm"
-                        className="col-span-2 gap-2 h-9"
+                        className="col-span-2 gap-2 h-8 text-xs font-medium cursor-pointer"
                         onClick={() => setAddItemFor({
                           client_id: b.client_id,
                           clients: b.clients,
@@ -493,25 +586,25 @@ function DmesPage() {
                           _batch: b,
                         })}
                       >
-                        <PlusCircle className="size-4" /> Adicionar DME
+                        <PlusCircle className="size-3.5" /> Adicionar DME
                       </Button>
-                      
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button size="sm" variant="outline" className="gap-2 h-8 text-[11px]">
-                            <FileDown className="size-3.5" /> PDF
+                          <Button size="sm" variant="outline" className="gap-1.5 h-7 text-[11px] border-border/80">
+                            <FileDown className="size-3" /> PDF
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="w-56">
-                          <DropdownMenuLabel className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Gerar PDF do Lote</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground font-mono-kasa">Gerar PDF do Lote</DropdownMenuLabel>
                           <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-sm py-2" onClick={() => handleDownloadBatchPdf(b.id, "approval")}>
+                          <DropdownMenuItem className="text-xs py-1.5" onClick={() => handleDownloadBatchPdf(b.id, "approval")}>
                             Solicitação de aprovação (pendentes)
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-sm py-2" onClick={() => handleDownloadBatchPdf(b.id, "approved")}>
+                          <DropdownMenuItem className="text-xs py-1.5" onClick={() => handleDownloadBatchPdf(b.id, "approved")}>
                             Apenas DMEs já aprovadas
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-sm py-2" onClick={() => handleDownloadBatchPdf(b.id, "all")}>
+                          <DropdownMenuItem className="text-xs py-1.5" onClick={() => handleDownloadBatchPdf(b.id, "all")}>
                             Lote completo (todas)
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -520,10 +613,10 @@ function DmesPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="gap-2 h-8 text-[11px]"
+                        className="gap-1.5 h-7 text-[11px] border-border/80"
                         onClick={() => setViewingBatch(b)}
                       >
-                        <Layers className="size-3.5" /> Ver DMEs
+                        <Layers className="size-3" /> Ver DMEs
                       </Button>
                     </div>
                   </div>
@@ -546,21 +639,21 @@ function DmesPage() {
             {legacyConsolidatedTxGroups.map((g: any) => {
               const clientName = g.clients?.company || g.clients?.name || "Clientes diversos";
               return (
-                <div key={g.consolidated_transaction_id} className="group flex flex-col rounded-xl border border-primary/20 bg-background p-5 transition-all hover:shadow-md hover:border-primary/40">
-                  <div className="flex items-start justify-between mb-4">
+                <div key={g.consolidated_transaction_id} className="group flex flex-col rounded-xl border border-border/80 bg-card p-4 transition-all hover:shadow-xs hover:border-border">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0">
-                      <div className="text-[10px] font-bold uppercase tracking-wider text-amber-600 mb-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono-kasa mb-0.5">
                         Consolidado Financeiro
                       </div>
-                      <h3 className="font-semibold text-sm truncate pr-2" title={clientName}>
+                      <h3 className="font-semibold text-xs text-foreground truncate pr-2" title={clientName}>
                         {clientName}
                       </h3>
                     </div>
-                    <div className="text-right shrink-0">
-                      <div className="text-sm font-bold text-foreground">
+                    <div className="text-right shrink-0 font-mono-kasa">
+                      <div className="text-xs font-bold text-foreground tabular-nums">
                         {brl(Number(g.total_value || 0))}
                       </div>
-                      <div className="text-[10px] text-muted-foreground font-medium">
+                      <div className="text-[10px] text-muted-foreground">
                         {g.count} DME{g.count !== 1 ? "s" : ""}
                       </div>
                     </div>
@@ -569,7 +662,7 @@ function DmesPage() {
                   <div className="mt-auto grid grid-cols-2 gap-2">
                     <Button
                       size="sm"
-                      className="col-span-2 gap-2 h-9"
+                      className="col-span-2 gap-2 h-8 text-xs font-medium cursor-pointer"
                       onClick={() => setAddItemFor({
                         client_id: g.client_id,
                         clients: g.clients,
@@ -577,13 +670,13 @@ function DmesPage() {
                         _consolidatedTx: g,
                       })}
                     >
-                      <PlusCircle className="size-4" /> Adicionar DME
+                      <PlusCircle className="size-3.5" /> Adicionar DME
                     </Button>
-                    
+
                     <Button
                       size="sm"
                       variant="outline"
-                      className="col-span-2 gap-2 h-8 text-[11px]"
+                      className="col-span-2 gap-1.5 h-7 text-[11px] border-border/80"
                       onClick={async () => {
                         try {
                           await generateConsolidatedTxPdf(g.consolidated_transaction_id);
@@ -593,7 +686,7 @@ function DmesPage() {
                         }
                       }}
                     >
-                      <FileDown className="size-3.5" /> Gerar PDF Consolidado
+                      <FileDown className="size-3" /> Gerar PDF Consolidado
                     </Button>
                   </div>
                 </div>
@@ -604,29 +697,29 @@ function DmesPage() {
       )}
 
       {paidBatches.length > 0 && (
-        <details className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4">
-          <summary className="cursor-pointer font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
-            <Check className="size-5" /> Lotes pagos ({paidBatches.length}) — clique para ver histórico
+        <details className="rounded-xl border border-border/80 bg-card p-4">
+          <summary className="cursor-pointer font-semibold text-xs text-foreground flex items-center gap-2 font-mono-kasa uppercase tracking-wider">
+            <Check className="size-4 text-emerald-600 dark:text-emerald-400" /> Lotes Pagos ({paidBatches.length}) — Histórico
           </summary>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 mt-3 pt-3 border-t border-border/40">
             {paidBatches.map((b: any) => {
               const count = (b.dme_batch_items ?? []).length;
               const clientName = b.clients?.company || b.clients?.name || "Cliente";
               return (
-                <div key={b.id} className="rounded-xl border border-emerald-500/20 bg-background p-3 flex items-center justify-between gap-3">
+                <div key={b.id} className="rounded-xl border border-border/70 bg-muted/20 p-3 flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="text-sm font-semibold truncate">{clientName}</div>
-                    <div className="text-xs text-muted-foreground">
-                      💰 Pago · {count} DME{count !== 1 ? "s" : ""} · Lote {b.friendly_number || b.id.slice(0, 8)} · total {brl(Number(b.total_value || 0))}
+                    <div className="text-xs font-semibold truncate text-foreground">{clientName}</div>
+                    <div className="text-[11px] text-muted-foreground font-mono-kasa">
+                      Lote #{b.friendly_number || b.id.slice(0, 8)} · {count} DMEs · {brl(Number(b.total_value || 0))}
                     </div>
                   </div>
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => handleDownloadBatchPdf(b.id)}
-                    className="gap-2 shrink-0"
+                    className="gap-1.5 h-7 text-[11px] border-border/80 shrink-0"
                   >
-                    <FileDown className="size-4" /> PDF
+                    <FileDown className="size-3" /> PDF
                   </Button>
                 </div>
               );
@@ -635,21 +728,20 @@ function DmesPage() {
         </details>
       )}
 
-
-
-      <div className="rounded-2xl border border-border bg-card overflow-hidden">
+      {/* Tabela no Desktop */}
+      <div className="hidden md:block rounded-xl border border-border bg-card overflow-hidden shadow-xs">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="border-border/80 hover:bg-transparent">
               <TableHead className="w-10"></TableHead>
-              <TableHead>Nº</TableHead>
-              <TableHead>Demanda</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Contrato</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
-              <TableHead>Vence</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+              <TableHead className="font-mono-kasa text-[11px] uppercase">Nº</TableHead>
+              <TableHead className="font-mono-kasa text-[11px] uppercase">Demanda</TableHead>
+              <TableHead className="font-mono-kasa text-[11px] uppercase">Cliente</TableHead>
+              <TableHead className="font-mono-kasa text-[11px] uppercase">Contrato</TableHead>
+              <TableHead className="text-right font-mono-kasa text-[11px] uppercase">Valor</TableHead>
+              <TableHead className="font-mono-kasa text-[11px] uppercase">Vencimento</TableHead>
+              <TableHead className="font-mono-kasa text-[11px] uppercase">Status</TableHead>
+              <TableHead className="text-right font-mono-kasa text-[11px] uppercase">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -658,10 +750,10 @@ function DmesPage() {
             ) : filtered.length === 0 ? (
               <TableRow><TableCell colSpan={9} className="text-center py-12">
                 <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                  <Sparkles className="size-10 opacity-30" />
+                  <Sparkles className="size-8 opacity-30" />
                   <div>
-                    <div className="font-medium text-foreground">Nenhuma DME cadastrada</div>
-                    <div className="text-xs">Crie sua primeira demanda extra.</div>
+                    <div className="font-medium text-foreground text-sm">Nenhuma DME pendente individual</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">Todas as demandas estão consolidadas em lotes ou concluídas.</div>
                   </div>
                   <Button onClick={() => setOpenNew(true)} size="sm" className="gap-2 mt-2">
                     <Plus className="size-3.5" /> Nova DME
@@ -669,12 +761,12 @@ function DmesPage() {
                 </div>
               </TableCell></TableRow>
             ) : filtered.map((d: any) => {
-              const st = STATUS_LABEL[d.status] ?? { label: d.status, cls: "bg-muted text-muted-foreground" };
+              const st = STATUS_LABEL[d.status] ?? { label: d.status, cls: "text-muted-foreground border-border bg-muted" };
               const isPending = d.status !== "approved" && d.status !== "rejected" && d.status !== "completed";
               const selectable = isSelectable(d);
               const checked = selectedIds.has(d.id);
               return (
-                <TableRow key={d.id} className={checked ? "bg-primary/5" : ""}>
+                <TableRow key={d.id} className={checked ? "bg-primary/5 border-border/80" : "border-border/80"}>
                   <TableCell>
                     <Checkbox
                       checked={checked}
@@ -689,24 +781,24 @@ function DmesPage() {
                       }
                     />
                   </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">{d.number_display}</TableCell>
+                  <TableCell className="font-mono-kasa text-xs text-muted-foreground">{d.number_display}</TableCell>
                   <TableCell>
-                    <div className="font-medium flex items-center gap-2 flex-wrap">
+                    <div className="font-medium text-xs text-foreground flex items-center gap-2 flex-wrap">
                       {d.title}
                       {(() => {
                         const b = batchByDme[d.id];
                         if (!b || b.status === "cancelled") return null;
                         return (
                           <>
-                            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-[10px]">
-                              <Layers className="size-3 mr-1" /> LOTE {b.friendly_number || b.id.slice(0, 8)}
-                            </Badge>
+                            <span className="font-mono-kasa text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border/80">
+                              LOTE #{b.friendly_number || b.id.slice(0, 8)}
+                            </span>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => setAddItemFor({ ...d, _batch: b })}
-                              className="h-6 px-2 gap-1 border-primary/40 text-primary hover:bg-primary/10 text-[11px]"
-                              title="Adicionar nova DME a este lote (soma na cobrança consolidada)"
+                              className="h-5 px-1.5 gap-1 border-border/80 text-foreground hover:bg-muted text-[10px]"
+                              title="Adicionar nova DME a este lote"
                             >
                               <PlusCircle className="size-3" /> Add ao lote
                             </Button>
@@ -714,20 +806,22 @@ function DmesPage() {
                         );
                       })()}
                     </div>
-                    {d.description && <div className="text-xs text-muted-foreground line-clamp-1">{d.description}</div>}
+                    {d.description && <div className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">{d.description}</div>}
                   </TableCell>
 
-                  <TableCell className="text-sm">{d.clients?.company || d.clients?.name || "—"}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{d.contracts?.title || "—"}</TableCell>
-                  <TableCell className="text-right font-mono">{brl(Number(d.value))}</TableCell>
-                  <TableCell className="text-sm">{d.due_date ? new Date(d.due_date + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</TableCell>
+                  <TableCell className="text-xs text-foreground font-medium">{d.clients?.company || d.clients?.name || "—"}</TableCell>
+                  <TableCell className="text-xs text-muted-foreground">{d.contracts?.title || "—"}</TableCell>
+                  <TableCell className="text-right font-mono-kasa font-bold text-xs text-foreground tabular-nums">{brl(Number(d.value))}</TableCell>
+                  <TableCell className="text-xs font-mono-kasa text-muted-foreground">{d.due_date ? new Date(d.due_date + "T00:00:00").toLocaleDateString("pt-BR") : "—"}</TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1 items-start">
-                      <Badge variant="outline" className={st.cls}>{st.label}</Badge>
+                      <span className={`text-[10px] font-mono-kasa px-2 py-0.5 rounded-md border font-medium ${st.cls}`}>
+                        {st.label}
+                      </span>
                       {d.paid_at && (
-                        <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-[10px]">
-                          💰 Pago em {new Date(d.paid_at).toLocaleDateString("pt-BR")}
-                        </Badge>
+                        <span className="text-[10px] font-mono-kasa text-emerald-600 dark:text-emerald-400">
+                          Liquidado em {new Date(d.paid_at).toLocaleDateString("pt-BR")}
+                        </span>
                       )}
                     </div>
                   </TableCell>
@@ -740,11 +834,11 @@ function DmesPage() {
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="text-blue-500"
+                              className="text-blue-500 size-7"
                               onClick={() => navigate({ to: "/jobs", search: { openJobId: linkedJob.id } })}
                               title={`Abrir Job: ${linkedJob.title}`}
                             >
-                              <Briefcase className="size-4" />
+                              <Briefcase className="size-3.5" />
                             </Button>
                           );
                         }
@@ -752,16 +846,17 @@ function DmesPage() {
                           <Button
                             size="icon"
                             variant="ghost"
+                            className="size-7 text-muted-foreground hover:text-foreground"
                             onClick={() => setJobForDme(d)}
                             title="Criar Job a partir desta DME"
                           >
-                            <Briefcase className="size-4" />
+                            <Briefcase className="size-3.5" />
                           </Button>
                         );
                       })()}
                       {d.public_token && (
-                        <Button size="icon" variant="ghost" onClick={() => copyLink(d.public_token)} title="Copiar link de aprovação">
-                          <LinkIcon className="size-4" />
+                        <Button size="icon" variant="ghost" className="size-7 text-muted-foreground hover:text-foreground" onClick={() => copyLink(d.public_token)} title="Copiar link de aprovação">
+                          <LinkIcon className="size-3.5" />
                         </Button>
                       )}
                       {(() => {
@@ -772,20 +867,20 @@ function DmesPage() {
                             size="sm"
                             variant="outline"
                             onClick={() => setAddItemFor({ ...d, _batch: batch })}
-                            className="gap-1 border-primary/40 text-primary hover:bg-primary/10"
-                            title="Adicionar nova DME a este lote (soma na cobrança consolidada)"
+                            className="gap-1 border-border/80 h-7 text-[11px]"
+                            title="Adicionar nova DME a este lote"
                           >
-                            <PlusCircle className="size-4" /> Add ao lote
+                            <PlusCircle className="size-3" /> Add ao lote
                           </Button>
                         );
                       })()}
                       {isPending && (
                         <>
-                          <Button size="icon" variant="ghost" onClick={() => approveMut.mutate(d.id)} className="text-emerald-600" title="Aprovar internamente">
-                            <Check className="size-4" />
+                          <Button size="icon" variant="ghost" onClick={() => approveMut.mutate(d.id)} className="size-7 text-emerald-600" title="Aprovar internamente">
+                            <Check className="size-3.5" />
                           </Button>
-                          <Button size="icon" variant="ghost" onClick={() => rejectMut.mutate(d.id)} className="text-red-500" title="Recusar">
-                            <X className="size-4" />
+                          <Button size="icon" variant="ghost" onClick={() => rejectMut.mutate(d.id)} className="size-7 text-rose-500" title="Recusar">
+                            <X className="size-3.5" />
                           </Button>
                         </>
                       )}
@@ -793,21 +888,22 @@ function DmesPage() {
                         size="icon"
                         variant="ghost"
                         onClick={() => handleDownloadSinglePdf(d.id)}
-                        className="text-primary"
+                        className="size-7 text-muted-foreground hover:text-foreground"
                         title="Baixar PDF individual"
                       >
-                        <FileDown className="size-4" />
+                        <FileDown className="size-3.5" />
                       </Button>
                       <Button
                         size="icon"
                         variant="ghost"
                         onClick={() => setEditingDme(d)}
+                        className="size-7 text-muted-foreground hover:text-foreground"
                         title="Editar demanda"
                       >
-                        <Pencil className="size-4" />
+                        <Pencil className="size-3.5" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => { if (confirm("Excluir esta DME?")) delMut.mutate(d.id); }} className="text-red-500">
-                        <Trash2 className="size-4" />
+                      <Button size="icon" variant="ghost" onClick={() => { if (confirm("Excluir esta DME?")) delMut.mutate(d.id); }} className="size-7 text-rose-500">
+                        <Trash2 className="size-3.5" />
                       </Button>
                     </div>
                   </TableCell>
@@ -816,6 +912,163 @@ function DmesPage() {
             })}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Cards no Mobile */}
+      <div className="md:hidden space-y-2.5">
+        {isLoading ? (
+          <div className="p-8 text-center text-xs text-muted-foreground">Carregando demandas...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-xs text-muted-foreground border border-dashed border-border/80 rounded-xl">
+            Nenhuma DME individual encontrada.
+          </div>
+        ) : (
+          filtered.map((d: any) => {
+            const st = STATUS_LABEL[d.status] ?? { label: d.status, cls: "text-muted-foreground border-border bg-muted" };
+            const isPending = d.status !== "approved" && d.status !== "rejected" && d.status !== "completed";
+            const selectable = isSelectable(d);
+            const checked = selectedIds.has(d.id);
+            const linkedJob = jobsByDme[d.id];
+            const batch = batchByDme[d.id];
+
+            return (
+              <div
+                key={d.id}
+                className={cn(
+                  "p-3.5 rounded-xl border bg-card shadow-xs flex flex-col gap-2.5 transition-all",
+                  checked ? "border-primary/40 bg-primary/5" : "border-border/80"
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    {selectable && (
+                      <Checkbox
+                        checked={checked}
+                        onCheckedChange={() => toggleOne(d)}
+                        className="shrink-0"
+                      />
+                    )}
+                    <span className="text-[10px] font-mono-kasa text-muted-foreground tabular-nums">
+                      {d.number_display}
+                    </span>
+                    <span className={`text-[9px] font-mono-kasa px-1.5 py-0.5 rounded-md border font-semibold uppercase ${st.cls}`}>
+                      {st.label}
+                    </span>
+                  </div>
+
+                  <span className="font-mono-kasa font-bold text-xs text-foreground tabular-nums">
+                    {brl(Number(d.value))}
+                  </span>
+                </div>
+
+                <div>
+                  <h4 className="font-medium text-xs text-foreground">{d.title}</h4>
+                  <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono-kasa mt-0.5">
+                    <span className="truncate">{d.clients?.company || d.clients?.name || "Cliente"}</span>
+                    {d.contracts?.title && (
+                      <>
+                        <span>·</span>
+                        <span className="truncate">{d.contracts.title}</span>
+                      </>
+                    )}
+                  </div>
+                  {d.description && (
+                    <p className="text-[11px] text-muted-foreground line-clamp-2 mt-1">{d.description}</p>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/60 text-[11px] font-mono-kasa">
+                  <span className="text-muted-foreground">
+                    Venc: {d.due_date ? new Date(d.due_date + "T00:00:00").toLocaleDateString("pt-BR") : "—"}
+                  </span>
+
+                  <div className="flex items-center gap-1">
+                    {d.public_token && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 text-muted-foreground"
+                        onClick={() => copyLink(d.public_token)}
+                        title="Copiar link"
+                      >
+                        <LinkIcon className="size-3.5" />
+                      </Button>
+                    )}
+                    {linkedJob ? (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="text-blue-500 size-7"
+                        onClick={() => navigate({ to: "/jobs", search: { openJobId: linkedJob.id } })}
+                        title="Ver Job"
+                      >
+                        <Briefcase className="size-3.5" />
+                      </Button>
+                    ) : (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="size-7 text-muted-foreground"
+                        onClick={() => setJobForDme(d)}
+                        title="Criar Job"
+                      >
+                        <Briefcase className="size-3.5" />
+                      </Button>
+                    )}
+                    {isPending && (
+                      <>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => approveMut.mutate(d.id)}
+                          className="size-7 text-emerald-600"
+                          title="Aprovar"
+                        >
+                          <Check className="size-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => rejectMut.mutate(d.id)}
+                          className="size-7 text-rose-500"
+                          title="Recusar"
+                        >
+                          <X className="size-3.5" />
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => handleDownloadSinglePdf(d.id)}
+                      className="size-7 text-muted-foreground"
+                      title="PDF"
+                    >
+                      <FileDown className="size-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setEditingDme(d)}
+                      className="size-7 text-muted-foreground"
+                      title="Editar"
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => { if (confirm("Excluir esta DME?")) delMut.mutate(d.id); }}
+                      className="size-7 text-rose-500"
+                    >
+                      <Trash2 className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
 
       <NewDmeDialog open={openNew} onOpenChange={setOpenNew} defaultClientId={prefClientId} />

@@ -81,95 +81,129 @@ function ProjetosPage() {
   );
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4">
-        <div className="flex items-end justify-between gap-4 mb-6">
-          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight">Projetos</h1>
-          <Button onClick={() => setIsModalOpen(true)} className="gap-2">
-            <Plus className="size-4" /> Novo Projeto
-          </Button>
+    <div className="p-4 sm:p-6 lg:p-8 space-y-4 w-full mx-auto animate-reveal">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
+        <div>
+          <span className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block font-medium">
+            Operação · Execução
+          </span>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-0.5">
+            Projetos
+          </h1>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            Organização e acompanhamento dos projetos ativos da agência.
+          </p>
         </div>
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          className="bg-foreground text-background hover:bg-foreground/90 rounded-md font-medium h-8 px-3 text-xs gap-1.5 font-mono-kasa shadow-xs self-start sm:self-auto"
+        >
+          <Plus className="size-3.5 shrink-0" /> Novo Projeto
+        </Button>
+      </header>
 
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground/30" />
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
           <Input
-            placeholder="Pesquisar projetos..."
-            className="pl-9 bg-surface"
+            placeholder="Buscar por projeto ou cliente..."
+            className="pl-8 bg-card border-border/60 rounded-md h-8 text-xs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 lg:px-10 pb-10">
+      <div className="pt-2">
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Carregando projetos...</p>
+          <div className="rounded-lg border border-border/60 bg-card p-8 text-center text-muted-foreground text-xs italic">
+            Carregando projetos...
+          </div>
         ) : filtered.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nenhum projeto encontrado.</p>
+          <div className="rounded-lg border border-border/60 bg-card p-8 text-center text-muted-foreground text-xs italic">
+            {search ? "Nenhum projeto encontrado para esta busca." : "Nenhum projeto cadastrado."}
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {filtered.map((p) => {
               const clientName = p.clients?.company || p.clients?.name || null;
               return (
-                <div key={p.id} className="bg-surface border border-border rounded-2xl p-5 group">
-                  <div className="flex justify-between items-start mb-4">
-                    <div
-                      className="size-10 rounded-xl flex items-center justify-center border border-border"
-                      style={{ color: p.color || "#FFBC45" }}
-                    >
-                      <FolderKanban className="size-5" />
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => setEditingProject(p)}>
-                          Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleDelete(p.id)}
-                          className="text-rose-500"
+                <div
+                  key={p.id}
+                  className="bg-card border border-border/60 rounded-xl p-3.5 sm:p-4 flex flex-col justify-between hover:border-border transition-colors group shadow-xs active:scale-[0.99]"
+                >
+                  <div>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div
+                          className="size-7 rounded-lg flex items-center justify-center border border-border/60 shrink-0"
+                          style={{
+                            background: `${p.color || "#FFBC45"}15`,
+                            color: p.color || "#FFBC45",
+                          }}
                         >
-                          Excluir
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                          <FolderKanban className="size-3.5" />
+                        </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono-kasa uppercase tracking-wider font-semibold border border-border/60 text-muted-foreground bg-muted/20">
+                          {p.status === "active" ? "Ativo" : p.status === "paused" ? "Pausado" : p.status === "completed" ? "Concluído" : p.status}
+                        </span>
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md text-muted-foreground hover:text-foreground">
+                            <MoreVertical className="size-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40 text-xs font-mono-kasa">
+                          <DropdownMenuItem onClick={() => setEditingProject(p)} className="flex items-center gap-2 cursor-pointer text-xs">
+                            Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(p.id)}
+                            className="flex items-center gap-2 cursor-pointer text-destructive text-xs"
+                          >
+                            Excluir
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    <Link
+                      to="/projetos/$projectId"
+                      params={{ projectId: p.id }}
+                      className="block font-semibold text-sm text-foreground hover:underline transition-all line-clamp-1 mt-1"
+                    >
+                      {p.name}
+                    </Link>
+
+                    {clientName && (
+                      <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground font-mono-kasa">
+                        {p.clients?.logo_url ? (
+                          <img
+                            src={p.clients.logo_url}
+                            alt={clientName}
+                            className="size-3.5 rounded object-cover shrink-0"
+                          />
+                        ) : (
+                          <Building2 className="size-3 shrink-0 opacity-60" />
+                        )}
+                        <span className="truncate text-[11px]">{clientName}</span>
+                      </div>
+                    )}
                   </div>
 
-                  <Link
-                    to="/projetos/$projectId"
-                    params={{ projectId: p.id }}
-                    className="block font-bold text-lg hover:text-primary transition-colors"
-                  >
-                    {p.name}
-                  </Link>
+                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-border/60">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-mono-kasa tabular-nums text-muted-foreground">
+                      <CheckSquare className="size-3 text-muted-foreground/70" />
+                      <span>{p.total_jobs || 0} jobs</span>
+                    </span>
 
-                  {clientName && (
-                    <div className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                      {p.clients?.logo_url ? (
-                        <img
-                          src={p.clients.logo_url}
-                          alt={clientName}
-                          className="size-4 rounded object-cover shrink-0"
-                        />
-                      ) : (
-                        <Building2 className="size-3.5 shrink-0 opacity-60" />
-                      )}
-                      <span className="truncate">{clientName}</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
-                    <Badge
-                      variant="secondary"
-                      className="bg-primary/5 text-primary border-primary/10 text-[10px] font-bold uppercase tracking-tighter gap-1"
-                    >
-                      <CheckSquare className="size-3" />
-                      {p.total_jobs || 0} Jobs Vinculados
-                    </Badge>
+                    <Button asChild variant="ghost" size="sm" className="h-7 px-2.5 text-[11px] font-mono-kasa rounded-md text-muted-foreground hover:text-foreground">
+                      <Link to="/projetos/$projectId" params={{ projectId: p.id }}>
+                        Acessar →
+                      </Link>
+                    </Button>
                   </div>
                 </div>
               );

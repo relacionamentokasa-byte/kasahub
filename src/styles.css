@@ -61,93 +61,99 @@
 :root {
   --radius: 0.75rem;
 
-  /* Kasa palette */
-  --background: oklch(0.196 0.011 197);          /* #0C1618 verde-petróleo */
-  --foreground: oklch(0.965 0.005 180);          /* #F4F7F5 off-white frio */
-  --surface: oklch(0.243 0.011 207);             /* #142124 surface */
-  --surface-elevated: oklch(0.285 0.012 207);    /* card elevado */
+  /* =========================================================
+   * MODO DARK (Padrão Kasa Hub) — Slate & Zinc Profissional
+   * Base neutra grafite (#09090b / #121214), sem tons esverdeados
+   * Acentos em Âmbar Dourado Kasa (#F59E0B)
+   * ========================================================= */
+  --background: oklch(0.141 0.005 285.8);       /* #09090b - Fundo escuro profundo */
+  --foreground: oklch(0.985 0 0);               /* #fafafa - Texto branco puro */
+  --surface: oklch(0.182 0.006 285.8);          /* #18181b - Superfície base */
+  --surface-elevated: oklch(0.231 0.008 285.8); /* #27272a - Card elevado/hover */
 
-  --card: oklch(0.243 0.011 207);
-  --card-foreground: oklch(0.965 0.005 180);
-  --popover: oklch(0.243 0.011 207);
-  --popover-foreground: oklch(0.965 0.005 180);
+  --card: oklch(0.182 0.006 285.8);             /* #18181b */
+  --card-foreground: oklch(0.985 0 0);          /* #fafafa */
+  --popover: oklch(0.165 0.005 285.8);          /* #121215 */
+  --popover-foreground: oklch(0.985 0 0);
 
-  --primary: oklch(0.832 0.146 75.5);            /* #FFBC45 amarelo Kasa */
-  --primary-foreground: oklch(0.196 0.011 197);
+  --primary: oklch(0.795 0.155 70.67);          /* #F59E0B - Âmbar Dourado Kasa */
+  --primary-foreground: oklch(0.141 0.005 285.8);
 
-  --secondary: oklch(0.285 0.012 207);
-  --secondary-foreground: oklch(0.965 0.005 180);
+  --secondary: oklch(0.231 0.008 285.8);        /* #27272a */
+  --secondary-foreground: oklch(0.985 0 0);
 
-  --muted: oklch(0.243 0.011 207);
-  --muted-foreground: oklch(0.65 0.012 207);
+  --muted: oklch(0.231 0.008 285.8);            /* #27272a */
+  --muted-foreground: oklch(0.705 0.015 286);   /* #a1a1aa - Zinc 400 contrastado */
 
-  --accent: oklch(0.32 0.014 207);
-  --accent-foreground: oklch(0.965 0.005 180);
+  --accent: oklch(0.274 0.008 285.8);           /* #3f3f46 */
+  --accent-foreground: oklch(0.985 0 0);
 
-  --destructive: oklch(0.62 0.21 27);
-  --destructive-foreground: oklch(0.98 0.005 180);
+  --destructive: oklch(0.637 0.237 25.331);
+  --destructive-foreground: oklch(0.985 0 0);
 
-  --success: oklch(0.72 0.16 162);
-  --warning: oklch(0.82 0.16 70);
+  --success: oklch(0.723 0.165 149.58);
+  --warning: oklch(0.795 0.155 70.67);
 
-  --border: oklch(1 0 0 / 0.06);
-  --input: oklch(1 0 0 / 0.08);
-  --ring: oklch(0.832 0.146 75.5 / 0.5);
+  --border: oklch(1 0 0 / 0.08);                /* Borda sutil e nítida */
+  --input: oklch(1 0 0 / 0.10);
+  --ring: oklch(0.795 0.155 70.67 / 0.5);
 
-  --sidebar: oklch(0.196 0.011 197);
-  --sidebar-foreground: oklch(0.965 0.005 180);
-  --sidebar-primary: oklch(0.832 0.146 75.5);
-  --sidebar-primary-foreground: oklch(0.196 0.011 197);
-  --sidebar-accent: oklch(0.243 0.011 207);
-  --sidebar-accent-foreground: oklch(0.965 0.005 180);
-  --sidebar-border: oklch(1 0 0 / 0.06);
-  --sidebar-ring: oklch(0.832 0.146 75.5 / 0.5);
+  --sidebar: oklch(0.125 0.005 285.8);          /* #09090b escuro */
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.795 0.155 70.67);
+  --sidebar-primary-foreground: oklch(0.141 0.005 285.8);
+  --sidebar-accent: oklch(0.182 0.006 285.8);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.08);
+  --sidebar-ring: oklch(0.795 0.155 70.67 / 0.5);
 }
 
 .dark {
-  /* Dark é o padrão Kasa — mantém os tokens de :root. */
+  /* Mantém tokens refinados do :root */
 }
 
-/* Light mode — fundo claro, sidebar permanece dark (identidade Kasa). */
+/* =========================================================
+ * MODO CLEAN / LIGHT — Fundo gelo profissional & cards brancos
+ * ========================================================= */
 .light {
-  --background: oklch(0.985 0.002 247);
-  --foreground: oklch(0.196 0.011 197);
-  --surface: oklch(1 0 0);
+  --background: oklch(0.985 0.002 247.8);       /* #f8fafc / #fafafa fundo limpo */
+  --foreground: oklch(0.141 0.005 285.8);       /* #09090b texto escuro nítido */
+  --surface: oklch(1 0 0);                      /* #ffffff */
   --surface-elevated: oklch(1 0 0);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.196 0.011 197);
+  --card: oklch(1 0 0);                         /* #ffffff cards brancos */
+  --card-foreground: oklch(0.141 0.005 285.8);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.196 0.011 197);
+  --popover-foreground: oklch(0.141 0.005 285.8);
 
-  --primary: oklch(0.832 0.146 75.5);
-  --primary-foreground: oklch(0.196 0.011 197);
+  --primary: oklch(0.72 0.16 65);               /* Âmbar com peso ideal para fundo claro */
+  --primary-foreground: oklch(0.985 0 0);
 
-  --secondary: oklch(0.96 0.003 247);
-  --secondary-foreground: oklch(0.196 0.011 197);
+  --secondary: oklch(0.96 0.003 286);           /* #f4f4f5 */
+  --secondary-foreground: oklch(0.141 0.005 285.8);
 
-  --muted: oklch(0.96 0.003 247);
-  --muted-foreground: oklch(0.5 0.012 207);
+  --muted: oklch(0.96 0.003 286);               /* #f4f4f5 */
+  --muted-foreground: oklch(0.55 0.015 286);    /* #71717a */
 
-  --accent: oklch(0.94 0.005 247);
-  --accent-foreground: oklch(0.196 0.011 197);
+  --accent: oklch(0.94 0.005 286);              /* #e4e4e7 */
+  --accent-foreground: oklch(0.141 0.005 285.8);
 
   --destructive: oklch(0.58 0.22 27);
   --destructive-foreground: oklch(1 0 0);
 
-  --border: oklch(0.91 0.004 247);
-  --input: oklch(0.91 0.004 247);
-  --ring: oklch(0.832 0.146 75.5 / 0.5);
+  --border: oklch(0.91 0.005 286);              /* #e4e4e7 */
+  --input: oklch(0.91 0.005 286);
+  --ring: oklch(0.72 0.16 65 / 0.4);
 
-  /* Sidebar permanece dark — identidade visual Kasa */
-  --sidebar: oklch(0.196 0.011 197);
-  --sidebar-foreground: oklch(0.965 0.005 180);
-  --sidebar-primary: oklch(0.832 0.146 75.5);
-  --sidebar-primary-foreground: oklch(0.196 0.011 197);
-  --sidebar-accent: oklch(0.243 0.011 207);
-  --sidebar-accent-foreground: oklch(0.965 0.005 180);
-  --sidebar-border: oklch(1 0 0 / 0.06);
-  --sidebar-ring: oklch(0.832 0.146 75.5 / 0.5);
+  /* Sidebar elegante em tom grafite neutro */
+  --sidebar: oklch(0.141 0.005 285.8);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.795 0.155 70.67);
+  --sidebar-primary-foreground: oklch(0.141 0.005 285.8);
+  --sidebar-accent: oklch(0.20 0.006 285.8);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.08);
+  --sidebar-ring: oklch(0.795 0.155 70.67 / 0.5);
 }
 
 @layer base {
@@ -166,15 +172,14 @@
     color: var(--color-primary-foreground);
   }
 
-  h1, h2, h3, h4, h5, h6 { 
-    font-family: var(--font-display); 
-    letter-spacing: -0.01em; 
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
     color: var(--color-foreground);
   }
 
-  /* Melhoria de acessibilidade para textos muted no modo escuro */
   .dark .text-muted-foreground {
-    color: oklch(0.75 0.012 207); /* Aumentando levemente o contraste do muted no dark */
+    color: var(--color-muted-foreground);
   }
 }
 

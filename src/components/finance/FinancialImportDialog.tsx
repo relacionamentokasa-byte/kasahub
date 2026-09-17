@@ -272,74 +272,77 @@ export function FinancialImportDialog({ open, onOpenChange }: { open: boolean, o
     <Dialog open={open} onOpenChange={(val) => {
       if (!importing) onOpenChange(val);
     }}>
-      <DialogContent className="sm:max-w-2xl bg-surface border-border p-0 overflow-hidden flex flex-col max-h-[90vh]">
-        <DialogHeader className="p-6 border-b border-border bg-muted/20">
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <FileSpreadsheet className="size-5 text-primary" /> Importar Lançamentos Financeiros
+      <DialogContent className="sm:max-w-2xl bg-card border-border/80 p-0 overflow-hidden flex flex-col max-h-[90vh] shadow-2xl">
+        <DialogHeader className="p-6 border-b border-border/70 bg-muted/20">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <FileSpreadsheet className="size-5" />
+            </div>
+            <span>Importar Lançamentos Financeiros</span>
           </DialogTitle>
-          <DialogDescription>
-            Siga os passos para importar dados de planilhas Excel ou CSV.
+          <DialogDescription className="text-xs text-muted-foreground">
+            Siga os passos para importar dados de planilhas Excel (.xlsx, .xls) ou CSV.
           </DialogDescription>
         </DialogHeader>
 
         <div className="p-6 flex-1 overflow-y-auto">
           {step === "upload" && (
-            <div 
-              className="border-2 border-dashed border-border rounded-2xl p-16 text-center flex flex-col items-center justify-center space-y-4 hover:border-primary/50 transition-colors cursor-pointer relative group"
+            <div
+              className="border-2 border-dashed border-border/80 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-4 hover:border-primary/50 hover:bg-muted/20 transition-all cursor-pointer relative group"
             >
-              <input 
-                type="file" 
-                accept=".csv, .xlsx, .xls" 
+              <input
+                type="file"
+                accept=".csv, .xlsx, .xls"
                 onChange={handleFileChange}
                 className="absolute inset-0 opacity-0 cursor-pointer"
               />
-              <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                <Upload className="size-8" />
+              <div className="size-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary group-hover:scale-105 transition-transform">
+                <Upload className="size-7" />
               </div>
-              <div className="space-y-2">
-                <p className="font-bold text-lg text-foreground">Arraste sua planilha ou clique para buscar</p>
-                <p className="text-sm text-foreground/40">Suporta formatos .CSV, .XLSX e .XLS</p>
+              <div className="space-y-1.5">
+                <p className="font-semibold text-sm text-foreground">Arraste sua planilha ou clique para selecionar</p>
+                <p className="text-xs text-muted-foreground font-mono-kasa">Suporta formatos .CSV, .XLSX e .XLS</p>
               </div>
             </div>
           )}
 
           {step === "mapping" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between bg-muted/30 p-4 rounded-xl border border-border">
+            <div className="space-y-5">
+              <div className="flex items-center justify-between bg-muted/30 p-3.5 rounded-xl border border-border/70">
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                    <FileSpreadsheet className="size-5" />
+                  <div className="size-9 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                    <FileSpreadsheet className="size-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-bold truncate">{file?.name}</p>
-                    <p className="text-[10px] text-foreground/40 uppercase font-mono-kasa">{data.length} registros encontrados</p>
+                    <p className="text-xs font-semibold truncate text-foreground">{file?.name}</p>
+                    <p className="text-[11px] text-muted-foreground font-mono-kasa tabular-nums">{data.length} registros encontrados</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={resetState} className="text-foreground/40 hover:text-destructive">
+                <Button variant="ghost" size="sm" onClick={resetState} className="text-xs text-muted-foreground hover:text-destructive h-8">
                   Alterar arquivo
                 </Button>
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 text-sm font-bold text-foreground/70">
-                  <Database className="size-4" />
-                  Mapeamento de Colunas (De-Para)
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                  <Database className="size-3.5 text-primary" />
+                  <span>Mapeamento de Colunas (De-Para)</span>
                 </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {SYSTEM_FIELDS.map((field) => (
-                    <div key={field.value} className="space-y-1.5">
-                      <label className="text-xs font-medium text-foreground/60">{field.label}</label>
-                      <Select 
-                        value={mappings[field.value]} 
+                    <div key={field.value} className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">{field.label}</label>
+                      <Select
+                        value={mappings[field.value]}
                         onValueChange={(val) => handleMappingChange(field.value, val)}
                       >
-                        <SelectTrigger className="bg-background border-border h-9">
+                        <SelectTrigger className="bg-background border-border/70 h-9 text-xs">
                           <SelectValue placeholder="Selecione a coluna..." />
                         </SelectTrigger>
                         <SelectContent>
                           {headers.map(h => (
-                            <SelectItem key={h} value={h}>{h}</SelectItem>
+                            <SelectItem key={h} value={h} className="text-xs">{h}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -348,12 +351,12 @@ export function FinancialImportDialog({ open, onOpenChange }: { open: boolean, o
                 </div>
               </div>
 
-              <div className="bg-primary/5 border border-primary/10 rounded-xl p-4 flex gap-3">
-                <AlertCircle className="size-5 text-primary shrink-0" />
-                <div className="space-y-1">
-                  <p className="text-xs font-bold text-primary">Dica de Importação</p>
-                  <p className="text-[10px] text-foreground/60 leading-relaxed">
-                    Nós tentamos mapear as colunas automaticamente com base nos nomes. Verifique cada campo para garantir que os dados sejam importados corretamente.
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-3.5 flex gap-3 items-start">
+                <AlertCircle className="size-4 text-primary shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <p className="text-xs font-semibold text-primary">Dica de Importação</p>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Mapeamos as colunas automaticamente com base no cabeçalho. Confira se os campos de Data, Descrição e Valor estão corretos antes de prosseguir.
                   </p>
                 </div>
               </div>
@@ -361,39 +364,41 @@ export function FinancialImportDialog({ open, onOpenChange }: { open: boolean, o
           )}
 
           {step === "processing" && (
-            <div className="py-12 flex flex-col items-center justify-center space-y-6">
+            <div className="py-12 flex flex-col items-center justify-center space-y-5">
               <div className="relative">
-                <Loader2 className="size-16 text-primary animate-spin opacity-20" />
+                <Loader2 className="size-14 text-primary animate-spin opacity-20" />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <CheckCircle2 className="size-8 text-primary animate-pulse" />
+                  <CheckCircle2 className="size-7 text-primary animate-pulse" />
                 </div>
               </div>
               <div className="text-center space-y-2 w-full max-w-xs">
-                <p className="font-bold text-lg">Processando Importação...</p>
-                <Progress value={progress} className="h-2" />
-                <p className="text-xs text-foreground/40 uppercase font-mono-kasa tracking-widest">{progress}% concluído</p>
+                <p className="font-semibold text-sm">Processando Importação...</p>
+                <Progress value={progress} className="h-1.5" />
+                <p className="text-[11px] text-muted-foreground font-mono-kasa tabular-nums tracking-widest">{progress}% concluído</p>
               </div>
             </div>
           )}
         </div>
 
-        <DialogFooter className="p-6 border-t border-border bg-muted/20 flex flex-row items-center justify-end gap-3">
-          <Button 
-            variant="ghost" 
-            onClick={() => onOpenChange(false)} 
+        <DialogFooter className="p-4 border-t border-border/70 bg-muted/20 flex flex-row items-center justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
             disabled={importing}
-            className="rounded-full"
+            className="text-xs h-9"
           >
             Cancelar
           </Button>
-          
+
           {step === "mapping" && (
-            <Button 
-              onClick={runImport} 
-              disabled={importing} 
-              className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-8 font-bold gap-2"
+            <Button
+              size="sm"
+              onClick={runImport}
+              disabled={importing}
+              className="text-xs h-9 font-medium gap-1.5"
             >
-              {importing ? <Loader2 className="size-4 animate-spin" /> : <ArrowRight className="size-4" />}
+              {importing ? <Loader2 className="size-3.5 animate-spin" /> : <ArrowRight className="size-3.5" />}
               Processar Importação
             </Button>
           )}

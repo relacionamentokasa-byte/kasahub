@@ -3482,9 +3482,8 @@ function KpiCard({ label, value, color, emoji }: { label: string; value: number;
 
 
 function AgendaSection({ events }: { events: CalendarEventRow[] }) {
-  if (!events.length) return null;
-
   const grouped = useMemo(() => {
+    if (!events || !events.length) return [];
     const map = new Map<string, CalendarEventRow[]>();
     events.forEach((ev) => {
       const d = new Date(ev.starts_at);
@@ -3494,6 +3493,8 @@ function AgendaSection({ events }: { events: CalendarEventRow[] }) {
     });
     return Array.from(map.entries()).slice(0, 8);
   }, [events]);
+
+  if (!events || !events.length || !grouped.length) return null;
 
   const KIND_META: Record<string, { emoji: string; label: string }> = {
     meeting: { emoji: "📞", label: "Reunião" },

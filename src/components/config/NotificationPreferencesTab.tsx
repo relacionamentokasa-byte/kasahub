@@ -1,22 +1,22 @@
 import { useQueryClient, useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2, Bell, Shield, Info } from "lucide-react";
+import { Loader2, Bell, Volume2, Sparkles, CheckCircle2, MessageSquare, AtSign, CalendarClock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
-import { runFullNotificationTest } from "@/lib/notification-test-suite";
-import { criarNotificacao } from "@/lib/notifications-api";
+import { useEffect } from "react";
+import { playStandardNotificationSound } from "@/lib/critical-notification-bus";
 import { PushNotificationsCard } from "./PushNotificationsCard";
 
-
-function ToggleRow({
+function PreferenceRow({
+  icon: Icon,
   title,
   description,
   checked,
   onChange,
   disabled,
 }: {
+  icon: any;
   title: string;
   description: string;
   checked: boolean;
@@ -24,16 +24,21 @@ function ToggleRow({
   disabled?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between py-4 border-b border-border/50 last:border-0 hover:bg-muted/5 transition-colors px-2 rounded-lg">
-      <div className="space-y-1">
-        <p className="font-bold text-sm tracking-tight">{title}</p>
-        <p className="text-xs text-foreground/50 leading-relaxed max-w-[400px]">{description}</p>
+    <div className="flex items-start sm:items-center justify-between py-4 border-b border-border/60 last:border-0 gap-4 hover:bg-muted/10 px-3 rounded-lg transition-colors">
+      <div className="flex items-start sm:items-center gap-3 min-w-0">
+        <div className="size-8 rounded-lg bg-muted/40 border border-border/80 flex items-center justify-center text-muted-foreground shrink-0 mt-0.5 sm:mt-0">
+          <Icon className="size-4" />
+        </div>
+        <div className="space-y-0.5">
+          <p className="font-medium text-xs sm:text-sm tracking-tight text-foreground">{title}</p>
+          <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed max-w-[460px]">{description}</p>
+        </div>
       </div>
-      <Switch 
-        checked={checked} 
-        onCheckedChange={onChange} 
+      <Switch
+        checked={checked}
+        onCheckedChange={onChange}
         disabled={disabled}
-        className="data-[state=checked]:bg-primary"
+        className="data-[state=checked]:bg-primary shrink-0 mt-1 sm:mt-0"
       />
     </div>
   );
@@ -42,7 +47,6 @@ function ToggleRow({
 export function NotificationPreferencesTab() {
   const qc = useQueryClient();
 
-  // Get current user
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["auth-user"],
     queryFn: async () => {
@@ -52,7 +56,6 @@ export function NotificationPreferencesTab() {
     }
   });
 
-  // Get preferences
   const { data: prefs, isLoading: prefsLoading } = useQuery({
     queryKey: ["notification-preferences", user?.id],
     queryFn: async () => {
@@ -68,45 +71,29 @@ export function NotificationPreferencesTab() {
     enabled: !!user?.id
   });
 
-  // Realtime subscription setup
   useEffect(() => {
     if (!user?.id) return;
-
-    let channel: any;
-
-    const setupSubscription = async () => {
-      // Clean up previous channel
-      if (channel) {
-        await supabase.removeChannel(channel);
-      }
-
-      channel = supabase
-        .channel(`notif-prefs-updates-${user.id}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table: "notification_preferences",
-            filter: `user_id=eq.${user.id}`,
-          },
-          () => {
-            qc.invalidateQueries({ queryKey: ["notification-preferences", user.id] });
-          }
-        )
-        .subscribe();
-    };
-
-    setupSubscription();
+    const channel = supabase
+      .channel(`notif-prefs-updates-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notification_preferences",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["notification-preferences", user.id] });
+        }
+      )
+      .subscribe();
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
   }, [user?.id, qc]);
 
-  // Update preferences mutation
   const mut = useMutation({
     mutationFn: async (patch: any) => {
       if (!user?.id) throw new Error("Usuário não autenticado");
@@ -135,7 +122,7 @@ export function NotificationPreferencesTab() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["notification-preferences", user?.id] });
-      toast.success("Preferências salvas com sucesso!");
+      toast.success("Preferências salvas");
     },
     onError: (e: Error) => {
       toast.error(`Erro ao salvar: ${e.message}`);
@@ -146,128 +133,139 @@ export function NotificationPreferencesTab() {
     return (
       <div className="p-20 flex flex-col items-center justify-center gap-4">
         <Loader2 className="size-8 animate-spin text-primary/40" />
-        <p className="text-sm text-foreground/40 font-mono-kasa animate-pulse">Carregando preferências...</p>
+        <p className="text-xs text-muted-foreground font-mono-kasa animate-pulse">Carregando preferências…</p>
       </div>
     );
   }
 
-  const notificationTypes = [
-    {
-      key: "jobs",
-      title: "Atribuição de Job",
-      description: "Notifica quando uma nova tarefa for atribuída a você ou quando houver mudanças críticas em jobs que você participa."
-    },
-    {
-      key: "mentions",
-      title: "Menções",
-      description: "Alertas imediatos quando alguém mencionar seu @usuário em qualquer parte do sistema (comentários, notas, briefings)."
-    },
-    {
-      key: "comments",
-      title: "Comentários",
-      description: "Fique por dentro de novas interações e discussões em tarefas ou projetos onde você está envolvido."
-    },
-    {
-      key: "approvals",
-      title: "Mudança de Status",
-      description: "Receba avisos quando o status de uma tarefa mudar, mantendo o fluxo de trabalho sempre atualizado."
-    },
-    {
-      key: "agenda",
-      title: "Prazo Próximo",
-      description: "Lembretes preventivos automáticos (1 dia antes) para garantir que nenhuma entrega importante seja esquecida."
-    }
-  ];
-
-  async function sendTestNotification() {
-    try {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser) return;
-
-      toast.promise(
-        async () => {
-          await criarNotificacao(
-            currentUser.id,
-            "Teste de Notificação",
-            "Esta é uma notificação de teste enviada para verificar se o sistema está funcionando corretamente.",
-            "info"
-          );
-
-        },
-        {
-          loading: 'Enviando teste...',
-          success: 'Notificação de teste enviada! Verifique o sininho no topo.',
-          error: 'Falha ao enviar teste.'
-        }
-      );
-    } catch (error) {
-      console.error("Erro ao enviar teste:", error);
-      toast.error("Erro ao enviar notificação de teste");
-    }
-  }
+  const soundEnabled = prefs ? prefs.sound_enabled !== false : true;
+  const soundVolume = (prefs?.sound_volume as 'low' | 'medium' | 'high') || 'medium';
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <div className="space-y-6 max-w-4xl">
+      {/* 1. Canal Push (Mobile / PWA) */}
       <PushNotificationsCard />
-      <div className="bg-surface border border-border rounded-2xl p-8 shadow-sm">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-primary/10 text-primary">
-              <Bell className="size-6" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold tracking-tight">Notificações da Plataforma</h3>
-              <p className="text-sm text-foreground/50">Gerencie como e quando você deseja ser notificado no sistema.</p>
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="font-bold text-[10px] uppercase tracking-wider gap-2"
-              onClick={sendTestNotification}
-            >
-              Teste Simples
-            </Button>
-            <Button 
-              variant="default" 
-              size="sm" 
-              className="font-bold text-[10px] uppercase tracking-wider gap-2"
-              onClick={runFullNotificationTest}
-            >
-              Rodar Teste Completo (Gatilhos)
-            </Button>
-          </div>
-        </div>
 
-        <div className="space-y-2">
-          {notificationTypes.map((type) => (
-            <ToggleRow 
-              key={type.key}
-              title={type.title}
-              description={type.description}
-              checked={prefs ? (prefs as any)[type.key] ?? true : true}
-              onChange={(v) => mut.mutate({ [type.key]: v })}
-              disabled={mut.isPending}
-            />
-          ))}
-        </div>
-
-        <div className="mt-10 p-4 bg-muted/30 border border-border/50 rounded-xl flex gap-3">
-          <Info className="size-4 text-primary shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="text-xs font-bold uppercase tracking-wider text-foreground/70">Tempo Real Ativado</p>
-            <p className="text-[11px] text-foreground/50 leading-relaxed">
-              As alterações são aplicadas instantaneamente a todos os seus dispositivos conectados através do Supabase Realtime.
+      {/* 2. Sons e Alertas do Navegador */}
+      <div className="bg-card border border-border/80 rounded-xl p-5 sm:p-6 shadow-xs">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+            <Volume2 className="size-4.5" />
+          </div>
+          <div>
+            <h3 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">
+              Sons e Alertas Sonoros
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Controle de feedback auditivo para alertas em tempo real.
             </p>
           </div>
         </div>
+
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center justify-between py-3 border-b border-border/60">
+            <div>
+              <p className="text-xs sm:text-sm font-medium text-foreground">Alertas sonoros ativos</p>
+              <p className="text-[11px] text-muted-foreground">Tocar som discreto quando novas mensagens e alertas chegarem.</p>
+            </div>
+            <Switch
+              checked={soundEnabled}
+              onCheckedChange={(v) => {
+                mut.mutate({ sound_enabled: v });
+                if (v) playStandardNotificationSound(soundVolume);
+              }}
+              disabled={mut.isPending}
+              className="data-[state=checked]:bg-primary"
+            />
+          </div>
+
+          {soundEnabled && (
+            <div className="flex items-center justify-between py-3">
+              <div>
+                <p className="text-xs sm:text-sm font-medium text-foreground">Volume do áudio</p>
+                <p className="text-[11px] text-muted-foreground">Intensidade do aviso sonoro.</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select
+                  value={soundVolume}
+                  onValueChange={(val: 'low' | 'medium' | 'high') => {
+                    mut.mutate({ sound_volume: val });
+                    playStandardNotificationSound(val);
+                  }}
+                  disabled={mut.isPending}
+                >
+                  <SelectTrigger className="h-8 text-xs w-32 font-mono-kasa">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low" className="text-xs font-mono-kasa">Baixo</SelectItem>
+                    <SelectItem value="medium" className="text-xs font-mono-kasa">Médio</SelectItem>
+                    <SelectItem value="high" className="text-xs font-mono-kasa">Alto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="bg-surface/50 border border-dashed border-border rounded-2xl p-6 flex items-center justify-between gap-6">
-        <div className="flex items-center gap-3 text-foreground/40">
-          <Shield className="size-5" />
-          <p className="text-xs font-medium">As preferências são privadas e vinculadas exclusivamente à sua conta de usuário.</p>
+      {/* 3. Eventos da Plataforma */}
+      <div className="bg-card border border-border/80 rounded-xl p-5 sm:p-6 shadow-xs">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+            <Bell className="size-4.5" />
+          </div>
+          <div>
+            <h3 className="text-sm sm:text-base font-semibold tracking-tight text-foreground">
+              Eventos e Atividades
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              Escolha quais eventos geram notificações no sininho e no centro de alertas.
+            </p>
+          </div>
+        </div>
+
+        <div className="divide-y divide-border/60">
+          <PreferenceRow
+            icon={Sparkles}
+            title="Atribuição de Jobs & Demandas"
+            description="Receba alertas ao ser designado como responsável ou participante de um job ou projeto."
+            checked={prefs ? (prefs as any).jobs ?? true : true}
+            onChange={(v) => mut.mutate({ jobs: v })}
+            disabled={mut.isPending}
+          />
+          <PreferenceRow
+            icon={AtSign}
+            title="Menções diretas (@)"
+            description="Avisos em destaque quando alguém mencionar seu nome em briefings, comentários ou notas."
+            checked={prefs ? (prefs as any).mentions ?? true : true}
+            onChange={(v) => mut.mutate({ mentions: v })}
+            disabled={mut.isPending}
+          />
+          <PreferenceRow
+            icon={CheckCircle2}
+            title="Aprovações e Mudanças de Etapa"
+            description="Alertas quando materiais forem aprovados pelo cliente ou avançarem no pipeline."
+            checked={prefs ? (prefs as any).approvals ?? true : true}
+            onChange={(v) => mut.mutate({ approvals: v })}
+            disabled={mut.isPending}
+          />
+          <PreferenceRow
+            icon={MessageSquare}
+            title="Comentários e Interações"
+            description="Novas mensagens e notas em tarefas onde você está envolvido."
+            checked={prefs ? (prefs as any).comments ?? true : true}
+            onChange={(v) => mut.mutate({ comments: v })}
+            disabled={mut.isPending}
+          />
+          <PreferenceRow
+            icon={CalendarClock}
+            title="Prazos & Lembretes Preventivos"
+            description="Lembretes automáticos de vencimento e datas de entrega programadas."
+            checked={prefs ? (prefs as any).agenda ?? true : true}
+            onChange={(v) => mut.mutate({ agenda: v })}
+            disabled={mut.isPending}
+          />
         </div>
       </div>
     </div>

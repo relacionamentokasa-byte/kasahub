@@ -7,6 +7,7 @@ import { GestaoSection } from "./GestaoSection";
 import { SaudeNegocioSection } from "./SaudeNegocioSection";
 
 import { OperacaoSection } from "./OperacaoSection";
+import { OperationsChartsSection } from "./OperationsChartsSection";
 import { PerformanceSection } from "./PerformanceSection";
 import { AgendaSection } from "./AgendaSection";
 import { ClientesSection } from "./ClientesSection";
@@ -191,75 +192,18 @@ export function ExecutiveDashboard() {
   const isManager = isAdmin || roles.some((r: any) => r === 'ceo' || r === 'gestor');
 
   return (
-    <div className="space-y-6 sm:space-y-10">
+    <div className="space-y-6 lg:space-y-8">
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <h2 className="font-display text-xl sm:text-2xl font-bold">Resumo Geral</h2>
-          <p className="text-xs lg:text-sm text-foreground/50 truncate">Vitalidade operacional da agência.</p>
-        </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="icon" className="h-10 w-10 shrink-0">
-                <Settings2 className="size-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56" align="end">
-              <div className="space-y-4">
-                <h4 className="font-medium leading-none">Personalizar Visão</h4>
-                <div className="grid gap-4">
-                   <div className="flex items-center justify-between">
-                      <Label className="text-xs">Operação</Label>
-                      <Switch checked={visibleSections.operacao} onCheckedChange={() => toggleSection('operacao')} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs">Agenda</Label>
-                      <Switch checked={visibleSections.agenda} onCheckedChange={() => toggleSection('agenda')} />
-                    </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <Select value={range} onValueChange={(v: any) => setRange(v)}>
-            <SelectTrigger className="flex-1 sm:w-[160px] h-10">
-              <div className="flex items-center gap-2">
-                <Filter className="size-3.5 text-foreground/40 shrink-0" />
-                <SelectValue />
-              </div>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="today">Hoje</SelectItem>
-              <SelectItem value="week">Esta Semana</SelectItem>
-              <SelectItem value="month">Este Mês</SelectItem>
-              <SelectItem value="quarter">Este Trimestre</SelectItem>
-              <SelectItem value="year">Este Ano</SelectItem>
-            </SelectContent>
-          </Select>
+          <h2 className="font-display text-lg lg:text-xl font-bold tracking-tight">Indicadores Estratégicos</h2>
+          <p className="text-xs text-muted-foreground truncate">Pulso financeiro e performance operacional consolidada.</p>
         </div>
       </header>
 
       <SaudeNegocioSection />
 
-      {visibleSections.operacao && (
-        <OperacaoSection 
-          stats={{
-            jobsInProgress: filteredData.jobsInProgress,
-            overdueJobs: filteredData.jobsOverdue,
-            jobsCompletedMonth: filteredData.jobsCompletedMonth,
-          }}
-        />
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10">
-        <div className="lg:col-span-2 space-y-10">
-           {visibleSections.agenda && <AgendaSection items={filteredData.agendaItems as any} />}
-           {visibleSections.feed && <FeedSection events={filteredData.feedEvents} />}
-        </div>
-        <div className="space-y-10">
-           {visibleSections.clientes && <ClientesSection clients={filteredData.clientRanking as any} />}
-        </div>
-      </div>
+      {/* Gráficos Visuais com dados reais da Operação (Colunas por fase e Donut de Mix de Clientes) */}
+      <OperationsChartsSection jobs={jobs} clients={clients} jobStages={jobStages} />
     </div>
   );
 }

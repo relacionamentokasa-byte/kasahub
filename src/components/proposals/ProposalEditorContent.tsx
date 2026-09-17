@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { 
-  fetchProposal, 
-  updateProposal, 
+import {
+  fetchProposal,
+  updateProposal,
   formatCurrency,
   type Proposal,
 } from "@/lib/crm-api";
@@ -12,22 +12,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { 
-  Plus, 
-  Trash2, 
-  Save, 
-  Loader2, 
-  ChevronDown, 
-  ChevronUp,
+import {
+  Plus,
+  Trash2,
+  Save,
+  Loader2,
   FileText,
   DollarSign,
   Calendar,
   Layers,
   Rocket,
-  ExternalLink,
   Copy,
-  Check
+  MessageCircle,
+  Eye,
+  ShieldCheck,
+  Check,
+  ExternalLink,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ScopeEditor } from "./ScopeEditor";
@@ -43,14 +44,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  DEFAULT_INSTALLMENTS, 
-  PaymentInstallment, 
+import {
   calculateInstallmentValues,
   distributeEqually,
-  DUE_KIND_OPTIONS
 } from "@/lib/proposal-negotiation";
 import { SheetContentSkeleton } from "@/components/ui/loading-skeletons";
 
@@ -87,20 +84,18 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
       qc.invalidateQueries({ queryKey: ["propostas"] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
-      toast.success("Alterações salvas");
+      toast.success("Alterações salvas com sucesso");
       setIsDirty(false);
     },
     onError: (e: Error) => toast.error(`Erro ao salvar: ${e.message}`),
   });
 
   const handleSave = () => {
-    // Calculate total before saving
     const monthly = Number(form.monthly_investment || 0);
     const months = Number(form.recurring_months || 0);
     const setup = Number(form.one_time_investment || 0);
     const total = (monthly * months) + setup;
 
-    // Validation for special negotiation
     if (form.is_special_negotiation) {
       const installments = (form as any).payment_installments_config || [];
       const sum = installments.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
@@ -110,7 +105,6 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
       }
     }
 
-    // Sincroniza o snapshot do contrato com o modelo selecionado.
     const templateId = (form as any).contract_template_id;
     const selectedTemplate = templateId
       ? contractTemplates.find((t) => t.id === templateId)
@@ -127,9 +121,10 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     return <SheetContentSkeleton />;
   }
 
-  const publicUrl = `${window.location.origin}/proposta/${proposal?.public_token}`;
+  const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/proposta/${proposal?.public_token}` : "";
 
   const copyPublicLink = () => {
+    if (!publicUrl) return;
     navigator.clipboard.writeText(publicUrl);
     toast.success("Link público copiado!");
   };
@@ -142,9 +137,124 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     setIsApprovalDialogOpen(true);
   };
 
+  const openClientWhatsApp = () => {
+    const text = `Olá, ${form.client_name || "Cliente"}!%0A%0ASegue a proposta comercial preparada especialmente para sua empresa.%0AVocê pode visualizar todos os detalhes e assinar digitalmente através do link seguro abaixo:%0A%0A${encodeURIComponent(publicUrl)}%0A%0AQualquer dúvida estou à disposição!`;
+    window.open(`https://wa.me/?text=${text}`, "_blank");
+  };
+
+  const months = Number(form.recurring_months || 0);
+  const baseMonthly = Number(form.monthly_investment || 0);
+  const setup = Number(form.one_time_investment || 0);
+  const adjs: any[] = Array.isArray((form as any).scheduled_adjustments) ? (form as any).scheduled_adjustments : [];
+  const sortedAdjs = [...adjs].filter(a => a && Number(a.from_month) > 0).sort((a, b) => Number(a.from_month) - Number(b.from_month));
+  let recurringTotal = 0;
+  for (let m = 1; m <= (months || 1); m++) {
+    const match = [...sortedAdjs].reverse().find(a => Number(a.from_month) <= m);
+    recurringTotal += match ? Number(match.value || 0) : baseMonthly;
+  }
+  const grandTotal = (baseMonthly > 0 ? recurringTotal : 0) + setup;
+
   return (
-    <div className="space-y-8 animate-reveal">
-      {/* Signature / Acceptance Card */}
+    <div className="space-y-5">
+      {/* Top Bar: Public Link & Status */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-card border border-border/60 rounded-lg">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[11px] font-mono-kasa uppercase text-muted-foreground shrink-0">
+            Status:
+          </span>
+          <Select
+            value={form.status || "Rascunho"}
+            onValueChange={async (val) => {
+              const oldStatus = form.status;
+              const newStatus = val;
+
+              if (oldStatus === "Aprovada" && newStatus !== "Aprovada") {
+                const confirmed = window.confirm(
+                  "Você está revertendo uma proposta que já foi aprovada. " +
+                  "Isso removerá automaticamente o Projeto, o Contrato e todos os lançamentos financeiros vinculados. " +
+                  "Deseja continuar?"
+                );
+                if (!confirmed) return;
+
+                const { revertProposalApproval } = await import("@/lib/proposal-approval");
+                toast.promise(
+                  revertProposalApproval(supabase, proposalId, { reopen: newStatus === "Rascunho" }),
+                  {
+                    loading: "Revertendo aprovação e limpando vínculos...",
+                    success: () => {
+                      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+                      qc.invalidateQueries({ queryKey: ["client-contracts"] });
+                      qc.invalidateQueries({ queryKey: ["client-projects"] });
+                      qc.invalidateQueries({ queryKey: ["client-transactions"] });
+                      qc.invalidateQueries({ queryKey: ["proposals"] });
+                      qc.invalidateQueries({ queryKey: ["contracts"] });
+                      qc.invalidateQueries({ queryKey: ["projects"] });
+                      qc.invalidateQueries({ queryKey: ["transactions"] });
+                      setForm({ ...form, status: newStatus });
+                      return "Status revertido. Projeto e financeiro vinculados foram removidos.";
+                    },
+                    error: (err) => `Erro ao reverter: ${err.message}`,
+                  }
+                );
+              } else {
+                setForm({ ...form, status: newStatus });
+                setIsDirty(true);
+              }
+            }}
+          >
+            <SelectTrigger className="h-7 text-xs font-mono-kasa w-36 bg-muted/40 border-border/60">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Rascunho" className="text-xs font-mono-kasa">Rascunho</SelectItem>
+              <SelectItem value="Enviada" className="text-xs font-mono-kasa">Enviada</SelectItem>
+              <SelectItem
+                value="Aprovada"
+                className="text-xs font-mono-kasa text-emerald-600 dark:text-emerald-400"
+                disabled={form.status === "Aprovada" || !(form.signature_client || (form as any).client_signature_data)}
+              >
+                Aprovada {!(form.signature_client || (form as any).client_signature_data) ? "(exige assinatura)" : ""}
+              </SelectItem>
+              <SelectItem value="Recusada" className="text-xs font-mono-kasa text-destructive">Recusada</SelectItem>
+              <SelectItem value="Encerrada" className="text-xs font-mono-kasa">Encerrada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {proposal?.public_token && (
+          <div className="flex items-center gap-1.5 w-full sm:w-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={copyPublicLink}
+              className="h-7 px-2.5 text-xs gap-1.5 font-mono-kasa"
+            >
+              <Copy className="size-3" />
+              <span>Copiar Link</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={openClientWhatsApp}
+              className="h-7 px-2.5 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-mono-kasa"
+            >
+              <MessageCircle className="size-3" />
+              <span className="hidden sm:inline">WhatsApp</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <a href={publicUrl} target="_blank" rel="noopener noreferrer" title="Abrir página pública">
+                <Eye className="size-3" />
+              </a>
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Signature Verification Block */}
       <ProposalSignatureCard
         status={form.status}
         signatureClient={(form as any).signature_client}
@@ -160,675 +270,546 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
         externalSignatureFilename={(form as any).external_signature_filename}
       />
 
-      {/* Status Banner */}
-      <div className="flex items-center justify-between bg-surface border border-border rounded-2xl p-4 shadow-sm">
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-bold uppercase tracking-wider text-foreground/50">Status Atual:</span>
-          <Badge className={cn("px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border-none", 
-            form.status === "Rascunho" ? "bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200" :
-            form.status === "Enviada" ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200" :
-            form.status === "Aprovada" ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200" :
-            form.status === "Recusada" ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-200" :
-            form.status === "Encerrada" ? "bg-slate-700 text-white dark:bg-slate-600" : ""
-          )}>
-            {form.status}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-2">
-          <Label className="text-xs font-bold uppercase tracking-wider text-foreground/50">Alterar Status:</Label>
-          <Select
-            value={form.status}
-            onValueChange={async (val) => {
-              const oldStatus = form.status;
-              const newStatus = val;
-
-              // Se a proposta estava Aprovada e o novo status NÃO é Aprovada, reverter
-              if (oldStatus === "Aprovada" && newStatus !== "Aprovada") {
-                const confirmed = window.confirm(
-                  "Você está revertendo uma proposta que já foi aprovada. " +
-                  "Isso removerá automaticamente o Projeto, o Contrato e todos os lançamentos financeiros vinculados. " +
-                  "Deseja continuar?"
-                );
-
-                if (!confirmed) return;
-
-                const { revertProposalApproval } = await import("@/lib/proposal-approval");
-                
-                toast.promise(
-                  revertProposalApproval(supabase, proposalId, { reopen: newStatus === "Rascunho" }),
-                  {
-                    loading: "Revertendo aprovação e removendo dados vinculados...",
-                    success: () => {
-                      qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
-                      qc.invalidateQueries({ queryKey: ["client-contracts"] });
-                      qc.invalidateQueries({ queryKey: ["client-projects"] });
-                      qc.invalidateQueries({ queryKey: ["client-transactions"] });
-                      qc.invalidateQueries({ queryKey: ["proposals"] });
-                      qc.invalidateQueries({ queryKey: ["contracts"] });
-                      qc.invalidateQueries({ queryKey: ["projects"] });
-                      qc.invalidateQueries({ queryKey: ["transactions"] });
-                      setForm({ ...form, status: newStatus });
-                      return "Status revertido. O projeto e o financeiro vinculados foram removidos.";
-                    },
-                    error: (err) => {
-                      console.error(`[DEBUG] Erro ao reverter status para "${newStatus}":`, err);
-                      return `Erro ao reverter: ${err.message}`;
-                    }
-                  }
-                );
-              } else {
-                setForm({ ...form, status: newStatus });
-                setIsDirty(true);
-              }
-            }}
-          >
-            <SelectTrigger className="w-[180px] h-9 rounded-full bg-surface border-border">
-              <SelectValue placeholder="Selecione o status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Rascunho">Rascunho</SelectItem>
-              <SelectItem value="Enviada">Enviada</SelectItem>
-              <SelectItem
-                value="Aprovada"
-                className="text-green-600 font-semibold"
-                disabled={form.status === "Aprovada" || !(form.signature_client || (form as any).client_signature_data)}
-              >
-                Aprovada {!(form.signature_client || (form as any).client_signature_data) ? "(requer assinatura do cliente)" : ""}
-              </SelectItem>
-              <SelectItem value="Recusada" className="text-red-600 font-semibold">Recusada</SelectItem>
-              <SelectItem value="Encerrada">Encerrada</SelectItem>
-              
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Header Info */}
-      <section className="grid md:grid-cols-2 gap-6 bg-surface border border-border rounded-2xl p-6 shadow-sm">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary">
-            <FileText className="size-4" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Identificação</h3>
-          </div>
-          <div className="grid gap-3">
-            <div className="space-y-1.5">
-              <Label>Título da Proposta</Label>
-              <Input 
-                value={form.title || ""} 
-                onChange={e => { setForm({ ...form, title: e.target.value }); setIsDirty(true); }}
-                placeholder="Ex: Consultoria Mensal 2024"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Cliente da base</Label>
-              <ClientPicker
-                value={(form as any).client_id || ""}
-                onChange={(id) => {
-                  const c = (clientsList as any[]).find((x) => x.id === id);
-                  setForm({
-                    ...form,
-                    client_id: id || null,
-                    client_name: c ? (c.company || c.name || form.client_name) : form.client_name,
-                    client_email: c?.email ?? form.client_email,
-                  } as any);
-                  setIsDirty(true);
-                }}
-                allowClear
-                className="w-full"
-              />
-              <p className="text-[11px] text-foreground/50">Selecione para vincular à base de clientes. Você ainda pode ajustar nome/e-mail abaixo.</p>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Nome do Cliente</Label>
+      {/* Main Form Sections Grid */}
+      <div className="grid lg:grid-cols-3 gap-5">
+        {/* Left Column: Commercial & Billing Details (2 cols) */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Identificação e Cliente */}
+          <div className="bg-card border border-border/60 rounded-lg p-4 space-y-4">
+            <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+              Identificação & Cliente
+            </span>
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Título da Proposta *</Label>
                 <Input
-                  value={form.client_name || ""}
-                  onChange={(e) => { setForm({ ...form, client_name: e.target.value }); setIsDirty(true); }}
-                  placeholder="Nome exibido na proposta"
+                  value={form.title || ""}
+                  onChange={e => { setForm({ ...form, title: e.target.value }); setIsDirty(true); }}
+                  placeholder="Ex: Consultoria Mensal de Performance"
+                  className="h-8 text-xs bg-muted/20 border-border/60"
                 />
               </div>
-              <div className="space-y-1.5">
-                <Label>E-mail</Label>
-                <Input
-                  value={form.client_email || ""}
-                  onChange={(e) => { setForm({ ...form, client_email: e.target.value }); setIsDirty(true); }}
-                  placeholder="email@cliente.com"
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Modelo de Contrato</Label>
-              <Select
-                value={(form as any).contract_template_id || "__none__"}
-                onValueChange={(val) => {
-                  setForm({ ...form, contract_template_id: val === "__none__" ? null : val } as any);
-                  setIsDirty(true);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o modelo jurídico..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__none__">Nenhum modelo</SelectItem>
-                  {contractTemplates.map((t) => (
-                    <SelectItem key={t.id} value={t.id}>{t.title}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Modelo usado para gerar o contrato quando a proposta for aprovada.
-              </p>
-            </div>
-          </div>
-        </div>
 
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary">
-            <Calendar className="size-4" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Prazos e Validade</h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <Label>Válido até</Label>
-              <Input 
-                type="date" 
-                value={form.valid_until || ""} 
-                onChange={e => { setForm({ ...form, valid_until: e.target.value }); setIsDirty(true); }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Data do 1º Vencimento</Label>
-              <Input 
-                type="date" 
-                value={form.first_due_date || ""} 
-                onChange={e => { setForm({ ...form, first_due_date: e.target.value }); setIsDirty(true); }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Data de Início do Serviço</Label>
-              <Input
-                type="date"
-                value={(form as any).service_start_date || ""}
-                onChange={e => { setForm({ ...form, service_start_date: e.target.value } as any); setIsDirty(true); }}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Dia de Cobrança</Label>
-              <Select
-                value={(form as any).billing_day ? String((form as any).billing_day) : ""}
-                onValueChange={(v) => {
-                  setForm({ ...form, billing_day: Number(v) } as any);
-                  setIsDirty(true);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o dia" />
-                </SelectTrigger>
-                <SelectContent>
-                  {[5, 10, 15, 20, 25].map((d) => (
-                    <SelectItem key={d} value={String(d)}>Dia {d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Datas padrão de cobrança da empresa: 5, 10, 15, 20 e 25.
-              </p>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Investment Section Refactored */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 text-primary">
-          <DollarSign className="size-4" />
-          <h3 className="text-sm font-bold uppercase tracking-wider">Investimento e Contrato</h3>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="col-span-2 space-y-6">
-            <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm space-y-6">
-              {Number(form.monthly_investment || 0) > 0 && (
-                <div className="space-y-4">
-                  <Label className="text-sm font-semibold">Duração do Contrato</Label>
-                  <RadioGroup 
-                    value={String(form.recurring_months || "6")} 
-                    onValueChange={val => {
-                      setForm({ ...form, recurring_months: Number(val), contract_type: "recurring" });
-                      setIsDirty(true);
-                    }}
-                    className="flex flex-wrap gap-3"
-                  >
-                    {[3, 6, 12].map((months) => (
-                      <div key={months} className="flex items-center">
-                        <RadioGroupItem value={String(months)} id={`r-${months}`} className="sr-only" />
-                        <Label
-                          htmlFor={`r-${months}`}
-                          className={cn(
-                            "px-6 py-2.5 rounded-full border border-border cursor-pointer transition-all font-medium text-sm",
-                            form.recurring_months === months 
-                              ? "bg-[#FFBC45] border-[#FFBC45] text-black shadow-md scale-105" 
-                              : "bg-surface hover:bg-muted"
-                          )}
-                        >
-                          {months} meses
-                        </Label>
-                      </div>
-                    ))}
-                  </RadioGroup>
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Valor Mensal (Fee)</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
-                    <Input 
-                      type="number"
-                      placeholder="0,00"
-                      className="pl-10"
-                      value={form.monthly_investment || ""}
-                      onChange={e => {
-                        setForm({ ...form, monthly_investment: Number(e.target.value) });
-                        setIsDirty(true);
-                      }}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-sm font-semibold">Setup / Investimento Único</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R$</span>
-                    <Input 
-                      type="number"
-                      placeholder="0,00"
-                      className="pl-10"
-                      value={form.one_time_investment || ""}
-                      onChange={e => {
-                        setForm({ ...form, one_time_investment: Number(e.target.value) });
-                        setIsDirty(true);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Parcelamento do Setup / Investimento */}
-              {/* Parcelamento do Setup / Investimento */}
-              {Number(form.one_time_investment || 0) > 0 && (
-                <div className="space-y-4 pt-2 border-t border-border/50">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold">Parcelar Setup em</Label>
-                    <div className="flex items-center gap-2">
-                      <Checkbox 
-                        id="special-neg"
-                        checked={form.is_special_negotiation || false}
-                        onCheckedChange={(checked) => {
-                          const isSpecial = checked === true;
-                          const installmentsCount = Number(form.installments || 1);
-                          
-                          let newConfig = (form as any).payment_installments_config;
-                          if (!isSpecial) {
-                            newConfig = distributeEqually(100, installmentsCount);
-                          }
-
-                          setForm({ 
-                            ...form, 
-                            is_special_negotiation: isSpecial,
-                            payment_installments_config: newConfig
-                          } as any);
-                          setIsDirty(true);
-                        }}
-                      />
-                      <Label htmlFor="special-neg" className="text-xs font-medium cursor-pointer">Negociação especial</Label>
-                    </div>
-                  </div>
-
-                  <Select
-                    value={String(form.installments || "1")}
-                    onValueChange={(val) => {
-                      const count = Number(val);
-                      const newConfig = distributeEqually(100, count);
-                      
-                      setForm({ 
-                        ...form, 
-                        installments: count,
-                        payment_installments_config: form.is_special_negotiation ? (form as any).payment_installments_config : newConfig
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium">Cliente da Base</Label>
+                  <ClientPicker
+                    value={(form as any).client_id || ""}
+                    onChange={(id) => {
+                      const c = (clientsList as any[]).find((x) => x.id === id);
+                      setForm({
+                        ...form,
+                        client_id: id || null,
+                        client_name: c ? (c.company || c.name || form.client_name) : form.client_name,
+                        client_email: c?.email ?? form.client_email,
                       } as any);
                       setIsDirty(true);
                     }}
-                  >
-                    <SelectTrigger className="w-full bg-surface border-border">
-                      <SelectValue placeholder="Selecione o parcelamento" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">À vista</SelectItem>
-                      {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
-                        <SelectItem key={n} value={String(n)}>{n}x</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {form.is_special_negotiation && (
-                    <div className="space-y-3 p-4 bg-muted/30 rounded-xl border border-border animate-in fade-in slide-in-from-top-2">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Customizar Porcentagens</span>
-                        {(() => {
-                          const installments = (form as any).payment_installments_config || [];
-                          const sum = installments.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
-                          const isError = Math.abs(sum - 100) > 0.01;
-                          return (
-                            <Badge variant={isError ? "destructive" : "outline"} className="text-[10px]">
-                              Total: {sum.toFixed(1)}% {isError && "(!)"}
-                            </Badge>
-                          );
-                        })()}
-                      </div>
-                      
-                      <div className="grid gap-3">
-                        {((form as any).payment_installments_config || []).slice(0, Number(form.installments || 1)).map((inst: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-3">
-                            <span className="text-xs font-medium min-w-[70px]">{idx + 1}ª parcela:</span>
-                            <div className="relative flex-1">
-                              <Input 
-                                type="number"
-                                value={inst.percent || ""}
-                                onChange={(e) => {
-                                  const list = [...((form as any).payment_installments_config || [])];
-                                  list[idx] = { ...list[idx], percent: Number(e.target.value) };
-                                  setForm({ ...form, payment_installments_config: list } as any);
-                                  setIsDirty(true);
-                                }}
-                                className="pr-8"
-                              />
-                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">%</span>
-                            </div>
-                            <div className="w-[100px] text-right text-xs font-medium">
-                              {formatCurrency((Number(form.one_time_investment || 0) * Number(inst.percent || 0)) / 100)}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {(() => {
-                        const installments = (form as any).payment_installments_config || [];
-                        const sum = installments.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
-                        if (Math.abs(sum - 100) > 0.01) {
-                          return <p className="text-[10px] text-destructive font-medium mt-2">As porcentagens devem totalizar 100%.</p>;
-                        }
-                        return null;
-                      })()}
-                    </div>
-                  )}
-
-                  {!form.is_special_negotiation && (
-                    <div className="space-y-2">
-                      {calculateInstallmentValues(Number(form.one_time_investment || 0), (form as any).payment_installments_config || []).map((inst, idx) => (
-                        <div key={idx} className="flex justify-between text-xs text-muted-foreground">
-                          <span>{idx + 1}ª parcela:</span>
-                          <span className="font-medium text-foreground">{formatCurrency(inst.value || 0)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                    allowClear
+                    className="w-full h-8 text-xs"
+                  />
                 </div>
-              )}
 
-              {/* Reajustes programados */}
-              <div className="space-y-3 pt-4 border-t border-border">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label className="text-sm font-semibold">Reajustes programados</Label>
-                    <p className="text-xs text-muted-foreground">Ex.: a partir do mês 4 o valor sobe para R$ 700.</p>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const list = Array.isArray((form as any).scheduled_adjustments) ? [...(form as any).scheduled_adjustments] : [];
-                      list.push({ from_month: (list[list.length - 1]?.from_month || 1) + 1, value: Number(form.monthly_investment || 0), note: "" });
-                      setForm({ ...form, scheduled_adjustments: list } as any);
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium">Nome Exibido *</Label>
+                  <Input
+                    value={form.client_name || ""}
+                    onChange={(e) => { setForm({ ...form, client_name: e.target.value }); setIsDirty(true); }}
+                    placeholder="Nome na proposta"
+                    className="h-8 text-xs bg-muted/20 border-border/60"
+                  />
+                </div>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium">E-mail do Cliente</Label>
+                  <Input
+                    value={form.client_email || ""}
+                    onChange={(e) => { setForm({ ...form, client_email: e.target.value }); setIsDirty(true); }}
+                    placeholder="contato@cliente.com"
+                    className="h-8 text-xs bg-muted/20 border-border/60"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-xs font-medium">Modelo Jurídico de Contrato</Label>
+                  <Select
+                    value={(form as any).contract_template_id || "__none__"}
+                    onValueChange={(val) => {
+                      setForm({ ...form, contract_template_id: val === "__none__" ? null : val } as any);
                       setIsDirty(true);
                     }}
                   >
-                    <Plus className="size-3.5 mr-1" /> Adicionar
-                  </Button>
+                    <SelectTrigger className="h-8 text-xs bg-muted/20 border-border/60">
+                      <SelectValue placeholder="Selecione o modelo..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__" className="text-xs">Nenhum modelo</SelectItem>
+                      {contractTemplates.map((t) => (
+                        <SelectItem key={t.id} value={t.id} className="text-xs">{t.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Prazos e Vigência */}
+          <div className="bg-card border border-border/60 rounded-lg p-4 space-y-4">
+            <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+              Prazos & Faturamento
+            </span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground font-mono-kasa uppercase">Validade</Label>
+                <Input
+                  type="date"
+                  value={form.valid_until || ""}
+                  onChange={e => { setForm({ ...form, valid_until: e.target.value }); setIsDirty(true); }}
+                  className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground font-mono-kasa uppercase">Início Serviço</Label>
+                <Input
+                  type="date"
+                  value={(form as any).service_start_date || ""}
+                  onChange={e => { setForm({ ...form, service_start_date: e.target.value } as any); setIsDirty(true); }}
+                  className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground font-mono-kasa uppercase">1º Vencimento</Label>
+                <Input
+                  type="date"
+                  value={form.first_due_date || ""}
+                  onChange={e => { setForm({ ...form, first_due_date: e.target.value }); setIsDirty(true); }}
+                  className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[11px] text-muted-foreground font-mono-kasa uppercase">Dia de Corte</Label>
+                <Select
+                  value={(form as any).billing_day ? String((form as any).billing_day) : ""}
+                  onValueChange={(v) => {
+                    setForm({ ...form, billing_day: Number(v) } as any);
+                    setIsDirty(true);
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60">
+                    <SelectValue placeholder="Dia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[5, 10, 15, 20, 25].map((d) => (
+                      <SelectItem key={d} value={String(d)} className="text-xs font-mono-kasa">Dia {d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Investimento & Condições Financeiras */}
+          <div className="bg-card border border-border/60 rounded-lg p-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+                Investimento & Condições
+              </span>
+            </div>
+
+            {/* Duração do Contrato em abas compactas */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium">Duração Contratual</Label>
+              <div className="flex items-center gap-1.5">
+                {[
+                  { value: 3, label: "3 meses" },
+                  { value: 6, label: "6 meses" },
+                  { value: 12, label: "12 meses" },
+                  { value: 0, label: "Job Avulso / Único" },
+                ].map((item) => {
+                  const isSelected = item.value === 0
+                    ? Number(form.recurring_months || 0) === 0 && Number(form.monthly_investment || 0) === 0
+                    : Number(form.recurring_months || 0) === item.value;
+
+                  return (
+                    <button
+                      key={item.value}
+                      type="button"
+                      onClick={() => {
+                        if (item.value === 0) {
+                          setForm({ ...form, recurring_months: 0, contract_type: "one_time" });
+                        } else {
+                          setForm({ ...form, recurring_months: item.value, contract_type: "recurring" });
+                        }
+                        setIsDirty(true);
+                      }}
+                      className={cn(
+                        "px-3 py-1.5 text-xs font-mono-kasa rounded border transition-colors cursor-pointer",
+                        isSelected
+                          ? "bg-foreground text-background border-foreground font-semibold"
+                          : "bg-muted/30 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted/60"
+                      )}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3 pt-1">
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Mensalidade (MRR / Fee)</Label>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground font-mono-kasa text-xs">R$</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    className="pl-8 h-8 text-xs font-mono-kasa tabular-nums bg-muted/20 border-border/60"
+                    value={form.monthly_investment || ""}
+                    onChange={e => {
+                      setForm({ ...form, monthly_investment: parseFloat(e.target.value) || 0 });
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs font-medium">Setup / Taxa de Implantação</Label>
+                <div className="relative">
+                  <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground font-mono-kasa text-xs">R$</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0,00"
+                    className="pl-8 h-8 text-xs font-mono-kasa tabular-nums bg-muted/20 border-border/60"
+                    value={form.one_time_investment || ""}
+                    onChange={e => {
+                      setForm({ ...form, one_time_investment: parseFloat(e.target.value) || 0 });
+                      setIsDirty(true);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Parcelamento do Setup */}
+            {Number(form.one_time_investment || 0) > 0 && (
+              <div className="space-y-3 pt-3 border-t border-border/60">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium">Parcelamento do Setup</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Checkbox
+                      id="special-neg"
+                      checked={form.is_special_negotiation || false}
+                      onCheckedChange={(checked) => {
+                        const isSpecial = checked === true;
+                        const installmentsCount = Number(form.installments || 1);
+                        let newConfig = (form as any).payment_installments_config;
+                        if (!isSpecial) {
+                          newConfig = distributeEqually(100, installmentsCount);
+                        }
+                        setForm({
+                          ...form,
+                          is_special_negotiation: isSpecial,
+                          payment_installments_config: newConfig
+                        } as any);
+                        setIsDirty(true);
+                      }}
+                    />
+                    <Label htmlFor="special-neg" className="text-[11px] font-mono-kasa text-muted-foreground cursor-pointer">
+                      Negociação Especial (%)
+                    </Label>
+                  </div>
                 </div>
 
-                {Array.isArray((form as any).scheduled_adjustments) && (form as any).scheduled_adjustments.length > 0 && (
-                  <div className="space-y-2">
-                    {(form as any).scheduled_adjustments.map((adj: any, idx: number) => (
-                      <div key={idx} className="grid grid-cols-[90px_1fr_1fr_auto] gap-2 items-center bg-muted/30 rounded-lg p-2">
-                        <div className="space-y-1">
-                          <Label className="text-[10px] uppercase text-muted-foreground">A partir do mês</Label>
-                          <Input
-                            type="number"
-                            min={2}
-                            max={Number(form.recurring_months || 12)}
-                            value={adj.from_month || ""}
-                            onChange={e => {
-                              const list = [...(form as any).scheduled_adjustments];
-                              list[idx] = { ...list[idx], from_month: Number(e.target.value) };
-                              setForm({ ...form, scheduled_adjustments: list } as any);
-                              setIsDirty(true);
-                            }}
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] uppercase text-muted-foreground">Novo valor mensal</Label>
-                          <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs">R$</span>
+                <Select
+                  value={String(form.installments || "1")}
+                  onValueChange={(val) => {
+                    const count = Number(val);
+                    const newConfig = distributeEqually(100, count);
+                    setForm({
+                      ...form,
+                      installments: count,
+                      payment_installments_config: form.is_special_negotiation ? (form as any).payment_installments_config : newConfig
+                    } as any);
+                    setIsDirty(true);
+                  }}
+                >
+                  <SelectTrigger className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60">
+                    <SelectValue placeholder="Parcelamento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1" className="text-xs font-mono-kasa">À vista</SelectItem>
+                    {[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(n => (
+                      <SelectItem key={n} value={String(n)} className="text-xs font-mono-kasa">{n}x</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {form.is_special_negotiation && (
+                  <div className="space-y-2 p-3 bg-muted/20 rounded border border-border/60">
+                    <div className="flex items-center justify-between text-[11px] font-mono-kasa text-muted-foreground">
+                      <span>Distribuição percentual</span>
+                      {(() => {
+                        const installments = (form as any).payment_installments_config || [];
+                        const sum = installments.reduce((acc: number, cur: any) => acc + Number(cur.percent || 0), 0);
+                        const isError = Math.abs(sum - 100) > 0.01;
+                        return (
+                          <span className={cn(isError ? "text-destructive font-bold" : "text-foreground font-semibold")}>
+                            Total: {sum.toFixed(1)}% {isError && "(!)"}
+                          </span>
+                        );
+                      })()}
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {((form as any).payment_installments_config || []).slice(0, Number(form.installments || 1)).map((inst: any, idx: number) => (
+                        <div key={idx} className="flex items-center gap-1.5">
+                          <span className="text-[11px] font-mono-kasa text-muted-foreground shrink-0">{idx + 1}ª:</span>
+                          <div className="relative flex-1">
                             <Input
                               type="number"
-                              className="pl-9"
-                              value={adj.value || ""}
-                              onChange={e => {
-                                const list = [...(form as any).scheduled_adjustments];
-                                list[idx] = { ...list[idx], value: Number(e.target.value) };
-                                setForm({ ...form, scheduled_adjustments: list } as any);
+                              value={inst.percent || ""}
+                              onChange={(e) => {
+                                const list = [...((form as any).payment_installments_config || [])];
+                                list[idx] = { ...list[idx], percent: Number(e.target.value) };
+                                setForm({ ...form, payment_installments_config: list } as any);
                                 setIsDirty(true);
                               }}
+                              className="h-7 text-xs font-mono-kasa pr-5 bg-card border-border/60"
                             />
+                            <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px]">%</span>
                           </div>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px] uppercase text-muted-foreground">Observação</Label>
-                          <Input
-                            placeholder="Ex.: reajuste anual"
-                            value={adj.note || ""}
-                            onChange={e => {
-                              const list = [...(form as any).scheduled_adjustments];
-                              list[idx] = { ...list[idx], note: e.target.value };
-                              setForm({ ...form, scheduled_adjustments: list } as any);
-                              setIsDirty(true);
-                            }}
-                          />
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="mt-4 text-destructive"
-                          onClick={() => {
-                            const list = (form as any).scheduled_adjustments.filter((_: any, i: number) => i !== idx);
-                            setForm({ ...form, scheduled_adjustments: list } as any);
-                            setIsDirty(true);
-                          }}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
+            )}
+
+            {/* Reajustes Programados */}
+            <div className="space-y-3 pt-3 border-t border-border/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-xs font-medium block">Reajustes Programados</Label>
+                  <span className="text-[11px] text-muted-foreground">Ex: a partir do mês 4 o valor sobe para R$ 700.</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const list = Array.isArray((form as any).scheduled_adjustments) ? [...(form as any).scheduled_adjustments] : [];
+                    list.push({ from_month: (list[list.length - 1]?.from_month || 1) + 1, value: Number(form.monthly_investment || 0), note: "" });
+                    setForm({ ...form, scheduled_adjustments: list } as any);
+                    setIsDirty(true);
+                  }}
+                  className="h-7 px-2.5 text-xs font-mono-kasa gap-1"
+                >
+                  <Plus className="size-3" /> Adicionar
+                </Button>
+              </div>
+
+              {Array.isArray((form as any).scheduled_adjustments) && (form as any).scheduled_adjustments.length > 0 && (
+                <div className="space-y-2">
+                  {(form as any).scheduled_adjustments.map((adj: any, idx: number) => (
+                    <div key={idx} className="grid grid-cols-[80px_1fr_1fr_auto] gap-2 items-center bg-muted/20 border border-border/60 rounded p-2">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-mono-kasa uppercase text-muted-foreground block">Mês</span>
+                        <Input
+                          type="number"
+                          min={2}
+                          max={Number(form.recurring_months || 12)}
+                          value={adj.from_month || ""}
+                          onChange={e => {
+                            const list = [...(form as any).scheduled_adjustments];
+                            list[idx] = { ...list[idx], from_month: Number(e.target.value) };
+                            setForm({ ...form, scheduled_adjustments: list } as any);
+                            setIsDirty(true);
+                          }}
+                          className="h-7 text-xs font-mono-kasa bg-card border-border/60"
+                        />
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-mono-kasa uppercase text-muted-foreground block">Novo Valor</span>
+                        <Input
+                          type="number"
+                          value={adj.value || ""}
+                          onChange={e => {
+                            const list = [...(form as any).scheduled_adjustments];
+                            list[idx] = { ...list[idx], value: Number(e.target.value) };
+                            setForm({ ...form, scheduled_adjustments: list } as any);
+                            setIsDirty(true);
+                          }}
+                          className="h-7 text-xs font-mono-kasa bg-card border-border/60"
+                        />
+                      </div>
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-mono-kasa uppercase text-muted-foreground block">Motivo / Nota</span>
+                        <Input
+                          placeholder="Ex: Pós-setup"
+                          value={adj.note || ""}
+                          onChange={e => {
+                            const list = [...(form as any).scheduled_adjustments];
+                            list[idx] = { ...list[idx], note: e.target.value };
+                            setForm({ ...form, scheduled_adjustments: list } as any);
+                            setIsDirty(true);
+                          }}
+                          className="h-7 text-xs bg-card border-border/60"
+                        />
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 mt-3 text-muted-foreground hover:text-destructive"
+                        onClick={() => {
+                          const list = (form as any).scheduled_adjustments.filter((_: any, i: number) => i !== idx);
+                          setForm({ ...form, scheduled_adjustments: list } as any);
+                          setIsDirty(true);
+                        }}
+                      >
+                        <Trash2 className="size-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Financial Summary & Internal Notes (1 col) */}
+        <div className="space-y-5">
+          {/* Executive Contract Summary */}
+          <div className="bg-card border border-border/60 rounded-lg p-4 space-y-4">
+            <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+              Resumo do Contrato
+            </span>
+
+            <div className="space-y-1">
+              <span className="text-[11px] text-muted-foreground font-mono-kasa uppercase block">
+                Valor Total do Pipeline
+              </span>
+              <div className="font-mono-kasa text-2xl font-bold text-foreground tabular-nums">
+                {formatCurrency(grandTotal)}
+              </div>
+            </div>
+
+            <div className="space-y-2 pt-3 border-t border-border/60 text-xs font-mono-kasa">
+              {baseMonthly > 0 && (
+                <>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Mensalidade Base:</span>
+                    <span className="text-foreground font-medium tabular-nums">{formatCurrency(baseMonthly)}/mês</span>
+                  </div>
+                  <div className="flex justify-between text-muted-foreground">
+                    <span>Vigência:</span>
+                    <span className="text-foreground font-medium tabular-nums">{months} meses</span>
+                  </div>
+                  {sortedAdjs.map((a, i) => (
+                    <div key={i} className="flex justify-between text-[11px] text-muted-foreground pl-2">
+                      <span>Mês {a.from_month}+:</span>
+                      <span className="text-foreground tabular-nums">{formatCurrency(Number(a.value || 0))}</span>
+                    </div>
+                  ))}
+                  <div className="flex justify-between text-muted-foreground pt-1 border-t border-dashed border-border/60">
+                    <span>Total Recorrente:</span>
+                    <span className="text-foreground font-semibold tabular-nums">{formatCurrency(recurringTotal)}</span>
+                  </div>
+                </>
+              )}
+
+              {setup > 0 && (
+                <div className="flex justify-between text-muted-foreground pt-1">
+                  <span>Setup / Implantação:</span>
+                  <span className="text-foreground font-semibold tabular-nums">{formatCurrency(setup)}</span>
+                </div>
+              )}
             </div>
           </div>
 
-
-          {(() => {
-            const months = Number(form.recurring_months || 0);
-            const baseMonthly = Number(form.monthly_investment || 0);
-            const setup = Number(form.one_time_investment || 0);
-            const adjs: any[] = Array.isArray((form as any).scheduled_adjustments) ? (form as any).scheduled_adjustments : [];
-            const sorted = [...adjs].filter(a => a && Number(a.from_month) > 0).sort((a, b) => Number(a.from_month) - Number(b.from_month));
-            let recurringTotal = 0;
-            for (let m = 1; m <= months; m++) {
-              const match = [...sorted].reverse().find(a => Number(a.from_month) <= m);
-              recurringTotal += match ? Number(match.value || 0) : baseMonthly;
-            }
-            const grand = recurringTotal + setup;
-            return (
-              <div className="bg-surface border border-border rounded-2xl p-6 shadow-sm flex flex-col justify-center space-y-4">
-                <div className="text-center space-y-1">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Resumo do Contrato</span>
-                  <div className="text-3xl font-bold text-primary">{formatCurrency(grand)}</div>
-                  <p className="text-xs text-muted-foreground">Valor total do investimento</p>
-                </div>
-
-                <div className="pt-4 border-t border-border space-y-2 text-sm">
-                  {form.is_special_negotiation && (form as any).payment_installments_config?.length > 0 && setup > 0 && (
-                    <div className="space-y-1 pb-2 border-b border-border/50">
-                      <span className="text-[10px] uppercase font-bold text-primary">Distribuição do Setup:</span>
-                      {(form as any).payment_installments_config.map((inst: any, idx: number) => (
-                        <div key={idx} className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">{idx + 1}ª parcela ({inst.percent}%):</span>
-                          <span className="font-medium">{formatCurrency((setup * inst.percent) / 100)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {baseMonthly > 0 && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Mensalidade base:</span>
-                        <span className="font-medium">{formatCurrency(baseMonthly)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Duração:</span>
-                        <span className="font-medium">{months} meses</span>
-                      </div>
-                      {sorted.map((a, i) => (
-                        <div key={i} className="flex justify-between text-xs">
-                          <span className="text-muted-foreground">A partir do mês {a.from_month}:</span>
-                          <span className="font-medium">{formatCurrency(Number(a.value || 0))}</span>
-                        </div>
-                      ))}
-                      <div className="flex justify-between pt-2 border-t border-border">
-                        <span className="text-muted-foreground">Total recorrente:</span>
-                        <span className="font-medium">{formatCurrency(recurringTotal)}</span>
-                      </div>
-                    </>
-                  )}
-                  {setup > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Setup:</span>
-                      <span className="font-medium">{formatCurrency(setup)}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
-
-        </div>
-      </section>
-
-      {/* Scope & Notes */}
-      <section className="grid md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary">
-            <Layers className="size-4" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Escopo de Trabalho</h3>
-          </div>
-          <div className="bg-transparent">
-            <ScopeEditor 
-              value={form.scope || ""} 
-              onChange={v => { setForm({ ...form, scope: v }); setIsDirty(true); }} 
-
+          {/* Observações Internas */}
+          <div className="bg-card border border-border/60 rounded-lg p-4 space-y-3">
+            <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+              Observações Internas
+            </span>
+            <Textarea
+              value={form.notes || ""}
+              onChange={e => { setForm({ ...form, notes: e.target.value }); setIsDirty(true); }}
+              placeholder="Notas de negociação, condições especiais, restrições operacionais..."
+              className="min-h-[140px] text-xs bg-muted/20 border-border/60 resize-y"
             />
           </div>
-
         </div>
+      </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 text-primary">
-            <FileText className="size-4" />
-            <h3 className="text-sm font-bold uppercase tracking-wider">Observações Internas</h3>
-          </div>
-          <Textarea 
-            value={form.notes || ""} 
-            onChange={e => { setForm({ ...form, notes: e.target.value }); setIsDirty(true); }}
-            placeholder="Notas adicionais sobre negociação, descontos ou condições especiais..."
-            className="min-h-[200px] bg-surface border-border rounded-2xl p-4 shadow-sm"
+      {/* Escopo de Trabalho */}
+      <div className="bg-card border border-border/60 rounded-lg p-4 space-y-3">
+        <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+          Escopo de Trabalho & Proposta Comercial
+        </span>
+        <div className="border border-border/60 rounded-md overflow-hidden bg-background">
+          <ScopeEditor
+            value={form.scope || ""}
+            onChange={v => { setForm({ ...form, scope: v }); setIsDirty(true); }}
           />
         </div>
-      </section>
+      </div>
 
-      {/* Actions */}
-      <div className="fixed bottom-6 right-6 lg:bottom-10 lg:right-10 flex items-center gap-3 z-50">
-        {form.status !== "Aprovada" ? (
-          <>
-            <Button 
-              onClick={handleSave} 
-              disabled={!isDirty || updateMut.isPending}
-              className={cn(
-                "rounded-full h-12 px-8 font-bold shadow-xl transition-all",
-                isDirty ? "bg-primary text-primary-foreground hover:scale-105" : "bg-muted text-muted-foreground"
-              )}
-            >
-              {updateMut.isPending ? <Loader2 className="size-5 animate-spin" /> : <Save className="size-5 mr-2" />}
-              Salvar Alterações
-            </Button>
+      {/* Bottom Action Bar (Fixed, minimal) */}
+      <div className="sticky bottom-4 z-20 flex items-center justify-between p-3 bg-card/95 backdrop-blur-md border border-border/60 rounded-lg shadow-lg">
+        <div className="text-xs font-mono-kasa text-muted-foreground">
+          {isDirty ? (
+            <span className="text-amber-500 font-medium">● Alterações não salvas</span>
+          ) : (
+            <span>● Salvo</span>
+          )}
+        </div>
 
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={copyPublicLink}
-                className="rounded-full h-12 px-6 font-semibold bg-surface border-border shadow-lg hover:bg-muted transition-all"
-              >
-                <Copy className="size-4 mr-2" />
-                Link Público
-              </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={handleSave}
+            disabled={!isDirty || updateMut.isPending}
+            variant="outline"
+            size="sm"
+            className="h-8 px-4 text-xs font-medium gap-1.5"
+          >
+            {updateMut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Save className="size-3.5" />}
+            Salvar Alterações
+          </Button>
 
-              <Button
-                onClick={handleApprove}
-                className="rounded-full h-12 px-8 font-bold bg-[#FFBC45] text-black hover:bg-[#FFBC45]/90 shadow-xl transition-all hover:scale-105"
-              >
-                <Rocket className="size-5 mr-2" />
-                Aprovar / Converter
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="flex items-center gap-2">
+          {form.status !== "Aprovada" ? (
             <Button
-              variant="outline"
-              onClick={copyPublicLink}
-              className="rounded-full h-12 px-6 font-semibold bg-surface border-border shadow-lg hover:bg-muted transition-all"
+              onClick={handleApprove}
+              size="sm"
+              className="h-8 px-4 text-xs font-medium bg-foreground text-background hover:bg-foreground/90 gap-1.5"
             >
-              <Copy className="size-4 mr-2" />
-              Link Público
+              <Rocket className="size-3.5" />
+              Aprovar / Converter
             </Button>
-
+          ) : (
             <Button
               variant="destructive"
+              size="sm"
               onClick={async () => {
                 const confirmed = window.confirm(
                   "Você está cancelando uma proposta que já foi aprovada. " +
                   "Isso removerá automaticamente o Projeto, o Contrato e todos os lançamentos financeiros vinculados. " +
                   "Deseja continuar?"
                 );
-
                 if (!confirmed) return;
 
                 const { revertProposalApproval } = await import("@/lib/proposal-approval");
-                
                 toast.promise(
                   revertProposalApproval(supabase, proposalId, { reopen: false }),
                   {
@@ -848,16 +829,16 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                   }
                 );
               }}
-              className="rounded-full h-12 px-8 font-bold shadow-xl transition-all hover:scale-105"
+              className="h-8 px-4 text-xs font-medium gap-1.5"
             >
-              <Trash2 className="size-5 mr-2" />
+              <Trash2 className="size-3.5" />
               Cancelar Proposta
             </Button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      <ProposalApprovalDialog 
+      <ProposalApprovalDialog
         proposalId={proposalId}
         open={isApprovalDialogOpen}
         onOpenChange={setIsApprovalDialogOpen}

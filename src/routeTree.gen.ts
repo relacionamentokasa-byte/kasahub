@@ -40,7 +40,6 @@ import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedRoteirosIndexRouteImport } from './routes/_authenticated/roteiros.index'
 import { Route as AuthenticatedPropostasIndexRouteImport } from './routes/_authenticated/propostas.index'
 import { Route as AuthenticatedProjetosIndexRouteImport } from './routes/_authenticated/projetos.index'
-import { Route as AuthenticatedKasaAiIndexRouteImport } from './routes/_authenticated/kasa-ai.index'
 import { Route as AuthenticatedConstrutorRelatoriosIndexRouteImport } from './routes/_authenticated/construtor-relatorios.index'
 import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
 import { Route as AuthenticatedBibliotecaIndexRouteImport } from './routes/_authenticated/biblioteca.index'
@@ -72,6 +71,7 @@ import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } fro
 import { Route as AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.pdf'
 import { Route as AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.apresentar'
 import { Route as AuthenticatedApresentacoesPresentationIdApresentarRouteImport } from './routes/_authenticated/apresentacoes.$presentationId.apresentar'
+import { Route as ApiPublicPropostaTokenViewRouteImport } from './routes/api/public/proposta.$token.view'
 import { Route as ApiPublicOgPropostaTokenRouteImport } from './routes/api/public/og/proposta.$token'
 import { Route as ApiPublicLeadsSubmitSlugRouteImport } from './routes/api/public/leads/submit.$slug'
 
@@ -233,12 +233,6 @@ const AuthenticatedProjetosIndexRoute =
   AuthenticatedProjetosIndexRouteImport.update({
     id: '/projetos/',
     path: '/projetos/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedKasaAiIndexRoute =
-  AuthenticatedKasaAiIndexRouteImport.update({
-    id: '/kasa-ai/',
-    path: '/kasa-ai/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConstrutorRelatoriosIndexRoute =
@@ -415,6 +409,12 @@ const AuthenticatedApresentacoesPresentationIdApresentarRoute =
     path: '/apresentacoes/$presentationId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicPropostaTokenViewRoute =
+  ApiPublicPropostaTokenViewRouteImport.update({
+    id: '/view',
+    path: '/view',
+    getParentRoute: () => ApiPublicPropostaTokenRoute,
+  } as any)
 const ApiPublicOgPropostaTokenRoute =
   ApiPublicOgPropostaTokenRouteImport.update({
     id: '/api/public/og/proposta/$token',
@@ -467,7 +467,6 @@ export interface FileRoutesByFullPath {
   '/biblioteca/': typeof AuthenticatedBibliotecaIndexRoute
   '/clientes/': typeof AuthenticatedClientesIndexRoute
   '/construtor-relatorios/': typeof AuthenticatedConstrutorRelatoriosIndexRoute
-  '/kasa-ai/': typeof AuthenticatedKasaAiIndexRoute
   '/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/roteiros/': typeof AuthenticatedRoteirosIndexRoute
@@ -485,7 +484,7 @@ export interface FileRoutesByFullPath {
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
-  '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
+  '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRouteWithChildren
   '/api/public/webhooks/inter': typeof ApiPublicWebhooksInterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -493,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/construtor-relatorios/$reportId/': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
   '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
   '/api/public/og/proposta/$token': typeof ApiPublicOgPropostaTokenRoute
+  '/api/public/proposta/$token/view': typeof ApiPublicPropostaTokenViewRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
@@ -533,7 +533,6 @@ export interface FileRoutesByTo {
   '/biblioteca': typeof AuthenticatedBibliotecaIndexRoute
   '/clientes': typeof AuthenticatedClientesIndexRoute
   '/construtor-relatorios': typeof AuthenticatedConstrutorRelatoriosIndexRoute
-  '/kasa-ai': typeof AuthenticatedKasaAiIndexRoute
   '/projetos': typeof AuthenticatedProjetosIndexRoute
   '/propostas': typeof AuthenticatedPropostasIndexRoute
   '/roteiros': typeof AuthenticatedRoteirosIndexRoute
@@ -551,7 +550,7 @@ export interface FileRoutesByTo {
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
-  '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
+  '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRouteWithChildren
   '/api/public/webhooks/inter': typeof ApiPublicWebhooksInterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -559,6 +558,7 @@ export interface FileRoutesByTo {
   '/construtor-relatorios/$reportId': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
   '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
   '/api/public/og/proposta/$token': typeof ApiPublicOgPropostaTokenRoute
+  '/api/public/proposta/$token/view': typeof ApiPublicPropostaTokenViewRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -601,7 +601,6 @@ export interface FileRoutesById {
   '/_authenticated/biblioteca/': typeof AuthenticatedBibliotecaIndexRoute
   '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
   '/_authenticated/construtor-relatorios/': typeof AuthenticatedConstrutorRelatoriosIndexRoute
-  '/_authenticated/kasa-ai/': typeof AuthenticatedKasaAiIndexRoute
   '/_authenticated/projetos/': typeof AuthenticatedProjetosIndexRoute
   '/_authenticated/propostas/': typeof AuthenticatedPropostasIndexRoute
   '/_authenticated/roteiros/': typeof AuthenticatedRoteirosIndexRoute
@@ -619,7 +618,7 @@ export interface FileRoutesById {
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
   '/api/public/portal-jobs/$slug': typeof ApiPublicPortalJobsSlugRoute
   '/api/public/proposal/$token': typeof ApiPublicProposalTokenRoute
-  '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRoute
+  '/api/public/proposta/$token': typeof ApiPublicPropostaTokenRouteWithChildren
   '/api/public/webhooks/inter': typeof ApiPublicWebhooksInterRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
@@ -627,6 +626,7 @@ export interface FileRoutesById {
   '/_authenticated/construtor-relatorios/$reportId/': typeof AuthenticatedConstrutorRelatoriosReportIdIndexRoute
   '/api/public/leads/submit/$slug': typeof ApiPublicLeadsSubmitSlugRoute
   '/api/public/og/proposta/$token': typeof ApiPublicOgPropostaTokenRoute
+  '/api/public/proposta/$token/view': typeof ApiPublicPropostaTokenViewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -669,7 +669,6 @@ export interface FileRouteTypes {
     | '/biblioteca/'
     | '/clientes/'
     | '/construtor-relatorios/'
-    | '/kasa-ai/'
     | '/projetos/'
     | '/propostas/'
     | '/roteiros/'
@@ -695,6 +694,7 @@ export interface FileRouteTypes {
     | '/construtor-relatorios/$reportId/'
     | '/api/public/leads/submit/$slug'
     | '/api/public/og/proposta/$token'
+    | '/api/public/proposta/$token/view'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
@@ -735,7 +735,6 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/clientes'
     | '/construtor-relatorios'
-    | '/kasa-ai'
     | '/projetos'
     | '/propostas'
     | '/roteiros'
@@ -761,6 +760,7 @@ export interface FileRouteTypes {
     | '/construtor-relatorios/$reportId'
     | '/api/public/leads/submit/$slug'
     | '/api/public/og/proposta/$token'
+    | '/api/public/proposta/$token/view'
   id:
     | '__root__'
     | '/_authenticated'
@@ -802,7 +802,6 @@ export interface FileRouteTypes {
     | '/_authenticated/biblioteca/'
     | '/_authenticated/clientes/'
     | '/_authenticated/construtor-relatorios/'
-    | '/_authenticated/kasa-ai/'
     | '/_authenticated/projetos/'
     | '/_authenticated/propostas/'
     | '/_authenticated/roteiros/'
@@ -828,6 +827,7 @@ export interface FileRouteTypes {
     | '/_authenticated/construtor-relatorios/$reportId/'
     | '/api/public/leads/submit/$slug'
     | '/api/public/og/proposta/$token'
+    | '/api/public/proposta/$token/view'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -855,7 +855,7 @@ export interface RootRouteChildren {
   ApiPublicPortalApprovalActionSlugRoute: typeof ApiPublicPortalApprovalActionSlugRoute
   ApiPublicPortalJobsSlugRoute: typeof ApiPublicPortalJobsSlugRoute
   ApiPublicProposalTokenRoute: typeof ApiPublicProposalTokenRoute
-  ApiPublicPropostaTokenRoute: typeof ApiPublicPropostaTokenRoute
+  ApiPublicPropostaTokenRoute: typeof ApiPublicPropostaTokenRouteWithChildren
   ApiPublicWebhooksInterRoute: typeof ApiPublicWebhooksInterRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -1083,13 +1083,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProjetosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/kasa-ai/': {
-      id: '/_authenticated/kasa-ai/'
-      path: '/kasa-ai'
-      fullPath: '/kasa-ai/'
-      preLoaderRoute: typeof AuthenticatedKasaAiIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/construtor-relatorios/': {
       id: '/_authenticated/construtor-relatorios/'
       path: '/construtor-relatorios'
@@ -1307,6 +1300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApresentacoesPresentationIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/proposta/$token/view': {
+      id: '/api/public/proposta/$token/view'
+      path: '/view'
+      fullPath: '/api/public/proposta/$token/view'
+      preLoaderRoute: typeof ApiPublicPropostaTokenViewRouteImport
+      parentRoute: typeof ApiPublicPropostaTokenRoute
+    }
     '/api/public/og/proposta/$token': {
       id: '/api/public/og/proposta/$token'
       path: '/api/public/og/proposta/$token'
@@ -1350,7 +1350,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaIndexRoute: typeof AuthenticatedBibliotecaIndexRoute
   AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
   AuthenticatedConstrutorRelatoriosIndexRoute: typeof AuthenticatedConstrutorRelatoriosIndexRoute
-  AuthenticatedKasaAiIndexRoute: typeof AuthenticatedKasaAiIndexRoute
   AuthenticatedProjetosIndexRoute: typeof AuthenticatedProjetosIndexRoute
   AuthenticatedPropostasIndexRoute: typeof AuthenticatedPropostasIndexRoute
   AuthenticatedRoteirosIndexRoute: typeof AuthenticatedRoteirosIndexRoute
@@ -1389,7 +1388,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
   AuthenticatedConstrutorRelatoriosIndexRoute:
     AuthenticatedConstrutorRelatoriosIndexRoute,
-  AuthenticatedKasaAiIndexRoute: AuthenticatedKasaAiIndexRoute,
   AuthenticatedProjetosIndexRoute: AuthenticatedProjetosIndexRoute,
   AuthenticatedPropostasIndexRoute: AuthenticatedPropostasIndexRoute,
   AuthenticatedRoteirosIndexRoute: AuthenticatedRoteirosIndexRoute,
@@ -1407,6 +1405,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface ApiPublicPropostaTokenRouteChildren {
+  ApiPublicPropostaTokenViewRoute: typeof ApiPublicPropostaTokenViewRoute
+}
+
+const ApiPublicPropostaTokenRouteChildren: ApiPublicPropostaTokenRouteChildren =
+  {
+    ApiPublicPropostaTokenViewRoute: ApiPublicPropostaTokenViewRoute,
+  }
+
+const ApiPublicPropostaTokenRouteWithChildren =
+  ApiPublicPropostaTokenRoute._addFileChildren(
+    ApiPublicPropostaTokenRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -1434,7 +1446,7 @@ const rootRouteChildren: RootRouteChildren = {
     ApiPublicPortalApprovalActionSlugRoute,
   ApiPublicPortalJobsSlugRoute: ApiPublicPortalJobsSlugRoute,
   ApiPublicProposalTokenRoute: ApiPublicProposalTokenRoute,
-  ApiPublicPropostaTokenRoute: ApiPublicPropostaTokenRoute,
+  ApiPublicPropostaTokenRoute: ApiPublicPropostaTokenRouteWithChildren,
   ApiPublicWebhooksInterRoute: ApiPublicWebhooksInterRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,

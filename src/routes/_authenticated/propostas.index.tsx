@@ -83,11 +83,11 @@ export const Route = createFileRoute("/_authenticated/propostas/")({
 });
 
 const STATUS_LABELS: Record<string, { label: string; cls: string; dot: string }> = {
-  Rascunho: { label: "Rascunho", cls: "bg-zinc-200 text-zinc-800 ring-1 ring-zinc-300", dot: "bg-zinc-500" },
-  Enviada: { label: "Enviada", cls: "bg-blue-500 text-white shadow-sm shadow-blue-500/30", dot: "bg-white" },
-  Aprovada: { label: "Aprovada", cls: "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30", dot: "bg-white" },
-  Recusada: { label: "Recusada", cls: "bg-red-500 text-white shadow-sm shadow-red-500/30", dot: "bg-white" },
-  Encerrada: { label: "Encerrada", cls: "bg-slate-700 text-white ring-1 ring-slate-500/40", dot: "bg-slate-300" },
+  Rascunho: { label: "Rascunho", cls: "bg-muted text-muted-foreground", dot: "bg-muted-foreground" },
+  Enviada: { label: "Enviada", cls: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20", dot: "bg-blue-500" },
+  Aprovada: { label: "Aprovada", cls: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20", dot: "bg-emerald-500" },
+  Recusada: { label: "Recusada", cls: "bg-destructive/10 text-destructive border border-destructive/20", dot: "bg-destructive" },
+  Encerrada: { label: "Encerrada", cls: "bg-muted text-muted-foreground border border-border/60", dot: "bg-muted-foreground" },
 };
 
 const STATUS_ORDER = ["Rascunho", "Enviada", "Aprovada", "Recusada", "Encerrada"];
@@ -129,7 +129,6 @@ function ProposalStatusLine({
         <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
           <Eye className="size-3" />
           Cliente visualizou {timeAgo(summary.lastViewed)}
-          {summary.viewCount > 1 ? ` · ${summary.viewCount} views` : ""}
         </span>
       );
     }
@@ -248,6 +247,49 @@ function ProposalsPage() {
     setFilterStatus("all");
     setFilterClient("all");
   };
+
+  // Métricas comerciais executivas
+  const stats = useMemo(() => {
+    const active = proposals.filter((p) => p.deleted_at === null);
+
+    // Propostas Enviadas / Em negociação
+    const sent = active.filter((p) => p.status === "Enviada");
+    const sentMonthly = sent.reduce((acc, p) => acc + (p.contract_type === "recurring" ? Number(p.monthly_investment || 0) : 0), 0);
+    const sentOneTime = sent.reduce((acc, p) => acc + (p.contract_type !== "recurring" ? Number(p.one_time_investment || 0) : 0), 0);
+    const sentTotal = sent.reduce((acc, p) => acc + Number(p.total || 0), 0);
+
+    // Propostas Aprovadas
+    const approved = active.filter((p) => p.status === "Aprovada");
+    const approvedMonthly = approved.reduce((acc, p) => acc + (p.contract_type === "recurring" ? Number(p.monthly_investment || 0) : 0), 0);
+    const approvedTotal = approved.reduce((acc, p) => acc + Number(p.total || 0), 0);
+
+    // Propostas Visualizadas pelo cliente
+    const viewedCount = sent.filter((p) => {
+      const s = eventSummary.get(p.id);
+      return s && s.viewCount > 0;
+    }).length;
+
+    // Contagens para as abas rápidas
+    const counts = {
+      all: active.length,
+      Enviada: sent.length,
+      Aprovada: approved.length,
+      Rascunho: active.filter((p) => p.status === "Rascunho").length,
+      Recusada: active.filter((p) => p.status === "Recusada").length,
+    };
+
+    return {
+      sentCount: sent.length,
+      sentMonthly,
+      sentOneTime,
+      sentTotal,
+      approvedCount: approved.length,
+      approvedMonthly,
+      approvedTotal,
+      viewedCount,
+      counts,
+    };
+  }, [proposals, eventSummary]);
 
   const createMut = useMutation({
     mutationFn: async () => {
@@ -452,87 +494,109 @@ function ProposalsPage() {
   }, [proposalsToDisplay, filterStatus, filterClient, search]);
 
   return (
-
-    <div className="p-4 lg:p-10 max-w-7xl mx-auto w-full pb-20 md:pb-10">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 w-full mx-auto pb-20 md:pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-2">
         <div>
-          <span className="text-primary text-[10px] uppercase font-bold tracking-wider">Comercial · Propostas</span>
-          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
+          <span className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block font-medium">Comercial · Propostas</span>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-0.5">
             {showTrash ? "Lixeira" : "Propostas"}
           </h1>
-          <p className="text-foreground/60 mt-2 max-w-xl text-sm">
-            {showTrash 
-              ? "Visualize e restaure propostas excluídas ou remova-as permanentemente."
-              : "Construa propostas com destaque para o Investimento Mensal e envie por link compartilhável."
+          <p className="text-muted-foreground mt-0.5 text-xs">
+            {showTrash
+              ? "Gerencie e restaure propostas excluídas."
+              : "Acompanhe e envie propostas comerciais com link seguro de assinatura."
             }
           </p>
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setShowTrash(!showTrash)}
-            className="flex-1 sm:flex-none rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
+            className="flex-1 sm:flex-none rounded-md border-border/60 h-8 px-3 text-xs gap-1.5 font-mono-kasa"
           >
-            {showTrash ? <ArrowUpRight className="size-4 rotate-180" /> : <Trash2 className="size-4" />}
+            {showTrash ? <ArrowUpRight className="size-3.5 rotate-180" /> : <Trash2 className="size-3.5" />}
             {showTrash ? "Voltar" : "Lixeira"}
           </Button>
           {!showTrash && (
             <Dialog open={open} onOpenChange={setOpen}>
-
-          <DialogTrigger asChild>
-            <Button className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2">
-              <Plus className="size-4 shrink-0" /> Nova
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-surface border-border p-0 gap-0 w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] grid grid-rows-[auto_1fr_auto] overflow-hidden">
-            <DialogHeader className="px-6 py-4 border-b border-border flex-row items-center justify-between space-y-0 sticky top-0 bg-surface z-10">
-              <DialogTitle className="font-display text-2xl">Nova proposta</DialogTitle>
-              <div className="flex items-center gap-2 mr-8">
-                {/* Botão de templates removido (limpeza operacional) */}
-              </div>
-
-            </DialogHeader>
-            <div className="overflow-y-auto px-6 py-5">
-              <div className="grid gap-6">
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Dados Comerciais</h3>
-                  <div className="grid gap-4">
-                    <Field label="Título *">
+              <DialogTrigger asChild>
+                <Button className="flex-1 sm:flex-none bg-foreground text-background hover:bg-foreground/90 rounded-md font-medium h-8 px-3 text-xs gap-1.5 font-mono-kasa shadow-xs">
+                  <Plus className="size-3.5 shrink-0" /> Nova proposta
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="bg-card border-border/60 p-0 gap-0 w-[calc(100vw-2rem)] sm:max-w-2xl max-h-[90vh] grid grid-rows-[auto_1fr_auto] overflow-hidden rounded-lg shadow-xl">
+                <DialogHeader className="px-5 py-4 border-b border-border/60 flex-row items-center justify-between space-y-0 sticky top-0 bg-card z-10">
+                  <div>
+                    <span className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">
+                      Nova Proposta
+                    </span>
+                    <DialogTitle className="font-display text-lg font-bold mt-0.5">
+                      Criar Proposta Comercial
+                    </DialogTitle>
+                  </div>
+                </DialogHeader>
+                <div className="overflow-y-auto px-5 py-4 space-y-4">
+                  <div className="space-y-3">
+                    <Field label="Título da Proposta *">
                       <Input
                         value={form.title}
                         onChange={(e) => setForm({ ...form, title: e.target.value })}
-                        placeholder="Ex: Proposta · Marketing Performance"
+                        placeholder="Ex: Proposta · Marketing de Performance"
+                        className="h-8 text-xs bg-muted/20 border-border/60"
                         autoFocus
                       />
                     </Field>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3">
                       <Field label="Destino">
-                        <Select
-                          value={form.target_kind}
-                          onValueChange={(v: "client" | "lead") =>
-                            setForm({
-                              ...form,
-                              target_kind: v,
-                              client_id: "",
-                              lead_id: "",
-                              client_name: "",
-                              client_email: "",
-                            })
-                          }
-                        >
-                          <SelectTrigger className="cursor-pointer">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="client" className="cursor-pointer">Cliente</SelectItem>
-                            <SelectItem value="lead" className="cursor-pointer">Lead</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center gap-1 p-0.5 bg-muted/40 border border-border/60 rounded h-8">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setForm({
+                                ...form,
+                                target_kind: "client",
+                                client_id: "",
+                                lead_id: "",
+                                client_name: "",
+                                client_email: "",
+                              })
+                            }
+                            className={cn(
+                              "flex-1 h-full text-xs font-mono-kasa rounded transition-colors cursor-pointer",
+                              form.target_kind === "client"
+                                ? "bg-card text-foreground font-semibold shadow-xs"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            Cliente
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setForm({
+                                ...form,
+                                target_kind: "lead",
+                                client_id: "",
+                                lead_id: "",
+                                client_name: "",
+                                client_email: "",
+                              })
+                            }
+                            className={cn(
+                              "flex-1 h-full text-xs font-mono-kasa rounded transition-colors cursor-pointer",
+                              form.target_kind === "lead"
+                                ? "bg-card text-foreground font-semibold shadow-xs"
+                                : "text-muted-foreground hover:text-foreground"
+                            )}
+                          >
+                            Lead (CRM)
+                          </button>
+                        </div>
                       </Field>
 
                       {form.target_kind === "client" ? (
-                        <Field label="Cliente *">
+                        <Field label="Cliente da Base *">
                           <Select
                             value={form.client_id || "__free__"}
                             onValueChange={(v) => {
@@ -549,17 +613,19 @@ function ProposalsPage() {
                               });
                             }}
                           >
-                            <SelectTrigger className="cursor-pointer"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                            <SelectTrigger className="h-8 text-xs bg-muted/20 border-border/60 cursor-pointer">
+                              <SelectValue placeholder="Selecione o cliente" />
+                            </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="__free__" className="cursor-pointer">Digitar nome...</SelectItem>
+                              <SelectItem value="__free__" className="text-xs cursor-pointer">Digitar nome manual...</SelectItem>
                               {clients.map((c) => (
-                                <SelectItem key={c.id} value={c.id} className="cursor-pointer">{c.company || c.name}</SelectItem>
+                                <SelectItem key={c.id} value={c.id} className="text-xs cursor-pointer">{c.company || c.name}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                         </Field>
                       ) : (
-                        <Field label="Lead *">
+                        <Field label="Lead do CRM *">
                           <Select
                             value={form.lead_id || "__none__"}
                             onValueChange={(v) => {
@@ -576,10 +642,12 @@ function ProposalsPage() {
                               });
                             }}
                           >
-                            <SelectTrigger className="cursor-pointer"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                            <SelectTrigger className="h-8 text-xs bg-muted/20 border-border/60 cursor-pointer">
+                              <SelectValue placeholder="Selecione o lead" />
+                            </SelectTrigger>
                             <SelectContent>
                               {leads.map((l) => (
-                                <SelectItem key={l.id} value={l.id} className="cursor-pointer">
+                                <SelectItem key={l.id} value={l.id} className="text-xs cursor-pointer">
                                   {l.name}{l.company ? ` · ${l.company}` : ""}
                                 </SelectItem>
                               ))}
@@ -595,6 +663,7 @@ function ProposalsPage() {
                           placeholder="Nome da empresa ou pessoa"
                           value={form.client_name}
                           onChange={(e) => setForm({ ...form, client_name: e.target.value })}
+                          className="h-8 text-xs bg-muted/20 border-border/60"
                         />
                       </Field>
                     )}
@@ -605,8 +674,7 @@ function ProposalsPage() {
                         onChange={(ids) => {
                           const oldIds = form.service_ids;
                           const newIds = ids;
-                          
-                          // If adding a new service, pull its default scope
+
                           if (newIds.length > oldIds.length) {
                             const addedId = newIds.find(id => !oldIds.includes(id));
                             const service = services.find((s: Service) => s.id === addedId);
@@ -614,22 +682,22 @@ function ProposalsPage() {
                               const scopeToAdd = (service.default_scope as string[])
                                 .map(item => `<p>${item}</p>`)
                                 .join("");
-                              
-                              setForm({ 
-                                ...form, 
-                                service_ids: ids, 
-                                scope: form.scope + scopeToAdd 
+
+                              setForm({
+                                ...form,
+                                service_ids: ids,
+                                scope: form.scope + scopeToAdd
                               });
                               return;
                             }
                           }
-                          
+
                           setForm({ ...form, service_ids: ids });
                         }}
                       />
                     </Field>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-3 pt-1 border-t border-border/60">
                       <Field label="Tipo de Contrato *">
                         <Select
                           value={form.contract_type}
@@ -637,303 +705,294 @@ function ProposalsPage() {
                             setForm({ ...form, contract_type: v })
                           }
                         >
-                          <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
+                          <SelectTrigger className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60 cursor-pointer">
+                            <SelectValue />
+                          </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="mensal" className="cursor-pointer">Mensal / Recorrente</SelectItem>
-                            <SelectItem value="avulso" className="cursor-pointer">Job Avulso</SelectItem>
+                            <SelectItem value="mensal" className="text-xs font-mono-kasa cursor-pointer">Mensal / Recorrente</SelectItem>
+                            <SelectItem value="avulso" className="text-xs font-mono-kasa cursor-pointer">Job Avulso</SelectItem>
                           </SelectContent>
                         </Select>
                       </Field>
-                      
-                      {form.contract_type === "mensal" ? (
-                        <Field label="Valor Mensal *">
-                          <Input
-                            type="number"
-                            value={form.monthly_investment || ""}
-                            onChange={(e) => setForm({ ...form, monthly_investment: Number(e.target.value) })}
-                            placeholder="0,00"
-                          />
-                        </Field>
-                      ) : (
-                        <Field label="Valor do Projeto *">
-                          <Input
-                            type="number"
-                            value={form.one_time_investment || ""}
-                            onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })}
-                            placeholder="0,00"
-                          />
-                        </Field>
-                      )}
-                    </div>
-                  </div>
-                </div>
 
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">INVESTIMENTO</h3>
-                  <div className="grid gap-4">
-                    <div className="grid grid-cols-2 gap-4">
                       {form.contract_type === "mensal" ? (
-                        <>
-                          <Field label="Prazo do Contrato">
-                            <Select
-                              value={form.contract_term}
-                              onValueChange={(v) => setForm({ ...form, contract_term: v })}
-                            >
-                               <SelectTrigger className="cursor-pointer"><SelectValue placeholder="Selecione o prazo" /></SelectTrigger>
-                               <SelectContent>
-                                 <SelectItem value="monthly" className="cursor-pointer">Sem prazo definido</SelectItem>
-                                <SelectItem value="3_months" className="cursor-pointer">3 meses</SelectItem>
-                                <SelectItem value="6_months" className="cursor-pointer">6 meses</SelectItem>
-                                <SelectItem value="12_months" className="cursor-pointer">12 meses</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </Field>
-                          <Field label="Setup / Entrada (opcional)">
+                        <Field label="Investimento Mensal (MRR) *">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground font-mono-kasa text-xs">R$</span>
                             <Input
                               type="number"
-                              value={form.one_time_investment || ""}
-                              onChange={(e) => setForm({ ...form, one_time_investment: Number(e.target.value) })}
+                              step="0.01"
                               placeholder="0,00"
+                              value={form.monthly_investment || ""}
+                              onChange={(e) =>
+                                setForm({ ...form, monthly_investment: parseFloat(e.target.value) || 0 })
+                              }
+                              className="pl-8 h-8 text-xs font-mono-kasa tabular-nums bg-muted/20 border-border/60"
                             />
-                          </Field>
-                          {form.one_time_investment > 0 && (
-                            <>
-                              <Field label="Parcelar Setup em">
-                                <Select
-                                  value={String(form.installments)}
-                                  onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
-                                >
-                                  <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
-                                  <SelectContent>
-                                    {[1,2,3,4,5,6,7,8,9,10,11,12].map(n => (
-                                      <SelectItem key={n} value={String(n)} className="cursor-pointer">
-                                        {n === 1 ? "À vista" : `${n}x`}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              </Field>
-                              {form.installments > 1 && (
-                                <Field label="Valor por parcela do Setup">
-                                  <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
-                                    {formatCurrency(form.one_time_investment / (form.installments || 1))}
-                                  </div>
-                                </Field>
-                              )}
-                            </>
-                          )}
-                          <Field label="Investimento Total">
-                            <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
-                              {formatCurrency(
-                                (form.monthly_investment * (
-                                  form.contract_term === "3_months" ? 3 :
-                                  form.contract_term === "6_months" ? 6 :
-                                  form.contract_term === "12_months" ? 12 :
-                                  form.contract_term === "monthly" ? 12 : 1
-                                )) + Number(form.one_time_investment || 0)
-                              )}
-                            </div>
-                          </Field>
-                        </>
+                          </div>
+                        </Field>
                       ) : (
-                        <>
-                          <Field label="Parcelamento">
-                            <Select
-                              value={String(form.installments)}
-                              onValueChange={(v) => setForm({ ...form, installments: Number(v) })}
-                            >
-                              <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                {[1, 2, 3, 4, 5, 6, 10, 12].map(n => (
-                                  <SelectItem key={n} value={String(n)} className="cursor-pointer">{n}x</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </Field>
-                          <Field label="Valor da Parcela">
-                            <div className="h-10 px-3 flex items-center bg-primary/5 border border-primary/20 rounded-md font-semibold text-primary">
-                              {formatCurrency(form.one_time_investment / (form.installments || 1))}
-                            </div>
-                          </Field>
-                        </>
+                        <Field label="Investimento Total *">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground font-mono-kasa text-xs">R$</span>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0,00"
+                              value={form.one_time_investment || ""}
+                              onChange={(e) =>
+                                setForm({ ...form, one_time_investment: parseFloat(e.target.value) || 0 })
+                              }
+                              className="pl-8 h-8 text-xs font-mono-kasa tabular-nums bg-muted/20 border-border/60"
+                            />
+                          </div>
+                        </Field>
                       )}
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Field label="Forma de Pagamento">
-                        <Select
-                          value={form.payment_method}
-                          onValueChange={(v) => setForm({ ...form, payment_method: v })}
-                        >
-                          <SelectTrigger className="cursor-pointer"><SelectValue /></SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="boleto" className="cursor-pointer">Boleto Bancário</SelectItem>
-                            <SelectItem value="pix" className="cursor-pointer">PIX</SelectItem>
-                            <SelectItem value="credit_card" className="cursor-pointer">Cartão de Crédito</SelectItem>
-                            <SelectItem value="transfer" className="cursor-pointer">Transferência</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                      <Field label="1º Vencimento">
-                        <Input
-                          type="date"
-                          value={form.first_due_date}
-                          onChange={(e) => setForm({ ...form, first_due_date: e.target.value })}
-                        />
-                      </Field>
-                    </div>
+
+                    {form.contract_type === "mensal" && (
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="Prazo Contratual">
+                          <Select
+                            value={form.contract_term}
+                            onValueChange={(v) => setForm({ ...form, contract_term: v })}
+                          >
+                            <SelectTrigger className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60 cursor-pointer">
+                              <SelectValue placeholder="Selecione o prazo" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="monthly" className="text-xs font-mono-kasa cursor-pointer">Sem prazo (Recorrente aberto)</SelectItem>
+                              <SelectItem value="3_months" className="text-xs font-mono-kasa cursor-pointer">3 meses</SelectItem>
+                              <SelectItem value="6_months" className="text-xs font-mono-kasa cursor-pointer">6 meses</SelectItem>
+                              <SelectItem value="12_months" className="text-xs font-mono-kasa cursor-pointer">12 meses (Anual)</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </Field>
+
+                        <Field label="Setup / Implantação (Opcional)">
+                          <div className="relative">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground font-mono-kasa text-xs">R$</span>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0,00"
+                              value={form.one_time_investment || ""}
+                              onChange={(e) =>
+                                setForm({ ...form, one_time_investment: parseFloat(e.target.value) || 0 })
+                              }
+                              className="pl-8 h-8 text-xs font-mono-kasa tabular-nums bg-muted/20 border-border/60"
+                            />
+                          </div>
+                        </Field>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                <div className="space-y-4 pt-6 border-t border-border">
-                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Itens / Escopo</h3>
-                  <ScopeEditor
-                    value={form.scope || ""}
-                    onChange={(v: string) => setForm({ ...form, scope: v })}
-                  />
-                </div>
-
-                <div className="space-y-4 pt-6 border-t border-border">
-                  <h3 className="text-sm font-semibold text-primary uppercase tracking-wider">Outras Informações</h3>
-                  <div className="grid gap-4">
-                    <Field label="Introdução">
-                      <Textarea
-                        rows={3}
-                        value={form.intro}
-                        onChange={(e) => setForm({ ...form, intro: e.target.value })}
-                        placeholder="Breve introdução da proposta..."
-                      />
-                    </Field>
-                    <Field label="Observações Internas">
-                      <Textarea
-                        rows={2}
-                        value={form.notes}
-                        onChange={(e) => setForm({ ...form, notes: e.target.value })}
-                        placeholder="Informações relevantes para a operação..."
-                      />
-                    </Field>
-                    <Field label="Validade da Proposta">
-                      <Input
-                        type="date"
-                        value={form.valid_until}
-                        onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
-                      />
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Padrão: 7 dias a partir da emissão.
-                      </p>
-                    </Field>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-            <DialogFooter className="px-6 py-4 border-t border-border bg-surface sticky bottom-0 gap-2 sm:gap-2">
-              <Button variant="ghost" onClick={() => setOpen(false)}>
-                Cancelar
-              </Button>
-              <Button
-                variant="outline"
-                disabled={!form.title || !form.client_name || createMut.isPending}
-                onClick={() => createMut.mutate()}
-              >
-                Salvar rascunho
-              </Button>
-              <Button
-                disabled={!form.title || !form.client_name || createMut.isPending}
-                onClick={() => createMut.mutate()}
-                className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold"
-              >
-                Criar e editar
-              </Button>
-            </DialogFooter>
-          </DialogContent>
+                <DialogFooter className="px-5 py-3 border-t border-border/60 bg-card sticky bottom-0 flex items-center justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setOpen(false)}
+                    className="h-8 px-3 text-xs"
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={!form.title || !form.client_name || createMut.isPending}
+                    onClick={() => createMut.mutate()}
+                    className="h-8 px-3 text-xs font-mono-kasa"
+                  >
+                    Salvar rascunho
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={!form.title || !form.client_name || createMut.isPending}
+                    onClick={() => createMut.mutate()}
+                    className="h-8 px-3.5 text-xs font-semibold bg-foreground text-background hover:bg-foreground/90 font-mono-kasa"
+                  >
+                    {createMut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : "Criar e editar"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
             </Dialog>
           )}
         </div>
       </div>
 
       {!showTrash && (
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 bg-surface border border-border p-3 rounded-2xl shadow-sm">
-          <div className="flex flex-col md:flex-row items-center gap-3 w-full">
-            <div className="relative w-full md:w-80">
-              <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40" />
-              <Input 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por título ou cliente..." 
-                className="pl-10 h-10 text-sm bg-background/50 border-border focus:bg-background rounded-xl"
-              />
+        <>
+          {/* Métricas Executivas Comerciais - Grid 2x2 no Mobile e 4 cols no Desktop */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 mb-6">
+            {/* Card 1: Em Negociação */}
+            <div className="bg-card border border-border/60 rounded-xl p-2.5 sm:p-3.5 shadow-xs">
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+                Em Negociação
+              </span>
+              <div className="mt-0.5 sm:mt-1 font-mono-kasa text-sm sm:text-xl font-bold text-foreground tabular-nums truncate">
+                {formatCurrency(stats.sentMonthly)}
+                <span className="text-[10px] sm:text-xs font-normal text-muted-foreground ml-0.5">/mês</span>
+              </div>
+              <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa truncate">
+                <span>{stats.sentCount} {stats.sentCount === 1 ? 'proposta' : 'propostas'}</span>
+                {stats.sentOneTime > 0 && (
+                  <span> · +{formatCurrency(stats.sentOneTime)} avulso</span>
+                )}
+              </div>
             </div>
-            
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <div className="relative w-full md:w-48">
-                <Filter className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 z-10" />
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger className="h-10 pl-9 text-sm bg-background/50 border-border rounded-xl">
-                    <SelectValue placeholder="Status" />
+
+            {/* Card 2: Aprovadas (Contratado) */}
+            <div className="bg-card border border-border/60 rounded-xl p-2.5 sm:p-3.5 shadow-xs">
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+                Aprovadas (MRR)
+              </span>
+              <div className="mt-0.5 sm:mt-1 font-mono-kasa text-sm sm:text-xl font-bold text-foreground tabular-nums truncate">
+                {formatCurrency(stats.approvedMonthly)}
+                <span className="text-[10px] sm:text-xs font-normal text-muted-foreground ml-0.5">/mês</span>
+              </div>
+              <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa truncate">
+                {stats.approvedCount} {stats.approvedCount === 1 ? 'fechada' : 'fechadas'}
+              </div>
+            </div>
+
+            {/* Card 3: Engajamento / Visualizações */}
+            <div className="bg-card border border-border/60 rounded-xl p-2.5 sm:p-3.5 shadow-xs">
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+                Visualizadas
+              </span>
+              <div className="mt-0.5 sm:mt-1 font-mono-kasa text-sm sm:text-xl font-bold text-foreground tabular-nums truncate">
+                {stats.viewedCount}
+                <span className="text-[10px] sm:text-xs font-normal text-muted-foreground ml-0.5">/ {stats.sentCount}</span>
+              </div>
+              <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa truncate">
+                {stats.sentCount > 0 ? `${Math.round((stats.viewedCount / stats.sentCount) * 100)}% leitura` : "Nenhuma enviada"}
+              </div>
+            </div>
+
+            {/* Card 4: Volume Total em Propostas */}
+            <div className="bg-card border border-border/60 rounded-xl p-2.5 sm:p-3.5 shadow-xs">
+              <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+                Volume Pipeline
+              </span>
+              <div className="mt-0.5 sm:mt-1 font-mono-kasa text-sm sm:text-xl font-bold text-foreground tabular-nums truncate">
+                {formatCurrency(stats.sentTotal)}
+              </div>
+              <div className="mt-0.5 sm:mt-1 text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa truncate">
+                Contratos + setups
+              </div>
+            </div>
+          </div>
+
+          {/* Abas Rápidas de Status + Barra de Busca e Filtro */}
+          <div className="space-y-3 mb-6">
+            {/* Status Tabs */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar border-b border-border/60">
+              {[
+                { key: "all", label: "Todas", count: stats.counts.all },
+                { key: "Enviada", label: "Enviadas", count: stats.counts.Enviada },
+                { key: "Aprovada", label: "Aprovadas", count: stats.counts.Aprovada },
+                { key: "Rascunho", label: "Rascunhos", count: stats.counts.Rascunho },
+                { key: "Recusada", label: "Recusadas", count: stats.counts.Recusada },
+              ].map((tab) => {
+                const isActive = filterStatus === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setFilterStatus(tab.key)}
+                    className={cn(
+                      "px-3 py-1.5 text-xs font-medium transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer border-b-2 -mb-px",
+                      isActive
+                        ? "border-foreground text-foreground font-semibold"
+                        : "border-transparent text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    <span>{tab.label}</span>
+                    <span
+                      className={cn(
+                        "px-1.5 py-0.2 rounded text-[10px] font-mono-kasa tabular-nums",
+                        isActive
+                          ? "bg-foreground/10 text-foreground font-bold"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Barra de Busca + Filtro de Clientes */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5">
+              <div className="relative w-full sm:flex-1">
+                <Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar por título ou cliente..."
+                  className="pl-8 h-8 text-xs bg-card border-border/60 rounded-md w-full"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Select value={filterClient} onValueChange={setFilterClient}>
+                  <SelectTrigger className="h-8 text-xs bg-card border-border/60 rounded-md w-full sm:w-52 cursor-pointer">
+                    <SelectValue placeholder="Todos os Clientes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos os Status</SelectItem>
-                    {STATUS_ORDER.map((status) => (
-                      <SelectItem key={status} value={status}>{status}</SelectItem>
+                    <SelectItem value="all" className="cursor-pointer text-xs">Todos os Clientes</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id} className="cursor-pointer text-xs">{c.company || c.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+
+                {(search || filterStatus !== "all" || filterClient !== "all") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="h-8 px-2.5 text-muted-foreground hover:text-foreground gap-1.5 rounded-md text-xs shrink-0 cursor-pointer"
+                  >
+                    <XCircle className="size-3.5" />
+                    <span>Limpar</span>
+                  </Button>
+                )}
               </div>
-
-              <Select value={filterClient} onValueChange={setFilterClient}>
-                <SelectTrigger className="h-10 text-sm bg-background/50 border-border rounded-xl md:w-56">
-                  <SelectValue placeholder="Todos os Clientes" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Clientes</SelectItem>
-                  {clients.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {(search || filterStatus !== "all" || filterClient !== "all") && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={clearFilters}
-                  className="h-10 px-3 text-foreground/60 hover:text-foreground gap-2 rounded-xl"
-                >
-                  <XCircle className="size-4" />
-                  <span className="hidden sm:inline">Limpar</span>
-                </Button>
-              )}
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {filteredProposals.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-border bg-surface/50 p-20 text-center animate-reveal">
-          <div className="size-20 rounded-3xl bg-primary/10 ring-1 ring-primary/30 grid place-items-center mx-auto mb-6 shadow-xl shadow-primary/5">
-            <Search className="size-8 text-primary" />
+        <div className="rounded-lg border border-dashed border-border/60 bg-card/40 p-12 text-center">
+          <div className="size-10 rounded-md bg-muted border border-border/60 grid place-items-center mx-auto mb-3 text-muted-foreground">
+            <Search className="size-4" />
           </div>
-          <h2 className="font-display text-2xl font-bold mb-2">
-            {showTrash 
-              ? "A lixeira está vazia"
+          <h2 className="font-mono-kasa text-sm font-semibold uppercase tracking-wider mb-1 text-foreground">
+            {showTrash
+              ? "Lixeira vazia"
               : "Nenhuma proposta encontrada"
             }
           </h2>
-          <p className="text-foreground/60 text-sm max-w-md mx-auto mb-8">
+          <p className="text-muted-foreground text-xs max-w-sm mx-auto mb-4">
             {showTrash
-              ? "As propostas que você excluir aparecerão aqui para serem restauradas ou removidas permanentemente."
-              : (search || filterStatus !== "all" || filterClient !== "all" 
-                ? "Não encontramos resultados para os filtros aplicados. Tente ajustar sua busca ou limpar os filtros abaixo." 
-                : "Você ainda não criou nenhuma proposta comercial. Comece criando uma nova agora!")
+              ? "Propostas excluídas aparecerão aqui para serem restauradas."
+              : (search || filterStatus !== "all" || filterClient !== "all"
+                ? "Nenhum resultado para os filtros aplicados."
+                : "Nenhuma proposta criada até o momento.")
             }
           </p>
           {(search || filterStatus !== "all" || filterClient !== "all") && !showTrash && (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={clearFilters}
-              className="rounded-full px-8 h-12 font-semibold gap-2 border-primary/20 hover:bg-primary/5"
+              className="h-8 px-3 text-xs gap-1.5"
             >
-              <RotateCcw className="size-4" /> Limpar Filtros
+              <RotateCcw className="size-3.5" /> Limpar Filtros
             </Button>
           )}
         </div>
@@ -941,20 +1000,20 @@ function ProposalsPage() {
 
         <>
           {/* Desktop table */}
-          <div className="hidden md:block rounded-2xl border border-border bg-surface overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="hidden md:block rounded-lg border border-border/60 bg-card overflow-hidden">
+            <table className="w-full text-xs">
               <thead>
-                <tr className="text-left text-[10px] capitalize text-foreground/50 border-b border-border">
-                  <th className="px-5 py-3 w-20">Nº</th>
-                  <th className="px-5 py-3">Proposta</th>
-                  <th className="px-5 py-3">Cliente</th>
-                  <th className="px-5 py-3 text-right">Investimento</th>
-                  <th className="px-5 py-3 text-right">Total</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 w-16" />
+                <tr className="text-left text-[11px] uppercase font-mono-kasa tracking-wider text-muted-foreground border-b border-border/60 bg-muted/30">
+                  <th className="px-4 py-2.5 w-16 font-medium">Nº</th>
+                  <th className="px-4 py-2.5 font-medium">Proposta</th>
+                  <th className="px-4 py-2.5 font-medium">Cliente</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Investimento</th>
+                  <th className="px-4 py-2.5 text-right font-medium">Total Contrato</th>
+                  <th className="px-4 py-2.5 font-medium">Status</th>
+                  <th className="px-4 py-2.5 text-right w-20 font-medium">Ações</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/60">
                 {filteredProposals.map((p: Proposal) => {
                   const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
                   const summary = eventSummary.get(p.id);
@@ -962,47 +1021,49 @@ function ProposalsPage() {
                   return (
                     <tr
                       key={p.id}
-                      className="border-b border-border last:border-0 hover:bg-surface-elevated transition"
+                      className="hover:bg-muted/20 transition-colors group"
                     >
-                      <td className="px-5 py-3 font-mono text-xs opacity-40">
-                        {p.number_display}
+                      <td className="px-4 py-3 font-mono-kasa text-[11px] text-muted-foreground tabular-nums">
+                        {p.number_display || "—"}
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-4 py-3">
                         <button
                           onClick={() => setSelectedId(p.id)}
-                          className="font-semibold hover:text-primary flex items-center gap-1 text-left"
+                          className="font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1 text-left cursor-pointer"
                         >
                           {p.title}
-                          <ArrowUpRight className="size-3.5 opacity-60" />
+                          <ArrowUpRight className="size-3 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
                         </button>
                         <div className="mt-0.5">
                           <ProposalStatusLine status={p.status} summary={summary} createdAt={p.created_at} />
                         </div>
                       </td>
 
-                      <td className="px-5 py-3">
+                      <td className="px-4 py-3">
                         {p.client_id ? (
-                          <Link 
-                            to="/clientes/$clientId" 
+                          <Link
+                            to="/clientes/$clientId"
                             params={{ clientId: p.client_id }}
                             data-testid="client-link"
-                            className="text-foreground/70 hover:text-primary hover:underline cursor-pointer transition-colors font-medium"
+                            className="text-foreground hover:underline cursor-pointer transition-colors"
                           >
                             {p.client_name}
                           </Link>
                         ) : (
-                          <span className="text-foreground/70">{p.client_name}</span>
+                          <span className="text-muted-foreground">{p.client_name}</span>
                         )}
                       </td>
-                      <td className="px-5 py-3 text-right text-primary">
-                        {p.contract_type === 'recurring' 
-                          ? formatCurrency(Number(p.monthly_investment || 0)) 
-                          : formatCurrency(Number(p.one_time_investment || 0))}
-                        <span className="text-[10px] block opacity-40 uppercase font-bold">
+                      <td className="px-4 py-3 text-right font-mono-kasa tabular-nums">
+                        <span className="font-semibold text-foreground">
+                          {p.contract_type === 'recurring'
+                            ? formatCurrency(Number(p.monthly_investment || 0))
+                            : formatCurrency(Number(p.one_time_investment || 0))}
+                        </span>
+                        <span className="text-[10px] block text-muted-foreground uppercase font-mono-kasa">
                           {p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-right">
+                      <td className="px-4 py-3 text-right font-mono-kasa tabular-nums text-foreground font-medium">
                         {(() => {
                           const months = Number((p as any).recurring_months || 0);
                           const baseMonthly = Number(p.monthly_investment || 0);
@@ -1020,8 +1081,8 @@ function ProposalsPage() {
                           return formatCurrency(grand);
                         })()}
                       </td>
-                      <td className="px-5 py-3">
-                        <Badge className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
+                      <td className="px-4 py-3">
+                        <Badge className={cn("inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] uppercase font-mono-kasa tracking-wider font-semibold", s.cls)}>
                           <span className={cn("size-1.5 rounded-full", s.dot)} />
                           {s.label}
                           {summary && summary.viewCount > 0 && p.status === "Enviada" && (
@@ -1030,32 +1091,52 @@ function ProposalsPage() {
                         </Badge>
                       </td>
 
-                      <td className="px-5 py-3 text-right">
-                        <ActionsMenu
-                          proposal={p}
-                          isTrashed={showTrash}
-                          onView={() => openView(p)}
-                          onEdit={() => setSelectedId(p.id)}
-                          onDuplicate={() => dupMut.mutate(p.id)}
-                          onPdf={() => openPdf(p)}
-                          onShare={() => copyLink(p)}
-                          onWhatsApp={() => openWhatsApp(p)}
-                          onEmail={() => openEmail(p)}
-                          onReopen={() => statusMut.mutate({ id: p.id, status: "Rascunho" })}
-                          onCancel={() => statusMut.mutate({ id: p.id, status: "Encerrada" })}
-                          onRestore={() => restoreMut.mutate(p.id)}
-                          onDelete={() => {
-                            if (showTrash) {
-                              if (confirm("Excluir permanentemente? Esta ação não pode ser desfeita.")) {
-                                delMut.mutate({ id: p.id, permanent: true });
+                      <td className="px-4 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          {!showTrash && (
+                            <>
+                              <button
+                                onClick={() => copyLink(p)}
+                                title="Copiar link da proposta"
+                                className="size-7 grid place-items-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition cursor-pointer"
+                              >
+                                <Share2 className="size-3.5" />
+                              </button>
+                              <button
+                                onClick={() => openWhatsApp(p)}
+                                title="Enviar via WhatsApp"
+                                className="size-7 grid place-items-center rounded-md text-emerald-600 hover:text-emerald-500 hover:bg-emerald-500/10 transition cursor-pointer"
+                              >
+                                <MessageCircle className="size-3.5" />
+                              </button>
+                            </>
+                          )}
+                          <ActionsMenu
+                            proposal={p}
+                            isTrashed={showTrash}
+                            onView={() => openView(p)}
+                            onEdit={() => setSelectedId(p.id)}
+                            onDuplicate={() => dupMut.mutate(p.id)}
+                            onPdf={() => openPdf(p)}
+                            onShare={() => copyLink(p)}
+                            onWhatsApp={() => openWhatsApp(p)}
+                            onEmail={() => openEmail(p)}
+                            onReopen={() => statusMut.mutate({ id: p.id, status: "Rascunho" })}
+                            onCancel={() => statusMut.mutate({ id: p.id, status: "Encerrada" })}
+                            onRestore={() => restoreMut.mutate(p.id)}
+                            onDelete={() => {
+                              if (showTrash) {
+                                if (confirm("Excluir permanentemente? Esta ação não pode ser desfeita.")) {
+                                  delMut.mutate({ id: p.id, permanent: true });
+                                }
+                              } else {
+                                if (confirm("Mover para a lixeira?")) {
+                                  delMut.mutate({ id: p.id, permanent: false });
+                                }
                               }
-                            } else {
-                              if (confirm("Mover para a lixeira?")) {
-                                delMut.mutate({ id: p.id, permanent: false });
-                              }
-                            }
-                          }}
-                        />
+                            }}
+                          />
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1065,29 +1146,38 @@ function ProposalsPage() {
           </div>
 
           {/* Mobile cards */}
-          <div className="md:hidden space-y-3">
-                {filteredProposals.map((p: Proposal) => {
-                    const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
-                    const summary = eventSummary.get(p.id);
-
+          <div className="md:hidden space-y-2.5">
+            {filteredProposals.map((p: Proposal) => {
+              const s = STATUS_LABELS[p.status] ?? STATUS_LABELS.Rascunho;
+              const summary = eventSummary.get(p.id);
 
               return (
                 <div
                   key={p.id}
-                  className="rounded-2xl border border-border bg-surface p-4"
+                  className="rounded-xl border border-border/60 bg-card p-3.5 shadow-xs flex flex-col gap-2.5"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-mono opacity-40">{p.number_display}</span>
+                        <span className="text-[10px] font-mono-kasa text-muted-foreground tabular-nums">
+                          {p.number_display || "PROPOSTA"}
+                        </span>
+                        <Badge className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] uppercase font-mono-kasa font-semibold", s.cls)}>
+                          <span className={cn("size-1 rounded-full", s.dot)} />
+                          {s.label}
+                          {summary && summary.viewCount > 0 && p.status === "Enviada" && (
+                            <Eye className="size-2.5 ml-0.5" />
+                          )}
+                        </Badge>
                       </div>
                       <button
                         onClick={() => setSelectedId(p.id)}
-                        className="font-semibold hover:text-primary text-left"
+                        className="font-medium text-foreground hover:text-primary text-left text-xs line-clamp-1 block w-full"
                       >
                         {p.title}
                       </button>
                     </div>
+
                     <ActionsMenu
                       proposal={p}
                       isTrashed={showTrash}
@@ -1114,35 +1204,55 @@ function ProposalsPage() {
                       }}
                     />
                   </div>
+
                   {p.client_id ? (
-                    <Link 
-                      to="/clientes/$clientId" 
+                    <Link
+                      to="/clientes/$clientId"
                       params={{ clientId: p.client_id }}
-                      className="text-xs text-foreground/60 mt-1 hover:text-primary hover:underline cursor-pointer transition-colors block w-fit"
+                      className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer transition-colors block truncate w-fit"
                     >
                       {p.client_name}
                     </Link>
                   ) : (
-                    <p className="text-xs text-foreground/60 mt-1">{p.client_name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{p.client_name}</p>
                   )}
-                  <div className="mt-1">
+
+                  <div className="text-[11px]">
                     <ProposalStatusLine status={p.status} summary={summary} createdAt={p.created_at} />
                   </div>
-                  <div className="flex items-center justify-between mt-3">
-                    <Badge className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] uppercase font-bold tracking-widest border-none", s.cls)}>
-                      <span className={cn("size-1.5 rounded-full", s.dot)} />
-                      {s.label}
-                      {summary && summary.viewCount > 0 && p.status === "Enviada" && (
-                        <Eye className="size-3 ml-0.5" />
-                      )}
-                    </Badge>
 
-                    <div className="text-right">
-                      <p className="text-[10px] text-foreground/40">{p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}</p>
-                      <p className="text-sm font-semibold text-primary">
-                        {p.contract_type === 'recurring' 
-                          ? formatCurrency(Number(p.monthly_investment)) 
-                          : formatCurrency(Number(p.one_time_investment))}
+                  <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                    <div className="flex items-center gap-1.5">
+                      {!showTrash && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyLink(p)}
+                            className="h-7 px-2 text-[11px] font-mono-kasa gap-1 rounded-md border-border/60"
+                          >
+                            <Share2 className="size-3 text-muted-foreground" /> Link
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openWhatsApp(p)}
+                            className="h-7 px-2 text-[11px] font-mono-kasa gap-1 rounded-md border-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10"
+                          >
+                            <MessageCircle className="size-3" /> WhatsApp
+                          </Button>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="text-right font-mono-kasa">
+                      <p className="text-[9px] text-muted-foreground uppercase">
+                        {p.contract_type === 'recurring' ? 'Mensal' : 'Avulso'}
+                      </p>
+                      <p className="text-xs font-bold text-foreground tabular-nums">
+                        {p.contract_type === 'recurring'
+                          ? formatCurrency(Number(p.monthly_investment || 0))
+                          : formatCurrency(Number(p.one_time_investment || 0))}
                       </p>
                     </div>
                   </div>

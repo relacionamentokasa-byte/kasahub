@@ -17,11 +17,17 @@ const normalize = (s: string | null | undefined) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-// Identificação do Pró-labore: pelo nome da categoria (categorias_financeiras.nome
-// ou o campo legado transactions.category), normalizado sem acentos.
-// Cobre variações como "Pró-labore", "Pro Labore" e "Pró-labore Sócio".
-const isProLabore = (name: string | null | undefined) =>
-  normalize(name).includes(PRO_LABORE);
+const isProLabore = (name: string | null | undefined) => {
+  const n = normalize(name);
+  return (
+    n.includes(PRO_LABORE) ||
+    n.includes("pro-labore") ||
+    n.includes("prolabore") ||
+    n.includes("retirada") ||
+    n.includes("socio") ||
+    n.includes("distribuicao")
+  );
+};
 
 
 const isInvestimento = (name: string | null | undefined) =>
@@ -42,7 +48,8 @@ export async function fetchTransactions(filters: {
   quickFilter?: string;
   quickChip?: string;
   showCancelled?: boolean;
-
+  viewTab?: "extrato" | "receber" | "pagar" | "prolabore" | "suspensos";
+  expenseSubFilter?: "all" | "suppliers" | "freelancers" | "fixed";
 } = {}) {
   const page = filters.page || 1;
   const pageSize = filters.pageSize || 50;
@@ -54,55 +61,119 @@ export async function fetchTransactions(filters: {
     .from("clients")
     .select("id")
     .eq("financial_collection_status", "suspended");
-  
+
   const suspendedIds = (suspendedClients || []).map(c => c.id);
 
-  const today = new Date().toISOString().split("T")[0];
+  const todayStr = new Date().toISOString().split("T")[0];
   let q = supabase
     .from("transactions")
     .select("*, extra_demands!transactions_extra_demand_id_fkey(id, number_display, title), dme_batches(id, friendly_number, items_count:dme_batch_items(count)), clients(id, name, company, logo_url, financial_collection_status, financial_collection_date, financial_collection_reason), categorias_financeiras(id, nome, tipo), suppliers(id, name), freelancer:partners!transactions_freelancer_id_fkey(id, name, photo_url)", { count: "exact" });
 
-  
-  const todayStr = new Date().toISOString().split("T")[0];
+  const viewTab = filters.viewTab || "extrato";
 
   // 1. Período ou Atrasados
-  if (filters.quickChip === "overdue") {
+  if (viewTab === "suspensos") {
+    // Na aba de suspensos, listamos os débitos pendentes/histórico de clientes com cobrança suspensa
+    if (filters.startDate && filters.endDate) {
+      q = q.or(
+        `and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(payment_date.gte.${filters.startDate},payment_date.lte.${filters.endDate})`
+      );
+    }
+  } else if (filters.quickChip === "overdue") {
     q = q.lt("due_date", todayStr).eq("status", "pending");
   } else if (filters.startDate && filters.endDate) {
-    q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${todayStr},status.eq.pending)`);
+    q = q.or(
+      `and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(payment_date.gte.${filters.startDate},payment_date.lte.${filters.endDate},status.eq.paid),and(due_date.lt.${todayStr},status.eq.pending)`
+    );
   } else {
-    if (filters.startDate) q = q.gte("due_date", filters.startDate);
-    if (filters.endDate) q = q.lte("due_date", filters.endDate);
+    if (filters.startDate) q = q.or(`due_date.gte.${filters.startDate},payment_date.gte.${filters.startDate}`);
+    if (filters.endDate) q = q.or(`due_date.lte.${filters.endDate},payment_date.lte.${filters.endDate}`);
   }
 
-  // 2. Filtros Básicos
+  // Busca as categorias para separação de pró-labore vs despesas operacionais
+  const { data: proLaboreCats } = await supabase
+    .from("categorias_financeiras" as any)
+    .select("id, nome");
+  const matchedCategoryIds = (proLaboreCats || [])
+    .filter((c: any) => isProLabore(c.nome))
+    .map((c: any) => c.id);
+
+  const proLaboreCategoryNames = [
+    "Pró-labore",
+    "Pró-labore Sócio",
+    "Pro-labore",
+    "Distribuição Sócios",
+    "Distribuição",
+    "Retirada de Sócios",
+    "Retirada Sócios"
+  ];
+
+  // 2. Filtros de Abas Funcionais (viewTab)
+  if (viewTab === "receber") {
+    q = q.eq("type", "income");
+  } else if (viewTab === "pagar") {
+    q = q.eq("type", "expense");
+
+    // Exclui lançamentos de pró-labore/retirada de sócios da aba "A Pagar"
+    if (matchedCategoryIds.length > 0) {
+      const idsJoined = matchedCategoryIds.map(id => `"${id}"`).join(",");
+      q = q.or(`category_id.is.null,category_id.not.in.(${idsJoined})`);
+    }
+    for (const name of proLaboreCategoryNames) {
+      q = q.not("category", "eq", name);
+    }
+    q = q.not("description", "ilike", "%pro-labore%")
+         .not("description", "ilike", "%pró-labore%");
+
+    if (filters.expenseSubFilter === "suppliers") {
+      q = q.not("supplier_id", "is", null);
+    } else if (filters.expenseSubFilter === "freelancers") {
+      q = q.not("freelancer_id", "is", null);
+    } else if (filters.expenseSubFilter === "fixed") {
+      q = q.eq("is_internal", true);
+    }
+  } else if (viewTab === "prolabore") {
+    if (matchedCategoryIds.length > 0) {
+      const idsJoined = matchedCategoryIds.join(",");
+      const categoryNamesJoined = proLaboreCategoryNames.join(",");
+      q = q.eq("type", "expense").or(
+        `category_id.in.(${idsJoined}),category.in.(${categoryNamesJoined}),description.ilike.%pro-labore%,description.ilike.%pró-labore%`
+      );
+    } else {
+      q = q.eq("type", "expense").or(
+        `category.ilike.%pro-labore%,category.ilike.%pró-labore%,description.ilike.%pro-labore%,description.ilike.%pró-labore%`
+      );
+    }
+  }
+
+  // 3. Filtros Básicos
   if (filters.clientId && filters.clientId !== "all") q = q.eq("client_id", filters.clientId);
   if (filters.status && filters.status !== "all" && filters.status !== "overdue") q = q.eq("status", filters.status);
   if (filters.status === "overdue") q = q.lt("due_date", todayStr).eq("status", "pending");
-  if (filters.type && filters.type !== "all") q = q.eq("type", filters.type);
+  if (filters.type && filters.type !== "all" && viewTab === "extrato") q = q.eq("type", filters.type);
   if (filters.categoryId && filters.categoryId !== "all") q = q.eq("category_id", filters.categoryId);
 
-  // 3. Busca Textual
+  // 4. Busca Textual
   if (filters.search) {
     q = q.or(`description.ilike.%${filters.search}%,client_name_search.ilike.%${filters.search}%`);
   }
 
-  // 4. Status Internos
+  // 5. Status Internos (NF e Boleto)
   if (filters.nfStatus && filters.nfStatus !== "all") q = q.eq("nf_status", filters.nfStatus);
   if (filters.boletoStatus && filters.boletoStatus !== "all") q = q.eq("boleto_internal_status", filters.boletoStatus);
 
-  // 5. Quick Filters (Natureza/Tipo)
+  // 6. Quick Filters (Natureza/Tipo legados)
   if (filters.quickFilter === "income") {
     q = q.eq("type", "income");
   } else if (filters.quickFilter === "expense_op") {
     q = q.eq("type", "expense").eq("nature", "operacional");
   } else if (filters.quickFilter === "pro_labore") {
-    // Pro-labore é uma categoria específica.
-    // Buscamos transações do tipo despesa onde a categoria associada tem nome "pro-labore"
-    q = q.eq("type", "expense").ilike("categorias_financeiras.nome", "%pro-labore%");
+    q = q.eq("type", "expense").or(
+      `category.ilike.%pro-labore%,category.ilike.%pró-labore%,description.ilike.%pro-labore%,description.ilike.%pró-labore%`
+    );
   }
 
-  // 6. Quick Chips (Datas/Vínculos)
+  // 7. Quick Chips (Datas/Vínculos)
   if (filters.quickChip === "today") {
     q = q.eq("due_date", todayStr);
   } else if (filters.quickChip === "week") {
@@ -113,43 +184,28 @@ export async function fetchTransactions(filters: {
   } else if (filters.quickChip === "paid_month") {
     q = q.eq("status", "paid");
   } else if (filters.quickChip === "missing_links") {
-    // Filtro complexo de vínculos or(client_id.is.null, ...)
     q = q.or('client_id.is.null,supplier_id.is.null,freelancer_id.is.null');
   }
 
-  // 7. Cancelados
+  // 8. Cancelados
   if (!filters.showCancelled) {
     q = q.neq("status", "cancelled");
   }
 
-  // 8. Regra de Suspensão Financeira (Visão Operacional) - Aplicada ANTES do .range()
-  // Lançamentos pendentes/atrasados de clientes suspensos são ocultados.
-  // Lançamentos pagos ou sem cliente são mantidos.
-  if (suspendedIds.length > 0) {
+  // 9. Regra de Suspensão Financeira
+  if (viewTab === "suspensos") {
+    if (suspendedIds.length > 0) {
+      const idsString = suspendedIds.map(id => `"${id}"`).join(',');
+      q = q.in("client_id", suspendedIds);
+    } else {
+      q = q.eq("id", "00000000-0000-0000-0000-000000000000"); // Nenhum cliente suspenso
+    }
+  } else if (suspendedIds.length > 0) {
     const idsString = suspendedIds.map(id => `"${id}"`).join(',');
     q = q.or(`client_id.is.null,client_id.not.in.(${idsString}),status.eq.paid`);
   }
 
-  // 9. Ordenação Cronológica (Data Efetiva)
-  // REGRA: 
-  // - Para PAGOS: usar 'payment_date' (data efetiva do movimento)
-  // - Para PENDENTES: usar 'due_date' (vencimento)
-  // A ordenação é ASC (do mais antigo para o mais recente)
-  // A coluna 'effective_date' é uma coluna gerada no banco para este fim.
-  q = q.order("effective_date", { ascending: true });
-  // Note: Para garantir ordem cronológica REAL mesclando os dois estados, o ideal seria uma coluna gerada ou view.
-  // Como não podemos alterar o banco, usaremos a ordenação que melhor se aproxima ou pediremos ao PostgREST.
-  // Infelizmente PostgREST .order() é limitado a colunas reais.
-  // A solução técnica aceita em PostgREST para "order by coalesce(payment_date, due_date)" é usar select ordenado se for RPC,
-  // ou simplesmente ordenar por due_date e aceitar que pagamentos antecipados ficam na data de vencimento.
-  // MAS o usuário foi específico: "Esse lançamento deve aparecer na posição correspondente a 13/08/2026, e NÃO a 20/08/2026."
-  
-  // Visto que não posso alterar o banco nem criar colunas, e o .order() do PostgREST não aceita expressões complexas,
-  // a única forma de atender a regra EXATA de ordenação por data efetiva MANTENDO a paginação server-side 
-  // seria ter essa informação em uma coluna.
-  
-  // Porém, verificando o código, vou aplicar a ordenação por due_date ASC como base, 
-  // já que é o campo mais consistente para cronologia.
+  // 10. Ordenação Cronológica
   q = q.order("due_date", { ascending: true });
 
   const { data, error, count } = await q.range(from, to);
@@ -209,10 +265,12 @@ export async function fetchFinanceStats(filters: { startDate?: string; endDate?:
     .select("amount, valor_previsto, valor_real, paid_value, type, status, due_date, payment_date, nature, category, categorias_financeiras(nome), clients(financial_collection_status)");
 
   if (filters.startDate && filters.endDate) {
-    q = q.or(`and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(due_date.lt.${today},status.eq.pending)`);
+    q = q.or(
+      `and(due_date.gte.${filters.startDate},due_date.lte.${filters.endDate}),and(payment_date.gte.${filters.startDate},payment_date.lte.${filters.endDate},status.eq.paid),and(due_date.lt.${today},status.eq.pending)`
+    );
   } else {
-    if (filters.startDate) q = q.gte("due_date", filters.startDate);
-    if (filters.endDate) q = q.lte("due_date", filters.endDate);
+    if (filters.startDate) q = q.or(`due_date.gte.${filters.startDate},payment_date.gte.${filters.startDate}`);
+    if (filters.endDate) q = q.or(`due_date.lte.${filters.endDate},payment_date.lte.${filters.endDate}`);
   }
 
   const { data: trans, error } = await q;

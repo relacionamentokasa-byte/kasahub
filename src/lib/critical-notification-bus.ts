@@ -68,7 +68,46 @@ if (typeof window !== "undefined") {
   window.addEventListener("focus", () => stopTitleFlash());
 }
 
-// --- Som mais marcante (Web Audio: dois bips agudos) ---
+// --- Som padrão suave sintetizado via Web Audio API (Zero dependência externa) ---
+export function playStandardNotificationSound(volume: 'low' | 'medium' | 'high' = 'medium') {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    const volMap = {
+      low: 0.15,
+      medium: 0.3,
+      high: 0.5,
+    };
+    const targetVol = volMap[volume] || 0.3;
+
+    const playTone = (start: number, freq: number, duration: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(targetVol, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + duration + 0.05);
+    };
+
+    // Acorde elegante duplo (estilo Slack/Linear: Mi -> Sol#)
+    playTone(now, 659.25, 0.18);
+    playTone(now + 0.09, 830.61, 0.25);
+
+    setTimeout(() => ctx.close().catch(() => {}), 600);
+  } catch {
+    /* ignore */
+  }
+}
+
+// --- Som mais marcante para alertas críticos (Web Audio) ---
 export function playCriticalSound() {
   if (typeof window === "undefined") return;
   try {

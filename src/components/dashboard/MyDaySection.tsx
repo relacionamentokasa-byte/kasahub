@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { Briefcase, CheckCircle2, FileText, ListChecks, ArrowRight } from "lucide-react";
+import { Briefcase, CheckCircle2, FileText, ListChecks, ArrowUpRight } from "lucide-react";
 
 /**
- * "Meu Dia" — seção personalizada do dashboard que mostra
- * exatamente o que precisa da atenção do usuário logado agora.
+ * "Meu Dia" — seção personalizada do dashboard com linguagem visual de agência/estúdio.
  */
 export function MyDaySection() {
   const [userId, setUserId] = useState<string | null>(null);
@@ -33,7 +32,6 @@ export function MyDaySection() {
       if (!userId) return null;
       const teamFilter = `[{"user_id":"${userId}"}]`;
       const [jobsRes, checklistRes, approvalsRes, proposalsRes] = await Promise.all([
-        // Jobs: assignee OR responsável principal OR membro da equipe
         supabase
           .from("jobs")
           .select("id", { count: "exact", head: true })
@@ -74,60 +72,57 @@ export function MyDaySection() {
 
   const cards = [
     {
-      label: "Demandas comigo",
-      hint: "em execução",
+      label: "Demandas Ativas",
+      hint: "Jobs em produção",
       count: counts?.jobs ?? 0,
       icon: Briefcase,
       to: "/jobs" as const,
-      tint: "from-blue-500/15 to-blue-500/0 text-blue-500",
+      badgeStyle: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20",
     },
     {
-      label: "Sua vez no checklist",
-      hint: "etapas aguardando você",
+      label: "Checklist Pendente",
+      hint: "Suas entregas pendentes",
       count: counts?.checklist ?? 0,
       icon: ListChecks,
       to: "/jobs" as const,
-      tint: "from-amber-500/15 to-amber-500/0 text-amber-500",
+      badgeStyle: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
     },
     {
-      label: "Aprovações pendentes",
-      hint: "na fila",
+      label: "Aprovações",
+      hint: "Aguardando validação",
       count: counts?.approvals ?? 0,
       icon: CheckCircle2,
       to: "/aprovacoes" as const,
-      tint: "from-emerald-500/15 to-emerald-500/0 text-emerald-500",
+      badgeStyle: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
     },
     {
-      label: "Propostas em aberto",
-      hint: "criadas por você",
+      label: "Propostas em Aberto",
+      hint: "Em negociação comercial",
       count: counts?.proposals ?? 0,
       icon: FileText,
       to: "/propostas" as const,
-      tint: "from-violet-500/15 to-violet-500/0 text-violet-500",
+      badgeStyle: "bg-primary/10 text-primary border-primary/20",
     },
   ];
 
   const totalPending = cards.reduce((s, c) => s + c.count, 0);
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-3">
       <div className="flex items-end justify-between gap-3 flex-wrap">
         <div>
-          <span className="text-primary text-[10px] font-mono-kasa font-medium uppercase tracking-widest">
-            Meu Dia
-          </span>
-          <h2 className="font-display text-xl lg:text-2xl font-bold mt-1">
-            {greeting}{userName ? `, ${userName}` : ""}.
+          <h2 className="font-display text-lg lg:text-xl font-bold tracking-tight">
+            {greeting}{userName ? `, ${userName}` : ""}
           </h2>
-          <p className="text-foreground/50 text-xs lg:text-sm mt-0.5">
+          <p className="text-foreground/60 text-xs mt-0.5">
             {totalPending === 0
-              ? "Tudo em dia — nada esperando você."
-              : `Você tem ${totalPending} ${totalPending === 1 ? "item esperando" : "itens esperando"} sua ação.`}
+              ? "Nenhuma pendência imediata sob sua responsabilidade."
+              : `${totalPending} ${totalPending === 1 ? "ação requer" : "ações requerem"} sua atenção hoje.`}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {cards.map((card) => {
           const Icon = card.icon;
           const hasItems = card.count > 0;
@@ -135,26 +130,26 @@ export function MyDaySection() {
             <Link
               key={card.label}
               to={card.to}
-              className={`group relative overflow-hidden rounded-2xl border border-border bg-surface p-4 lg:p-5 transition hover:border-primary/40 hover:shadow-lg ${
-                hasItems ? "ring-1 ring-primary/10" : ""
+              className={`group relative rounded-xl border bg-card p-4 transition-all duration-200 hover:border-foreground/25 hover:shadow-xs ${
+                hasItems ? "border-border/80" : "border-border/60 opacity-80"
               }`}
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.tint.replace(/text-[\w-]+/g, "")} opacity-60`} />
-              <div className="relative space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className={`size-9 rounded-xl bg-background/60 flex items-center justify-center ${card.tint.split(" ").find((c) => c.startsWith("text-"))}`}>
-                    <Icon className="size-4" />
-                  </div>
-                  <ArrowRight className="size-4 text-foreground/30 group-hover:translate-x-0.5 group-hover:text-primary transition-all" />
+              <div className="flex items-center justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors min-w-0">
+                  <Icon className="size-4 shrink-0 opacity-70 group-hover:opacity-100 transition-opacity" />
+                  <span className="text-xs font-semibold tracking-tight text-foreground/85 group-hover:text-foreground truncate">
+                    {card.label}
+                  </span>
                 </div>
-                <div>
-                  <div className="text-3xl lg:text-4xl font-display font-bold tabular-nums leading-none">
-                    {card.count}
-                  </div>
-                  <div className="text-xs font-semibold mt-1.5">{card.label}</div>
-                  <div className="text-[10px] text-foreground/40 uppercase tracking-wider mt-0.5">
-                    {card.hint}
-                  </div>
+                <ArrowUpRight className="size-3.5 text-muted-foreground/35 group-hover:text-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0" />
+              </div>
+
+              <div className="space-y-0.5">
+                <div className="text-2xl lg:text-3xl font-display font-bold tabular-nums tracking-tight text-foreground">
+                  {card.count}
+                </div>
+                <div className="text-[11px] font-mono-kasa text-muted-foreground truncate">
+                  {card.hint}
                 </div>
               </div>
             </Link>

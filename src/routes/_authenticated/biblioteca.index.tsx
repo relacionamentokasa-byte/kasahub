@@ -77,14 +77,14 @@ function BibliotecaPage() {
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
+    <div className="p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6 animate-reveal">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-primary" /> Biblioteca
           </h1>
           <p className="text-sm text-muted-foreground">
-            Conhecimento centralizado da agência — reutilize em qualquer projeto ou no Kasa AI.
+            Conhecimento centralizado da agência — briefings, estratégias, roteiros e referências para seus projetos.
           </p>
         </div>
         <Button onClick={() => { setEditing(null); setDialogOpen(true); }}>

@@ -289,31 +289,154 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* User KPIs - Grid Compacto 2x2 no Mobile e 4 cols no Desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
         <UserKPIBox title="Usuários Utilizados" value={`${usedUsers} / ${userLimit}`} sub={`Plano ${agency?.plan_name || 'Professional'}`} />
         <UserKPIBox title="Convites Pendentes" value={pendingInvites.toString()} />
         <UserKPIBox title="Usuários Ativos" value={users.filter(u => u.status === 'active').length.toString()} />
         <UserKPIBox title="Disponíveis" value={Math.max(0, userLimit - usedUsers - pendingInvites).toString()} />
       </div>
 
-      <section className="rounded-xl border border-border bg-surface p-6">
-        <header className="flex items-center justify-between mb-6">
+      <section className="rounded-xl border border-border bg-surface p-4 sm:p-6">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
           <div>
             <h2 className="font-display text-lg font-semibold">Membros da equipe</h2>
             <p className="text-xs text-foreground/50">Gerencie quem tem acesso e quais as permissões de cada um.</p>
           </div>
           <div className="flex items-center gap-3">
             {canEdit && (
-              <InviteUserDialog 
-                roles={roles} 
-                disabled={limitReached} 
+              <InviteUserDialog
+                roles={roles}
+                disabled={limitReached}
                 limitReached={limitReached}
               />
             )}
           </div>
         </header>
 
-        <div className="overflow-x-auto">
+        {/* Mobile View: Cards ergonômicos */}
+        <div className="md:hidden space-y-3">
+          {users.map((u) => (
+            <div key={u.id} className="p-4 rounded-xl border border-border bg-card/60 space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="size-10 rounded-full bg-primary/15 ring-1 ring-primary/30 flex items-center justify-center shrink-0 overflow-hidden">
+                    {u.avatar_url ? (
+                      <StorageImage src={u.avatar_url} alt={u.display_name || u.full_name || ""} className="size-full object-cover" />
+                    ) : (
+                      <span className="text-xs font-semibold text-primary">
+                        {(u.display_name || u.full_name || "?").slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm truncate">{u.display_name || u.full_name || "Sem nome"}</p>
+                    <p className="text-[11px] text-foreground/50 truncate font-mono-kasa">{u.email}</p>
+                  </div>
+                </div>
+                <StatusBadge status={u.status} />
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-border/60">
+                <div className="space-y-0.5">
+                  <p className="text-foreground/70 font-medium">{u.job_title || "Sem cargo"}</p>
+                  <p className="text-[10px] text-foreground/40 uppercase font-mono-kasa">{u.department || "Geral"}</p>
+                </div>
+                <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary text-[10px] font-mono-kasa">
+                  {u.custom_roles?.name || "Sem perfil"}
+                </Badge>
+              </div>
+
+              <div className="flex items-center justify-between pt-2.5 border-t border-border/60 gap-2">
+                <Select
+                  value={u.status}
+                  onValueChange={(v) => statusMut.mutate({ userId: u.id, status: v })}
+                  disabled={!canEdit}
+                >
+                  <SelectTrigger className="flex-1 h-8 text-[11px] font-mono-kasa">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active" className="text-xs font-mono-kasa">Ativo</SelectItem>
+                    <SelectItem value="inactive" className="text-xs font-mono-kasa">Inativo</SelectItem>
+                    <SelectItem value="suspended" className="text-xs font-mono-kasa">Suspenso</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {canEdit && (
+                  <div className="flex items-center gap-1 shrink-0">
+                    <ResetPasswordDialog
+                      userId={u.id}
+                      userName={u.display_name || u.full_name || "Usuário"}
+                      canEdit={canEdit}
+                    />
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-foreground/40 hover:text-primary h-8 w-8 p-0"
+                          title="Editar perfil"
+                        >
+                          <ShieldAlert className="size-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Alterar Perfil de Acesso</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4 py-4">
+                          <div className="space-y-2">
+                            <Label>Perfil de Acesso</Label>
+                            <Select
+                              defaultValue={u.custom_role_id || ""}
+                              onValueChange={async (v) => {
+                                const roleId = v === "none" ? null : v;
+                                try {
+                                  toast.loading("Atualizando perfil...");
+                                  await assignProfileRole(u.id, roleId);
+                                  qc.invalidateQueries({ queryKey: ["users"] });
+                                  toast.dismiss();
+                                  toast.success("Perfil atualizado com sucesso");
+                                } catch (err: any) {
+                                  toast.dismiss();
+                                  toast.error("Erro ao atualizar perfil: " + err.message);
+                                }
+                              }}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Selecione um perfil" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="none">Sem perfil</SelectItem>
+                                {roles.map(r => (
+                                  <SelectItem key={r.id} value={r.id}>{r.name}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setUserToDelete(u.id)}
+                      className="text-foreground/40 hover:text-destructive h-8 w-8 p-0"
+                      title="Excluir usuário"
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop View: Tabela completa */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-background/40 text-[10px] font-mono-kasa capitalize text-foreground/40">
               <tr>
@@ -341,20 +464,20 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                       </div>
                       <div>
                         <p className="font-medium">{u.display_name || u.full_name || "Sem nome"}</p>
-                        <p className="text-[10px] text-foreground/40">{u.email}</p>
+                        <p className="text-[10px] text-foreground/40 font-mono-kasa">{u.email}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <p className="text-foreground/70">{u.job_title || "—"}</p>
-                    <p className="text-[10px] text-foreground/40 uppercase">{u.department || "Geral"}</p>
+                    <p className="text-[10px] text-foreground/40 uppercase font-mono-kasa">{u.department || "Geral"}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary">
+                    <Badge variant="outline" className="bg-primary/5 border-primary/20 text-primary font-mono-kasa text-[10px]">
                       {u.custom_roles?.name || "Sem perfil"}
                     </Badge>
                   </td>
-                  <td className="px-4 py-3 text-foreground/50 text-xs">
+                  <td className="px-4 py-3 text-foreground/50 text-xs font-mono-kasa tabular-nums">
                     {u.last_access ? new Date(u.last_access).toLocaleString('pt-BR') : "Nunca"}
                   </td>
                   <td className="px-4 py-3">
@@ -362,33 +485,33 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <Select 
-                        value={u.status} 
+                      <Select
+                        value={u.status}
                         onValueChange={(v) => statusMut.mutate({ userId: u.id, status: v })}
                         disabled={!canEdit}
                       >
-                        <SelectTrigger className="w-32 h-8 text-[10px]">
+                        <SelectTrigger className="w-32 h-8 text-[10px] font-mono-kasa">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="active">Ativo</SelectItem>
-                          <SelectItem value="inactive">Inativo</SelectItem>
-                          <SelectItem value="suspended">Suspenso</SelectItem>
+                          <SelectItem value="active" className="text-xs font-mono-kasa">Ativo</SelectItem>
+                          <SelectItem value="inactive" className="text-xs font-mono-kasa">Inativo</SelectItem>
+                          <SelectItem value="suspended" className="text-xs font-mono-kasa">Suspenso</SelectItem>
                         </SelectContent>
                       </Select>
-                      
+
                       {canEdit && (
                         <>
-                          <ResetPasswordDialog 
-                            userId={u.id} 
-                            userName={u.display_name || u.full_name || "Usuário"} 
-                            canEdit={canEdit} 
+                          <ResetPasswordDialog
+                            userId={u.id}
+                            userName={u.display_name || u.full_name || "Usuário"}
+                            canEdit={canEdit}
                           />
                           <Dialog>
                             <DialogTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 className="text-foreground/40 hover:text-primary h-8 w-8 p-0"
                                 title="Editar perfil"
                               >
@@ -402,23 +525,13 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                               <div className="space-y-4 py-4">
                                 <div className="space-y-2">
                                   <Label>Perfil de Acesso</Label>
-                                  <Select 
-                                    defaultValue={u.custom_role_id || ""} 
+                                  <Select
+                                    defaultValue={u.custom_role_id || ""}
                                     onValueChange={async (v) => {
                                       const roleId = v === "none" ? null : v;
-                                      
-                                      // Buscar o nome da role para atualizar localmente ou via query invalidation
-                                      const selectedRole = roles.find(r => r.id === roleId);
-                                      const roleName = selectedRole ? selectedRole.name : null;
-
                                       try {
                                         toast.loading("Atualizando perfil...");
                                         await assignProfileRole(u.id, roleId);
-                                        
-                                        // Além do custom_role_id no profile, precisamos garantir que o user_roles
-                                        // seja atualizado para refletir o nível de acesso real (admin, gestor, etc)
-                                        // O backend de assignProfileRole deve lidar com isso, mas garantimos a atualização da UI.
-                                        
                                         qc.invalidateQueries({ queryKey: ["users"] });
                                         toast.dismiss();
                                         toast.success("Perfil atualizado com sucesso");
@@ -443,9 +556,9 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
                             </DialogContent>
                           </Dialog>
 
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setUserToDelete(u.id)}
                             className="text-foreground/40 hover:text-destructive h-8 w-8 p-0"
                             title="Excluir usuário"
@@ -485,11 +598,57 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
       </AlertDialog>
 
       {invites.length > 0 && (
-        <section className="rounded-xl border border-border bg-surface p-6">
-          <h2 className="font-display text-lg font-semibold mb-4 text-amber-500 flex items-center gap-2">
-            <Mail className="size-5" /> Convites Enviados (Pendentes)
+        <section className="rounded-xl border border-border bg-surface p-4 sm:p-6">
+          <h2 className="font-display text-base sm:text-lg font-semibold mb-4 text-amber-500 flex items-center gap-2">
+            <Mail className="size-4 sm:size-5" /> Convites Enviados (Pendentes)
           </h2>
-          <div className="overflow-x-auto">
+
+          {/* Mobile View: Convites */}
+          <div className="md:hidden space-y-2.5">
+            {invites.map((i) => (
+              <div key={i.id} className="p-3.5 rounded-xl border border-border bg-card/60 space-y-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-xs text-foreground truncate">{i.full_name || "Sem nome"}</p>
+                    <p className="text-[11px] text-muted-foreground font-mono-kasa truncate">{i.email}</p>
+                  </div>
+                  <span className="text-[10px] font-mono-kasa px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 shrink-0">
+                    Pendente
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-border/60">
+                  <span className="text-[10px] text-foreground/40 font-mono-kasa">
+                    Expira em: {new Date(i.expires_at).toLocaleDateString('pt-BR')}
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2.5 gap-1.5 text-[10px] font-mono-kasa"
+                      onClick={async () => {
+                        const loadingToast = toast.loading("Reenviando e-mail...");
+                        try {
+                          await resendInvite(i.email, i.role_id, i.full_name);
+                          toast.success("E-mail reenviado com sucesso!", { id: loadingToast });
+                        } catch (e: any) {
+                          toast.error(e.message, { id: loadingToast });
+                        }
+                      }}
+                    >
+                      <RefreshCw className="size-3" /> Reenviar
+                    </Button>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0" onClick={() => delInvite.mutate(i.id)}>
+                      <Trash2 className="size-3.5 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View: Tabela de Convites */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-background/40 text-[10px] font-mono-kasa capitalize text-foreground/40">
                 <tr>
@@ -502,16 +661,16 @@ export function UsersManagementTab({ canEdit }: { canEdit: boolean }) {
               <tbody>
                 {invites.map((i) => (
                   <tr key={i.id} className="border-t border-border">
-                    <td className="px-4 py-3 font-medium">{i.email}</td>
+                    <td className="px-4 py-3 font-medium font-mono-kasa text-xs">{i.email}</td>
                     <td className="px-4 py-3 text-foreground/60">{i.full_name}</td>
-                    <td className="px-4 py-3 text-foreground/40 text-xs">
+                    <td className="px-4 py-3 text-foreground/40 text-xs font-mono-kasa tabular-nums">
                       {new Date(i.expires_at).toLocaleDateString('pt-BR')}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="h-8 gap-2 text-[10px] font-mono-kasa"
                           onClick={async () => {
                             const loadingToast = toast.loading("Reenviando e-mail...");

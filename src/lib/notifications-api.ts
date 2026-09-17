@@ -155,28 +155,46 @@ export async function marcarTodasComoLidas() {
   }
 }
 
-export async function handleMentions(text: string, context: { 
-  title: string, 
-  link: string, 
-  originType: string, 
-  originId: string 
+export async function handleMentions(text: string, context: {
+  title: string,
+  link: string,
+  originType: string,
+  originId: string
 }) {
-  const mentionRegex = /@(\w+)/g;
-  const matches = text.match(mentionRegex);
-  if (!matches) return;
+  // Captura menções simples (@joao) e com acentos/caracteres especiais (@Ariel, @André, @João)
+  const mentionRegex = /@([\p{L}\p{N}_.-]+)/gu;
+  const matches = Array.from(text.matchAll(mentionRegex));
+  if (matches.length === 0) return;
 
-  const names = matches.map(m => m.substring(1));
-  
-  const { data: profiles, error: profileError } = await supabase
-    .from("profiles")
-    .select("id, display_name, full_name")
-    .or(`display_name.ilike.any.{${names.join(",")}},full_name.ilike.any.{${names.join(",")}}`);
-
-  if (profileError || !profiles) return;
+  const names = Array.from(new Set(matches.map(m => m[1].trim()))).filter(Boolean);
+  if (names.length === 0) return;
 
   const { data: { user } } = await supabase.auth.getUser();
   const currentUserId = user?.id;
-  
+
+  const { data: profiles, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, display_name, full_name");
+
+  if (profileError || !profiles || profiles.length === 0) return;
+
+  // Correspondência flexível por display_name, full_name ou primeiro nome
+  const matchedProfiles = profiles.filter((profile) => {
+    const dName = (profile.display_name || "").toLowerCase();
+    const fName = (profile.full_name || "").toLowerCase();
+    const firstName = fName.split(" ")[0] || "";
+
+    return names.some((n) => {
+      const target = n.toLowerCase();
+      return (
+        dName.includes(target) ||
+        fName.includes(target) ||
+        firstName === target ||
+        dName === target
+      );
+    });
+  });
+
   const { data: currentProfile } = await supabase
     .from("profiles")
     .select("display_name, full_name")
@@ -185,15 +203,15 @@ export async function handleMentions(text: string, context: {
 
   const authorName = currentProfile?.display_name || currentProfile?.full_name || 'Alguém';
 
-  const recipients = profiles
+  const recipients = matchedProfiles
     .filter(profile => profile.id !== currentUserId)
     .map(p => p.id);
 
   if (recipients.length > 0) {
     await enviarNotificacaoMultipla(
-      recipients,
+      Array.from(new Set(recipients)),
       `${authorName} mencionou você`,
-      `Mencionou você no job: ${context.title}`,
+      `Mencionou você em: ${context.title}`,
       "mention",
       context.link
     );

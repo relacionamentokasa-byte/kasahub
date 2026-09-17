@@ -5,7 +5,6 @@ import { toast } from "sonner";
 
 async function openExternalSignature(url: string) {
   try {
-    // Extract path after the bucket name
     const match = url.match(/\/storage\/v1\/object\/(?:public|sign)\/signatures\/(.+?)(?:\?|$)/);
     const path = match ? decodeURIComponent(match[1]) : null;
     if (!path) {
@@ -72,13 +71,11 @@ export function ProposalSignatureCard({
 
   if (!hasSignature) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-sm">
-        <Clock className="size-5 shrink-0" />
-        <div className="text-sm">
-          <span className="font-semibold">Aguardando assinatura do cliente.</span>{" "}
-          <span className="text-amber-800/80">
-            Envie o link público para que o cliente assine digitalmente.
-          </span>
+      <div className="flex items-center gap-3 rounded-lg border border-border/60 bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
+        <Clock className="size-4 shrink-0 text-muted-foreground" />
+        <div>
+          <span className="font-medium text-foreground">Aguardando assinatura do cliente.</span>{" "}
+          <span>Envie o link público para assinatura digital segura.</span>
         </div>
       </div>
     );
@@ -93,103 +90,82 @@ export function ProposalSignatureCard({
       : null;
 
   return (
-    <div
-      className={cn(
-        "relative overflow-hidden rounded-2xl border-2 border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-emerald-50/50 p-6 shadow-sm",
-        "before:absolute before:right-0 before:top-0 before:h-32 before:w-32 before:-translate-y-12 before:translate-x-12 before:rounded-full before:bg-emerald-100/40"
-      )}
-    >
-      <div className="relative space-y-5">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 ring-4 ring-emerald-50">
-              <CheckCircle2 className="size-6" />
-            </div>
-            <div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/70">
-                Certificado de Aceite
-              </div>
-              <div className="text-base font-bold text-emerald-900">
-                Proposta Assinada Digitalmente
-              </div>
-            </div>
-          </div>
-          <FileSignature className="size-8 text-emerald-300" />
+    <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3.5">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="size-4 text-emerald-500 shrink-0" />
+          <span className="text-[11px] font-mono-kasa uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-semibold">
+            Aceite Digital Confirmado
+          </span>
         </div>
+        <span className="text-[10px] font-mono-kasa text-muted-foreground">
+          MP 2.200-2/2001
+        </span>
+      </div>
 
-        {/* Signature display */}
-        <div className="rounded-xl border border-dashed border-emerald-300 bg-white/70 px-6 py-5">
-          <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/60 mb-2">
+      <div className="rounded-md border border-border/60 bg-card p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <span className="text-[10px] uppercase font-mono-kasa text-muted-foreground block">
             Assinado por
-          </div>
+          </span>
           {signatureImage ? (
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-1">
               <img
                 src={signatureImage}
                 alt={`Assinatura de ${signedName}`}
-                className="max-h-24 object-contain self-start"
+                className="max-h-12 object-contain self-start invert dark:invert-0"
               />
-              <div className="font-serif italic text-xl text-slate-800">
+              <span className="font-mono-kasa text-sm font-semibold text-foreground">
                 {signedName}
-              </div>
+              </span>
             </div>
           ) : (
-            <div className="font-serif italic text-3xl text-slate-800 leading-tight">
+            <div className="font-serif italic text-base text-foreground font-semibold">
               {signedName}
             </div>
           )}
         </div>
 
-        {/* Metadata grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-xs">
           {signedDate && (
-            <div className="flex items-center gap-2 text-emerald-900">
-              <Calendar className="size-4 text-emerald-600" />
-              <span className="text-emerald-700/70 text-xs">Data:</span>
-              <span className="font-semibold">{signedDate}</span>
+            <div className="flex items-center gap-1.5 text-muted-foreground font-mono-kasa text-[11px]">
+              <Calendar className="size-3 text-muted-foreground/70" />
+              <span>{signedDate}</span>
             </div>
           )}
           {signedEmail && (
-            <div className="flex items-center gap-2 text-emerald-900">
-              <Mail className="size-4 text-emerald-600" />
-              <span className="text-emerald-700/70 text-xs">E-mail:</span>
-              <span className="font-medium truncate">{signedEmail}</span>
+            <div className="flex items-center gap-1.5 text-muted-foreground font-mono-kasa text-[11px] truncate max-w-[200px]">
+              <Mail className="size-3 text-muted-foreground/70" />
+              <span className="truncate">{signedEmail}</span>
             </div>
           )}
           {acceptedIp && (
-            <div className="flex items-center gap-2 text-emerald-900 sm:col-span-2">
-              <Globe className="size-4 text-emerald-600" />
-              <span className="text-emerald-700/70 text-xs">IP de origem:</span>
-              <span className="font-mono text-xs text-emerald-800">{acceptedIp}</span>
+            <div className="flex items-center gap-1.5 text-muted-foreground font-mono-kasa text-[11px] sm:col-span-2">
+              <Globe className="size-3 text-muted-foreground/70" />
+              <span>IP: {acceptedIp}</span>
             </div>
           )}
         </div>
-
-        {externalSignatureUrl && (
-          <button
-            type="button"
-            onClick={() => openExternalSignature(externalSignatureUrl)}
-            className="w-full flex items-center gap-3 rounded-xl border border-emerald-300 bg-white/80 px-4 py-3 text-sm text-emerald-900 hover:bg-white transition-colors text-left"
-          >
-            <Paperclip className="size-4 text-emerald-600" />
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700/70">
-                Comprovante (assinada externamente)
-              </div>
-              <div className="font-medium truncate">
-                {externalSignatureFilename || "Ver comprovante"}
-              </div>
-            </div>
-            <span className="text-xs font-semibold text-emerald-700 underline">Abrir</span>
-          </button>
-        )}
-
-        <div className="text-[10px] text-emerald-700/60 border-t border-emerald-100 pt-3">
-          Este aceite digital tem validade jurídica conforme MP 2.200-2/2001. Alterar o
-          conteúdo da proposta após o aceite invalidará a assinatura registrada.
-        </div>
       </div>
+
+      {externalSignatureUrl && (
+        <button
+          type="button"
+          onClick={() => openExternalSignature(externalSignatureUrl)}
+          className="w-full flex items-center gap-2 rounded-md border border-border/60 bg-card px-3 py-2 text-xs text-foreground hover:bg-muted/50 transition-colors text-left"
+        >
+          <Paperclip className="size-3.5 text-muted-foreground" />
+          <div className="flex-1 min-w-0">
+            <span className="text-[10px] uppercase font-mono-kasa text-muted-foreground block">
+              Comprovante Externo
+            </span>
+            <span className="font-medium truncate block text-xs">
+              {externalSignatureFilename || "Ver comprovante anexado"}
+            </span>
+          </div>
+          <span className="text-xs font-mono-kasa text-primary hover:underline">Abrir</span>
+        </button>
+      )}
     </div>
   );
 }

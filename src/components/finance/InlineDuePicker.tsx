@@ -46,11 +46,11 @@ export function InlineDuePicker({ transactionId, currentDate }: Props) {
         <Button
           variant="ghost"
           size="sm"
-          className="h-auto px-1.5 py-1 -ml-1.5 font-medium text-sm gap-1 hover:bg-muted"
+          className="h-auto px-1.5 py-1 -ml-1.5 font-mono-kasa font-semibold text-xs tabular-nums gap-1.5 hover:bg-muted/60"
         >
-          <CalendarIcon className="size-3 text-muted-foreground" />
-          {dateObj ? format(dateObj, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
-          <ChevronDown className="size-3 text-muted-foreground opacity-60" />
+          <CalendarIcon className="size-3 text-muted-foreground shrink-0" />
+          <span>{dateObj ? format(dateObj, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}</span>
+          <ChevronDown className="size-3 text-muted-foreground opacity-60 shrink-0" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">

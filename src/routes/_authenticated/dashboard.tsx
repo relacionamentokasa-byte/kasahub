@@ -4,8 +4,6 @@ import { Plus, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
 import { InstallPromoCard } from "@/components/pwa/InstallPromoCard";
-import { MyDaySection } from "@/components/dashboard/MyDaySection";
-
 import { checkDailyNotifications } from "@/lib/notifications-cron";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -24,32 +22,32 @@ function DashboardPage() {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 max-w-[1600px] mx-auto animate-reveal">
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-border pb-6 lg:pb-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8 w-full mx-auto animate-reveal">
+      <header className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-border/80 pb-4 sm:pb-6">
         <div>
-          <span className="text-primary text-[10px] font-mono-kasa capitalize font-medium">
-            KASA HUB · Inteligência Operacional
+          <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-widest font-semibold">
+            KASA Marketing Consultoria
           </span>
-          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1 lg:mt-2">
-            Centro de Comando
+          <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mt-0.5">
+            Visão Geral
           </h1>
-          <p className="text-foreground/50 text-xs lg:text-sm mt-1">Bem-vindo de volta. Veja o que precisa de sua atenção.</p>
+          <p className="text-foreground/60 text-xs mt-0.5">Acompanhe a operação, entregas da equipe e o pulso financeiro.</p>
         </div>
-        <div className="grid grid-cols-2 sm:flex items-center gap-3">
-          <Link to="/relatorios" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full rounded-full font-semibold h-11 px-6 gap-2">
-              <Wallet className="size-4 shrink-0" /> Financeiro
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Link to="/relatorios" className="flex-1 sm:flex-initial">
+            <Button variant="outline" className="w-full rounded-lg font-medium h-8 px-3 text-xs gap-1.5 border-border/80 hover:bg-muted/60 transition-colors">
+              <Wallet className="size-3.5 shrink-0 text-muted-foreground" /> <span className="truncate">Financeiro</span>
             </Button>
           </Link>
 
-          <Link to="/propostas" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full rounded-full font-semibold h-11 px-6">
-              Propostas
+          <Link to="/propostas" className="flex-1 sm:flex-initial">
+            <Button variant="outline" className="w-full rounded-lg font-medium h-8 px-3 text-xs border-border/80 hover:bg-muted/60 transition-colors">
+              <span className="truncate">Propostas</span>
             </Button>
           </Link>
-          <Link to="/jobs" className="w-full sm:w-auto">
-            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold gap-2 h-11 px-6">
-              <Plus className="size-4 shrink-0" /> Job
+          <Link to="/jobs" className="flex-1 sm:flex-initial">
+            <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium gap-1.5 h-8 px-3 text-xs shadow-xs transition-colors">
+              <Plus className="size-3.5 shrink-0" /> <span className="truncate">Novo Job</span>
             </Button>
           </Link>
         </div>
@@ -57,11 +55,9 @@ function DashboardPage() {
 
       <InstallPromoCard />
 
-      <MyDaySection />
-
+      {/* Dashboard Executiva Integrada */}
       <ExecutiveDashboard />
-      
-      
+
       <footer className="pt-12 border-t border-border flex justify-between items-center text-[10px] font-mono-kasa text-foreground/30 uppercase tracking-widest">
         <span>KASA Marketing Consultoria</span>
         <span>KASA HUB v2.0</span>

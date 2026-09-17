@@ -1,22 +1,30 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { updateProject, deleteProject, fetchClients } from "@/lib/ops-api";
-
+import { updateProject, fetchClients } from "@/lib/ops-api";
 import { fetchProposals } from "@/lib/crm-api";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
 } from "@/components/ui/select";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { toast } from "sonner";
-import { Trash2 } from "lucide-react";
+import { FolderGit2, Trash2, Loader2 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 
 type Project = {
@@ -47,7 +55,7 @@ export function EditProjectDialog({
   const navigate = useNavigate();
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
   const contracts: any[] = [];
-  const { data: proposals = [] } = useQuery({ queryKey: ["proposals", "all"], queryFn: () => fetchProposals() });
+  const { data: _proposals = [] } = useQuery({ queryKey: ["proposals", "all"], queryFn: () => fetchProposals() });
 
   const [form, setForm] = useState({
     name: project.name ?? "",
@@ -82,16 +90,13 @@ export function EditProjectDialog({
   }, [open, project]);
 
   const clientContracts = contracts.filter((c) => !form.client_id || c.client_id === form.client_id);
-  const clientProposals = proposals.filter(
-    (p) => !form.client_id || (p as { client_id?: string | null }).client_id === form.client_id,
-  );
 
   const { data: users = [] } = useQuery({
     queryKey: ["users"],
     queryFn: async () => {
       const { data } = await supabase.from("profiles").select("id, full_name");
       return data || [];
-    }
+    },
   });
 
   const mut = useMutation({
@@ -112,7 +117,7 @@ export function EditProjectDialog({
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["project", project.id] });
       qc.invalidateQueries({ queryKey: ["projects"] });
-      toast.success("Projeto atualizado");
+      toast.success("Projeto atualizado com sucesso!");
       onOpenChange(false);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -120,7 +125,7 @@ export function EditProjectDialog({
 
   const del = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('projects').delete().eq('id', project.id);
+      const { error } = await supabase.from("projects").delete().eq("id", project.id);
       if (error) throw error;
       return project.id;
     },
@@ -133,134 +138,219 @@ export function EditProjectDialog({
     onError: (e: any) => toast.error(`Erro ao excluir: ${e.message}`),
   });
 
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-border max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">Editar projeto</DialogTitle>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <FolderGit2 className="size-5" />
+            </div>
+            <span>Editar Projeto</span>
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Gerencie os dados gerais, prazos, responsável e briefing do projeto.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label>Capa do projeto</Label>
+
+        <div className="space-y-4 pt-1">
+          <div className="flex flex-col items-center gap-2 py-1">
             <ImageUpload
               value={form.cover_url}
               onChange={(url) => setForm({ ...form, cover_url: url })}
               folder="projects"
-              label="Capa"
+              label="Capa do Projeto"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label>Nome do projeto</Label>
-            <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Nome do Projeto *
+            </Label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="h-9 text-xs font-medium"
+            />
           </div>
-          <div className="space-y-1.5">
-            <Label>Cliente</Label>
+
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Cliente Responsável *
+            </Label>
             <Select
               value={form.client_id || undefined}
               onValueChange={(v) => setForm({ ...form, client_id: v, contract_id: "", proposal_id: "" })}
             >
-              <SelectTrigger><SelectValue placeholder="Selecione um cliente" /></SelectTrigger>
+              <SelectTrigger className="h-9 text-xs">
+                <SelectValue placeholder="Selecione um cliente" />
+              </SelectTrigger>
               <SelectContent>
                 {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
+                  <SelectItem key={c.id} value={c.id} className="text-xs cursor-pointer">
+                    {c.company || c.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          <div className="grid grid-cols-1 gap-3">
-            <div className="space-y-1.5">
-              <Label>Contrato {form.type === 'automatic' && <span className="text-destructive">*</span>}</Label>
+
+          {clientContracts.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Contrato Vinculado
+              </Label>
               <Select
                 value={form.contract_id || undefined}
                 onValueChange={(v) => setForm({ ...form, contract_id: v })}
                 disabled={!form.client_id}
               >
-                <SelectTrigger><SelectValue placeholder="Selecione o contrato de origem" /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Selecione o contrato de origem" />
+                </SelectTrigger>
                 <SelectContent>
                   {clientContracts.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                    <SelectItem key={c.id} value={c.id} className="text-xs cursor-pointer">
+                      {c.title}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-          </div>
+          )}
 
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Status</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Status
+              </Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs font-mono-kasa">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="active">Ativo</SelectItem>
-                  <SelectItem value="paused">Pausado</SelectItem>
-                  <SelectItem value="completed">Concluído</SelectItem>
-                  <SelectItem value="cancelled">Cancelado</SelectItem>
+                  <SelectItem value="active" className="text-xs font-mono-kasa">Ativo</SelectItem>
+                  <SelectItem value="paused" className="text-xs font-mono-kasa">Pausado</SelectItem>
+                  <SelectItem value="completed" className="text-xs font-mono-kasa">Concluído</SelectItem>
+                  <SelectItem value="cancelled" className="text-xs font-mono-kasa text-destructive">Cancelado</SelectItem>
                 </SelectContent>
-
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Prazo final</Label>
-              <Input type="date" value={form.due_date} onChange={(e) => setForm({ ...form, due_date: e.target.value })} />
+
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Prazo Final
+              </Label>
+              <Input
+                type="date"
+                value={form.due_date}
+                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                className="h-9 text-xs font-mono-kasa tabular-nums"
+              />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>Tipo</Label>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Tipo de Projeto
+              </Label>
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="automatic">Automático</SelectItem>
-                  <SelectItem value="special">Especial</SelectItem>
+                  <SelectItem value="automatic" className="text-xs">Automático</SelectItem>
+                  <SelectItem value="special" className="text-xs">Especial</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Responsável</Label>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Responsável
+              </Label>
               <Select value={form.responsible_id || undefined} onValueChange={(v) => setForm({ ...form, responsible_id: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione..." /></SelectTrigger>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
                 <SelectContent>
                   {users.map((u: any) => (
-                    <SelectItem key={u.id} value={u.id}>{u.full_name}</SelectItem>
+                    <SelectItem key={u.id} value={u.id} className="text-xs cursor-pointer">
+                      {u.full_name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Cor</Label>
-            <div className="flex gap-2">
-              <Input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="w-16 p-1 h-10" />
-              <Input value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />
+
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Cor de Destaque
+            </Label>
+            <div className="flex gap-2 items-center">
+              <Input
+                type="color"
+                value={form.color}
+                onChange={(e) => setForm({ ...form, color: e.target.value })}
+                className="w-12 h-9 p-1 rounded-md cursor-pointer shrink-0"
+              />
+              <Input
+                value={form.color}
+                onChange={(e) => setForm({ ...form, color: e.target.value })}
+                className="h-9 text-xs font-mono-kasa"
+              />
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label>Briefing</Label>
-            <Textarea rows={4} value={form.briefing} onChange={(e) => setForm({ ...form, briefing: e.target.value })} />
+
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Briefing / Objetivos
+            </Label>
+            <Textarea
+              rows={3}
+              value={form.briefing}
+              onChange={(e) => setForm({ ...form, briefing: e.target.value })}
+              className="text-xs resize-none"
+              placeholder="Descreva o escopo e objetivos do projeto..."
+            />
           </div>
         </div>
-        <DialogFooter className="flex-row sm:justify-between gap-2">
+
+        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60 flex flex-row items-center justify-between">
           <Button
             variant="ghost"
+            size="sm"
             onClick={() => {
-              if (confirm("Tem certeza? Isso apagará também todos os jobs, eventos de calendário e financeiro vinculados a este projeto.")) del.mutate();
+              if (confirm("Tem certeza? Isso apagará também todos os jobs vinculados a este projeto.")) {
+                del.mutate();
+              }
             }}
             disabled={del.isPending}
-            className="text-destructive hover:text-destructive"
+            className="h-9 px-2.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
           >
-            <Trash2 className="size-4 mr-1" /> Excluir
+            {del.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Trash2 className="size-3.5" />}
+            Excluir
           </Button>
-          <div className="flex gap-2">
-            <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onOpenChange(false)}
+              className="h-9 text-xs"
+            >
+              Cancelar
+            </Button>
             <Button
               onClick={() => mut.mutate()}
-              disabled={mut.isPending || !form.name || !form.client_id || (form.type === 'automatic' && !form.contract_id)}
-              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              disabled={mut.isPending || !form.name || !form.client_id}
+              size="sm"
+              className="h-9 text-xs font-medium gap-1.5"
             >
-
-              Salvar
+              {mut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <FolderGit2 className="size-3.5" />}
+              Salvar Alterações
             </Button>
           </div>
         </DialogFooter>

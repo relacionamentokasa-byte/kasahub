@@ -68,7 +68,7 @@ function ScriptDetailPage() {
   const totalSceneDuration = scenes.reduce((a, s) => a + (s.duration_sec ?? 0), 0);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 w-full mx-auto space-y-6">
       <div className="flex items-center gap-3">
         <Link to="/roteiros"><Button variant="ghost" size="icon"><ArrowLeft className="size-4" /></Button></Link>
         <div className="flex-1">

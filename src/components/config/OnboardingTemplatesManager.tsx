@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Plus, Trash2, Pencil, Loader2, Star, Building2, User, Users as UsersIcon, GripVertical, Copy } from "lucide-react";
+import { Plus, Trash2, Pencil, Loader2, Star, Building2, User, Users as UsersIcon, GripVertical, Copy, Rocket, Layers } from "lucide-react";
 import {
   fetchOnboardingTemplates,
   fetchTemplateSteps,
@@ -25,6 +25,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -65,7 +66,7 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
       });
     },
     onSuccess: () => {
-      toast.success("Modelo salvo");
+      toast.success("Modelo salvo com sucesso!");
       qc.invalidateQueries({ queryKey: ["onboarding-templates"] });
       qc.invalidateQueries({ queryKey: ["onboarding-steps"] });
       qc.invalidateQueries({ queryKey: ["onboardings"] });
@@ -78,7 +79,7 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
   const deleteMut = useMutation({
     mutationFn: (id: string) => deleteTemplate(id),
     onSuccess: () => {
-      toast.success("Modelo removido");
+      toast.success("Modelo removido com sucesso!");
       qc.invalidateQueries({ queryKey: ["onboarding-templates"] });
       setSelected(null);
     },
@@ -88,7 +89,7 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
   const duplicateMut = useMutation({
     mutationFn: (id: string) => duplicateTemplate(id),
     onSuccess: (newTpl) => {
-      toast.success("Modelo duplicado");
+      toast.success("Modelo duplicado com sucesso!");
       qc.invalidateQueries({ queryKey: ["onboarding-templates"] });
       setSelected(newTpl.id);
     },
@@ -96,49 +97,54 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
   });
 
   if (isLoading) {
-    return <Loader2 className="size-5 animate-spin mx-auto" />;
+    return (
+      <div className="p-12 flex justify-center">
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
       <aside className="space-y-2">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/50">
-            Modelos
+          <h3 className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+            Modelos Disponíveis
           </h3>
           {canEdit && (
             <Button
               size="sm"
-              variant="ghost"
+              variant="outline"
+              className="h-8 px-2 text-xs gap-1"
               onClick={() => {
                 setEditing({ name: "", description: "", is_default: false, is_active: true });
                 setEditOpen(true);
               }}
             >
-              <Plus className="size-3.5" />
+              <Plus className="size-3.5" /> Novo
             </Button>
           )}
         </div>
         {templates.length === 0 && (
-          <p className="text-xs text-foreground/40 px-2">Nenhum modelo ainda.</p>
+          <p className="text-xs text-muted-foreground px-2">Nenhum modelo cadastrado.</p>
         )}
         {templates.map((t) => (
           <button
             key={t.id}
             onClick={() => setSelected(t.id)}
             className={cn(
-              "w-full text-left px-3 py-2 rounded-lg border transition",
-              (selectedTpl?.id === t.id)
-                ? "border-primary bg-primary/5"
-                : "border-border hover:bg-muted",
+              "w-full text-left p-3 rounded-xl border transition cursor-pointer",
+              selectedTpl?.id === t.id
+                ? "border-primary/60 bg-primary/5 shadow-xs"
+                : "border-border/80 hover:bg-muted/30 bg-card"
             )}
           >
             <div className="flex items-center gap-2">
-              {t.is_default && <Star className="size-3 text-primary fill-primary" />}
-              <span className="text-sm font-semibold truncate">{t.name}</span>
+              {t.is_default && <Star className="size-3 text-primary fill-primary shrink-0" />}
+              <span className="text-xs font-semibold truncate text-foreground">{t.name}</span>
             </div>
             {t.description && (
-              <p className="text-[10px] text-foreground/40 mt-0.5 truncate">{t.description}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 truncate">{t.description}</p>
             )}
           </button>
         ))}
@@ -160,37 +166,57 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
             }}
           />
         ) : (
-          <div className="text-center py-20 text-foreground/40 text-sm">
-            Selecione ou crie um modelo.
+          <div className="text-center py-20 text-muted-foreground text-xs border border-dashed border-border/80 rounded-xl bg-muted/10">
+            Selecione ou crie um modelo de onboarding.
           </div>
         )}
       </section>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editing?.id ? "Editar modelo" : "Novo modelo"}</DialogTitle>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+              <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                <Rocket className="size-5" />
+              </div>
+              <span>{editing?.id ? `Editar Modelo · ${editing.name}` : "Novo Modelo de Onboarding"}</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Defina as configurações do fluxo de boas-vindas do cliente.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="space-y-1.5">
-              <Label>Nome</Label>
+
+          <div className="space-y-3.5 pt-1">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Nome do Modelo *
+              </Label>
               <Input
                 value={editing?.name ?? ""}
                 onChange={(e) => setEditing((p) => ({ ...p, name: e.target.value }))}
+                placeholder="Ex: Onboarding Padrão Agência ou E-commerce"
+                className="h-9 text-xs font-medium"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Descrição</Label>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Descrição do Fluxo
+              </Label>
               <Textarea
                 value={editing?.description ?? ""}
                 onChange={(e) => setEditing((p) => ({ ...p, description: e.target.value }))}
+                placeholder="Detalhes dos objetivos deste fluxo de entrada…"
+                className="text-xs resize-none"
+                rows={2}
               />
             </div>
-            <div className="flex items-center justify-between border border-border rounded-lg px-3 py-2">
+
+            <div className="flex items-center justify-between border border-border/80 rounded-xl p-3 bg-muted/20">
               <div>
-                <p className="text-sm font-medium">Modelo padrão</p>
-                <p className="text-xs text-foreground/40">
-                  Usado automaticamente ao aceitar uma proposta.
+                <p className="text-xs font-semibold text-foreground">Modelo Padrão da Agência</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Iniciado automaticamente quando um contrato ou proposta for aprovado.
                 </p>
               </div>
               <Switch
@@ -198,9 +224,13 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
                 onCheckedChange={(v) => setEditing((p) => ({ ...p, is_default: v }))}
               />
             </div>
-            <div className="flex items-center justify-between border border-border rounded-lg px-3 py-2">
+
+            <div className="flex items-center justify-between border border-border/80 rounded-xl p-3 bg-muted/20">
               <div>
-                <p className="text-sm font-medium">Ativo</p>
+                <p className="text-xs font-semibold text-foreground">Modelo Ativo</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Disponível para seleção em novos clientes e projetos.
+                </p>
               </div>
               <Switch
                 checked={editing?.is_active ?? true}
@@ -208,13 +238,19 @@ export function OnboardingTemplatesManager({ canEdit = true }: { canEdit?: boole
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(false)} className="h-9 text-xs">
               Cancelar
             </Button>
-            <Button onClick={() => saveMut.mutate()} disabled={saveMut.isPending}>
-              {saveMut.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
-              Salvar
+            <Button
+              onClick={() => saveMut.mutate()}
+              disabled={saveMut.isPending || !editing?.name?.trim()}
+              size="sm"
+              className="h-9 text-xs font-medium gap-1.5"
+            >
+              {saveMut.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Rocket className="size-3.5" />}
+              Salvar Modelo
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -262,6 +298,7 @@ function TemplateDetail({
       qc.invalidateQueries({ queryKey: ["onboardings"] });
       setStepOpen(false);
       setStepDraft(null);
+      toast.success("Etapa salva com sucesso!");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -275,48 +312,67 @@ function TemplateDetail({
       qc.invalidateQueries({ queryKey: ["onboarding-template-steps", template.id] });
       qc.invalidateQueries({ queryKey: ["onboarding-steps"] });
       qc.invalidateQueries({ queryKey: ["onboardings"] });
+      toast.success("Etapa removida com sucesso!");
     },
   });
 
   return (
     <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-4 p-4 rounded-xl border border-border/80 bg-card shadow-xs">
         <div>
-          <h3 className="font-display text-2xl font-bold flex items-center gap-2">
+          <h3 className="text-base font-semibold flex items-center gap-2">
             {template.name}
             {template.is_default && (
-              <span className="text-[10px] font-mono-kasa uppercase tracking-wider bg-primary/10 text-primary px-2 py-0.5 rounded">
+              <span className="text-[10px] font-mono-kasa bg-primary/10 border border-primary/20 text-primary px-2 py-0.5 rounded">
                 Padrão
               </span>
             )}
           </h3>
           {template.description && (
-            <p className="text-sm text-foreground/60 mt-1">{template.description}</p>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{template.description}</p>
           )}
         </div>
         {canEdit && (
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={onDuplicate} disabled={duplicating} title="Duplicar modelo">
-              {duplicating ? <Loader2 className="size-3.5 animate-spin" /> : <Copy className="size-3.5" />}
+          <div className="flex gap-1.5 shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDuplicate}
+              disabled={duplicating}
+              className="h-8 px-2.5 text-xs gap-1"
+              title="Duplicar modelo"
+            >
+              {duplicating ? <Loader2 className="size-3 animate-spin" /> : <Copy className="size-3" />}
+              <span className="hidden sm:inline">Duplicar</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={onEdit}>
-              <Pencil className="size-3.5" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onEdit}
+              className="h-8 px-2.5 text-xs gap-1"
+            >
+              <Pencil className="size-3" />
+              <span className="hidden sm:inline">Editar</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={onDelete}>
-              <Trash2 className="size-3.5 text-rose-500" />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDelete}
+              className="h-8 px-2 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              <Trash2 className="size-3" />
             </Button>
           </div>
         )}
       </div>
 
       <div className="flex items-center justify-between">
-        <h4 className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">
-          Etapas ({steps.length})
+        <h4 className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+          Etapas do Fluxo ({steps.length})
         </h4>
         {canEdit && (
           <Button
             size="sm"
-            variant="outline"
             onClick={() => {
               setStepDraft({
                 title: "",
@@ -327,9 +383,9 @@ function TemplateDetail({
               });
               setStepOpen(true);
             }}
-            className="gap-2"
+            className="gap-1.5 h-8 text-xs font-medium"
           >
-            <Plus className="size-3.5" /> Etapa
+            <Plus className="size-3.5" /> Nova Etapa
           </Button>
         )}
       </div>
@@ -341,13 +397,13 @@ function TemplateDetail({
           return (
             <div
               key={s.id}
-              className="flex items-start gap-3 border border-border rounded-lg p-3 bg-surface"
+              className="flex items-start gap-3 border border-border/80 rounded-xl p-3.5 bg-card shadow-xs hover:border-primary/30 transition-colors"
             >
-              <GripVertical className="size-4 text-foreground/20 mt-1" />
+              <GripVertical className="size-4 text-muted-foreground/40 mt-1 shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="text-sm font-semibold">{s.title}</p>
-                  <span className="text-[10px] font-mono-kasa uppercase tracking-wider bg-muted text-foreground/60 px-1.5 py-0.5 rounded inline-flex items-center gap-1">
+                  <p className="text-xs font-semibold text-foreground">{s.title}</p>
+                  <span className="text-[10px] font-mono-kasa bg-muted border border-border/60 text-muted-foreground px-1.5 py-0.5 rounded inline-flex items-center gap-1">
                     <RIcon className="size-2.5" />
                     {s.responsible_type === "agency"
                       ? "Agência"
@@ -355,18 +411,20 @@ function TemplateDetail({
                         ? "Cliente"
                         : "Ambos"}
                   </span>
-                  <span className="text-[10px] text-foreground/40">+{s.days_after_start}d</span>
+                  <span className="text-[10px] font-mono-kasa text-muted-foreground">
+                    +{s.days_after_start}d
+                  </span>
                 </div>
                 {s.description && (
-                  <p className="text-xs text-foreground/50 mt-1">{s.description}</p>
+                  <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{s.description}</p>
                 )}
               </div>
               {canEdit && (
-                <div className="flex gap-1">
+                <div className="flex gap-1 shrink-0">
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="size-7"
+                    className="size-7 text-muted-foreground hover:text-foreground"
                     onClick={() => {
                       setStepDraft(s);
                       setStepOpen(true);
@@ -377,10 +435,10 @@ function TemplateDetail({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="size-7"
+                    className="size-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                     onClick={() => deleteStep.mutate(s.id)}
                   >
-                    <Trash2 className="size-3 text-rose-500" />
+                    <Trash2 className="size-3" />
                   </Button>
                 </div>
               )}
@@ -390,46 +448,71 @@ function TemplateDetail({
       </div>
 
       <Dialog open={stepOpen} onOpenChange={setStepOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{stepDraft?.id ? "Editar etapa" : "Nova etapa"}</DialogTitle>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="space-y-1">
+            <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+              <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                <Layers className="size-5" />
+              </div>
+              <span>{stepDraft?.id ? `Editar Etapa · ${stepDraft.title}` : "Nova Etapa de Onboarding"}</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Configure os detalhes e responsável por esta etapa de recepção do cliente.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="space-y-1.5">
-              <Label>Título</Label>
+
+          <div className="space-y-3.5 pt-1">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Título da Etapa *
+              </Label>
               <Input
                 value={stepDraft?.title ?? ""}
                 onChange={(e) => setStepDraft((p) => ({ ...p, title: e.target.value }))}
+                placeholder="Ex: Reunião de Kick-off ou Coleta de Acessos"
+                className="h-9 text-xs font-medium"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>Descrição</Label>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Instruções / Descrição
+              </Label>
               <Textarea
                 value={stepDraft?.description ?? ""}
                 onChange={(e) => setStepDraft((p) => ({ ...p, description: e.target.value }))}
+                placeholder="Orientações detalhadas para a conclusão da etapa…"
+                className="text-xs resize-none"
+                rows={3}
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label>Responsável</Label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                  Responsável pela Execução
+                </Label>
                 <Select
                   value={stepDraft?.responsible_type ?? "agency"}
                   onValueChange={(v) =>
                     setStepDraft((p) => ({ ...p, responsible_type: v as any }))
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="agency">Agência</SelectItem>
-                    <SelectItem value="client">Cliente</SelectItem>
-                    <SelectItem value="both">Ambos</SelectItem>
+                    <SelectItem value="agency" className="text-xs">Agência</SelectItem>
+                    <SelectItem value="client" className="text-xs">Cliente</SelectItem>
+                    <SelectItem value="both" className="text-xs">Ambos em Conjunto</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label>Dias após início</Label>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                  Prazo (Dias após início)
+                </Label>
                 <Input
                   type="number"
                   min={0}
@@ -437,17 +520,24 @@ function TemplateDetail({
                   onChange={(e) =>
                     setStepDraft((p) => ({ ...p, days_after_start: Number(e.target.value) }))
                   }
+                  className="h-9 text-xs font-mono-kasa tabular-nums"
                 />
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStepOpen(false)}>
+
+          <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+            <Button variant="outline" size="sm" onClick={() => setStepOpen(false)} className="h-9 text-xs">
               Cancelar
             </Button>
-            <Button onClick={() => saveStep.mutate()} disabled={saveStep.isPending}>
-              {saveStep.isPending && <Loader2 className="size-4 animate-spin mr-2" />}
-              Salvar
+            <Button
+              onClick={() => saveStep.mutate()}
+              disabled={saveStep.isPending || !stepDraft?.title?.trim()}
+              size="sm"
+              className="h-9 text-xs font-medium gap-1.5"
+            >
+              {saveStep.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <Layers className="size-3.5" />}
+              Salvar Etapa
             </Button>
           </DialogFooter>
         </DialogContent>

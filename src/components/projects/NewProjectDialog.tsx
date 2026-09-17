@@ -6,51 +6,51 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { createProject } from "@/lib/ops-api";
 import { toast } from "sonner";
+import { FolderGit2, Loader2 } from "lucide-react";
 
-/**
- * Modal "+ Novo Projeto" — reconstruído do zero (clean code).
- * - SEM useEffect (zero risco de loop infinito / erro #185)
- * - Apenas 2 campos: Nome do Projeto e Cliente
- * - Insert direto + invalidateQueries + fechamento do modal
- */
+interface NewProjectDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  clients?: Array<{ id: string; name?: string | null; company?: string | null }>;
+  defaultClientId?: string;
+}
+
 export function NewProjectDialog({
   open,
   onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-}) {
-  const queryClient = useQueryClient();
+  clients: clientsProp,
+  defaultClientId,
+}: NewProjectDialogProps) {
   const [name, setName] = useState("");
-  const [clientId, setClientId] = useState("");
+  const [clientId, setClientId] = useState(defaultClientId || "");
   const [isSaving, setIsSaving] = useState(false);
+  const queryClient = useQueryClient();
 
-  const { data: clients = [] } = useQuery({
-    queryKey: ["clients", "select-options"],
+  // Fallback para buscar clientes se não forem passados como prop
+  const { data: fetchedClients = [] } = useQuery({
+    queryKey: ["clients", "for-new-project-dialog"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("clients")
         .select("id, name, company")
+        .eq("status", "active")
         .order("name", { ascending: true });
-      if (error) throw error;
-      return data ?? [];
+      if (error) return [];
+      return data || [];
     },
-    enabled: open,
+    enabled: !clientsProp || clientsProp.length === 0,
   });
+
+  const clients = clientsProp && clientsProp.length > 0 ? clientsProp : fetchedClients;
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -64,21 +64,12 @@ export function NewProjectDialog({
 
     setIsSaving(true);
     try {
-      const payload = {
+      await createProject({
         name: name.trim(),
         client_id: clientId,
         status: "active",
         type: "special",
-      };
-      console.log("Payload do Projeto:", payload);
-
-      const { error } = await supabase.from("projects").insert([payload]);
-
-      if (error) {
-        console.error("ERRO CRÍTICO AO CRIAR PROJETO:", error);
-        toast.error(`Erro no Banco: ${error.message}`);
-        return;
-      }
+      });
 
       toast.success("Projeto criado com sucesso!");
       setName("");
@@ -95,30 +86,44 @@ export function NewProjectDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-border">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">Novo Projeto</DialogTitle>
+      <DialogContent className="sm:max-w-[480px]">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <FolderGit2 className="size-5" />
+            </div>
+            <span>Novo Projeto</span>
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Cadastre um novo projeto operacional para agrupar jobs e demandas.
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label>Nome do Projeto</Label>
+        <div className="space-y-3.5 pt-1">
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Nome do Projeto *
+            </Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Ex: Gestão de Redes Sociais"
+              placeholder="Ex: Gestão de Redes Sociais ou Campanha de Verão"
+              className="h-9 text-xs font-medium"
+              autoFocus
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label>Cliente</Label>
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Cliente Responsável *
+            </Label>
             <Select value={clientId || undefined} onValueChange={(v) => setClientId(v)}>
-              <SelectTrigger>
+              <SelectTrigger className="h-9 text-xs">
                 <SelectValue placeholder="Selecione um cliente" />
               </SelectTrigger>
               <SelectContent>
                 {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
+                  <SelectItem key={c.id} value={c.id} className="text-xs cursor-pointer">
                     {c.company || c.name}
                   </SelectItem>
                 ))}
@@ -127,16 +132,22 @@ export function NewProjectDialog({
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            className="h-9 text-xs"
+          >
             Cancelar
           </Button>
           <Button
             onClick={() => handleCreate()}
             disabled={isSaving || !name.trim() || !clientId}
-            className="bg-primary text-primary-foreground hover:bg-primary/90"
+            size="sm"
+            className="h-9 text-xs font-medium gap-1.5"
           >
-            {isSaving ? <Loader2 className="size-4 animate-spin mr-2" /> : null}
+            {isSaving ? <Loader2 className="size-3.5 animate-spin" /> : <FolderGit2 className="size-3.5" />}
             Criar Projeto
           </Button>
         </DialogFooter>

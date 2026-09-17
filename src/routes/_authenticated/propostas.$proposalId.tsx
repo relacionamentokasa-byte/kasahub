@@ -41,18 +41,20 @@ function ProposalDetailPage() {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      <header className="px-6 lg:px-10 py-6 border-b border-border bg-surface sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-          <div className="flex items-center gap-4 min-w-0">
+      <header className="px-5 lg:px-8 py-3.5 border-b border-border/60 bg-card sticky top-0 z-20">
+        <div className="w-full mx-auto flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <Link
               to="/propostas"
-              className="p-2 hover:bg-muted rounded-full transition-colors text-foreground/60 shrink-0"
+              className="p-1.5 hover:bg-muted rounded-md transition-colors text-muted-foreground hover:text-foreground shrink-0 border border-border/60"
             >
-              <ArrowLeft className="size-5" />
+              <ArrowLeft className="size-4" />
             </Link>
             <div className="min-w-0">
-              <h1 className="font-display text-xl lg:text-2xl font-bold truncate">Editar Proposta</h1>
-              <p className="text-xs text-foreground/40 hidden sm:block truncate">ID: {proposalId}</p>
+              <span className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">
+                Propostas Comerciais
+              </span>
+              <h1 className="font-display text-base lg:text-lg font-bold truncate text-foreground">Editar Proposta</h1>
             </div>
           </div>
 
@@ -61,10 +63,10 @@ function ProposalDetailPage() {
               variant="outline"
               size="sm"
               onClick={() => setPresenting(true)}
-              className="gap-2"
+              className="h-8 px-3 text-xs font-mono-kasa gap-1.5 rounded-md border-border/60"
               title="Apresentar proposta ao cliente"
             >
-              <Presentation className="size-4" />
+              <Presentation className="size-3.5" />
               <span className="hidden sm:inline">Apresentar</span>
             </Button>
 
@@ -72,12 +74,15 @@ function ProposalDetailPage() {
               variant={focusMode ? "default" : "outline"}
               size="sm"
               onClick={toggleFocusMode}
-              className="gap-2"
+              className={cn(
+                "h-8 px-3 text-xs font-mono-kasa gap-1.5 rounded-md border-border/60",
+                focusMode && "bg-foreground text-background hover:bg-foreground/90"
+              )}
               title={focusMode ? "Sair do modo foco (Esc)" : "Entrar em modo foco (F)"}
             >
-              {focusMode ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+              {focusMode ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
               <span className="hidden sm:inline">{focusMode ? "Sair do foco" : "Modo foco"}</span>
-              <kbd className="hidden md:inline text-[10px] font-mono-kasa border border-current/30 rounded px-1 py-0.5 opacity-70">
+              <kbd className="hidden md:inline text-[9px] font-mono-kasa border border-current/30 rounded px-1 py-0.2 opacity-70">
                 F
               </kbd>
             </Button>
@@ -86,7 +91,7 @@ function ProposalDetailPage() {
         </div>
       </header>
 
-      <main className="p-6 lg:p-10 max-w-7xl mx-auto">
+      <main className="p-4 sm:p-6 lg:p-8 w-full mx-auto">
         <ProposalEditorContent proposalId={proposalId} />
       </main>
 

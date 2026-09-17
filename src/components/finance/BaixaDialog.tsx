@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -48,8 +48,8 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
   useEffect(() => {
     if (transaction && open) {
       const ref =
-        transaction.valor_previsto && Number(transaction.valor_previsto) > 0 
-          ? transaction.valor_previsto 
+        transaction.valor_previsto && Number(transaction.valor_previsto) > 0
+          ? transaction.valor_previsto
           : (transaction.amount ?? 0);
       setPaidValue(String(ref));
       setPaidDate(todayLocal());
@@ -80,44 +80,50 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
       qc.invalidateQueries({ queryKey: ["transactions"] });
       qc.invalidateQueries({ queryKey: ["finance-stats"] });
       qc.invalidateQueries({ queryKey: ["contas_bancarias"] });
-      toast.success("Baixa registrada.");
+      toast.success("Baixa registrada com sucesso.");
       onOpenChange(false);
     },
     onError: (e: any) => toast.error(e?.message || "Erro ao dar baixa."),
   });
 
-  if (!transaction) {
+  if (!transaction || !open) {
     return null;
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>💳 Dar Baixa</DialogTitle>
-          <DialogDescription className="text-xs">
-            {transaction.description} · Vencimento{" "}
-            {new Date(transaction.due_date + "T00:00:00").toLocaleDateString("pt-BR")}
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+              <CheckCircle2 className="size-5" />
+            </div>
+            <span>Confirmar Liquidação</span>
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground line-clamp-1">
+            {transaction.description} • Vencimento{" "}
+            <span className="font-mono-kasa tabular-nums">
+              {new Date(transaction.due_date + "T00:00:00").toLocaleDateString("pt-BR")}
+            </span>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          {/* Referências */}
-          <div className="rounded-xl border bg-muted/30 p-3 space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">💰 Previsto</span>
-              <span className="font-semibold tabular-nums">{brl(previsto)}</span>
+        <div className="space-y-3.5 py-1">
+          <div className="rounded-xl border border-border/70 bg-muted/30 p-3 space-y-1.5 text-xs">
+            <div className="flex justify-between items-center">
+              <span className="text-muted-foreground font-medium">Valor Previsto</span>
+              <span className="font-mono-kasa tabular-nums font-semibold text-foreground">{brl(previsto)}</span>
             </div>
             {real != null && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">💵 Boleto</span>
-                <span className="font-semibold tabular-nums">
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground font-medium">Valor Boleto</span>
+                <span className="font-mono-kasa tabular-nums font-semibold text-foreground">
                   {brl(real)}{" "}
                   {Math.abs(diffBoleto) > 0.005 && (
                     <span
                       className={cn(
-                        "ml-1 text-xs",
-                        diffBoleto > 0 ? "text-orange-600" : "text-emerald-600"
+                        "ml-1 text-[11px]",
+                        diffBoleto > 0 ? "text-amber-500" : "text-emerald-500"
                       )}
                     >
                       ({diffBoleto > 0 ? "+" : ""}
@@ -129,37 +135,36 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
             )}
           </div>
 
-          <div className="space-y-1.5">
-            <Label>💲 Valor efetivamente pago (R$)</Label>
+          <div className="space-y-1">
+            <Label className="text-xs font-medium text-muted-foreground">Valor efetivamente liquidado (R$)</Label>
             <Input
               type="number"
               step="0.01"
               value={paidValue}
               onChange={(e) => setPaidValue(e.target.value)}
+              className="h-10 text-sm font-mono-kasa tabular-nums font-bold"
             />
-            <p className="text-[11px] text-muted-foreground">
-              Edite se pagou valor diferente do boleto (desconto, multa extra etc).
-            </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label>📆 Data do pagamento</Label>
+          <div className="grid grid-cols-2 gap-2.5">
+            <div className="space-y-1">
+              <Label className="text-xs font-medium text-muted-foreground">Data do pagamento</Label>
               <Input
                 type="date"
                 value={paidDate}
                 onChange={(e) => setPaidDate(e.target.value)}
+                className="h-9 text-xs font-mono-kasa tabular-nums"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label>💳 Forma</Label>
+            <div className="space-y-1">
+              <Label className="text-xs font-medium text-muted-foreground">Forma de pagamento</Label>
               <Select value={method} onValueChange={setMethod}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9 text-xs">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {PAYMENT_METHODS.map((m) => (
-                    <SelectItem key={m} value={m}>
+                    <SelectItem key={m} value={m} className="text-xs">
                       {m}
                     </SelectItem>
                   ))}
@@ -168,37 +173,29 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <Label>📝 Observações</Label>
+          <div className="space-y-1">
+            <Label className="text-xs font-medium text-muted-foreground">Observações / Comprovante</Label>
             <Textarea
               rows={2}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              placeholder="Ex: Pago via PIX pelo app..."
+              className="text-xs resize-none"
             />
           </div>
 
-          <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-3 text-sm space-y-1">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Previsto</span>
-              <span className="tabular-nums">{brl(previsto)}</span>
-            </div>
-            {real != null && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Boleto</span>
-                <span className="tabular-nums">{brl(real)}</span>
-              </div>
-            )}
-            <div className="flex justify-between font-bold">
-              <span>Pago</span>
-              <span className="tabular-nums">{brl(pago)}</span>
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs space-y-1">
+            <div className="flex justify-between items-center font-bold text-foreground">
+              <span>Total a Liquidar</span>
+              <span className="font-mono-kasa tabular-nums text-sm text-primary">{brl(pago)}</span>
             </div>
             {Math.abs(diffPago) > 0.005 && (
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">Diferença vs previsto</span>
+              <div className="flex justify-between items-center text-[11px] pt-1 border-t border-primary/10">
+                <span className="text-muted-foreground">Diferença vs Previsto</span>
                 <span
                   className={cn(
-                    "tabular-nums font-semibold",
-                    diffPago > 0 ? "text-orange-600" : "text-emerald-600"
+                    "font-mono-kasa tabular-nums font-semibold",
+                    diffPago > 0 ? "text-amber-500" : "text-emerald-500"
                   )}
                 >
                   {diffPago > 0 ? "+" : ""}
@@ -209,13 +206,13 @@ export function BaixaDialog({ open, onOpenChange, transaction }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DialogFooter className="gap-2 sm:gap-0 pt-2">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="text-xs h-9">
             Cancelar
           </Button>
-          <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {mutation.isPending && <Loader2 className="size-4 mr-2 animate-spin" />}
-            ✅ Confirmar baixa
+          <Button size="sm" onClick={() => mutation.mutate()} disabled={mutation.isPending} className="text-xs h-9 gap-1.5 font-medium">
+            {mutation.isPending ? <Loader2 className="size-3.5 animate-spin" /> : <CheckCircle2 className="size-3.5" />}
+            Confirmar Liquidação
           </Button>
         </DialogFooter>
       </DialogContent>

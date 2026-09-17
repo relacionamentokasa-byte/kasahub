@@ -3,11 +3,10 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useConversionStore } from "@/lib/conversion-store";
-import { createJob, createProject, fetchClients, fetchProjects, type JobStage, type Job } from "@/lib/ops-api";
+import { createJob, createProject, fetchClients, fetchProjects, addJobAttachment, type JobStage, type Job } from "@/lib/ops-api";
 import { listProductsByClient } from "@/lib/launch-grids-api";
 
 import { JOBS_QUERY_KEY } from "./JobsBoard";
-import { fetchPartners } from "@/lib/partners-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { fetchServices } from "@/lib/services-api";
 import {
@@ -15,11 +14,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { DynamicJobForm } from "./DynamicJobForm";
-import { X, AlertCircle } from "lucide-react";
+import { X, Paperclip, FileUp, Loader2, Briefcase } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -63,21 +61,23 @@ export function NewJobDialog({
   defaultDescription?: string;
   defaultDueDate?: string;
   defaultLaunchProductId?: string;
-    defaultEditorialPostId?: string;
-    defaultCoverUrl?: string;
-    lockLaunchProduct?: boolean;
+  defaultEditorialPostId?: string;
+  defaultCoverUrl?: string;
+  lockLaunchProduct?: boolean;
   onCreated?: (job: Job) => void;
 }) {
   const qc = useQueryClient();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
+  const { data: _services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
   const [form, setForm] = useState({
     title: "",
-    description: "", // Campo 'description' do banco (Briefing)
-    
+    description: "",
     priority: "normal",
     due_date: "",
     project_id: "",
@@ -94,18 +94,16 @@ export function NewJobDialog({
   const { conversionData, clearConversionData } = useConversionStore();
   const initializationRef = useRef(false);
 
-  // Sincroniza formulário com conversionData ou props APENAS na abertura
   useEffect(() => {
     if (open) {
       if (initializationRef.current) return;
 
-      console.log("[NewJobDialog] Inicializando formulário. conversionData:", conversionData);
+      setPendingFiles([]);
 
       if (conversionData) {
-        // Fluxo de CONVERSÃO (Prioridade máxima)
         setForm({
           title: conversionData.title,
-          description: conversionData.briefing, // Briefing do calendário mapeado para 'description'
+          description: conversionData.briefing,
           due_date: conversionData.dueDate,
           client_id: conversionData.clientId,
           editorial_post_id: conversionData.sourcePostId,
@@ -119,7 +117,6 @@ export function NewJobDialog({
           team_involved_ids: [],
         });
       } else {
-        // Fluxo MANUAL (ou via props legadas)
         setForm({
           title: defaultTitle || "",
           description: defaultDescription || "",
@@ -136,14 +133,13 @@ export function NewJobDialog({
           team_involved_ids: [],
         });
       }
-      
+
       initializationRef.current = true;
     } else {
-      // Quando fechar, limpamos TUDO
       if (initializationRef.current) {
-        console.log("[NewJobDialog] Fechando e resetando estado.");
         initializationRef.current = false;
         clearConversionData();
+        setPendingFiles([]);
         setForm({
           title: "",
           description: "",
@@ -163,7 +159,6 @@ export function NewJobDialog({
     }
   }, [open, conversionData, clearConversionData, defaultTitle, defaultDescription, defaultDueDate, defaultClientId, defaultEditorialPostId, defaultProjectId, defaultContractId, defaultPeriod, defaultLaunchProductId]);
 
-  // Projetos dependem do cliente selecionado (cascade)
   const selectedClientId = form.client_id;
   const {
     data: projects = [],
@@ -171,15 +166,11 @@ export function NewJobDialog({
     isFetching: isFetchingProjects,
     isSuccess: isProjectsSuccess,
     dataUpdatedAt: projectsUpdatedAt,
-    error: projectsError,
   } = useQuery({
     queryKey: ["projects", selectedClientId],
     queryFn: async () => {
-      console.log("[NewJobDialog] ID do Cliente Selecionado:", selectedClientId);
       try {
-        const result = await fetchProjects({ clientId: selectedClientId });
-        console.log("[NewJobDialog] Projetos retornados:", result?.length, result);
-        return result;
+        return await fetchProjects({ clientId: selectedClientId });
       } catch (e) {
         console.error("[NewJobDialog] Erro ao buscar projetos:", e);
         throw e;
@@ -188,7 +179,6 @@ export function NewJobDialog({
     enabled: !!selectedClientId,
   });
 
-  // Produtos do grid de lançamento do cliente (só carrega se cliente tem grid ativado)
   const selectedClient = clients.find((c: any) => c.id === selectedClientId) as any;
   const clientHasGrid = !!selectedClient?.has_launch_grid;
   const { data: launchProducts = [] } = useQuery({
@@ -201,32 +191,24 @@ export function NewJobDialog({
         ?? { id: form.launch_product_id, name: "Produto vinculado", image_url: conversionData?.coverUrl || null })
     : null;
 
-
-  // Ao trocar de cliente, limpa projeto e produto de lançamento (a menos que o produto venha travado pela URL)
-  // Mas evitamos limpar se o valor atual já corresponde a um valor padrão (evita loop infinito na inicialização)
   useEffect(() => {
     if (!selectedClientId) return;
-    
+
     setForm((f) => {
-      // Se estamos em processo de inicialização de conversão, NÃO limpamos o projeto
-      // Usamos a lógica de que se o cliente acaba de ser setado por conversão, não resetamos campos vinculados imediatamente
       if (initializationRef.current && (conversionData || defaultEditorialPostId)) {
         return f;
       }
 
-      // Se não houver projetos carregados ainda, não fazemos nada para evitar limpar precoce
       if (isFetchingProjects && projects.length === 0) return f;
 
-      // Se já temos um projeto vinculado a esse cliente, não limpamos
       if (f.project_id && projects.some(p => p.id === f.project_id && p.client_id === selectedClientId)) {
         return f;
       }
 
-      // Se o projeto atual é o defaultProjectId que veio via URL, não limpamos
       if (f.project_id && f.project_id === defaultProjectId) {
         return f;
       }
-      
+
       return {
         ...f,
         project_id: "",
@@ -236,7 +218,6 @@ export function NewJobDialog({
     autoCreatingProjectRef.current = false;
   }, [selectedClientId, projects, defaultProjectId, lockLaunchProduct, isFetchingProjects]);
 
-  // Auto-preenche dados quando um projeto é escolhido
   useEffect(() => {
     if (form.project_id) {
       const p = projects.find((x) => x.id === form.project_id);
@@ -251,8 +232,6 @@ export function NewJobDialog({
     }
   }, [form.project_id, projects]);
 
-  // Se o cliente escolhido REALMENTE não tem nenhum projeto (fetch concluído com sucesso e retornou 0),
-  // cria um automaticamente. Usamos isSuccess + !isFetching para evitar criar durante a janela de loading.
   const autoCreatingProjectRef = useRef(false);
   useEffect(() => {
     if (
@@ -286,15 +265,11 @@ export function NewJobDialog({
     })();
   }, [selectedClientId, isProjectsSuccess, isFetchingProjects, projectsUpdatedAt, projects.length, clients, qc]);
 
-
-
-
   const mut = useMutation({
     mutationFn: async () => {
       const payload = {
         title: form.title,
         description: form.description || null,
-        
         priority: form.priority,
         due_date: form.due_date || null,
         project_id: form.project_id || null,
@@ -311,26 +286,60 @@ export function NewJobDialog({
       };
 
       const data = await createJob(payload as any);
+
+      if (pendingFiles.length > 0 && data?.id) {
+        setIsUploadingFiles(true);
+        for (const file of pendingFiles) {
+          try {
+            const ext = file.name.split('.').pop() || 'bin';
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const path = `jobs/${data.id}/${Date.now()}_${safeName}`;
+
+            const { error: uploadError } = await supabase.storage
+              .from('job-attachments')
+              .upload(path, file, { upsert: false });
+
+            if (uploadError) {
+              console.error('[NewJobDialog] Erro ao subir anexo:', uploadError);
+              continue;
+            }
+
+            const { data: urlData } = supabase.storage
+              .from('job-attachments')
+              .getPublicUrl(path);
+
+            await addJobAttachment({
+              job_id: data.id,
+              name: file.name,
+              file_url: urlData.publicUrl,
+              file_type: file.type || ext,
+              size_bytes: file.size,
+            });
+          } catch (attErr) {
+            console.error('[NewJobDialog] Erro processando anexo:', attErr);
+          }
+        }
+        setIsUploadingFiles(false);
+      }
+
       return data;
     },
     onMutate: async () => {
-      const filters = { 
-        projectId: defaultProjectId ?? form.project_id, 
-        clientId: defaultClientId ?? form.client_id, 
-        serviceId: form.service_id, 
-        period: defaultPeriod ?? form.period ?? 'all' 
+      const filters = {
+        projectId: defaultProjectId ?? form.project_id,
+        clientId: defaultClientId ?? form.client_id,
+        serviceId: form.service_id,
+        period: defaultPeriod ?? form.period ?? 'all'
       };
       const qk = JOBS_QUERY_KEY(filters);
-      
-      // Also target the global "jobs" key to catch any general views
       const globalQk = ["jobs"];
-      
+
       await qc.cancelQueries({ queryKey: qk });
       await qc.cancelQueries({ queryKey: globalQk });
 
       const prev = qc.getQueryData<Job[]>(qk);
       const prevGlobal = qc.getQueryData<Job[]>(globalQk);
-      
+
       const tempJob = {
         id: 'temp-' + Math.random().toString(36).substring(7),
         title: form.title,
@@ -344,27 +353,23 @@ export function NewJobDialog({
         total_steps: 0,
         team_involved: form.team_involved_ids.map(id => ({ user_id: id, role: "Membro" })),
       };
-      
+
       qc.setQueryData<Job[]>(qk, (old) => [tempJob as any, ...(old ?? [])]);
       qc.setQueryData<Job[]>(globalQk, (old) => [tempJob as any, ...(old ?? [])]);
 
       return { prev, prevGlobal, qk, globalQk };
     },
     onSuccess: async (job, __, ctx) => {
-      // Invalidate both keys to ensure we get real data from DB
       qc.invalidateQueries({ queryKey: ctx?.qk });
       qc.invalidateQueries({ queryKey: ctx?.globalQk });
       qc.invalidateQueries({ queryKey: ["extra_demands"] });
       qc.invalidateQueries({ queryKey: ["jobs-by-dme"] });
-      
-      // Se veio de um post editorial, vincula e redireciona de volta para o calendário com o cliente selecionado
+      qc.invalidateQueries({ queryKey: ["job-attachments", (job as any).id] });
+
       if (form.editorial_post_id) {
-        // Primeiro atualiza o post editorial com o ID do job
-        // Isso garante que o botão "Converter em Job" desapareça do diálogo de edição do post
-        // Usamos as any para evitar erros de tipo se a coluna job_id for nova no schema local
         const { error: linkError } = await supabase
           .from("editorial_posts")
-          .update({ 
+          .update({
             job_id: (job as any).id,
             status: 'converted'
           } as any)
@@ -372,21 +377,20 @@ export function NewJobDialog({
 
         if (linkError) {
           console.error("[NewJobDialog] Erro ao vincular post ao job:", linkError);
-          // Não interrompemos o fluxo, pois o Job já foi criado com sucesso
         }
 
         qc.invalidateQueries({ queryKey: ["editorial-posts"] });
         toast.success("Job criado e post vinculado com sucesso!");
         navigate({ to: "/calendario-editorial", search: { clientId: form.client_id } as any });
       } else {
-        toast.success("Job criado");
+        toast.success("Job criado com sucesso!");
       }
       onCreated?.(job as Job);
       onOpenChange(false);
+      setPendingFiles([]);
       setForm({
         title: "",
         description: "",
-        
         priority: "normal",
         due_date: "",
         project_id: "",
@@ -409,283 +413,327 @@ export function NewJobDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-surface border-border max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl">
-            {form.editorial_post_id ? "Converter em job" : `Novo job${stage ? ` · ${stage.name}` : ""}`}
+      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <Briefcase className="size-5" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span>{form.editorial_post_id ? "Converter Post em Job" : "Novo Job"}</span>
+              {stage?.name && (
+                <>
+                  <span className="text-xs font-normal text-muted-foreground">•</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md font-mono-kasa bg-primary/10 border border-primary/20 text-primary">
+                    {stage.name}
+                  </span>
+                </>
+              )}
+            </div>
           </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Cadastre um novo job operacional vinculado ao cliente e projeto.
+          </DialogDescription>
         </DialogHeader>
-        
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="job-title-field">Título do Job</Label>
-            <Input 
+
+        <div className="space-y-3.5 pt-1">
+          {/* Título do Job */}
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Título do Job *
+            </Label>
+            <Input
               id="job-title-field"
-              value={form.title} 
-              onChange={(e) => setForm({ ...form, title: e.target.value })} 
-              placeholder="Ex: Criação de Logo" 
-              className={!form.title ? "border-destructive" : ""}
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              placeholder="Ex: Criação de Carrossel para Lançamento"
+              className="h-9 text-xs font-medium"
+              autoFocus
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="job-description-field">BRIEFING</Label>
-            <Textarea 
-              id="job-description-field"
-              value={form.description} 
-              onChange={(e) => setForm({ ...form, description: e.target.value })} 
-              placeholder="Descreva o briefing da demanda..." 
-              className="min-h-[200px]"
-              rows={8}
-            />
-          </div>
-
+          {/* Imagem de Referência do Calendário */}
           {(conversionData?.coverUrl || defaultCoverUrl) && (
-            <div className="space-y-1.5 p-3 rounded-xl border border-primary/20 bg-primary/5 animate-in fade-in zoom-in-95">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-primary mb-2 block">
+            <div className="space-y-1 p-2.5 rounded-xl border border-border/80 bg-muted/20">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground block font-semibold">
                 Imagem de Referência (Calendário)
               </Label>
-              <div className="relative w-full aspect-video rounded-lg overflow-hidden border border-border">
-                <img 
-                  src={conversionData?.coverUrl || defaultCoverUrl} 
-                  alt="Referência" 
-                  className="w-full h-full object-contain bg-muted/20"
+              <div className="relative w-full aspect-video max-h-36 rounded-lg overflow-hidden border border-border/60 bg-background/50">
+                <img
+                  src={conversionData?.coverUrl || defaultCoverUrl}
+                  alt="Referência"
+                  className="w-full h-full object-contain"
                 />
               </div>
-              <p className="text-[10px] text-foreground/50 mt-1 italic">
-                Esta imagem será salva como briefing visual ao criar o job.
-              </p>
             </div>
           )}
 
+          {/* Cliente e Projeto */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Cliente *
+              </Label>
+              <Select
+                value={form.client_id || undefined}
+                onValueChange={(v) => {
+                  setForm((f) => ({ ...f, client_id: v, project_id: "" }));
+                }}
+              >
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Selecione o Cliente" />
+                </SelectTrigger>
+                <SelectContent>
+                  {clients.map((c) => (
+                    <SelectItem key={c.id} value={c.id} className="text-xs cursor-pointer">
+                      {c.company || c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          <Tabs defaultValue="vinc" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 bg-muted/20">
-              <TabsTrigger value="vinc" className="text-xs uppercase font-bold tracking-tighter">Vínculos Obrigatórios</TabsTrigger>
-              <TabsTrigger value="resp" className="text-xs uppercase font-bold tracking-tighter">Responsáveis e Prazos</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="vinc" className="space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-2">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1.5">
-                  <Label>Cliente</Label>
-                  <Select 
-                    value={form.client_id || undefined} 
-                    onValueChange={(v) => {
-                      setForm(f => ({ ...f, client_id: v, project_id: "" }));
-                    }}
-                  >
-                    <SelectTrigger className={!form.client_id ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Selecione o Cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label>Projeto</Label>
-                  <Select
-                    value={form.project_id || undefined}
-                    onValueChange={(v) => {
-                      const p = projects.find((x) => x.id === v);
-                      if (p) {
-                        setForm((f) => ({
-                          ...f,
-                          project_id: v,
-                          client_id: p.client_id || f.client_id,
-                        }));
-                      } else {
-                        setForm((f) => ({ ...f, project_id: v }));
-                      }
-                    }}
-                    disabled={!selectedClientId || isLoadingProjects}
-                  >
-                    <SelectTrigger className={!form.project_id ? "border-destructive" : ""}>
-                      <SelectValue
-                        placeholder={
-                          !selectedClientId
-                            ? "Selecione o Cliente primeiro"
-                            : isLoadingProjects
-                              ? "Carregando projetos..."
-                              : projectsError
-                                ? "Erro ao carregar projetos"
-                                : projects.length === 0
-                                  ? "Nenhum projeto encontrado para este cliente"
-                                  : "Selecione o Projeto"
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {projects.map((p) => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {projectsError ? (
-                    <p className="text-[10px] font-bold text-destructive flex items-center gap-1">
-                      <AlertCircle className="size-3" />
-                      {(projectsError as Error).message}
-                    </p>
-                  ) : null}
-                </div>
-
-
-                <div className="space-y-1.5">
-                  <Label>Serviço Vinculado</Label>
-                  <Select value={form.service_id || undefined} onValueChange={(v) => setForm({ ...form, service_id: v })}>
-                    <SelectTrigger className={!form.service_id && !form.editorial_post_id ? "border-destructive" : ""}>
-                      <SelectValue placeholder="Selecione o Serviço" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map((s) => (
-                        <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Produto do grid de lançamento — só aparece se o cliente tem grid ativo */}
-                {((clientHasGrid && launchProducts.length > 0) || lockLaunchProduct) && (
-                  <div className="space-y-1.5">
-                    <Label className="flex items-center gap-1.5">
-                      🚀 Produto de Lançamento
-                      <span className="text-[10px] font-normal text-foreground/50">(opcional)</span>
-                    </Label>
-                    {lockedProduct ? (
-                      <div className="flex items-center justify-between gap-2 rounded-lg border border-primary/30 bg-primary/5 px-3 py-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {lockedProduct.image_url ? (
-                            <img src={lockedProduct.image_url} alt="" className="size-8 rounded object-cover shrink-0" />
-                          ) : (
-                            <div className="size-8 rounded bg-primary/15 flex items-center justify-center text-xs shrink-0">🚀</div>
-                          )}
-                          <span className="text-sm font-semibold truncate">{lockedProduct.name}</span>
-                        </div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-primary shrink-0">Vinculado</span>
-                      </div>
-                    ) : (
-                      <Select
-                        value={form.launch_product_id || undefined}
-                        onValueChange={(v) => setForm({ ...form, launch_product_id: v === "__none__" ? "" : v })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Nenhum (job avulso)" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__none__">Nenhum (job avulso)</SelectItem>
-                          {launchProducts.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                    <p className="text-[10px] text-foreground/50">
-                      Se vinculado, esse job aparece no painel do produto dentro do Grid de Lançamento.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="resp" className="space-y-4 pt-4 animate-in fade-in slide-in-from-bottom-2">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Prioridade</Label>
-                  <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Baixa</SelectItem>
-                      <SelectItem value="normal">Normal</SelectItem>
-                      <SelectItem value="high">Alta</SelectItem>
-                      <SelectItem value="urgent">Urgente</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className={!form.due_date ? "text-red-500" : ""}>Prazo</Label>
-                  <Input 
-                    type="datetime-local" 
-                    value={form.due_date || ""} 
-                    onChange={(e) => {
-                      console.log("[NewJobDialog] Alterando due_date manual para:", e.target.value);
-                      setForm({ ...form, due_date: e.target.value });
-                    }} 
-                    className={!form.due_date ? "border-red-500 focus-visible:ring-red-500" : ""}
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Projeto Vinculado
+              </Label>
+              <Select
+                value={form.project_id || undefined}
+                onValueChange={(v) => {
+                  const p = projects.find((x) => x.id === v);
+                  if (p) {
+                    setForm((f) => ({
+                      ...f,
+                      project_id: v,
+                      client_id: p.client_id || f.client_id,
+                    }));
+                  } else {
+                    setForm((f) => ({ ...f, project_id: v }));
+                  }
+                }}
+                disabled={!selectedClientId || isLoadingProjects}
+              >
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue
+                    placeholder={
+                      !selectedClientId
+                        ? "Selecione o cliente primeiro"
+                        : isLoadingProjects
+                        ? "Carregando..."
+                        : projects.length === 0
+                        ? "Nenhum projeto (criará automático)"
+                        : "Selecione o Projeto"
+                    }
                   />
-                  {!form.due_date && (
-                    <p className="text-[10px] font-bold text-red-500 flex items-center gap-1">
-                      <AlertCircle className="size-3" />
-                      Prazo final é obrigatório
-                    </p>
-                  )}
-                </div>
+                </SelectTrigger>
+                <SelectContent>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
-                <div className="space-y-1.5 col-span-2">
-                  <Label>Responsável Principal</Label>
-                  <Select value={form.main_responsible_id} onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}>
-                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                    <SelectContent>
-                      {team.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          {/* Responsável, Prazo e Prioridade */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Responsável
+              </Label>
+              <Select
+                value={form.main_responsible_id || undefined}
+                onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}
+              >
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Selecione o dono" />
+                </SelectTrigger>
+                <SelectContent>
+                  {team.map((p: any) => (
+                    <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
+                      {p.display_name || p.full_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="space-y-1.5 col-span-2">
-                  <Label>Equipe Envolvida</Label>
-                  <Select 
-                    value="" 
-                    onValueChange={(v) => setForm(f => ({ ...f, team_involved_ids: Array.from(new Set([...f.team_involved_ids, v])) }))}
-                  >
-                    <SelectTrigger><SelectValue placeholder="Adicionar membros..." /></SelectTrigger>
-                    <SelectContent>
-                      {team.map((p: any) => (
-                        <SelectItem key={p.id} value={p.id}>{p.display_name || p.full_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {form.team_involved_ids.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {form.team_involved_ids.map(id => {
-                        const member = team.find((x: any) => x.id === id);
-                        return member ? (
-                          <div key={id} className="flex items-center gap-1 bg-muted px-2 py-1 rounded-full text-[10px]">
-                            {member.display_name || member.full_name}
-                            <button onClick={() => setForm(f => ({ ...f, team_involved_ids: f.team_involved_ids.filter(x => x !== id) }))}>
-                              <X className="size-3" />
-                            </button>
-                          </div>
-                        ) : null;
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Prazo Final
+              </Label>
+              <Input
+                type="date"
+                value={form.due_date ? form.due_date.slice(0, 10) : ""}
+                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                className="h-9 text-xs font-mono-kasa tabular-nums"
+              />
+            </div>
 
-          {form.service_id && (
-            <div className="mt-2 animate-in fade-in zoom-in-95">
-              <DynamicJobForm serviceId={form.service_id} data={{}} onChange={() => {}} />
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Prioridade
+              </Label>
+              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+                <SelectTrigger className="h-9 text-xs font-mono-kasa">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low" className="text-xs font-mono-kasa">Baixa</SelectItem>
+                  <SelectItem value="normal" className="text-xs font-mono-kasa">Normal</SelectItem>
+                  <SelectItem value="high" className="text-xs font-mono-kasa">Alta</SelectItem>
+                  <SelectItem value="urgent" className="text-xs font-mono-kasa text-destructive">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Grid de Lançamento se aplicável */}
+          {((clientHasGrid && launchProducts.length > 0) || lockLaunchProduct) && (
+            <div className="space-y-1 p-3 rounded-xl border border-border/80 bg-muted/10">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                Produto de Lançamento <span className="text-[10px] text-muted-foreground font-normal lowercase">(opcional)</span>
+              </Label>
+              {lockedProduct ? (
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <span className="font-semibold text-foreground">{lockedProduct.name}</span>
+                  <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground">Vinculado</span>
+                </div>
+              ) : (
+                <Select
+                  value={form.launch_product_id || undefined}
+                  onValueChange={(v) => setForm({ ...form, launch_product_id: v === "__none__" ? "" : v })}
+                >
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue placeholder="Nenhum (job avulso)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__" className="text-xs">Nenhum (job avulso)</SelectItem>
+                    {launchProducts.map((p) => (
+                      <SelectItem key={p.id} value={p.id} className="text-xs">{p.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           )}
+
+          {/* Briefing */}
+          <div className="space-y-1">
+            <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+              Briefing & Orientações
+            </Label>
+            <Textarea
+              id="job-description-field"
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Descreva o escopo, orientações e objetivos deste job..."
+              className="text-xs resize-y min-h-[90px]"
+              rows={4}
+            />
+          </div>
+
+          {/* Anexos & Arquivos */}
+          <div className="space-y-2 pt-2 border-t border-border/60">
+            <div className="flex items-center justify-between">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                <Paperclip className="size-3.5 text-primary" />
+                Anexos & Referências
+                {pendingFiles.length > 0 && (
+                  <span className="text-[10px] font-mono-kasa bg-primary/10 text-primary px-1.5 py-0.2 rounded font-medium">
+                    {pendingFiles.length}
+                  </span>
+                )}
+              </Label>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                className="h-8 px-2.5 text-xs font-medium border-border/80 gap-1.5 hover:bg-muted/30"
+              >
+                <FileUp className="size-3.5" /> Adicionar Arquivo
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    const newFiles = Array.from(e.target.files);
+                    setPendingFiles((prev) => [...prev, ...newFiles]);
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </div>
+
+            {pendingFiles.length > 0 && (
+              <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                {pendingFiles.map((f, idx) => (
+                  <div
+                    key={`${f.name}-${idx}`}
+                    className="flex items-center justify-between gap-2 p-2 rounded-xl border border-border/80 bg-muted/20 text-xs"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Paperclip className="size-3 text-muted-foreground shrink-0" />
+                      <span className="truncate text-foreground max-w-[280px] font-mono-kasa text-xs">
+                        {f.name}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono-kasa shrink-0">
+                        ({(f.size / 1024).toFixed(0)} KB)
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPendingFiles((prev) => prev.filter((_, i) => i !== idx))}
+                      className="size-6 p-0 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        <DialogFooter className="mt-6">
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(false)}
+            className="h-9 text-xs"
+          >
+            Cancelar
+          </Button>
           <Button
             onClick={() => mut.mutate()}
-            disabled={mut.isPending || !form.title || !form.project_id || !form.client_id || (!form.service_id && !form.editorial_post_id && !form.launch_product_id) || !form.due_date}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 min-w-[100px]"
+            disabled={mut.isPending || isUploadingFiles || !form.title.trim() || !form.client_id}
+            size="sm"
+            className="h-9 text-xs font-medium gap-1.5"
           >
-            {mut.isPending ? "Criando..." : form.editorial_post_id ? "Converter e Criar Job" : "Criar Job"}
+            {mut.isPending || isUploadingFiles ? (
+              <>
+                <Loader2 className="size-3.5 animate-spin" />
+                {isUploadingFiles ? "Enviando anexos..." : "Criando..."}
+              </>
+            ) : form.editorial_post_id ? (
+              <>
+                <Briefcase className="size-3.5" />
+                Converter e Criar Job
+              </>
+            ) : (
+              <>
+                <Briefcase className="size-3.5" />
+                Criar Job
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

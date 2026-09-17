@@ -85,28 +85,21 @@ export function ClientKpiHeader({
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
       {items.map((it) => {
-        const Icon = it.icon;
         return (
           <div
             key={it.label}
-            className="relative overflow-hidden rounded-2xl border border-border bg-background/60 p-4 hover:border-primary/30 transition"
+            className="rounded-lg border border-border/60 bg-card p-3.5"
           >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[9px] font-mono-kasa uppercase tracking-widest text-foreground/40">
-                {it.label}
-              </span>
-              <div className={`size-7 rounded-lg bg-muted grid place-items-center ${it.tone}`}>
-                <Icon className="size-3.5" />
-              </div>
+            <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground block">
+              {it.label}
+            </span>
+            <div className="mt-1 font-mono-kasa text-xl font-bold text-foreground tabular-nums">
+              {it.value}
             </div>
-            <div className={`text-xl font-bold tracking-tight ${it.tone}`}>{it.value}</div>
             {it.sub && (
-              <p className="text-[10px] text-foreground/40 mt-1 truncate">{it.sub}</p>
-            )}
-            {it.barTone && (
-              <div className={`absolute left-0 bottom-0 h-0.5 w-full ${it.barTone}`} />
+              <p className="text-[11px] font-mono-kasa text-muted-foreground mt-0.5 truncate">{it.sub}</p>
             )}
           </div>
         );

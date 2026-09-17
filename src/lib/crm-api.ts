@@ -116,8 +116,108 @@ export async function deleteLead(id: string) {
   if (error) throw error;
 }
 
-export async function moveLead(id: string, stage_id: string, extras: { won_at?: string | null } = {}) {
+export async function moveLead(id: string, stage_id: string, extras: { won_at?: string | null; lost_reason?: string | null } = {}) {
   return updateLead(id, { stage_id, ...extras });
+}
+
+export const LEAD_SOURCES = [
+  "Site",
+  "Instagram",
+  "Google",
+  "Indicação",
+  "Representante",
+  "WhatsApp Direto",
+  "Outro",
+] as const;
+
+export const LOSS_REASONS = [
+  "Preço / Orçamento fora",
+  "Optou por concorrente",
+  "Sem fit com o escopo da agência",
+  "Timing inadequado / Projeto adiado",
+  "Sem resposta / Contato perdido",
+  "Outro",
+] as const;
+
+export async function markLeadAsWon(leadId: string, wonStageId: string) {
+  return updateLead(leadId, {
+    stage_id: wonStageId,
+    won_at: new Date().toISOString(),
+    lost_reason: null,
+  });
+}
+
+export async function markLeadAsLost(leadId: string, lostStageId: string, reason: string) {
+  return updateLead(leadId, {
+    stage_id: lostStageId,
+    lost_reason: reason,
+    won_at: null,
+  });
+}
+
+export async function convertLeadToClient(lead: Lead) {
+  const clientName = lead.company?.trim() || lead.name.trim() || "Cliente";
+  const clientEmail = lead.email?.trim()?.toLowerCase() || null;
+
+  // Check if client already exists by email or company/name
+  let existing: { id: string } | null = null;
+  if (clientEmail) {
+    const { data } = await supabase
+      .from("clients")
+      .select("id")
+      .eq("email", clientEmail)
+      .limit(1)
+      .maybeSingle();
+    if (data?.id) existing = data;
+  }
+
+  if (!existing && clientName) {
+    const { data: byCompany } = await supabase
+      .from("clients")
+      .select("id")
+      .ilike("company", clientName)
+      .limit(1)
+      .maybeSingle();
+    if (byCompany?.id) existing = byCompany;
+    else {
+      const { data: byName } = await supabase
+        .from("clients")
+        .select("id")
+        .ilike("name", clientName)
+        .limit(1)
+        .maybeSingle();
+      if (byName?.id) existing = byName;
+    }
+  }
+
+  if (existing?.id) {
+    return { clientId: existing.id, isNew: false };
+  }
+
+  const { data: created, error } = await supabase
+    .from("clients")
+    .insert({
+      name: clientName,
+      company: lead.company?.trim() || clientName,
+      email: clientEmail,
+      phone: lead.phone || null,
+      owner_id: lead.owner_id || null,
+      status: "active",
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+
+  await recordTimelineEvent({
+    lead_id: lead.id,
+    client_id: created.id,
+    type: "lead_converted",
+    title: `Lead convertido em Cliente: ${clientName}`,
+    description: `Origem do lead: ${lead.source || "Não informada"}`,
+  });
+
+  return { clientId: created.id, isNew: true };
 }
 
 export async function deleteLeadStage(id: string) {

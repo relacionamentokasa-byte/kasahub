@@ -21,7 +21,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, Users, Copy, X, Filter, Check, FolderKanban, Building2 } from "lucide-react";
+import { Plus, Search, Trash2, Users, Copy, X, Filter, Check, FolderKanban, Building2, LayoutGrid, ListFilter, ArrowUpDown, Calendar, Clock, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
 import { format } from "date-fns";
 import {
   fetchJobStages,
@@ -91,6 +91,9 @@ export function JobsBoard({
   onCloseNew?: () => void;
 }) {
   const qc = useQueryClient();
+  const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
+  const [sortField, setSortField] = useState<"due_date" | "title" | "client" | "priority" | "stage">("due_date");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [period, setPeriod] = useState<string>("all");
   const [responsibleId, setResponsibleId] = useState<string>("all");
   const [clientFilterId, setClientFilterId] = useState<string>("all");
@@ -105,38 +108,6 @@ export function JobsBoard({
   const { data: jobs = [] } = useQuery({ queryKey, queryFn: () => fetchJobs(filters) });
   const { data: profiles = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
   const { data: clients = [] } = useQuery({ queryKey: ["clients-filter"], queryFn: fetchClients });
-
-  // "Bola da vez" — para cada job em aberto, busca quem é o próximo responsável
-  // (primeiro item de checklist pendente). Uma query única pra todos os jobs visíveis.
-  const visibleJobIds = useMemo(() => jobs.filter((j: any) => j.status !== "done" && !j.done_at).map((j: any) => j.id), [jobs]);
-  const allVisibleJobIds = useMemo(() => jobs.map((j: any) => j.id), [jobs]);
-  const { data: checklistMaps = { nextMap: new Map<string, string>(), teamMap: new Map<string, string[]>() } } = useQuery({
-    queryKey: ["jobs-checklist-derived", allVisibleJobIds],
-    enabled: allVisibleJobIds.length > 0,
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("job_checklist")
-        .select("job_id, responsible_id, order_index, done")
-        .in("job_id", allVisibleJobIds)
-        .order("order_index", { ascending: true });
-      const nextMap = new Map<string, string>();
-      const teamMap = new Map<string, string[]>();
-      const seen = new Map<string, Set<string>>();
-      (data ?? []).forEach((r: any) => {
-        if (!r.responsible_id) return;
-        if (!r.done && !nextMap.has(r.job_id)) nextMap.set(r.job_id, r.responsible_id);
-        let set = seen.get(r.job_id);
-        if (!set) { set = new Set(); seen.set(r.job_id, set); teamMap.set(r.job_id, []); }
-        if (!set.has(r.responsible_id)) {
-          set.add(r.responsible_id);
-          teamMap.get(r.job_id)!.push(r.responsible_id);
-        }
-      });
-      return { nextMap, teamMap };
-    },
-  });
-  const nextResponsibleMap = checklistMaps.nextMap;
-  const teamFromChecklistMap = checklistMaps.teamMap;
 
   useEffect(() => {
     const channel = supabase
@@ -176,6 +147,49 @@ export function JobsBoard({
     },
     enabled: !!projectId && showPeriodFilter
   });
+
+  const jobIds = useMemo(() => jobs.map((j) => j.id), [jobs]);
+
+  // Consulta checklists de todos os jobs para identificar a equipe e o responsável pela etapa atual
+  const { data: allChecklists = [] } = useQuery({
+    queryKey: ["all-job-checklists", jobIds],
+    queryFn: async () => {
+      if (jobIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from("job_checklist")
+        .select("id, job_id, done, order_index, responsible_id")
+        .in("job_id", jobIds)
+        .order("order_index", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+    enabled: jobIds.length > 0,
+  });
+
+  const { nextResponsibleMap, teamFromChecklistMap } = useMemo(() => {
+    const nextResp = new Map<string, string>();
+    const teamMap = new Map<string, string[]>();
+
+    for (const item of allChecklists) {
+      if (!item.job_id) continue;
+
+      // Equipe envolvida no checklist
+      if (item.responsible_id) {
+        const existing = teamMap.get(item.job_id) || [];
+        if (!existing.includes(item.responsible_id)) {
+          existing.push(item.responsible_id);
+          teamMap.set(item.job_id, existing);
+        }
+      }
+
+      // Responsável pela próxima etapa pendente ("em ação")
+      if (!item.done && item.responsible_id && !nextResp.has(item.job_id)) {
+        nextResp.set(item.job_id, item.responsible_id);
+      }
+    }
+
+    return { nextResponsibleMap: nextResp, teamFromChecklistMap: teamMap };
+  }, [allChecklists]);
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(initialOpenId ?? null);
@@ -367,6 +381,43 @@ export function JobsBoard({
     return arr;
   }, [stages, byStage]);
 
+  // Sorted list specifically for the Table view
+  const tableJobs = useMemo(() => {
+    const list = [...filtered];
+    list.sort((a, b) => {
+      let comparison = 0;
+      if (sortField === "due_date") {
+        const da = a.due_date ? new Date(a.due_date).getTime() : Number.POSITIVE_INFINITY;
+        const db = b.due_date ? new Date(b.due_date).getTime() : Number.POSITIVE_INFINITY;
+        comparison = da - db;
+      } else if (sortField === "title") {
+        comparison = (a.title || "").localeCompare(b.title || "");
+      } else if (sortField === "client") {
+        const ca = (a as any).clients?.company || (a as any).clients?.name || "";
+        const cb = (b as any).clients?.company || (b as any).clients?.name || "";
+        comparison = ca.localeCompare(cb);
+      } else if (sortField === "priority") {
+        const priorityOrder: Record<string, number> = { urgent: 4, high: 3, normal: 2, low: 1 };
+        comparison = (priorityOrder[b.priority || "normal"] || 0) - (priorityOrder[a.priority || "normal"] || 0);
+      } else if (sortField === "stage") {
+        const stageIdxA = stages.findIndex((s) => s.id === a.stage_id);
+        const stageIdxB = stages.findIndex((s) => s.id === b.stage_id);
+        comparison = stageIdxA - stageIdxB;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+    return list;
+  }, [filtered, sortField, sortDirection, stages]);
+
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
+
   // Keyboard shortcuts: J/K navigate, E/Enter edit, C comment
   useEffect(() => {
     const isTyping = (el: EventTarget | null) => {
@@ -426,13 +477,16 @@ export function JobsBoard({
   return (
 
     <div className="flex flex-col h-full">
-      <div className="px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div className="px-4 sm:px-6 lg:px-10 pt-4 sm:pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
+          <span className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block font-medium">
+            {eyebrow}
+          </span>
+          <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mt-0.5">
             {title}
           </h1>
         </div>
-        
+
         <NewJobDialog
           stage={newStage}
           open={!!newStage}
@@ -455,232 +509,629 @@ export function JobsBoard({
             setOpenId(j.id);
           }}
         />
-        
-        <div className="flex flex-wrap items-center gap-2">
-          {activeFiltersCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={clearFilters}
-              className="h-9 gap-2 text-primary hover:text-primary/80 hover:bg-primary/5"
+
+        <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+          {/* Toggle de Visualização (Kanban / Tabela) */}
+          <div className="flex items-center p-0.5 rounded-md border border-border/60 bg-muted/20">
+            <button
+              type="button"
+              onClick={() => setViewMode("kanban")}
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono-kasa rounded transition-colors",
+                viewMode === "kanban"
+                  ? "bg-card text-foreground shadow-xs font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Visualização em Quadro Kanban"
             >
-              <X className="size-4" />
-              <span>Limpar Filtros</span>
-            </Button>
-          )}
+              <LayoutGrid className="size-3.5" />
+              <span>Quadro</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono-kasa rounded transition-colors",
+                viewMode === "table"
+                  ? "bg-card text-foreground shadow-xs font-semibold"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Visualização em Lista / Tabela"
+            >
+              <ListFilter className="size-3.5" />
+              <span>Lista</span>
+            </button>
+          </div>
 
-          {/* Central de Filtros */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-9 gap-2 border-border bg-surface hover:bg-surface-elevated"
+          <div className="flex items-center gap-2">
+            {activeFiltersCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-8 px-2 sm:px-2.5 gap-1.5 text-xs font-mono-kasa text-muted-foreground hover:text-foreground hover:bg-muted/20 rounded-md"
               >
-                <Filter className="size-4" />
-                <span>Filtros</span>
-                {activeFiltersCount > 0 && (
-                  <Badge variant="default" className="ml-1 h-5 min-w-5 px-1 bg-primary text-[10px]">
-                    {activeFiltersCount}
-                  </Badge>
-                )}
+                <X className="size-3.5" />
+                <span className="hidden sm:inline">Limpar</span>
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-80 p-4 bg-surface border-border shadow-2xl" align="end">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-sm">Filtros Avançados</h3>
+            )}
+
+            {/* Central de Filtros */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2.5 sm:px-3 gap-1.5 text-xs font-mono-kasa border-border/60 bg-card hover:bg-muted/20 rounded-md"
+                >
+                  <Filter className="size-3.5" />
+                  <span className="hidden sm:inline">Filtros</span>
                   {activeFiltersCount > 0 && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={clearFilters}
-                      className="h-7 text-[10px] text-primary hover:text-primary/80 p-0"
-                    >
-                      Limpar filtros
-                    </Button>
+                    <Badge variant="secondary" className="ml-0.5 h-4 min-w-4 px-1 text-[10px] font-mono-kasa">
+                      {activeFiltersCount}
+                    </Badge>
                   )}
-                </div>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 sm:w-96 p-4 bg-card border-border/60 shadow-xl rounded-lg" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-2 border-b border-border/60">
+                    <h3 className="font-display font-semibold text-xs text-foreground uppercase tracking-wider font-mono-kasa">Filtros Avançados</h3>
+                    {activeFiltersCount > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="h-6 text-[10px] font-mono-kasa text-muted-foreground hover:text-foreground p-0"
+                      >
+                        Limpar filtros
+                      </Button>
+                    )}
+                  </div>
 
-                <div className="space-y-3">
-                  {/* Busca */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Busca</label>
-                    <div className="relative">
-                      <Search className="size-3.5 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
-                      <Input
-                        placeholder="Buscar por nome..."
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        className="pl-9 h-9 bg-surface-elevated border-border"
-                      />
+                  <div className="space-y-3">
+                    {/* Busca */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">Busca</label>
+                      <div className="relative">
+                        <Search className="size-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <Input
+                          placeholder="Buscar por nome..."
+                          value={query}
+                          onChange={(e) => setQuery(e.target.value)}
+                          className="pl-8 h-8 text-xs bg-muted/20 border-border/60 rounded-md"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Responsável Principal */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Responsável Principal</label>
-                    <Select value={responsibleId} onValueChange={setResponsibleId}>
-                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
-                        <SelectValue placeholder="Selecione um responsável" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos Responsáveis</SelectItem>
-                        {profiles.map(p => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.display_name || p.full_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Equipe Envolvida */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Equipe Envolvida</label>
-                    <div className="max-h-32 overflow-y-auto border border-border rounded-md bg-surface-elevated p-2 space-y-1 custom-scrollbar">
-                      {profiles.map(p => {
-                        const isSelected = teamFilter.includes(p.id);
-                        return (
-                          <div 
-                            key={p.id} 
-                            className="flex items-center gap-2 p-1.5 rounded-sm hover:bg-surface transition cursor-pointer"
-                            onClick={() => toggleTeamMember(p.id)}
-                          >
-                            <Checkbox 
-                              checked={isSelected}
-                              onCheckedChange={() => toggleTeamMember(p.id)}
-                              className="size-3.5"
-                            />
-                            <Avatar className="size-5">
-                              <AvatarImage src={p.avatar_url || ''} />
-                              <AvatarFallback className="text-[8px] bg-primary/20 text-primary">
-                                {(p.display_name || p.full_name || '?').charAt(0).toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs truncate flex-1">{p.display_name || p.full_name}</span>
-                            {isSelected && <Check className="size-3 text-primary shrink-0" />}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Cliente */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Cliente</label>
-                    <Select value={clientFilterId} onValueChange={setClientFilterId}>
-                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
-                        <SelectValue placeholder="Filtrar por cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os Clientes</SelectItem>
-                        {clients.map(c => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.company || c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Prioridade */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Prioridade</label>
-                    <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
-                        <SelectValue placeholder="Prioridade" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todas</SelectItem>
-                        <SelectItem value="high">Alta</SelectItem>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="low">Baixa</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Status */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Status</label>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="h-9 bg-surface-elevated border-border">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="active">Ativos (esconde concluídos)</SelectItem>
-                        <SelectItem value="all">Todos</SelectItem>
-                        <SelectItem value="done">✅ Concluídos</SelectItem>
-                        {Object.entries(JOB_STATUS_LABELS).map(([key, value]) => (
-                          <SelectItem key={key} value={key}>
-                            {value.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Período */}
-                  {showPeriodFilter && (
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-bold text-foreground/40 px-1">Período</label>
-                      <Select value={period} onValueChange={setPeriod}>
-                        <SelectTrigger className="h-9 bg-surface-elevated border-border">
-                          <SelectValue placeholder="Período" />
+                    {/* Responsável Principal */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">Responsável Principal</label>
+                      <Select value={responsibleId} onValueChange={setResponsibleId}>
+                        <SelectTrigger className="h-8 text-xs bg-muted/20 border-border/60 rounded-md">
+                          <SelectValue placeholder="Selecione um responsável" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="all">Todos os Períodos</SelectItem>
-                          {availablePeriods.map(p => {
-                            const [year, month] = p.split('-');
-                            const date = new Date(parseInt(year), parseInt(month) - 1);
-                            const label = format(date, "MMMM yyyy", { locale: ptBR });
-                            return <SelectItem key={p} value={p}>{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
-                          })}
+                          <SelectItem value="all" className="text-xs">Todos Responsáveis</SelectItem>
+                          {profiles.map(p => (
+                            <SelectItem key={p.id} value={p.id} className="text-xs">
+                              {p.display_name || p.full_name}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
-                  )}
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
 
-          <Button 
-            onClick={() => setNewStage(stages[0] || null)}
-            className="h-9 gap-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-md rounded-full px-4"
-          >
-            <Plus className="size-4" />
-            <span className="font-bold">+ Novo Job</span>
-          </Button>
+                    {/* Equipe Envolvida */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">Equipe Envolvida</label>
+                      <div className="max-h-32 overflow-y-auto border border-border/60 rounded-md bg-muted/10 p-1.5 space-y-0.5 custom-scrollbar">
+                        {profiles.map(p => {
+                          const isSelected = teamFilter.includes(p.id);
+                          return (
+                            <div
+                              key={p.id}
+                              className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/30 transition cursor-pointer"
+                              onClick={() => toggleTeamMember(p.id)}
+                            >
+                              <Checkbox
+                                checked={isSelected}
+                                onCheckedChange={() => toggleTeamMember(p.id)}
+                                className="size-3.5"
+                              />
+                              <Avatar className="size-4">
+                                <AvatarImage src={p.avatar_url || ''} />
+                                <AvatarFallback className="text-[8px] bg-muted text-muted-foreground font-mono-kasa">
+                                  {(p.display_name || p.full_name || '?').charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs truncate flex-1">{p.display_name || p.full_name}</span>
+                              {isSelected && <Check className="size-3 text-foreground shrink-0" />}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Cliente */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">Cliente</label>
+                      <Select value={clientFilterId} onValueChange={setClientFilterId}>
+                        <SelectTrigger className="h-8 text-xs bg-muted/20 border-border/60 rounded-md">
+                          <SelectValue placeholder="Filtrar por cliente" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-xs">Todos os Clientes</SelectItem>
+                          {clients.map(c => (
+                            <SelectItem key={c.id} value={c.id} className="text-xs">
+                              {c.company || c.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Prioridade */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">Prioridade</label>
+                      <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+                        <SelectTrigger className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60 rounded-md">
+                          <SelectValue placeholder="Prioridade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all" className="text-xs font-mono-kasa">Todas</SelectItem>
+                          <SelectItem value="high" className="text-xs font-mono-kasa">Alta</SelectItem>
+                          <SelectItem value="normal" className="text-xs font-mono-kasa">Normal</SelectItem>
+                          <SelectItem value="low" className="text-xs font-mono-kasa">Baixa</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">Status</label>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60 rounded-md">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="active" className="text-xs font-mono-kasa">Ativos (esconde concluídos)</SelectItem>
+                          <SelectItem value="all" className="text-xs font-mono-kasa">Todos</SelectItem>
+                          <SelectItem value="done" className="text-xs font-mono-kasa">Concluídos</SelectItem>
+                          {Object.entries(JOB_STATUS_LABELS).map(([key, value]) => (
+                            <SelectItem key={key} value={key} className="text-xs font-mono-kasa">
+                              {value.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Período */}
+                    {showPeriodFilter && (
+                      <div className="space-y-1">
+                        <label className="text-[10px] uppercase font-mono-kasa tracking-wider text-muted-foreground block">Período</label>
+                        <Select value={period} onValueChange={setPeriod}>
+                          <SelectTrigger className="h-8 text-xs font-mono-kasa bg-muted/20 border-border/60 rounded-md">
+                            <SelectValue placeholder="Período" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all" className="text-xs font-mono-kasa">Todos os Períodos</SelectItem>
+                            {availablePeriods.map(p => {
+                              const [year, month] = p.split('-');
+                              const date = new Date(parseInt(year), parseInt(month) - 1);
+                              const label = format(date, "MMMM yyyy", { locale: ptBR });
+                              return <SelectItem key={p} value={p} className="text-xs font-mono-kasa">{label.charAt(0).toUpperCase() + label.slice(1)}</SelectItem>;
+                            })}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
+              onClick={() => setNewStage(stages[0] || null)}
+              className="h-8 px-2.5 sm:px-3 gap-1.5 bg-foreground text-background hover:bg-foreground/90 font-mono-kasa text-xs font-medium rounded-md shadow-xs"
+            >
+              <Plus className="size-3.5" />
+              <span>Novo Job</span>
+            </Button>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-x-auto px-6 lg:px-10 pb-10 scroll-smooth snap-x">
-        <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-          <div className="flex gap-4 min-w-max h-full">
-            {stages.map((stage) => {
-              const cards = byStage.get(stage.id) ?? [];
-              return (
-                <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
-                  {cards.map((j: Job) => (
-                    <JobCard 
-                      key={j.id} 
-                      job={j} 
-                      profiles={profiles} 
-                      onClick={() => { setFocusedId(j.id); setOpenId(j.id); }}
-                      queryKey={queryKey}
-                      focused={focusedId === j.id}
-                      nextResponsibleId={nextResponsibleMap.get(j.id) ?? null}
-                      teamIds={teamFromChecklistMap.get(j.id) ?? null}
-                    />
-                  ))}
-                </Column>
-              );
-            })}
+      {viewMode === "kanban" ? (
+        <div className="flex-1 overflow-x-auto px-4 sm:px-6 lg:px-10 pb-10 scroll-smooth snap-x">
+          <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
+            <div className="flex gap-3 sm:gap-4 min-w-max h-full">
+              {stages.map((stage) => {
+                const cards = byStage.get(stage.id) ?? [];
+                return (
+                  <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
+                    {cards.map((j: Job) => (
+                      <JobCard
+                        key={j.id}
+                        job={j}
+                        profiles={profiles}
+                        nextResponsibleMap={nextResponsibleMap}
+                        onClick={() => { setFocusedId(j.id); setOpenId(j.id); }}
+                        queryKey={queryKey}
+                        focused={focusedId === j.id}
+                      />
+                    ))}
+                  </Column>
+                );
+              })}
+            </div>
+            <DragOverlay>{activeJob ? <JobCardInner job={activeJob} profiles={profiles} nextResponsibleMap={nextResponsibleMap} dragging /> : null}</DragOverlay>
+          </DndContext>
+        </div>
+      ) : (
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 lg:px-10 pb-10 space-y-3">
+          {/* Visualização de Lista para Mobile (Cards Touch Otimizados) */}
+          <div className="md:hidden space-y-2.5">
+            {tableJobs.length === 0 ? (
+              <div className="py-12 text-center text-muted-foreground font-mono-kasa text-xs bg-card border border-border/60 rounded-xl p-6">
+                Nenhum job encontrado para os filtros selecionados.
+              </div>
+            ) : (
+              tableJobs.map((j) => {
+                const stage = stages.find((s) => s.id === j.stage_id);
+                const mainRespId = (j as any).main_responsible_id || j.assignee_id;
+                const mainResp = profiles.find((p) => p.id === mainRespId);
+                const ballPersonId = nextResponsibleMap.get(j.id);
+                const ballPerson = ballPersonId ? profiles.find((p) => p.id === ballPersonId) : null;
+                const isDone = !!j.done_at || j.status === "done";
+                const progress = (j as any).progress_percentage || 0;
+                const totalSteps = (j as any).total_steps || 0;
+                const completedSteps = (j as any).completed_steps || 0;
+
+                const due = j.due_date ? new Date(j.due_date).getTime() : null;
+                const now = Date.now();
+                const daysLeft = due ? Math.ceil((due - now) / 86400000) : null;
+                const isOverdue = due ? due < now && !isDone : false;
+
+                return (
+                  <div
+                    key={j.id}
+                    onClick={() => {
+                      setFocusedId(j.id);
+                      setOpenId(j.id);
+                    }}
+                    className="p-3.5 rounded-xl border border-border/60 bg-card hover:border-border transition-all active:scale-[0.99] shadow-xs flex flex-col gap-2.5 cursor-pointer"
+                    style={{ borderLeft: `3px solid ${priorityColor(j.priority)}` }}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <span className="font-semibold text-xs leading-snug text-foreground block truncate">
+                          {j.title}
+                        </span>
+                        <div className="flex items-center gap-1.5 mt-1 text-[11px] font-mono-kasa text-muted-foreground">
+                          <span className="truncate max-w-[160px] text-foreground/80 font-medium">
+                            {(j as any).clients?.company || (j as any).clients?.name || "Sem Cliente"}
+                          </span>
+                          {(j as any).projects?.name && (
+                            <>
+                              <span className="opacity-40">·</span>
+                              <span className="truncate max-w-[120px] text-[10px]">
+                                {(j as any).projects.name}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {stage && (
+                        <span
+                          className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono-kasa border inline-flex items-center gap-1"
+                          style={{
+                            background: `${stage.color || "#6b7280"}15`,
+                            color: stage.color || "#6b7280",
+                            borderColor: `${stage.color || "#6b7280"}30`,
+                          }}
+                        >
+                          <span
+                            className="size-1.5 rounded-full shrink-0"
+                            style={{ background: stage.color || "#6b7280" }}
+                          />
+                          {stage.name}
+                        </span>
+                      )}
+                    </div>
+
+                    {totalSteps > 0 && (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-mono-kasa tabular-nums text-muted-foreground">
+                          <span>{completedSteps}/{totalSteps} etapas</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <Progress value={progress} className="h-1 bg-muted/40" />
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-1 border-t border-border/40 text-[11px] font-mono-kasa">
+                      {/* Responsáveis */}
+                      <div className="flex items-center gap-1.5">
+                        {mainResp ? (
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Avatar className="size-4 shrink-0">
+                              <AvatarImage src={mainResp.avatar_url || ""} />
+                              <AvatarFallback className="text-[8px] font-mono-kasa">
+                                {(mainResp.display_name || mainResp.full_name || "?").charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="truncate max-w-[90px] text-foreground font-medium text-[10px]">
+                              {(mainResp.display_name || mainResp.full_name || "").split(" ")[0]}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground/60">—</span>
+                        )}
+
+                        {ballPerson && ballPersonId !== mainRespId && (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-[9px] text-muted-foreground/40 leading-none select-none">→</span>
+                            <Avatar className="size-3.5 shrink-0 border border-amber-500/40 bg-amber-500/10 ring-1 ring-amber-500/20">
+                              <AvatarImage src={ballPerson.avatar_url || ""} />
+                              <AvatarFallback className="text-[7px] font-mono-kasa font-medium text-amber-600 dark:text-amber-400">
+                                {(ballPerson.display_name || ballPerson.full_name || "?").charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Prazo */}
+                      {j.due_date ? (
+                        <span
+                          className={cn(
+                            "text-[10px] font-mono-kasa tabular-nums px-1.5 py-0.5 rounded border inline-block",
+                            isDone
+                              ? "text-muted-foreground border-border/40 bg-muted/10"
+                              : isOverdue
+                              ? "text-rose-500 border-rose-500/30 bg-rose-500/10 font-semibold"
+                              : "text-muted-foreground border-border/60 bg-muted/20"
+                          )}
+                        >
+                          {isDone
+                            ? "Concluído"
+                            : isOverdue
+                            ? `Atrasado ${Math.abs(daysLeft!)}d`
+                            : daysLeft === 0
+                            ? "Hoje"
+                            : `${daysLeft}d restantes`}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground/60">—</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
-          <DragOverlay>{activeJob ? <JobCardInner job={activeJob} profiles={profiles} dragging /> : null}</DragOverlay>
-        </DndContext>
-      </div>
+
+          {/* Tabela Completa (Apenas Desktop / md+) */}
+          <div className="hidden md:block border border-border/60 rounded-lg bg-card overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-border/60 bg-muted/30 text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground select-none">
+                    <th className="py-2.5 px-3 font-semibold cursor-pointer hover:text-foreground" onClick={() => handleSort("title")}>
+                      <div className="flex items-center gap-1">
+                        <span>Job / Tarefa</span>
+                        <ArrowUpDown className="size-2.5" />
+                      </div>
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold cursor-pointer hover:text-foreground" onClick={() => handleSort("client")}>
+                      <div className="flex items-center gap-1">
+                        <span>Cliente / Projeto</span>
+                        <ArrowUpDown className="size-2.5" />
+                      </div>
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold cursor-pointer hover:text-foreground" onClick={() => handleSort("stage")}>
+                      <div className="flex items-center gap-1">
+                        <span>Etapa</span>
+                        <ArrowUpDown className="size-2.5" />
+                      </div>
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold cursor-pointer hover:text-foreground" onClick={() => handleSort("priority")}>
+                      <div className="flex items-center gap-1">
+                        <span>Prioridade</span>
+                        <ArrowUpDown className="size-2.5" />
+                      </div>
+                    </th>
+                    <th className="py-2.5 px-3 font-semibold">Responsável</th>
+                    <th className="py-2.5 px-3 font-semibold">Progresso</th>
+                    <th className="py-2.5 px-3 font-semibold cursor-pointer hover:text-foreground" onClick={() => handleSort("due_date")}>
+                      <div className="flex items-center gap-1">
+                        <span>Prazo</span>
+                        <ArrowUpDown className="size-2.5" />
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40 font-sans">
+                  {tableJobs.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-muted-foreground font-mono-kasa text-xs">
+                        Nenhum job encontrado para os filtros selecionados.
+                      </td>
+                    </tr>
+                  ) : (
+                    tableJobs.map((j) => {
+                      const stage = stages.find((s) => s.id === j.stage_id);
+                      const mainRespId = (j as any).main_responsible_id || j.assignee_id;
+                      const mainResp = profiles.find((p) => p.id === mainRespId);
+                      const ballPersonId = nextResponsibleMap.get(j.id);
+                      const ballPerson = ballPersonId ? profiles.find((p) => p.id === ballPersonId) : null;
+                      const isDone = !!j.done_at || j.status === "done";
+                      const progress = (j as any).progress_percentage || 0;
+                      const totalSteps = (j as any).total_steps || 0;
+                      const completedSteps = (j as any).completed_steps || 0;
+
+                      // Deadline calculation
+                      const due = j.due_date ? new Date(j.due_date).getTime() : null;
+                      const now = Date.now();
+                      const daysLeft = due ? Math.ceil((due - now) / 86400000) : null;
+                      const isOverdue = due ? due < now && !isDone : false;
+
+                      return (
+                        <tr
+                          key={j.id}
+                          onClick={() => {
+                            setFocusedId(j.id);
+                            setOpenId(j.id);
+                          }}
+                          className="hover:bg-muted/20 cursor-pointer transition-colors group"
+                        >
+                          {/* Title */}
+                          <td className="py-2.5 px-3 font-medium text-foreground">
+                            <div className="flex items-center gap-2 min-w-0 max-w-[280px] lg:max-w-xs">
+                              <span
+                                className="size-2 rounded-full shrink-0"
+                                style={{ background: priorityColor(j.priority) }}
+                              />
+                              <span className="truncate group-hover:underline">{j.title}</span>
+                            </div>
+                          </td>
+
+                          {/* Client / Project */}
+                          <td className="py-2.5 px-3 text-muted-foreground">
+                            <div className="flex flex-col min-w-0 max-w-[200px]">
+                              <span className="truncate text-foreground font-medium text-[11px]">
+                                {(j as any).clients?.company || (j as any).clients?.name || "—"}
+                              </span>
+                              {(j as any).projects?.name && (
+                                <span className="truncate text-[10px] text-muted-foreground font-mono-kasa">
+                                  {(j as any).projects.name}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Stage */}
+                          <td className="py-2.5 px-3">
+                            {stage ? (
+                              <span
+                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono-kasa border"
+                                style={{
+                                  background: `${stage.color || "#6b7280"}15`,
+                                  color: stage.color || "#6b7280",
+                                  borderColor: `${stage.color || "#6b7280"}30`,
+                                }}
+                              >
+                                <span
+                                  className="size-1.5 rounded-full shrink-0"
+                                  style={{ background: stage.color || "#6b7280" }}
+                                />
+                                {stage.name}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-muted-foreground font-mono-kasa">—</span>
+                            )}
+                          </td>
+
+                          {/* Priority */}
+                          <td className="py-2.5 px-3">
+                            <span
+                              className="text-[10px] font-mono-kasa font-medium uppercase tracking-wider"
+                              style={{ color: priorityColor(j.priority) }}
+                            >
+                              {priorityLabel(j.priority)}
+                            </span>
+                          </td>
+
+                          {/* Assignee */}
+                          <td className="py-2.5 px-3">
+                            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-mono-kasa">
+                              {/* Dono Principal */}
+                              {mainResp ? (
+                                <div className="flex items-center gap-1.5 min-w-0" title={`Dono do Job: ${mainResp.display_name || mainResp.full_name}`}>
+                                  <Avatar className="size-4 shrink-0">
+                                    <AvatarImage src={mainResp.avatar_url || ""} />
+                                    <AvatarFallback className="text-[8px] font-mono-kasa">
+                                      {(mainResp.display_name || mainResp.full_name || "?").charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <span className="truncate max-w-[100px] text-foreground font-medium">
+                                    {(mainResp.display_name || mainResp.full_name || "").split(" ")[0]}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-[10px] font-mono-kasa text-muted-foreground/60">—</span>
+                              )}
+
+                              {/* Mini-Avatar Conectado da etapa atual */}
+                              {ballPerson && ballPersonId !== mainRespId && (
+                                <div
+                                  className="flex items-center gap-1 shrink-0"
+                                  title={`Dono: ${mainResp?.display_name || mainResp?.full_name} → Etapa atual com: ${ballPerson.display_name || ballPerson.full_name}`}
+                                >
+                                  <span className="text-[10px] text-muted-foreground/40 leading-none select-none">→</span>
+                                  <Avatar className="size-3.5 shrink-0 border border-amber-500/40 bg-amber-500/10 ring-1 ring-amber-500/20">
+                                    <AvatarImage src={ballPerson.avatar_url || ""} />
+                                    <AvatarFallback className="text-[7px] font-mono-kasa font-medium text-amber-600 dark:text-amber-400">
+                                      {(ballPerson.display_name || ballPerson.full_name || "?").charAt(0).toUpperCase()}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                </div>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Progress */}
+                          <td className="py-2.5 px-3">
+                            {totalSteps > 0 ? (
+                              <div className="flex items-center gap-2 min-w-[90px]">
+                                <Progress value={progress} className="h-1 flex-1 bg-muted/40" />
+                                <span className="text-[10px] font-mono-kasa tabular-nums text-muted-foreground shrink-0">
+                                  {completedSteps}/{totalSteps}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] font-mono-kasa text-muted-foreground/60">—</span>
+                            )}
+                          </td>
+
+                          {/* Due Date */}
+                          <td className="py-2.5 px-3">
+                            {j.due_date ? (
+                              <span
+                                className={cn(
+                                  "text-[10px] font-mono-kasa tabular-nums px-1.5 py-0.5 rounded border inline-block",
+                                  isDone
+                                    ? "text-muted-foreground border-border/40 bg-muted/10"
+                                    : isOverdue
+                                    ? "text-rose-500 border-rose-500/30 bg-rose-500/10 font-semibold"
+                                    : "text-muted-foreground border-border/60 bg-muted/20"
+                                )}
+                              >
+                                {isDone
+                                  ? "Concluído"
+                                  : isOverdue
+                                  ? `Atrasado ${Math.abs(daysLeft!)}d`
+                                  : daysLeft === 0
+                                  ? "Hoje"
+                                  : `${daysLeft}d restantes`}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] font-mono-kasa text-muted-foreground/60">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
 
       <NewJobDialog
         stage={newStage}
@@ -722,26 +1173,28 @@ function Column({
   });
 
   return (
-    <div className="w-[280px] sm:w-[300px] shrink-0 flex flex-col snap-center group/col">
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full" style={{ background: stage.color }} />
-          <span className="font-display font-semibold text-sm tracking-tight">{stage.name}</span>
-          <span className="text-[10px] text-foreground/40">{count}</span>
+    <div className="w-[280px] sm:w-[310px] shrink-0 flex flex-col snap-center group/col">
+      <div className="flex items-center justify-between mb-2.5 px-1">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="size-2 rounded-full shrink-0" style={{ background: stage.color }} />
+          <span className="font-medium text-xs tracking-tight text-foreground truncate">{stage.name}</span>
+          <span className="text-[10px] font-mono-kasa tabular-nums px-1.5 py-0.2 rounded bg-muted/30 border border-border/60 text-muted-foreground">
+            {count}
+          </span>
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={() => {
               if (confirm(`Remover a coluna "${stage.name}"?`)) delStageMut.mutate();
             }}
-            className="size-6 rounded-md hover:bg-destructive/10 grid place-items-center text-foreground/20 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
+            className="size-6 rounded-md hover:bg-destructive/10 grid place-items-center text-muted-foreground/40 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
             aria-label="Excluir coluna"
           >
             <Trash2 className="size-3" />
           </button>
           <button
             onClick={onAdd}
-            className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
+            className="size-6 rounded-md hover:bg-muted grid place-items-center text-muted-foreground hover:text-foreground transition"
             aria-label={`Adicionar em ${stage.name}`}
           >
             <Plus className="size-3.5" />
@@ -750,9 +1203,10 @@ function Column({
       </div>
       <div
         ref={setNodeRef}
-        className={`flex-1 rounded-xl border border-dashed p-2 space-y-2 transition-colors ${
-          isOver ? "border-primary/60 bg-primary/5" : "border-border/60 bg-surface/40"
-        }`}
+        className={cn(
+          "flex-1 rounded-lg border border-border/60 p-2 space-y-2 transition-colors min-h-[160px]",
+          isOver ? "border-foreground/40 bg-muted/20" : "bg-muted/10"
+        )}
       >
         {children}
       </div>
@@ -760,10 +1214,10 @@ function Column({
   );
 }
 
-function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId, teamIds }: { job: Job; profiles: any[]; onClick: () => void; queryKey: any[]; focused?: boolean; nextResponsibleId?: string | null; teamIds?: string[] | null }) {
+function JobCard({ job, profiles, nextResponsibleMap, onClick, queryKey, focused }: { job: Job; profiles: any[]; nextResponsibleMap?: Map<string, string>; onClick: () => void; queryKey: any[]; focused?: boolean }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: job.id });
   const qc = useQueryClient();
-  
+
   const isOptimistic = job.id.startsWith('temp-');
 
   const delMut = useMutation({
@@ -809,7 +1263,7 @@ function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId,
         onClick={() => !isOptimistic && onClick()}
         className={isOptimistic ? "cursor-wait" : "cursor-grab active:cursor-grabbing"}
       >
-        <JobCardInner job={job} profiles={profiles} nextResponsibleId={nextResponsibleId} teamIds={teamIds} />
+        <JobCardInner job={job} profiles={profiles} nextResponsibleMap={nextResponsibleMap} />
       </div>
       {!isOptimistic && (
         <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -844,30 +1298,18 @@ function JobCard({ job, profiles, onClick, queryKey, focused, nextResponsibleId,
   );
 }
 
-function JobCardInner({ job, profiles = [], dragging, nextResponsibleId, teamIds }: { job: Job; profiles?: any[]; dragging?: boolean; nextResponsibleId?: string | null; teamIds?: string[] | null }) {
+function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { job: Job; profiles?: any[]; nextResponsibleMap?: Map<string, string>; dragging?: boolean }) {
   const navigate = useNavigate();
   const progress = (job as any).progress_percentage || 0;
   const totalSteps = (job as any).total_steps || 0;
   const completedSteps = (job as any).completed_steps || 0;
   const mainRespId = (job as any).main_responsible_id || job.assignee_id;
   const mainResp = profiles.find(p => p.id === mainRespId);
-  // Equipe derivada do checklist (responsáveis marcados na execução). Fallback para team_involved legado.
-  const teamInvolvedRaw = (teamIds && teamIds.length > 0)
-    ? teamIds.map((id) => ({ user_id: id }))
-    : ((job as any).team_involved || []);
-  // "Bola da vez": pessoa do próximo item de checklist pendente
-  const ballPerson = nextResponsibleId ? profiles.find((p) => p.id === nextResponsibleId) : null;
-  // Evita duplicar o responsável principal e a "bola da vez" (ambos já aparecem no avatar destacado)
-  const featuredId = (job.status !== "done" && !job.done_at && ballPerson) ? ballPerson.id : mainRespId;
-  const seenIds = new Set<string>();
-  const teamInvolved = teamInvolvedRaw.filter((m: any) => {
-    const id = m?.user_id;
-    if (!id || id === featuredId) return false;
-    if (seenIds.has(id)) return false;
-    seenIds.add(id);
-    return true;
-  });
-  const isOpen = job.status !== "done" && !job.done_at;
+  const mainRespName = mainResp?.display_name || mainResp?.full_name;
+
+  const ballPersonId = nextResponsibleMap?.get(job.id);
+  const ballPerson = ballPersonId ? profiles.find(p => p.id === ballPersonId) : null;
+  const ballPersonName = ballPerson?.display_name || ballPerson?.full_name;
 
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
   const deadline = useMemo(() => {
@@ -909,175 +1351,143 @@ function JobCardInner({ job, profiles = [], dragging, nextResponsibleId, teamIds
   return (
     <div
       className={cn(
-        "bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition relative overflow-hidden",
-        dragging ? "shadow-2xl rotate-1" : ""
+        "bg-card border border-border/60 rounded-lg p-3 hover:border-border transition relative overflow-hidden group/card shadow-xs",
+        dragging ? "shadow-xl rotate-1 opacity-90" : ""
       )}
-      style={{ 
-        borderLeft: `4px solid ${priorityColor(job.priority)}` 
+      style={{
+        borderLeft: `3px solid ${priorityColor(job.priority)}`
       }}
     >
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex items-start gap-2 min-w-0 flex-1">
-            <div className="min-w-0 w-full">
-              <div className="font-semibold text-sm leading-snug truncate group-hover:text-primary transition-colors">{job.title}</div>
-              
-              <div className="flex flex-col gap-1 mt-2">
-                {job.project_id && (
-                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-primary/5 text-primary border border-primary/10 rounded-md w-fit max-w-full overflow-hidden">
-                    <FolderKanban className="size-2.5 shrink-0" />
-                    <span className="text-[9px] font-bold uppercase tracking-tight truncate">
-                      {(job as any).projects?.name || "Projeto Desconhecido"}
-                    </span>
-                  </div>
-                )}
-                
-                <div 
-                  data-testid="client-link"
-                  className={cn(
-                    "flex items-center gap-1.5 text-xs font-semibold px-1 transition-colors w-fit",
-                    job.client_id ? "text-foreground/80 hover:text-primary hover:underline cursor-pointer" : "text-foreground/50"
-                  )}
-                  onClick={(e) => {
-                    if (job.client_id) {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      navigate({ 
-                        to: "/clientes/$clientId", 
-                        params: { clientId: job.client_id } 
-                      });
-                    }
-                  }}
-                >
-                   {(job as any).clients?.logo_url ? (
-                     <StorageImage
-                       src={(job as any).clients.logo_url}
-                       alt=""
-                       className="size-4 shrink-0 rounded-sm object-cover border border-border/40"
-                     />
-                   ) : (
-                     <Building2 className="size-3.5 shrink-0 opacity-60" />
-                   )}
-                   <span className="truncate">
-                     {(job as any).clients?.company || (job as any).clients?.name || "Sem Cliente"}
-                   </span>
+          <div className="min-w-0 w-full">
+            <div className="font-semibold text-xs leading-snug truncate text-foreground group-hover/card:underline">
+              {job.title}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+              {job.project_id && (
+                <div className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-muted/30 text-muted-foreground border border-border/60 rounded text-[10px] font-mono-kasa max-w-full overflow-hidden">
+                  <FolderKanban className="size-2.5 shrink-0" />
+                  <span className="truncate">
+                    {(job as any).projects?.name || "Projeto"}
+                  </span>
                 </div>
+              )}
+
+              <div
+                data-testid="client-link"
+                className={cn(
+                  "inline-flex items-center gap-1 text-[11px] font-mono-kasa transition-colors",
+                  job.client_id ? "text-muted-foreground hover:text-foreground cursor-pointer" : "text-muted-foreground/60"
+                )}
+                onClick={(e) => {
+                  if (job.client_id) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate({
+                      to: "/clientes/$clientId",
+                      params: { clientId: job.client_id }
+                    });
+                  }
+                }}
+              >
+                 {(job as any).clients?.logo_url ? (
+                   <StorageImage
+                     src={(job as any).clients.logo_url}
+                     alt=""
+                     className="size-3.5 shrink-0 rounded object-cover border border-border/40"
+                   />
+                 ) : (
+                   <Building2 className="size-3 shrink-0 opacity-60" />
+                 )}
+                 <span className="truncate">
+                   {(job as any).clients?.company || (job as any).clients?.name || "Sem Cliente"}
+                 </span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Progress Section */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-[9px] font-mono-kasa text-foreground/50">
-            <span>{totalSteps > 0 ? `${completedSteps}/${totalSteps} Etapas` : "Progresso"}</span>
-            <span>{progress}%</span>
-          </div>
-          <Progress value={progress} className="h-1" />
-        </div>
-
-        <div className="flex items-center justify-between mt-1">
-          <div className="flex items-center gap-1.5">
-            {/* Bola da vez — destaque pulsando no avatar de quem precisa agir agora */}
-            {(() => {
-              const ball = isOpen && ballPerson ? ballPerson : null;
-              const featured = ball || mainResp;
-              const featuredName = featured?.display_name || featured?.full_name;
-              const ballName = ball?.display_name || ball?.full_name;
-              return (
-                <div className="relative">
-                  {ball && (
-                    <span className="absolute -inset-0.5 rounded-full bg-amber-400/40 animate-ping" aria-hidden />
-                  )}
-                  <div
-                    className={cn(
-                      "relative size-6 rounded-full overflow-hidden flex items-center justify-center shrink-0 ring-2",
-                      ball
-                        ? "ring-amber-400 bg-amber-400/10 border border-amber-400/40"
-                        : featured
-                        ? "ring-surface bg-primary/10 border border-primary/20"
-                        : "ring-surface bg-muted border border-dashed border-border"
-                    )}
-                    title={ballName ? `🏐 Bola da vez: ${ballName}` : featuredName ? `Responsável: ${featuredName}` : "Sem responsável"}
-                  >
-                    {featured ? (
-                      featured.avatar_url ? (
-                        <StorageImage src={featured.avatar_url} alt="" className="size-full object-cover" />
-                      ) : (
-                        <span className="text-[8px] font-bold text-primary">
-                          {(featuredName || "M").split(" ").map((n: string) => n[0]).join("").slice(0, 2)}
-                        </span>
-                      )
-                    ) : (
-                      <span className="text-[10px] font-bold text-foreground/30">?</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Equipe Envolvida */}
-            {teamInvolved.length > 0 && (
-              <div className="flex -space-x-2">
-                {teamInvolved.slice(0, 2).map((member: any, idx: number) => {
-                  const p = profiles.find(pr => pr.id === member.user_id);
-                  if (!p) return null;
-                  return (
-                    <div 
-                      key={idx}
-                      className="size-5 rounded-full bg-surface-elevated border border-border overflow-hidden flex items-center justify-center shrink-0"
-                      title={`${p.display_name || p.full_name} (${member.role || 'Membro'})`}
-                    >
-                      {p.avatar_url ? (
-                        <StorageImage src={p.avatar_url} alt="" className="size-full object-cover" />
-                      ) : (
-                        <span className="text-[7px] font-bold text-foreground/50">
-                          {(p.display_name || p.full_name || "M").split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-                {teamInvolved.length > 2 && (
-                  <div className="size-5 rounded-full bg-muted border border-border flex items-center justify-center shrink-0 text-[7px] font-bold text-foreground/40">
-                    +{teamInvolved.length - 2}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {job.due_date && (
-              <div className={cn(
-                "text-xs font-bold px-2 py-1 rounded-md bg-muted/30",
-                new Date(job.due_date) < new Date() && !job.done_at ? "text-rose-500 bg-rose-500/10" : "text-foreground/70"
-              )}>
-                {format(new Date(job.due_date), "dd/MM")}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Deadline health bar */}
-        {deadline && (
-          <div className="space-y-1 pt-1">
-            <div className="flex justify-between text-[9px] font-mono-kasa">
-              <span className={cn("font-semibold", deadline.textColor)}>{deadline.label}</span>
-              <span className="text-foreground/40">{deadline.usedPct}% do prazo</span>
+        {totalSteps > 0 && (
+          <div className="space-y-1">
+            <div className="flex justify-between text-[10px] font-mono-kasa tabular-nums text-muted-foreground">
+              <span>{completedSteps}/{totalSteps} etapas</span>
+              <span>{progress}%</span>
             </div>
-            <div className="h-1 w-full rounded-full bg-muted/40 overflow-hidden">
-              <div
-                className={cn(
-                  "h-full transition-all rounded-full",
-                  deadline.color,
-                  deadline.isOverdue ? "animate-pulse" : ""
-                )}
-                style={{ width: `${deadline.usedPct}%` }}
-              />
-            </div>
+            <Progress value={progress} className="h-1 bg-muted/40" />
           </div>
         )}
+
+        <div className="flex items-center justify-between pt-1 border-t border-border/40 gap-2">
+          {/* Responsável Principal e Etapa Atual conectada */}
+          <div className="flex items-center gap-1.5 min-w-0">
+            {/* Dono / Responsável Principal */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div
+                className={cn(
+                  "size-5 rounded-full overflow-hidden flex items-center justify-center shrink-0 border",
+                  mainResp
+                    ? "border-border/60 bg-muted/30"
+                    : "border-dashed border-border/60 bg-muted/20"
+                )}
+                title={mainRespName ? `Dono do Job: ${mainRespName}` : "Sem dono definido"}
+              >
+                {mainResp ? (
+                  mainResp.avatar_url ? (
+                    <StorageImage src={mainResp.avatar_url} alt="" className="size-full object-cover" />
+                  ) : (
+                    <span className="text-[8px] font-mono-kasa font-medium text-foreground">
+                      {(mainRespName || "M").charAt(0).toUpperCase()}
+                    </span>
+                  )
+                ) : (
+                  <span className="text-[9px] font-mono-kasa text-muted-foreground">?</span>
+                )}
+              </div>
+              {mainRespName && (
+                <span className="text-[10px] font-mono-kasa text-muted-foreground truncate max-w-[85px]">
+                  {mainRespName.split(" ")[0]}
+                </span>
+              )}
+            </div>
+
+            {/* Conector com responsável pela etapa atual */}
+            {ballPerson && ballPersonId !== mainRespId && (
+              <div
+                className="flex items-center gap-1 shrink-0 text-muted-foreground/60"
+                title={`Dono: ${mainRespName} → Etapa atual com: ${ballPersonName}`}
+              >
+                <span className="text-[10px] font-mono-kasa leading-none select-none text-muted-foreground/40">→</span>
+                <div
+                  className="size-4 rounded-full overflow-hidden flex items-center justify-center shrink-0 border border-amber-500/40 bg-amber-500/10 ring-1 ring-amber-500/20"
+                >
+                  {ballPerson.avatar_url ? (
+                    <StorageImage src={ballPerson.avatar_url} alt="" className="size-full object-cover" />
+                  ) : (
+                    <span className="text-[7px] font-mono-kasa font-medium text-amber-600 dark:text-amber-400">
+                      {(ballPersonName || "A").charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            {deadline && (
+              <span className={cn(
+                "text-[10px] font-mono-kasa tabular-nums px-1.5 py-0.5 rounded border whitespace-nowrap",
+                deadline.isOverdue
+                  ? "text-rose-500 border-rose-500/30 bg-rose-500/10 font-semibold"
+                  : "text-muted-foreground border-border/60 bg-muted/20"
+              )}>
+                {deadline.label}
+              </span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

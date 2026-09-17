@@ -7,13 +7,13 @@ import { Calendar, Clock, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const KIND_COLOR: Record<string, string> = {
-  meeting: "bg-sky-500/20 text-sky-300 border-sky-500/40",    
-  task: "bg-emerald-500/20 text-emerald-300 border-emerald-500/40", 
-  approval: "bg-amber-500/20 text-amber-300 border-amber-500/40", 
-  dme: "bg-purple-500/20 text-purple-300 border-purple-500/40", 
-  deadline: "bg-red-500/20 text-red-300 border-red-500/40",   
-  google: "bg-sky-400/10 text-sky-400 border-sky-400/30 ring-1 ring-sky-400/20",
-  other: "bg-muted text-muted-foreground border-border",
+  meeting: "bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30",
+  task: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30",
+  approval: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
+  dme: "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30",
+  deadline: "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30",
+  google: "bg-sky-400/10 text-sky-600 dark:text-sky-400 border-sky-400/30 ring-1 ring-sky-400/20",
+  other: "bg-muted text-muted-foreground border-border/80",
 };
 
 interface Props {

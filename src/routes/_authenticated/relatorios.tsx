@@ -37,13 +37,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Wallet, 
-  Calendar, 
-  Filter, 
-  Download, 
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Calendar,
+  Filter,
+  Download,
   Plus,
   Search,
   MoreVertical,
@@ -67,6 +68,10 @@ import {
   BadgeCheck,
   CheckCircle,
   Ban,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Users,
+  ShieldAlert,
 } from "lucide-react";
 
 
@@ -111,8 +116,17 @@ const normalize = (s: string | null | undefined) =>
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
-const isProLabore = (name: string | null | undefined) =>
-  normalize(name) === PRO_LABORE;
+const isProLabore = (name: string | null | undefined) => {
+  const n = normalize(name);
+  return (
+    n.includes(PRO_LABORE) ||
+    n.includes("pro-labore") ||
+    n.includes("prolabore") ||
+    n.includes("retirada") ||
+    n.includes("socio") ||
+    n.includes("distribuicao")
+  );
+};
 const isInvestimento = (name: string | null | undefined) =>
   normalize(name).includes("investimento");
 const formatDateOnlyBR = (date: string | null | undefined) =>
@@ -310,6 +324,8 @@ function FinancialPage() {
     URL.revokeObjectURL(url);
   };
   
+  const [viewTab, setViewTab] = useState<"extrato" | "receber" | "pagar" | "prolabore" | "suspensos">("extrato");
+  const [expenseSubFilter, setExpenseSubFilter] = useState<"all" | "suppliers" | "freelancers" | "fixed">("all");
   const [filter, setFilter] = useState({
     clientId: "all",
     status: "all",
@@ -331,7 +347,7 @@ function FinancialPage() {
   // Reset page on filter change
   useEffect(() => {
     setPage(1);
-  }, [filter, quickFilter, quickChip, showCancelled]);
+  }, [filter, quickFilter, quickChip, showCancelled, viewTab, expenseSubFilter]);
 
   const periodFilters = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -341,22 +357,24 @@ function FinancialPage() {
     return { startDate, endDate };
   }, [selectedDate]);
 
-  const { data: stats } = useQuery({ 
-    queryKey: ["finance-stats", periodFilters], 
-    queryFn: () => fetchFinanceStats(periodFilters) 
+  const { data: stats } = useQuery({
+    queryKey: ["finance-stats", periodFilters],
+    queryFn: () => fetchFinanceStats(periodFilters)
   });
-  
-  const { data: transactionsData, isLoading } = useQuery({ 
-    queryKey: ["transactions", { ...filter, ...periodFilters, quickFilter, quickChip, showCancelled, page }], 
-    queryFn: () => fetchTransactions({ 
-      ...filter, 
-      ...periodFilters, 
-      quickFilter, 
-      quickChip, 
-      showCancelled, 
-      page, 
-      pageSize 
-    }) 
+
+  const { data: transactionsData, isLoading } = useQuery({
+    queryKey: ["transactions", { ...filter, ...periodFilters, quickFilter, quickChip, showCancelled, page, viewTab, expenseSubFilter }],
+    queryFn: () => fetchTransactions({
+      ...filter,
+      ...periodFilters,
+      quickFilter,
+      quickChip,
+      showCancelled,
+      page,
+      pageSize,
+      viewTab,
+      expenseSubFilter,
+    })
   });
 
   const transactions = transactionsData?.data || [];
@@ -508,39 +526,144 @@ function FinancialPage() {
   const saldoPeriodo = totals.receitas - totals.despesas - totals.proLabore;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8 max-w-[1600px] mx-auto animate-reveal">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 w-full mx-auto animate-reveal">
 
-      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-card border border-border/80 rounded-2xl p-4 sm:p-5 shadow-xs">
         <div>
           <span className="text-primary text-[10px] font-mono-kasa uppercase font-bold tracking-wider">Gestão · Financeiro</span>
-          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-1">Fluxo de Caixa</h1>
-          <p className="text-foreground/50 text-xs lg:text-sm mt-1">Controle de receitas, despesas e previsibilidade.</p>
+          <h1 className="font-display text-2xl lg:text-3xl font-bold tracking-tight mt-0.5">Fluxo de Caixa</h1>
+          <p className="text-muted-foreground text-xs mt-0.5">Controle de receitas, despesas e previsibilidade de caixa.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" className="rounded-full gap-2" onClick={() => setCategoriesOpen(true)}>
-            <Settings className="size-4" /> Categorias
-          </Button>
-          <Button variant="outline" className="rounded-full gap-2" onClick={() => setContasOpen(true)}>
-            <Landmark className="size-4" /> Contas
-          </Button>
-          <Button variant="outline" className="rounded-full gap-2" onClick={() => setSuppliersOpen(true)}>
-            <Settings className="size-4" /> Fornecedores
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="rounded-full gap-2">
-                <FileSpreadsheet className="size-4" /> Importar
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full lg:w-auto">
+          {/* Barra de Mês e Mais Ações (Largura total no mobile com centralização perfeita) */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:flex-none flex items-center justify-between sm:justify-center bg-muted/50 border border-border/70 rounded-xl p-1 h-10 sm:h-9">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={prevMonth}
+                className="size-8 sm:size-7 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-all shrink-0"
+              >
+                <ChevronLeft className="size-4" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleDownloadTemplate}>
-                <Download className="size-4 mr-2" /> Baixar Planilha Modelo
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
-                <Upload className="size-4 mr-2" /> Fazer Upload de Dados
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex-1 sm:flex-none text-center px-3 py-1 text-xs font-mono-kasa font-bold uppercase tracking-wider hover:text-primary transition-colors cursor-pointer truncate"
+                  >
+                    {currentMonthLabel}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-3" align="center">
+                  <div className="flex gap-2">
+                    <Select
+                      value={String(selectedDate.getMonth())}
+                      onValueChange={(v) => {
+                        const d = new Date(selectedDate);
+                        d.setMonth(Number(v));
+                        setSelectedDate(d);
+                      }}
+                    >
+                      <SelectTrigger className="w-[130px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].map((m, i) => (
+                          <SelectItem key={i} value={String(i)}>{m}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select
+                      value={String(selectedDate.getFullYear())}
+                      onValueChange={(v) => {
+                        const d = new Date(selectedDate);
+                        d.setFullYear(Number(v));
+                        setSelectedDate(d);
+                      }}
+                    >
+                      <SelectTrigger className="w-[90px] h-8 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i).map((y) => (
+                          <SelectItem key={y} value={String(y)}>{y}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={nextMonth}
+                className="size-8 sm:size-7 rounded-lg hover:bg-background text-muted-foreground hover:text-foreground transition-all shrink-0"
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+
+            {/* Menu Dropdown de Gestão no Mobile */}
+            <div className="lg:hidden shrink-0">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="h-10 w-10 sm:h-9 sm:w-9 rounded-xl border-border/80 bg-muted/30">
+                    <MoreVertical className="size-4 text-muted-foreground" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 font-mono-kasa text-xs p-1.5">
+                  <DropdownMenuItem onClick={() => setCategoriesOpen(true)} className="py-2">
+                    <Settings className="size-3.5 mr-2 text-muted-foreground" /> Categorias
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setContasOpen(true)} className="py-2">
+                    <Landmark className="size-3.5 mr-2 text-muted-foreground" /> Contas Bancárias
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSuppliersOpen(true)} className="py-2">
+                    <Users className="size-3.5 mr-2 text-muted-foreground" /> Fornecedores
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="py-2">
+                    <Upload className="size-3.5 mr-2 text-muted-foreground" /> Importar Planilha
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownloadTemplate} className="py-2">
+                    <Download className="size-3.5 mr-2 text-muted-foreground" /> Baixar Modelo
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Ações Desktop */}
+          <div className="hidden lg:flex items-center gap-2">
+            <Button variant="outline" size="sm" className="rounded-xl h-9 gap-1.5 text-xs font-mono-kasa border-border/80" onClick={() => setCategoriesOpen(true)}>
+              <Settings className="size-3.5" /> Categorias
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-xl h-9 gap-1.5 text-xs font-mono-kasa border-border/80" onClick={() => setContasOpen(true)}>
+              <Landmark className="size-3.5" /> Contas
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-xl h-9 gap-1.5 text-xs font-mono-kasa border-border/80" onClick={() => setSuppliersOpen(true)}>
+              <Settings className="size-3.5" /> Fornecedores
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="rounded-xl h-9 gap-1.5 text-xs font-mono-kasa border-border/80">
+                  <FileSpreadsheet className="size-3.5" /> Importar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleDownloadTemplate}>
+                  <Download className="size-4 mr-2" /> Baixar Planilha Modelo
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="size-4 mr-2" /> Fazer Upload de Dados
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <input
             ref={fileInputRef}
             type="file"
@@ -549,228 +672,188 @@ function FinancialPage() {
             onChange={handleFileUpload}
           />
 
-          <Button 
-            className="rounded-full gap-2 bg-primary text-primary-foreground"
+          <Button
+            size="sm"
+            className="rounded-xl h-10 sm:h-9 w-full sm:w-auto gap-2 text-xs font-mono-kasa bg-primary text-primary-foreground shadow-sm font-bold justify-center"
             onClick={() => setTransactionOpen(true)}
           >
-            <Plus className="size-4" /> Novo Lançamento
+            <Plus className="size-4 stroke-[2.5]" /> Novo Lançamento
           </Button>
         </div>
       </header>
 
-      {/* Month Navigation */}
-      <div className="flex items-center justify-center gap-6 bg-surface border border-border rounded-2xl p-4 shadow-sm animate-reveal">
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={prevMonth}
-          className="rounded-full hover:bg-primary/10 hover:text-primary transition-all"
+      {/* KPI Cards - Grid 2x2 no mobile e 5 colunas no desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5 sm:gap-3.5">
+        <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} subtitle="Liquidadas no mês" />
+        <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} subtitle="Vencimentos a receber" />
+        <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} subtitle="Operacionais pagas" />
+        <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} subtitle="Compromissos a pagar" />
+        <div className="col-span-2 lg:col-span-1">
+          <StatCard title="Pró-labore & Vales" value={proLaboreMes} icon={Wallet} subtitle="Visão societária" />
+        </div>
+      </div>
+
+      {/* Abas Funcionais e Filtros Estruturados */}
+      <div className="space-y-4">
+        <Tabs
+          value={viewTab}
+          onValueChange={(v) => {
+            setViewTab(v as any);
+            setFilter(prev => ({ ...prev, type: "all" }));
+          }}
+          className="w-full"
         >
-          <ChevronLeft className="size-6" />
-        </Button>
-        
-        <Popover>
-          <PopoverTrigger asChild>
-            <button
-              type="button"
-              className="flex flex-col items-center min-w-[200px] rounded-xl px-4 py-1 hover:bg-primary/5 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30"
-              aria-label="Selecionar mês e ano"
-            >
-              <span className="text-[10px] font-mono-kasa uppercase font-bold tracking-[0.2em] text-foreground/40 mb-1">Período de Referência</span>
-              <h2 className="text-xl lg:text-2xl font-display font-bold tracking-tight text-primary">
-                {currentMonthLabel}
-              </h2>
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-3 pointer-events-auto" align="center">
-            <div className="flex gap-2">
-              <Select
-                value={String(selectedDate.getMonth())}
-                onValueChange={(v) => {
-                  const d = new Date(selectedDate);
-                  d.setMonth(Number(v));
-                  setSelectedDate(d);
-                }}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/80 pb-3">
+            <TabsList className="bg-muted/60 p-1 rounded-xl h-11 border border-border/60 flex-wrap">
+              <TabsTrigger value="extrato" className="rounded-lg px-4 h-9 text-xs font-mono-kasa font-medium gap-1.5 data-[state=active]:bg-background data-[state=active]:shadow-xs">
+                <Wallet className="size-3.5" /> Extrato Geral
+              </TabsTrigger>
+              <TabsTrigger value="receber" className="rounded-lg px-4 h-9 text-xs font-mono-kasa font-medium gap-1.5 data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-700 dark:data-[state=active]:text-emerald-300 data-[state=active]:shadow-xs">
+                <ArrowDownLeft className="size-3.5 text-emerald-600 dark:text-emerald-400" /> A Receber
+              </TabsTrigger>
+              <TabsTrigger value="pagar" className="rounded-lg px-4 h-9 text-xs font-mono-kasa font-medium gap-1.5 data-[state=active]:bg-red-500/15 data-[state=active]:text-red-700 dark:data-[state=active]:text-red-300 data-[state=active]:shadow-xs">
+                <ArrowUpRight className="size-3.5 text-red-600 dark:text-red-400" /> A Pagar
+              </TabsTrigger>
+              <TabsTrigger value="prolabore" className="rounded-lg px-4 h-9 text-xs font-mono-kasa font-medium gap-1.5 data-[state=active]:bg-indigo-500/15 data-[state=active]:text-indigo-700 dark:data-[state=active]:text-indigo-300 data-[state=active]:shadow-xs">
+                <Users className="size-3.5 text-indigo-600 dark:text-indigo-400" /> Pró-labore & Vales
+              </TabsTrigger>
+              <TabsTrigger value="suspensos" className="rounded-lg px-4 h-9 text-xs font-mono-kasa font-medium gap-1.5 data-[state=active]:bg-amber-500/15 data-[state=active]:text-amber-700 dark:data-[state=active]:text-amber-300 data-[state=active]:shadow-xs">
+                <ShieldAlert className="size-3.5 text-amber-600 dark:text-amber-400" /> Suspensos / Retidos
+              </TabsTrigger>
+            </TabsList>
+
+            {cancelledCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowCancelled((v) => !v)}
+                className={cn(
+                  "inline-flex items-center gap-2 text-xs px-3.5 h-9 rounded-xl border transition-colors font-mono-kasa",
+                  showCancelled
+                    ? "border-foreground/30 bg-foreground/5 text-foreground/80"
+                    : "border-border/80 text-muted-foreground hover:text-foreground hover:border-foreground/30 bg-card",
+                )}
+                title={showCancelled ? "Ocultar cancelados" : "Mostrar cancelados"}
               >
-                <SelectTrigger className="w-[140px]">
+                <span className={cn("size-1.5 rounded-full", showCancelled ? "bg-foreground/60" : "bg-foreground/30")} />
+                {showCancelled ? "Ocultar" : "Mostrar"} cancelados ({cancelledCount})
+              </button>
+            )}
+          </div>
+        </Tabs>
+
+        {/* Sub-filtros dinâmicos contextualizados por Aba */}
+        <div className="bg-card border border-border/80 rounded-2xl p-4 flex flex-wrap gap-4 items-end shadow-xs">
+          <div className="flex-1 min-w-[220px] space-y-1.5">
+            <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground px-1">Busca Textual</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+              <Input
+                placeholder="Descrição, cliente ou fornecedor..."
+                className="pl-9 h-10 rounded-xl bg-background border-border/80 text-xs"
+                value={filter.search}
+                onChange={e => setFilter({ ...filter, search: e.target.value })}
+              />
+            </div>
+          </div>
+
+          {/* Sub-filtros para aba A Pagar */}
+          {viewTab === "pagar" && (
+            <div className="w-full sm:w-48 space-y-1.5">
+              <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground px-1">Subdivisão</label>
+              <Select value={expenseSubFilter} onValueChange={(v: any) => setExpenseSubFilter(v)}>
+                <SelectTrigger className="h-10 rounded-xl text-xs bg-background border-border/80">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"].map((m, i) => (
-                    <SelectItem key={i} value={String(i)}>{m}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={String(selectedDate.getFullYear())}
-                onValueChange={(v) => {
-                  const d = new Date(selectedDate);
-                  d.setFullYear(Number(v));
-                  setSelectedDate(d);
-                }}
-              >
-                <SelectTrigger className="w-[100px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 11 }, (_, i) => new Date().getFullYear() - 5 + i).map((y) => (
-                    <SelectItem key={y} value={String(y)}>{y}</SelectItem>
-                  ))}
+                  <SelectItem value="all">Todas Despesas</SelectItem>
+                  <SelectItem value="suppliers">Fornecedores</SelectItem>
+                  <SelectItem value="freelancers">Freelancers</SelectItem>
+                  <SelectItem value="fixed">Despesas Fixas / Kasa</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </PopoverContent>
-        </Popover>
+          )}
 
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={nextMonth}
-          className="rounded-full hover:bg-primary/10 hover:text-primary transition-all"
-        >
-          <ChevronRight className="size-6" />
-        </Button>
-      </div>
+          {/* Filtros de Cliente para Extrato, A Receber e Suspensos */}
+          {(viewTab === "extrato" || viewTab === "receber" || viewTab === "suspensos") && (
+            <div className="w-full sm:w-48 space-y-1.5">
+              <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground px-1">Cliente</label>
+              <Select value={filter.clientId} onValueChange={v => setFilter({ ...filter, clientId: v })}>
+                <SelectTrigger className="h-10 rounded-xl text-xs bg-background border-border/80">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos Clientes</SelectItem>
+                  {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <StatCard title="Receitas Previstas" value={stats?.previstasReceitas} icon={Clock} color="text-blue-600 dark:text-blue-400" bg="bg-blue-500/10" cardBg="bg-blue-500/5 border-blue-500/20" />
-        <StatCard title="Receitas Recebidas" value={stats?.recebidasReceitas} icon={TrendingUp} color="text-emerald-600 dark:text-emerald-400" bg="bg-emerald-500/10" cardBg="bg-emerald-500/5 border-emerald-500/20" />
-        <StatCard title="Despesas Previstas" value={stats?.previstasDespesas} icon={AlertCircle} color="text-amber-600 dark:text-amber-400" bg="bg-amber-500/10" cardBg="bg-amber-500/5 border-amber-500/20" />
-        <StatCard title="Despesas Pagas" value={stats?.pagasDespesas} icon={TrendingDown} color="text-red-600 dark:text-red-400" bg="bg-red-500/10" cardBg="bg-red-500/5 border-red-500/20" />
-        <StatCard title="Pró-labore (Mês)" value={proLaboreMes} icon={Wallet} color="text-indigo-600 dark:text-indigo-400" bg="bg-indigo-500/10" cardBg="bg-indigo-500/5 border-indigo-500/20" />
-      </div>
+          {/* Filtros de NF e Boleto dedicados para A Receber ou Extrato */}
+          {(viewTab === "extrato" || viewTab === "receber") && (
+            <>
+              <div className="w-full sm:w-36 space-y-1.5">
+                <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground px-1">Nota Fiscal</label>
+                <Select value={filter.nfStatus || "all"} onValueChange={v => setFilter({ ...filter, nfStatus: v })}>
+                  <SelectTrigger className="h-10 rounded-xl text-xs bg-background border-border/80">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas NF</SelectItem>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="emitida">Emitida</SelectItem>
+                    <SelectItem value="nao_necessaria">Não necessária</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-      <FinancialRulesPanel
-        totalFaturamento={stats?.recebidasReceitas ?? 0}
-        faturamentoPrevisto={(stats?.previstasReceitas ?? 0) + (stats?.recebidasReceitas ?? 0)}
-        despesasReais={despesasReaisOperacionais}
-        investimentoRealizado={investimentoRealizado}
-        periodoLabel={currentMonthLabel}
-      />
+              <div className="w-full sm:w-36 space-y-1.5">
+                <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground px-1">Boleto Interno</label>
+                <Select value={filter.boletoStatus || "all"} onValueChange={v => setFilter({ ...filter, boletoStatus: v })}>
+                  <SelectTrigger className="h-10 rounded-xl text-xs bg-background border-border/80">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos Boletos</SelectItem>
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="emitido">Emitido</SelectItem>
+                    <SelectItem value="nao_se_aplica">Não se aplica</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
-      {/* Quick Filter Tabs */}
-      <div className="flex flex-wrap items-center gap-2">
-        <ToggleGroup
-          type="single"
-          value={quickFilter}
-          onValueChange={(v) => v && setQuickFilter(v as any)}
-          className="bg-surface border border-border rounded-full p-1 gap-1"
-        >
-          <ToggleGroupItem value="all" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">
-            Todos
-          </ToggleGroupItem>
-          <ToggleGroupItem value="income" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-emerald-500 data-[state=on]:text-white">
-            Receitas
-          </ToggleGroupItem>
-          <ToggleGroupItem value="expense_op" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-red-500 data-[state=on]:text-white">
-            Despesas Operacionais
-          </ToggleGroupItem>
-          <ToggleGroupItem value="pro_labore" className="rounded-full px-4 h-8 text-xs data-[state=on]:bg-indigo-500 data-[state=on]:text-white">
-            Pró-labore
-          </ToggleGroupItem>
-        </ToggleGroup>
-
-        {cancelledCount > 0 && (
-          <button
-            type="button"
-            onClick={() => setShowCancelled((v) => !v)}
-            className={cn(
-              "ml-auto inline-flex items-center gap-2 text-xs px-3 h-9 rounded-full border transition-colors",
-              showCancelled
-                ? "border-foreground/20 bg-foreground/5 text-foreground/70"
-                : "border-border text-foreground/50 hover:text-foreground hover:border-foreground/30",
-            )}
-            title={showCancelled ? "Ocultar cancelados" : "Mostrar cancelados"}
-          >
-            <span className={cn("size-1.5 rounded-full", showCancelled ? "bg-foreground/40" : "bg-foreground/20")} />
-            {showCancelled ? "Ocultar" : "Mostrar"} cancelados ({cancelledCount})
-          </button>
-        )}
-      </div>
-
-      {/* Filters */}
-      <div className="bg-surface border border-border rounded-2xl p-4 flex flex-wrap gap-4 items-end shadow-sm">
-        <div className="flex-1 min-w-[200px] space-y-1.5">
-          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Busca</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-foreground/30" />
-            <Input 
-              placeholder="Descrição ou cliente..." 
-              className="pl-9 h-10 rounded-xl"
-              value={filter.search}
-              onChange={e => setFilter({ ...filter, search: e.target.value })}
-            />
+          <div className="w-full sm:w-36 space-y-1.5">
+            <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground px-1">Status</label>
+            <Select value={filter.status} onValueChange={v => setFilter({ ...filter, status: v })}>
+              <SelectTrigger className="h-10 rounded-xl text-xs bg-background border-border/80">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="pending">Pendente</SelectItem>
+                <SelectItem value="paid">Pago</SelectItem>
+                <SelectItem value="overdue">Atrasado</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-        <div className="w-full sm:w-48 space-y-1.5">
-          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Cliente</label>
-          <Select value={filter.clientId} onValueChange={v => setFilter({ ...filter, clientId: v })}>
-            <SelectTrigger className="h-10 rounded-xl">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Clientes</SelectItem>
-              {clients.map(c => <SelectItem key={c.id} value={c.id}>{c.company || c.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-full sm:w-40 space-y-1.5">
-          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Nota Fiscal</label>
-          <Select value={filter.nfStatus || "all"} onValueChange={v => setFilter({ ...filter, nfStatus: v })}>
-            <SelectTrigger className="h-10 rounded-xl text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas NF</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="emitida">Emitida</SelectItem>
-              <SelectItem value="nao_necessaria">Não necessária</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="w-full sm:w-40 space-y-1.5">
-          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Boleto Interno</label>
-          <Select value={filter.boletoStatus || "all"} onValueChange={v => setFilter({ ...filter, boletoStatus: v })}>
-            <SelectTrigger className="h-10 rounded-xl text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Boletos</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="emitido">Emitido</SelectItem>
-              <SelectItem value="nao_se_aplica">Não se aplica</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="w-full sm:w-40 space-y-1.5">
-          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Status</label>
-          <Select value={filter.status} onValueChange={v => setFilter({ ...filter, status: v })}>
-            <SelectTrigger className="h-10 rounded-xl">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="paid">Pago</SelectItem>
-              <SelectItem value="overdue">Atrasado</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-full sm:w-32 space-y-1.5">
-          <label className="text-[10px] font-mono-kasa uppercase text-foreground/40 px-1">Tipo</label>
-          <Select value={filter.type} onValueChange={v => setFilter({ ...filter, type: v })}>
-            <SelectTrigger className="h-10 rounded-xl">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Ambos</SelectItem>
-              <SelectItem value="income">Receita</SelectItem>
-              <SelectItem value="expense">Despesa</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="w-full sm:w-44 space-y-1.5">
+            <label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground px-1">Categoria</label>
+            <Select value={filter.categoryId} onValueChange={v => setFilter({ ...filter, categoryId: v })}>
+              <SelectTrigger className="h-10 rounded-xl text-xs bg-background border-border/80">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas Categorias</SelectItem>
+                {categories.map((c: any) => (
+                  <SelectItem key={c.id} value={c.id}>{c.nome || c.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
@@ -890,9 +973,183 @@ function FinancialPage() {
       )}
 
 
-      {/* Transactions Table */}
+      {/* Painel da Regra de Ouro / Distribuição - Exclusivo na aba Pró-labore & Vales */}
+      {viewTab === "prolabore" && (
+        <FinancialRulesPanel
+          totalFaturamento={stats?.recebidasReceitas ?? 0}
+          faturamentoPrevisto={(stats?.previstasReceitas ?? 0) + (stats?.recebidasReceitas ?? 0)}
+          despesasReais={despesasReaisOperacionais}
+          investimentoRealizado={investimentoRealizado}
+          periodoLabel={currentMonthLabel}
+        />
+      )}
+
+      {/* Transactions: cards no mobile e tabela completa no desktop */}
       <div className="bg-surface border border-border rounded-2xl overflow-hidden shadow-sm">
-        <Table>
+        <div className="md:hidden divide-y divide-border/60">
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-24 rounded-xl bg-muted/30 animate-pulse" />
+              ))}
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="p-8 text-center flex flex-col items-center justify-center gap-3 opacity-50">
+              <div className="size-12 rounded-full bg-muted flex items-center justify-center">
+                <Wallet className="size-6 text-muted-foreground" />
+              </div>
+              <p className="text-xs font-mono-kasa">Nenhum lançamento em {currentMonthLabel}.</p>
+            </div>
+          ) : (
+            transactions.map((t: any) => {
+              const value = effectiveAmount(t);
+              const sign = t.type === "income" ? "+" : "-";
+              const typeColor = t.type === "income"
+                ? "text-emerald-600 dark:text-emerald-400"
+                : "text-red-600 dark:text-red-400";
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const effectiveStatus =
+                t.status === "pending" && t.due_date && t.due_date < todayStr
+                  ? "overdue"
+                  : t.status;
+              const isNaoOp = t.nature === "nao_operacional";
+              const partyName = t.is_internal
+                ? "Despesa Kasa"
+                : (t.clients as any)?.company
+                  || (t.clients as any)?.name
+                  || (t.suppliers as any)?.name
+                  || (t.freelancer as any)?.name;
+              const categoryName = (t.categorias_financeiras as any)?.nome || t.category || "Sem categoria";
+              const boleto = boletoByTx.get(t.id);
+
+              return (
+                <div
+                  key={t.id}
+                  className={cn(
+                    "p-4 border-l-4 transition-colors",
+                    effectiveStatus === "paid"
+                      ? "bg-emerald-500/[0.04] border-l-emerald-500"
+                      : effectiveStatus === "overdue"
+                        ? "bg-rose-500/[0.04] border-l-rose-500"
+                        : isNaoOp
+                          ? "bg-amber-500/[0.04] border-l-amber-500"
+                          : "bg-card border-l-border/80",
+                  )}
+                >
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      checked={selectedIds.has(t.id)}
+                      onCheckedChange={(checked) => {
+                        setSelectedIds((prev) => {
+                          const next = new Set(prev);
+                          if (checked) next.add(t.id);
+                          else next.delete(t.id);
+                          return next;
+                        });
+                      }}
+                      aria-label="Selecionar lançamento"
+                      className="mt-1 shrink-0"
+                    />
+
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {(t as any).number_display && (
+                          <span className="text-[9px] font-mono-kasa text-muted-foreground bg-muted/40 border border-border/60 rounded px-1.5 py-0.5">
+                            {String((t as any).number_display).startsWith("#") ? t.number_display : `#${t.number_display}`}
+                          </span>
+                        )}
+                        <StatusBadge status={effectiveStatus} dueDate={t.due_date} />
+                        {isNaoOp && (
+                          <span className="text-[9px] font-mono-kasa uppercase px-1.5 py-0.5 rounded bg-muted/40 text-muted-foreground border border-border/60">
+                            Não-op
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setEditingTx(t)}
+                        className="block w-full text-left font-semibold text-xs leading-snug text-foreground hover:text-primary line-clamp-2"
+                        title="Editar lançamento"
+                      >
+                        {t.description}
+                      </button>
+
+                      <div className="flex items-center gap-1.5 flex-wrap text-[10px] font-mono-kasa text-muted-foreground">
+                        <span className="truncate max-w-[150px] text-foreground/75">{partyName || "Sem vínculo"}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{formatDateOnlyBR(t.due_date) || "Sem vencimento"}</span>
+                        <span className="rounded border border-border/60 bg-muted/30 px-1.5 py-0.5 truncate max-w-[130px]">
+                          {categoryName}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <span className={cn("font-mono-kasa tabular-nums font-bold text-sm tracking-tight", typeColor)}>
+                        {sign} {brl(value)}
+                      </span>
+                      {boleto && (
+                        <button
+                          type="button"
+                          onClick={() => openBoletoPdf(boleto.id)}
+                          className="inline-flex items-center gap-1 text-[9px] font-mono-kasa text-muted-foreground hover:text-foreground"
+                          title={`Boleto Inter · ${boleto.situacao}`}
+                        >
+                          <Barcode className="size-3" /> Boleto
+                        </button>
+                      )}
+                      <div className="flex items-center gap-1 mt-1">
+                        {(t.status === "pending" || t.status === "overdue") && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setBaixaTx(t)}
+                            className="h-7 px-2 text-[10px] font-mono-kasa font-semibold gap-1 text-emerald-600 border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20"
+                          >
+                            <CreditCard className="size-3" /> Baixar
+                          </Button>
+                        )}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="size-7 text-muted-foreground" aria-label="Ações do lançamento">
+                              <MoreVertical className="size-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48 font-mono-kasa text-xs">
+                            <DropdownMenuItem onClick={() => setEditingTx(t)}>
+                              <Pencil className="size-3.5 mr-2" /> Editar
+                            </DropdownMenuItem>
+                            {t.type === "income" && t.client_id && (t.status === "pending" || t.status === "overdue") && !boleto && (
+                              <DropdownMenuItem onClick={() => setBoletoTx(t)}>
+                                <Barcode className="size-3.5 mr-2" /> Emitir boleto
+                              </DropdownMenuItem>
+                            )}
+                            {t.status === "paid" && (
+                              <DropdownMenuItem onClick={() => setReciboTx(t)}>
+                                <Receipt className="size-3.5 mr-2" /> Gerar recibo
+                              </DropdownMenuItem>
+                            )}
+                            {t.status === "paid" && (
+                              <DropdownMenuItem onClick={() => statusMut.mutate({ id: t.id, status: "pending" })}>
+                                <Clock className="size-3.5 mr-2" /> Estornar
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => setDeletingTx(t)} className="text-destructive focus:text-destructive">
+                              <Trash2 className="size-3.5 mr-2" /> Excluir
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <Table className="hidden md:table">
           <TableHeader className="bg-muted/30">
             <TableRow>
               <TableHead className="w-10 py-4">
@@ -916,7 +1173,6 @@ function FinancialPage() {
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Descrição / Cliente</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4">Categoria</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Valor</TableHead>
-              <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-right">Diferença</TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-4 text-center">Status</TableHead>
               <TableHead className="w-10"></TableHead>
             </TableRow>
@@ -957,16 +1213,15 @@ function FinancialPage() {
                 <TableRow
                   key={t.id}
                   className={cn(
-                    "group transition-colors",
+                    "group transition-colors border-l-[3px]",
                     effectiveStatus === "paid"
-                      ? "bg-emerald-500/10 hover:bg-emerald-500/15 border-l-2 border-l-emerald-600"
+                      ? "bg-emerald-500/[0.08] hover:bg-emerald-500/[0.14] border-l-emerald-500 text-foreground"
                       : effectiveStatus === "overdue"
-                      ? "bg-red-500/10 hover:bg-red-500/15 border-l-2 border-l-red-600"
+                      ? "bg-rose-500/[0.08] hover:bg-rose-500/[0.14] border-l-rose-500 text-foreground"
                       : isNaoOp
-                      ? "bg-amber-500/5 hover:bg-amber-500/10 border-l-2 border-l-amber-500/60"
-                      : "hover:bg-muted/10",
+                      ? "bg-amber-500/[0.06] hover:bg-amber-500/[0.12] border-l-amber-500 text-foreground"
+                      : "bg-card hover:bg-muted/30 border-l-border/80",
                   )}
-
                 >
                   <TableCell className="py-4 w-10">
                     <Checkbox
@@ -984,19 +1239,25 @@ function FinancialPage() {
                   </TableCell>
                   <TableCell className="py-4">
                     <InlineDuePicker transactionId={t.id} currentDate={t.due_date} />
-                    {t.payment_date && <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono-kasa uppercase mt-1">Pago em {formatDateOnlyBR(t.payment_date)}</div>}
+                    {t.payment_date && effectiveStatus !== "paid" && (
+                      <div className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono-kasa uppercase mt-1">
+                        Pago em {formatDateOnlyBR(t.payment_date)}
+                      </div>
+                    )}
                   </TableCell>
                   <TableCell className="py-4">
                     <div className="flex items-center gap-2">
                       {(t as any).number_display && (
-                        <span className="text-[10px] font-mono-kasa font-bold text-muted-foreground bg-muted/40 border border-border/60 rounded px-1.5 py-0.5 shrink-0">
-                          {(t as any).number_display}
+                        <span className="inline-flex items-center gap-1 text-[10px] font-mono-kasa text-muted-foreground bg-muted/30 border border-border/60 rounded px-1.5 py-0.5 shrink-0">
+                          {String((t as any).number_display).startsWith("#")
+                            ? (t as any).number_display
+                            : `#${(t as any).number_display}`}
                         </span>
                       )}
                       <button
                         type="button"
                         onClick={() => setEditingTx(t)}
-                        className="font-semibold text-sm text-left hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer"
+                        className="font-semibold text-xs text-left text-foreground hover:text-primary hover:underline underline-offset-2 transition-colors cursor-pointer"
                         title="Editar lançamento"
                       >
                         {(() => {
@@ -1018,7 +1279,7 @@ function FinancialPage() {
                         })()}
                       </button>
                       {isNaoOp && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                        <span className="text-[9px] font-mono-kasa uppercase px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground border border-border/60">
                           Não-op
                         </span>
                       )}
@@ -1031,10 +1292,10 @@ function FinancialPage() {
                             onClick={() => openBoletoPdf(b.id)}
                             title={`Boleto Inter · ${b.situacao}`}
                             className={cn(
-                              "inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded border transition-colors cursor-pointer",
+                              "inline-flex items-center gap-1 text-[9px] font-mono-kasa uppercase px-1.5 py-0.5 rounded border transition-colors cursor-pointer",
                               isPaid
-                                ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
-                                : "bg-orange-500/15 text-orange-700 dark:text-orange-400 border-orange-500/30 hover:bg-orange-500/25"
+                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20"
+                                : "bg-muted/30 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted/60"
                             )}
                           >
                             <Barcode className="size-3" />
@@ -1044,11 +1305,11 @@ function FinancialPage() {
                       })()}
 
                     </div>
-                    <div className="flex flex-col gap-0.5">
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                       {t.is_internal ? (
                         <>
-                          <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-primary/15 text-primary border border-primary/30 w-fit">
-                            <Home className="size-3" /> Despesa Kasa
+                          <span className="inline-flex items-center gap-1 text-[10px] font-mono-kasa px-1.5 py-0.5 rounded bg-muted/30 text-muted-foreground border border-border/60 shrink-0">
+                            <Home className="size-2.5" /> Despesa Kasa
                           </span>
                           <InlineSupplierPicker
                             transactionId={t.id}
@@ -1066,11 +1327,7 @@ function FinancialPage() {
                             .trim();
                           const isProLabore = catName === "pro-labore" || catName === "pro labore";
                           if (isProLabore) {
-                            return (
-                              <span className="text-[10px] text-foreground/40 italic">
-                                Direcionado aos sócios
-                              </span>
-                            );
+                            return null;
                           }
                           const isFreelaCat =
                             catName.includes("freelancer") ||
@@ -1117,40 +1374,38 @@ function FinancialPage() {
                       transactionType={t.type}
                     />
                   </TableCell>
-                  <TableCell className={cn("py-4 text-right font-semibold text-sm tabular-nums", typeColor)}>
-                    <div className="flex flex-col items-end">
+                  <TableCell className={cn("py-4 text-right font-mono-kasa font-semibold text-xs tabular-nums tracking-tight", typeColor)}>
+                    <div className="flex flex-col items-end gap-1">
                       <span>{sign} {brl(valorExibido)}</span>
+                      {hasDiff && t.clients?.financial_collection_status !== 'suspended' && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span
+                                className={cn(
+                                  "inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-mono-kasa font-semibold",
+                                  diff > 0
+                                    ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30"
+                                    : "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30"
+                                )}
+                              >
+                                {diff > 0 ? "+" : ""}
+                                {brl(diff)}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div className="text-xs">
+                                <div className="font-semibold">{t.motivo_diferenca || "Diferença no valor"}</div>
+                                {t.observacao_diferenca && <div className="text-muted-foreground mt-1 max-w-[240px]">{t.observacao_diferenca}</div>}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       {t.clients?.financial_collection_status === 'suspended' && t.status !== 'paid' && (
                         <span className="text-[9px] font-bold text-amber-500 uppercase">Cobrança Suspensa</span>
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell className="py-4 text-right">
-                    {hasDiff && t.clients?.financial_collection_status !== 'suspended' ? (
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Badge
-                              className={cn(
-                                "rounded-full px-2 py-0.5 text-[10px] font-bold tabular-nums",
-                                diff > 0 ? "bg-orange-500 text-white" : "bg-emerald-500 text-white"
-                              )}
-                            >
-                              {diff > 0 ? "+" : ""}
-                              {brl(diff)}
-                            </Badge>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <div className="text-xs">
-                              <div className="font-semibold">{t.motivo_diferenca || "Sem motivo informado"}</div>
-                              {t.observacao_diferenca && <div className="text-muted-foreground mt-1 max-w-[240px]">{t.observacao_diferenca}</div>}
-                            </div>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    ) : (
-                      <span className="text-foreground/20 text-xs">—</span>
-                    )}
                   </TableCell>
                   <TableCell className="py-4 text-center">
                     <div className="flex flex-col items-center gap-2">
@@ -1394,37 +1649,59 @@ function TotalCell({ label, value, className }: { label: string; value: number; 
   );
 }
 
-function StatCard({ title, value, icon: Icon, color, bg, cardBg }: { title: string, value?: number, icon: any, color: string, bg?: string, cardBg?: string }) {
+function StatCard({
+  title,
+  value,
+  icon: Icon,
+  subtitle,
+}: {
+  title: string;
+  value?: number;
+  icon: any;
+  subtitle?: string;
+}) {
   return (
-    <Card className={cn("shadow-sm overflow-hidden group hover:border-primary/50 transition-colors", cardBg || "bg-surface border-border")}>
-      <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
-        <div className="flex items-center justify-between">
-          <div className={cn("size-8 rounded-xl flex items-center justify-center", bg || "bg-muted")}>
-            <Icon className={cn("size-4", color)} />
-          </div>
-          {title !== 'PARCELAS FUTURAS' && (
-            <Badge variant="outline" className="text-[10px] font-mono-kasa text-foreground/30">Mês Atual</Badge>
-          )}
+    <div className="group rounded-xl border border-border/80 bg-card p-4 flex flex-col justify-between hover:border-foreground/25 hover:shadow-xs transition-all">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <Icon className="size-3.5 shrink-0 text-muted-foreground group-hover:text-foreground transition-colors" />
+          <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold truncate">
+            {title}
+          </span>
         </div>
-        <div>
-          <p className="text-[10px] font-mono-kasa uppercase tracking-wider text-foreground/40">{title}</p>
-          <h3 className="text-lg lg:text-xl font-bold tracking-tight mt-0.5">{brl(value || 0)}</h3>
+      </div>
+      <div className="mt-3">
+        <div className="font-display text-xl lg:text-2xl font-bold tracking-tight text-foreground tabular-nums font-mono-kasa">
+          {brl(value || 0)}
         </div>
-      </CardContent>
-    </Card>
+        {subtitle && (
+          <p className="text-[11px] text-muted-foreground/75 mt-0.5 truncate font-mono-kasa">
+            {subtitle}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 
 function StatusBadge({ status, dueDate }: { status: string; dueDate?: string | null }) {
-  let label = "";
-  let cls = "";
   if (status === "paid") {
-    label = "Pago";
-    cls = "border-emerald-600 text-white bg-emerald-600";
-  } else if (status === "cancelled") {
-    label = "Cancelado";
-    cls = "border-foreground/10 text-foreground/40 bg-foreground/5";
-  } else if (status === "overdue") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-mono-kasa tabular-nums px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-medium">
+        Pago
+      </span>
+    );
+  }
+
+  if (status === "cancelled") {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-mono-kasa tabular-nums px-2 py-0.5 rounded border border-border/40 bg-muted/10 text-muted-foreground/60">
+        Cancelado
+      </span>
+    );
+  }
+
+  if (status === "overdue") {
     let days = 0;
     if (dueDate) {
       const d = new Date(`${dueDate.slice(0, 10)}T00:00:00`);
@@ -1432,21 +1709,30 @@ function StatusBadge({ status, dueDate }: { status: string; dueDate?: string | n
       today.setHours(0, 0, 0, 0);
       days = Math.max(0, Math.floor((today.getTime() - d.getTime()) / 86400000));
     }
-    label = days > 0 ? `Atrasado · ${days}d` : "Atrasado";
-    cls =
-      days >= 30
-        ? "border-red-800 text-white bg-red-800 animate-pulse"
-        : days >= 7
-        ? "border-red-600 text-white bg-red-600"
-        : "border-orange-500 text-white bg-orange-500";
-  } else {
-    label = "Pendente";
-    cls = "border-blue-500/20 text-blue-600 dark:text-blue-400 bg-blue-500/5";
+    return (
+      <span className="inline-flex items-center gap-1 text-[10px] font-mono-kasa tabular-nums px-2 py-0.5 rounded border border-rose-500/30 bg-rose-500/10 text-rose-500 font-semibold">
+        {days > 0 ? `Atrasado ${days}d` : "Atrasado"}
+      </span>
+    );
   }
+
+  let isToday = false;
+  if (dueDate) {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    isToday = dueDate.slice(0, 10) === todayStr;
+  }
+
   return (
-    <Badge variant="outline" className={cn("rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest border-2", cls)}>
-      {label}
-    </Badge>
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 text-[10px] font-mono-kasa tabular-nums px-2 py-0.5 rounded border font-medium",
+        isToday
+          ? "border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400"
+          : "border-border/60 bg-muted/20 text-muted-foreground"
+      )}
+    >
+      {isToday ? "Vence hoje" : "Pendente"}
+    </span>
   );
 }
 

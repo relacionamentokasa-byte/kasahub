@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronDown, Check } from "lucide-react";
+import { ChevronDown, Check, Tag } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface InlineCategoryPickerProps {
   transactionId: string;
@@ -87,14 +88,18 @@ export function InlineCategoryPicker({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         onClick={(e) => e.stopPropagation()}
-        className={
+        className={cn(
+          "inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono-kasa border transition-colors outline-none cursor-pointer max-w-[180px]",
           isProLabore
-            ? "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-indigo-300 bg-indigo-100 text-indigo-800 hover:bg-indigo-200 text-[10px] font-mono-kasa uppercase tracking-tight outline-none transition-colors font-bold"
-            : "inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-border bg-background hover:bg-muted text-[10px] font-mono-kasa uppercase tracking-tight outline-none transition-colors"
-        }
+            ? "bg-primary/10 text-primary border-primary/30 font-bold hover:bg-primary/20"
+            : atual
+            ? "bg-muted/30 text-muted-foreground border-border/60 hover:bg-muted/60 hover:text-foreground"
+            : "bg-muted/20 text-muted-foreground/60 border-dashed border-border/60 hover:text-primary hover:border-primary/40"
+        )}
       >
-        {atual?.nome || "Vincular Categoria"}
-        <ChevronDown className="size-2.5 text-foreground/50" />
+        <Tag className="size-2.5 shrink-0" />
+        <span className="truncate">{atual?.nome || "+ Categoria"}</span>
+        <ChevronDown className="size-2.5 shrink-0 opacity-50" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[240px] max-h-[320px] overflow-y-auto">
         {categoriasFiltradas.length === 0 ? (

@@ -307,20 +307,25 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            {isEdit ? "Editar Lançamento" : "Novo Lançamento Financeiro"}
-            {isEdit && (transaction as any)?.number_display && (
-              <span className="text-xs font-mono-kasa font-bold text-muted-foreground bg-muted/40 border border-border/60 rounded px-2 py-0.5">
-                {(transaction as any).number_display}
-              </span>
-            )}
+      <DialogContent className="sm:max-w-[540px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="space-y-1">
+          <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
+            <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+              <FileText className="size-5" />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span>{isEdit ? "Editar Lançamento" : "Novo Lançamento"}</span>
+              {isEdit && (transaction as any)?.number_display && (
+                <span className="text-[11px] font-mono-kasa font-bold text-muted-foreground bg-muted/60 border border-border/80 rounded-md px-2 py-0.5">
+                  {(transaction as any).number_display}
+                </span>
+              )}
+            </div>
           </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-1">
             <FormField
               control={form.control}
               name="is_internal"
@@ -329,50 +334,50 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                   type="button"
                   onClick={() => field.onChange(!field.value)}
                   className={cn(
-                    "w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all",
+                    "w-full flex items-center gap-3 rounded-xl border p-3 text-left transition-all",
                     field.value
-                      ? "border-primary bg-primary/10 shadow-sm"
-                      : "border-dashed border-border bg-surface/40 hover:border-primary/50 hover:bg-primary/5"
+                      ? "border-primary bg-primary/10 shadow-xs"
+                      : "border-dashed border-border/80 bg-muted/20 hover:border-primary/50 hover:bg-primary/5"
                   )}
                 >
                   <div className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg",
+                    "flex h-8 w-8 items-center justify-center rounded-lg shrink-0",
                     field.value ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
                   )}>
                     <Home className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-semibold leading-tight">
-                      {field.value ? "✓ Despesa da Kasa" : "Despesa da Kasa?"}
+                    <div className="text-xs font-semibold leading-tight">
+                      {field.value ? "✓ Despesa da Kasa (Interna)" : "Despesa da Kasa?"}
                     </div>
                     <div className="text-[11px] text-muted-foreground leading-tight mt-0.5">
                       {field.value
-                        ? "Sem cliente, fornecedor ou freelancer vinculado"
-                        : "Marque se for despesa interna da agência (aluguel, software, etc.)"}
+                        ? "Despesa interna da agência (aluguel, ferramentas, contas)"
+                        : "Marque se for despesa interna não vinculada a projetos de clientes"}
                     </div>
                   </div>
                 </button>
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="type"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tipo</FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">Tipo</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o tipo" />
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue placeholder="Tipo" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="income">Receita</SelectItem>
-                        <SelectItem value="expense">Despesa</SelectItem>
-                        <SelectItem value="transfer">Transferência</SelectItem>
-                        <SelectItem value="adjustment">Ajuste de Saldo</SelectItem>
+                        <SelectItem value="income" className="text-xs">Receita</SelectItem>
+                        <SelectItem value="expense" className="text-xs">Despesa</SelectItem>
+                        <SelectItem value="transfer" className="text-xs">Transferência</SelectItem>
+                        <SelectItem value="adjustment" className="text-xs">Ajuste de Saldo</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -385,16 +390,16 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                 name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">Status</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione o status" />
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue placeholder="Status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="pending">Pendente</SelectItem>
-                        <SelectItem value="paid">Pago/Recebido</SelectItem>
+                        <SelectItem value="pending" className="text-xs">Pendente</SelectItem>
+                        <SelectItem value="paid" className="text-xs">Pago / Recebido</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -409,32 +414,32 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                 name="nature"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">
                       {watchType === "income" ? "Natureza da receita" : "Natureza da despesa"}
                     </FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-9 text-xs">
                           <SelectValue />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {watchType === "income" ? (
                           <>
-                            <SelectItem value="operacional">
-                              Operacional (entra na distribuição aos sócios)
+                            <SelectItem value="operacional" className="text-xs">
+                              Operacional (distribuição aos sócios)
                             </SelectItem>
-                            <SelectItem value="nao_operacional">
-                              Não-operacional (consórcio, venda de ativo, reembolso…)
+                            <SelectItem value="nao_operacional" className="text-xs">
+                              Não-operacional (consórcio, ativo, reembolso)
                             </SelectItem>
                           </>
                         ) : (
                           <>
-                            <SelectItem value="operacional">
-                              Operacional (entra no cálculo de lucro)
+                            <SelectItem value="operacional" className="text-xs">
+                              Operacional (cálculo de lucro/margem)
                             </SelectItem>
-                            <SelectItem value="nao_operacional">
-                              Não-operacional (investimento, aporte, despesa de sócio…)
+                            <SelectItem value="nao_operacional" className="text-xs">
+                              Não-operacional (investimento, aporte)
                             </SelectItem>
                           </>
                         )}
@@ -454,27 +459,21 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                 const filtered = tipoFiltro ? categorias.filter((c) => c.tipo === tipoFiltro) : categorias;
                 return (
                   <FormItem>
-                    <FormLabel>Categoria</FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">Categoria</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={
-                            watchType === "income"
-                              ? "Selecione uma categoria de receita..."
-                              : watchType === "expense"
-                              ? "Selecione uma categoria de despesa..."
-                              : "Selecione uma categoria..."
-                          } />
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue placeholder="Selecione a categoria..." />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         {filtered.length === 0 ? (
                           <div className="px-3 py-2 text-xs text-muted-foreground">
-                            Nenhuma categoria. Cadastre em "Categorias".
+                            Nenhuma categoria cadastrada.
                           </div>
                         ) : (
                           filtered.map((c) => (
-                            <SelectItem key={c.id} value={c.nome}>
+                            <SelectItem key={c.id} value={c.nome} className="text-xs">
                               {c.nome}
                             </SelectItem>
                           ))
@@ -492,24 +491,24 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição / Título</FormLabel>
+                  <FormLabel className="text-xs font-medium text-muted-foreground">Descrição / Título</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Pagamento Mensalidade..." {...field} />
+                    <Input placeholder="Ex: Mensalidade, Licença de Software..." className="h-9 text-xs" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="amount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{isEdit ? "Valor previsto (R$)" : "Valor (R$)"}</FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">{isEdit ? "Valor previsto (R$)" : "Valor (R$)"}</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0,00" {...field} />
+                      <Input type="number" step="0.01" placeholder="0,00" className="h-9 text-xs font-mono-kasa tabular-nums font-bold" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -521,19 +520,19 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                 name="due_date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel className="mt-1">Data</FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">Data de Vencimento</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
                             variant={"outline"}
                             className={cn(
-                              "w-full pl-3 text-left font-normal",
+                              "w-full h-9 pl-3 text-left text-xs font-mono-kasa tabular-nums font-normal",
                               !field.value && "text-muted-foreground",
                             )}
                           >
-                            {field.value ? format(field.value, "PPP", { locale: ptBR }) : <span>Selecione uma data</span>}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            {field.value ? format(field.value, "dd/MM/yyyy", { locale: ptBR }) : <span>Selecione a data</span>}
+                            <CalendarIcon className="ml-auto h-3.5 w-3.5 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -554,36 +553,34 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
             </div>
 
             {isEdit && (
-              <div className="space-y-3 rounded-xl border border-dashed border-border bg-surface/40 p-3">
+              <div className="space-y-3 rounded-xl border border-dashed border-border/80 bg-muted/20 p-3">
                 <FormField
                   control={form.control}
                   name="valor_real"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">💵 Valor real do boleto/recebimento (R$)</FormLabel>
+                      <FormLabel className="text-xs font-medium text-muted-foreground">Valor real do boleto/recebimento (R$)</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
                           step="0.01"
-                          placeholder="Deixe vazio se o valor real é igual ao previsto"
+                          placeholder="Opcional se igual ao previsto"
+                          className="h-9 text-xs font-mono-kasa tabular-nums"
                           {...field}
                         />
                       </FormControl>
-                      <p className="text-[11px] text-muted-foreground">
-                        Preencha quando o valor pago/recebido for diferente do previsto.
-                      </p>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
                 {hasDiff && (
-                  <div className="rounded-lg border-2 border-orange-500/30 bg-orange-500/5 p-3 space-y-3">
+                  <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-mono-kasa uppercase tracking-wider text-orange-600">
-                        📊 Diferença
+                      <span className="text-xs font-mono-kasa uppercase tracking-wider text-amber-500 font-semibold">
+                        Diferença
                       </span>
-                      <span className={cn("text-sm font-bold tabular-nums", diff > 0 ? "text-orange-600" : "text-emerald-600")}>
+                      <span className={cn("text-xs font-mono-kasa font-bold tabular-nums", diff > 0 ? "text-amber-500" : "text-emerald-500")}>
                         {diff > 0 ? "+" : ""}{brl(diff)}
                       </span>
                     </div>
@@ -592,16 +589,16 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                       name="motivo_diferenca"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Motivo *</FormLabel>
+                          <FormLabel className="text-xs font-medium text-muted-foreground">Motivo da diferença *</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
-                              <SelectTrigger>
+                              <SelectTrigger className="h-8 text-xs">
                                 <SelectValue placeholder="Selecione o motivo..." />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               {MOTIVO_OPTIONS.map((m) => (
-                                <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                                <SelectItem key={m.value} value={m.value} className="text-xs">{m.label}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -614,9 +611,9 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                       name="observacao_diferenca"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-xs">Observação</FormLabel>
+                          <FormLabel className="text-xs font-medium text-muted-foreground">Observação</FormLabel>
                           <FormControl>
-                            <Textarea rows={2} placeholder="Ex: Multa de 2% por atraso..." {...field} />
+                            <Textarea rows={2} placeholder="Ex: Multa ou desconto..." className="text-xs resize-none" {...field} />
                           </FormControl>
                         </FormItem>
                       )}
@@ -632,17 +629,17 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                 name="client_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Cliente (Opcional)</FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">Cliente (Opcional)</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className="h-9 text-xs">
                           <SelectValue placeholder="Selecione um cliente" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">Nenhum</SelectItem>
+                        <SelectItem value="none" className="text-xs">Nenhum</SelectItem>
                         {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
+                          <SelectItem key={client.id} value={client.id} className="text-xs">
                             {client.company || client.name}
                           </SelectItem>
                         ))}
@@ -655,24 +652,24 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
             )}
 
             {watchType === "expense" && !isProLaboreCategory && (
-              <div className={watchIsInternal ? "grid grid-cols-1 gap-4" : "grid grid-cols-2 gap-4"}>
+              <div className={watchIsInternal ? "grid grid-cols-1 gap-3" : "grid grid-cols-2 gap-3"}>
                 {!watchIsInternal && (
                   <FormField
                     control={form.control}
                     name="client_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Cliente (Opcional)</FormLabel>
+                        <FormLabel className="text-xs font-medium text-muted-foreground">Cliente (Opcional)</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 text-xs">
                               <SelectValue placeholder="Nenhum" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="none">Nenhum</SelectItem>
+                            <SelectItem value="none" className="text-xs">Nenhum</SelectItem>
                             {clients.map((client) => (
-                              <SelectItem key={client.id} value={client.id}>
+                              <SelectItem key={client.id} value={client.id} className="text-xs">
                                 {client.company || client.name}
                               </SelectItem>
                             ))}
@@ -690,22 +687,22 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                     name="freelancer_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Freelancer</FormLabel>
+                        <FormLabel className="text-xs font-medium text-muted-foreground">Freelancer</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecione um freelancer" />
+                            <SelectTrigger className="h-9 text-xs">
+                              <SelectValue placeholder="Selecione o freelancer" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="none">Nenhum</SelectItem>
+                            <SelectItem value="none" className="text-xs">Nenhum</SelectItem>
                             {freelancers.length === 0 ? (
                               <div className="px-3 py-2 text-xs text-muted-foreground">
-                                Nenhum cadastrado em Parceiros → Freelancers.
+                                Nenhum cadastrado.
                               </div>
                             ) : (
                               freelancers.map((f) => (
-                                <SelectItem key={f.id} value={f.id}>
+                                <SelectItem key={f.id} value={f.id} className="text-xs">
                                   {f.name}{f.specialty ? ` — ${f.specialty}` : ""}
                                 </SelectItem>
                               ))
@@ -722,31 +719,31 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                     name="supplier_id"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="flex items-center justify-between gap-2">
+                        <FormLabel className="flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
                           <span>Fornecedor / Órgão</span>
                           <button
                             type="button"
                             onClick={() => setSuppliersManagerOpen(true)}
-                            className="text-[10px] text-primary hover:underline font-normal"
+                            className="text-[10px] text-primary hover:underline font-normal cursor-pointer"
                           >
                             + gerenciar
                           </button>
                         </FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
-                            <SelectTrigger>
+                            <SelectTrigger className="h-9 text-xs">
                               <SelectValue placeholder="Selecione" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="none">Nenhum</SelectItem>
+                            <SelectItem value="none" className="text-xs">Nenhum</SelectItem>
                             {suppliers.length === 0 ? (
                               <div className="px-3 py-2 text-xs text-muted-foreground">
                                 Nenhum cadastrado.
                               </div>
                             ) : (
                               suppliers.map((s) => (
-                                <SelectItem key={s.id} value={s.id}>
+                                <SelectItem key={s.id} value={s.id} className="text-xs">
                                   <span className="inline-flex items-center gap-1.5">
                                     <Building2 className="size-3" />
                                     {s.name}
@@ -770,17 +767,17 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                 name="partner_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Vale de Sócio (Opcional)</FormLabel>
+                    <FormLabel className="text-xs font-medium text-muted-foreground">Vale de Sócio (Opcional)</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um sócio para descontar da distribuição" />
+                        <SelectTrigger className="h-9 text-xs">
+                          <SelectValue placeholder="Selecione o sócio" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">Nenhum (despesa comum)</SelectItem>
+                        <SelectItem value="none" className="text-xs">Nenhum (despesa comum)</SelectItem>
                         {companyPartners.map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                          <SelectItem key={p.id} value={p.id} className="text-xs">{p.full_name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -795,21 +792,21 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               name="conta_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Conta Bancária</FormLabel>
+                  <FormLabel className="text-xs font-medium text-muted-foreground">Conta Bancária</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma conta bancária" />
+                      <SelectTrigger className="h-9 text-xs">
+                        <SelectValue placeholder="Selecione a conta bancária" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {contas.length === 0 ? (
                         <div className="px-3 py-2 text-xs text-muted-foreground">
-                          Nenhuma conta. Cadastre em "Contas".
+                          Nenhuma conta cadastrada.
                         </div>
                       ) : (
                         contas.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
+                          <SelectItem key={c.id} value={c.id} className="text-xs">{c.nome}</SelectItem>
                         ))
                       )}
                     </SelectContent>
@@ -823,23 +820,23 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               <BoletoAttachmentSection form={form} />
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <FormField
                 control={form.control}
                 name="nf_status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs uppercase font-mono-kasa text-muted-foreground">Nota Fiscal (NF)</FormLabel>
+                    <FormLabel className="text-xs font-mono-kasa text-muted-foreground">Nota Fiscal (NF)</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-9">
+                        <SelectTrigger className="h-9 text-xs">
                           <SelectValue placeholder="NF Status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="pendente">Pendente</SelectItem>
-                        <SelectItem value="emitida">Emitida</SelectItem>
-                        <SelectItem value="nao_necessaria">Não necessária</SelectItem>
+                        <SelectItem value="pendente" className="text-xs">Pendente</SelectItem>
+                        <SelectItem value="emitida" className="text-xs">Emitida</SelectItem>
+                        <SelectItem value="nao_necessaria" className="text-xs">Não necessária</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -852,17 +849,17 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
                 name="boleto_internal_status"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-xs uppercase font-mono-kasa text-muted-foreground">Boleto</FormLabel>
+                    <FormLabel className="text-xs font-mono-kasa text-muted-foreground">Boleto</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
-                        <SelectTrigger className="h-9">
+                        <SelectTrigger className="h-9 text-xs">
                           <SelectValue placeholder="Boleto Status" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="pendente">Pendente</SelectItem>
-                        <SelectItem value="emitido">Emitido</SelectItem>
-                        <SelectItem value="nao_se_aplica">Não se aplica</SelectItem>
+                        <SelectItem value="pendente" className="text-xs">Pendente</SelectItem>
+                        <SelectItem value="emitido" className="text-xs">Emitido</SelectItem>
+                        <SelectItem value="nao_se_aplica" className="text-xs">Não se aplica</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -871,18 +868,19 @@ export function TransactionFormDialog({ open, onOpenChange, transaction }: Trans
               />
             </div>
 
-            <DialogFooter className="pt-4">
-
+            <DialogFooter className="gap-2 sm:gap-0 pt-3 border-t border-border/60">
               <Button
                 type="button"
                 variant="outline"
+                size="sm"
                 onClick={() => onOpenChange(false)}
                 disabled={mutation.isPending}
+                className="h-9 text-xs"
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button type="submit" size="sm" disabled={mutation.isPending} className="h-9 text-xs gap-1.5 font-medium">
+                {mutation.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
                 {isEdit ? "Salvar alterações" : "Salvar Lançamento"}
               </Button>
             </DialogFooter>

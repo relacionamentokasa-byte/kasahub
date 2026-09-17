@@ -1,7 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export type TimelineEventType = 
+export type TimelineEventType =
   | 'lead_created'
+  | 'lead_converted'
   | 'proposal_created'
   | 'proposal_sent'
   | 'proposal_approved'

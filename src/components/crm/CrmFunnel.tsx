@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Trophy, X, MessageCircle } from "lucide-react";
+import { Trophy, X, MessageCircle, TrendingDown, ArrowDown } from "lucide-react";
 import { formatCurrency, type Lead, type Stage } from "@/lib/crm-api";
+import { cn } from "@/lib/utils";
 
 export function CrmFunnel({
   stages,
@@ -13,165 +14,193 @@ export function CrmFunnel({
 }) {
   const [openStageId, setOpenStageId] = useState<string | null>(null);
 
-  const rows = useMemo(() => {
-    // Ignore lost stages in the funnel visual — they are not part of the flow
-    const flow = stages.filter((s) => !s.is_lost);
-    return flow.map((s) => {
-      const items = leads.filter((l) => l.stage_id === s.id);
-      const value = items.reduce((acc, l) => acc + Number(l.value), 0);
-      return { stage: s, items, value };
-    });
-  }, [stages, leads]);
+  // Consider all non-lost stages in sequence
+  const flowStages = useMemo(() => stages.filter((s) => !s.is_lost), [stages]);
 
-  // For each row, width is proportional to the MAX count from this row onward,
-  // divided by the top stage count. That keeps the funnel monotonically
-  // non-increasing while never collapsing to zero when later stages still hold leads.
-  const counts = rows.map((r) => r.items.length);
-  const suffixMax: number[] = [];
-  for (let i = counts.length - 1; i >= 0; i--) {
-    suffixMax[i] = Math.max(counts[i], suffixMax[i + 1] ?? 0);
-  }
-  const topCount = Math.max(1, suffixMax[0] ?? 0);
-  const MIN_W = 24; // % — narrowest tip
-  const MAX_W = 100; // % — widest top
-  const widths = suffixMax.map((c) => MIN_W + (c / topCount) * (MAX_W - MIN_W));
-  const bottomWidth = Math.max(MIN_W - 6, (widths[widths.length - 1] ?? MIN_W) - 8);
+  const rows = useMemo(() => {
+    // Cumulative logic for agency pipeline:
+    // Every lead currently at stage index >= i has passed through stage i.
+    const stageIndexMap = new Map<string, number>();
+    flowStages.forEach((s, idx) => stageIndexMap.set(s.id, idx));
+
+    return flowStages.map((stage, idx) => {
+      // Leads currently in this exact stage
+      const currentLeads = leads.filter((l) => l.stage_id === stage.id);
+      const stageValue = currentLeads.reduce((acc, l) => acc + Number(l.value || 0), 0);
+
+      // Cumulative leads that reached or passed this stage
+      const passedLeads = leads.filter((l) => {
+        if (!l.stage_id) return false;
+        const leadStageIdx = stageIndexMap.get(l.stage_id);
+        return leadStageIdx !== undefined && leadStageIdx >= idx;
+      });
+
+      return {
+        stage,
+        currentLeads,
+        currentCount: currentLeads.length,
+        cumulativeCount: passedLeads.length,
+        value: stageValue,
+      };
+    });
+  }, [flowStages, leads]);
+
+  // Overall top of funnel count (cumulative leads at stage 0, or total active if 0)
+  const topCount = Math.max(1, rows[0]?.cumulativeCount || leads.filter((l) => !stages.find((s) => s.id === l.stage_id)?.is_lost).length || 1);
+
+  // Progressive width calculation (100% down to minimum 42% for clean typography)
+  const widths = useMemo(() => {
+    const totalSteps = Math.max(1, rows.length);
+    return rows.map((_, idx) => {
+      const stepFactor = (totalSteps - 1 - idx) / Math.max(1, totalSteps - 1);
+      return 45 + stepFactor * 55; // Scales smoothly from 100% to 45%
+    });
+  }, [rows]);
 
   const openRow = openStageId ? rows.find((r) => r.stage.id === openStageId) ?? null : null;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 h-full">
-      {/* Funnel */}
-      <div className="bg-surface/40 border border-border rounded-2xl p-6 flex flex-col overflow-hidden">
-        {rows.length === 0 && (
-          <div className="text-center text-sm text-foreground/40 py-16">
-            Sem etapas cadastradas.
+    <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] gap-6 h-full items-start">
+      {/* Visual Funnel Container */}
+      <div className="bg-card border border-border rounded-2xl p-6 sm:p-8 flex flex-col items-center shadow-xs">
+        {rows.length === 0 ? (
+          <div className="text-center text-xs text-muted-foreground py-20">
+            Nenhuma etapa cadastrada no funil.
+          </div>
+        ) : (
+          <div className="w-full max-w-2xl flex flex-col items-center space-y-2">
+            {rows.map((row, i) => {
+              const next = rows[i + 1];
+              const widthPct = widths[i];
+              const isSelected = openStageId === row.stage.id;
+
+              // Correct cumulative conversion rate from top of funnel
+              const convFromTop = Math.min(100, Math.round((row.cumulativeCount / topCount) * 100));
+
+              // Conversion to next stage
+              const nextConv =
+                next && row.cumulativeCount > 0
+                  ? Math.min(100, Math.round((next.cumulativeCount / row.cumulativeCount) * 100))
+                  : null;
+
+              return (
+                <div key={row.stage.id} className="w-full flex flex-col items-center">
+                  <button
+                    type="button"
+                    onClick={() => setOpenStageId(row.stage.id)}
+                    style={{ width: `${widthPct}%` }}
+                    className={cn(
+                      "group relative transition-all duration-200 cursor-pointer rounded-xl p-3.5 sm:p-4 text-left border select-none",
+                      isSelected
+                        ? "bg-foreground/5 border-foreground/50 shadow-sm ring-1 ring-foreground/20"
+                        : "bg-muted/50 dark:bg-muted/30 hover:bg-muted/75 dark:hover:bg-muted/45 border-border hover:border-foreground/20 shadow-2xs"
+                    )}
+                  >
+                    {/* Stage color accent indicator */}
+                    <div
+                      className="absolute left-0 top-2 bottom-2 w-1.5 rounded-r-full"
+                      style={{ background: row.stage.color || "#888" }}
+                    />
+
+                    <div className="flex items-center justify-between gap-3 pl-2.5">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-display font-semibold text-xs text-foreground uppercase tracking-wide truncate">
+                            {row.stage.name}
+                          </span>
+                          {row.stage.is_won && <Trophy className="size-3.5 text-primary shrink-0" />}
+                        </div>
+                        <div className="text-[11px] font-mono-kasa text-muted-foreground mt-0.5">
+                          {row.currentCount} {row.currentCount === 1 ? "oportunidade" : "oportunidades"}
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <span className="font-mono-kasa font-bold text-xs sm:text-sm text-foreground tabular-nums block">
+                          {formatCurrency(row.value)}
+                        </span>
+                        <span className="text-[10px] font-mono-kasa text-muted-foreground block">
+                          {convFromTop}% do topo
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Inter-stage conversion indicator */}
+                  {nextConv !== null && (
+                    <div className="flex items-center gap-1.5 py-1 text-[10px] font-mono-kasa text-muted-foreground select-none">
+                      <ArrowDown className="size-3 text-muted-foreground/70" />
+                      <span>{nextConv}% de passagem para {next.stage.name}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
-        {rows.map((row, i) => {
-          const next = rows[i + 1];
-          const topW = widths[i];
-          const bottomW = next ? widths[i + 1] : bottomWidth;
-          const conversion =
-            next && row.items.length > 0
-              ? Math.round((next.items.length / row.items.length) * 100)
-              : null;
-
-          return (
-            <div key={row.stage.id} className="flex flex-col items-center">
-              <button
-                type="button"
-                onClick={() => setOpenStageId(row.stage.id)}
-                className="w-full group relative"
-                aria-label={`Ver oportunidades em ${row.stage.name}`}
-              >
-                <div className="relative w-full h-20">
-                  <svg
-                    viewBox="0 0 100 20"
-                    preserveAspectRatio="none"
-                    className="absolute inset-0 w-full h-full transition group-hover:opacity-95"
-                  >
-                    <defs>
-                      <linearGradient id={`grad-${row.stage.id}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={row.stage.color} stopOpacity="1" />
-                        <stop offset="100%" stopColor={row.stage.color} stopOpacity="0.75" />
-                      </linearGradient>
-                    </defs>
-                    <polygon
-                      points={`${50 - topW / 2},0 ${50 + topW / 2},0 ${50 + bottomW / 2},20 ${50 - bottomW / 2},20`}
-                      fill={`url(#grad-${row.stage.id})`}
-                      stroke="rgba(0,0,0,0.15)"
-                      strokeWidth={0.2}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-between px-8 pointer-events-none">
-                    <div className="flex items-center gap-2 text-white drop-shadow-md">
-                      <span className="font-display font-semibold text-sm">
-                        {row.stage.name}
-                      </span>
-                      {row.stage.is_won && <Trophy className="size-3.5" />}
-                    </div>
-                    <div className="flex items-center gap-4 text-white drop-shadow-md">
-                      <span className="font-display font-bold text-xl leading-none">
-                        {row.items.length}
-                      </span>
-                      <span className="text-[11px] opacity-90">
-                        {formatCurrency(row.value)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </button>
-              {conversion !== null && (
-                <div className="text-[10px] text-foreground/50 py-1">
-                  ↓ {conversion}% de conversão
-                </div>
-              )}
-            </div>
-          );
-        })}
       </div>
 
-      {/* Side panel — either summary or leads of selected stage */}
-      <aside className="bg-surface/40 border border-border rounded-2xl p-5 flex flex-col min-h-[300px]">
+      {/* Side Panel: Leads list or Overall Summary */}
+      <aside className="bg-card border border-border rounded-2xl p-5 flex flex-col min-h-[340px] shadow-xs">
         {openRow ? (
           <>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/60">
               <div className="flex items-center gap-2">
                 <span
-                  className="size-2.5 rounded-full"
+                  className="size-2 rounded-full"
                   style={{ background: openRow.stage.color }}
                 />
-                <h3 className="font-display font-semibold text-sm">
+                <h3 className="font-display font-semibold text-xs uppercase tracking-wider text-foreground">
                   {openRow.stage.name}
                 </h3>
-                <span className="text-[10px] text-foreground/40">
-                  {openRow.items.length}
+                <span className="text-[11px] font-mono-kasa text-muted-foreground tabular-nums">
+                  ({openRow.currentCount})
                 </span>
               </div>
               <button
                 onClick={() => setOpenStageId(null)}
-                className="size-6 grid place-items-center rounded-md hover:bg-surface-elevated text-foreground/50"
+                className="size-6 grid place-items-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
                 aria-label="Fechar"
               >
                 <X className="size-3.5" />
               </button>
             </div>
-            <ul className="space-y-2 overflow-y-auto flex-1">
-              {openRow.items.map((lead) => (
+
+            <ul className="space-y-2 overflow-y-auto flex-1 max-h-[500px] pr-1">
+              {openRow.currentLeads.map((lead) => (
                 <li key={lead.id}>
                   <button
                     onClick={() => onOpenLead(lead)}
-                    className="w-full text-left bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition"
+                    className="w-full text-left bg-muted/20 border border-border/60 rounded-xl p-3 hover:border-foreground/20 hover:bg-muted/40 transition cursor-pointer group"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <div className="font-semibold text-sm truncate">
+                        <div className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
                           {lead.name}
                         </div>
-                        {lead.company && (
-                          <div className="text-[11px] text-foreground/50 truncate">
+                        {lead.company && lead.company !== lead.name && (
+                          <div className="text-[11px] text-muted-foreground truncate mt-0.5">
                             {lead.company}
                           </div>
                         )}
                       </div>
                       {Number(lead.value) > 0 && (
-                        <span className="text-[11px] text-primary shrink-0">
+                        <span className="font-mono-kasa font-semibold text-xs text-foreground tabular-nums shrink-0">
                           {formatCurrency(Number(lead.value))}
                         </span>
                       )}
                     </div>
                     {lead.phone && (
-                      <div className="flex items-center gap-1 text-[10px] text-emerald-500 mt-2">
+                      <div className="flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 mt-2 font-medium">
                         <MessageCircle className="size-3" /> WhatsApp
                       </div>
                     )}
                   </button>
                 </li>
               ))}
-              {openRow.items.length === 0 && (
-                <p className="text-xs text-foreground/40 text-center py-6">
-                  Nenhuma oportunidade nesta etapa.
+              {openRow.currentLeads.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-10">
+                  Nenhuma oportunidade nesta etapa no momento.
                 </p>
               )}
             </ul>
@@ -187,29 +216,39 @@ export function CrmFunnel({
 function FunnelSummary({
   rows,
 }: {
-  rows: { stage: Stage; items: Lead[]; value: number }[];
+  rows: { stage: Stage; currentCount: number; cumulativeCount: number; value: number }[];
 }) {
-  const totalLeads = rows.reduce((acc, r) => acc + r.items.length, 0);
-  const totalValue = rows.reduce((acc, r) => acc + r.value, 0);
-  const avgTicket = totalLeads > 0 ? totalValue / totalLeads : 0;
-  const firstStage = rows[0];
+  const totalActiveLeads = rows.reduce((acc, r) => acc + r.currentCount, 0);
+  const totalPipelineValue = rows.reduce((acc, r) => acc + r.value, 0);
+  const avgTicket = totalActiveLeads > 0 ? totalPipelineValue / totalActiveLeads : 0;
+
+  const topStage = rows[0];
   const wonStage = rows.find((r) => r.stage.is_won);
-  const overallConv =
-    firstStage && firstStage.items.length > 0 && wonStage
-      ? Math.round((wonStage.items.length / firstStage.items.length) * 100)
-      : null;
+  const overallConversion =
+    topStage && topStage.cumulativeCount > 0 && wonStage
+      ? Math.round((wonStage.cumulativeCount / topStage.cumulativeCount) * 100)
+      : 0;
 
   return (
     <div className="flex flex-col gap-4">
-      <h3 className="font-display font-semibold text-sm">Resumo da Gestão</h3>
-      <Metric label="Oportunidades no funil" value={String(totalLeads)} />
-      <Metric label="Valor em pipeline" value={formatCurrency(totalValue)} />
-      <Metric label="Ticket médio" value={formatCurrency(avgTicket)} />
-      {overallConv !== null && (
-        <Metric label="Conversão geral" value={`${overallConv}%`} />
-      )}
-      <p className="text-[10px] text-foreground/40 mt-2">
-        Clique em uma faixa do funil para ver as oportunidades dentro dela.
+      <div className="pb-3 border-b border-border/60">
+        <h3 className="font-display font-semibold text-xs uppercase tracking-wider text-foreground">
+          Visão Geral do Funil
+        </h3>
+        <p className="text-[11px] text-muted-foreground mt-0.5">
+          Desempenho da esteira comercial da agência
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <Metric label="Oportunidades em aberto" value={String(totalActiveLeads)} />
+        <Metric label="Valor total em pipeline" value={formatCurrency(totalPipelineValue)} />
+        <Metric label="Ticket médio" value={formatCurrency(avgTicket)} />
+        <Metric label="Taxa de conversão final" value={`${overallConversion}%`} />
+      </div>
+
+      <p className="text-[11px] text-muted-foreground/80 mt-4 border-t border-border/60 pt-3 leading-relaxed">
+        Clique em qualquer etapa do funil para inspecionar os leads correspondentes no painel lateral.
       </p>
     </div>
   );
@@ -217,11 +256,11 @@ function FunnelSummary({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-baseline justify-between border-b border-border/60 pb-2">
-      <span className="text-[10px] uppercase tracking-wide text-foreground/50">
+    <div className="flex items-baseline justify-between border-b border-border/40 pb-2">
+      <span className="text-[11px] font-medium text-muted-foreground">
         {label}
       </span>
-      <span className="font-display font-semibold text-base text-foreground">
+      <span className="font-mono-kasa font-bold text-xs text-foreground tabular-nums">
         {value}
       </span>
     </div>

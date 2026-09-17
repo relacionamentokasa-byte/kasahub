@@ -14,7 +14,10 @@ export function addMonths(d: Date, n: number): Date {
 }
 
 export function ymd(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function safeBillingDay(year: number, month0: number, day: number): Date {
@@ -67,21 +70,44 @@ export async function approveProposal(
     .order("order_index", { ascending: true });
   if (iErr) throw iErr;
 
-  // 2. Step 1: Upsert de Cliente (Verificar/Criar)
+  // 2. Step 1: Upsert de Cliente (Verificar/Criar de forma segura)
   let clientId: string | null = proposal.client_id ?? null;
   if (!clientId) {
     const clientName = proposal.client_name?.trim() || "Cliente";
     const clientEmail = proposal.client_email?.trim()?.toLowerCase();
 
-    // Check if client exists by email (preferred) or name
-    let query = sb.from("clients").select("id").limit(1);
+    // 1. Busca prioritária por e-mail se presente
+    let existing: { id: string } | null = null;
     if (clientEmail) {
-      query = query.or(`email.ilike.${clientEmail},company.ilike.${clientName},name.ilike.${clientName}`);
-    } else {
-      query = query.or(`company.ilike.${clientName},name.ilike.${clientName}`);
+      const { data: byEmail } = await sb
+        .from("clients")
+        .select("id")
+        .eq("email", clientEmail)
+        .limit(1)
+        .maybeSingle();
+      if (byEmail?.id) existing = byEmail;
     }
 
-    const { data: existing } = await query.maybeSingle();
+    // 2. Fallback: busca por nome/empresa sem risco de syntax error com caracteres especiais
+    if (!existing && clientName) {
+      const { data: byCompany } = await sb
+        .from("clients")
+        .select("id")
+        .ilike("company", clientName)
+        .limit(1)
+        .maybeSingle();
+      if (byCompany?.id) {
+        existing = byCompany;
+      } else {
+        const { data: byName } = await sb
+          .from("clients")
+          .select("id")
+          .ilike("name", clientName)
+          .limit(1)
+          .maybeSingle();
+        if (byName?.id) existing = byName;
+      }
+    }
 
     if (existing?.id) {
       clientId = existing.id;
@@ -220,21 +246,30 @@ export async function approveProposal(
   // 6. Step 5: Geração Automática do Financeiro (Receita Prevista)
   let txCreated = 0;
   const transactions: any[] = [];
-  
-  // Injeção automática de categoria financeira
-  const { data: catRows } = await sb
+
+  // Injeção automática de categoria financeira com busca resiliente
+  const { data: allCats } = await sb
     .from("categorias_financeiras")
-    .select("id, nome")
-    .in("nome", ["Fee Mensal", "Job Avulso"]);
-  const feeMensalId = catRows?.find((c: any) => c.nome === "Fee Mensal")?.id ?? null;
-  const jobAvulsoId = catRows?.find((c: any) => c.nome === "Job Avulso")?.id ?? null;
+    .select("id, nome");
+
+  const normalizeStr = (s?: string) => s?.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "") || "";
+
+  const feeMensalId = allCats?.find((c: any) => {
+    const n = normalizeStr(c.nome);
+    return n.includes("fee") || n.includes("mensal") || n.includes("recorrente");
+  })?.id ?? null;
+
+  const jobAvulsoId = allCats?.find((c: any) => {
+    const n = normalizeStr(c.nome);
+    return n.includes("avulso") || n.includes("setup") || n.includes("servico") || n.includes("projeto");
+  })?.id ?? feeMensalId ?? allCats?.[0]?.id ?? null;
 
   // A. Geração das parcelas mensais (Fee)
   const monthlyAmount = Number(proposal.monthly_investment || 0);
   if (monthlyAmount > 0 && installmentsCount > 0) {
     const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
     const [fy, fm, fd] = firstDueRaw.split("-").map(Number);
-    const dayOfMonth = fd;
+    const dayOfMonth = (proposal as any).billing_day ?? fd ?? 5;
     const baseYear = fy;
     const baseMonth0 = fm - 1;
 
@@ -263,14 +298,15 @@ export async function approveProposal(
     const isSpecial = !!proposal.is_special_negotiation;
     const instCount = Number(proposal.installments || 1);
     const firstDueRaw = proposal.first_due_date ?? ymd(new Date());
-    const baseDate = new Date(firstDueRaw + "T12:00:00");
+    const [baseY, baseM, baseD] = firstDueRaw.split("-").map(Number);
+    const baseDate = new Date(baseY, baseM - 1, baseD, 12, 0, 0);
 
     let installments: any[] = [];
 
-    if (isSpecial && Array.isArray((proposal as any).payment_installments_config)) {
+    if (isSpecial && Array.isArray((proposal as any).payment_installments_config) && (proposal as any).payment_installments_config.length > 0) {
       installments = (proposal as any).payment_installments_config.slice(0, instCount);
     } else {
-      // Comportamento Padrão: Divisão igualitária (Não utiliza 30/70 como padrão)
+      // Comportamento Padrão: Divisão igualitária
       const { distributeEqually } = await import("./proposal-negotiation");
       installments = distributeEqually(100, instCount);
     }
@@ -279,8 +315,22 @@ export async function approveProposal(
     const values = calculateInstallmentValues(setupAmount, installments);
 
     values.forEach((inst, i) => {
-      const d = new Date(baseDate.getTime());
-      d.setDate(d.getDate() + (i * 30));
+      let dueDateStr: string;
+
+      if (inst.due_kind === "custom" && inst.due_date) {
+        dueDateStr = inst.due_date;
+      } else if (inst.due_kind === "entrada") {
+        dueDateStr = ymd(baseDate);
+      } else if (inst.due_kind?.endsWith("_dias")) {
+        const days = parseInt(inst.due_kind.replace("_dias", ""), 10) || (i * 30);
+        const d = new Date(baseDate.getTime());
+        d.setDate(d.getDate() + days);
+        dueDateStr = ymd(d);
+      } else {
+        const d = new Date(baseDate.getTime());
+        d.setDate(d.getDate() + (i * 30));
+        dueDateStr = ymd(d);
+      }
 
       transactions.push({
         client_id: clientId,
@@ -289,8 +339,8 @@ export async function approveProposal(
         category_id: jobAvulsoId,
         amount: inst.value,
         valor_previsto: inst.value,
-        due_date: ymd(d),
-        description: instCount === 1 
+        due_date: dueDateStr,
+        description: instCount === 1
           ? `Setup (À vista) - ${proposal.title}`
           : `Setup (Parcela ${i + 1}/${instCount}${isSpecial ? ' - Negociação Especial' : ''}) - ${proposal.title}`,
         status: "pending",
@@ -301,7 +351,17 @@ export async function approveProposal(
     });
   }
 
+  // Limpeza idempotente de transações pendentes anteriores desta proposta antes de reinserir
   if (transactions.length) {
+    const { error: delTxErr } = await sb
+      .from("transactions")
+      .delete()
+      .eq("proposal_id", proposal.id)
+      .eq("status", "pending");
+    if (delTxErr) {
+      console.warn("[approveProposal] Aviso ao limpar transações anteriores:", delTxErr);
+    }
+
     const { error: txErr } = await sb.from("transactions").insert(transactions);
     if (txErr) throw txErr;
     txCreated = transactions.length;

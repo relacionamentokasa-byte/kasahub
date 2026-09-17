@@ -15,10 +15,13 @@ import {
   AtSign
 } from "lucide-react";
 import React from "react";
-import { criticalBus, playCriticalSound, startTitleFlash } from "@/lib/critical-notification-bus";
+import {
+  criticalBus,
+  playCriticalSound,
+  playStandardNotificationSound,
+  startTitleFlash
+} from "@/lib/critical-notification-bus";
 import { navigateToNotificationLink } from "@/lib/notification-navigation";
-
-const NOTIFICATION_SOUND_URL = "https://lovable-pre-project.lovable.app/lovable-uploads/notification-chime.mp3";
 
 const IconForCategory = ({ tipo }: { tipo: string }) => {
   if (tipo === 'critical') return React.createElement(AlertCircle, { className: "size-4 text-rose-500" });
@@ -26,13 +29,12 @@ const IconForCategory = ({ tipo }: { tipo: string }) => {
   if (tipo === 'mention' || tipo === 'at') return React.createElement(AtSign, { className: "size-4 text-sky-500" });
   if (tipo === 'finance') return React.createElement("span", { className: "text-xs font-bold text-rose-500" }, "$");
   if (tipo === 'job') return React.createElement(Briefcase, { className: "size-4 text-primary" });
-  
+
   return React.createElement(Info, { className: "size-4 text-primary" });
 };
 
 export function useRealtimeNotifications() {
   const lastProcessedId = useRef<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
 
@@ -59,30 +61,32 @@ export function useRealtimeNotifications() {
   });
 
   const playSound = (volume: 'low' | 'medium' | 'high' = 'medium') => {
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio(NOTIFICATION_SOUND_URL);
-      }
-      
-      const volMap = {
-        low: 0.3,
-        medium: 0.6,
-        high: 1.0
-      };
-      
-      audioRef.current.volume = volMap[volume] || 0.6;
-      audioRef.current.play().catch(err => {
-        // Ignorar erro de autoplay bloqueado
-      });
-    } catch (e) {
-      console.warn("Erro ao reproduzir som:", e);
-    }
+    playStandardNotificationSound(volume);
   };
 
   useEffect(() => {
     if (!user?.id) return;
 
-    // Real-time listener para novas notificações
+    // Reconectar e revalidar imediatamente quando o usuário volta para a aba ou desbloqueia o computador
+    const handleFocus = () => {
+      qc.invalidateQueries({ queryKey: ["notificacoes"] });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        qc.invalidateQueries({ queryKey: ["notificacoes"] });
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Polling de segurança suave (60s) caso o WebSocket seja interrompido por rede
+    const pollInterval = setInterval(() => {
+      qc.invalidateQueries({ queryKey: ["notificacoes"] });
+    }, 60000);
+
+    // Real-time listener Supabase
     const channel = supabase
       .channel(`global-notifications-${user.id}`)
       .on(
@@ -155,6 +159,9 @@ export function useRealtimeNotifications() {
       .subscribe();
 
     return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
     };
   }, [user?.id, prefs, qc, navigate]);

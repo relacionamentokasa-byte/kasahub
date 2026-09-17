@@ -23,8 +23,6 @@ import {
   Rocket,
   CalendarDays,
   Film,
-  Bot,
-  BookOpen,
 
 
   Loader2,
@@ -84,14 +82,6 @@ const groups: { label: string; items: SidebarItem[] }[] = [
       { title: "Financeiro", url: "/relatorios", icon: Wallet, module: "financeiro" as any },
       { title: "Relatórios", url: "/gestao/relatorios", icon: TrendingUp, module: "financeiro" as any },
       { title: "Construtor de Relatórios", url: "/construtor-relatorios", icon: FileText, module: "financeiro" as any },
-    ],
-  },
-
-  {
-    label: "IA",
-    items: [
-      { title: "Kasa AI", url: "/kasa-ai", icon: Bot, module: "dashboard" },
-      { title: "Biblioteca", url: "/biblioteca", icon: BookOpen, module: "dashboard" },
     ],
   },
   {

@@ -12,13 +12,12 @@ import {
 import { useDroppable, useDraggable } from "@dnd-kit/core";
 import {
   Plus,
-  Trophy,
   Search,
   MessageCircle,
-  Filter,
   Trash2,
   LayoutGrid,
   Filter as FunnelIcon,
+  FileText,
 } from "lucide-react";
 import {
   fetchStages,
@@ -27,6 +26,9 @@ import {
   deleteLead,
   deleteLeadStage,
   formatCurrency,
+  markLeadAsWon,
+  markLeadAsLost,
+  convertLeadToClient,
   type Lead,
   type Stage,
 } from "@/lib/crm-api";
@@ -37,9 +39,13 @@ import { Input } from "@/components/ui/input";
 import { NewLeadDialog } from "./NewLeadDialog";
 import { LeadSheet } from "./LeadSheet";
 import { CrmFunnel } from "./CrmFunnel";
+import { LostLeadDialog } from "./LostLeadDialog";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "@tanstack/react-router";
 
 type View = "kanban" | "funnel";
+type StatusFilter = "all" | "stalled" | "with_tasks" | "overdue";
 
 export function CrmBoard() {
   const qc = useQueryClient();
@@ -59,12 +65,16 @@ export function CrmBoard() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [openLead, setOpenLead] = useState<Lead | null>(null);
   const [newLeadStage, setNewLeadStage] = useState<Stage | null>(null);
+  const [lostDialogLead, setLostDialogLead] = useState<Lead | null>(null);
   const [query, setQuery] = useState("");
-  const [whatsappFilter, setWhatsappFilter] = useState<"all" | "yes" | "no">("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+
+  const wonStage = stages.find((s) => s.is_won);
+  const lostStage = stages.find((s) => s.is_lost);
 
   const sources = useMemo(() => {
     const set = new Set<string>();
@@ -76,9 +86,6 @@ export function CrmBoard() {
     const q = query.trim().toLowerCase();
     let list = leads;
 
-    if (whatsappFilter === "yes") list = list.filter((l) => !!l.phone);
-    else if (whatsappFilter === "no") list = list.filter((l) => !l.phone);
-
     if (ownerFilter !== "all") {
       list = list.filter((l) =>
         ownerFilter === "unassigned" ? !l.owner_id : l.owner_id === ownerFilter,
@@ -88,6 +95,18 @@ export function CrmBoard() {
       list = list.filter((l) => (l.source ?? "") === sourceFilter);
     }
 
+    if (statusFilter === "stalled") {
+      list = list.filter((l) => daysBetween(l.updated_at || l.created_at) >= 5);
+    } else if (statusFilter === "with_tasks") {
+      list = list.filter((l) => (taskCounts[l.id] ?? 0) > 0);
+    } else if (statusFilter === "overdue") {
+      list = list.filter((l) => {
+        const nt = nextTasks[l.id];
+        if (!nt?.due_date) return false;
+        return new Date(nt.due_date).getTime() < Date.now();
+      });
+    }
+
     if (!q) return list;
     return list.filter(
       (l) =>
@@ -95,7 +114,7 @@ export function CrmBoard() {
         (l.company ?? "").toLowerCase().includes(q) ||
         (l.email ?? "").toLowerCase().includes(q),
     );
-  }, [leads, query, whatsappFilter, ownerFilter, sourceFilter]);
+  }, [leads, query, ownerFilter, sourceFilter, statusFilter, taskCounts, nextTasks]);
 
   const byStage = useMemo(() => {
     const m = new Map<string, Lead[]>();
@@ -111,20 +130,25 @@ export function CrmBoard() {
     const now = new Date();
     const start = new Date(now.getFullYear(), now.getMonth(), 1);
     const wonStages = new Set(stages.filter((s) => s.is_won).map((s) => s.id));
+    const lostStages = new Set(stages.filter((s) => s.is_lost).map((s) => s.id));
     const monthLeads = leads.filter((l) => new Date(l.created_at) >= start);
     const wonAll = leads.filter((l) => l.stage_id && wonStages.has(l.stage_id));
     const wonMonth = wonAll.filter((l) => l.won_at && new Date(l.won_at) >= start);
     const wonValueMonth = wonMonth.reduce((a, l) => a + Number(l.value), 0);
-    const pipelineValue = leads
-      .filter((l) => l.stage_id && !wonStages.has(l.stage_id))
-      .reduce((a, l) => a + Number(l.value), 0);
+    const pipelineLeads = leads.filter((l) => l.stage_id && !wonStages.has(l.stage_id) && !lostStages.has(l.stage_id));
+    const pipelineValue = pipelineLeads.reduce((a, l) => a + Number(l.value), 0);
+    const finishedLeads = leads.filter((l) => l.stage_id && (wonStages.has(l.stage_id) || lostStages.has(l.stage_id)));
     const convRate =
-      leads.length > 0 ? Math.round((wonAll.length / leads.length) * 100) : 0;
+      finishedLeads.length > 0 ? Math.round((wonAll.length / finishedLeads.length) * 100) : (leads.length > 0 ? Math.round((wonAll.length / leads.length) * 100) : 0);
+    const stalledCount = pipelineLeads.filter((l) => daysBetween(l.updated_at || l.created_at) >= 5).length;
+
     return {
       monthLeads: monthLeads.length,
+      totalActive: pipelineLeads.length,
       convRate,
       wonValueMonth,
       pipelineValue,
+      stalledCount,
     };
   }, [leads, stages]);
 
@@ -150,6 +174,31 @@ export function CrmBoard() {
     },
   });
 
+  const winMut = useMutation({
+    mutationFn: (leadId: string) => {
+      if (!wonStage) throw new Error("Nenhuma etapa de Ganho configurada");
+      return markLeadAsWon(leadId, wonStage.id);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "leads"] });
+      toast.success("🎉 Oportunidade ganha com sucesso!");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const loseMut = useMutation({
+    mutationFn: ({ leadId, reason }: { leadId: string; reason: string }) => {
+      if (!lostStage) throw new Error("Nenhuma etapa de Perda configurada");
+      return markLeadAsLost(leadId, lostStage.id, reason);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "leads"] });
+      setLostDialogLead(null);
+      toast.info("Oportunidade marcada como perdida.");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   function onDragStart(e: DragStartEvent) {
     setActiveId(String(e.active.id));
   }
@@ -168,105 +217,205 @@ export function CrmBoard() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-4 sm:px-6 lg:px-10 pt-6 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-        <div>
-          <span className="text-primary text-[10px] capitalize">
-            Comercial · Oportunidades
-          </span>
-          <h1 className="font-display text-2xl lg:text-4xl font-bold tracking-tight mt-1">
-            Gestão de oportunidades
-          </h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <div className="flex bg-surface border border-border rounded-lg p-1">
+      <div className="px-4 sm:px-6 lg:px-10 pt-4 sm:pt-6 pb-4 flex flex-col gap-3.5 border-b border-border/60">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-primary text-[10px] font-mono-kasa uppercase tracking-widest font-semibold">
+              Pipeline Comercial
+            </span>
+            <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mt-0.5">
+              Oportunidades
+            </h1>
+          </div>
+
+          <div className="flex bg-muted/40 border border-border rounded-lg p-0.5">
             <button
               onClick={() => setView("kanban")}
-              className={`h-8 px-3 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
+              className={`h-7 px-2.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all ${
                 view === "kanban"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground/60 hover:text-foreground"
+                  ? "bg-card text-foreground shadow-2xs border border-border/80"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <LayoutGrid className="size-3.5" /> Kanban
+              <LayoutGrid className="size-3" /> <span className="hidden sm:inline">Kanban</span>
             </button>
             <button
               onClick={() => setView("funnel")}
-              className={`h-8 px-3 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
+              className={`h-7 px-2.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-all ${
                 view === "funnel"
-                  ? "bg-primary text-primary-foreground"
-                  : "text-foreground/60 hover:text-foreground"
+                  ? "bg-card text-foreground shadow-2xs border border-border/80"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <FunnelIcon className="size-3.5" /> Funil
+              <FunnelIcon className="size-3" /> <span className="hidden sm:inline">Funil</span>
             </button>
           </div>
-          <div className="relative flex-1 sm:flex-none min-w-[120px]">
-            <Search className="size-4 text-foreground/40 absolute left-3 top-1/2 -translate-y-1/2" />
-            <Input
-              placeholder="Buscar oportunidade, empresa, e-mail…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="pl-9 h-11 sm:h-10 w-full sm:w-56 bg-surface border-border"
-            />
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 flex-1">
+            <div className="relative flex-1 sm:max-w-xs">
+              <Search className="size-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Input
+                placeholder="Buscar oportunidade…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="pl-8 h-8 w-full bg-card border-border rounded-lg text-xs"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-card border border-border/80 px-2.5 h-8 rounded-lg shadow-2xs">
+              <select
+                value={ownerFilter}
+                onChange={(e) => setOwnerFilter(e.target.value)}
+                className="bg-transparent border-none outline-none text-xs text-foreground/80 cursor-pointer font-medium max-w-[120px] truncate"
+              >
+                <option value="all">Responsável</option>
+                <option value="unassigned">Sem responsável</option>
+                {profiles.map((p: any) => (
+                  <option key={p.id} value={p.id}>
+                    {p.display_name || p.full_name || "—"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="hidden md:flex items-center gap-1.5 bg-card border border-border/80 px-2.5 h-8 rounded-lg shadow-2xs">
+              <select
+                value={sourceFilter}
+                onChange={(e) => setSourceFilter(e.target.value)}
+                className="bg-transparent border-none outline-none text-xs text-foreground/80 cursor-pointer font-medium"
+              >
+                <option value="all">Origem (todas)</option>
+                {sources.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="flex items-center gap-2 bg-surface border border-border px-3 h-11 sm:h-10 rounded-lg">
-            <Filter className="size-3.5 text-foreground/40" />
-            <select
-              value={ownerFilter}
-              onChange={(e) => setOwnerFilter(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs text-foreground/70"
-            >
-              <option value="all">Todos responsáveis</option>
-              <option value="unassigned">Sem responsável</option>
-              {profiles.map((p: any) => (
-                <option key={p.id} value={p.id}>
-                  {p.display_name || p.full_name || "—"}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-center gap-2 bg-surface border border-border px-3 h-11 sm:h-10 rounded-lg">
-            <Filter className="size-3.5 text-foreground/40" />
-            <select
-              value={sourceFilter}
-              onChange={(e) => setSourceFilter(e.target.value)}
-              className="bg-transparent border-none outline-none text-xs text-foreground/70"
-            >
-              <option value="all">Todas origens</option>
-              {sources.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex-1 sm:flex-none flex items-center gap-2 bg-surface border border-border px-3 h-11 sm:h-10 rounded-lg">
-            <Filter className="size-3.5 text-foreground/40" />
-            <select
-              value={whatsappFilter}
-              onChange={(e) => setWhatsappFilter(e.target.value as any)}
-              className="bg-transparent border-none outline-none text-xs text-foreground/70"
-            >
-              <option value="all">Todas oportunidades</option>
-              <option value="yes">Com WhatsApp</option>
-              <option value="no">Sem WhatsApp</option>
-            </select>
-          </div>
+
           <Button
             onClick={() => setNewLeadStage(stages[0] ?? null)}
-            className="flex-1 sm:flex-none bg-primary text-primary-foreground hover:bg-primary/90 rounded-full font-semibold h-11 sm:h-10 px-5 gap-2"
+            className="w-full sm:w-auto bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg font-medium h-8 px-3.5 text-xs gap-1.5 shadow-xs transition-all cursor-pointer shrink-0"
           >
-            <Plus className="size-4" /> Nova oportunidade
+            <Plus className="size-3.5" /> Nova oportunidade
           </Button>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="px-4 sm:px-6 lg:px-10 pb-4 grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiCard label="Novas oportunidades no mês" value={String(kpis.monthLeads)} />
-        <KpiCard label="Conversão geral" value={`${kpis.convRate}%`} />
-        <KpiCard label="Valor ganho no mês" value={formatCurrency(kpis.wonValueMonth)} />
-        <KpiCard label="Pipeline em aberto" value={formatCurrency(kpis.pipelineValue)} />
+      {/* KPIs Grid Compacto 2x2 no Mobile e 4 cols no Desktop */}
+      <div className="px-4 sm:px-6 lg:px-10 py-3 sm:py-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Novas (Mês)
+          </span>
+          <div className="mt-0.5 sm:mt-1 flex items-baseline gap-1 sm:gap-2 flex-wrap">
+            <span className="font-mono-kasa text-base sm:text-xl font-bold text-foreground tabular-nums">
+              {kpis.monthLeads}
+            </span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground font-mono-kasa">
+              / {kpis.totalActive} ativas
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Pipeline em Aberto
+          </span>
+          <div className="mt-0.5 sm:mt-1 font-mono-kasa text-sm sm:text-xl font-bold text-foreground tabular-nums truncate">
+            {formatCurrency(kpis.pipelineValue)}
+          </div>
+        </div>
+
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Ganho no Mês
+          </span>
+          <div className="mt-0.5 sm:mt-1 font-mono-kasa text-sm sm:text-xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums truncate">
+            {formatCurrency(kpis.wonValueMonth)}
+          </div>
+        </div>
+
+        <div className="bg-card border border-border/80 shadow-xs rounded-xl p-2.5 sm:p-3.5 hover:border-border transition-colors">
+          <span className="text-[10px] sm:text-[11px] text-muted-foreground uppercase tracking-wider font-mono-kasa block truncate">
+            Conversão
+          </span>
+          <div className="mt-0.5 sm:mt-1 flex items-baseline gap-1 sm:gap-2 flex-wrap">
+            <span className="font-mono-kasa text-base sm:text-xl font-bold text-foreground tabular-nums">
+              {kpis.convRate}%
+            </span>
+            {kpis.stalledCount > 0 && (
+              <span className="text-[10px] sm:text-[11px] text-amber-600 dark:text-amber-400 font-mono-kasa font-medium">
+                ({kpis.stalledCount} &gt;5d)
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Filters */}
+      <div className="px-4 sm:px-6 lg:px-10 pb-3 flex items-center gap-1.5 border-b border-border/40">
+        <button
+          onClick={() => setStatusFilter("all")}
+          className={cn(
+            "h-7 px-2.5 rounded text-xs font-medium transition-colors",
+            statusFilter === "all"
+              ? "bg-secondary text-foreground font-semibold"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Todas ({leads.length})
+        </button>
+        <button
+          onClick={() => setStatusFilter("stalled")}
+          className={cn(
+            "h-7 px-2.5 rounded text-xs font-medium transition-colors",
+            statusFilter === "stalled"
+              ? "bg-secondary text-foreground font-semibold"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Paradas (+5d)
+        </button>
+        <button
+          onClick={() => setStatusFilter("with_tasks")}
+          className={cn(
+            "h-7 px-2.5 rounded text-xs font-medium transition-colors",
+            statusFilter === "with_tasks"
+              ? "bg-secondary text-foreground font-semibold"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Com Tarefas
+        </button>
+        <button
+          onClick={() => setStatusFilter("overdue")}
+          className={cn(
+            "h-7 px-2.5 rounded text-xs font-medium transition-colors",
+            statusFilter === "overdue"
+              ? "bg-secondary text-foreground font-semibold"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+        >
+          Atrasadas
+        </button>
+
+        {(statusFilter !== "all" || ownerFilter !== "all" || sourceFilter !== "all" || query) && (
+          <button
+            onClick={() => {
+              setStatusFilter("all");
+              setOwnerFilter("all");
+              setSourceFilter("all");
+              setQuery("");
+            }}
+            className="text-xs text-muted-foreground hover:text-foreground ml-auto cursor-pointer"
+          >
+            Limpar
+          </button>
+        )}
       </div>
 
       {view === "kanban" ? (
@@ -282,16 +431,20 @@ export function CrmBoard() {
                     stage={stage}
                     total={total}
                     count={cards.length}
+                    pipelineTotal={kpis.pipelineValue}
                     onAdd={() => setNewLeadStage(stage)}
                   >
                     {cards.map((lead) => (
                       <LeadCard
                         key={lead.id}
                         lead={lead}
+                        stage={stage}
                         dueTasks={taskCounts[lead.id] ?? 0}
                         nextTask={nextTasks[lead.id]}
                         profiles={profiles as any}
                         onClick={() => setOpenLead(lead)}
+                        onWin={() => winMut.mutate(lead.id)}
+                        onLose={() => setLostDialogLead(lead)}
                       />
                     ))}
                   </Column>
@@ -299,7 +452,7 @@ export function CrmBoard() {
               })}
             </div>
             <DragOverlay>
-              {activeLead ? <LeadCardInner lead={activeLead} dragging /> : null}
+              {activeLead ? <LeadCardInner lead={activeLead} dragging stage={stages.find((s) => s.id === activeLead.stage_id)} /> : null}
             </DragOverlay>
           </DndContext>
         </div>
@@ -316,17 +469,27 @@ export function CrmBoard() {
         />
       )}
       <LeadSheet lead={openLead} stages={stages} onClose={() => setOpenLead(null)} />
+
+      {lostDialogLead && (
+        <LostLeadDialog
+          open={!!lostDialogLead}
+          onOpenChange={(o) => !o && setLostDialogLead(null)}
+          leadName={lostDialogLead.name}
+          onConfirm={(reason) => loseMut.mutate({ leadId: lostDialogLead.id, reason })}
+          isLoading={loseMut.isPending}
+        />
+      )}
     </div>
   );
 }
 
 function KpiCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface border border-border rounded-xl px-4 py-3">
-      <div className="text-[10px] uppercase tracking-wide text-foreground/50">
+    <div className="bg-card border border-border/70 rounded-xl px-4 py-3 transition-all duration-150 hover:border-foreground/20">
+      <span className="text-[11px] font-medium text-muted-foreground block truncate">
         {label}
-      </div>
-      <div className="font-display font-bold text-xl text-foreground mt-1">
+      </span>
+      <div className="font-mono-kasa font-bold text-lg lg:text-xl text-foreground tabular-nums tracking-tight mt-1">
         {value}
       </div>
     </div>
@@ -343,6 +506,7 @@ function Column({
   stage: Stage;
   total: number;
   count: number;
+  pipelineTotal?: number;
   onAdd: () => void;
   children: React.ReactNode;
 }) {
@@ -354,47 +518,53 @@ function Column({
       qc.invalidateQueries({ queryKey: ["crm", "stages"] });
       toast.success("Etapa removida");
     },
-    onError: (e: Error) => toast.error("Não é possível excluir uma etapa que contém oportunidades."),
+    onError: (_e: Error) => toast.error("Não é possível excluir uma etapa que contém oportunidades."),
   });
 
   return (
     <div className="w-[300px] shrink-0 flex flex-col group/col">
-      <div className="flex items-center justify-between mb-3 px-1">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between mb-2.5 px-1.5">
+        <div className="flex items-center gap-2 min-w-0">
           <span
-            className="size-2 rounded-full"
-            style={{ background: stage.color }}
+            className="size-2.5 rounded-full shrink-0 shadow-xs"
+            style={{ background: stage.color || "currentColor" }}
           />
-          <span className="font-display font-semibold text-sm tracking-tight">{stage.name}</span>
-          {stage.is_won && <Trophy className="size-3.5 text-primary" />}
-          <span className="text-[10px] text-foreground/40">{count}</span>
+          <span className="font-semibold text-xs text-foreground uppercase tracking-wider truncate">
+            {stage.name}
+          </span>
+          <span className="text-[11px] font-mono-kasa font-semibold text-muted-foreground bg-background/80 border border-border/60 px-1.5 py-0.5 rounded-md tabular-nums leading-none">
+            {count}
+          </span>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-xs font-mono-kasa font-medium text-foreground/80 tabular-nums">
+            {formatCurrency(total)}
+          </span>
           <button
             onClick={() => {
               if (confirm(`Remover a etapa "${stage.name}"?`)) delStageMut.mutate();
             }}
-            className="size-6 rounded-md hover:bg-destructive/10 grid place-items-center text-foreground/20 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
+            className="size-5 rounded hover:bg-destructive/10 grid place-items-center text-muted-foreground/40 hover:text-destructive opacity-0 group-hover/col:opacity-100 transition"
             aria-label="Excluir etapa"
           >
             <Trash2 className="size-3" />
           </button>
           <button
             onClick={onAdd}
-            className="size-6 rounded-md hover:bg-surface-elevated grid place-items-center text-foreground/50 hover:text-primary transition"
+            className="size-5 rounded hover:bg-background border border-transparent hover:border-border/60 grid place-items-center text-muted-foreground hover:text-foreground transition"
             aria-label={`Adicionar em ${stage.name}`}
           >
             <Plus className="size-3.5" />
           </button>
         </div>
       </div>
-      <div className="text-[10px] text-foreground/40 mb-2 px-1 capitalize">
-        {formatCurrency(total)}
-      </div>
+
       <div
         ref={setNodeRef}
-        className={`flex-1 rounded-xl border border-dashed p-2 space-y-2 transition-colors ${
-          isOver ? "border-primary/60 bg-primary/5" : "border-border/60 bg-surface/40"
+        className={`flex-1 rounded-xl border p-2.5 space-y-2.5 transition-colors min-h-[480px] shadow-2xs ${
+          isOver
+            ? "border-primary/50 bg-primary/5 dark:bg-primary/10 ring-2 ring-primary/10"
+            : "border-slate-200/90 dark:border-border/80 bg-slate-100/70 dark:bg-muted/20"
         }`}
       >
         {children}
@@ -407,16 +577,22 @@ type ProfileLite = { id: string; display_name?: string | null; full_name?: strin
 
 function LeadCard({
   lead,
+  stage,
   dueTasks = 0,
   nextTask,
   profiles = [],
   onClick,
+  onWin,
+  onLose,
 }: {
   lead: Lead;
+  stage: Stage;
   dueTasks?: number;
   nextTask?: NextLeadTask;
   profiles?: ProfileLite[];
   onClick: () => void;
+  onWin: () => void;
+  onLose: () => void;
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: lead.id });
   const qc = useQueryClient();
@@ -438,7 +614,15 @@ function LeadCard({
         onClick={onClick}
         className="cursor-grab active:cursor-grabbing"
       >
-        <LeadCardInner lead={lead} dueTasks={dueTasks} nextTask={nextTask} profiles={profiles} />
+        <LeadCardInner
+          lead={lead}
+          dueTasks={dueTasks}
+          nextTask={nextTask}
+          profiles={profiles}
+          stage={stage}
+          onWin={!stage.is_won ? onWin : undefined}
+          onLose={!stage.is_lost ? onLose : undefined}
+        />
       </div>
       <button
         type="button"
@@ -495,14 +679,13 @@ function LeadCardInner({
   dueTasks?: number;
   nextTask?: NextLeadTask;
   profiles?: ProfileLite[];
+  stage?: Stage;
+  onWin?: () => void;
+  onLose?: () => void;
 }) {
+  const navigate = useNavigate();
   const days = daysBetween(lead.updated_at || lead.created_at);
-  const stuckColor =
-    days > 15
-      ? "bg-destructive/15 text-destructive"
-      : days > 7
-        ? "bg-amber-500/15 text-amber-500"
-        : "bg-emerald-500/15 text-emerald-500";
+  const isStalled = days >= 5;
 
   const responsibleId = nextTask?.assigned_to ?? lead.owner_id ?? null;
   const responsible = responsibleId ? profiles.find((p) => p.id === responsibleId) : null;
@@ -515,106 +698,125 @@ function LeadCardInner({
     .join("");
 
   const due = nextTask?.due_date ? formatDueLabel(nextTask.due_date) : null;
-  const dueTone =
-    due?.tone === "overdue"
-      ? "bg-destructive/15 text-destructive"
-      : due?.tone === "today"
-        ? "bg-amber-500/15 text-amber-600"
-        : due?.tone === "soon"
-          ? "bg-primary/15 text-primary"
-          : "bg-foreground/10 text-foreground/60";
+  const isOverdue = due?.tone === "overdue";
 
   return (
     <div
-      className={`bg-surface-elevated border border-border rounded-lg p-3 hover:border-primary/50 transition ${
-        dragging ? "shadow-2xl rotate-1" : ""
-      }`}
+      className={cn(
+        "bg-card border border-border/90 rounded-xl p-3.5 hover:border-foreground/35 shadow-xs hover:shadow-sm transition-all relative group/card",
+        dragging && "shadow-xl rotate-1 scale-[1.02] border-foreground/50",
+        isStalled ? "border-amber-500/50 bg-amber-500/[0.03]" : ""
+      )}
     >
+      {/* Top Header: Title & Value */}
       <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <div className="font-semibold text-sm truncate">{lead.name}</div>
-          {lead.company && (
-            <div className="text-[11px] text-foreground/50 truncate">{lead.company}</div>
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-xs text-foreground truncate leading-snug tracking-tight">
+            {lead.name}
+          </div>
+          {lead.company && lead.company !== lead.name && (
+            <div className="text-[11px] text-muted-foreground truncate font-normal mt-0.5">
+              {lead.company}
+            </div>
           )}
         </div>
         {Number(lead.value) > 0 && (
-          <span className="text-[11px] text-primary shrink-0">
+          <span className="font-mono-kasa font-bold text-xs text-foreground tabular-nums shrink-0">
             {formatCurrency(Number(lead.value))}
           </span>
         )}
       </div>
 
+      {/* Lost Reason if present */}
+      {lead.lost_reason && (
+        <div className="mt-1.5 text-[10px] text-destructive truncate">
+          Motivo: {lead.lost_reason}
+        </div>
+      )}
+
+      {/* Next Step / Follow-up pill */}
       {nextTask && (
-        <div
-          className="mt-2 flex items-center gap-1.5 rounded-md bg-surface px-2 py-1 border border-border/60"
-          title={nextTask.title}
-        >
-          <span className="text-[11px]">{TASK_TYPE_ICON[nextTask.type] ?? "•"}</span>
-          <span className="text-[11px] text-foreground/80 truncate flex-1">
+        <div className="mt-2 flex items-center justify-between gap-1.5 text-[11px] text-muted-foreground">
+          <span className="truncate font-normal">
             {nextTask.title}
           </span>
           {due && (
-            <span className={`text-[10px] rounded px-1.5 py-0.5 shrink-0 font-semibold ${dueTone}`}>
+            <span
+              className={cn(
+                "text-[10px] font-mono-kasa shrink-0",
+                isOverdue ? "text-destructive font-semibold" : "text-muted-foreground"
+              )}
+            >
               {due.label}
             </span>
           )}
         </div>
       )}
 
-      <div className="flex items-center justify-between mt-3 gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
+      {/* Card Footer: Metadata, Inactivity & Actions */}
+      <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-border/40 text-[10px]">
+        <div className="flex items-center gap-1.5 min-w-0 text-muted-foreground">
           {lead.source && (
-            <span className="text-[10px] capitalize text-foreground/40 border border-border rounded px-1.5 py-0.5 truncate">
+            <span className="truncate">
               {lead.source}
             </span>
           )}
-          <span
-            className={`text-[10px] rounded px-1.5 py-0.5 shrink-0 ${stuckColor}`}
-            title={`Sem movimentação há ${days} dias`}
-          >
-            {days}d
-          </span>
-          {dueTasks > 0 && (
-            <span
-              className="text-[10px] rounded px-1.5 py-0.5 shrink-0 bg-destructive/15 text-destructive font-semibold flex items-center gap-0.5"
-              title={`${dueTasks} tarefa(s) para hoje ou atrasadas`}
-            >
-              🔔 {dueTasks}
+          {lead.source && isStalled && <span>•</span>}
+          {isStalled && (
+            <span className="text-amber-600 dark:text-amber-400 font-mono-kasa">
+              {days}d sem contato
             </span>
           )}
         </div>
+
         <div className="flex items-center gap-2 shrink-0">
           {responsible && (
             <div
-              className="flex items-center gap-1"
+              className="flex items-center"
               title={`Responsável: ${responsibleName}`}
             >
               {responsible.avatar_url ? (
                 <img
                   src={responsible.avatar_url}
                   alt={responsibleName ?? ""}
-                  className="size-5 rounded-full object-cover border border-border"
+                  className="size-4 rounded-full object-cover border border-border/60"
                 />
               ) : (
-                <div className="size-5 rounded-full bg-primary/15 text-primary text-[9px] font-bold grid place-items-center border border-border">
+                <div className="size-4 rounded-full bg-muted text-muted-foreground text-[8px] font-bold grid place-items-center border border-border/60">
                   {initials || "?"}
                 </div>
               )}
             </div>
           )}
+
           {lead.phone && (
             <button
               type="button"
+              onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => {
                 e.stopPropagation();
                 const phone = lead.phone?.replace(/\D/g, "");
-                if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}?text=${encodeURIComponent(`Olá, ${lead.name}. Vi seu interesse em nossos serviços e gostaria de entender melhor sua necessidade.`)}`, "_blank");
+                if (phone) window.open(`https://wa.me/${phone.startsWith("55") ? phone : `55${phone}`}`, "_blank");
               }}
-              className="flex items-center gap-1.5 text-[10px] text-emerald-500 font-bold hover:underline shrink-0"
+              className="text-muted-foreground hover:text-emerald-600 dark:hover:text-emerald-400 transition cursor-pointer"
+              title="Abrir WhatsApp"
             >
-              <MessageCircle className="size-3" /> WhatsApp
+              <MessageCircle className="size-3" />
             </button>
           )}
+
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate({ to: "/propostas", search: { lead_id: lead.id } as any });
+            }}
+            className="text-muted-foreground hover:text-foreground transition cursor-pointer"
+            title="Ver propostas"
+          >
+            <FileText className="size-3" />
+          </button>
         </div>
       </div>
     </div>

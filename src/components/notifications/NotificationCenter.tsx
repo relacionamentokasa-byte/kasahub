@@ -33,10 +33,10 @@ import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { navigateToNotificationLink } from "@/lib/notification-navigation";
 
-export function NotificationCenter() {
+export function NotificationCenter({ className }: { className?: string } = {}) {
   const qc = useQueryClient();
   const navigate = useNavigate();
-  
+
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notificacoes"],
     queryFn: fetchNotifications,
@@ -68,10 +68,10 @@ export function NotificationCenter() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="relative p-2 text-foreground/60 hover:text-foreground transition-colors group">
-          <Bell className="size-5 group-hover:scale-110 transition-transform" />
+        <button className={cn("relative p-2 text-zinc-300 hover:text-white hover:bg-white/10 rounded-md transition-colors group cursor-pointer flex items-center justify-center", className)}>
+          <Bell className="size-4.5 group-hover:scale-105 transition-transform" />
           {unreadCount > 0 && (
-            <span className="absolute top-1.5 right-1.5 size-4 bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center rounded-full ring-2 ring-background animate-in zoom-in">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-amber-500 text-zinc-950 text-[10px] font-bold font-mono-kasa flex items-center justify-center rounded-full ring-2 ring-[#121214] shadow-sm animate-in zoom-in">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
