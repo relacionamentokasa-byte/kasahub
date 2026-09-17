@@ -60,7 +60,7 @@ export function PrivacyToggleButton({ className = "" }: { className?: string }) 
       onClick={toggle}
       aria-pressed={!hidden}
       aria-label={hidden ? "Mostrar valores" : "Ocultar valores"}
-      title={hidden ? "Mostrar valores monetários" : "Ocultar valores monetários (modo reunião)"}
+      title={hidden ? "Mostrar todos os números" : "Ocultar todos os números"}
       className={`size-8 transition-colors cursor-pointer ${hidden ? "text-amber-400 bg-amber-400/10" : "text-zinc-400 hover:text-white hover:bg-white/10"} ${className}`}
     >
       {hidden ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
