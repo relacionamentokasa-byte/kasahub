@@ -105,7 +105,7 @@ function ShellLayout() {
 function ShellInner() {
   const { focusMode } = useFocusMode();
   return (
-    <div className="min-h-screen flex flex-col w-full bg-background text-foreground relative">
+    <div className="min-h-screen flex flex-col w-full max-w-full overflow-x-clip bg-background text-foreground relative">
       {!focusMode && <TopNavigation />}
       <div className="flex-1 flex flex-col min-w-0 w-full pb-16 lg:pb-0">
         <main className="flex-1 min-w-0 w-full">
