@@ -29,8 +29,8 @@ export const Route = createFileRoute("/api/public/manifest")({
           scope: "/",
           display: "standalone",
           orientation: "portrait",
-          background_color: a.pwa_background_color || "#0C1618",
-          theme_color: a.pwa_theme_color || "#0C1618",
+          background_color: "#09090b",
+          theme_color: "#09090b",
           lang: "pt-BR",
           icons: [
             { src: icon192, sizes: "192x192", type: "image/png", purpose: "any" },
