@@ -103,36 +103,35 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
         out ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
       style={{
-        backgroundColor: "#FFBC45",
+        backgroundColor: "#FFFFFF",
         backgroundImage:
-          "radial-gradient(circle at 50% 40%, rgba(0,0,0,0.08) 0%, transparent 60%)",
+          "radial-gradient(circle at 50% 40%, rgba(255, 188, 69, 0.12) 0%, transparent 70%)",
+      }}
+    >
+      {/* subtle grid */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(#000000 1px, transparent 1px), linear-gradient(90deg, #000000 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
         }}
-      >
-        {/* subtle grid */}
-        <div
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.5) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-          }}
-        />
+      />
 
       <div className="relative flex flex-col items-center gap-12 px-6 text-center w-full max-w-xl">
         {/* Logo */}
         <img
-          src={logoWhiteAsset.url}
+          src="https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png"
           alt="Kasa"
           className="animate-[splash-logo_900ms_ease-out_both] w-auto h-auto object-contain"
           style={{ maxWidth: "min(60vw, 22rem)", maxHeight: "32vh" }}
           onError={(e) => {
-            // Fallback para a logo do Supabase Storage caso o asset local falhe
-            e.currentTarget.src = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+            e.currentTarget.src = logoWhiteAsset.url;
           }}
         />
 
         {/* Saudação */}
-        <p className="font-display text-xl md:text-2xl font-light text-[#0C1618]/85 tracking-tight animate-[splash-fade_700ms_ease-out_300ms_both]">
+        <p className="font-display text-xl md:text-2xl font-light text-[#0C1618]/90 tracking-tight animate-[splash-fade_700ms_ease-out_300ms_both]">
           {greeting()}
           {name ? (
             <>
@@ -144,14 +143,14 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
 
         {/* Progress bar */}
         <div className="w-full max-w-sm flex flex-col items-center gap-4 animate-[splash-fade_700ms_ease-out_500ms_both]">
-          <div className="relative w-full h-[3px] rounded-full overflow-hidden bg-black/15">
+          <div className="relative w-full h-[3px] rounded-full overflow-hidden bg-black/10">
             <div
               className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-100 ease-linear"
               style={{
                 width: `${progress * 100}%`,
                 background:
-                  "linear-gradient(90deg, rgba(0,0,0,0.5), #000000)",
-                boxShadow: "0 0 12px rgba(0,0,0,0.25)",
+                  "linear-gradient(90deg, #FFBC45, #D99B26)",
+                boxShadow: "0 0 12px rgba(255,188,69,0.5)",
               }}
             />
           </div>
@@ -160,7 +159,7 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
           <div className="h-5 flex items-center justify-center overflow-hidden">
             <p
               key={phraseIdx}
-              className="font-mono-kasa text-[11px] md:text-xs uppercase tracking-[0.32em] text-[#0C1618]/60 animate-[splash-phrase_600ms_ease-out_both]"
+              className="font-mono-kasa text-[11px] md:text-xs uppercase tracking-[0.32em] text-[#0C1618]/70 animate-[splash-phrase_600ms_ease-out_both]"
             >
               {BRAND_PHRASES[phraseIdx]}
             </p>
@@ -170,7 +169,7 @@ export function SplashScreen({ userId, onDone }: SplashScreenProps) {
 
       {/* Skip hint */}
       <div
-        className={`absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.25em] text-white/30 transition-opacity duration-500 ${
+        className={`absolute bottom-8 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.25em] text-black/40 transition-opacity duration-500 ${
           out ? "opacity-0" : "opacity-100"
         }`}
       >
