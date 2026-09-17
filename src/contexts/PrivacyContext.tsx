@@ -1,6 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { setMoneyHidden } from "@/lib/utils-format";
 import { Button } from "@/components/ui/button";
 
 type Ctx = { hidden: boolean; toggle: () => void; setHidden: (v: boolean) => void };
@@ -14,7 +13,6 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
     const initialHidden = typeof window === "undefined"
       ? true
       : window.localStorage.getItem(STORAGE_KEY) !== "0";
-    setMoneyHidden(initialHidden);
     return initialHidden;
   });
 
@@ -32,15 +30,12 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
   }, [hidden]);
 
   const setHidden = useCallback((value: boolean) => {
-    setMoneyHidden(value);
     setHiddenState(value);
   }, []);
 
   const toggle = useCallback(() => {
     setHiddenState((current) => {
-      const next = !current;
-      setMoneyHidden(next);
-      return next;
+      return !current;
     });
   }, []);
 
