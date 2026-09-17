@@ -117,7 +117,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#f8fafc" },
+      { name: "theme-color", content: "#09090b" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black" },
       { title: "KASA HUB — Sistema Operacional para Agências" },
       { name: "description", content: "ERP especializado para agências de marketing. Comercial, operação, financeiro e experiência do cliente em um só lugar." },
       { name: "author", content: "Kasa Marketing Consultoria" },
