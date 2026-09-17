@@ -80,6 +80,97 @@ export const removePushSubscription = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const triggerMorningSummaryTest = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const publicKey = cleanVapidKey(process.env.VAPID_PUBLIC_KEY, "VAPID_PUBLIC_KEY");
+    const privateKey = cleanVapidKey(process.env.VAPID_PRIVATE_KEY, "VAPID_PRIVATE_KEY");
+    const subject = cleanVapidSubject(process.env.VAPID_SUBJECT);
+
+    const now = new Date();
+    const todayStr = now.toISOString().slice(0, 10);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const [
+      { data: jobsToday },
+      { data: jobsOverdue },
+      { data: pendingApprovals },
+      { data: leadTasksToday },
+      { data: subs }
+    ] = await Promise.all([
+      supabase.from("jobs").select("id, title").eq("due_date", todayStr).neq("status", "done"),
+      supabase.from("jobs").select("id, title").lt("due_date", todayStr).neq("status", "done"),
+      supabase.from("job_approval_items").select("id, title").eq("status", "pending").eq("is_archived", false),
+      supabase.from("lead_tasks").select("id, title").eq("status", "pending").lte("due_date", endOfDay.toISOString()),
+      supabase.from("push_subscriptions").select("id, endpoint, p256dh, auth").eq("user_id", userId),
+    ]);
+
+    if (!subs || subs.length === 0) {
+      throw new Error("Nenhuma inscrição push encontrada para o seu usuário. Ative a chave acima primeiro.");
+    }
+
+    const countJobsToday = jobsToday?.length ?? 0;
+    const countJobsOverdue = jobsOverdue?.length ?? 0;
+    const countApprovals = pendingApprovals?.length ?? 0;
+    const countTasks = leadTasksToday?.length ?? 0;
+
+    const parts: string[] = [];
+    if (countJobsToday > 0) parts.push(`${countJobsToday} ${countJobsToday === 1 ? 'job para hoje' : 'jobs para hoje'}`);
+    if (countJobsOverdue > 0) parts.push(`${countJobsOverdue} ${countJobsOverdue === 1 ? 'em atraso' : 'em atraso'}`);
+    if (countApprovals > 0) parts.push(`${countApprovals} ${countApprovals === 1 ? 'aprovação pendente' : 'aprovações pendentes'}`);
+    if (countTasks > 0) parts.push(`${countTasks} ${countTasks === 1 ? 'tarefa CRM' : 'tarefas CRM'}`);
+
+    const mensagem = parts.length > 0
+      ? `Panorama de hoje: ${parts.join(" • ")}. Toque para acessar a operação.`
+      : "Tudo em dia para hoje! Nenhum job atrasado ou aprovação pendente. Toque para abrir o painel.";
+
+    const webpush = (await import("web-push")).default;
+    webpush.setVapidDetails(subject, publicKey, privateKey);
+
+    const payload = JSON.stringify({
+      title: "☀️ Bom dia, Time KASA!",
+      body: mensagem,
+      url: "/dashboard",
+      tag: `morning-summary-test-${Date.now()}`,
+    });
+
+    let success = 0;
+    const stale: string[] = [];
+    const errors: { status?: number; body?: string; message?: string }[] = [];
+
+    await Promise.all(
+      subs.map(async (s) => {
+        try {
+          await webpush.sendNotification(
+            { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
+            payload,
+          );
+          success += 1;
+        } catch (err: unknown) {
+          const e = err as { statusCode?: number; body?: string; message?: string };
+          if (e?.statusCode === 404 || e?.statusCode === 410) {
+            stale.push(s.id);
+          } else {
+            errors.push({ status: e?.statusCode, body: e?.body?.slice(0, 200), message: e?.message });
+          }
+        }
+      }),
+    );
+
+    if (stale.length > 0) {
+      await supabase.from("push_subscriptions").delete().in("id", stale);
+    }
+
+    if (success === 0 && errors.length > 0) {
+      const first = errors[0];
+      throw new Error(`Falha no envio do resumo matinal (${first.status ?? "?"}): ${first.message ?? ""}`);
+    }
+
+    return { sent: success, summary: mensagem };
+  });
+
 export const sendTestPush = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
