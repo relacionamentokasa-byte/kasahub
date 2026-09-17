@@ -15,9 +15,9 @@ export const Route = createFileRoute("/api/public/manifest")({
           .maybeSingle();
 
         const a = (data ?? {}) as Record<string, string | null>;
-        const fallback = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
-        const icon512 = a.pwa_icon_512_url || a.logo_yellow_url || fallback;
-        const icon192 = a.pwa_icon_192_url || a.logo_yellow_url || fallback;
+        const fallback = "/kasa-logo.png";
+        const icon512 = a.pwa_icon_512_url || fallback;
+        const icon192 = a.pwa_icon_192_url || fallback;
 
         const manifest = {
           name: a.pwa_name || a.name || "KASA HUB",

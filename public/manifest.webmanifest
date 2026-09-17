@@ -11,13 +11,13 @@
   "lang": "pt-BR",
   "icons": [
     {
-      "src": "/icon-512.png",
+      "src": "/kasa-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/kasa-logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

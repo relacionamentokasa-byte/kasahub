@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/public/favicon")({
           .limit(1)
           .maybeSingle();
 
-        const faviconUrl = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+        const faviconUrl = "/kasa-logo.png";
         
         return Response.redirect(faviconUrl, 302);
       },
