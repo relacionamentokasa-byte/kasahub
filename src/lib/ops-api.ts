@@ -323,12 +323,12 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   const client = await fetchClient(input.client_id || project.client_id!);
   if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
 
-  // Herança automática de campos se não fornecidos
+  // Herança de campos se não fornecidos (sem atribuir responsável automaticamente para não disparar notificações indevidas)
   const finalInput = {
     ...input,
     client_id: input.client_id || project.client_id || null,
     project_id: input.project_id || null,
-    main_responsible_id: input.main_responsible_id || project.responsible_id || project.owner_id || null,
+    main_responsible_id: input.main_responsible_id || null,
   };
 
   // Limpeza de campos UUID vazios para evitar erro de sintaxe

@@ -226,7 +226,6 @@ export function NewJobDialog({
           ...f,
           client_id: p.client_id || f.client_id,
           contract_id: p.contract_id || f.contract_id,
-          main_responsible_id: f.main_responsible_id || p.responsible_id || p.owner_id || "",
         }));
       }
     }

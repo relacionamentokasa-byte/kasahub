@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { AtSign, AlertCircle, CheckCircle2, Bell, UserPlus } from "lucide-react";
+import { AtSign, AlertCircle, CheckCircle2, Bell, UserPlus, ArrowRight, X, Clock } from "lucide-react";
 import {
   criticalBus,
   stopTitleFlash,
@@ -14,14 +14,44 @@ import { navigateToNotificationLink } from "@/lib/notification-navigation";
 
 function iconFor(tipo: string) {
   if (tipo === "mention" || tipo === "at")
-    return { Icon: AtSign, color: "text-sky-500", bg: "bg-sky-500/10", label: "Menção" };
+    return {
+      Icon: AtSign,
+      color: "text-sky-400",
+      bg: "bg-sky-500/10 border-sky-500/20",
+      badge: "bg-sky-500/15 text-sky-300 border-sky-500/30",
+      label: "Menção em conversa"
+    };
   if (tipo === "critical")
-    return { Icon: AlertCircle, color: "text-rose-500", bg: "bg-rose-500/10", label: "Alerta crítico" };
+    return {
+      Icon: AlertCircle,
+      color: "text-rose-400",
+      bg: "bg-rose-500/10 border-rose-500/20",
+      badge: "bg-rose-500/15 text-rose-300 border-rose-500/30",
+      label: "Alerta Crítico"
+    };
   if (tipo === "approval")
-    return { Icon: CheckCircle2, color: "text-amber-500", bg: "bg-amber-500/10", label: "Aprovação pendente" };
+    return {
+      Icon: CheckCircle2,
+      color: "text-amber-400",
+      bg: "bg-amber-500/10 border-amber-500/20",
+      badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
+      label: "Aprovação Pendente"
+    };
   if (tipo === "assignment")
-    return { Icon: UserPlus, color: "text-violet-500", bg: "bg-violet-500/10", label: "Nova responsabilidade" };
-  return { Icon: Bell, color: "text-primary", bg: "bg-primary/10", label: "Notificação" };
+    return {
+      Icon: UserPlus,
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10 border-emerald-500/20",
+      badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+      label: "Nova Atribuição"
+    };
+  return {
+    Icon: Bell,
+    color: "text-primary",
+    bg: "bg-primary/10 border-primary/20",
+    badge: "bg-primary/15 text-primary border-primary/30",
+    label: "Notificação do Sistema"
+  };
 }
 
 export function CriticalNotificationPopup() {
@@ -48,7 +78,7 @@ export function CriticalNotificationPopup() {
 
   if (!current) return null;
 
-  const { Icon, color, bg, label } = iconFor(current.tipo);
+  const { Icon, color, bg, badge, label } = iconFor(current.tipo);
 
   const handleClose = () => {
     criticalBus.shift();
@@ -62,38 +92,83 @@ export function CriticalNotificationPopup() {
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="max-w-md p-0 overflow-hidden border-2 border-primary/20">
-        <div className="p-6 sm:p-8 flex flex-col items-center text-center gap-4">
-          <div className={`size-20 rounded-full ${bg} flex items-center justify-center animate-in zoom-in duration-300`}>
-            <Icon className={`size-10 ${color}`} />
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-[#121214] text-white border border-white/15 shadow-2xl rounded-2xl animate-in zoom-in-95 duration-200">
+        {/* Header Superior com Tag Institucional e Ação de Fechar */}
+        <div className="px-6 pt-6 pb-2 flex items-center justify-between border-b border-white/10">
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-[10px] font-mono-kasa uppercase tracking-widest text-zinc-400 font-semibold">
+              KASA HUB • Alerta em Tempo Real
+            </span>
           </div>
 
-          <div className="space-y-1">
-            <p className={`text-[10px] uppercase tracking-widest font-bold ${color}`}>
-              {label}
-            </p>
-            <h2 className="text-xl font-display font-bold text-foreground leading-tight">
+          <button
+            onClick={handleClose}
+            className="text-zinc-400 hover:text-white p-1 rounded-md hover:bg-white/10 transition-colors"
+            title="Fechar"
+            aria-label="Fechar"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+
+        {/* Corpo Principal do Popup */}
+        <div className="p-6 sm:p-7 flex flex-col items-center text-center gap-4">
+          {/* Badge Icon circular com efeito glow suave */}
+          <div className={`size-16 rounded-2xl ${bg} border flex items-center justify-center shadow-lg transition-transform hover:scale-105 duration-300`}>
+            <Icon className={`size-8 ${color}`} />
+          </div>
+
+          <div className="space-y-2 max-w-sm">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border text-[10px] font-mono-kasa uppercase font-bold tracking-wider mx-auto">
+              <span className={`inline-block size-1.5 rounded-full ${color.replace('text-', 'bg-')}`} />
+              <span className={color}>{label}</span>
+            </div>
+
+            <h2 className="text-lg sm:text-xl font-display font-bold text-white leading-tight tracking-tight">
               {current.titulo}
             </h2>
           </div>
 
-          <p className="text-sm text-foreground/70 leading-relaxed max-w-sm">
+          {/* Mensagem descritiva formatada em container card */}
+          <div className="w-full p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs sm:text-sm text-zinc-300 leading-relaxed text-left font-sans">
             {current.mensagem}
-          </p>
+          </div>
 
+          {/* Fila de espera de notificações */}
           {queue.length > 1 && (
-            <p className="text-[10px] uppercase tracking-wider text-foreground/40 font-mono">
-              +{queue.length - 1} aguardando
-            </p>
+            <div className="flex items-center gap-1.5 text-[11px] font-mono-kasa text-amber-400/90 font-medium">
+              <Clock className="size-3.5" />
+              <span>+{queue.length - 1} {queue.length - 1 === 1 ? 'notificação pendente' : 'notificações pendentes'} na fila</span>
+            </div>
           )}
 
-          <div className="flex gap-2 w-full mt-2">
-            <Button variant="outline" className="flex-1" onClick={handleClose}>
+          {/* Botões de Ação do Design System KASA HUB */}
+          <div className="flex items-center gap-3 w-full mt-2">
+            <Button
+              variant="outline"
+              className="flex-1 h-10 text-xs font-mono-kasa font-semibold border-white/15 bg-white/5 text-zinc-300 hover:text-white hover:bg-white/10 hover:border-white/25 rounded-xl transition-all"
+              onClick={handleClose}
+            >
               Depois
             </Button>
-            {current.link && (
-              <Button className="flex-1" onClick={handleGo}>
-                Ver agora
+            {current.link ? (
+              <Button
+                className="flex-1 h-10 text-xs font-mono-kasa font-bold bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-md hover:shadow-amber-500/20 rounded-xl transition-all flex items-center justify-center gap-1.5"
+                onClick={handleGo}
+              >
+                <span>Ver Agora</span>
+                <ArrowRight className="size-3.5" />
+              </Button>
+            ) : (
+              <Button
+                className="flex-1 h-10 text-xs font-mono-kasa font-bold bg-amber-500 hover:bg-amber-400 text-zinc-950 shadow-md hover:shadow-amber-500/20 rounded-xl transition-all"
+                onClick={() => {
+                  readMut.mutate(current.id);
+                  handleClose();
+                }}
+              >
+                Entendido
               </Button>
             )}
           </div>
