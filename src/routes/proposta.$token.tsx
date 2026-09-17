@@ -40,6 +40,7 @@ type Item = {
 };
 type Proposal = {
   id: string;
+  created_at: string | null;
   title: string;
   client_name: string;
   client_email: string | null;

@@ -310,10 +310,10 @@ export function NewJobDialog({
 
             await addJobAttachment({
               job_id: data.id,
-              name: file.name,
+              file_name: file.name,
               file_url: urlData.publicUrl,
               file_type: file.type || ext,
-              size_bytes: file.size,
+              file_size: file.size,
             });
           } catch (attErr) {
             console.error('[NewJobDialog] Erro processando anexo:', attErr);
