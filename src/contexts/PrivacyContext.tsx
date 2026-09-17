@@ -21,7 +21,14 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined") {
       window.localStorage.setItem(STORAGE_KEY, hidden ? "1" : "0");
+      document.documentElement.dataset.moneyHidden = hidden ? "true" : "false";
     }
+
+    return () => {
+      if (typeof document !== "undefined") {
+        delete document.documentElement.dataset.moneyHidden;
+      }
+    };
   }, [hidden]);
 
   const setHidden = useCallback((value: boolean) => {

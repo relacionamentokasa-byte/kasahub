@@ -171,7 +171,7 @@
   /* O olho global mascara somente algarismos, preservando textos e controles. */
   [data-money-hidden="true"],
   [data-money-hidden="true"] * {
-    font-family: "Kasa Privacy Mask", var(--font-sans);
+    font-family: "Kasa Privacy Mask", var(--font-sans) !important;
   }
 
   html, body {
