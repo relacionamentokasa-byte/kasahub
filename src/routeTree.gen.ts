@@ -62,6 +62,7 @@ import { Route as ApiPublicPortalJobsSlugRouteImport } from './routes/api/public
 import { Route as ApiPublicPortalApprovalActionSlugRouteImport } from './routes/api/public/portal-approval-action.$slug'
 import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/public/portal-action.$slug'
 import { Route as ApiPublicLeadsInboundRouteImport } from './routes/api/public/leads/inbound'
+import { Route as ApiPublicHooksMorningSummaryRouteImport } from './routes/api/public/hooks/morning-summary'
 import { Route as ApiPublicHooksLeadTaskRemindersRouteImport } from './routes/api/public/hooks/lead-task-reminders'
 import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
 import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
@@ -358,6 +359,12 @@ const ApiPublicLeadsInboundRoute = ApiPublicLeadsInboundRouteImport.update({
   path: '/api/public/leads/inbound',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksMorningSummaryRoute =
+  ApiPublicHooksMorningSummaryRouteImport.update({
+    id: '/api/public/hooks/morning-summary',
+    path: '/api/public/hooks/morning-summary',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHooksLeadTaskRemindersRoute =
   ApiPublicHooksLeadTaskRemindersRouteImport.update({
     id: '/api/public/hooks/lead-task-reminders',
@@ -479,6 +486,7 @@ export interface FileRoutesByFullPath {
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/hooks/lead-task-reminders': typeof ApiPublicHooksLeadTaskRemindersRoute
+  '/api/public/hooks/morning-summary': typeof ApiPublicHooksMorningSummaryRoute
   '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
   '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
@@ -545,6 +553,7 @@ export interface FileRoutesByTo {
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/hooks/lead-task-reminders': typeof ApiPublicHooksLeadTaskRemindersRoute
+  '/api/public/hooks/morning-summary': typeof ApiPublicHooksMorningSummaryRoute
   '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
   '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
@@ -613,6 +622,7 @@ export interface FileRoutesById {
   '/api/public/dme/$token': typeof ApiPublicDmeTokenRoute
   '/api/public/hooks/dispatch-push': typeof ApiPublicHooksDispatchPushRoute
   '/api/public/hooks/lead-task-reminders': typeof ApiPublicHooksLeadTaskRemindersRoute
+  '/api/public/hooks/morning-summary': typeof ApiPublicHooksMorningSummaryRoute
   '/api/public/leads/inbound': typeof ApiPublicLeadsInboundRoute
   '/api/public/portal-action/$slug': typeof ApiPublicPortalActionSlugRoute
   '/api/public/portal-approval-action/$slug': typeof ApiPublicPortalApprovalActionSlugRoute
@@ -681,6 +691,7 @@ export interface FileRouteTypes {
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/hooks/lead-task-reminders'
+    | '/api/public/hooks/morning-summary'
     | '/api/public/leads/inbound'
     | '/api/public/portal-action/$slug'
     | '/api/public/portal-approval-action/$slug'
@@ -747,6 +758,7 @@ export interface FileRouteTypes {
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/hooks/lead-task-reminders'
+    | '/api/public/hooks/morning-summary'
     | '/api/public/leads/inbound'
     | '/api/public/portal-action/$slug'
     | '/api/public/portal-approval-action/$slug'
@@ -814,6 +826,7 @@ export interface FileRouteTypes {
     | '/api/public/dme/$token'
     | '/api/public/hooks/dispatch-push'
     | '/api/public/hooks/lead-task-reminders'
+    | '/api/public/hooks/morning-summary'
     | '/api/public/leads/inbound'
     | '/api/public/portal-action/$slug'
     | '/api/public/portal-approval-action/$slug'
@@ -850,6 +863,7 @@ export interface RootRouteChildren {
   ApiPublicDmeTokenRoute: typeof ApiPublicDmeTokenRoute
   ApiPublicHooksDispatchPushRoute: typeof ApiPublicHooksDispatchPushRoute
   ApiPublicHooksLeadTaskRemindersRoute: typeof ApiPublicHooksLeadTaskRemindersRoute
+  ApiPublicHooksMorningSummaryRoute: typeof ApiPublicHooksMorningSummaryRoute
   ApiPublicLeadsInboundRoute: typeof ApiPublicLeadsInboundRoute
   ApiPublicPortalActionSlugRoute: typeof ApiPublicPortalActionSlugRoute
   ApiPublicPortalApprovalActionSlugRoute: typeof ApiPublicPortalApprovalActionSlugRoute
@@ -1237,6 +1251,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLeadsInboundRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/morning-summary': {
+      id: '/api/public/hooks/morning-summary'
+      path: '/api/public/hooks/morning-summary'
+      fullPath: '/api/public/hooks/morning-summary'
+      preLoaderRoute: typeof ApiPublicHooksMorningSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/hooks/lead-task-reminders': {
       id: '/api/public/hooks/lead-task-reminders'
       path: '/api/public/hooks/lead-task-reminders'
@@ -1440,6 +1461,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDmeTokenRoute: ApiPublicDmeTokenRoute,
   ApiPublicHooksDispatchPushRoute: ApiPublicHooksDispatchPushRoute,
   ApiPublicHooksLeadTaskRemindersRoute: ApiPublicHooksLeadTaskRemindersRoute,
+  ApiPublicHooksMorningSummaryRoute: ApiPublicHooksMorningSummaryRoute,
   ApiPublicLeadsInboundRoute: ApiPublicLeadsInboundRoute,
   ApiPublicPortalActionSlugRoute: ApiPublicPortalActionSlugRoute,
   ApiPublicPortalApprovalActionSlugRoute:
