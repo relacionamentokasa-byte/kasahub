@@ -169,18 +169,13 @@ export function TopNavigation() {
       <div className="h-14 px-4 lg:px-6 flex items-center justify-between gap-4 bg-[#121214] text-white border-b border-white/10">
         {/* Left: Brand Logo & Section Tabs */}
         <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-          <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0 hover:opacity-90 transition-opacity">
-            <img
-              src={logoWhiteAsset.url}
-              alt="KASA HUB"
-              className="h-8 w-auto object-contain brightness-0 invert"
-              onError={(e) => {
-                e.currentTarget.src = "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
-                e.currentTarget.className = "h-8 w-auto object-contain";
-              }}
-            />
-            <span className="font-display text-sm font-bold tracking-tight text-white hidden sm:inline-block">
-              HUB
+          <Link to="/dashboard" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity">
+            <div className="size-8 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shadow-xs">
+              <span className="font-display font-black text-base text-primary">K</span>
+            </div>
+            <span className="font-display text-base font-black tracking-tight text-white flex items-center gap-1.5">
+              <span>KASA</span>
+              <span className="text-primary">HUB</span>
             </span>
           </Link>
 
