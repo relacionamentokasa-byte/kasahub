@@ -7,6 +7,15 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Kasa Privacy Mask";
+  src: url("/fonts/kasa-privacy-mask.ttf") format("truetype");
+  font-display: block;
+  font-style: normal;
+  font-weight: 100 900;
+  unicode-range: U+0030-0039;
+}
+
 /* KASA HUB — Design System
  * Identidade: amarelo âmbar #FFBC45 sobre verde-petróleo #0C1618
  * Tipografia: Funnel Display (display), Onest (body), JetBrains Mono (mono/labels)
@@ -158,6 +167,12 @@
 
 @layer base {
   * { border-color: var(--color-border); }
+
+  /* O olho global mascara somente algarismos, preservando textos e controles. */
+  [data-money-hidden="true"],
+  [data-money-hidden="true"] * {
+    font-family: "Kasa Privacy Mask", var(--font-sans) !important;
+  }
 
   html, body {
     background-color: var(--color-background);
