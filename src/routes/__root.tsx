@@ -116,7 +116,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#0C1618" },
+      { name: "theme-color", content: "#f8fafc" },
       { title: "KASA HUB — Sistema Operacional para Agências" },
       { name: "description", content: "ERP especializado para agências de marketing. Comercial, operação, financeiro e experiência do cliente em um só lugar." },
       { name: "author", content: "Kasa Marketing Consultoria" },
@@ -147,7 +147,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className="dark" suppressHydrationWarning>
+    <html lang="pt-BR" className="light" suppressHydrationWarning>
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
