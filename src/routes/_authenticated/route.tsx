@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { TopNavigation } from "@/components/TopNavigation";
@@ -10,9 +10,6 @@ import { FloatingActions } from "@/components/FloatingActions";
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { FocusModeProvider, useFocusMode } from "@/contexts/FocusModeContext";
 import { PrivacyProvider } from "@/contexts/PrivacyContext";
-import { SplashScreen } from "@/components/SplashScreen";
-
-const SPLASH_KEY = "kasa:splash-seen";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -69,10 +66,6 @@ export const Route = createFileRoute("/_authenticated")({
 
 function ShellLayout() {
   const { user } = Route.useRouteContext() as { user?: { id?: string } };
-  const [showSplash, setShowSplash] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return !sessionStorage.getItem(SPLASH_KEY);
-  });
 
   useEffect(() => {
     if (!user?.id) return;
@@ -95,20 +88,12 @@ function ShellLayout() {
       });
   }, [user?.id]);
 
-  const handleSplashDone = () => {
-    sessionStorage.setItem(SPLASH_KEY, "1");
-    setShowSplash(false);
-  };
-
   return (
     <PresenceProvider userId={user?.id}>
       <FocusModeProvider>
         <PrivacyProvider>
           <SidebarProvider>
             <ShellInner />
-            {showSplash && user?.id && (
-              <SplashScreen userId={user.id} onDone={handleSplashDone} />
-            )}
           </SidebarProvider>
         </PrivacyProvider>
       </FocusModeProvider>
