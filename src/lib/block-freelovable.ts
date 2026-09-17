@@ -5,8 +5,9 @@
  *
  * Como rodamos em isolated world, não conseguimos desinstalar a extensão,
  * mas podemos:
- *  1. Remover do DOM qualquer toast/overlay que ela injeta.
- *  2. Bloquear requisições para o domínio dela via fetch/XHR wrappers.
+ * Bloqueia requisições para o domínio da extensão via fetch/XHR wrappers.
+ * Não altera o DOM: remover nós fora do ciclo do React pode corromper a árvore
+ * renderizada e causar uma tela em branco durante a reconciliação.
  */
 export function installFreeLovableBlocker() {
   if (typeof window === "undefined") return;
@@ -14,39 +15,7 @@ export function installFreeLovableBlocker() {
   (window as any).__kasaFreeLovableBlocked = true;
 
   const BAD_HOSTS = ["freelovable.com.br", "freelovable.com"];
-  const BAD_TEXT = /free\s*lovable|enviado\s+via\s+free/i;
-
-  // 1) Remove nós com texto da extensão
-  const scrub = (root: ParentNode) => {
-    const nodes = root.querySelectorAll<HTMLElement>(
-      "div,section,aside,span,p,article,dialog",
-    );
-    nodes.forEach((el) => {
-      if (el.childElementCount > 8) return; // evita varrer árvores grandes
-      const txt = el.textContent || "";
-      if (txt.length < 200 && BAD_TEXT.test(txt)) {
-        el.remove();
-      }
-    });
-  };
-
-  const observer = new MutationObserver((mutations) => {
-    for (const m of mutations) {
-      m.addedNodes.forEach((n) => {
-        if (n.nodeType === 1) {
-          const el = n as HTMLElement;
-          if (BAD_TEXT.test(el.textContent || "") && (el.textContent || "").length < 200) {
-            el.remove();
-            return;
-          }
-          scrub(el);
-        }
-      });
-    }
-  });
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-
-  // 2) Bloqueia requisições da extensão
+  // Bloqueia requisições da extensão sem interferir nos elementos do React.
   const isBadUrl = (u: string) => BAD_HOSTS.some((h) => u.includes(h));
 
   const origFetch = window.fetch.bind(window);
