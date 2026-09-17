@@ -22,6 +22,7 @@ import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { registerPWA } from "@/lib/pwa-register";
 import { installFreeLovableBlocker } from "@/lib/block-freelovable";
 import { CriticalNotificationPopup } from "@/components/notifications/CriticalNotificationPopup";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const CookieConsent = lazy(() => import("@/components/CookieConsent").then(m => ({ default: m.CookieConsent })));
 
@@ -207,18 +208,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthListener />
-        <ClientOnly fallback={null}><NotificationManager /></ClientOnly>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <ErrorBoundary>
+        <ThemeProvider>
+          <AuthListener />
+          <ClientOnly fallback={null}><NotificationManager /></ClientOnly>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
 
-        <Outlet />
-        <ClientOnly fallback={null}><CriticalNotificationPopup /></ClientOnly>
-        <ClientOnly fallback={null}>
-          <Suspense fallback={null}><CookieConsent /></Suspense>
-        </ClientOnly>
-        <ThemedToaster />
-      </ThemeProvider>
+          <Outlet />
+          <ClientOnly fallback={null}><CriticalNotificationPopup /></ClientOnly>
+          <ClientOnly fallback={null}>
+            <Suspense fallback={null}><CookieConsent /></Suspense>
+          </ClientOnly>
+          <ThemedToaster />
+        </ThemeProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }

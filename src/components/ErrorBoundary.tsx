@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { reportLovableError } from "@/lib/lovable-error-reporting";
 
 interface Props {
   children: ReactNode;
@@ -12,18 +13,36 @@ interface State {
   error: Error | null;
 }
 
+function normalizeError(error: unknown): Error {
+  if (error instanceof Error) return error;
+  if (error == null) return new Error("Erro inesperado sem detalhes");
+  if (typeof error === "object") {
+    try {
+      return new Error(JSON.stringify(error));
+    } catch {
+      return new Error("Erro inesperado não serializável");
+    }
+  }
+  return new Error(String(error));
+}
+
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  public static getDerivedStateFromError(error: unknown): State {
+    return { hasError: true, error: normalizeError(error) };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error:", error, errorInfo);
+  public componentDidCatch(error: unknown, errorInfo: ErrorInfo) {
+    const normalizedError = normalizeError(error);
+    console.error("Uncaught error:", normalizedError, errorInfo);
+    void reportLovableError(normalizedError, {
+      boundary: "react_root_error_boundary",
+      componentStack: errorInfo.componentStack ?? undefined,
+    });
   }
 
   public render() {
