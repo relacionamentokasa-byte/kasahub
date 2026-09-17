@@ -68,7 +68,6 @@ import { UnifiedTimeline } from "@/components/timeline/UnifiedTimeline";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
 import { listJobApprovalItems, archiveApprovalItem, unarchiveApprovalItem, listApprovalItemComments, type ApprovalItem } from "@/lib/approval-items-api";
-import { enviarNotificacao, enviarNotificacaoMultipla } from "@/lib/notifications-api";
 
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -334,41 +333,9 @@ export function JobSheet({
       
       return { prev };
     },
-    onSuccess: (updatedJob, variables) => {
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["jobs"] });
       qc.invalidateQueries({ queryKey: ["job", job!.id] });
-      
-      // Notify team members when status changes
-      if (variables.status && job && variables.status !== job.status) {
-        const teamInvolved = (job as any).team_involved || [];
-        const statusLabel = JOB_STATUS_LABELS[variables.status as keyof typeof JOB_STATUS_LABELS]?.label || variables.status;
-        
-        const recipients = teamInvolved
-          .map((m: any) => typeof m === 'string' ? m : m.user_id)
-          .filter((id: string) => id && id !== currentUser?.id);
-        
-        if (recipients.length > 0) {
-          enviarNotificacaoMultipla(
-            recipients,
-            `Status alterado: ${job.title}`,
-            `O status do job foi alterado para: ${statusLabel}`,
-            "job",
-            `/jobs?jobId=${job.id}`
-          ).catch(console.error);
-        }
-      }
-
-      // Notify if assignee changes
-      if (variables.assignee_id && job && variables.assignee_id !== (job as any).assignee_id) {
-        enviarNotificacao(
-          variables.assignee_id,
-          "Novo Job Atribuído",
-          `Você foi atribuído ao job: ${job.title}`,
-          "job",
-          `/jobs?jobId=${job.id}`
-        ).catch(console.error);
-      }
-
       toast.success("Job atualizado");
     },
     onError: (e: Error, _v, ctx) => {
