@@ -28,6 +28,7 @@ import { EditClientDialog } from "@/components/clients/EditClientDialog";
 import { DeleteClientDialog } from "@/components/clients/DeleteClientDialog";
 import { fetchClients } from "@/lib/ops-api";
 import { StorageImage } from "@/components/ui/storage-image";
+import { usePrivacy } from "@/contexts/PrivacyContext";
 
 export const Route = createFileRoute("/_authenticated/clientes/")({
   head: () => ({ meta: [{ title: "Clientes — KASA HUB" }] }),
@@ -39,7 +40,7 @@ function ClientsPage() {
   const [newDialogOpen, setNewDialogOpen] = useState(false);
   const [editClient, setEditClient] = useState<any>(null);
   const [deleteClientId, setDeleteClientId] = useState<string | null>(null);
-  const [showBilling, setShowBilling] = useState(false);
+  const { hidden: billingHidden, toggle: toggleBilling } = usePrivacy();
 
   const { data: clients = [], isLoading } = useQuery({
     queryKey: ["clients", "with-billing-and-proposals"],
@@ -113,13 +114,13 @@ function ClientsPage() {
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 h-auto text-muted-foreground font-medium text-right">
                 <button
                   type="button"
-                  onClick={() => setShowBilling((v) => !v)}
+                  onClick={toggleBilling}
                   className="inline-flex items-center gap-1.5 hover:text-foreground transition-colors cursor-pointer"
-                  aria-label={showBilling ? "Ocultar faturamento" : "Mostrar faturamento"}
-                  title={showBilling ? "Ocultar faturamento" : "Mostrar faturamento"}
+                  aria-label={billingHidden ? "Mostrar faturamento" : "Ocultar faturamento"}
+                  title={billingHidden ? "Mostrar faturamento" : "Ocultar faturamento"}
                 >
                   Faturamento
-                  {showBilling ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
+                  {billingHidden ? <EyeOff className="size-3" /> : <Eye className="size-3" />}
                 </button>
               </TableHead>
               <TableHead className="font-mono-kasa text-[10px] uppercase tracking-wider py-2.5 h-auto text-muted-foreground font-medium hidden sm:table-cell text-center">Status</TableHead>
@@ -202,11 +203,11 @@ function ClientsPage() {
                   <TableCell className="py-2.5 text-right font-mono-kasa tabular-nums">
                     <span className={cn(
                       "text-xs font-semibold",
-                      !showBilling
+                      billingHidden
                         ? "text-muted-foreground tracking-widest select-none"
                         : totalBilling > 0 ? "text-foreground" : "text-muted-foreground"
                     )}>
-                      {showBilling ? brl(totalBilling) : "••••••"}
+                      {brl(totalBilling)}
                     </span>
                   </TableCell>
                   <TableCell className="hidden sm:table-cell py-2.5 text-center">
