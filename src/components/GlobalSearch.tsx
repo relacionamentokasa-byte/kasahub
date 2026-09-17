@@ -95,7 +95,13 @@ export function GlobalSearch() {
         }),
       );
       (jobs.data ?? []).forEach((j: any) =>
-        out.push({ id: j.id, kind: "job", label: j.title, to: "/jobs" }),
+        out.push({
+          id: j.id,
+          kind: "job",
+          label: j.title,
+          to: "/jobs",
+          params: { jobId: j.id },
+        }),
       );
       (partners.data ?? []).forEach((p: any) =>
         out.push({
@@ -128,7 +134,13 @@ export function GlobalSearch() {
   const go = (r: Result) => {
     setOpen(false);
     setTerm("");
-    navigate({ to: r.to as any, params: r.params as any });
+    if (r.kind === "job") {
+      navigate({ to: "/jobs", search: { jobId: r.id } as any });
+    } else if (r.params) {
+      navigate({ to: r.to as any, params: r.params as any });
+    } else {
+      navigate({ to: r.to as any });
+    }
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -176,13 +188,16 @@ export function GlobalSearch() {
       )}
 
       {showDropdown ? (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] bg-popover border border-border rounded-xl shadow-xl overflow-hidden z-50">
+        <div
+          onMouseDown={(e) => e.preventDefault()}
+          className="absolute left-0 right-0 top-[calc(100%+6px)] min-w-[320px] bg-[#1a1a1e] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150"
+        >
           {results.length === 0 && !isFetching ? (
-            <div className="px-4 py-6 text-xs text-foreground/50 text-center">
+            <div className="px-4 py-6 text-xs text-zinc-400 text-center font-mono-kasa">
               Nada encontrado para “{debounced}”.
             </div>
           ) : (
-            <ul className="max-h-80 overflow-y-auto py-1">
+            <ul className="max-h-80 overflow-y-auto py-1 divide-y divide-white/5">
               {results.map((r, i) => {
                 const Meta = KIND_META[r.kind];
                 const Icon = Meta.icon;
@@ -191,19 +206,25 @@ export function GlobalSearch() {
                     <button
                       type="button"
                       onMouseEnter={() => setActive(i)}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        go(r);
+                      }}
                       onClick={() => go(r)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 text-left text-sm transition-colors ${
-                        i === active ? "bg-accent text-accent-foreground" : "hover:bg-accent/60"
+                      className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer ${
+                        i === active ? "bg-white/10 text-white" : "text-zinc-300 hover:bg-white/5 hover:text-white"
                       }`}
                     >
-                      <Icon className="size-4 text-foreground/50 shrink-0" />
+                      <div className="size-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                        <Icon className="size-3.5 text-amber-400" />
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="truncate font-medium">{r.label}</p>
+                        <p className="truncate font-semibold text-white">{r.label}</p>
                         {r.sub ? (
-                          <p className="text-[11px] text-foreground/50 truncate">{r.sub}</p>
+                          <p className="text-[10px] text-zinc-400 truncate mt-0.5">{r.sub}</p>
                         ) : null}
                       </div>
-                      <span className="text-[10px] uppercase tracking-wide text-foreground/40 shrink-0">
+                      <span className="text-[9px] font-mono-kasa font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400 shrink-0">
                         {Meta.tag}
                       </span>
                     </button>
