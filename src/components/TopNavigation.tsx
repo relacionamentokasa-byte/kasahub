@@ -40,7 +40,7 @@ import {
 
 import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
 
-import { KasaLogoWhite } from "./KasaLogoWhite";
+import { KasaSymbol } from "./KasaSymbol";
 
 export type NavItem = {
   title: string;
@@ -171,8 +171,12 @@ export function TopNavigation() {
       <div className="h-14 px-4 lg:px-6 flex items-center justify-between gap-4 bg-[#121214] text-white border-b border-white/10">
         {/* Left: Brand Logo & Section Tabs */}
         <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-          <Link to="/dashboard" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity">
-            <KasaLogoWhite height={22} />
+          <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0 hover:opacity-85 transition-opacity" title="KASA HUB">
+            <img
+              src="/kasa-logo.png"
+              alt="KASA HUB"
+              className="h-8 w-auto object-contain brightness-0 invert"
+            />
           </Link>
 
           {/* Macro Section Links (Apenas Desktop / lg+) */}
