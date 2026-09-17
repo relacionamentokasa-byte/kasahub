@@ -38,6 +38,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { KasaLogo } from "./KasaLogo";
+
 export type NavItem = {
   title: string;
   url: string;
@@ -167,19 +169,8 @@ export function TopNavigation() {
       <div className="h-14 px-4 lg:px-6 flex items-center justify-between gap-4 bg-[#121214] text-white border-b border-white/10">
         {/* Left: Brand Logo & Section Tabs */}
         <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-          <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0 hover:opacity-90 transition-opacity">
-            <img
-              src="https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png"
-              alt="KASA HUB"
-              className="h-8 w-auto object-contain max-w-[130px]"
-              onError={(e) => {
-                // Fallback para logo branca ou texto estilizado
-                e.currentTarget.style.display = "none";
-              }}
-            />
-            <span className="font-display text-sm font-bold tracking-tight text-white hidden sm:inline-block">
-              HUB
-            </span>
+          <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0 hover:opacity-90 transition-opacity py-1">
+            <KasaLogo variant="sidebar" className="h-8" />
           </Link>
 
           {/* Macro Section Links (Apenas Desktop / lg+) */}
