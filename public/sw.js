@@ -4,8 +4,8 @@
  * - Push notification handlers preserved
  */
 
-const APP_CACHE = "kasa-hub-app-v2";
-const ASSET_CACHE = "kasa-hub-assets-v2";
+const APP_CACHE = "kasa-hub-app-v3";
+const ASSET_CACHE = "kasa-hub-assets-v3";
 const KEEP_CACHES = new Set([APP_CACHE, ASSET_CACHE]);
 
 self.addEventListener("install", () => {
