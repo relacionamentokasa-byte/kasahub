@@ -163,9 +163,9 @@ export function GlobalSearch() {
   return (
     <div
       ref={wrapperRef}
-      className="flex relative items-center gap-2.5 bg-muted/30 hover:bg-muted/50 focus-within:bg-background focus-within:ring-1 focus-within:ring-primary/40 border border-border/70 px-3 h-8 rounded-md w-full transition-all"
+      className="flex relative items-center gap-2.5 bg-white/10 hover:bg-white/15 focus-within:bg-[#18181b] focus-within:ring-1 focus-within:ring-amber-400/60 border border-white/15 px-3 h-8 rounded-lg w-full transition-all text-white"
     >
-      <Search className="size-3.5 text-muted-foreground shrink-0" />
+      <Search className="size-3.5 text-zinc-400 shrink-0" />
       <input
         ref={inputRef}
         type="text"
@@ -177,12 +177,12 @@ export function GlobalSearch() {
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         placeholder="Buscar clientes, jobs, propostas..."
-        className="bg-transparent border-none outline-none text-xs w-full text-foreground placeholder:text-muted-foreground/60"
+        className="bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-zinc-400"
       />
       {isFetching && debounced.length >= 2 ? (
-        <Loader2 className="size-3.5 text-muted-foreground animate-spin shrink-0" />
+        <Loader2 className="size-3.5 text-amber-400 animate-spin shrink-0" />
       ) : (
-        <kbd className="text-[9px] font-mono-kasa text-muted-foreground/50 border border-border/60 bg-muted/40 rounded px-1 py-0.5 shrink-0 select-none">
+        <kbd className="text-[9px] font-mono-kasa text-zinc-400 border border-white/15 bg-white/5 rounded px-1 py-0.5 shrink-0 select-none">
           {typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl K"}
         </kbd>
       )}
@@ -190,14 +190,14 @@ export function GlobalSearch() {
       {showDropdown ? (
         <div
           onMouseDown={(e) => e.preventDefault()}
-          className="absolute left-0 right-0 top-[calc(100%+6px)] min-w-[320px] bg-[#1a1a1e] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150"
+          className="absolute left-0 right-0 top-[calc(100%+6px)] min-w-[340px] bg-[#121214] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150 text-white"
         >
           {results.length === 0 && !isFetching ? (
             <div className="px-4 py-6 text-xs text-zinc-400 text-center font-mono-kasa">
               Nada encontrado para “{debounced}”.
             </div>
           ) : (
-            <ul className="max-h-80 overflow-y-auto py-1 divide-y divide-white/5">
+            <ul className="max-h-80 overflow-y-auto py-1 divide-y divide-white/10">
               {results.map((r, i) => {
                 const Meta = KIND_META[r.kind];
                 const Icon = Meta.icon;
@@ -212,19 +212,19 @@ export function GlobalSearch() {
                       }}
                       onClick={() => go(r)}
                       className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left text-xs transition-colors cursor-pointer ${
-                        i === active ? "bg-white/10 text-white" : "text-zinc-300 hover:bg-white/5 hover:text-white"
+                        i === active ? "bg-white/15 text-white" : "text-zinc-300 hover:bg-white/10 hover:text-white"
                       }`}
                     >
-                      <div className="size-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                      <div className="size-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
                         <Icon className="size-3.5 text-amber-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="truncate font-semibold text-white">{r.label}</p>
+                        <p className="truncate font-semibold text-white text-xs">{r.label}</p>
                         {r.sub ? (
                           <p className="text-[10px] text-zinc-400 truncate mt-0.5">{r.sub}</p>
                         ) : null}
                       </div>
-                      <span className="text-[9px] font-mono-kasa font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-zinc-400 shrink-0">
+                      <span className="text-[9px] font-mono-kasa font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-white/10 border border-white/15 text-amber-300 shrink-0">
                         {Meta.tag}
                       </span>
                     </button>

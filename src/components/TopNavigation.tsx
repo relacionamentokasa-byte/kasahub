@@ -203,7 +203,7 @@ export function TopNavigation() {
 
         {/* Center / Right: Global Search, Quick Actions & Profile */}
         <div className="flex items-center gap-2 lg:gap-3 shrink-0 ml-auto">
-          <div className="w-36 sm:w-48 md:w-56 lg:w-64 [&_input]:text-white [&_input]:placeholder:text-zinc-400 [&_div]:bg-white/5 [&_div]:border-white/15 [&_div]:hover:bg-white/10 [&_div]:focus-within:bg-black/60">
+          <div className="w-48 sm:w-56 md:w-64 lg:w-72">
             <GlobalSearch />
           </div>
 
