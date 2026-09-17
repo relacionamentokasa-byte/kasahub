@@ -167,18 +167,8 @@ export function TopNavigation() {
     <div className="sticky top-0 z-30 w-full select-none shadow-sm">
       {/* Tier 1: Macro Navigation Bar (Dark Header estilo SaaS moderno / Vercel Pro) */}
       <div className="h-14 px-4 lg:px-6 flex items-center justify-between gap-4 bg-[#121214] text-white border-b border-white/10">
-        {/* Left: Brand Logo & Section Tabs */}
+        {/* Left: Section Tabs */}
         <div className="flex items-center gap-4 lg:gap-6 shrink-0">
-          <Link to="/dashboard" className="flex items-center gap-2 shrink-0 hover:opacity-90 transition-opacity">
-            <div className="size-8 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary shadow-xs">
-              <span className="font-display font-black text-base text-primary">K</span>
-            </div>
-            <span className="font-display text-base font-black tracking-tight text-white flex items-center gap-1.5">
-              <span>KASA</span>
-              <span className="text-primary">HUB</span>
-            </span>
-          </Link>
-
           {/* Macro Section Links (Apenas Desktop / lg+) */}
           <nav className="hidden lg:flex items-center gap-1 shrink-0">
             {filteredSections.map((sec) => {
