@@ -204,14 +204,22 @@ async function fetchSaudeNegocio(refDate: Date) {
     }
   });
 
-  const { data: clientsData } = await supabase.from("clients").select("id, name, company");
-  const clientsLookup = new Map((clientsData || []).map((c: any) => [c.id, c.company || c.name || "Cliente"]));
+  const { data: clientsData } = await supabase.from("clients").select("id, name, company, logo_url");
+  const clientsLookup = new Map((clientsData || []).map((c: any) => [c.id, {
+    name: c.company || c.name || "Cliente",
+    logo_url: c.logo_url || null,
+  }]));
 
   const topClients = Array.from(clientRevenueMap.entries())
-    .map(([id, total]) => ({
-      name: clientsLookup.get(id) || "Cliente",
-      total,
-    }))
+    .map(([id, total]) => {
+      const clientInfo = clientsLookup.get(id);
+      return {
+        id,
+        name: clientInfo?.name || "Cliente",
+        logo_url: clientInfo?.logo_url || null,
+        total,
+      };
+    })
     .sort((a, b) => b.total - a.total);
 
   return {

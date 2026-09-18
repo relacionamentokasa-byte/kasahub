@@ -25,6 +25,15 @@ import {
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { brl } from "@/lib/utils-format";
+import { StorageImage } from "@/components/ui/storage-image";
+import { Link } from "@tanstack/react-router";
+
+export interface TopClientData {
+  id?: string;
+  name: string;
+  logo_url?: string | null;
+  total: number;
+}
 
 interface FinancialChartsProps {
   mrr: number;
@@ -33,7 +42,7 @@ interface FinancialChartsProps {
   despesasPagas?: number;
   receitasPrevistas?: number;
   despesasPrevistas?: number;
-  topClients?: { name: string; total: number }[];
+  topClients?: TopClientData[];
   metaMensal?: number;
   metaAnual?: number;
   faturadoAnual?: number;
@@ -149,7 +158,9 @@ export function FinancialChartsSection({
     const maxVal = Math.max(...filtered.map((c) => c.total), 1);
 
     return filtered.map((c) => ({
+      id: c.id,
       name: c.name,
+      logo_url: c.logo_url,
       total: c.total,
       percent: Math.min(100, Math.round((c.total / maxVal) * 100)),
     }));
@@ -469,33 +480,62 @@ export function FinancialChartsSection({
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-auto">
-            {clientsChartData.map((client, idx) => (
-              <div
-                key={client.name}
-                className="bg-muted/30 border border-border/60 rounded-xl p-3.5 flex flex-col justify-between space-y-2 hover:border-foreground/20 transition-all"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-mono-kasa font-bold text-muted-foreground">
-                    #{idx + 1}
-                  </span>
-                  <span className="text-xs font-bold font-mono-kasa text-foreground tabular-nums">
-                    {brl(client.total)}
-                  </span>
-                </div>
+            {clientsChartData.map((client, idx) => {
+              const content = (
+                <div
+                  className="bg-muted/30 border border-border/60 rounded-xl p-3.5 flex flex-col justify-between space-y-2.5 hover:border-foreground/20 hover:bg-muted/40 transition-all group"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-mono-kasa font-bold text-muted-foreground group-hover:text-foreground/80 transition-colors">
+                      #{idx + 1}
+                    </span>
+                    <span className="text-xs font-bold font-mono-kasa text-foreground tabular-nums">
+                      {brl(client.total)}
+                    </span>
+                  </div>
 
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-foreground truncate" title={client.name}>
-                    {client.name}
-                  </p>
-                  <div className="w-full bg-border/60 h-1.5 rounded-full mt-2 overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all duration-500"
-                      style={{ width: `${client.percent}%` }}
-                    />
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="size-8 rounded-lg bg-background border border-border/60 flex items-center justify-center text-foreground font-mono-kasa text-xs font-bold shrink-0 overflow-hidden shadow-2xs">
+                      {client.logo_url ? (
+                        <StorageImage
+                          src={client.logo_url}
+                          alt={client.name}
+                          className="size-full object-cover"
+                        />
+                      ) : (
+                        <span>{client.name?.[0]?.toUpperCase() || "C"}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors" title={client.name}>
+                        {client.name}
+                      </p>
+                      <div className="w-full bg-border/60 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                        <div
+                          className="h-full bg-primary rounded-full transition-all duration-500"
+                          style={{ width: `${client.percent}%` }}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+
+              if (client.id) {
+                return (
+                  <Link
+                    key={client.id || client.name}
+                    to="/clientes/$clientId"
+                    params={{ clientId: client.id }}
+                    className="block focus:outline-none"
+                  >
+                    {content}
+                  </Link>
+                );
+              }
+
+              return <div key={client.name}>{content}</div>;
+            })}
           </div>
 
           <div className="pt-3 border-t border-border/40 flex justify-between items-center text-[10px] font-mono-kasa text-muted-foreground">
