@@ -184,25 +184,24 @@ export function FinancialChartsSection({
               </span>
 
               <div className="size-28 relative my-1 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={monthlyGaugeData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={36}
-                      outerRadius={48}
-                      startAngle={90}
-                      endAngle={-270}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {monthlyGaugeData.map((entry, index) => (
-                        <Cell key={`cell-m-gauge-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                <PieChart width={112} height={112}>
+                  <Pie
+                    data={monthlyGaugeData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={36}
+                    outerRadius={48}
+                    startAngle={90}
+                    endAngle={-270}
+                    dataKey="value"
+                    stroke="none"
+                    isAnimationActive={false}
+                  >
+                    {monthlyGaugeData.map((entry, index) => (
+                      <Cell key={`cell-m-gauge-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-base font-bold font-display text-foreground leading-none">
                     {metaMensal > 0 ? `${progressoMensal}%` : "—"}
@@ -253,25 +252,24 @@ export function FinancialChartsSection({
               </span>
 
               <div className="size-28 relative my-1 flex items-center justify-center">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={annualGaugeData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={36}
-                      outerRadius={48}
-                      startAngle={90}
-                      endAngle={-270}
-                      dataKey="value"
-                      stroke="none"
-                    >
-                      {annualGaugeData.map((entry, index) => (
-                        <Cell key={`cell-a-gauge-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
+                <PieChart width={112} height={112}>
+                  <Pie
+                    data={annualGaugeData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={36}
+                    outerRadius={48}
+                    startAngle={90}
+                    endAngle={-270}
+                    dataKey="value"
+                    stroke="none"
+                    isAnimationActive={false}
+                  >
+                    {annualGaugeData.map((entry, index) => (
+                      <Cell key={`cell-a-gauge-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                </PieChart>
                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                   <span className="text-base font-bold font-display text-foreground leading-none">
                     {metaAnual > 0 ? `${progressoAnual}%` : "—"}

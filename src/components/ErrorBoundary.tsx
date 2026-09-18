@@ -16,8 +16,11 @@ interface State {
 function normalizeError(error: unknown): Error {
   if (error instanceof Error) return error;
   if (error == null) return new Error("Erro inesperado sem detalhes");
+  if (typeof error === "string") return new Error(error);
   if (typeof error === "object") {
     try {
+      const msg = (error as any)?.message || (error as any)?.error_description || (error as any)?.msg;
+      if (msg) return new Error(String(msg));
       return new Error(JSON.stringify(error));
     } catch {
       return new Error("Erro inesperado não serializável");
