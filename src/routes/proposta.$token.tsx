@@ -40,8 +40,7 @@ export const Route = createFileRoute("/proposta/$token")({
       : "Proposta Comercial | Kasa Marketing & Consultoria";
     const desc =
       "Acesse a proposta comercial, confira o escopo detalhado de serviços e realize a assinatura digital com validade jurídica.";
-    const ogImage =
-      "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+    const ogImage = "https://kasahub.lovable.app/icon-512.png";
 
     return {
       meta: [
@@ -50,6 +49,10 @@ export const Route = createFileRoute("/proposta/$token")({
         { property: "og:title", content: title },
         { property: "og:description", content: desc },
         { property: "og:image", content: ogImage },
+        { property: "og:image:secure_url", content: ogImage },
+        { property: "og:image:type", content: "image/png" },
+        { property: "og:image:width", content: "512" },
+        { property: "og:image:height", content: "512" },
         { property: "og:type", content: "website" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: title },
