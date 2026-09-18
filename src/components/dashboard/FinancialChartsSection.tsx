@@ -149,25 +149,30 @@ export function FinancialChartsSection({
     ];
   }, [faturadoAnual, metaAnual]);
 
-  // 4. Top Clientes por Faturamento
+  const totalFaturamento = mrr + avulsa;
+  const saldoOperacional = receitaEfetivada - despesasPagas;
+
+  // 4. Top Clientes por Faturamento (% real sobre o total faturado)
   const clientsChartData = useMemo(() => {
     const filtered = (topClients || [])
       .filter((c) => c.total > 0)
       .slice(0, 4);
 
-    const maxVal = Math.max(...filtered.map((c) => c.total), 1);
+    const totalBase = totalFaturamento > 0
+      ? totalFaturamento
+      : filtered.reduce((acc, c) => acc + c.total, 0);
 
-    return filtered.map((c) => ({
-      id: c.id,
-      name: c.name,
-      logo_url: c.logo_url,
-      total: c.total,
-      percent: Math.min(100, Math.round((c.total / maxVal) * 100)),
-    }));
-  }, [topClients]);
-
-  const totalFaturamento = mrr + avulsa;
-  const saldoOperacional = receitaEfetivada - despesasPagas;
+    return filtered.map((c) => {
+      const share = totalBase > 0 ? Math.round((c.total / totalBase) * 100) : 0;
+      return {
+        id: c.id,
+        name: c.name,
+        logo_url: c.logo_url,
+        total: c.total,
+        share,
+      };
+    });
+  }, [topClients, totalFaturamento]);
 
   return (
     <div className="space-y-4">
@@ -483,19 +488,19 @@ export function FinancialChartsSection({
             {clientsChartData.map((client, idx) => {
               const content = (
                 <div
-                  className="bg-muted/30 border border-border/60 rounded-xl p-3.5 flex flex-col justify-between space-y-2.5 hover:border-foreground/20 hover:bg-muted/40 transition-all group"
+                  className="bg-muted/30 border border-border/60 rounded-xl p-3.5 flex flex-col justify-between space-y-2 hover:border-foreground/20 hover:bg-muted/40 transition-all group"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px] font-mono-kasa font-bold text-muted-foreground group-hover:text-foreground/80 transition-colors">
                       #{idx + 1}
                     </span>
-                    <span className="text-xs font-bold font-mono-kasa text-foreground tabular-nums">
-                      {brl(client.total)}
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono-kasa font-semibold bg-primary/10 text-primary border border-primary/20">
+                      {client.share}% do total
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-8 rounded-lg bg-background border border-border/60 flex items-center justify-center text-foreground font-mono-kasa text-xs font-bold shrink-0 overflow-hidden shadow-2xs">
+                    <div className="size-9 rounded-lg bg-background border border-border/60 flex items-center justify-center text-foreground font-mono-kasa text-xs font-bold shrink-0 overflow-hidden shadow-2xs">
                       {client.logo_url ? (
                         <StorageImage
                           src={client.logo_url}
@@ -510,12 +515,9 @@ export function FinancialChartsSection({
                       <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors" title={client.name}>
                         {client.name}
                       </p>
-                      <div className="w-full bg-border/60 h-1.5 rounded-full mt-1.5 overflow-hidden">
-                        <div
-                          className="h-full bg-primary rounded-full transition-all duration-500"
-                          style={{ width: `${client.percent}%` }}
-                        />
-                      </div>
+                      <p className="text-xs font-mono-kasa font-bold text-foreground/90 tabular-nums mt-0.5">
+                        {brl(client.total)}
+                      </p>
                     </div>
                   </div>
                 </div>
