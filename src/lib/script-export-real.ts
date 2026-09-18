@@ -8,38 +8,74 @@ import { registerBoletimFonts } from "@/lib/pdf-fonts";
 import { resolveStorageUrl } from "@/lib/use-storage-url";
 
 /* =========================================================
- * Paleta KASA HUB
+ * Paleta KASA HUB — Design System Oficial
+ *
+ * Baseada no design system da aplicação (styles.css):
+ * - Dark Petrol profundo (#0C1618) e Grafite Zinc (#18181B)
+ * - Âmbar Dourado KASA (#FFBC45 / #F59E0B)
+ * - Fundo de cartões neutro contrastado (#F9FAFB / #FFFFFF)
+ * - Tipografia oficial: Funnel Display (títulos) e Onest (corpo)
  * ========================================================= */
 const COLOR = {
-  bgDark: [12, 22, 24] as [number, number, number],       // #0C1618 Petróleo escuro
-  brand: [255, 188, 69] as [number, number, number],      // #FFBC45 Amarelo Kasa
-  brandDark: [201, 142, 38] as [number, number, number],  // #C98E26
-  brandLight: [255, 248, 235] as [number, number, number],// #FFF8EB
-  cardBg: [252, 252, 250] as [number, number, number],    // #FCFCFA Fundo suave
-  sceneHeaderBg: [241, 245, 244] as [number, number, number], // #F1F5F4
-  bubbleBg: [246, 248, 247] as [number, number, number], // #F6F8F7
-  bubbleSpeechBg: [255, 252, 242] as [number, number, number], // #FFFCF2 Fundo fala/locução
-  bubbleSpeechBorder: [255, 226, 153] as [number, number, number], // #FFE299 Borda fala
-  textDark: [18, 28, 30] as [number, number, number],     // #121C1E
-  textMedium: [65, 80, 82] as [number, number, number],   // #415052
-  textMuted: [120, 138, 137] as [number, number, number], // #788A89
-  border: [222, 230, 228] as [number, number, number],    // #DEE6E4
-  borderSoft: [238, 242, 241] as [number, number, number],// #EEF2F1
+  bgDark: [12, 22, 24] as [number, number, number],          // #0C1618 Dark Petrol
+  bgZinc: [24, 24, 27] as [number, number, number],          // #18181B Surface Dark
+  brand: [255, 188, 69] as [number, number, number],         // #FFBC45 Amarelo Kasa
+  brandDark: [194, 120, 3] as [number, number, number],      // #C27803 Âmbar escuro legível
+  brandSoft: [254, 243, 199] as [number, number, number],    // #FEF3C7 Amber 100 suave
+  brandBorder: [251, 191, 36] as [number, number, number],   // #FBBF24 Amber 400
+  cardBg: [255, 255, 255] as [number, number, number],       // #FFFFFF Card limpo
+  cardHeaderBg: [244, 244, 245] as [number, number, number], // #F4F4F5 Zinc 100
+  bubbleBg: [248, 250, 252] as [number, number, number],     // #F8FAFC
+  bubbleSpeechBg: [255, 251, 235] as [number, number, number],// #FFFBEB Amber 50
+  bubbleSpeechBorder: [253, 230, 138] as [number, number, number], // #FDE68A Amber 200
+  textDark: [15, 23, 42] as [number, number, number],        // #0F172A Slate 900
+  textMedium: [51, 65, 85] as [number, number, number],      // #334155 Slate 700
+  textMuted: [100, 116, 139] as [number, number, number],    // #64748B Slate 500
+  border: [226, 232, 240] as [number, number, number],       // #E2E8F0 Slate 200
+  borderSoft: [241, 245, 249] as [number, number, number],   // #F1F5F9 Slate 100
   white: [255, 255, 255] as [number, number, number],
 };
 
-async function imageToDataURL(url: string): Promise<string | null> {
+interface ImageMetadata {
+  dataUrl: string;
+  width: number;
+  height: number;
+  aspectRatio: number;
+  orientation: "landscape" | "portrait" | "square";
+}
+
+async function imageToDataURL(url: string): Promise<ImageMetadata | null> {
   const signed = (await resolveStorageUrl(url)) ?? url;
   try {
     const res = await fetch(signed);
     if (!res.ok) return null;
     const blob = await res.blob();
-    return await new Promise((resolve) => {
+    const dataUrl: string = await new Promise((resolve) => {
       const r = new FileReader();
       r.onloadend = () => resolve(r.result as string);
-      r.onerror = () => resolve(null);
+      r.onerror = () => resolve("");
       r.readAsDataURL(blob);
     });
+
+    if (!dataUrl) return null;
+
+    const dims = await new Promise<{ w: number; h: number }>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ w: img.naturalWidth || img.width || 1, h: img.naturalHeight || img.height || 1 });
+      img.onerror = () => resolve({ w: 1, h: 1 });
+      img.src = dataUrl;
+    });
+
+    const aspectRatio = dims.w / dims.h;
+    const orientation = aspectRatio > 1.15 ? "landscape" : aspectRatio < 0.85 ? "portrait" : "square";
+
+    return {
+      dataUrl,
+      width: dims.w,
+      height: dims.h,
+      aspectRatio,
+      orientation,
+    };
   } catch {
     return null;
   }
@@ -56,18 +92,11 @@ function tryAddImage(doc: jsPDF, dataUrl: string, x: number, y: number, w: numbe
 }
 
 /** Ajusta a imagem inteira dentro do box (sem cortar) mantendo proporção. */
-async function fitContain(dataUrl: string, boxW: number, boxH: number) {
-  return new Promise<{ w: number; h: number; ox: number; oy: number }>((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      const scale = Math.min(boxW / img.width, boxH / img.height);
-      const w = Math.max(1, img.width * scale);
-      const h = Math.max(1, img.height * scale);
-      resolve({ w, h, ox: (boxW - w) / 2, oy: (boxH - h) / 2 });
-    };
-    img.onerror = () => resolve({ w: boxW, h: boxH, ox: 0, oy: 0 });
-    img.src = dataUrl;
-  });
+function fitContain(imgW: number, imgH: number, boxW: number, boxH: number) {
+  const scale = Math.min(boxW / imgW, boxH / imgH);
+  const w = Math.max(1, imgW * scale);
+  const h = Math.max(1, imgH * scale);
+  return { w, h, ox: (boxW - w) / 2, oy: (boxH - h) / 2 };
 }
 
 function sanitize(s?: string | null): string {
@@ -89,7 +118,7 @@ const formatLabel: Record<string, string> = {
 
 interface PreloadedScene {
   scene: ScriptScene;
-  imageDataUrl: string | null;
+  image: ImageMetadata | null;
 }
 
 export async function exportScriptPdf(opts: {
@@ -111,14 +140,14 @@ export async function exportScriptPdf(opts: {
   // Ordena cenas cronologicamente
   const sortedScenes = scenes.slice().sort((a, b) => a.scene_number - b.scene_number);
 
-  // Pré-carrega todas as imagens de referência em paralelo
+  // Pré-carrega todas as imagens de referência com cálculo de dimensões e orientação
   const preloadedScenes: PreloadedScene[] = await Promise.all(
     sortedScenes.map(async (scene) => {
-      let imageDataUrl: string | null = null;
+      let image: ImageMetadata | null = null;
       if (scene.reference_image_url) {
-        imageDataUrl = await imageToDataURL(scene.reference_image_url);
+        image = await imageToDataURL(scene.reference_image_url);
       }
-      return { scene, imageDataUrl };
+      return { scene, image };
     })
   );
 
@@ -126,15 +155,15 @@ export async function exportScriptPdf(opts: {
 
   // Renderiza cabeçalho principal
   const drawMainHeader = () => {
-    // Header Dark Banner
+    // Header Dark Petroleum Banner
     doc.setFillColor(...COLOR.bgDark);
-    doc.rect(0, 0, pageW, 110, "F");
+    doc.rect(0, 0, pageW, 114, "F");
 
-    // Faixa dourada decorativa no topo
+    // Faixa âmbar decorativa no topo
     doc.setFillColor(...COLOR.brand);
     doc.rect(0, 0, pageW, 3.5, "F");
 
-    // Tag KASA HUB / Roteiro
+    // Tag KASA HUB / Roteiro Operacional
     doc.setTextColor(...COLOR.brand);
     doc.setFont(FONT_TITLE, "bold");
     doc.setFontSize(9);
@@ -146,22 +175,22 @@ export async function exportScriptPdf(opts: {
     doc.setFontSize(18);
     const titleText = sanitize(script.title || "Roteiro sem título");
     const titleLines = doc.splitTextToSize(titleText, contentW);
-    doc.text(titleLines.slice(0, 2), marginX, 50);
+    doc.text(titleLines.slice(0, 2), marginX, 52);
 
-    // Linha de Meta (Cliente e Job)
+    // Metadados do Job e Cliente
     doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(9.5);
-    doc.setTextColor(200, 215, 214);
+    doc.setTextColor(203, 213, 225);
     const metaParts = [
       script.clients?.name ? `Cliente: ${sanitize(script.clients.name)}` : null,
       script.jobs?.title ? `Job: ${sanitize(script.jobs.title)}` : null,
     ].filter(Boolean);
     if (metaParts.length > 0) {
-      doc.text(metaParts.join("   |   "), marginX, 84);
+      doc.text(metaParts.join("   |   "), marginX, 88);
     }
 
     // Grid de Informações e Metadados Técnicos (Card Superior)
-    const cardY = 120;
+    const cardY = 124;
     const cardH = 64;
     doc.setFillColor(...COLOR.cardBg);
     doc.setDrawColor(...COLOR.border);
@@ -170,10 +199,9 @@ export async function exportScriptPdf(opts: {
 
     const totalDur = scenes.reduce((a, s) => a + (s.duration_sec ?? 0), 0);
     const estimatedDur = script.estimated_duration_sec ?? totalDur;
-
     const colW = contentW / 3;
 
-    // Coluna 1: Tipo & Formato
+    // Coluna 1: Formato & Canal
     doc.setFont(FONT_TITLE, "bold");
     doc.setFontSize(8);
     doc.setTextColor(...COLOR.textMuted);
@@ -208,7 +236,7 @@ export async function exportScriptPdf(opts: {
     doc.setTextColor(...COLOR.textMedium);
     doc.text(`${scenes.length} cena(s) catalogada(s)`, marginX + colW + 12, cardY + 48);
 
-    // Coluna 3: Status & Conceito
+    // Coluna 3: Status & Data
     doc.setFont(FONT_TITLE, "bold");
     doc.setFontSize(8);
     doc.setTextColor(...COLOR.textMuted);
@@ -238,7 +266,7 @@ export async function exportScriptPdf(opts: {
     doc.setTextColor(...COLOR.brand);
     doc.setFont(FONT_TITLE, "bold");
     doc.setFontSize(8);
-    doc.text("KASA HUB  ·  ROTEIRO DE GRAVAÇÃO", marginX, 22);
+    doc.text("KASA HUB  ·  ROTEIRO OPERACIONAL DE GRAVAÇÃO", marginX, 22);
 
     doc.setTextColor(...COLOR.white);
     doc.setFont(FONT_BODY, "normal");
@@ -251,7 +279,7 @@ export async function exportScriptPdf(opts: {
 
   drawMainHeader();
 
-  // Se houver conceito geral / briefing do vídeo, imprime um pequeno card antes das cenas
+  // Se houver conceito geral / briefing do vídeo
   if (script.video_concept) {
     const conceptText = sanitize(script.video_concept);
     doc.setFont(FONT_BODY, "normal");
@@ -289,207 +317,370 @@ export async function exportScriptPdf(opts: {
   doc.text("CENAS & SEQUÊNCIA DE PRODUÇÃO", marginX, currentY);
   currentY += 12;
 
-  // Renderização sequencial dos cards de cena
+  // Renderização de cada cena com adaptação inteligente de layout para fotos horizontais ou verticais
   for (let idx = 0; idx < preloadedScenes.length; idx++) {
-    const { scene, imageDataUrl } = preloadedScenes[idx];
-    const hasImage = Boolean(imageDataUrl);
+    const { scene, image } = preloadedScenes[idx];
+    const hasImage = Boolean(image);
+    const isHorizontal = image?.orientation === "landscape";
 
-    // Layout de colunas dentro do Card
-    // Se tiver imagem: coluna de texto + foto lateral de referência
-    const imageColW = hasImage ? 140 : 0;
-    const gap = hasImage ? 12 : 0;
-    const textColW = contentW - 24 - (hasImage ? (imageColW + gap) : 0);
-
-    // Pré-calcula linhas de texto para medir a altura do card
-    const visualText = sanitize(scene.visual || "Sem descrição visual.");
-    doc.setFont(FONT_BODY, "normal");
-    doc.setFontSize(9);
-    const visualLines = doc.splitTextToSize(visualText, textColW);
-
-    const speechText = sanitize(scene.speech || "");
-    const speechLines = speechText ? doc.splitTextToSize(speechText, textColW - 16) : [];
-
-    const notesText = sanitize(scene.production_notes || "");
-    const notesLines = notesText ? doc.splitTextToSize(notesText, textColW) : [];
-
-    const refUrlText = sanitize(scene.reference_url || "");
-    const refUrlLines = refUrlText ? doc.splitTextToSize(refUrlText, textColW) : [];
-
-    // Cálculo da altura de cada seção interna
-    let textHeight = 0;
-
-    // Seção Visual
-    textHeight += 12 + visualLines.length * 11.5 + 8;
-
-    // Seção Fala / Locução (dentro de box destacado)
-    let speechBoxH = 0;
-    if (speechLines.length > 0) {
-      speechBoxH = 18 + speechLines.length * 11.5 + 8;
-      textHeight += speechBoxH + 6;
-    }
-
-    // Seção Notas de Produção
-    if (notesLines.length > 0) {
-      textHeight += 12 + notesLines.length * 11 + 6;
-    }
-
-    // Link externo de referência
-    if (refUrlLines.length > 0) {
-      textHeight += 12 + refUrlLines.length * 10 + 4;
-    }
-
-    // Altura mínima da imagem
-    const imageHeightReq = hasImage ? 160 : 0;
-    const contentH = Math.max(textHeight, imageHeightReq);
-
-    // Cabeçalho da cena (badge e tempo) = 28pt
     const cardHeaderH = 26;
-    const totalCardH = cardHeaderH + contentH + 16;
+    let totalCardH = 0;
 
-    // Quebra de página se não couber o card inteiro
-    if (currentY + totalCardH > pageH - bottomMargin) {
-      doc.addPage();
-      drawSubsequentHeader();
-    }
+    // Caso A: Foto HORIZONTAL (16:9 / widescreen) -> Renderiza abaixo do texto ocupando a largura total
+    if (hasImage && isHorizontal && image) {
+      const textColW = contentW - 24;
 
-    const cardY = currentY;
+      const visualText = sanitize(scene.visual || "Sem descrição visual.");
+      doc.setFont(FONT_BODY, "normal");
+      doc.setFontSize(9);
+      const visualLines = doc.splitTextToSize(visualText, textColW);
 
-    // Fundo do Card da Cena
-    doc.setFillColor(...COLOR.cardBg);
-    doc.setDrawColor(...COLOR.border);
-    doc.setLineWidth(0.75);
-    doc.roundedRect(marginX, cardY, contentW, totalCardH, 6, 6, "FD");
+      const speechText = sanitize(scene.speech || "");
+      const speechLines = speechText ? doc.splitTextToSize(speechText, textColW - 16) : [];
 
-    // Cabeçalho da cena
-    doc.setFillColor(...COLOR.sceneHeaderBg);
-    doc.roundedRect(marginX, cardY, contentW, cardHeaderH, 6, 6, "F");
-    doc.rect(marginX, cardY + cardHeaderH - 4, contentW, 4, "F"); // alinha canto inferior do header
+      const notesText = sanitize(scene.production_notes || "");
+      const notesLines = notesText ? doc.splitTextToSize(notesText, textColW) : [];
 
-    // Linha divisória
-    doc.setDrawColor(...COLOR.borderSoft);
-    doc.line(marginX, cardY + cardHeaderH, marginX + contentW, cardY + cardHeaderH);
+      const refUrlText = sanitize(scene.reference_url || "");
+      const refUrlLines = refUrlText ? doc.splitTextToSize(refUrlText, textColW) : [];
 
-    // Número da Cena
-    doc.setFont(FONT_TITLE, "bold");
-    doc.setFontSize(10);
-    doc.setTextColor(...COLOR.textDark);
-    doc.text(`CENA ${scene.scene_number}`, marginX + 12, cardY + 17);
+      let textH = 0;
+      textH += 12 + visualLines.length * 11.5 + 6;
 
-    // Duração da Cena (Badge)
-    const durStr = scene.duration_sec != null ? `${scene.duration_sec}s` : "tempo livre";
-    doc.setFont(FONT_BODY, "bold");
-    doc.setFontSize(8.5);
-    doc.setTextColor(...COLOR.brandDark);
-    const durBadgeW = doc.getTextWidth(`  ${durStr}  `) + 12;
-    doc.setFillColor(...COLOR.brandLight);
-    doc.setDrawColor(...COLOR.brandDark);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(marginX + contentW - durBadgeW - 12, cardY + 6, durBadgeW, 15, 3, 3, "FD");
-    doc.text(durStr, marginX + contentW - durBadgeW - 6, cardY + 17);
+      let speechBoxH = 0;
+      if (speechLines.length > 0) {
+        speechBoxH = 18 + speechLines.length * 11.5 + 8;
+        textH += speechBoxH + 6;
+      }
 
-    // Renderização do conteúdo textual (coluna esquerda)
-    let innerY = cardY + cardHeaderH + 12;
-    const textX = marginX + 12;
+      if (notesLines.length > 0) {
+        textH += 12 + notesLines.length * 11 + 6;
+      }
 
-    // 1. AÇÃO / VISUAL
-    doc.setFont(FONT_TITLE, "bold");
-    doc.setFontSize(7.5);
-    doc.setTextColor(...COLOR.textMuted);
-    doc.text("ENQUADRAMENTO & AÇÃO VISUAL", textX, innerY);
-    innerY += 10;
+      if (refUrlLines.length > 0) {
+        textH += 12 + refUrlLines.length * 10 + 4;
+      }
 
-    doc.setFont(FONT_BODY, "normal");
-    doc.setFontSize(8.5);
-    doc.setTextColor(...COLOR.textDark);
-    doc.text(visualLines, textX, innerY);
-    innerY += visualLines.length * 11.5 + 8;
+      // Box horizontal para foto (max height 140pt)
+      const photoBoxH = 135;
+      totalCardH = cardHeaderH + textH + photoBoxH + 20;
 
-    // 2. FALA / LOCUÇÃO (Área destacada estilo roteiro audiovisual)
-    if (speechLines.length > 0) {
-      doc.setFillColor(...COLOR.bubbleSpeechBg);
-      doc.setDrawColor(...COLOR.bubbleSpeechBorder);
-      doc.setLineWidth(0.5);
-      doc.roundedRect(textX, innerY - 2, textColW, speechBoxH, 4, 4, "FD");
+      if (currentY + totalCardH > pageH - bottomMargin) {
+        doc.addPage();
+        drawSubsequentHeader();
+      }
 
+      const cardY = currentY;
+
+      // Fundo do Card
+      doc.setFillColor(...COLOR.cardBg);
+      doc.setDrawColor(...COLOR.border);
+      doc.setLineWidth(0.75);
+      doc.roundedRect(marginX, cardY, contentW, totalCardH, 6, 6, "FD");
+
+      // Header da Cena
+      doc.setFillColor(...COLOR.cardHeaderBg);
+      doc.roundedRect(marginX, cardY, contentW, cardHeaderH, 6, 6, "F");
+      doc.rect(marginX, cardY + cardHeaderH - 4, contentW, 4, "F");
+
+      doc.setDrawColor(...COLOR.borderSoft);
+      doc.line(marginX, cardY + cardHeaderH, marginX + contentW, cardY + cardHeaderH);
+
+      // Título da cena
       doc.setFont(FONT_TITLE, "bold");
-      doc.setFontSize(7);
+      doc.setFontSize(10);
+      doc.setTextColor(...COLOR.textDark);
+      doc.text(`CENA ${scene.scene_number}`, marginX + 12, cardY + 17);
+
+      // Badge de tempo
+      const durStr = scene.duration_sec != null ? `${scene.duration_sec}s` : "tempo livre";
+      doc.setFont(FONT_BODY, "bold");
+      doc.setFontSize(8.5);
       doc.setTextColor(...COLOR.brandDark);
-      doc.text("FALA / DIÁLOGO / LOCUÇÃO", textX + 8, innerY + 9);
+      const durBadgeW = doc.getTextWidth(`  ${durStr}  `) + 12;
+      doc.setFillColor(...COLOR.brandSoft);
+      doc.setDrawColor(...COLOR.brandBorder);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(marginX + contentW - durBadgeW - 12, cardY + 6, durBadgeW, 15, 3, 3, "FD");
+      doc.text(durStr, marginX + contentW - durBadgeW - 6, cardY + 17);
+
+      // Conteúdo textual
+      let innerY = cardY + cardHeaderH + 12;
+      const textX = marginX + 12;
+
+      // 1. Visual
+      doc.setFont(FONT_TITLE, "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...COLOR.textMuted);
+      doc.text("ENQUADRAMENTO & AÇÃO VISUAL", textX, innerY);
+      innerY += 10;
 
       doc.setFont(FONT_BODY, "normal");
       doc.setFontSize(8.5);
       doc.setTextColor(...COLOR.textDark);
-      doc.text(speechLines, textX + 8, innerY + 22);
+      doc.text(visualLines, textX, innerY);
+      innerY += visualLines.length * 11.5 + 8;
 
-      innerY += speechBoxH + 8;
-    }
+      // 2. Fala
+      if (speechLines.length > 0) {
+        doc.setFillColor(...COLOR.bubbleSpeechBg);
+        doc.setDrawColor(...COLOR.bubbleSpeechBorder);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(textX, innerY - 2, textColW, speechBoxH, 4, 4, "FD");
 
-    // 3. NOTAS DE PRODUÇÃO
-    if (notesLines.length > 0) {
-      doc.setFont(FONT_TITLE, "bold");
-      doc.setFontSize(7.5);
-      doc.setTextColor(...COLOR.brandDark);
-      doc.text("NOTAS DE PRODUÇÃO (ÁUDIO / EFEITO / LETTERING)", textX, innerY);
-      innerY += 10;
+        doc.setFont(FONT_TITLE, "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(...COLOR.brandDark);
+        doc.text("FALA / DIÁLOGO / LOCUÇÃO", textX + 8, innerY + 9);
 
-      doc.setFont(FONT_BODY, "normal");
-      doc.setFontSize(8);
-      doc.setTextColor(...COLOR.textMedium);
-      doc.text(notesLines, textX, innerY);
-      innerY += notesLines.length * 11 + 6;
-    }
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(...COLOR.textDark);
+        doc.text(speechLines, textX + 8, innerY + 22);
 
-    // 4. LINK DE REFERÊNCIA EXTERNA
-    if (refUrlLines.length > 0) {
-      doc.setFont(FONT_TITLE, "bold");
-      doc.setFontSize(7);
-      doc.setTextColor(...COLOR.textMuted);
-      doc.text("LINK DE REFERÊNCIA:", textX, innerY);
-      innerY += 9;
+        innerY += speechBoxH + 8;
+      }
 
-      doc.setFont(FONT_BODY, "normal");
-      doc.setFontSize(7.5);
-      doc.setTextColor(34, 102, 187);
-      doc.text(refUrlLines, textX, innerY);
-      innerY += refUrlLines.length * 10 + 4;
-    }
+      // 3. Notas
+      if (notesLines.length > 0) {
+        doc.setFont(FONT_TITLE, "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(...COLOR.brandDark);
+        doc.text("NOTAS DE PRODUÇÃO (ÁUDIO / EFEITO / LETTERING)", textX, innerY);
+        innerY += 10;
 
-    // Renderização da Foto de Referência na coluna direita
-    if (hasImage && imageDataUrl) {
-      const imgBoxX = marginX + contentW - imageColW - 12;
-      const imgBoxY = cardY + cardHeaderH + 12;
-      const imgBoxW = imageColW;
-      const imgBoxH = totalCardH - cardHeaderH - 24;
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(...COLOR.textMedium);
+        doc.text(notesLines, textX, innerY);
+        innerY += notesLines.length * 11 + 6;
+      }
 
-      // Moldura da foto
-      doc.setFillColor(...COLOR.white);
+      // 4. Link
+      if (refUrlLines.length > 0) {
+        doc.setFont(FONT_TITLE, "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(...COLOR.textMuted);
+        doc.text("LINK DE REFERÊNCIA:", textX, innerY);
+        innerY += 9;
+
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(34, 102, 187);
+        doc.text(refUrlLines, textX, innerY);
+        innerY += refUrlLines.length * 10 + 6;
+      }
+
+      // Foto Horizontal Banner
+      const photoY = innerY;
+      const photoBoxW = contentW - 24;
+      doc.setFillColor(...COLOR.bubbleBg);
       doc.setDrawColor(...COLOR.border);
       doc.setLineWidth(0.5);
-      doc.roundedRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, 4, 4, "FD");
+      doc.roundedRect(textX, photoY, photoBoxW, photoBoxH, 4, 4, "FD");
 
-      // Label "Referência"
       doc.setFont(FONT_TITLE, "bold");
       doc.setFontSize(6.5);
       doc.setTextColor(...COLOR.textMuted);
-      doc.text("FOTO DE REFERÊNCIA", imgBoxX + 6, imgBoxY + 10);
+      doc.text("FOTO DE REFERÊNCIA (HORIZONTAL)", textX + 6, photoY + 10);
 
-      // Imagem contida com proporção correta
       const padding = 6;
-      const availW = imgBoxW - padding * 2;
-      const availH = imgBoxH - 16 - padding;
-      const fit = await fitContain(imageDataUrl, availW, availH);
+      const availW = photoBoxW - padding * 2;
+      const availH = photoBoxH - 16 - padding;
+      const fit = fitContain(image.width, image.height, availW, availH);
 
       tryAddImage(
         doc,
-        imageDataUrl,
-        imgBoxX + padding + fit.ox,
-        imgBoxY + 14 + fit.oy,
+        image.dataUrl,
+        textX + padding + fit.ox,
+        photoY + 14 + fit.oy,
         fit.w,
         fit.h
       );
-    }
 
-    currentY += totalCardH + 14;
+      currentY += totalCardH + 14;
+
+    } else {
+      // Caso B: Foto VERTICAL/QUADRADA ou SEM FOTO -> Layout em 2 colunas lado a lado
+      const imageColW = hasImage ? 150 : 0;
+      const gap = hasImage ? 14 : 0;
+      const textColW = contentW - 24 - (hasImage ? (imageColW + gap) : 0);
+
+      const visualText = sanitize(scene.visual || "Sem descrição visual.");
+      doc.setFont(FONT_BODY, "normal");
+      doc.setFontSize(9);
+      const visualLines = doc.splitTextToSize(visualText, textColW);
+
+      const speechText = sanitize(scene.speech || "");
+      const speechLines = speechText ? doc.splitTextToSize(speechText, textColW - 16) : [];
+
+      const notesText = sanitize(scene.production_notes || "");
+      const notesLines = notesText ? doc.splitTextToSize(notesText, textColW) : [];
+
+      const refUrlText = sanitize(scene.reference_url || "");
+      const refUrlLines = refUrlText ? doc.splitTextToSize(refUrlText, textColW) : [];
+
+      let textHeight = 0;
+      textHeight += 12 + visualLines.length * 11.5 + 8;
+
+      let speechBoxH = 0;
+      if (speechLines.length > 0) {
+        speechBoxH = 18 + speechLines.length * 11.5 + 8;
+        textHeight += speechBoxH + 6;
+      }
+
+      if (notesLines.length > 0) {
+        textHeight += 12 + notesLines.length * 11 + 6;
+      }
+
+      if (refUrlLines.length > 0) {
+        textHeight += 12 + refUrlLines.length * 10 + 4;
+      }
+
+      const imageHeightReq = hasImage ? 175 : 0;
+      const contentH = Math.max(textHeight, imageHeightReq);
+      totalCardH = cardHeaderH + contentH + 16;
+
+      if (currentY + totalCardH > pageH - bottomMargin) {
+        doc.addPage();
+        drawSubsequentHeader();
+      }
+
+      const cardY = currentY;
+
+      // Fundo do Card
+      doc.setFillColor(...COLOR.cardBg);
+      doc.setDrawColor(...COLOR.border);
+      doc.setLineWidth(0.75);
+      doc.roundedRect(marginX, cardY, contentW, totalCardH, 6, 6, "FD");
+
+      // Cabeçalho da cena
+      doc.setFillColor(...COLOR.cardHeaderBg);
+      doc.roundedRect(marginX, cardY, contentW, cardHeaderH, 6, 6, "F");
+      doc.rect(marginX, cardY + cardHeaderH - 4, contentW, 4, "F");
+
+      doc.setDrawColor(...COLOR.borderSoft);
+      doc.line(marginX, cardY + cardHeaderH, marginX + contentW, cardY + cardHeaderH);
+
+      // Número da Cena
+      doc.setFont(FONT_TITLE, "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(...COLOR.textDark);
+      doc.text(`CENA ${scene.scene_number}`, marginX + 12, cardY + 17);
+
+      // Duração da Cena (Badge)
+      const durStr = scene.duration_sec != null ? `${scene.duration_sec}s` : "tempo livre";
+      doc.setFont(FONT_BODY, "bold");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...COLOR.brandDark);
+      const durBadgeW = doc.getTextWidth(`  ${durStr}  `) + 12;
+      doc.setFillColor(...COLOR.brandSoft);
+      doc.setDrawColor(...COLOR.brandBorder);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(marginX + contentW - durBadgeW - 12, cardY + 6, durBadgeW, 15, 3, 3, "FD");
+      doc.text(durStr, marginX + contentW - durBadgeW - 6, cardY + 17);
+
+      // Renderização do texto
+      let innerY = cardY + cardHeaderH + 12;
+      const textX = marginX + 12;
+
+      // 1. Ação / Visual
+      doc.setFont(FONT_TITLE, "bold");
+      doc.setFontSize(7.5);
+      doc.setTextColor(...COLOR.textMuted);
+      doc.text("ENQUADRAMENTO & AÇÃO VISUAL", textX, innerY);
+      innerY += 10;
+
+      doc.setFont(FONT_BODY, "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...COLOR.textDark);
+      doc.text(visualLines, textX, innerY);
+      innerY += visualLines.length * 11.5 + 8;
+
+      // 2. Fala
+      if (speechLines.length > 0) {
+        doc.setFillColor(...COLOR.bubbleSpeechBg);
+        doc.setDrawColor(...COLOR.bubbleSpeechBorder);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(textX, innerY - 2, textColW, speechBoxH, 4, 4, "FD");
+
+        doc.setFont(FONT_TITLE, "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(...COLOR.brandDark);
+        doc.text("FALA / DIÁLOGO / LOCUÇÃO", textX + 8, innerY + 9);
+
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(8.5);
+        doc.setTextColor(...COLOR.textDark);
+        doc.text(speechLines, textX + 8, innerY + 22);
+
+        innerY += speechBoxH + 8;
+      }
+
+      // 3. Notas
+      if (notesLines.length > 0) {
+        doc.setFont(FONT_TITLE, "bold");
+        doc.setFontSize(7.5);
+        doc.setTextColor(...COLOR.brandDark);
+        doc.text("NOTAS DE PRODUÇÃO (ÁUDIO / EFEITO / LETTERING)", textX, innerY);
+        innerY += 10;
+
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(8);
+        doc.setTextColor(...COLOR.textMedium);
+        doc.text(notesLines, textX, innerY);
+        innerY += notesLines.length * 11 + 6;
+      }
+
+      // 4. Link
+      if (refUrlLines.length > 0) {
+        doc.setFont(FONT_TITLE, "bold");
+        doc.setFontSize(7);
+        doc.setTextColor(...COLOR.textMuted);
+        doc.text("LINK DE REFERÊNCIA:", textX, innerY);
+        innerY += 9;
+
+        doc.setFont(FONT_BODY, "normal");
+        doc.setFontSize(7.5);
+        doc.setTextColor(34, 102, 187);
+        doc.text(refUrlLines, textX, innerY);
+        innerY += refUrlLines.length * 10 + 4;
+      }
+
+      // Foto Vertical / Quadrada na coluna lateral
+      if (hasImage && image) {
+        const imgBoxX = marginX + contentW - imageColW - 12;
+        const imgBoxY = cardY + cardHeaderH + 12;
+        const imgBoxW = imageColW;
+        const imgBoxH = totalCardH - cardHeaderH - 24;
+
+        doc.setFillColor(...COLOR.bubbleBg);
+        doc.setDrawColor(...COLOR.border);
+        doc.setLineWidth(0.5);
+        doc.roundedRect(imgBoxX, imgBoxY, imgBoxW, imgBoxH, 4, 4, "FD");
+
+        doc.setFont(FONT_TITLE, "bold");
+        doc.setFontSize(6.5);
+        doc.setTextColor(...COLOR.textMuted);
+        doc.text("FOTO DE REFERÊNCIA", imgBoxX + 6, imgBoxY + 10);
+
+        const padding = 6;
+        const availW = imgBoxW - padding * 2;
+        const availH = imgBoxH - 16 - padding;
+        const fit = fitContain(image.width, image.height, availW, availH);
+
+        tryAddImage(
+          doc,
+          image.dataUrl,
+          imgBoxX + padding + fit.ox,
+          imgBoxY + 14 + fit.oy,
+          fit.w,
+          fit.h
+        );
+      }
+
+      currentY += totalCardH + 14;
+    }
   }
 
   // Rodapé em todas as páginas com numeração
@@ -497,12 +688,10 @@ export async function exportScriptPdf(opts: {
   for (let p = 1; p <= totalPages; p++) {
     doc.setPage(p);
 
-    // Linha fina do rodapé
     doc.setDrawColor(...COLOR.borderSoft);
     doc.setLineWidth(0.5);
     doc.line(marginX, pageH - 26, pageW - marginX, pageH - 26);
 
-    // Texto do rodapé
     doc.setFont(FONT_BODY, "normal");
     doc.setFontSize(7.5);
     doc.setTextColor(...COLOR.textMuted);
