@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Clapperboard, Plus, Loader2, Download, Play, CalendarPlus } from "lucide-react";
+import { Clapperboard, Plus, Loader2, Download, Play, CalendarPlus, Save } from "lucide-react";
 import { toast } from "sonner";
 import { exportScriptPDF } from "@/lib/script-export";
 import {
@@ -190,6 +190,20 @@ function ScriptEditor({ scriptId, jobId }: { scriptId: string; jobId: string }) 
             <Badge className={SCRIPT_STATUS_COLOR[current.status as ScriptStatus]}>
               {SCRIPT_STATUS_LABEL[current.status as ScriptStatus]}
             </Badge>
+            <Button
+              size="sm"
+              className="bg-primary text-primary-foreground font-semibold shadow-sm hover:opacity-95"
+              onClick={() => save.mutate(current)}
+              disabled={save.isPending}
+            >
+              {save.isPending ? (
+                <>Salvando…</>
+              ) : (
+                <>
+                  <Save className="size-3.5 mr-1.5" /> Salvar Roteiro
+                </>
+              )}
+            </Button>
             <Button
               variant="outline"
               size="sm"

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
-import { GripVertical, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, X } from "lucide-react";
+import { GripVertical, Plus, Trash2, Image as ImageIcon, Link as LinkIcon, X, Check, Save } from "lucide-react";
 import { toast } from "sonner";
 import {
   addScene, updateScene, deleteScene, reorderScenes, uploadSceneReference, type ScriptScene,
@@ -38,7 +38,11 @@ function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean
 
   const save = useMutation({
     mutationFn: (patch: Partial<ScriptScene>) => updateScene(scene.id, patch),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["script-scenes", scene.script_id] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["script-scenes", scene.script_id] });
+      toast.success("Cena salva");
+    },
+    onError: (e: Error) => toast.error(e.message),
   });
   const del = useMutation({
     mutationFn: () => deleteScene(scene.id),
@@ -163,6 +167,21 @@ function SceneItem({ scene, disabled }: { scene: ScriptScene; disabled?: boolean
           </div>
         </div>
       </div>
+
+      {!disabled && (
+        <div className="flex justify-end pt-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            className="h-8 text-xs font-semibold"
+            onClick={() => save.mutate(local)}
+            disabled={save.isPending}
+          >
+            <Save className="size-3.5 mr-1.5" />
+            {save.isPending ? "Salvando cena…" : "Salvar cena"}
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

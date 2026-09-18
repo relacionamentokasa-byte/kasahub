@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { ArrowLeft, Download, ExternalLink, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, ExternalLink, Trash2, Save, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { ScenesEditor } from "@/components/scripts/ScenesEditor";
@@ -78,6 +78,20 @@ function ScriptDetailPage() {
         <Badge variant="outline" className={cn(SCRIPT_STATUS_COLOR[form.status as ScriptStatus])}>
           {SCRIPT_STATUS_LABEL[form.status as ScriptStatus]}
         </Badge>
+        <Button
+          size="sm"
+          className="bg-primary text-primary-foreground font-semibold shadow-sm hover:opacity-95"
+          onClick={() => save.mutate(form)}
+          disabled={save.isPending}
+        >
+          {save.isPending ? (
+            <>Salvando…</>
+          ) : (
+            <>
+              <Save className="size-3.5 mr-1.5" /> Salvar Roteiro
+            </>
+          )}
+        </Button>
         <Button
           variant="outline"
           size="sm"
