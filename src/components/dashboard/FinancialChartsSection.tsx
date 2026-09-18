@@ -544,7 +544,6 @@ export function FinancialChartsSection({
 
           <div className="pt-3 border-t border-border/40 flex justify-between items-center text-[10px] font-mono-kasa text-muted-foreground">
             <span>Base de cálculo: receitas operacionais recebidas/previstas</span>
-            <span>Kasa Finance</span>
           </div>
         </Card>
       </div>
