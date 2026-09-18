@@ -42,14 +42,12 @@ async function fetchSaudeNegocio(refDate: Date) {
   const txs = (txData || []) as any[];
   // Receitas operacionais do mês — INDEPENDENTE de status (Pendente, Atrasado, Recebido).
   // Receitas não-operacionais (aporte, consórcio, investimento) NÃO entram em faturamento.
+  // Cobranças suspensas (financial_collection_status === 'suspended') NÃO devem compor o faturamento / MRR.
   const incomes = txs.filter(
-    (t) => 
-      (t.kind || t.type) === "income" && 
-      t.nature !== "nao_operacional"
-      // REGRA: MRR não deve ser alterado pela suspensão financeira (Regra 8/Instruções)
-      // Porém, faturamento efetivado (PAID) deve considerar suspensos se estiverem pagos.
-      // O filtro de suspensão aqui afetava o 'incomes' base, que por sua vez afetava MRR.
-      // Removi o filtro do array base para preservar MRR e aplicarei onde necessário.
+    (t) =>
+      (t.kind || t.type) === "income" &&
+      t.nature !== "nao_operacional" &&
+      t.clients?.financial_collection_status !== "suspended"
   );
 
   const isRecurringTx = (t: any) => {
