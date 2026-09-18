@@ -488,19 +488,14 @@ export function FinancialChartsSection({
             {clientsChartData.map((client, idx) => {
               const content = (
                 <div
-                  className="bg-muted/30 border border-border/60 rounded-xl p-3.5 flex flex-col justify-between space-y-2 hover:border-foreground/20 hover:bg-muted/40 transition-all group"
+                  className="bg-card border border-border/70 rounded-xl p-3.5 flex items-center justify-between gap-3 hover:border-border hover:bg-muted/30 transition-all group"
                 >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-mono-kasa font-bold text-muted-foreground group-hover:text-foreground/80 transition-colors">
-                      #{idx + 1}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-xs font-mono-kasa font-bold text-muted-foreground w-4 shrink-0">
+                      {idx + 1}
                     </span>
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono-kasa font-semibold bg-primary/10 text-primary border border-primary/20">
-                      {client.share}% do total
-                    </span>
-                  </div>
 
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="size-9 rounded-lg bg-background border border-border/60 flex items-center justify-center text-foreground font-mono-kasa text-xs font-bold shrink-0 overflow-hidden shadow-2xs">
+                    <div className="size-10 rounded-lg bg-muted/40 border border-border/60 flex items-center justify-center text-foreground font-mono-kasa text-xs font-bold shrink-0 overflow-hidden">
                       {client.logo_url ? (
                         <StorageImage
                           src={client.logo_url}
@@ -511,14 +506,21 @@ export function FinancialChartsSection({
                         <span>{client.name?.[0]?.toUpperCase() || "C"}</span>
                       )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors" title={client.name}>
+
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors" title={client.name}>
                         {client.name}
                       </p>
-                      <p className="text-xs font-mono-kasa font-bold text-foreground/90 tabular-nums mt-0.5">
-                        {brl(client.total)}
-                      </p>
+                      <span className="text-[11px] font-mono-kasa text-muted-foreground">
+                        {client.share}% do faturamento
+                      </span>
                     </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold font-mono-kasa text-foreground tabular-nums block">
+                      {brl(client.total)}
+                    </span>
                   </div>
                 </div>
               );
