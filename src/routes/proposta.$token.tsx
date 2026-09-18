@@ -17,12 +17,44 @@ import logoWhiteAsset from "@/assets/logo-white.png.asset.json";
 
 
 export const Route = createFileRoute("/proposta/$token")({
-  ssr: false,
-  head: () => {
+  loader: async ({ params }) => {
+    try {
+      const { data: prop } = await supabase
+        .from("proposals")
+        .select("title, client_name")
+        .eq("public_token", params.token)
+        .maybeSingle();
+
+      return {
+        proposalMeta: prop || null,
+      };
+    } catch {
+      return { proposalMeta: null };
+    }
+  },
+  head: ({ loaderData }) => {
+    const meta = loaderData?.proposalMeta;
+    const client = meta?.client_name ? ` · ${meta.client_name}` : "";
+    const title = meta?.title
+      ? `Proposta Comercial — ${meta.title}${client} | Kasa`
+      : "Proposta Comercial | Kasa Marketing & Consultoria";
+    const desc =
+      "Acesse a proposta comercial, confira o escopo detalhado de serviços e realize a assinatura digital com validade jurídica.";
+    const ogImage =
+      "https://fduofhsiahyxvlaxthhe.supabase.co/storage/v1/object/public/logos/logo-yellow.png";
+
     return {
       meta: [
-        { title: "Proposta Comercial | Kasa Marketing & Consultoria" },
-        { name: "description", content: "Confira a proposta comercial, escopo de serviços e assine online." },
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:image", content: ogImage },
+        { property: "og:type", content: "website" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: desc },
+        { name: "twitter:image", content: ogImage },
       ],
     };
   },
