@@ -22,6 +22,7 @@ import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { registerPWA } from "@/lib/pwa-register";
 import { installFreeLovableBlocker } from "@/lib/block-freelovable";
 import { CriticalNotificationPopup } from "@/components/notifications/CriticalNotificationPopup";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const CookieConsent = lazy(() => import("@/components/CookieConsent").then(m => ({ default: m.CookieConsent })));
 
@@ -116,7 +117,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#f8fafc" },
+      { name: "theme-color", content: "#09090b" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black" },
       { title: "KASA HUB — Sistema Operacional para Agências" },
       { name: "description", content: "ERP especializado para agências de marketing. Comercial, operação, financeiro e experiência do cliente em um só lugar." },
       { name: "author", content: "Kasa Marketing Consultoria" },
@@ -207,18 +209,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthListener />
-        <ClientOnly fallback={null}><NotificationManager /></ClientOnly>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+      <ErrorBoundary>
+        <ThemeProvider>
+          <AuthListener />
+          <ClientOnly fallback={null}><NotificationManager /></ClientOnly>
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
 
-        <Outlet />
-        <ClientOnly fallback={null}><CriticalNotificationPopup /></ClientOnly>
-        <ClientOnly fallback={null}>
-          <Suspense fallback={null}><CookieConsent /></Suspense>
-        </ClientOnly>
-        <ThemedToaster />
-      </ThemeProvider>
+          <Outlet />
+          <ClientOnly fallback={null}><CriticalNotificationPopup /></ClientOnly>
+          <ClientOnly fallback={null}>
+            <Suspense fallback={null}><CookieConsent /></Suspense>
+          </ClientOnly>
+          <ThemedToaster />
+        </ThemeProvider>
+      </ErrorBoundary>
     </QueryClientProvider>
   );
 }

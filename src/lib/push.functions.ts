@@ -102,7 +102,7 @@ export const triggerMorningSummaryTest = createServerFn({ method: "POST" })
     ] = await Promise.all([
       supabase.from("jobs").select("id, title").eq("due_date", todayStr).neq("status", "done"),
       supabase.from("jobs").select("id, title").lt("due_date", todayStr).neq("status", "done"),
-      supabase.from("job_approval_items").select("id, title").eq("status", "pending").eq("is_archived", false),
+      supabase.from("approval_items").select("id, title").eq("status", "pending").is("archived_at", null),
       supabase.from("lead_tasks").select("id, title").eq("status", "pending").lte("due_date", endOfDay.toISOString()),
       supabase.from("push_subscriptions").select("id, endpoint, p256dh, auth").eq("user_id", userId),
     ]);

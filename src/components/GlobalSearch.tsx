@@ -163,7 +163,7 @@ export function GlobalSearch() {
   return (
     <div
       ref={wrapperRef}
-      className="flex relative items-center gap-2.5 bg-white/10 hover:bg-white/15 focus-within:bg-[#18181b] focus-within:ring-1 focus-within:ring-amber-400/60 border border-white/15 px-3 h-8 rounded-lg w-full transition-all text-white"
+      className="flex relative min-w-0 items-center gap-1.5 sm:gap-2.5 bg-white/10 hover:bg-white/15 focus-within:bg-[#18181b] focus-within:ring-1 focus-within:ring-amber-400/60 border border-white/15 px-2 sm:px-3 h-8 rounded-lg w-full transition-all text-white"
     >
       <Search className="size-3.5 text-zinc-400 shrink-0" />
       <input
@@ -176,13 +176,14 @@ export function GlobalSearch() {
         }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        placeholder="Buscar clientes, jobs, propostas..."
-        className="bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-zinc-400"
+        placeholder="Buscar..."
+        aria-label="Buscar clientes, jobs e propostas"
+        className="min-w-0 bg-transparent border-none outline-none text-xs w-full text-white placeholder:text-zinc-400"
       />
       {isFetching && debounced.length >= 2 ? (
         <Loader2 className="size-3.5 text-amber-400 animate-spin shrink-0" />
       ) : (
-        <kbd className="text-[9px] font-mono-kasa text-zinc-400 border border-white/15 bg-white/5 rounded px-1 py-0.5 shrink-0 select-none">
+        <kbd className="hidden md:block text-[9px] font-mono-kasa text-zinc-400 border border-white/15 bg-white/5 rounded px-1 py-0.5 shrink-0 select-none">
           {typeof navigator !== "undefined" && /Mac|iPhone|iPad/i.test(navigator.platform) ? "⌘K" : "Ctrl K"}
         </kbd>
       )}
@@ -190,7 +191,7 @@ export function GlobalSearch() {
       {showDropdown ? (
         <div
           onMouseDown={(e) => e.preventDefault()}
-          className="absolute left-0 right-0 top-[calc(100%+6px)] min-w-[340px] bg-[#121214] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150 text-white"
+          className="fixed left-2 right-2 top-14 sm:absolute sm:left-0 sm:right-auto sm:top-[calc(100%+6px)] sm:w-[340px] sm:max-w-[calc(100vw-1rem)] bg-[#121214] border border-white/15 rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in-50 zoom-in-95 duration-150 text-white"
         >
           {results.length === 0 && !isFetching ? (
             <div className="px-4 py-6 text-xs text-zinc-400 text-center font-mono-kasa">

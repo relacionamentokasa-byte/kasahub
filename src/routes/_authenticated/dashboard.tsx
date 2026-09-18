@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
 import { InstallPromoCard } from "@/components/pwa/InstallPromoCard";
 import { checkDailyNotifications } from "@/lib/notifications-cron";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -40,7 +41,9 @@ function DashboardPage() {
       <InstallPromoCard />
 
       {/* Dashboard Executiva Integrada */}
-      <ExecutiveDashboard />
+      <ErrorBoundary>
+        <ExecutiveDashboard />
+      </ErrorBoundary>
 
       <footer className="pt-12 border-t border-border flex justify-between items-center text-[10px] font-mono-kasa text-foreground/30 uppercase tracking-widest">
         <span>KASA Marketing Consultoria</span>

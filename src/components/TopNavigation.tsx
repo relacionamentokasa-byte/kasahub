@@ -168,7 +168,7 @@ export function TopNavigation() {
   return (
     <div className="sticky top-0 z-30 w-full select-none shadow-sm">
       {/* Tier 1: Macro Navigation Bar (Dark Header estilo SaaS moderno / Vercel Pro) */}
-      <div className="h-14 px-4 lg:px-6 flex items-center justify-between gap-4 bg-[#121214] text-white border-b border-white/10">
+      <div className="h-14 px-2 sm:px-4 lg:px-6 flex items-center gap-2 sm:gap-4 bg-[#121214] text-white border-b border-white/10 overflow-x-clip">
         {/* Left: Brand Logo & Section Tabs */}
         <div className="flex items-center gap-4 lg:gap-6 shrink-0">
           <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0 hover:opacity-85 transition-opacity" title="KASA HUB">
@@ -202,14 +202,16 @@ export function TopNavigation() {
         </div>
 
         {/* Center / Right: Global Search, Quick Actions & Profile */}
-        <div className="flex items-center gap-2 lg:gap-3 shrink-0 ml-auto">
-          <div className="w-48 sm:w-56 md:w-64 lg:w-72">
+        <div className="flex flex-1 min-w-0 items-center justify-end gap-1 sm:gap-2 lg:gap-3 ml-auto">
+          <div className="flex-1 min-w-0 max-w-48 sm:max-w-56 md:max-w-64 lg:max-w-72">
             <GlobalSearch />
           </div>
 
           <div className="h-4 w-px bg-white/15 mx-1 hidden sm:block" />
 
-          <InstallPWAButton />
+          <div className="hidden sm:block">
+            <InstallPWAButton />
+          </div>
 
           <button
             onClick={toggle}
@@ -226,7 +228,7 @@ export function TopNavigation() {
           {/* User Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 pl-2 border-l border-white/15 outline-none group cursor-pointer">
+              <button className="flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2 border-l border-white/15 outline-none group cursor-pointer">
                 <div className="hidden xl:block text-right">
                   <p className="text-xs font-semibold leading-tight text-white">{name}</p>
                   <p className="text-[10px] text-zinc-400 font-mono-kasa leading-tight">
@@ -240,7 +242,7 @@ export function TopNavigation() {
                     <span className="text-[11px] font-mono-kasa font-bold text-amber-400">{initials}</span>
                   )}
                 </div>
-                <ChevronDown className="size-3 text-zinc-400 group-hover:text-white transition-colors" />
+                <ChevronDown className="hidden sm:block size-3 text-zinc-400 group-hover:text-white transition-colors" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 font-mono-kasa">

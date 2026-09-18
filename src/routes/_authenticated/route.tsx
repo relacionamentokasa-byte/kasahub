@@ -10,7 +10,7 @@ import { PushNotificationPrompt } from "@/components/notifications/PushNotificat
 
 import { PresenceProvider } from "@/contexts/PresenceContext";
 import { FocusModeProvider, useFocusMode } from "@/contexts/FocusModeContext";
-import { PrivacyProvider } from "@/contexts/PrivacyContext";
+import { PrivacyProvider, usePrivacy } from "@/contexts/PrivacyContext";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -104,8 +104,12 @@ function ShellLayout() {
 
 function ShellInner() {
   const { focusMode } = useFocusMode();
+  const { hidden: moneyHidden } = usePrivacy();
   return (
-    <div className="min-h-screen flex flex-col w-full bg-background text-foreground relative">
+    <div
+      data-money-hidden={moneyHidden ? "true" : "false"}
+      className="min-h-screen flex flex-col w-full max-w-full overflow-x-clip bg-background text-foreground relative"
+    >
       {!focusMode && <TopNavigation />}
       <div className="flex-1 flex flex-col min-w-0 w-full pb-16 lg:pb-0">
         <main className="flex-1 min-w-0 w-full">

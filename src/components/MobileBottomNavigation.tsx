@@ -38,7 +38,7 @@ export function MobileBottomNavigation() {
       {/* Bottom Bar estilo Raycast/Linear - Vidro fosco e altura ergonômica */}
       <nav
         aria-label="Navegação mobile"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/85 backdrop-blur-xl border-t border-white/[0.08] px-3 py-1.5 flex items-center justify-around shadow-2xl safe-area-pb"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/85 backdrop-blur-xl border-t border-white/[0.08] px-1 py-1.5 grid grid-cols-5 items-center shadow-2xl safe-area-pb"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
       >
         {items.map((item) => {
@@ -53,7 +53,7 @@ export function MobileBottomNavigation() {
               key={item.url}
               to={item.url}
               className={cn(
-                "flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all duration-200 text-[10px] font-mono-kasa gap-1 relative",
+                "flex min-w-0 flex-col items-center justify-center py-1 px-1 rounded-lg transition-all duration-200 text-[9px] min-[360px]:text-[10px] font-mono-kasa gap-1 relative",
                 isActive
                   ? "text-amber-400 font-semibold"
                   : "text-zinc-400 hover:text-zinc-200"
@@ -65,7 +65,7 @@ export function MobileBottomNavigation() {
                   isActive ? "text-amber-400 stroke-[2.25]" : "text-zinc-400 stroke-[1.75]"
                 )}
               />
-              <span className="tracking-tight">{item.label}</span>
+              <span className="max-w-full truncate tracking-tight">{item.label}</span>
             </Link>
           );
         })}
@@ -75,7 +75,7 @@ export function MobileBottomNavigation() {
           <SheetTrigger asChild>
             <button
               className={cn(
-                "flex flex-col items-center justify-center py-1 px-3 rounded-lg transition-all duration-200 text-[10px] font-mono-kasa gap-1 relative text-zinc-400 hover:text-zinc-200"
+                "flex min-w-0 w-full flex-col items-center justify-center py-1 px-1 rounded-lg transition-all duration-200 text-[9px] min-[360px]:text-[10px] font-mono-kasa gap-1 relative text-zinc-400 hover:text-zinc-200"
               )}
               aria-label="Menu de navegação completo"
             >
