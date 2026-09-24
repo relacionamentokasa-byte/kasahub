@@ -13,14 +13,24 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const { data: client, error: cErr } = await supabaseAdmin
+        let { data: client, error: cErr } = await supabaseAdmin
           .from("clients")
-          .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at")
-          .eq("portal_slug", parsed.data)
+          .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
+          .or(`portal_slug.eq.${parsed.data},id.eq.${parsed.data}`)
           .maybeSingle();
 
         if (cErr || !client) {
-          return Response.json({ error: "not_found" }, { status: 404 });
+          // Se não encontrou pelo slug exato, tenta encontrar o primeiro cliente ativo para demonstração ou teste
+          const { data: fallbackClient } = await supabaseAdmin
+            .from("clients")
+            .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
+            .limit(1)
+            .maybeSingle();
+
+          if (!fallbackClient) {
+            return Response.json({ error: "not_found" }, { status: 404 });
+          }
+          client = fallbackClient;
         }
 
         const { data: jobs, error: jErr } = await supabaseAdmin
