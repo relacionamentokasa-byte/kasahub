@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState, useMemo, useEffect } from "react";
-import DOMPurify from "isomorphic-dompurify";
+import { sanitizeHtml } from "@/lib/sanitize";
 
 import {
   Calendar,
@@ -2799,7 +2799,7 @@ function DocViewerModal({
           ) : item.data.contract_content ? (
             <div
               className="prose prose-sm sm:prose max-w-none text-slate-900 prose-headings:text-slate-900 prose-strong:text-slate-900"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(item.data.contract_content) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.data.contract_content) }}
             />
           ) : (
             <p className="text-slate-600 text-sm">Conteúdo do contrato indisponível.</p>
