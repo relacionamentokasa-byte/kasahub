@@ -65,6 +65,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus, GripVertical, Clapperboard, ClipboardList, Download } from "lucide-react";
 import { UnifiedTimeline } from "@/components/timeline/UnifiedTimeline";
+import { JobCommentsSection } from "@/components/jobs/JobCommentsSection";
 import { useFocusMode } from "@/contexts/FocusModeContext";
 import { SendForApprovalDialog } from "@/components/jobs/SendForApprovalDialog";
 import { listJobApprovalItems, archiveApprovalItem, unarchiveApprovalItem, listApprovalItemComments, type ApprovalItem } from "@/lib/approval-items-api";
@@ -553,7 +554,7 @@ export function JobSheet({
         onClose();
       }
     }}>
-      <SheetContent key={job.id} className="bg-card border-border/60 w-full p-0 sm:max-w-[1000px] overflow-hidden flex flex-col h-[100dvh] sm:h-[90vh] sm:rounded-lg sm:my-auto sm:mr-6 shadow-2xl [&>button]:hidden sm:[&>button]:inline-flex">
+      <SheetContent key={job.id} className="bg-card border-border/60 w-full p-0 sm:max-w-[1240px] xl:max-w-[1360px] overflow-hidden flex flex-col h-[100dvh] sm:h-[94vh] sm:rounded-2xl sm:my-auto sm:mr-6 shadow-2xl [&>button]:hidden sm:[&>button]:inline-flex">
         <div className="flex flex-col flex-1 overflow-hidden">
           {/* Header */}
           <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border/60 bg-card flex items-center justify-between gap-3 sm:gap-4 shrink-0">
@@ -794,6 +795,15 @@ export function JobSheet({
                         </div>
                       </div>
                     )}
+                  </div>
+
+                  {/* Seção de Comentários Internos & Menções (@) */}
+                  <div className="p-4 rounded-xl border border-border/60 bg-card">
+                    <JobCommentsSection
+                      jobId={job.id}
+                      jobTitle={job.title}
+                      team={team}
+                    />
                   </div>
 
                   {/* Histórico & Atividades Accordion */}
