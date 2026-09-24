@@ -40,15 +40,17 @@ async function fetchSaudeNegocio(refDate: Date) {
   if (txErr) console.error("transactions fetch error", txErr);
 
   const txs = (txData || []) as any[];
-  // Receitas operacionais do mês — INDEPENDENTE de status (Pendente, Atrasado, Recebido).
-  // Receitas não-operacionais (aporte, consórcio, investimento) NÃO entram em faturamento.
-  // Cobranças suspensas (financial_collection_status === 'suspended') NÃO devem compor o faturamento / MRR.
-  const incomes = txs.filter(
+  // Transações válidas (ignora canceladas, estornadas e cobranças suspensas)
+  const CANCELLED_STATUSES = new Set(["cancelled", "cancelado", "estornado", "arquivado", "draft", "rascunho"]);
+  const validTxs = txs.filter(
     (t) =>
-      (t.kind || t.type) === "income" &&
+      !CANCELLED_STATUSES.has(String(t.status || "").toLowerCase()) &&
       t.nature !== "nao_operacional" &&
       t.clients?.financial_collection_status !== "suspended"
   );
+
+  // Receitas operacionais ativas do mês
+  const incomes = validTxs.filter((t) => (t.kind || t.type) === "income");
 
   const isRecurringTx = (t: any) => {
     if (matchesKeyword(t.categorias_financeiras?.nome, MRR_KEYWORDS)) return true;
@@ -181,11 +183,10 @@ async function fetchSaudeNegocio(refDate: Date) {
   const isProLabore = (name: string | null | undefined) =>
     normalize(name).includes("pro-labore");
 
-  // Despesas Operacionais do mês (Exclui não-operacional e Pró-Labore, conforme regra do sistema)
-  const expenses = txs.filter(
+  // Despesas Operacionais do mês (Exclui não-operacional, canceladas e Pró-Labore, conforme regra do sistema)
+  const expenses = validTxs.filter(
     (t) =>
       (t.kind || t.type) === "expense" &&
-      t.nature !== "nao_operacional" &&
       !isProLabore(t.categorias_financeiras?.nome)
   );
   const despesasPagas = expenses
