@@ -22,12 +22,12 @@ export const Route = createFileRoute("/_authenticated")({
     }
 
     // Use getSession() — reads from local storage instantly and never hangs on the network.
-    // Falls back with a 5s timeout safety net if auth takes long on mobile / slow connection.
+    // Falls back with a 2s timeout safety net if auth takes long on mobile / slow connection.
     let user = null;
     try {
       const sessionPromise = supabase.auth.getSession();
       const timeout = new Promise<{ data: { session: null }; error: null }>((resolve) =>
-        setTimeout(() => resolve({ data: { session: null }, error: null }), 5000),
+        setTimeout(() => resolve({ data: { session: null }, error: null }), 2000),
       );
       const res = (await Promise.race([sessionPromise, timeout])) as Awaited<typeof sessionPromise>;
       user = res?.data?.session?.user || null;
@@ -56,6 +56,11 @@ export const Route = createFileRoute("/_authenticated")({
             throw err;
           }
         }
+      }
+
+      if (typeof window !== "undefined" && location.pathname !== "/auth") {
+        window.location.replace("/auth");
+        return;
       }
 
       throw redirect({ to: "/auth" });
