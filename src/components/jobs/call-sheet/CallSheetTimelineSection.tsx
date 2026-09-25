@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Plus, Trash2, Clapperboard, Coffee, ArrowDownUp, Sparkles, MapPin } from "lucide-react";
+import { Clock, Plus, Trash2, Clapperboard, Pencil, Check, X } from "lucide-react";
 import { getScriptByJob, listScenes } from "@/lib/scripts-api";
 import {
   type CallSheetTimelineItem,
@@ -31,12 +31,32 @@ export function CallSheetTimelineSection({ jobId, timeline, onChange }: Props) {
     enabled: !!script?.id,
   });
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState<CallSheetTimelineItem | null>(null);
+
   const [newStart, setNewStart] = useState("09:00");
   const [newEnd, setNewEnd] = useState("10:00");
   const [newType, setNewType] = useState<CallSheetBlockType>("shooting");
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
   const [selectedSceneId, setSelectedSceneId] = useState<string>("none");
+
+  const handleStartEdit = (item: CallSheetTimelineItem) => {
+    setEditingId(item.id);
+    setEditForm({ ...item });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditForm(null);
+  };
+
+  const handleSaveEdit = () => {
+    if (!editForm || !editForm.title.trim()) return;
+    onChange(timeline.map((item) => (item.id === editForm.id ? editForm : item)));
+    setEditingId(null);
+    setEditForm(null);
+  };
 
   const handleAddBlock = () => {
     if (!newTitle.trim()) return;
@@ -64,12 +84,9 @@ export function CallSheetTimelineSection({ jobId, timeline, onChange }: Props) {
     setSelectedSceneId("none");
   };
 
-  const handleUpdate = (id: string, patch: Partial<CallSheetTimelineItem>) => {
-    onChange(timeline.map((item) => (item.id === id ? { ...item, ...patch } : item)));
-  };
-
   const handleRemove = (id: string) => {
     onChange(timeline.filter((item) => item.id !== id));
+    if (editingId === id) handleCancelEdit();
   };
 
   const handleSelectScene = (sceneId: string) => {
@@ -112,12 +129,105 @@ export function CallSheetTimelineSection({ jobId, timeline, onChange }: Props) {
         </div>
       ) : (
         <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-          {timeline.map((item, idx) => {
+          {timeline.map((item) => {
             const config = CALL_SHEET_BLOCK_LABELS[item.type] || CALL_SHEET_BLOCK_LABELS.prep;
+            const isEditing = editingId === item.id;
+
+            if (isEditing && editForm) {
+              return (
+                <div
+                  key={item.id}
+                  className="p-3 rounded-lg border border-primary/50 bg-primary/5 shadow-xs space-y-2.5"
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                    {/* Horários */}
+                    <div className="sm:col-span-3 flex items-center gap-1">
+                      <Input
+                        type="time"
+                        value={editForm.time_start}
+                        onChange={(e) => setEditForm({ ...editForm, time_start: e.target.value })}
+                        className="h-8 text-xs bg-background border-border/60 font-mono-kasa p-1 text-center"
+                        title="Início"
+                      />
+                      <span className="text-xs text-muted-foreground">-</span>
+                      <Input
+                        type="time"
+                        value={editForm.time_end || ""}
+                        onChange={(e) => setEditForm({ ...editForm, time_end: e.target.value })}
+                        className="h-8 text-xs bg-background border-border/60 font-mono-kasa p-1 text-center"
+                        title="Fim"
+                      />
+                    </div>
+
+                    {/* Tipo de Bloco */}
+                    <div className="sm:col-span-3">
+                      <Select
+                        value={editForm.type}
+                        onValueChange={(v) => setEditForm({ ...editForm, type: v as CallSheetBlockType })}
+                      >
+                        <SelectTrigger className="h-8 text-xs bg-background border-border/60">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(CALL_SHEET_BLOCK_LABELS).map(([k, v]) => (
+                            <SelectItem key={k} value={k} className="text-xs">
+                              {v.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Título */}
+                    <div className="sm:col-span-4">
+                      <Input
+                        value={editForm.title}
+                        onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                        placeholder="Título do bloco..."
+                        className="h-8 text-xs bg-background border-border/60"
+                      />
+                    </div>
+
+                    {/* Botões Salvar / Cancelar */}
+                    <div className="sm:col-span-2 flex items-center gap-1 justify-end">
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={handleSaveEdit}
+                        disabled={!editForm.title.trim()}
+                        className="h-8 px-2.5 text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1"
+                        title="Salvar alterações"
+                      >
+                        <Check className="size-3.5" /> Salvar
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleCancelEdit}
+                        className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground"
+                        title="Cancelar"
+                      >
+                        <X className="size-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Descrição */}
+                  <Input
+                    placeholder="Descrição, observações ou enquadramentos da tomada..."
+                    value={editForm.description || ""}
+                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                    className="h-7 text-[11px] bg-background border-border/50"
+                  />
+                </div>
+              );
+            }
+
             return (
               <div
                 key={item.id}
-                className={`p-3 rounded-lg border transition-all ${config.bg} ${config.border} flex flex-col sm:flex-row sm:items-center justify-between gap-3`}
+                className={`p-3 rounded-lg border transition-all ${config.bg} ${config.border} flex flex-col sm:flex-row sm:items-center justify-between gap-3 group`}
               >
                 <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
                   {/* Horário */}
@@ -153,8 +263,18 @@ export function CallSheetTimelineSection({ jobId, timeline, onChange }: Props) {
                   </div>
                 </div>
 
-                {/* Ações */}
+                {/* Ações: Editar e Excluir */}
                 <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => handleStartEdit(item)}
+                    className="size-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-md"
+                    title="Editar bloco"
+                  >
+                    <Pencil className="size-3.5" />
+                  </Button>
                   <Button
                     type="button"
                     size="icon"
@@ -270,3 +390,4 @@ export function CallSheetTimelineSection({ jobId, timeline, onChange }: Props) {
     </div>
   );
 }
+
