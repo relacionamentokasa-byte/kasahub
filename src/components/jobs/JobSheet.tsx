@@ -385,6 +385,7 @@ export function JobSheet({
         }
         await supabase.from('editorial_posts').update({ cover_url: firstImageUrl } as any).eq('job_id', job.id);
         qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+        qc.invalidateQueries({ queryKey: ["jobs"] });
       }
 
       qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
@@ -805,6 +806,7 @@ export function JobSheet({
                                       }
                                       await supabase.from('editorial_posts').update({ cover_url: file.file_url } as any).eq('job_id', job.id);
                                       qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+                                      qc.invalidateQueries({ queryKey: ["jobs"] });
                                       toast.success("Imagem definida como capa do post!");
                                     } catch (err: any) {
                                       toast.error("Erro ao definir capa: " + err.message);

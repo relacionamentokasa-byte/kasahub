@@ -793,6 +793,7 @@ export function JobsBoard({
                 const now = Date.now();
                 const daysLeft = due ? Math.ceil((due - now) / 86400000) : null;
                 const isOverdue = due ? due < now && !isDone : false;
+                const coverUrl = (j as any).editorial_posts?.cover_url || (j as any).cover_url;
 
                 return (
                   <div
@@ -801,9 +802,18 @@ export function JobsBoard({
                       setFocusedId(j.id);
                       setOpenId(j.id);
                     }}
-                    className="p-3.5 rounded-xl border border-border/60 bg-card hover:border-border transition-all active:scale-[0.99] shadow-xs flex flex-col gap-2.5 cursor-pointer"
+                    className="p-3.5 rounded-xl border border-border/60 bg-card hover:border-border transition-all active:scale-[0.99] shadow-xs flex flex-col gap-2.5 cursor-pointer overflow-hidden"
                     style={{ borderLeft: `3px solid ${priorityColor(j.priority)}` }}
                   >
+                    {coverUrl && (
+                      <div className="-mx-3.5 -mt-3.5 mb-1 aspect-[21/9] w-[calc(100%+1.75rem)] overflow-hidden border-b border-border/40 relative bg-muted/20">
+                        <StorageImage
+                          src={coverUrl}
+                          alt={j.title}
+                          className="size-full object-cover"
+                        />
+                      </div>
+                    )}
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <span className="font-semibold text-xs leading-snug text-foreground block truncate">
@@ -1266,7 +1276,7 @@ function JobCard({ job, profiles, nextResponsibleMap, onClick, queryKey, focused
         <JobCardInner job={job} profiles={profiles} nextResponsibleMap={nextResponsibleMap} />
       </div>
       {!isOptimistic && (
-        <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-1.5 right-1.5 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
           <button
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
@@ -1275,7 +1285,7 @@ function JobCard({ job, profiles, nextResponsibleMap, onClick, queryKey, focused
               dupMut.mutate();
             }}
             disabled={dupMut.isPending}
-            className="p-1.5 rounded-md text-primary hover:bg-primary/10 transition-colors"
+            className="p-1.5 rounded-md text-primary hover:bg-primary/10 transition-colors bg-background/80 backdrop-blur-xs shadow-xs"
             title="Duplicar tarefa"
           >
             <Copy className="size-3.5" />
@@ -1287,7 +1297,7 @@ function JobCard({ job, profiles, nextResponsibleMap, onClick, queryKey, focused
               e.stopPropagation();
               if (confirm(`Remover "${job.title}"?`)) delMut.mutate();
             }}
-            className="p-1.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors"
+            className="p-1.5 rounded-md text-destructive hover:bg-destructive/10 transition-colors bg-background/80 backdrop-blur-xs shadow-xs"
             title="Excluir tarefa"
           >
             <Trash2 className="size-3.5" />
@@ -1310,6 +1320,7 @@ function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { jo
   const ballPersonId = nextResponsibleMap?.get(job.id);
   const ballPerson = ballPersonId ? profiles.find(p => p.id === ballPersonId) : null;
   const ballPersonName = ballPerson?.display_name || ballPerson?.full_name;
+  const coverUrl = (job as any).editorial_posts?.cover_url || (job as any).cover_url;
 
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
   const deadline = useMemo(() => {
@@ -1358,6 +1369,15 @@ function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { jo
         borderLeft: `3px solid ${priorityColor(job.priority)}`
       }}
     >
+      {coverUrl && (
+        <div className="-mx-3 -mt-3 mb-2 aspect-[21/9] w-[calc(100%+1.5rem)] overflow-hidden border-b border-border/40 relative bg-muted/20">
+          <StorageImage
+            src={coverUrl}
+            alt={job.title}
+            className="size-full object-cover"
+          />
+        </div>
+      )}
       <div className="flex flex-col gap-2.5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 w-full">

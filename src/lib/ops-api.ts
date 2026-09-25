@@ -298,7 +298,7 @@ export async function fetchJobStages(): Promise<JobStage[]> {
 export async function fetchJobs(filters: { projectId?: string; clientId?: string; serviceId?: string; period?: string } = {}): Promise<Job[]> {
   let q = supabase
     .from("jobs")
-    .select("*, clients(id, name, company, logo_url), projects(id, name), services(id, name)")
+    .select("*, clients(id, name, company, logo_url), projects(id, name), services(id, name), editorial_posts!jobs_editorial_post_id_fkey(id, cover_url)")
     .order("order_index", { ascending: true })
     .order("created_at", { ascending: false });
   if (filters.projectId) q = q.eq("project_id", filters.projectId);
