@@ -349,6 +349,8 @@ export function JobSheet({
     if (!job || files.length === 0) return;
     try {
       setIsUploading(true);
+      let firstImageUrl: string | null = null;
+
       for (const file of files) {
         const fileExt = file.name.split('.').pop();
         const filePath = `${job.id}/${Math.random()}.${fileExt}`;
@@ -370,6 +372,19 @@ export function JobSheet({
           file_type: file.type,
           file_size: file.size
         });
+
+        if (!firstImageUrl && (file.type.startsWith("image/") || ["jpg", "jpeg", "png", "webp", "gif"].includes((fileExt || "").toLowerCase()))) {
+          firstImageUrl = publicUrl;
+        }
+      }
+
+      // Auto-sincronização de capa para o post editorial vinculado se houver anexo de imagem
+      if (firstImageUrl) {
+        if (job.editorial_post_id) {
+          await supabase.from('editorial_posts').update({ cover_url: firstImageUrl } as any).eq('id', job.editorial_post_id);
+        }
+        await supabase.from('editorial_posts').update({ cover_url: firstImageUrl } as any).eq('job_id', job.id);
+        qc.invalidateQueries({ queryKey: ["editorial-posts"] });
       }
 
       qc.invalidateQueries({ queryKey: ["job-attachments", job.id] });
@@ -386,6 +401,39 @@ export function JobSheet({
     const files = Array.from(e.target.files ?? []);
     await uploadFiles(files);
   };
+
+  // Suporte a colar imagem (Ctrl+V) dentro do JobSheet
+  useEffect(() => {
+    if (!open || !job) return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      // Ignorar se estiver digitando em campo de texto onde o paste seja texto
+      const activeEl = document.activeElement;
+      const isTextInput = activeEl?.tagName === "INPUT" || activeEl?.tagName === "TEXTAREA" || activeEl?.getAttribute("contenteditable") === "true";
+
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const imageFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const file = items[i].getAsFile();
+          if (file) imageFiles.push(file);
+        }
+      }
+
+      if (imageFiles.length > 0) {
+        if (!isTextInput || imageFiles.length > 0) {
+          e.preventDefault();
+          uploadFiles(imageFiles);
+          toast.info("Imagem colada da área de transferência!");
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [open, job?.id]);
 
   const [isDragging, setIsDragging] = useState(false);
 
@@ -743,6 +791,29 @@ export function JobSheet({
                             </button>
 
                             <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-card/90 backdrop-blur-xs p-0.5 rounded border border-border/60">
+                              {(file.file_type?.startsWith("image/") || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.file_name)) && (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-6 text-muted-foreground hover:text-primary"
+                                  title="Definir como capa no Feed / Calendário"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    try {
+                                      if (job.editorial_post_id) {
+                                        await supabase.from('editorial_posts').update({ cover_url: file.file_url } as any).eq('id', job.editorial_post_id);
+                                      }
+                                      await supabase.from('editorial_posts').update({ cover_url: file.file_url } as any).eq('job_id', job.id);
+                                      qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+                                      toast.success("Imagem definida como capa do post!");
+                                    } catch (err: any) {
+                                      toast.error("Erro ao definir capa: " + err.message);
+                                    }
+                                  }}
+                                >
+                                  <ImageIcon className="size-3" />
+                                </Button>
+                              )}
                               {job.client_id && (
                                 <Button
                                   variant="ghost"

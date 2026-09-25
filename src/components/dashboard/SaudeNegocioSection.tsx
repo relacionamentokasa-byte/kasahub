@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, Zap, Users, FileText, Target, Pencil, Receipt } from "lucide-react";
+import { TrendingUp, Zap, Users, FileText, Target, Pencil, Receipt, Wallet, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardKPI } from "./DashboardKPI";
 import { FinancialChartsSection } from "./FinancialChartsSection";
@@ -73,7 +73,7 @@ async function fetchSaudeNegocio(refDate: Date) {
   const getAmount = (t: any) => effectiveAmount(t);
   const mrr = incomes.filter(isRecurringTx).reduce((acc, t) => acc + getAmount(t), 0);
   const avulsa = incomes
-    .filter((t) => !isRecurringTx(t) && isAvulsoTx(t))
+    .filter((t) => !isRecurringTx(t))
     .reduce((acc, t) => acc + getAmount(t), 0);
 
   // Receita efetivamente recebida no mês (alimenta a Meta de Faturamento).
@@ -81,30 +81,15 @@ async function fetchSaudeNegocio(refDate: Date) {
   const PAID_STATUSES = new Set(["paid", "recebido", "pago", "efetivado", "liquidado"]);
   const receitaEfetivada = incomes
     .filter((t) => PAID_STATUSES.has(String(t.status || "").toLowerCase()))
-    .reduce((acc, t) => acc + Number(t.amount || 0), 0);
+    .reduce((acc, t) => acc + effectiveAmount(t), 0);
 
   // Clientes distintos que tiveram qualquer receita no mês (recorrente ou avulsa)
   const clientesFaturadosMes = new Set(
     incomes.map((t) => t.client_id).filter(Boolean)
   ).size;
 
-
-  // Clientes Ativos = união distinta de:
-  //  - clientes com projeto ativo (recorrentes)
-  //  - clientes com qualquer receita no mês (cobre avulsos)
-  const { data: activeProjects } = await supabase
-    .from("projects")
-    .select("client_id")
-    .eq("status", "active");
-
-  const clientesAtivosSet = new Set<string>();
-  (activeProjects || []).forEach((p: any) => {
-    if (p.client_id) clientesAtivosSet.add(p.client_id);
-  });
-  incomes.forEach((t) => {
-    if (t.client_id) clientesAtivosSet.add(t.client_id);
-  });
-  const clientesAtivos = clientesAtivosSet.size;
+  // Clientes Ativos = clientes faturados no mês
+  const clientesAtivos = clientesFaturadosMes;
 
 
   // Propostas Pendentes
@@ -344,7 +329,14 @@ export function SaudeNegocioSection() {
         </h3>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <DashboardKPI
+          icon={Wallet}
+          label="Faturamento Total"
+          value={brl(totalFaturamento)}
+          subValue="MRR + Avulso no mês"
+          color="primary"
+        />
         <DashboardKPI
           icon={TrendingUp}
           label="MRR"
@@ -363,14 +355,14 @@ export function SaudeNegocioSection() {
           icon={Receipt}
           label="Ticket Médio"
           value={brl(clientesFaturadosMes > 0 ? totalFaturamento / clientesFaturadosMes : 0)}
-          subValue="Média por cliente ativo"
+          subValue="Média por cliente faturado"
           color="indigo-500"
         />
         <DashboardKPI
           icon={Users}
           label="Clientes Ativos"
           value={clientesAtivos}
-          subValue="Contratos em carteira"
+          subValue="Faturados no mês"
           color="blue-500"
         />
       </div>

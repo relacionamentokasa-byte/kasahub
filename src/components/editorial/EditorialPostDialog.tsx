@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { ExternalLink, Wand2, Trash2, Upload, X } from "lucide-react";
+import { ExternalLink, Wand2, Trash2, Upload, X, ClipboardPaste, Sparkles } from "lucide-react";
 import {
   createEditorialPost, updateEditorialPost, deleteEditorialPost, uploadEditorialCover,
   type EditorialPost, SOCIAL_LABEL, CONTENT_TYPE_LABEL, STATUS_LABEL,
@@ -49,23 +49,53 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
   const navigate = useNavigate();
   const [form, setForm] = useState(empty(clientId, defaultDate));
   const [uploading, setUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const handleCoverUpload = async (file: File) => {
+  const handleCoverUpload = useCallback(async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor envie um arquivo de imagem válido");
+      return;
+    }
     try {
       setUploading(true);
       const url = await uploadEditorialCover(clientId, file);
       setForm((f) => ({ ...f, cover_url: url }));
-      toast.success("Capa enviada");
+      toast.success("Capa enviada com sucesso!");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
       setUploading(false);
     }
-  };
+  }, [clientId]);
 
-  // Only re-hydrate when the dialog opens or the post identity changes —
-  // NOT on every parent re-render (which would randomly reset the time field
-  // if the parent's cursor/defaultDate updated while the dialog is open).
+  // Suporte a colar imagem com Ctrl+V diretamente no diálogo
+  useEffect(() => {
+    if (!open) return;
+
+    const handlePaste = (e: ClipboardEvent) => {
+      // Se o usuário estiver focado num input de texto, ainda checamos se o clipboard contém arquivo de imagem
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf("image") !== -1) {
+          const file = items[i].getAsFile();
+          if (file) {
+            e.preventDefault();
+            handleCoverUpload(file);
+            toast.info("Imagem colada da área de transferência!");
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
+  }, [open, handleCoverUpload]);
+
+  // Only re-hydrate when the dialog opens or the post identity changes
   useEffect(() => {
     if (!open) return;
     if (post) {
@@ -114,30 +144,27 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
 
   const convertToJob = () => {
     if (!post) return;
-    
+
     // Importamos dinamicamente para evitar ciclos ou dependências desnecessárias no topo
     import("@/lib/conversion-store").then(({ useConversionStore }) => {
       useConversionStore.getState().setConversionData({
         title: form.title,
         briefing: form.description || "",
-        dueDate: form.scheduled_at, // Já está no formato YYYY-MM-DDTHH:mm
+        dueDate: form.scheduled_at,
         clientId: post.client_id,
         sourcePostId: post.id,
         coverUrl: form.cover_url || undefined
       });
 
       console.log("[EditorialPostDialog] Dados de conversão salvos no Store.");
-
-      // Ao converter, fechamos o diálogo atual
       onOpenChange(false);
 
-      // Navegamos para a rota de Jobs com a flag simplificada
       navigate({
         to: "/jobs",
         search: (prev: any) => ({
           ...prev,
           new: "true",
-          editorialPostId: post.id // Mantemos apenas para referência na URL se necessário, mas não como fonte de dados
+          editorialPostId: post.id
         }) as any,
       });
     });
@@ -201,34 +228,60 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
             </div>
           </div>
           <div className="space-y-2">
-            <Label>Imagem de capa (aparece no Feed)</Label>
+            <div className="flex items-center justify-between">
+              <Label>Imagem de capa (aparece no Feed)</Label>
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1 font-mono-kasa">
+                <ClipboardPaste className="size-3" /> Cole com Ctrl+V
+              </span>
+            </div>
             {form.cover_url ? (
-              <div className="relative inline-block">
-                <img src={form.cover_url} alt="capa" className="h-32 w-32 object-cover rounded-lg border border-border" />
+              <div className="relative inline-block group">
+                <img src={form.cover_url} alt="capa" className="h-32 w-32 object-cover rounded-lg border border-border shadow-md" />
                 <Button
                   type="button"
                   size="icon"
                   variant="destructive"
-                  className="absolute -top-2 -right-2 h-6 w-6"
+                  className="absolute -top-2 -right-2 h-6 w-6 rounded-full shadow"
                   onClick={() => setForm({ ...form, cover_url: "" })}
+                  title="Remover capa"
                 >
                   <X className="size-3" />
                 </Button>
               </div>
             ) : (
-              <label className="flex items-center justify-center h-32 w-32 rounded-lg border border-dashed border-border cursor-pointer hover:border-primary/50 transition-colors text-foreground/40">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploading}
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
-                />
-                <div className="flex flex-col items-center gap-1 text-xs">
-                  <Upload className="size-5" />
-                  {uploading ? "Enviando..." : "Subir capa"}
-                </div>
-              </label>
+              <div
+                ref={dropZoneRef}
+                onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  const f = e.dataTransfer.files?.[0];
+                  if (f) handleCoverUpload(f);
+                }}
+                className={`flex flex-col items-center justify-center h-28 rounded-lg border-2 border-dashed transition-all p-3 text-center ${
+                  isDragging ? "border-primary bg-primary/10" : "border-border/70 hover:border-primary/50 bg-muted/20"
+                }`}
+              >
+                <label className="cursor-pointer flex flex-col items-center gap-1.5 w-full">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCoverUpload(f); }}
+                  />
+                  <div className="p-2 rounded-full bg-background border border-border/60">
+                    <Upload className="size-4 text-primary" />
+                  </div>
+                  <div className="text-xs font-medium text-foreground">
+                    {uploading ? "Enviando capa..." : "Clique para subir ou arraste uma imagem"}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    Dica: Você também pode copiar uma imagem e pressionar <kbd className="px-1 py-0.5 rounded bg-muted text-foreground border text-[9px]">Ctrl+V</kbd>
+                  </div>
+                </label>
+              </div>
             )}
           </div>
           <div className="space-y-2">
