@@ -1,19 +1,19 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import React from 'react';
 
 // Simulando um componente simplificado que usa a lógica que corrigimos
 const ClientLink = ({ clientId, name, navigate }: any) => {
   return (
-    <div 
+    <div
       data-testid="client-link"
       onClick={(e) => {
         if (clientId) {
           e.preventDefault();
           e.stopPropagation();
-          navigate({ 
-            to: "/clientes/$clientId", 
-            params: { clientId: clientId } 
+          navigate({
+            to: "/clientes/$clientId",
+            params: { clientId: clientId }
           });
         }
       }}
@@ -26,21 +26,22 @@ const ClientLink = ({ clientId, name, navigate }: any) => {
 describe('Correção de Navegação do Cliente', () => {
   it('deve chamar preventDefault para evitar scroll ao topo ao clicar no link do cliente', () => {
     const navigate = vi.fn();
-    render(<ClientLink clientId="123" name="Cliente Teste" navigate={navigate} />);
-    
-    const link = screen.getByTestId('client-link');
-    
+    const { container } = render(<ClientLink clientId="123" name="Cliente Teste" navigate={navigate} />);
+
+    const link = container.querySelector('[data-testid="client-link"]');
+    expect(link).toBeTruthy();
+
     // Criamos um evento sintético para capturar se preventDefault foi chamado
     const event = new MouseEvent('click', {
       bubbles: true,
       cancelable: true,
     });
-    
+
     // Espionamos o preventDefault
     const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
-    
-    fireEvent(link, event);
-    
+
+    link?.dispatchEvent(event);
+
     expect(preventDefaultSpy).toHaveBeenCalled();
     expect(navigate).toHaveBeenCalledWith(expect.objectContaining({
       to: "/clientes/$clientId",

@@ -44,7 +44,16 @@ export async function updateMyProfile(patch: any) {
   }
 }
 
-export async function fetchProfiles() {
+export type Profile = {
+  id: string;
+  full_name: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  job_title: string | null;
+  agency_logo_url: string | null;
+};
+
+export async function fetchProfiles(): Promise<Profile[]> {
   const { data, error } = await supabase
     .from("profiles")
     .select("id, full_name, display_name, avatar_url, job_title, agency_logo_url")

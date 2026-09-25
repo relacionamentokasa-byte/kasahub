@@ -989,6 +989,23 @@ export function JobsBoard({
                       const daysLeft = due ? Math.ceil((due - now) / 86400000) : null;
                       const isOverdue = due ? due < now && !isDone : false;
 
+                      // Thumbnail/Capa do job
+                      const scriptRow = Array.isArray((j as any).scripts) ? (j as any).scripts[0] : (j as any).scripts;
+                      const scriptImage = scriptRow?.script_scenes?.find((s: any) => !!s.reference_image_url)?.reference_image_url;
+
+                      const coverUrl =
+                        ((j as any).custom_fields as any)?.cover_url ||
+                        (j as any).editorial_posts?.cover_url ||
+                        (j as any).launch_grid_products?.image_url ||
+                        scriptImage ||
+                        (Array.isArray((j as any).job_attachments)
+                          ? (j as any).job_attachments.find(
+                              (att: any) =>
+                                att.file_type?.startsWith("image/") ||
+                                /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(att.file_url || "")
+                            )?.file_url
+                          : null);
+
                       return (
                         <tr
                           key={j.id}
@@ -1000,11 +1017,21 @@ export function JobsBoard({
                         >
                           {/* Title */}
                           <td className="py-2.5 px-3 font-medium text-foreground">
-                            <div className="flex items-center gap-2 min-w-0 max-w-[280px] lg:max-w-xs">
-                              <span
-                                className="size-2 rounded-full shrink-0"
-                                style={{ background: priorityColor(j.priority) }}
-                              />
+                            <div className="flex items-center gap-2.5 min-w-0 max-w-[280px] lg:max-w-xs">
+                              {coverUrl ? (
+                                <div className="size-8 rounded overflow-hidden shrink-0 border border-border/60 bg-muted/30">
+                                  <StorageImage
+                                    src={coverUrl}
+                                    alt=""
+                                    className="size-full object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <span
+                                  className="size-2 rounded-full shrink-0"
+                                  style={{ background: priorityColor(j.priority) }}
+                                />
+                              )}
                               <span className="truncate group-hover:underline">{j.title}</span>
                             </div>
                           </td>
@@ -1320,7 +1347,6 @@ function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { jo
   const ballPersonId = nextResponsibleMap?.get(job.id);
   const ballPerson = ballPersonId ? profiles.find(p => p.id === ballPersonId) : null;
   const ballPersonName = ballPerson?.display_name || ballPerson?.full_name;
-  const coverUrl = (job as any).editorial_posts?.cover_url || (job as any).cover_url;
 
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
   const deadline = useMemo(() => {
@@ -1359,6 +1385,44 @@ function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { jo
   }, [job.due_date, job.created_at, job.done_at]);
 
 
+  const coverUrl = useMemo(() => {
+    // 1. Capa explicitamente selecionada no Job (via custom_fields)
+    const jobCustomCover = ((job as any).custom_fields as any)?.cover_url;
+    if (jobCustomCover) return jobCustomCover;
+
+    // 2. Capa direta de post editorial
+    const editorialCover = (job as any).editorial_posts?.cover_url;
+    if (editorialCover) return editorialCover;
+
+    // 3. Imagem de produto do grid de lançamento
+    const productCover = (job as any).launch_grid_products?.image_url;
+    if (productCover) return productCover;
+
+    // 4. Imagem de cena do roteiro (Script)
+    const scripts = (job as any).scripts;
+    const script = Array.isArray(scripts) ? scripts[0] : scripts;
+    if (script?.script_scenes && Array.isArray(script.script_scenes)) {
+      const sortedScenes = [...script.script_scenes].sort(
+        (a, b) => (a.scene_number ?? 0) - (b.scene_number ?? 0)
+      );
+      const sceneWithImage = sortedScenes.find((s) => !!s.reference_image_url);
+      if (sceneWithImage?.reference_image_url) return sceneWithImage.reference_image_url;
+    }
+
+    // 5. Primeiro anexo que seja imagem
+    const attachments = (job as any).job_attachments;
+    if (Array.isArray(attachments)) {
+      const imgAtt = attachments.find(
+        (att) =>
+          att.file_type?.startsWith("image/") ||
+          /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(att.file_url || "")
+      );
+      if (imgAtt?.file_url) return imgAtt.file_url;
+    }
+
+    return null;
+  }, [job]);
+
   return (
     <div
       className={cn(
@@ -1370,11 +1434,14 @@ function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { jo
       }}
     >
       {coverUrl && (
-        <div className="-mx-3 -mt-3 mb-2 aspect-[21/9] w-[calc(100%+1.5rem)] overflow-hidden border-b border-border/40 relative bg-muted/20">
+        <div className="relative -mx-3 -mt-3 mb-2.5 aspect-[16/9] overflow-hidden rounded-t-lg bg-muted/30 border-b border-border/40">
           <StorageImage
             src={coverUrl}
             alt={job.title}
-            className="size-full object-cover"
+            className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              (e.currentTarget.parentElement as HTMLElement)?.classList.add("hidden");
+            }}
           />
         </div>
       )}

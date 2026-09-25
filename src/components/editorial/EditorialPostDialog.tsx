@@ -126,6 +126,7 @@ export function EditorialPostDialog({ open, onOpenChange, clientId, post, defaul
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
       toast.success(post ? "Post atualizado" : "Post criado");
       onOpenChange(false);
     },

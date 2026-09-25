@@ -9,13 +9,14 @@ const SIGN_TTL_SEC = 60 * 60 * 24 * 7; // 7 dias
 const CACHE_TTL_MS = (SIGN_TTL_SEC - 3600) * 1000; // renova 1h antes de expirar
 
 /**
- * Parseia uma URL pública do Supabase Storage no formato
- *   https://<proj>.supabase.co/storage/v1/object/public/<bucket>/<path>
+ * Parseia uma URL do Supabase Storage (pública ou assinada) nos formatos:
+ *   - https://<proj>.supabase.co/storage/v1/object/public/<bucket>/<path>
+ *   - https://<proj>.supabase.co/storage/v1/object/sign/<bucket>/<path>?token=...
  * e retorna { bucket, path }. Retorna null se não bater.
  */
-function parsePublicStorageUrl(url: string): { bucket: string; path: string } | null {
+function parseStorageUrl(url: string): { bucket: string; path: string } | null {
   if (!url) return null;
-  const m = url.match(/\/storage\/v1\/object\/public\/([^/]+)\/(.+?)(?:\?|$)/);
+  const m = url.match(/\/storage\/v1\/object\/(?:public|sign)\/([^/]+)\/(.+?)(?:\?|$)/);
   if (!m) return null;
   return { bucket: decodeURIComponent(m[1]), path: decodeURIComponent(m[2]) };
 }
@@ -25,15 +26,15 @@ async function resolve(url: string): Promise<string | null> {
   if (cached && cached.expires > Date.now()) return cached.url;
   if (inflight.has(url)) return inflight.get(url)!;
 
-  const parsed = parsePublicStorageUrl(url);
-  if (!parsed) return url; // não é storage público — usa direto
+  const parsed = parseStorageUrl(url);
+  if (!parsed) return url; // não é storage supabase — usa direto
 
   const promise = (async () => {
     const { data, error } = await supabase.storage
       .from(parsed.bucket)
       .createSignedUrl(parsed.path, SIGN_TTL_SEC);
     if (error || !data?.signedUrl) {
-      // fallback: retorna a URL original (vai falhar visualmente, mas não quebra)
+      // fallback: retorna a URL original
       return url;
     }
     cache.set(url, { url: data.signedUrl, expires: Date.now() + CACHE_TTL_MS });
@@ -66,7 +67,7 @@ export function useStorageUrl(url: string | null | undefined): string | null {
     if (!url) return null;
     const c = cache.get(url);
     if (c && c.expires > Date.now()) return c.url;
-    if (!parsePublicStorageUrl(url)) return url;
+    if (!parseStorageUrl(url)) return url;
     return null;
   });
 

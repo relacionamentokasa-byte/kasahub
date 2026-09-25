@@ -63,7 +63,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { fetchProfiles } from "@/lib/profile-api";
-import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus, GripVertical, Clapperboard, ClipboardList, Download } from "lucide-react";
+import { uploadEditorialCover } from "@/lib/editorial-api";
+import { Trash2, Plus, FileText, CheckSquare, Paperclip, History, CheckCircle2, User, X, Clock, AlertCircle, FileUp, Loader2, ExternalLink, Eye, ChevronDown, Pencil, Check, Copy, Send, Archive, RotateCcw, Image as ImageIcon, AtSign, MessageSquare, Lock, Focus, GripVertical, Clapperboard, ClipboardList, Download, Upload, ClipboardPaste } from "lucide-react";
 import { UnifiedTimeline } from "@/components/timeline/UnifiedTimeline";
 import { JobCommentsSection } from "@/components/jobs/JobCommentsSection";
 import { useFocusMode } from "@/contexts/FocusModeContext";
@@ -227,6 +228,98 @@ export function JobSheet({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [viewerConfig, setViewerConfig] = useState<{ url: string; name: string } | null>(null);
   const [approvalDialog, setApprovalDialog] = useState<{ url: string; name: string } | null>(null);
+  const [coverUploading, setCoverUploading] = useState(false);
+  const [coverDragging, setCoverDragging] = useState(false);
+  const coverDropRef = useRef<HTMLDivElement>(null);
+
+  // Busca post editorial vinculado para sincronização da capa
+  const { data: linkedEditorialPost } = useQuery({
+    queryKey: ["editorial-post-linked", job?.id, (job as any)?.editorial_post_id],
+    queryFn: async () => {
+      if (!job) return null;
+      if ((job as any).editorial_post_id) {
+        const { data } = await supabase.from("editorial_posts").select("*").eq("id", (job as any).editorial_post_id).single();
+        if (data) return data;
+      }
+      const { data } = await supabase.from("editorial_posts").select("*").eq("job_id", job.id).maybeSingle();
+      return data ?? null;
+    },
+    enabled: !!job?.id,
+  });
+
+  const currentCoverUrl = useMemo(() => {
+    if ((job?.custom_fields as any)?.cover_url) return (job!.custom_fields as any).cover_url;
+    if (linkedEditorialPost?.cover_url) return linkedEditorialPost.cover_url;
+    const epCover = (job as any)?.editorial_posts?.cover_url;
+    if (epCover) return epCover;
+    return null;
+  }, [linkedEditorialPost, job]);
+
+  const handleCoverUploadDirect = useCallback(async (file: File) => {
+    if (!job) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Por favor envie um arquivo de imagem válido.");
+      return;
+    }
+    const targetClientId = (job as any).client_id || "general";
+    try {
+      setCoverUploading(true);
+      const url = await uploadEditorialCover(targetClientId, file);
+
+      // 1. Atualiza custom_fields do job
+      const updatedCustomFields = {
+        ...(((job as any)?.custom_fields as Record<string, any>) || {}),
+        cover_url: url,
+      };
+      await supabase.from("jobs").update({
+        custom_fields: updatedCustomFields,
+      } as any).eq("id", job.id);
+
+      // 2. Atualiza post editorial se vinculado
+      if ((job as any).editorial_post_id) {
+        await supabase.from("editorial_posts").update({ cover_url: url } as any).eq("id", (job as any).editorial_post_id);
+      }
+      await supabase.from("editorial_posts").update({ cover_url: url } as any).eq("job_id", job.id);
+
+      qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+      qc.invalidateQueries({ queryKey: ["editorial-post-linked", job.id] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["job", job.id] });
+      toast.success("Capa atualizada e sincronizada com o post e o job!");
+    } catch (e: any) {
+      toast.error("Erro ao enviar capa: " + (e?.message || e));
+    } finally {
+      setCoverUploading(false);
+    }
+  }, [job, qc]);
+
+  const handleRemoveCover = useCallback(async () => {
+    if (!job) return;
+    try {
+      // 1. Remove do custom_fields do job
+      const updatedCustomFields = {
+        ...(((job as any)?.custom_fields as Record<string, any>) || {}),
+        cover_url: null,
+      };
+      await supabase.from("jobs").update({
+        custom_fields: updatedCustomFields,
+      } as any).eq("id", job.id);
+
+      // 2. Remove do post editorial vinculado
+      if ((job as any).editorial_post_id) {
+        await supabase.from("editorial_posts").update({ cover_url: null } as any).eq("id", (job as any).editorial_post_id);
+      }
+      await supabase.from("editorial_posts").update({ cover_url: null } as any).eq("job_id", job.id);
+
+      qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+      qc.invalidateQueries({ queryKey: ["editorial-post-linked", job.id] });
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["job", job.id] });
+      toast.success("Capa removida");
+    } catch (e: any) {
+      toast.error("Erro ao remover capa: " + (e?.message || e));
+    }
+  }, [job, qc]);
 
 
   const { data: checklist = [] } = useQuery({
@@ -801,13 +894,26 @@ export function JobSheet({
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     try {
+                                      // 1. Atualiza custom_fields do job
+                                      const updatedCustomFields = {
+                                        ...(((job as any)?.custom_fields as Record<string, any>) || {}),
+                                        cover_url: file.file_url,
+                                      };
+                                      await supabase.from("jobs").update({
+                                        custom_fields: updatedCustomFields,
+                                      } as any).eq("id", job.id);
+
+                                      // 2. Atualiza post editorial vinculado se houver
                                       if (job.editorial_post_id) {
                                         await supabase.from('editorial_posts').update({ cover_url: file.file_url } as any).eq('id', job.editorial_post_id);
                                       }
                                       await supabase.from('editorial_posts').update({ cover_url: file.file_url } as any).eq('job_id', job.id);
+
                                       qc.invalidateQueries({ queryKey: ["editorial-posts"] });
+                                      qc.invalidateQueries({ queryKey: ["editorial-post-linked", job.id] });
                                       qc.invalidateQueries({ queryKey: ["jobs"] });
-                                      toast.success("Imagem definida como capa do post!");
+                                      qc.invalidateQueries({ queryKey: ["job", job.id] });
+                                      toast.success("Imagem definida como capa do post e do job!");
                                     } catch (err: any) {
                                       toast.error("Erro ao definir capa: " + err.message);
                                     }
@@ -897,6 +1003,91 @@ export function JobSheet({
 
                 {/* Right Sidebar (Properties: 5 cols) */}
                 <div className="lg:col-span-5 overflow-y-auto p-6 space-y-4 bg-muted/10">
+                  {/* Imagem de Capa Sincronizada com o Post Editorial / Feed */}
+                  <div className="space-y-2 p-3 rounded-lg border border-border/60 bg-card">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-foreground flex items-center gap-1.5">
+                        <ImageIcon className="size-3.5 text-primary" /> Capa do Job / Post
+                      </span>
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono-kasa">
+                        <ClipboardPaste className="size-3" /> Ctrl+V
+                      </span>
+                    </div>
+
+                    {currentCoverUrl ? (
+                      <div className="relative group w-full aspect-[16/9] rounded-md overflow-hidden border border-border/60 bg-muted/30">
+                        <StorageImage
+                          src={currentCoverUrl}
+                          alt="Capa do Job"
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <label className="cursor-pointer p-1.5 rounded-full bg-background/90 text-foreground hover:bg-background transition-colors shadow">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              disabled={coverUploading}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleCoverUploadDirect(f);
+                              }}
+                            />
+                            <Upload className="size-3.5" />
+                          </label>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="destructive"
+                            className="size-7 rounded-full shadow"
+                            onClick={handleRemoveCover}
+                            title="Remover capa"
+                          >
+                            <X className="size-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div
+                        ref={coverDropRef}
+                        onDragOver={(e) => { e.preventDefault(); setCoverDragging(true); }}
+                        onDragLeave={() => setCoverDragging(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setCoverDragging(false);
+                          const f = e.dataTransfer.files?.[0];
+                          if (f) handleCoverUploadDirect(f);
+                        }}
+                        className={`flex flex-col items-center justify-center h-24 rounded-md border-2 border-dashed transition-all p-2 text-center ${
+                          coverDragging ? "border-primary bg-primary/10" : "border-border/70 hover:border-primary/50 bg-muted/20"
+                        }`}
+                      >
+                        <label className="cursor-pointer flex flex-col items-center gap-1 w-full">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            disabled={coverUploading}
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleCoverUploadDirect(f);
+                            }}
+                          />
+                          <div className="p-1.5 rounded-full bg-background border border-border/60">
+                            {coverUploading ? (
+                              <Loader2 className="size-3.5 animate-spin text-primary" />
+                            ) : (
+                              <Upload className="size-3.5 text-primary" />
+                            )}
+                          </div>
+                          <span className="text-[11px] font-medium text-foreground">
+                            {coverUploading ? "Enviando capa..." : "Selecionar ou arrastar capa"}
+                          </span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="space-y-3.5">
                     <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold block">
                       Propriedades
