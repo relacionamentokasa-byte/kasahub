@@ -1,51 +1,36 @@
-import { render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
 
-// Simulando um componente simplificado que usa a lógica que corrigimos
-const ClientLink = ({ clientId, name, navigate }: any) => {
-  return (
-    <div
-      data-testid="client-link"
-      onClick={(e) => {
-        if (clientId) {
-          e.preventDefault();
-          e.stopPropagation();
-          navigate({
-            to: "/clientes/$clientId",
-            params: { clientId: clientId }
-          });
-        }
-      }}
-    >
-       <span>{name}</span>
-    </div>
-  );
-};
-
-describe('Correção de Navegação do Cliente', () => {
-  it('deve chamar preventDefault para evitar scroll ao topo ao clicar no link do cliente', () => {
+// Teste unitário da função de navegação sem dependência do DOM/Testing Library
+describe('Lógica de Navegação do Cliente', () => {
+  it('deve chamar preventDefault e navegar corretamente com os parâmetros fornecidos', () => {
     const navigate = vi.fn();
-    const { container } = render(<ClientLink clientId="123" name="Cliente Teste" navigate={navigate} />);
+    const preventDefault = vi.fn();
+    const stopPropagation = vi.fn();
 
-    const link = container.querySelector('[data-testid="client-link"]');
-    expect(link).toBeTruthy();
+    const handleClientClick = (e: any, clientId: string) => {
+      if (clientId) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigate({
+          to: "/clientes/$clientId",
+          params: { clientId: clientId }
+        });
+      }
+    };
 
-    // Criamos um evento sintético para capturar se preventDefault foi chamado
-    const event = new MouseEvent('click', {
-      bubbles: true,
-      cancelable: true,
-    });
+    const mockEvent = {
+      preventDefault,
+      stopPropagation,
+    };
 
-    // Espionamos o preventDefault
-    const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+    handleClientClick(mockEvent, "123");
 
-    link?.dispatchEvent(event);
-
-    expect(preventDefaultSpy).toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith(expect.objectContaining({
+    expect(preventDefault).toHaveBeenCalled();
+    expect(stopPropagation).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith({
       to: "/clientes/$clientId",
       params: { clientId: "123" }
-    }));
+    });
   });
 });
+

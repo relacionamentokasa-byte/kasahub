@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { JobScriptTab } from "@/components/jobs/JobScriptTab";
+import { JobCallSheetTab } from "@/components/jobs/call-sheet/JobCallSheetTab";
+import { CalendarDays } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -745,6 +747,12 @@ export function JobSheet({
                 >
                   <Clapperboard className="size-3.5" /> Roteiro
                 </TabsTrigger>
+                <TabsTrigger
+                  value="diaria"
+                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-0 py-2.5 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
+                >
+                  <CalendarDays className="size-3.5" /> Cronograma / Diária
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -1249,6 +1257,10 @@ export function JobSheet({
 
             <TabsContent value="roteiro" className="flex-1 overflow-y-auto p-6 mt-0">
               <JobScriptTab jobId={job.id} defaultTitle={job.title} />
+            </TabsContent>
+
+            <TabsContent value="diaria" className="flex-1 overflow-hidden mt-0">
+              <JobCallSheetTab job={job} />
             </TabsContent>
           </Tabs>
         </div>

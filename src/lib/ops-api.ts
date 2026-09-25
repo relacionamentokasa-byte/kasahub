@@ -520,9 +520,24 @@ export async function updateJob(
 }
 
 export async function deleteJob(id: string) {
-  const { data: job } = await supabase.from("jobs").select("project_id").eq("id", id).single();
+  const { data: job } = await supabase.from("jobs").select("project_id").eq("id", id).maybeSingle();
+
+  // 1. Desvincular posts editoriais associados a este job para não violar Foreign Keys
+  await supabase.from("editorial_posts").update({ job_id: null } as any).eq("job_id", id);
+
+  // 2. Limpar registros dependentes filhos antes de excluir o job
+  await Promise.allSettled([
+    supabase.from("job_approval_logs").delete().eq("job_id", id),
+    supabase.from("job_attachments").delete().eq("job_id", id),
+    supabase.from("job_checklist").delete().eq("job_id", id),
+    supabase.from("job_comments").delete().eq("job_id", id),
+    supabase.from("job_history").delete().eq("job_id", id),
+  ]);
+
+  // 3. Excluir o Job
   const { error } = await supabase.from("jobs").delete().eq("id", id);
   if (error) throw error;
+
   if (job?.project_id) {
     await refreshProjectStats(job.project_id);
   }
