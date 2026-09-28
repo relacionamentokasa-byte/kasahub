@@ -300,7 +300,85 @@ function DmesPage() {
     toast.success("Link copiado!");
   }
 
-  // Batch selection helpers
+  const [creatingBatchJobs, setCreatingBatchJobs] = useState(false);
+
+  async function handleBatchCreateJobs() {
+    if (selectedDmes.length === 0) return;
+    setCreatingBatchJobs(true);
+    let createdCount = 0;
+    let skippedCount = 0;
+
+    try {
+      for (const dme of selectedDmes) {
+        // Se já possui job vinculado, ignora
+        if (jobsByDme[dme.id]) {
+          skippedCount++;
+          continue;
+        }
+
+        // Busca ou cria projeto para o cliente da DME
+        const { data: clientProjects } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("client_id", dme.client_id)
+          .order("created_at", { ascending: false })
+          .limit(1);
+
+        let targetProjectId = clientProjects?.[0]?.id;
+
+        if (!targetProjectId) {
+          const clientName = dme.clients?.company || dme.clients?.name || "Cliente";
+          const { data: newProj, error: pErr } = await supabase
+            .from("projects")
+            .insert({
+              name: `Projeto ${clientName}`,
+              client_id: dme.client_id,
+              status: "active",
+              type: "automatic",
+            } as any)
+            .select("id")
+            .single();
+
+          if (pErr) {
+            console.error("Erro ao criar projeto para job de DME:", pErr);
+            continue;
+          }
+          targetProjectId = newProj.id;
+        }
+
+        const jobPayload = {
+          title: `[DME ${dme.number_display || ""}] ${dme.title}`.trim(),
+          description: dme.description || null,
+          priority: "normal",
+          due_date: dme.due_date || null,
+          project_id: targetProjectId,
+          client_id: dme.client_id,
+          contract_id: dme.contract_id || null,
+          dme_id: dme.id,
+        };
+
+        await createJob(jobPayload as any);
+        createdCount++;
+      }
+
+      await qc.invalidateQueries({ queryKey: ["jobs"] });
+      await qc.invalidateQueries({ queryKey: ["jobs-by-dme"] });
+      await qc.invalidateQueries({ queryKey: ["extra_demands"] });
+
+      if (createdCount > 0) {
+        toast.success(
+          `${createdCount} Job${createdCount > 1 ? "s" : ""} criado${createdCount > 1 ? "s" : ""} no quadro operacional!`
+        );
+        setSelectedIds(new Set());
+      } else if (skippedCount > 0) {
+        toast.info("Todas as DMEs selecionadas já possuem jobs vinculados.");
+      }
+    } catch (err: any) {
+      toast.error(`Erro ao criar jobs em massa: ${err?.message || err}`);
+    } finally {
+      setCreatingBatchJobs(false);
+    }
+  }
   const ELIGIBLE = ["draft", "pending", "sent", "pending_approval", "approved"];
   const selectedDmes = useMemo(
     () => dmes.filter((d: any) => selectedIds.has(d.id)),
@@ -517,10 +595,36 @@ function DmesPage() {
               · Total <span className="font-mono-kasa font-semibold text-foreground">{brl(selectedTotal)}</span>
             </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
               Limpar
             </Button>
+            {selectedDmesList.length === 1 ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setJobForDme(selectedDmesList[0])}
+                className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <Briefcase className="size-4" />
+                Criar Job desta DME
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleBatchCreateJobs}
+                disabled={creatingBatchJobs}
+                className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+              >
+                {creatingBatchJobs ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <Briefcase className="size-4" />
+                )}
+                Criar Jobs ({selectedDmesList.length})
+              </Button>
+            )}
             <Button size="sm" onClick={handleCreateBatch} disabled={creatingBatch || selectedIds.size < 2} className="gap-2">
               {creatingBatch ? <Loader2 className="size-4 animate-spin" /> : <LinkIcon className="size-4" />}
               Gerar link de aprovação em lote
@@ -1104,6 +1208,7 @@ function DmesPage() {
       <ViewBatchDmesDialog
         batch={viewingBatch}
         onOpenChange={(o) => { if (!o) setViewingBatch(null); }}
+        onCreateJob={(dme) => setJobForDme(dme)}
       />
     </div>
   );
@@ -1663,10 +1768,12 @@ function UnconsolidateDialog({ batch, onOpenChange, onConfirm, isPending }: {
   );
 }
 
-function ViewBatchDmesDialog({ batch, onOpenChange }: { 
-  batch: any; 
-  onOpenChange: (open: boolean) => void; 
+function ViewBatchDmesDialog({ batch, onOpenChange, onCreateJob }: {
+  batch: any;
+  onOpenChange: (open: boolean) => void;
+  onCreateJob?: (dme: any) => void;
 }) {
+  const navigate = useNavigate();
   const { data: dmes = [], isLoading } = useQuery({
     queryKey: ["batch-dmes", batch?.id],
     enabled: !!batch?.id,
@@ -1677,6 +1784,22 @@ function ViewBatchDmesDialog({ batch, onOpenChange }: {
         .eq("batch_id", batch.id);
       if (error) throw error;
       return (data || []).map((i: any) => i.extra_demands).filter(Boolean);
+    },
+  });
+
+  const dmeIds = useMemo(() => dmes.map((d: any) => d.id), [dmes]);
+  const { data: batchJobsByDme = {} } = useQuery({
+    queryKey: ["batch-jobs-by-dme", dmeIds.join(",")],
+    enabled: dmeIds.length > 0,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, dme_id, title")
+        .in("dme_id", dmeIds);
+      if (error) throw error;
+      const map: Record<string, { id: string; title: string }> = {};
+      (data ?? []).forEach((j: any) => { if (j.dme_id) map[j.dme_id] = { id: j.id, title: j.title }; });
+      return map;
     },
   });
 
@@ -1707,31 +1830,66 @@ function ViewBatchDmesDialog({ batch, onOpenChange }: {
                   <TableHead>Título</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead>Vencimento</TableHead>
+                  <TableHead className="text-right">Job Operacional</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
-                  <TableRowsSkeleton rows={3} columns={4} />
+                  <TableRowsSkeleton rows={3} columns={5} />
                 ) : dmes.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Nenhuma DME vinculada a este lote.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  dmes.map((d: any) => (
-                    <TableRow key={d.id}>
-                      <TableCell className="font-mono text-xs">{d.number_display}</TableCell>
-                      <TableCell className="max-w-[300px]">
-                        <div className="font-medium truncate" title={d.title}>{d.title}</div>
-                        {d.description && <div className="text-[10px] text-muted-foreground truncate">{d.description}</div>}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">{brl(Number(d.value))}</TableCell>
-                      <TableCell className="text-sm">
-                        {d.due_date ? new Date(d.due_date + 'T12:00:00Z').toLocaleDateString('pt-BR') : '—'}
-                      </TableCell>
-                    </TableRow>
-                  ))
+                  dmes.map((d: any) => {
+                    const linkedJob = batchJobsByDme[d.id];
+                    return (
+                      <TableRow key={d.id}>
+                        <TableCell className="font-mono text-xs">{d.number_display}</TableCell>
+                        <TableCell className="max-w-[260px]">
+                          <div className="font-medium truncate" title={d.title}>{d.title}</div>
+                          {d.description && <div className="text-[10px] text-muted-foreground truncate">{d.description}</div>}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">{brl(Number(d.value))}</TableCell>
+                        <TableCell className="text-sm">
+                          {d.due_date ? new Date(d.due_date + 'T12:00:00Z').toLocaleDateString('pt-BR') : '—'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {linkedJob ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                onOpenChange(false);
+                                navigate({ to: "/jobs", search: { openJobId: linkedJob.id } });
+                              }}
+                              className="h-7 text-[11px] gap-1.5 border-blue-500/30 text-blue-600 dark:text-blue-400 hover:bg-blue-500/10"
+                              title={`Abrir Job: ${linkedJob.title}`}
+                            >
+                              <Briefcase className="size-3" />
+                              Ver Job
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                onOpenChange(false);
+                                if (onCreateJob) onCreateJob(d);
+                              }}
+                              className="h-7 text-[11px] gap-1.5 border-primary/40 text-primary hover:bg-primary/10"
+                              title="Criar Job para esta DME"
+                            >
+                              <Briefcase className="size-3" />
+                              Criar Job
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

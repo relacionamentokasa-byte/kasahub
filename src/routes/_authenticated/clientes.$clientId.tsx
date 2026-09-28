@@ -20,6 +20,7 @@ import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientKpiHeader } from "@/components/clients/ClientKpiHeader";
 import { ClientUnifiedTimeline, buildUnifiedEvents } from "@/components/clients/ClientUnifiedTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
+import { ContractAddendumsSection } from "@/components/contracts/ContractAddendumsSection";
 import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
 import { fetchProposals } from "@/lib/crm-api";
@@ -396,6 +397,15 @@ function ClientDetail() {
                           <FileText className="size-3.5" /> Detalhes do Contrato
                         </Link>
                       </Button>
+
+                      {/* Seção de Aditivos de Contrato & Integração Financeira & Fechamento */}
+                      <ContractAddendumsSection
+                        contract={contract}
+                        clientId={clientId}
+                        clientName={client?.name || ""}
+                        clientCompany={client?.company}
+                        clientLogoUrl={client?.logo_url}
+                      />
                     </div>
                   </div>
                 ))}

@@ -1,16 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
-export type ClientService = Database["public"]["Tables"]["client_services"]["Row"];
+export type ClientService = Database["public"]["Tables"]["client_services"]["Row"] & {
+  services?: {
+    id: string;
+    name: string;
+    category?: string | null;
+    default_price?: number | null;
+  } | null;
+};
 
 export async function fetchClientServices(clientId: string): Promise<ClientService[]> {
   const { data, error } = await supabase
     .from("client_services")
-    .select("*")
+    .select("*, services(id, name, category, default_price)")
     .eq("client_id", clientId)
     .order("created_at", { ascending: true });
   if (error) throw error;
-  return data ?? [];
+  return (data as any) ?? [];
 }
 
 export async function addClientService(input: {

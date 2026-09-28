@@ -72,7 +72,7 @@ export function NewJobDialog({
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [isUploadingFiles, setIsUploadingFiles] = useState(false);
   const { data: clients = [] } = useQuery({ queryKey: ["clients"], queryFn: fetchClients });
-  const { data: _services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
+  const { data: services = [] } = useQuery({ queryKey: ["services", { onlyActive: true }], queryFn: () => fetchServices({ onlyActive: true }) });
   const { data: team = [] } = useQuery({ queryKey: ["profiles"], queryFn: fetchProfiles });
 
   const [form, setForm] = useState({
@@ -467,8 +467,8 @@ export function NewJobDialog({
             </div>
           )}
 
-          {/* Cliente e Projeto */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Cliente, Projeto e Serviço */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1">
               <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
                 Cliente *
@@ -529,6 +529,28 @@ export function NewJobDialog({
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
                       {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Serviço / Tipo
+              </Label>
+              <Select
+                value={form.service_id || undefined}
+                onValueChange={(v) => setForm((f) => ({ ...f, service_id: v === "__none__" ? "" : v }))}
+              >
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue placeholder="Selecione o Serviço (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__" className="text-xs text-muted-foreground">Nenhum / Avulso</SelectItem>
+                  {services.map((s: any) => (
+                    <SelectItem key={s.id} value={s.id} className="text-xs cursor-pointer">
+                      {s.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

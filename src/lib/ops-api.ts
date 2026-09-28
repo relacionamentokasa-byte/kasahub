@@ -314,16 +314,14 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   if (!input.due_date) throw new Error("Prazo final é obrigatório");
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
-  if (!input.service_id && !(input as any).editorial_post_id && !input.launch_product_id) throw new Error("Um job deve estar vinculado a um serviço, post editorial ou produto.");
-  
-  
+
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
-  
+
   const client = await fetchClient(input.client_id || project.client_id!);
   if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");
 
-  // Herança de campos se não fornecidos (sem atribuir responsável automaticamente para não disparar notificações indevidas)
+  // Herança de campos se não fornecidos
   const finalInput = {
     ...input,
     client_id: input.client_id || project.client_id || null,
@@ -332,28 +330,27 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   };
 
   // Limpeza de campos UUID vazios para evitar erro de sintaxe
-  const cleanInput = Object.entries(finalInput).reduce((acc, [key, value]) => {
-    // Only nullify if it's explicitly an empty string or the string 'null'/'undefined' 
-    // BUT we must keep actual nulls/undefineds as they are to avoid issues
+  const cleanInputFinal = Object.entries(finalInput).reduce((acc, [key, value]) => {
     acc[key] = (value === "" || value === "null" || value === "undefined") ? null : value;
     return acc;
   }, {} as any);
 
+  // Validação dos vínculos de origem (Serviço, Editorial, Produto de Lançamento ou Demanda Extra / DME)
+  const isEditorial = !!cleanInputFinal.editorial_post_id;
+  const isLaunchProduct = !!cleanInputFinal.launch_product_id;
+  const isDme = !!cleanInputFinal.dme_id;
+
   // Garantir que campos obrigatórios não são nulos após limpeza
-  // If it's from an editorial post, we relax the service_id requirement
-  const isEditorial = !!(cleanInput as any).editorial_post_id;
-  const isLaunchProduct = !!cleanInput.launch_product_id;
-  if (!cleanInput.client_id || !cleanInput.project_id || (!cleanInput.service_id && !isEditorial && !isLaunchProduct)) {
+  if (!cleanInputFinal.client_id || !cleanInputFinal.project_id) {
     const missing = [];
-    if (!cleanInput.client_id) missing.push("Cliente");
-    if (!cleanInput.project_id) missing.push("Projeto");
-    if (!cleanInput.service_id && !isEditorial && !isLaunchProduct) missing.push("Serviço");
+    if (!cleanInputFinal.client_id) missing.push("Cliente");
+    if (!cleanInputFinal.project_id) missing.push("Projeto");
     throw new Error(`Vínculos obrigatórios ausentes: ${missing.join(", ")}.`);
   }
 
-  console.log("createJob: Final payload after cleaning", cleanInput);
+  console.log("createJob: Final payload after cleaning", cleanInputFinal);
 
-  const { data, error } = await supabase.from("jobs").insert(cleanInput).select().single();
+  const { data, error } = await supabase.from("jobs").insert(cleanInputFinal).select().single();
 
   if (error) {
     console.error("createJob: Supabase error", error);
