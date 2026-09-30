@@ -234,6 +234,14 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           .order("created_at", { ascending: false });
         const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
 
+        // Fetch editorial_posts do cliente para complementar o feed
+        const { data: epRows } = await supabaseAdmin
+          .from("editorial_posts")
+          .select("id, client_id, title, description, social_network, content_type, scheduled_at, status, cover_url, created_at, job_id")
+          .eq("client_id", client.id)
+          .order("scheduled_at", { ascending: false });
+        const editorialPosts = (epRows || []) as Array<Record<string, unknown>>;
+
         // Refresh storage URLs for the public portal. Some approval items were saved with
         // raw public URLs from private buckets, so convert both public and signed storage
         // URLs into fresh signed URLs before sending them to the client portal.
@@ -250,8 +258,8 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
             .createSignedUrl(path, 60 * 60 * 24);
           return data?.signedUrl ?? url;
         }
-        await Promise.all(
-          approvalItems.map(async (it: any) => {
+        await Promise.all([
+          ...approvalItems.map(async (it: any) => {
             it.content_url = await refreshUrl(it.content_url);
             it.thumbnail_url = await refreshUrl(it.thumbnail_url);
             if (Array.isArray(it.slides)) {
@@ -265,7 +273,10 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
               );
             }
           }),
-        );
+          ...editorialPosts.map(async (ep: any) => {
+            ep.cover_url = await refreshUrl(ep.cover_url);
+          }),
+        ]);
 
         // Fetch comments for those items
         const itemIds = approvalItems.map((i) => i.id as string);
@@ -375,7 +386,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         }
 
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, events, onboardings, launchGrids }),
+          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, editorialPosts, events, onboardings, launchGrids }),
 
           {
             status: 200,

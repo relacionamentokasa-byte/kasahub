@@ -226,6 +226,7 @@ type ApiResponse = {
   proposals: Proposal[];
   currentContract: Contract | null;
   approvalItems: ApprovalItem[];
+  editorialPosts?: Array<Record<string, unknown>>;
   approvalComments?: Record<string, ApprovalItemComment[]>;
   events?: CalendarEventRow[];
   onboardings?: OnboardingRow[];
@@ -558,7 +559,7 @@ function MinhaKasaPage() {
     );
   }
 
-  const { client, jobs = [], responsibles = {}, stages = {}, invoices = [], proposals = [], currentContract = null, approvalItems = [], approvalComments = {}, events = [] } = data;
+  const { client, jobs = [], responsibles = {}, stages = {}, invoices = [], proposals = [], currentContract = null, approvalItems = [], editorialPosts = [], approvalComments = {}, events = [] } = data;
   const launchGrids = ((data as any).launchGrids || []) as Array<{
     id: string; title: string; description: string | null; cover_url: string | null; launch_date: string | null;
     statuses: Array<{ id: string; label: string; color: string; order_index: number; is_done: boolean }>;
@@ -568,8 +569,11 @@ function MinhaKasaPage() {
   return (
     <KasaPortalShell
       client={client}
+      slug={slug}
       jobs={jobs}
       approvalItems={approvalItems}
+      editorialPosts={editorialPosts}
+      approvalComments={approvalComments as any}
       invoices={invoices}
       proposals={proposals}
       currentContract={currentContract}

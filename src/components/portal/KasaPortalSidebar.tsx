@@ -11,9 +11,12 @@ import {
   Headset,
   MessageSquare,
   Sparkles,
+  LayoutGrid,
 } from "lucide-react";
+import { SocialIcon } from "@/components/editorial/SocialIcon";
 
 export type PortalTab =
+  | "feed"
   | "visao-geral"
   | "projetos"
   | "conteudos"
@@ -34,6 +37,7 @@ interface PortalSidebarProps {
 }
 
 const MENU_ITEMS = [
+  { id: "feed" as PortalTab, label: "Feed Instagram", customIcon: "instagram", hasBadge: true },
   { id: "visao-geral" as PortalTab, label: "Visão geral", icon: Home },
   { id: "projetos" as PortalTab, label: "Projetos", icon: FolderKanban },
   { id: "conteudos" as PortalTab, label: "Conteúdos", icon: FileText },
@@ -89,7 +93,8 @@ export function KasaPortalSidebar({
         <nav className="space-y-1">
           {MENU_ITEMS.map((item) => {
             const active = currentTab === item.id;
-            const Icon = item.icon;
+            const Icon = (item as any).icon;
+            const customIcon = (item as any).customIcon;
             return (
               <button
                 key={item.id}
@@ -102,12 +107,16 @@ export function KasaPortalSidebar({
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <Icon
-                    className={`size-4.5 ${
-                      active ? "text-[#0C1618]" : "text-[#9CA3AF]"
-                    }`}
-                    strokeWidth={active ? 2.5 : 2}
-                  />
+                  {customIcon === "instagram" ? (
+                    <SocialIcon network="instagram" size={18} />
+                  ) : Icon ? (
+                    <Icon
+                      className={`size-4.5 ${
+                        active ? "text-[#0C1618]" : "text-[#9CA3AF]"
+                      }`}
+                      strokeWidth={active ? 2.5 : 2}
+                    />
+                  ) : null}
                   <span>{item.label}</span>
                 </div>
 
