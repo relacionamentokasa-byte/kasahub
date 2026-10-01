@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useSearch } from "@tanstack/react-router";
 import {
   DndContext,
   PointerSensor,
@@ -23,6 +24,7 @@ import {
   fetchStages,
   fetchLeads,
   moveLead,
+  updateLead,
   deleteLead,
   deleteLeadStage,
   formatCurrency,
@@ -36,6 +38,14 @@ import { fetchProfiles } from "@/lib/profile-api";
 import { fetchOpenTaskCounts, fetchNextTasksByLead, type NextLeadTask } from "@/lib/lead-tasks-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { NewLeadDialog } from "./NewLeadDialog";
 import { LeadSheet } from "./LeadSheet";
 import { CrmFunnel } from "./CrmFunnel";
@@ -48,6 +58,12 @@ type View = "kanban" | "funnel";
 type StatusFilter = "all" | "stalled" | "with_tasks" | "overdue";
 
 export function CrmBoard() {
+  const search = useSearch({ strict: false }) as {
+    status?: StatusFilter;
+    owner?: string;
+    source?: string;
+  };
+
   const qc = useQueryClient();
   const { data: stages = [] } = useQuery({ queryKey: ["crm", "stages"], queryFn: fetchStages });
   const { data: leads = [] } = useQuery({ queryKey: ["crm", "leads"], queryFn: fetchLeads });
@@ -67,9 +83,15 @@ export function CrmBoard() {
   const [newLeadStage, setNewLeadStage] = useState<Stage | null>(null);
   const [lostDialogLead, setLostDialogLead] = useState<Lead | null>(null);
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-  const [ownerFilter, setOwnerFilter] = useState<string>("all");
-  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>(() => search?.status || "all");
+  const [ownerFilter, setOwnerFilter] = useState<string>(() => search?.owner || "all");
+  const [sourceFilter, setSourceFilter] = useState<string>(() => search?.source || "all");
+
+  useEffect(() => {
+    if (search?.status) setStatusFilter(search.status);
+    if (search?.owner) setOwnerFilter(search.owner);
+    if (search?.source) setSourceFilter(search.source);
+  }, [search?.status, search?.owner, search?.source]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -683,11 +705,21 @@ function LeadCardInner({
   onWin?: () => void;
   onLose?: () => void;
 }) {
+  const qc = useQueryClient();
   const navigate = useNavigate();
   const days = daysBetween(lead.updated_at || lead.created_at);
   const isStalled = days >= 5;
 
-  const responsibleId = nextTask?.assigned_to ?? lead.owner_id ?? null;
+  const updateOwnerMut = useMutation({
+    mutationFn: (newOwnerId: string | null) => updateLead(lead.id, { owner_id: newOwnerId }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["crm", "leads"] });
+      toast.success("Responsável atualizado");
+    },
+    onError: (e: Error) => toast.error(e.message || "Erro ao atualizar responsável"),
+  });
+
+  const responsibleId = lead.owner_id ?? null;
   const responsible = responsibleId ? profiles.find((p) => p.id === responsibleId) : null;
   const responsibleName = responsible?.display_name || responsible?.full_name || null;
   const initials = (responsibleName ?? "")
@@ -770,24 +802,67 @@ function LeadCardInner({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          {responsible && (
-            <div
-              className="flex items-center"
-              title={`Responsável: ${responsibleName}`}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center rounded-full focus:outline-none focus:ring-1 focus:ring-primary/40 hover:opacity-80 transition cursor-pointer"
+                title={responsible ? `Responsável: ${responsibleName} (clique para alterar)` : "Sem responsável (clique para atribuir)"}
+              >
+                {responsible?.avatar_url ? (
+                  <img
+                    src={responsible.avatar_url}
+                    alt={responsibleName ?? ""}
+                    className="size-5 rounded-full object-cover border border-border/80 shadow-2xs"
+                  />
+                ) : (
+                  <div className="size-5 rounded-full bg-muted hover:bg-muted/80 text-muted-foreground text-[8px] font-bold grid place-items-center border border-border/80 shadow-2xs">
+                    {initials || "?"}
+                  </div>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              className="w-48 z-50 text-xs"
+              onClick={(e) => e.stopPropagation()}
+              onPointerDown={(e) => e.stopPropagation()}
             >
-              {responsible.avatar_url ? (
-                <img
-                  src={responsible.avatar_url}
-                  alt={responsibleName ?? ""}
-                  className="size-4 rounded-full object-cover border border-border/60"
-                />
-              ) : (
-                <div className="size-4 rounded-full bg-muted text-muted-foreground text-[8px] font-bold grid place-items-center border border-border/60">
-                  {initials || "?"}
-                </div>
-              )}
-            </div>
-          )}
+              <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground px-2 py-1">
+                Responsável pelo Lead
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => updateOwnerMut.mutate(null)}
+                className={cn("cursor-pointer text-xs", !responsibleId && "font-bold text-primary")}
+              >
+                <div className="size-4 rounded-full bg-muted text-[9px] grid place-items-center mr-2">∅</div>
+                Sem responsável
+              </DropdownMenuItem>
+              {profiles.map((p) => {
+                const pName = p.display_name || p.full_name || "Membro";
+                const isSelected = p.id === responsibleId;
+                return (
+                  <DropdownMenuItem
+                    key={p.id}
+                    onClick={() => updateOwnerMut.mutate(p.id)}
+                    className={cn("cursor-pointer text-xs flex items-center gap-2", isSelected && "font-bold text-primary")}
+                  >
+                    {p.avatar_url ? (
+                      <img src={p.avatar_url} alt={pName} className="size-4 rounded-full object-cover shrink-0" />
+                    ) : (
+                      <div className="size-4 rounded-full bg-muted text-[8px] font-bold grid place-items-center shrink-0">
+                        {pName[0]?.toUpperCase() || "?"}
+                      </div>
+                    )}
+                    <span className="truncate">{pName}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {lead.phone && (
             <button

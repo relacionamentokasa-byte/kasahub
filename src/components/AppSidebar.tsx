@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { APP_VERSION } from "@/lib/version";
 import { fetchMyProfile } from "@/lib/profile-api";
+import { fetchLeads, fetchStages } from "@/lib/crm-api";
+import { useMemo } from "react";
 import {
   LayoutDashboard,
   KanbanSquare,
@@ -99,6 +101,32 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { can, isAdmin, isLoading, isError } = usePermissions();
 
+  const { data: leads = [] } = useQuery({
+    queryKey: ["crm", "leads"],
+    queryFn: fetchLeads,
+  });
+
+  const { data: stages = [] } = useQuery({
+    queryKey: ["crm", "stages"],
+    queryFn: fetchStages,
+  });
+
+  const stalledLeadsCount = useMemo(() => {
+    const wonStageIds = new Set(stages.filter((s) => s.is_won).map((s) => s.id));
+    const lostStageIds = new Set(stages.filter((s) => s.is_lost).map((s) => s.id));
+
+    const activeLeads = leads.filter(
+      (l) => !wonStageIds.has(l.stage_id) && !lostStageIds.has(l.stage_id)
+    );
+
+    const now = Date.now();
+    return activeLeads.filter((l) => {
+      const updated = new Date(l.updated_at || l.created_at).getTime();
+      const diffDays = Math.floor((now - updated) / (1000 * 60 * 60 * 24));
+      return diffDays >= 5;
+    }).length;
+  }, [leads, stages]);
+
   const isActive = (path: string) =>
     path === "/" ? currentPath === "/" : currentPath.startsWith(path);
 
@@ -153,6 +181,7 @@ export function AppSidebar() {
               <SidebarMenu>
                 {group.items.map((item) => {
                   const active = isActive(item.url);
+                  const isCrm = item.url === "/crm";
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
@@ -164,15 +193,30 @@ export function AppSidebar() {
                             : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-white/5"
                         }
                       >
-                        <Link 
-                          to={item.url} 
-                          className="flex items-center gap-3"
+                        <Link
+                          to={item.url}
+                          className="flex items-center gap-3 relative"
                           onClick={() => {
                             if (isMobile) setOpenMobile(false);
                           }}
                         >
-                          <item.icon className="size-4 shrink-0" />
-                          <span className="text-sm font-medium">{item.title}</span>
+                          <div className="relative shrink-0">
+                            <item.icon className="size-4 shrink-0" />
+                            {isCrm && collapsed && stalledLeadsCount > 0 && (
+                              <span className="absolute -top-1 -right-1.5 min-w-3.5 h-3.5 px-0.5 rounded-full bg-amber-500 text-black text-[8px] font-bold font-mono-kasa grid place-items-center ring-2 ring-sidebar-background leading-none">
+                                {stalledLeadsCount}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-sm font-medium flex-1">{item.title}</span>
+                          {isCrm && !collapsed && stalledLeadsCount > 0 && (
+                            <span
+                              title={`${stalledLeadsCount} oportunidades sem contato há mais de 5 dias`}
+                              className="inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold font-mono-kasa rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 leading-none"
+                            >
+                              {stalledLeadsCount}
+                            </span>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>

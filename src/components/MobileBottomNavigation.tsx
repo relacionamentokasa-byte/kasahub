@@ -12,7 +12,8 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchNotifications } from "@/lib/notifications-api";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { fetchLeads, fetchStages } from "@/lib/crm-api";
 import { NAV_SECTIONS } from "./TopNavigation";
 
 export function MobileBottomNavigation() {
@@ -23,6 +24,32 @@ export function MobileBottomNavigation() {
     queryKey: ["notificacoes"],
     queryFn: fetchNotifications,
   });
+
+  const { data: leads = [] } = useQuery({
+    queryKey: ["crm", "leads"],
+    queryFn: fetchLeads,
+  });
+
+  const { data: stages = [] } = useQuery({
+    queryKey: ["crm", "stages"],
+    queryFn: fetchStages,
+  });
+
+  const stalledLeadsCount = useMemo(() => {
+    const wonStageIds = new Set(stages.filter((s) => s.is_won).map((s) => s.id));
+    const lostStageIds = new Set(stages.filter((s) => s.is_lost).map((s) => s.id));
+
+    const activeLeads = leads.filter(
+      (l) => !wonStageIds.has(l.stage_id) && !lostStageIds.has(l.stage_id)
+    );
+
+    const now = Date.now();
+    return activeLeads.filter((l) => {
+      const updated = new Date(l.updated_at || l.created_at).getTime();
+      const diffDays = Math.floor((now - updated) / (1000 * 60 * 60 * 24));
+      return diffDays >= 5;
+    }).length;
+  }, [leads, stages]);
 
   const unreadCount = notifications.filter((n) => !n.lido).length;
 
@@ -47,6 +74,7 @@ export function MobileBottomNavigation() {
             item.url === "/dashboard"
               ? currentPath === "/dashboard" || currentPath === "/"
               : currentPath.startsWith(item.url);
+          const isCrm = item.url === "/crm";
 
           return (
             <Link
@@ -59,12 +87,19 @@ export function MobileBottomNavigation() {
                   : "text-zinc-400 hover:text-zinc-200"
               )}
             >
-              <Icon
-                className={cn(
-                  "size-[19px] transition-transform duration-200",
-                  isActive ? "text-amber-400 stroke-[2.25]" : "text-zinc-400 stroke-[1.75]"
+              <div className="relative">
+                <Icon
+                  className={cn(
+                    "size-[19px] transition-transform duration-200",
+                    isActive ? "text-amber-400 stroke-[2.25]" : "text-zinc-400 stroke-[1.75]"
+                  )}
+                />
+                {isCrm && stalledLeadsCount > 0 && (
+                  <span className="absolute -top-1 -right-1.5 min-w-3.5 h-3.5 px-0.5 rounded-full bg-amber-500 text-black text-[8px] font-bold font-mono-kasa grid place-items-center ring-2 ring-[#09090b] leading-none">
+                    {stalledLeadsCount}
+                  </span>
                 )}
-              />
+              </div>
               <span className="max-w-full truncate tracking-tight">{item.label}</span>
             </Link>
           );

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ExecutiveDashboard } from "@/components/dashboard/ExecutiveDashboard";
+import { CommercialCommandBanner } from "@/components/dashboard/CommercialCommandBanner";
 import { InstallPromoCard } from "@/components/pwa/InstallPromoCard";
 import { checkDailyNotifications } from "@/lib/notifications-cron";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -37,6 +38,11 @@ function DashboardPage() {
           <p className="text-foreground/60 text-xs mt-0.5">Acompanhe a operação, entregas da equipe e o pulso financeiro.</p>
         </div>
       </header>
+
+      {/* Banner de Comando Comercial dos Sócios */}
+      <ErrorBoundary>
+        <CommercialCommandBanner />
+      </ErrorBoundary>
 
       <InstallPromoCard />
 

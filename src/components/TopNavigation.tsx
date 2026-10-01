@@ -23,6 +23,8 @@ import { PrivacyToggleButton } from "@/contexts/PrivacyContext";
 import { InstallPWAButton } from "./pwa/InstallPWAButton";
 import { StorageImage } from "@/components/ui/storage-image";
 import { useTheme } from "@/lib/theme";
+import { fetchLeads, fetchStages } from "@/lib/crm-api";
+import { useMemo } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "@tanstack/react-router";
@@ -157,6 +159,32 @@ export function TopNavigation() {
     )
   ) || filteredSections[0];
 
+  const { data: leads = [] } = useQuery({
+    queryKey: ["crm", "leads"],
+    queryFn: fetchLeads,
+  });
+
+  const { data: stages = [] } = useQuery({
+    queryKey: ["crm", "stages"],
+    queryFn: fetchStages,
+  });
+
+  const stalledLeadsCount = useMemo(() => {
+    const wonStageIds = new Set(stages.filter((s) => s.is_won).map((s) => s.id));
+    const lostStageIds = new Set(stages.filter((s) => s.is_lost).map((s) => s.id));
+
+    const activeLeads = leads.filter(
+      (l) => !wonStageIds.has(l.stage_id) && !lostStageIds.has(l.stage_id)
+    );
+
+    const now = Date.now();
+    return activeLeads.filter((l) => {
+      const updated = new Date(l.updated_at || l.created_at).getTime();
+      const diffDays = Math.floor((now - updated) / (1000 * 60 * 60 * 24));
+      return diffDays >= 5;
+    }).length;
+  }, [leads, stages]);
+
   const name = profile?.display_name || profile?.full_name || profile?.email?.split("@")[0] || "Usuário";
   const initials = name
     .split(" ")
@@ -183,18 +211,27 @@ export function TopNavigation() {
           <nav className="hidden lg:flex items-center gap-1 shrink-0">
             {filteredSections.map((sec) => {
               const isSecActive = activeSection?.id === sec.id;
+              const hasStalledCrm = sec.id === "comercial" && stalledLeadsCount > 0;
               return (
                 <Link
                   key={sec.id}
                   to={sec.items[0]?.url || sec.rootUrl}
                   className={cn(
-                    "px-3 py-1.5 rounded-md text-xs font-mono-kasa font-medium transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 select-none",
+                    "px-3 py-1.5 rounded-md text-xs font-mono-kasa font-medium transition-all whitespace-nowrap flex items-center gap-1.5 shrink-0 select-none relative",
                     isSecActive
                       ? "bg-white/15 text-white shadow-xs font-bold border border-white/20"
                       : "text-zinc-400 hover:text-white hover:bg-white/5"
                   )}
                 >
-                  {sec.label}
+                  <span>{sec.label}</span>
+                  {hasStalledCrm && (
+                    <span
+                      title={`${stalledLeadsCount} oportunidades sem contato há mais de 5 dias`}
+                      className="inline-flex items-center justify-center px-1.5 py-0.2 text-[9px] font-bold font-mono-kasa rounded-full bg-amber-500 text-black shadow-xs leading-none"
+                    >
+                      {stalledLeadsCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}
@@ -271,6 +308,7 @@ export function TopNavigation() {
               const isItemActive = item.url === "/"
                 ? currentPath === "/"
                 : currentPath === item.url || currentPath.startsWith(item.url + "/");
+              const isCrmLink = item.url === "/crm";
 
               return (
                 <Link
@@ -285,6 +323,14 @@ export function TopNavigation() {
                 >
                   <Icon className={cn("size-3.5 shrink-0", isItemActive ? "text-primary font-bold" : "text-muted-foreground/70")} />
                   <span>{item.title}</span>
+                  {isCrmLink && stalledLeadsCount > 0 && (
+                    <span
+                      title={`${stalledLeadsCount} oportunidades sem contato há mais de 5 dias`}
+                      className="inline-flex items-center justify-center px-1.5 py-0.5 text-[9px] font-bold font-mono-kasa rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 leading-none ml-0.5"
+                    >
+                      {stalledLeadsCount} parados
+                    </span>
+                  )}
                 </Link>
               );
             })}
