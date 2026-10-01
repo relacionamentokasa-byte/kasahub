@@ -348,6 +348,35 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
     throw new Error(`Vínculos obrigatórios ausentes: ${missing.join(", ")}.`);
   }
 
+  // Garantir service_id não-nulo se o banco de dados exigir constraint NOT NULL
+  if (!cleanInputFinal.service_id) {
+    try {
+      // 1. Tentar pegar o primeiro serviço ativo do catálogo
+      const { data: activeServices } = await supabase
+        .from("services")
+        .select("id")
+        .eq("is_active", true)
+        .order("order_index", { ascending: true })
+        .limit(1);
+
+      if (activeServices && activeServices.length > 0) {
+        cleanInputFinal.service_id = activeServices[0].id;
+      } else {
+        // 2. Se não houver ativos, tentar qualquer serviço existente
+        const { data: anyServices } = await supabase
+          .from("services")
+          .select("id")
+          .limit(1);
+
+        if (anyServices && anyServices.length > 0) {
+          cleanInputFinal.service_id = anyServices[0].id;
+        }
+      }
+    } catch (svcErr) {
+      console.warn("createJob: Erro ao buscar fallback de service_id:", svcErr);
+    }
+  }
+
   console.log("createJob: Final payload after cleaning", cleanInputFinal);
 
   const { data, error } = await supabase.from("jobs").insert(cleanInputFinal).select().single();

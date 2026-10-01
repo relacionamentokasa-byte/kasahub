@@ -101,6 +101,12 @@ export function NewJobDialog({
       setPendingFiles([]);
 
       if (conversionData) {
+        // Encontra um serviço padrão de conteúdo/social media se houver
+        const defaultSvc = services.find((s: any) => {
+          const n = (s.name || "").toLowerCase();
+          return n.includes("posicionamento") || n.includes("conteúdo") || n.includes("conteudo") || n.includes("social") || n.includes("feed");
+        }) || services[0];
+
         setForm({
           title: conversionData.title,
           description: conversionData.briefing,
@@ -112,11 +118,18 @@ export function NewJobDialog({
           period: "",
           launch_product_id: "",
           priority: "normal",
-          service_id: "",
+          service_id: defaultSvc?.id || "",
           main_responsible_id: "",
           team_involved_ids: [],
         });
       } else {
+        const defaultSvc = defaultEditorialPostId
+          ? (services.find((s: any) => {
+              const n = (s.name || "").toLowerCase();
+              return n.includes("posicionamento") || n.includes("conteúdo") || n.includes("conteudo") || n.includes("social") || n.includes("feed");
+            }) || services[0])
+          : null;
+
         setForm({
           title: defaultTitle || "",
           description: defaultDescription || "",
@@ -128,7 +141,7 @@ export function NewJobDialog({
           launch_product_id: defaultLaunchProductId || "",
           editorial_post_id: defaultEditorialPostId || "",
           priority: "normal",
-          service_id: "",
+          service_id: defaultSvc?.id || "",
           main_responsible_id: "",
           team_involved_ids: [],
         });
