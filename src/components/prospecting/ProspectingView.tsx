@@ -22,7 +22,9 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchProspects, convertProspectToLead, getIcpConfig, saveIcpConfig } from "@/lib/prospecting/prospecting-api";
 import { ProspectCard } from "./ProspectCard";
-import type { Prospect, ProspectingSearchParams, IcpWeightsConfig } from "@/lib/prospecting/types";
+import { CityAutocomplete } from "./CityAutocomplete";
+import type { Prospect, ProspectingSearchParams, IcpWeightsConfig, BusinessModelType, IcpPresetKey } from "@/lib/prospecting/types";
+import { ICP_PRESETS } from "@/lib/prospecting/icp-scoring";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -40,9 +42,12 @@ export function ProspectingView() {
   // Estados dos Filtros de Busca
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedNiche, setSelectedNiche] = useState("todos");
+  const [selectedBusinessModel, setSelectedBusinessModel] = useState<BusinessModelType>("all");
   const [selectedCity, setSelectedCity] = useState("São Paulo");
+  const [selectedLimit, setSelectedLimit] = useState<number>(20);
   const [onlyWhatsapp, setOnlyWhatsapp] = useState(false);
   const [onlyDecisors, setOnlyDecisors] = useState(false);
+  const [excludeFranchises, setExcludeFranchises] = useState<boolean>(true);
   const [selectedTier, setSelectedTier] = useState<"all" | "hot" | "warm" | "cold">("all");
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "gold_mine" | "no_website" | "amateur_insta">("all");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -52,20 +57,39 @@ export function ProspectingView() {
   const [googleApiKey, setGoogleApiKey] = useState(icpConfig.apiKeys?.googlePlacesApiKey || "");
   const [serpApiKey, setSerpApiKey] = useState(icpConfig.apiKeys?.serpApiKey || "");
 
-  // Busca Prospects
-  const searchParams: ProspectingSearchParams = {
-    query: searchTerm,
-    niche: selectedNiche,
-    city: selectedCity,
-    onlyWithWhatsapp: onlyWhatsapp,
-    onlyWithDecisionMakers: onlyDecisors,
-    tier: selectedTier,
-    opportunityFilter,
+  // Parâmetros da busca ATIVA (executada exclusivamente ao clicar em 'Garimpar Empresas')
+  const [activeSearchParams, setActiveSearchParams] = useState<ProspectingSearchParams>({
+    query: "",
+    niche: "todos",
+    businessModel: "all",
+    city: "São Paulo",
+    limit: 20,
+    onlyWithWhatsapp: false,
+    onlyWithDecisionMakers: false,
+    excludeFranchises: true,
+    tier: "all",
+    opportunityFilter: "all",
+  });
+
+  // Dispara a busca sob demanda
+  const handleExecuteSearch = () => {
+    setActiveSearchParams({
+      query: searchTerm,
+      niche: selectedNiche,
+      businessModel: selectedBusinessModel,
+      city: selectedCity,
+      limit: selectedLimit,
+      onlyWithWhatsapp: onlyWhatsapp,
+      onlyWithDecisionMakers: onlyDecisors,
+      excludeFranchises,
+      tier: selectedTier,
+      opportunityFilter,
+    });
   };
 
   const { data: prospects = [], isLoading, refetch } = useQuery({
-    queryKey: ["prospects", searchParams],
-    queryFn: () => fetchProspects(searchParams),
+    queryKey: ["prospects", activeSearchParams],
+    queryFn: () => fetchProspects(activeSearchParams),
   });
 
   // Mutação para Enviar para o CRM
@@ -149,7 +173,7 @@ export function ProspectingView() {
 
       {/* 2. Barra de Busca e Filtros de Garimpo */}
       <div className="p-5 rounded-2xl bg-white border border-[#E9E4DC] shadow-xs space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           {/* Campo de Busca por Nome / Palavra-Chave */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#869296]" />
@@ -162,6 +186,22 @@ export function ProspectingView() {
             />
           </div>
 
+          {/* Seletor de Modelo de Negócio B2B (Ortogonal ao Nicho) */}
+          <div className="relative">
+            <SlidersHorizontal className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#869296]" />
+            <select
+              value={selectedBusinessModel}
+              onChange={(e) => setSelectedBusinessModel(e.target.value as BusinessModelType)}
+              className="w-full pl-9 pr-3 py-2 bg-[#FAF8F5] border border-[#E9E4DC] rounded-xl text-xs font-medium text-[#0C1618] focus:outline-none focus:border-[#FFBC45] transition cursor-pointer"
+            >
+              <option value="all">Todos os Modelos</option>
+              <option value="industria_fabricante">🏭 Indústria / Fabricante</option>
+              <option value="distribuidora_atacado">📦 Distribuidora / Atacado</option>
+              <option value="varejo_loja">🛍️ Varejo / Loja</option>
+              <option value="servicos_clinicas">🩺 Serviços / Clínicas</option>
+            </select>
+          </div>
+
           {/* Seletor de Nicho Prioritário */}
           <div className="relative">
             <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#869296]" />
@@ -171,6 +211,11 @@ export function ProspectingView() {
               className="w-full pl-9 pr-3 py-2 bg-[#FAF8F5] border border-[#E9E4DC] rounded-xl text-xs text-[#0C1618] focus:outline-none focus:border-[#FFBC45] transition cursor-pointer"
             >
               <option value="todos">Todos os Nichos</option>
+              <option value="cosméticos">Cosméticos & Beleza</option>
+              <option value="epi">EPIs & Segurança do Trabalho</option>
+              <option value="indústria">Indústrias & Fabricantes</option>
+              <option value="distribuidora atacado">Distribuidoras & Atacado</option>
+              <option value="varejo">Varejo & Lojas</option>
               <option value="odontológica">Clínicas Odontológicas</option>
               <option value="estética">Estética & Dermatologia</option>
               <option value="escola">Escolas & Colégios</option>
@@ -179,26 +224,32 @@ export function ProspectingView() {
             </select>
           </div>
 
-          {/* Localização / Cidade */}
+          {/* Localização / Cidade com Autocomplete de Todo o Brasil */}
           <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#869296]" />
-            <select
+            <CityAutocomplete
               value={selectedCity}
-              onChange={(e) => setSelectedCity(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-[#FAF8F5] border border-[#E9E4DC] rounded-xl text-xs text-[#0C1618] focus:outline-none focus:border-[#FFBC45] transition cursor-pointer"
+              onChange={(city) => setSelectedCity(city)}
+              placeholder="Cidade ou Estado no Brasil..."
+            />
+          </div>
+
+          {/* Seletor de Quantidade de Empresas */}
+          <div className="relative">
+            <select
+              value={selectedLimit}
+              onChange={(e) => setSelectedLimit(Number(e.target.value))}
+              className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#E9E4DC] rounded-xl text-xs font-semibold text-[#0C1618] focus:outline-none focus:border-[#FFBC45] transition cursor-pointer"
             >
-              <option value="São Paulo">São Paulo, SP</option>
-              <option value="Curitiba">Curitiba, PR</option>
-              <option value="Rio de Janeiro">Rio de Janeiro, RJ</option>
-              <option value="Belo Horizonte">Belo Horizonte, MG</option>
-              <option value="Campinas">Campinas, SP</option>
+              <option value={20}>Buscar 20 empresas</option>
+              <option value={50}>Buscar 50 empresas (Varredura Ampla)</option>
+              <option value={100}>Buscar 100 empresas (Cidade Inteira)</option>
             </select>
           </div>
 
           {/* Botão de Atualizar Busca */}
           <button
             type="button"
-            onClick={() => refetch()}
+            onClick={handleExecuteSearch}
             className="flex items-center justify-center gap-2 px-4 py-2 bg-[#FFBC45] hover:bg-[#F2AC35] text-[#09090B] font-bold text-xs rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
           >
             <RefreshCw className={`size-3.5 ${isLoading ? "animate-spin" : ""}`} />
@@ -210,6 +261,19 @@ export function ProspectingView() {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#F0ECE4]">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold text-[#869296] mr-1">Filtros Estratégicos:</span>
+
+            {/* Ignorar Franquias e Redes */}
+            <button
+              type="button"
+              onClick={() => setExcludeFranchises(!excludeFranchises)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                excludeFranchises
+                  ? "bg-slate-900 text-white border border-slate-900 font-bold"
+                  : "bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              🚫 Ignorar Franquias
+            </button>
 
             {/* Apenas Oportunidades Ouro */}
             <button
@@ -309,45 +373,149 @@ export function ProspectingView() {
               prospect={prospect}
               onSendToCrm={handleSendToCrm}
               isImporting={importingId === prospect.id}
+              onUpdateProspect={(updated) => {
+                queryClient.setQueryData(["prospects", activeSearchParams], (old: Prospect[] | undefined) => {
+                  if (!old) return [updated];
+                  return old.map((item) => (item.id === updated.id ? updated : item));
+                });
+              }}
             />
           ))}
         </div>
       )}
 
-      {/* 4. Modal de Configuração de Pesos do ICP & Chaves de API (Google Places / SerpApi) */}
+      {/* 4. Modal de Configuração de Pesos do ICP & Chaves de API */}
       <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
-        <DialogContent className="max-w-lg bg-white text-[#0C1618] rounded-3xl p-6 font-sans max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl bg-white text-[#0C1618] rounded-3xl p-6 font-sans max-h-[88vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="font-display text-lg font-bold flex items-center gap-2">
-              <Settings2 className="size-5 text-[#FFBC45]" />
-              Configuração de Pesos ICP & Integrações
-            </DialogTitle>
+            <div className="flex items-center justify-between">
+              <DialogTitle className="font-display text-lg font-bold flex items-center gap-2">
+                <Settings2 className="size-5 text-[#FFBC45]" />
+                Matriz Estratégica de ICP & Pesos do Algoritmo
+              </DialogTitle>
+            </div>
             <DialogDescription className="text-xs text-[#6A787B]">
-              Ajuste a pontuação de cada critério e configure suas chaves de busca ao vivo (Camada 2).
+              Selecione um preset salvo ou calibre os 4 pilares: Dealbreakers, Finanças, Oportunidades de Marketing e Decisores.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 my-4">
-            {/* Seção 1: Pesos do Algoritmo */}
+            {/* Presets Nativos Salvos da Kasa Hub */}
+            <div className="p-3.5 bg-[#FAF8F5] rounded-2xl border border-[#E9E4DC] space-y-2">
+              <span className="text-[11px] font-bold text-[#0C1618] uppercase tracking-wider flex items-center gap-1.5">
+                <Sparkles className="size-3.5 text-[#FFBC45]" />
+                Perfis Estratégicos Salvos (Presets Prontos)
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { key: "padrao_kasa" as IcpPresetKey, label: "🎯 Padrão Kasa", desc: "Equilibrado" },
+                  { key: "b2b_industria" as IcpPresetKey, label: "🏭 B2B / Indústria", desc: "Alto Ticket" },
+                  { key: "varejo_clinicas" as IcpPresetKey, label: "🏪 Varejo & Clínicas", desc: "Local / Social" },
+                  { key: "gold_mine_gaps" as IcpPresetKey, label: "🏆 Mina de Ouro", desc: "Gaps de Vendas" },
+                ].map((preset) => {
+                  const isActive = icpConfig.presetKey === preset.key;
+                  return (
+                    <button
+                      key={preset.key}
+                      type="button"
+                      onClick={() => {
+                        const target = ICP_PRESETS[preset.key];
+                        if (target) {
+                          setIcpConfig({
+                            ...target,
+                            apiKeys: icpConfig.apiKeys, // preserva chaves de API já salvas
+                          });
+                          toast.success(`Preset "${target.name}" aplicado!`);
+                        }
+                      }}
+                      className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex flex-col justify-between ${
+                        isActive
+                          ? "bg-[#121214] text-white border-[#121214] shadow-sm"
+                          : "bg-white text-[#0C1618] border-[#E9E4DC] hover:border-[#FFBC45]"
+                      }`}
+                    >
+                      <span className="text-xs font-bold truncate">{preset.label}</span>
+                      <span className={`text-[10px] ${isActive ? "text-[#FFBC45]" : "text-[#869296]"}`}>
+                        {preset.desc}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* PILAR 0: Filtros Eliminatórios (Dealbreakers) */}
+            <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-red-200/70">
+              <span className="text-xs font-bold text-red-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-red-200 pb-1.5">
+                <ShieldCheck className="size-4 text-red-600" />
+                🚫 Filtros Eliminatórios Imediatos (Dealbreakers)
+              </span>
+              <p className="text-[11px] text-[#6A787B]">
+                Leads que se enquadram nestas regras são rebaixados automaticamente para <strong>Fora do ICP</strong>:
+              </p>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E9E4DC] hover:border-red-300 cursor-pointer transition text-xs font-medium text-[#0C1618]">
+                  <input
+                    type="checkbox"
+                    checked={icpConfig.dealbreakers?.excludeFranchises ?? true}
+                    onChange={(e) =>
+                      setIcpConfig({
+                        ...icpConfig,
+                        dealbreakers: {
+                          ...icpConfig.dealbreakers,
+                          excludeFranchises: e.target.checked,
+                          excludeLowCapital: icpConfig.dealbreakers?.excludeLowCapital ?? true,
+                        },
+                      })
+                    }
+                    className="rounded accent-red-600"
+                  />
+                  <span>Descartar Franquias & Redes Sem Autonomia Local de Contratação</span>
+                </label>
+
+                <label className="flex items-center gap-2 p-2.5 rounded-xl bg-white border border-[#E9E4DC] hover:border-red-300 cursor-pointer transition text-xs font-medium text-[#0C1618]">
+                  <input
+                    type="checkbox"
+                    checked={icpConfig.dealbreakers?.excludeLowCapital ?? true}
+                    onChange={(e) =>
+                      setIcpConfig({
+                        ...icpConfig,
+                        dealbreakers: {
+                          ...icpConfig.dealbreakers,
+                          excludeFranchises: icpConfig.dealbreakers?.excludeFranchises ?? true,
+                          excludeLowCapital: e.target.checked,
+                        },
+                      })
+                    }
+                    className="rounded accent-red-600"
+                  />
+                  <span>Descartar Empresas com Capital Social &lt; R$ 20.000 (Sem Verba de Mídia)</span>
+                </label>
+              </div>
+            </div>
+
+            {/* PILAR 1: Capacidade Financeira & Porte */}
             <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-[#E9E4DC]">
-              <span className="text-xs font-bold text-[#0C1618] uppercase tracking-wider block border-b border-[#E9E4DC] pb-1.5">
-                📊 Pesos do Algoritmo (0 a 100)
+              <span className="text-xs font-bold text-[#0C1618] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#E9E4DC] pb-1.5">
+                <Building2 className="size-3.5 text-[#FFBC45]" />
+                💰 Pilar 1: Capacidade Financeira & Porte
               </span>
 
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
-                  <span>WhatsApp Direto</span>
-                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.hasWhatsapp} pts</span>
+                  <span>Capital Social Alto / Porte B2B (Indústria/Atacado)</span>
+                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.capitalSocialOrB2B ?? 20} pts</span>
                 </div>
                 <input
                   type="range"
                   min="0"
                   max="40"
-                  value={icpConfig.weights.hasWhatsapp}
+                  value={icpConfig.weights.capitalSocialOrB2B ?? 20}
                   onChange={(e) =>
                     setIcpConfig({
                       ...icpConfig,
-                      weights: { ...icpConfig.weights, hasWhatsapp: Number(e.target.value) },
+                      weights: { ...icpConfig.weights, capitalSocialOrB2B: Number(e.target.value) },
                     })
                   }
                   className="w-full accent-[#FFBC45]"
@@ -356,34 +524,14 @@ export function ProspectingView() {
 
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
-                  <span>Sócios / Decisores Identificados (QSA/LinkedIn)</span>
-                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.hasDecisionMaker} pts</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="40"
-                  value={icpConfig.weights.hasDecisionMaker}
-                  onChange={(e) =>
-                    setIcpConfig({
-                      ...icpConfig,
-                      weights: { ...icpConfig.weights, hasDecisionMaker: Number(e.target.value) },
-                    })
-                  }
-                  className="w-full accent-[#FFBC45]"
-                />
-              </div>
-
-              <div>
-                <div className="flex justify-between text-xs font-bold mb-1">
-                  <span>Nicho Prioritário</span>
-                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.priorityNiche} pts</span>
+                  <span>Enquadramento em Nicho Prioritário</span>
+                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.priorityNiche ?? 15} pts</span>
                 </div>
                 <input
                   type="range"
                   min="0"
                   max="30"
-                  value={icpConfig.weights.priorityNiche}
+                  value={icpConfig.weights.priorityNiche ?? 15}
                   onChange={(e) =>
                     setIcpConfig({
                       ...icpConfig,
@@ -393,21 +541,117 @@ export function ProspectingView() {
                   className="w-full accent-[#FFBC45]"
                 />
               </div>
+            </div>
+
+            {/* PILAR 2: Gaps de Marketing & Oportunidade de Venda */}
+            <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-amber-200/80">
+              <span className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5 border-b border-amber-200 pb-1.5">
+                <Lightbulb className="size-3.5 text-amber-600" />
+                ⚡ Pilar 2: Gaps de Marketing (Oportunidades de Venda da Agência)
+              </span>
 
               <div>
                 <div className="flex justify-between text-xs font-bold mb-1">
-                  <span>Alto Volume de Avaliações Google</span>
-                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.highReviewCount} pts</span>
+                  <span>Empresa SEM Pixel Meta/Google (Gap Crítico de Escala)</span>
+                  <span className="font-mono text-amber-700">{icpConfig.weights.noPixelOpportunity ?? 15} pts</span>
                 </div>
                 <input
                   type="range"
                   min="0"
                   max="30"
-                  value={icpConfig.weights.highReviewCount}
+                  value={icpConfig.weights.noPixelOpportunity ?? 15}
                   onChange={(e) =>
                     setIcpConfig({
                       ...icpConfig,
-                      weights: { ...icpConfig.weights, highReviewCount: Number(e.target.value) },
+                      weights: { ...icpConfig.weights, noPixelOpportunity: Number(e.target.value) },
+                    })
+                  }
+                  className="w-full accent-amber-600"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span>Necessidade de Site / Landing Page de Alta Conversão</span>
+                  <span className="font-mono text-amber-700">{icpConfig.weights.needsWebsiteOrRevamp ?? 10} pts</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="30"
+                  value={icpConfig.weights.needsWebsiteOrRevamp ?? 10}
+                  onChange={(e) =>
+                    setIcpConfig({
+                      ...icpConfig,
+                      weights: { ...icpConfig.weights, needsWebsiteOrRevamp: Number(e.target.value) },
+                    })
+                  }
+                  className="w-full accent-amber-600"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span>Empresa SEM Anúncios Ativos (Oportunidade de Tráfego Pago)</span>
+                  <span className="font-mono text-amber-700">{icpConfig.weights.trafficOpportunity ?? 10} pts</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="30"
+                  value={icpConfig.weights.trafficOpportunity ?? 10}
+                  onChange={(e) =>
+                    setIcpConfig({
+                      ...icpConfig,
+                      weights: { ...icpConfig.weights, trafficOpportunity: Number(e.target.value) },
+                    })
+                  }
+                  className="w-full accent-amber-600"
+                />
+              </div>
+            </div>
+
+            {/* PILAR 3: Acessibilidade do Decisor */}
+            <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-[#E9E4DC]">
+              <span className="text-xs font-bold text-[#0C1618] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#E9E4DC] pb-1.5">
+                <Users className="size-3.5 text-[#FFBC45]" />
+                🎯 Pilar 3: Acessibilidade do Decisor & Contato Direto
+              </span>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span>Sócio / Decisor Real no QSA da Receita Federal ou LinkedIn</span>
+                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.hasDecisionMakerQsa ?? 15} pts</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="35"
+                  value={icpConfig.weights.hasDecisionMakerQsa ?? 15}
+                  onChange={(e) =>
+                    setIcpConfig({
+                      ...icpConfig,
+                      weights: { ...icpConfig.weights, hasDecisionMakerQsa: Number(e.target.value) },
+                    })
+                  }
+                  className="w-full accent-[#FFBC45]"
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span>WhatsApp Direto Disponível</span>
+                  <span className="font-mono text-[#FFBC45]">{icpConfig.weights.hasDirectWhatsapp ?? 15} pts</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="35"
+                  value={icpConfig.weights.hasDirectWhatsapp ?? 15}
+                  onChange={(e) =>
+                    setIcpConfig({
+                      ...icpConfig,
+                      weights: { ...icpConfig.weights, hasDirectWhatsapp: Number(e.target.value) },
                     })
                   }
                   className="w-full accent-[#FFBC45]"
@@ -415,7 +659,92 @@ export function ProspectingView() {
               </div>
             </div>
 
-            {/* Seção 2: Chaves de API (Camada 2 - Opcional) */}
+            {/* Posicionamento & Ticket da Agência */}
+            <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-[#E9E4DC]">
+              <span className="text-xs font-bold text-[#0C1618] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#E9E4DC] pb-1.5">
+                <Sparkles className="size-3.5 text-[#FFBC45]" />
+                💼 Serviços Ofertados & Alinhamento de Ticket (Kasa Hub)
+              </span>
+
+              <div className="space-y-2">
+                {[
+                  { id: "trafego", label: "Tráfego Pago & Performance (Meta/Google Ads)" },
+                  { id: "sites", label: "Criação de Landing Pages & Sites de Alta Conversão" },
+                  { id: "social", label: "Gestão de Redes Sociais & Posicionamento" },
+                  { id: "crm", label: "Assessoria Comercial & CRM" },
+                ].map((serv) => {
+                  const currentServices = icpConfig.targetServices || [];
+                  const isChecked = currentServices.includes(serv.label);
+                  return (
+                    <label
+                      key={serv.id}
+                      className="flex items-center gap-2 p-2 rounded-xl bg-white border border-[#E9E4DC] hover:border-[#FFBC45] cursor-pointer transition text-xs font-medium text-[#0C1618]"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          const updated = e.target.checked
+                            ? [...currentServices, serv.label]
+                            : currentServices.filter((s) => s !== serv.label);
+                          setIcpConfig({
+                            ...icpConfig,
+                            targetServices: updated,
+                          });
+                        }}
+                        className="rounded accent-[#FFBC45]"
+                      />
+                      <span>{serv.label}</span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5 pt-2">
+                <div>
+                  <label className="text-[10px] font-bold text-[#6A787B] block mb-1">
+                    Ticket Mínimo Desejado (R$)
+                  </label>
+                  <input
+                    type="number"
+                    value={icpConfig.agencyPositioning?.minTicket || 2000}
+                    onChange={(e) =>
+                      setIcpConfig({
+                        ...icpConfig,
+                        agencyPositioning: {
+                          minTicket: Number(e.target.value),
+                          idealTicket: icpConfig.agencyPositioning?.idealTicket || 4500,
+                          servicesOffered: icpConfig.agencyPositioning?.servicesOffered || [],
+                        },
+                      })
+                    }
+                    className="w-full p-2 bg-white border border-[#E9E4DC] rounded-xl text-xs text-[#0C1618] focus:outline-none focus:border-[#FFBC45]"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-[#6A787B] block mb-1">
+                    Ticket Ideal / Médio (R$)
+                  </label>
+                  <input
+                    type="number"
+                    value={icpConfig.agencyPositioning?.idealTicket || 4500}
+                    onChange={(e) =>
+                      setIcpConfig({
+                        ...icpConfig,
+                        agencyPositioning: {
+                          minTicket: icpConfig.agencyPositioning?.minTicket || 2000,
+                          idealTicket: Number(e.target.value),
+                          servicesOffered: icpConfig.agencyPositioning?.servicesOffered || [],
+                        },
+                      })
+                    }
+                    className="w-full p-2 bg-white border border-[#E9E4DC] rounded-xl text-xs text-[#0C1618] focus:outline-none focus:border-[#FFBC45]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Chaves de API (Camada 2 - Opcional) */}
             <div className="space-y-3 bg-[#FAF8F5] p-4 rounded-2xl border border-[#E9E4DC]">
               <span className="text-xs font-bold text-[#0C1618] uppercase tracking-wider flex items-center gap-1.5 border-b border-[#E9E4DC] pb-1.5">
                 <Key className="size-3.5 text-[#FFBC45]" />
@@ -466,7 +795,7 @@ export function ProspectingView() {
               onClick={handleSaveConfig}
               className="px-4 py-2 rounded-xl text-xs font-bold bg-[#121214] text-white hover:bg-[#27272A] transition cursor-pointer"
             >
-              Salvar Configurações
+              Salvar Matriz & Pesos
             </button>
           </div>
         </DialogContent>

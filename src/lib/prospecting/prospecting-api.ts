@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Prospect, IcpWeightsConfig, ProspectingSearchParams } from "./types";
 import { searchProspects, enrichCnpjData } from "./search-providers";
+import { searchProspectsServer } from "./prospecting.functions";
 import { DEFAULT_ICP_CONFIG, calculateIcpScore } from "./icp-scoring";
 import { recordTimelineEvent } from "@/lib/client-timeline";
 
@@ -29,10 +30,35 @@ export function saveIcpConfig(config: IcpWeightsConfig): void {
 
 /**
  * Busca prospects com base nos filtros e calcula o ICP score
+ * Executa prioritariamente via Server Function (para evitar bloqueios de CORS e trazer dados reais)
  */
 export async function fetchProspects(params: ProspectingSearchParams): Promise<Prospect[]> {
   const config = getIcpConfig();
-  const results = await searchProspects(params);
+  let results: Prospect[] = [];
+
+  try {
+    // Execução Server-Side (Sem bloqueios de CORS e com conexão com Nominatim / Google Places)
+    results = await searchProspectsServer({
+      data: {
+        query: params.query,
+        niche: params.niche,
+        businessModel: params.businessModel,
+        city: params.city,
+        state: params.state,
+        limit: params.limit || 20,
+        minScore: params.minScore,
+        onlyWithWhatsapp: params.onlyWithWhatsapp,
+        onlyWithDecisionMakers: params.onlyWithDecisionMakers,
+        excludeFranchises: params.excludeFranchises ?? config.excludeFranchises,
+        tier: params.tier,
+        opportunityFilter: params.opportunityFilter,
+        apiKey: config.apiKeys?.googlePlacesApiKey,
+      },
+    });
+  } catch (err) {
+    console.warn("Falha no servidor de busca, usando fallback client:", err);
+    results = await searchProspects(params);
+  }
 
   // Recalcula o score com as configurações locais do usuário
   return results.map((p) => {
