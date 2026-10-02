@@ -18,6 +18,10 @@ import {
   ShieldCheck,
   Building2,
   Sparkles,
+  TrendingUp,
+  AlertCircle,
+  Check,
+  Lightbulb,
 } from "lucide-react";
 import type { Prospect, DecisionMaker } from "@/lib/prospecting/types";
 import { SocialIcon } from "@/components/editorial/SocialIcon";
@@ -37,6 +41,7 @@ export function ProspectCard({
   onEnrichCnpj,
 }: ProspectCardProps) {
   const [showDecisors, setShowDecisors] = useState(true);
+  const [showMarketingAudit, setShowMarketingAudit] = useState(true);
   const [showScript, setShowScript] = useState(false);
 
   // Cores e Ícones do ICP Tier
@@ -46,32 +51,29 @@ export function ProspectCard({
       bg: "bg-red-50 text-red-700 border-red-200",
       icon: Flame,
       iconColor: "text-red-500",
-      badgeColor: "#EF4444",
     },
     warm: {
       label: "ICP Potencial",
       bg: "bg-amber-50 text-amber-700 border-amber-200",
       icon: Zap,
       iconColor: "text-amber-500",
-      badgeColor: "#F59E0B",
     },
     cold: {
       label: "ICP Frio",
       bg: "bg-blue-50 text-blue-700 border-blue-200",
       icon: Snowflake,
       iconColor: "text-blue-500",
-      badgeColor: "#3B82F6",
     },
     unfit: {
       label: "Fora do ICP",
       bg: "bg-gray-50 text-gray-600 border-gray-200",
       icon: Snowflake,
       iconColor: "text-gray-400",
-      badgeColor: "#9CA3AF",
     },
   }[prospect.icpTier];
 
   const TierIcon = tierConfig.icon;
+  const audit = prospect.marketingAudit;
 
   const primaryDecisor =
     prospect.decisionMakers.find((d) => d.isPrimary) || prospect.decisionMakers[0];
@@ -85,14 +87,14 @@ export function ProspectCard({
     const clean = (prospect.whatsapp || prospect.phone).replace(/\D/g, "");
     const nameToCall = primaryDecisor ? primaryDecisor.name.split(" ")[0] : "Time";
     const msg = encodeURIComponent(
-      `Olá ${nameToCall}! Aqui é da Kasa Hub. Vi a presença digital da ${prospect.tradeName} e gostaria de apresentar uma oportunidade de escala comercial para vocês.`
+      `Olá ${nameToCall}! Aqui é da Kasa Hub. Analisei a presença digital da ${prospect.tradeName} e identifiquei oportunidades claras de aceleração comercial para vocês.`
     );
     window.open(`https://wa.me/55${clean}?text=${msg}`, "_blank");
   };
 
   return (
     <div className="bg-white rounded-2xl border border-[#E9E4DC] p-5 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
-      <div>
+      <div className="space-y-3.5">
         {/* 1. Header do Card: Categoria, Nome da Empresa e Score Badge */}
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -124,8 +126,101 @@ export function ProspectCard({
           </div>
         </div>
 
-        {/* 2. Endereço e Avaliações Google */}
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-xs text-[#6A787B] border-b border-[#F0ECE4] pb-3">
+        {/* 2. Badge de Oportunidade & Classificação de Marketing */}
+        {audit && (
+          <div className="space-y-2">
+            <div
+              className={`p-2.5 rounded-xl border flex items-start gap-2 text-xs leading-tight font-medium ${audit.opportunityBadgeColor}`}
+            >
+              <Lightbulb className="size-4 shrink-0 mt-0.5" />
+              <div>
+                <span className="font-bold block">{audit.opportunityLabel}</span>
+                <span className="text-[11px] opacity-90 block mt-0.5">
+                  {audit.pitchAngle}
+                </span>
+              </div>
+            </div>
+
+            {/* Painel de Auditoria de Canais (Site, Insta, Tráfego) */}
+            <div className="bg-[#FAF8F5] rounded-xl p-3 border border-[#E9E4DC]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-[#0C1618] flex items-center gap-1.5">
+                  <TrendingUp className="size-3.5 text-[#FFBC45]" />
+                  Raio-X de Maturidade de Marketing
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowMarketingAudit(!showMarketingAudit)}
+                  className="text-[#869296] hover:text-[#0C1618] text-[10px] flex items-center gap-0.5 cursor-pointer"
+                >
+                  <span>{showMarketingAudit ? "Ocultar" : "Detalhes"}</span>
+                  {showMarketingAudit ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
+                </button>
+              </div>
+
+              {showMarketingAudit && (
+                <div className="mt-2.5 space-y-1.5 text-[11px]">
+                  {/* Website & Pixel */}
+                  <div className="flex items-start gap-2 bg-white p-2 rounded-lg border border-[#E9E4DC]">
+                    <Globe className="size-3.5 text-[#869296] shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-bold text-[#0C1618] flex items-center gap-1.5">
+                        <span>Website:</span>
+                        {audit.websiteStatus === "active_with_pixel" ? (
+                          <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 rounded-full font-bold">
+                            Com Pixel
+                          </span>
+                        ) : audit.websiteStatus === "active_no_pixel" ? (
+                          <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 rounded-full font-bold">
+                            Sem Pixel
+                          </span>
+                        ) : (
+                          <span className="text-[9px] bg-red-100 text-red-800 px-1.5 rounded-full font-bold">
+                            Sem Site Próprio
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-[#6A787B] mt-0.5">
+                        {audit.websiteDiagnosis}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Instagram */}
+                  <div className="flex items-start gap-2 bg-white p-2 rounded-lg border border-[#E9E4DC]">
+                    <div className="shrink-0 mt-0.5">
+                      <SocialIcon network="instagram" size={13} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-[#0C1618] flex items-center gap-1.5">
+                        <span>Instagram:</span>
+                        {audit.instagramStatus === "active_professional" ? (
+                          <span className="text-[9px] bg-emerald-100 text-emerald-800 px-1.5 rounded-full font-bold">
+                            Profissional
+                          </span>
+                        ) : audit.instagramStatus === "amateur_inhouse" ? (
+                          <span className="text-[9px] bg-amber-100 text-amber-800 px-1.5 rounded-full font-bold">
+                            Comunicação Amadora
+                          </span>
+                        ) : (
+                          <span className="text-[9px] bg-gray-100 text-gray-700 px-1.5 rounded-full font-bold">
+                            Não Localizado
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] text-[#6A787B] mt-0.5">
+                        {audit.instagramDiagnosis}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 3. Endereço e Avaliações Google */}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[#6A787B] border-b border-[#F0ECE4] pb-3">
           <div className="flex items-center gap-1">
             <MapPin className="size-3.5 text-[#869296]" />
             <span>
@@ -145,8 +240,8 @@ export function ProspectCard({
           )}
         </div>
 
-        {/* 3. Seção Estratégica de Decisores & Sócios */}
-        <div className="mt-3.5 bg-[#FAF8F5] rounded-xl p-3 border border-[#E9E4DC]">
+        {/* 4. Seção Estratégica de Decisores & Sócios */}
+        <div className="bg-[#FAF8F5] rounded-xl p-3 border border-[#E9E4DC]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
               <Users className="size-3.5 text-[#FFBC45]" />
@@ -161,11 +256,7 @@ export function ProspectCard({
               className="text-[#869296] hover:text-[#0C1618] text-[11px] flex items-center gap-0.5 cursor-pointer"
             >
               <span>{showDecisors ? "Ocultar" : "Ver"}</span>
-              {showDecisors ? (
-                <ChevronUp className="size-3" />
-              ) : (
-                <ChevronDown className="size-3" />
-              )}
+              {showDecisors ? <ChevronUp className="size-3" /> : <ChevronDown className="size-3" />}
             </button>
           </div>
 
@@ -226,7 +317,7 @@ export function ProspectCard({
                 ))
               )}
 
-              {/* Botão para Exibir Script de Quebra de Recepção */}
+              {/* Script de Quebra de Recepção */}
               {primaryDecisor && (
                 <div className="pt-1">
                   <button
@@ -243,12 +334,12 @@ export function ProspectCard({
                   </button>
 
                   {showScript && (
-                    <div className="mt-1.5 p-2 rounded-lg bg-[#FFF9E6] border border-[#FDE68A] text-[11px] text-[#78350F] leading-relaxed">
-                      <strong>💡 Abordagem na Recepção:</strong>
+                    <div className="mt-1.5 p-2.5 rounded-lg bg-[#FFF9E6] border border-[#FDE68A] text-[11px] text-[#78350F] leading-relaxed">
+                      <strong>💡 Abordagem Direta na Recepção:</strong>
                       <p className="mt-0.5 italic">
                         "Olá, bom dia! Aqui é da Kasa Hub. Por favor, gostaria de
                         falar com o <strong>{primaryDecisor.name.split(" ")[0]}</strong>{" "}
-                        a respeito da estratégia de captação digital da{" "}
+                        a respeito do diagnóstico de captação digital da{" "}
                         {prospect.tradeName}."
                       </p>
                     </div>
@@ -259,8 +350,8 @@ export function ProspectCard({
           )}
         </div>
 
-        {/* 4. Canais de Contato Rápidos */}
-        <div className="flex flex-wrap items-center gap-2 mt-4">
+        {/* 5. Canais de Contato Rápidos */}
+        <div className="flex flex-wrap items-center gap-2">
           {prospect.phone && (
             <button
               type="button"
@@ -313,7 +404,7 @@ export function ProspectCard({
         </div>
       </div>
 
-      {/* 5. Ação de Conversão no CRM */}
+      {/* 6. Ação de Conversão no CRM */}
       <div className="mt-5 pt-3.5 border-t border-[#F0ECE4] flex items-center justify-between gap-3">
         <div className="text-[11px] text-[#869296]">
           {prospect.status === "imported" ? (

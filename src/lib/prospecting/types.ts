@@ -26,18 +26,37 @@ export interface IcpBreakdown {
   maxPossible: number;
 }
 
+export interface MarketingMaturityAudit {
+  opportunityType: "gold_mine" | "scaling_agency" | "unfit_low_budget" | "high_performer";
+  opportunityLabel: string;
+  opportunityBadgeColor: string;
+  pitchAngle: string;
+  websiteStatus: "active_with_pixel" | "active_no_pixel" | "no_website" | "broken";
+  websiteDiagnosis: string;
+  instagramStatus: "active_professional" | "abandoned" | "amateur_inhouse" | "no_instagram";
+  instagramDiagnosis: string;
+  trafficAdsStatus: "running_ads" | "not_running_ads" | "unknown";
+  trafficAdsDiagnosis: string;
+  googleMapsStatus: "optimized_high_reviews" | "unclaimed_low_reviews" | "average";
+  googleMapsDiagnosis: string;
+}
+
 export interface IcpWeightsConfig {
   id: string;
   name: string;
   isDefault: boolean;
   weights: {
-    hasWebsite: number; // ex: 10
-    hasWhatsapp: number; // ex: 25
-    hasInstagram: number; // ex: 10
-    minRating4_5: number; // ex: 10
-    highReviewCount: number; // ex: 15
-    priorityNiche: number; // ex: 15
-    hasDecisionMaker: number; // ex: 15
+    hasWebsite: number;
+    hasWhatsapp: number;
+    hasInstagram: number;
+    minRating4_5: number;
+    highReviewCount: number;
+    priorityNiche: number;
+    hasDecisionMaker: number;
+  };
+  apiKeys?: {
+    googlePlacesApiKey?: string;
+    serpApiKey?: string;
   };
   priorityNiches: string[];
   targetLocations: string[];
@@ -46,10 +65,10 @@ export interface IcpWeightsConfig {
 
 export interface Prospect {
   id: string;
-  name: string; // Razão social ou nome principal
-  tradeName: string; // Nome fantasia
+  name: string;
+  tradeName: string;
   cnpj?: string;
-  category: string; // Nicho (ex: "Clínica Odontológica", "Escola Particular")
+  category: string;
   phone: string;
   whatsapp?: string;
   email?: string;
@@ -66,6 +85,7 @@ export interface Prospect {
   icpTier: IcpTier;
   icpBreakdown: IcpBreakdown;
   decisionMakers: DecisionMaker[];
+  marketingAudit: MarketingMaturityAudit;
   cnpjData?: {
     razaoSocial?: string;
     nomeFantasia?: string;
@@ -95,4 +115,5 @@ export interface ProspectingSearchParams {
   onlyWithWhatsapp?: boolean;
   onlyWithDecisionMakers?: boolean;
   tier?: IcpTier | "all";
+  opportunityFilter?: "all" | "gold_mine" | "no_website" | "amateur_insta";
 }
