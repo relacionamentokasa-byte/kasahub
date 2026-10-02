@@ -59,6 +59,7 @@ const groups: { label: string; items: SidebarItem[] }[] = [
     label: "Comercial",
     items: [
       { title: "CRM", url: "/crm", icon: KanbanSquare, module: "crm" },
+      { title: "Prospecção (Garimpo)", url: "/prospeccao", icon: Sparkles, module: "crm" },
       { title: "Propostas", url: "/propostas", icon: FileText, module: "propostas" },
     ],
   },

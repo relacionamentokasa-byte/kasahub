@@ -73,6 +73,7 @@ export const NAV_SECTIONS: NavSection[] = [
     rootUrl: "/crm",
     items: [
       { title: "CRM / Pipeline", url: "/crm", icon: KanbanSquare, module: "crm" },
+      { title: "Prospecção (Garimpo)", url: "/prospeccao", icon: Sparkles, module: "crm" },
       { title: "Propostas", url: "/propostas", icon: FileText, module: "propostas" },
     ],
   },
