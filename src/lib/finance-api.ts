@@ -257,19 +257,27 @@ export async function fetchContracts(filters: { clientId?: string } = {}) {
   if (error) throw error;
 
   const seen = new Set<string>();
-  return (data || []).filter((contract) => {
-    const normalizedTitle = contract.title
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
-      .toLowerCase();
-    const key = [contract.client_id, normalizedTitle, contract.start_date].join("|");
+  return [...(data || [])]
+    .sort((a, b) => {
+      const aIsCopy = /\s*\(c[oó]pia\)\s*$/i.test(a.title);
+      const bIsCopy = /\s*\(c[oó]pia\)\s*$/i.test(b.title);
+      if (aIsCopy !== bIsCopy) return aIsCopy ? 1 : -1;
+      return String(a.created_at || "").localeCompare(String(b.created_at || ""));
+    })
+    .filter((contract) => {
+      const normalizedTitle = contract.title
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/\s*\(copia\)\s*$/i, "")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+      const key = [contract.client_id, normalizedTitle, contract.start_date].join("|");
 
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
 }
 
 export async function fetchFinanceStats(filters: { startDate?: string; endDate?: string } = {}) {
