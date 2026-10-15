@@ -255,7 +255,21 @@ export async function fetchContracts(filters: { clientId?: string } = {}) {
   if (filters.clientId) q = q.eq("client_id", filters.clientId);
   const { data, error } = await q;
   if (error) throw error;
-  return data || [];
+
+  const seen = new Set<string>();
+  return (data || []).filter((contract) => {
+    const normalizedTitle = contract.title
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .toLowerCase();
+    const key = [contract.client_id, normalizedTitle, contract.start_date].join("|");
+
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 export async function fetchFinanceStats(filters: { startDate?: string; endDate?: string } = {}) {
