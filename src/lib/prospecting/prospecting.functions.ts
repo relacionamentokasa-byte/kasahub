@@ -8,18 +8,23 @@ import {
   getDomainFromUrl,
   estimateBusinessFinancials,
 } from "./search-providers";
+import { buildStrategicSearchQueries } from "./search-strategy";
+import { supabase } from "@/integrations/supabase/client";
 
 const SearchInputSchema = z.object({
   query: z.string().optional(),
   niche: z.string().default("todos"),
   businessModel: z.enum(["all", "industria_fabricante", "distribuidora_atacado", "varejo_loja", "servicos_clinicas"]).optional(),
   city: z.string().default("São Paulo"),
+  district: z.string().optional(),
   state: z.string().optional(),
   limit: z.number().default(20),
   minScore: z.number().optional(),
   onlyWithWhatsapp: z.boolean().optional(),
   onlyWithDecisionMakers: z.boolean().optional(),
   excludeFranchises: z.boolean().optional(),
+  hideAlreadyInCrm: z.boolean().optional(),
+  deepScan: z.boolean().optional(),
   tier: z.enum(["all", "hot", "warm", "cold", "unfit"]).optional(),
   opportunityFilter: z.enum(["all", "gold_mine", "no_website", "amateur_insta"]).optional(),
   apiKey: z.string().optional(),
@@ -222,70 +227,81 @@ async function resolveCnpjAndQsaAutomatically(
 
 /**
  * Consulta ao Vivo via Google Places API (New) no Backend
- * Suporta busca ampliada por bairros/regiões e resolução automática de sócios
+ * Suporta busca ampliada por bairros/regiões, rotação de sinônimos e pooling ampliado
  */
 async function searchLiveGooglePlacesServer(
   niche: string,
   city: string,
   query?: string,
   apiKey?: string,
-  limit: number = 20
+  limit: number = 20,
+  district?: string,
+  businessModel?: string,
+  deepScan?: boolean
 ): Promise<Partial<Prospect>[]> {
   const activeKey = apiKey || DEFAULT_GOOGLE_PLACES_KEY;
   if (!activeKey) return [];
 
   try {
-    const nicheTerm = niche && niche !== "todos" ? niche : "";
     const cleanCity = (city || "São Paulo").split(",")[0].trim();
 
-    // Cria termos de busca inteligentes para cobrir mais empresas na cidade se o limite for alto
-    const searchPrompts: string[] = [];
-    searchPrompts.push([query, nicheTerm || "empresas e comércio", cleanCity, "Brasil"].filter(Boolean).join(" "));
-
-    if (limit > 20) {
-      searchPrompts.push([query, nicheTerm || "serviços", `centro ${cleanCity}`, "Brasil"].filter(Boolean).join(" "));
-      searchPrompts.push([query, nicheTerm || "consultório e escritório", cleanCity, "Brasil"].filter(Boolean).join(" "));
-    }
+    // Gera múltiplos termos de busca cobrindo bairros, pólos e sinônimos
+    const searchPrompts = buildStrategicSearchQueries({
+      city: cleanCity,
+      niche,
+      businessModel,
+      customQuery: [query, district].filter(Boolean).join(" "),
+      deepScan,
+    });
 
     const allPlaces: any[] = [];
     const seenIds = new Set<string>();
 
-    for (const textQuery of searchPrompts) {
-      const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Goog-Api-Key": activeKey,
-          "X-Goog-FieldMask":
-            "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.nationalPhoneNumber,places.internationalPhoneNumber,places.websiteUri,places.googleMapsUri,places.photos,places.types",
-        },
-        body: JSON.stringify({
-          textQuery,
-          languageCode: "pt-BR",
-          pageSize: Math.min(20, limit),
-        }),
-      });
+    const queryPromises = searchPrompts.map(async (textQuery) => {
+      try {
+        const res = await fetch("https://places.googleapis.com/v1/places:searchText", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Goog-Api-Key": activeKey,
+            "X-Goog-FieldMask":
+              "places.id,places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.nationalPhoneNumber,places.internationalPhoneNumber,places.websiteUri,places.googleMapsUri,places.photos,places.types",
+          },
+          body: JSON.stringify({
+            textQuery,
+            languageCode: "pt-BR",
+            pageSize: 20,
+          }),
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data.places)) {
-          for (const p of data.places) {
-            if (p.id && !seenIds.has(p.id)) {
-              seenIds.add(p.id);
-              allPlaces.push(p);
-            }
-          }
+        if (res.ok) {
+          const data = await res.json();
+          return Array.isArray(data.places) ? data.places : [];
+        }
+      } catch (err) {
+        console.warn("Erro na query Places:", textQuery, err);
+      }
+      return [];
+    });
+
+    const placeArrays = await Promise.all(queryPromises);
+    for (const places of placeArrays) {
+      for (const p of places) {
+        if (p.id && !seenIds.has(p.id)) {
+          seenIds.add(p.id);
+          allPlaces.push(p);
         }
       }
-
-      if (allPlaces.length >= limit) break;
     }
 
     if (allPlaces.length === 0) return [];
 
+    const maxPool = Math.max(limit * 2, deepScan ? 80 : 40);
+    const candidatePlaces = allPlaces.slice(0, maxPool);
+
     // Resolve as fotos reais de fachada e busca automática de sócios via domínio .br em paralelo
     const resolvedPlaces = await Promise.all(
-      allPlaces.slice(0, limit).map(async (place: any, idx: number) => {
+      candidatePlaces.map(async (place: any, idx: number) => {
         const name = place.displayName?.text || "Empresa";
         const fullAddress = place.formattedAddress || "";
         const addressParts = fullAddress.split(",");
@@ -629,18 +645,31 @@ export const searchProspectsServer = createServerFn({ method: "POST" })
       niche,
       businessModel,
       city,
+      district,
+      state,
       limit,
       minScore,
       onlyWithWhatsapp,
       onlyWithDecisionMakers,
       excludeFranchises,
+      hideAlreadyInCrm,
+      deepScan,
       tier,
       opportunityFilter,
       apiKey,
     } = data;
 
-    // 1. Busca prioritária ao vivo via Google Places API (New) com dados reais, notas e fotos oficiais
-    let liveResults = await searchLiveGooglePlacesServer(niche, city, query, apiKey, limit);
+    // 1. Busca prioritária ao vivo via Google Places API (New) com pool multi-zona e dados reais
+    let liveResults = await searchLiveGooglePlacesServer(
+      niche,
+      city,
+      query,
+      apiKey,
+      limit,
+      district,
+      businessModel,
+      deepScan
+    );
 
     // Fallback secundário via OpenStreetMap caso a busca do Google não encontre resultados específicos
     if (!liveResults || liveResults.length === 0) {
@@ -649,7 +678,7 @@ export const searchProspectsServer = createServerFn({ method: "POST" })
 
     const rawList = liveResults;
 
-    // Remove duplicatas
+    // Remove duplicatas por nome/razão social
     const seen = new Set<string>();
     const unique: Partial<Prospect>[] = [];
     for (const item of rawList) {
@@ -657,6 +686,37 @@ export const searchProspectsServer = createServerFn({ method: "POST" })
       if (key && !seen.has(key)) {
         seen.add(key);
         unique.push(item);
+      }
+    }
+
+    // Anti-repetição opcional: busca empresas já existentes no CRM da agência
+    let existingPhones = new Set<string>();
+    let existingCompanies = new Set<string>();
+    let existingWebsites = new Set<string>();
+
+    if (hideAlreadyInCrm !== false) {
+      try {
+        const { data: existingLeads } = await supabase
+          .from("leads")
+          .select("phone, company, website")
+          .limit(1000);
+
+        if (existingLeads) {
+          for (const l of existingLeads) {
+            if (l.phone) {
+              const clean = l.phone.replace(/\D/g, "");
+              if (clean.length >= 8) existingPhones.add(clean.slice(-8));
+            }
+            if (l.company) {
+              existingCompanies.add(l.company.toLowerCase().trim());
+            }
+            if (l.website) {
+              existingWebsites.add(getDomainFromUrl(l.website).toLowerCase());
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("Não foi possível carregar leads existentes do CRM para anti-repetição:", err);
       }
     }
 
@@ -687,6 +747,27 @@ export const searchProspectsServer = createServerFn({ method: "POST" })
         createdAt: new Date().toISOString(),
       } as Prospect;
     });
+
+    // Filtro de Anti-Repetição: descarta leads já cadastrados no CRM
+    if (hideAlreadyInCrm !== false && (existingPhones.size > 0 || existingCompanies.size > 0)) {
+      results = results.filter((p) => {
+        const phone = (p.whatsapp || p.phone || "").replace(/\D/g, "");
+        if (phone.length >= 8 && existingPhones.has(phone.slice(-8))) {
+          return false;
+        }
+        const name = (p.name || p.tradeName || "").toLowerCase().trim();
+        if (name && existingCompanies.has(name)) {
+          return false;
+        }
+        if (p.website) {
+          const domain = getDomainFromUrl(p.website).toLowerCase();
+          if (domain && existingWebsites.has(domain)) {
+            return false;
+          }
+        }
+        return true;
+      });
+    }
 
     // Filtro de Exclusão de Franquias
     if (excludeFranchises) {

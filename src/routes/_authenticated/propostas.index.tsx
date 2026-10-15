@@ -13,6 +13,7 @@ import {
   restoreProposal,
   duplicateProposal,
   updateProposal,
+  upsertProposalItem,
   formatCurrency,
   type Proposal,
 } from "@/lib/crm-api";
@@ -29,6 +30,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { sendEmail } from "@/lib/email.functions";
+import { ProposalPricingSimulator, snapshotForLine, type PricingLine } from "@/components/proposals/ProposalPricingSimulator";
+import { calculatePricing, DEFAULT_PRICING_PARAMETERS, type PricingParameters } from "@/lib/pricing/pricing-engine";
+import { fetchPricingParameters } from "@/lib/pricing/pricing-api";
 
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -209,6 +213,10 @@ function ProposalsPage() {
     queryKey: ["services", "active"],
     queryFn: () => fetchServices({ onlyActive: true }),
   });
+  const { data: pricingParameters = DEFAULT_PRICING_PARAMETERS } = useQuery<PricingParameters>({
+    queryKey: ["pricing-parameters"],
+    queryFn: fetchPricingParameters,
+  });
   const [open, setOpen] = useState(false);
   const emptyForm = {
     title: "",
@@ -218,6 +226,7 @@ function ProposalsPage() {
     client_name: "",
     client_email: "",
     service_ids: [] as string[],
+    pricingLines: [] as PricingLine[],
     contract_type: "mensal" as "mensal" | "avulso",
     monthly_investment: 0,
     one_time_investment: 0,
@@ -293,6 +302,24 @@ function ProposalsPage() {
 
   const createMut = useMutation({
     mutationFn: async () => {
+      const pricingLines = form.pricingLines;
+      if (pricingLines.length === 0) {
+        throw new Error("Adicione pelo menos um serviço ao simulador de preço.");
+      }
+      const pricingResults = pricingLines.map((line) => ({
+        line,
+        result: calculatePricing(line, pricingParameters),
+      }));
+      const hasBelowFloor = pricingResults.some(({ result }) => result.isBelowFloor);
+      if (hasBelowFloor && !window.confirm("Existe serviço abaixo do piso operacional. Deseja salvar mesmo assim?")) {
+        throw new Error("Salvamento cancelado.");
+      }
+      const monthlyInvestment = pricingResults
+        .filter(({ line }) => line.recurrence === "monthly")
+        .reduce((sum, { result }) => sum + result.salePrice, 0);
+      const oneTimeInvestment = pricingResults
+        .filter(({ line }) => line.recurrence !== "monthly")
+        .reduce((sum, { result }) => sum + result.salePrice, 0);
       const recurring_months =
         form.contract_type === "mensal"
           ? form.contract_term === "monthly" || !form.contract_term
@@ -322,7 +349,7 @@ function ProposalsPage() {
         }
       }
 
-      return createProposal({
+      const proposal = await createProposal({
         title: form.title,
         target_kind: form.target_kind,
         client_id: form.target_kind === "client" ? (form.client_id || null) : null,
@@ -332,16 +359,10 @@ function ProposalsPage() {
         intro: form.intro || null,
         service_ids: form.service_ids,
         valid_until: form.valid_until || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        monthly_investment: form.contract_type === "mensal" ? form.monthly_investment : 0,
-        one_time_investment: form.one_time_investment || 0,
+        monthly_investment: monthlyInvestment,
+        one_time_investment: oneTimeInvestment,
         total:
-          form.contract_type === "mensal"
-            ? form.monthly_investment * (
-                form.contract_term === "3_months" ? 3 :
-                form.contract_term === "6_months" ? 6 :
-                form.contract_term === "12_months" ? 12 : 12
-              ) + Number(form.one_time_investment || 0)
-            : form.one_time_investment,
+          monthlyInvestment * recurring_months + oneTimeInvestment,
         contract_type: form.contract_type === "mensal" ? "recurring" : "one_time",
         payment_kind: form.contract_type === "mensal" ? "recurring" : "one_time",
         auto_create_jobs: false,
@@ -355,6 +376,17 @@ function ProposalsPage() {
         contract_template_id,
         contract_content,
       });
+      await Promise.all(pricingResults.map(({ line }, index) => upsertProposalItem({
+        proposal_id: proposal.id,
+        title: line.title,
+        description: null,
+        quantity: 1,
+        unit_price: calculatePricing(line, pricingParameters).salePrice,
+        recurrence: line.recurrence,
+        order_index: index,
+        pricing_snapshot: snapshotForLine(line, pricingParameters),
+      })));
+      return proposal;
     },
     onSuccess: async (p) => {
       qc.invalidateQueries({ queryKey: ["proposals"] });
@@ -696,6 +728,28 @@ function ProposalsPage() {
                         }}
                       />
                     </Field>
+
+                    <div className="border-t border-border/60 pt-3">
+                      <ProposalPricingSimulator
+                        parameters={pricingParameters}
+                        lines={form.pricingLines}
+                        onChange={(pricingLines) => {
+                          const monthly = pricingLines
+                            .filter((line) => line.recurrence === "monthly")
+                            .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                          const oneTime = pricingLines
+                            .filter((line) => line.recurrence !== "monthly")
+                            .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                          setForm({
+                            ...form,
+                            pricingLines,
+                            monthly_investment: monthly,
+                            one_time_investment: oneTime,
+                            contract_type: monthly > 0 ? "mensal" : "avulso",
+                          });
+                        }}
+                      />
+                    </div>
 
                     <div className="grid grid-cols-2 gap-3 pt-1 border-t border-border/60">
                       <Field label="Tipo de Contrato *">

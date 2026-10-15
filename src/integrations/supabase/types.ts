@@ -3707,6 +3707,7 @@ export type Database = {
           deliverables: Json
           description: string | null
           id: string
+          pricing_snapshot: Json | null
           order_index: number
           proposal_id: string
           quantity: number
@@ -3719,6 +3720,7 @@ export type Database = {
           deliverables?: Json
           description?: string | null
           id?: string
+          pricing_snapshot?: Json | null
           order_index?: number
           proposal_id: string
           quantity?: number
@@ -3731,6 +3733,7 @@ export type Database = {
           deliverables?: Json
           description?: string | null
           id?: string
+          pricing_snapshot?: Json | null
           order_index?: number
           proposal_id?: string
           quantity?: number

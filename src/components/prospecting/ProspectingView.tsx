@@ -25,6 +25,7 @@ import { ProspectCard } from "./ProspectCard";
 import { CityAutocomplete } from "./CityAutocomplete";
 import type { Prospect, ProspectingSearchParams, IcpWeightsConfig, BusinessModelType, IcpPresetKey } from "@/lib/prospecting/types";
 import { ICP_PRESETS } from "@/lib/prospecting/icp-scoring";
+import { CITY_COMMERCIAL_HUBS } from "@/lib/prospecting/search-strategy";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -44,13 +45,20 @@ export function ProspectingView() {
   const [selectedNiche, setSelectedNiche] = useState("todos");
   const [selectedBusinessModel, setSelectedBusinessModel] = useState<BusinessModelType>("all");
   const [selectedCity, setSelectedCity] = useState("São Paulo");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedLimit, setSelectedLimit] = useState<number>(20);
   const [onlyWhatsapp, setOnlyWhatsapp] = useState(false);
   const [onlyDecisors, setOnlyDecisors] = useState(false);
   const [excludeFranchises, setExcludeFranchises] = useState<boolean>(true);
+  const [hideAlreadyInCrm, setHideAlreadyInCrm] = useState<boolean>(true);
+  const [deepScan, setDeepScan] = useState<boolean>(false);
   const [selectedTier, setSelectedTier] = useState<"all" | "hot" | "warm" | "cold">("all");
   const [opportunityFilter, setOpportunityFilter] = useState<"all" | "gold_mine" | "no_website" | "amateur_insta">("all");
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+
+  // Zonas / Bairros disponíveis para a cidade selecionada
+  const cityKey = selectedCity.split(",")[0].trim().toLowerCase();
+  const availableHubs = CITY_COMMERCIAL_HUBS[cityKey] || [];
 
   // Carrega configurações de ICP e Chaves de API
   const [icpConfig, setIcpConfig] = useState<IcpWeightsConfig>(getIcpConfig());
@@ -63,10 +71,13 @@ export function ProspectingView() {
     niche: "todos",
     businessModel: "all",
     city: "São Paulo",
+    district: "",
     limit: 20,
     onlyWithWhatsapp: false,
     onlyWithDecisionMakers: false,
     excludeFranchises: true,
+    hideAlreadyInCrm: true,
+    deepScan: false,
     tier: "all",
     opportunityFilter: "all",
   });
@@ -78,10 +89,13 @@ export function ProspectingView() {
       niche: selectedNiche,
       businessModel: selectedBusinessModel,
       city: selectedCity,
+      district: selectedDistrict,
       limit: selectedLimit,
       onlyWithWhatsapp: onlyWhatsapp,
       onlyWithDecisionMakers: onlyDecisors,
       excludeFranchises,
+      hideAlreadyInCrm,
+      deepScan,
       tier: selectedTier,
       opportunityFilter,
     });
@@ -173,7 +187,7 @@ export function ProspectingView() {
 
       {/* 2. Barra de Busca e Filtros de Garimpo */}
       <div className="p-5 rounded-2xl bg-white border border-[#E9E4DC] shadow-xs space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
           {/* Campo de Busca por Nome / Palavra-Chave */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#869296]" />
@@ -181,7 +195,7 @@ export function ProspectingView() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por empresa, sócio ou palavra..."
+              placeholder="Empresa, sócio..."
               className="w-full pl-9 pr-3 py-2 bg-[#FAF8F5] border border-[#E9E4DC] rounded-xl text-xs text-[#0C1618] focus:outline-none focus:border-[#FFBC45] transition"
             />
           </div>
@@ -212,8 +226,8 @@ export function ProspectingView() {
             >
               <option value="todos">Todos os Nichos</option>
               <option value="cosméticos">Cosméticos & Beleza</option>
-              <option value="epi">EPIs & Segurança do Trabalho</option>
-              <option value="indústria">Indústrias & Fabricantes</option>
+              <option value="epi">EPIs & Segurança</option>
+              <option value="indústria">Indústrias & Fábricas</option>
               <option value="distribuidora atacado">Distribuidoras & Atacado</option>
               <option value="varejo">Varejo & Lojas</option>
               <option value="odontológica">Clínicas Odontológicas</option>
@@ -228,9 +242,31 @@ export function ProspectingView() {
           <div className="relative">
             <CityAutocomplete
               value={selectedCity}
-              onChange={(city) => setSelectedCity(city)}
-              placeholder="Cidade ou Estado no Brasil..."
+              onChange={(city) => {
+                setSelectedCity(city);
+                setSelectedDistrict("");
+              }}
+              placeholder="Cidade ou Estado..."
             />
+          </div>
+
+          {/* Seletor de Bairro / Pólo Comercial */}
+          <div className="relative">
+            <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#869296]" />
+            <select
+              value={selectedDistrict}
+              onChange={(e) => setSelectedDistrict(e.target.value)}
+              className="w-full pl-9 pr-3 py-2 bg-[#FAF8F5] border border-[#E9E4DC] rounded-xl text-xs font-medium text-[#0C1618] focus:outline-none focus:border-[#FFBC45] transition cursor-pointer"
+            >
+              <option value="">{availableHubs.length > 0 ? "Todos os Pólos & Bairros" : "Centro & Região"}</option>
+              {availableHubs.flatMap((hub) =>
+                hub.districts.map((d) => (
+                  <option key={d} value={d}>
+                    📍 {d} ({hub.zoneName.split("&")[0].trim()})
+                  </option>
+                ))
+              )}
+            </select>
           </div>
 
           {/* Seletor de Quantidade de Empresas */}
@@ -240,9 +276,9 @@ export function ProspectingView() {
               onChange={(e) => setSelectedLimit(Number(e.target.value))}
               className="w-full px-3 py-2 bg-[#FAF8F5] border border-[#E9E4DC] rounded-xl text-xs font-semibold text-[#0C1618] focus:outline-none focus:border-[#FFBC45] transition cursor-pointer"
             >
-              <option value={20}>Buscar 20 empresas</option>
-              <option value={50}>Buscar 50 empresas (Varredura Ampla)</option>
-              <option value={100}>Buscar 100 empresas (Cidade Inteira)</option>
+              <option value={20}>20 empresas</option>
+              <option value={50}>50 empresas</option>
+              <option value={100}>100 empresas</option>
             </select>
           </div>
 
@@ -253,7 +289,7 @@ export function ProspectingView() {
             className="flex items-center justify-center gap-2 px-4 py-2 bg-[#FFBC45] hover:bg-[#F2AC35] text-[#09090B] font-bold text-xs rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
           >
             <RefreshCw className={`size-3.5 ${isLoading ? "animate-spin" : ""}`} />
-            <span>Garimpar Empresas</span>
+            <span>Garimpar</span>
           </button>
         </div>
 
@@ -261,6 +297,34 @@ export function ProspectingView() {
         <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#F0ECE4]">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[11px] font-bold text-[#869296] mr-1">Filtros Estratégicos:</span>
+
+            {/* Anti-Repetição: Ocultar já existentes no CRM */}
+            <button
+              type="button"
+              onClick={() => setHideAlreadyInCrm(!hideAlreadyInCrm)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                hideAlreadyInCrm
+                  ? "bg-amber-100 text-amber-900 border border-amber-300 font-bold"
+                  : "bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              <ShieldCheck className="size-3 text-amber-700" />
+              <span>Ocultar Leads já no CRM</span>
+            </button>
+
+            {/* Modo Varredura Profunda Multi-Pólo */}
+            <button
+              type="button"
+              onClick={() => setDeepScan(!deepScan)}
+              className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                deepScan
+                  ? "bg-purple-100 text-purple-900 border border-purple-300 font-bold"
+                  : "bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100"
+              }`}
+            >
+              <Zap className="size-3 text-purple-700" />
+              <span>Varredura Profunda (Deep Scan)</span>
+            </button>
 
             {/* Ignorar Franquias e Redes */}
             <button
@@ -353,6 +417,40 @@ export function ProspectingView() {
           </div>
         </div>
       </div>
+
+      {/* Banner de Feedback da Peneira Ativa de ICP */}
+      {!isLoading && prospects.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-[#FAF8F5] border border-[#E9E4DC] rounded-2xl text-xs">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="font-bold text-[#0C1618]">
+              Peneira Ativa de ICP: {prospects.length} empresas selecionadas
+            </span>
+            <span className="text-[#6A787B]">
+              em {selectedDistrict ? `📍 ${selectedDistrict}, ${selectedCity}` : `📍 ${selectedCity}`}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 text-[11px] text-[#6A787B]">
+            <span className="flex items-center gap-1 font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+              🔥 {hotCount} ICP Quente (≥70 pts)
+            </span>
+            <span className="flex items-center gap-1 font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+              ⚡ {warmCount} ICP Potencial (40-69 pts)
+            </span>
+            {hideAlreadyInCrm && (
+              <span className="hidden sm:inline font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md">
+                🛡️ Leads do CRM ocultados
+              </span>
+            )}
+            {deepScan && (
+              <span className="hidden sm:inline font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md border border-purple-200">
+                ⚡ Varredura Profunda Ativa
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* 3. Grid de Resultados de Prospects com Raio-X de Marketing */}
       {isLoading ? (

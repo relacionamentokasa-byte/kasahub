@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,8 @@ interface Props {
     id: string;
     title: string;
     monthly_value: number | null;
+    total_value?: number | null;
+    type?: string | null;
   };
 }
 
@@ -133,12 +135,32 @@ export function MonthlyDeliverablesDialog({
   const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
   const [selectedDmeIds, setSelectedDmeIds] = useState<string[]>([]);
 
-  // Inicializa a seleção quando os dados chegam
-  useMemo(() => {
-    if (jobs.length > 0) setSelectedJobIds(jobs.map((j) => j.id));
-    if (posts.length > 0) setSelectedPostIds(posts.map((p) => p.id));
-    if (dmes.length > 0) setSelectedDmeIds(dmes.map((d) => d.id));
-  }, [jobs, posts, dmes]);
+  useEffect(() => {
+    const ids = jobs.map((j) => j.id);
+    setSelectedJobIds((previous) =>
+      previous.length === ids.length && previous.every((id, index) => id === ids[index])
+        ? previous
+        : ids,
+    );
+  }, [jobs]);
+
+  useEffect(() => {
+    const ids = posts.map((p) => p.id);
+    setSelectedPostIds((previous) =>
+      previous.length === ids.length && previous.every((id, index) => id === ids[index])
+        ? previous
+        : ids,
+    );
+  }, [posts]);
+
+  useEffect(() => {
+    const ids = dmes.map((d) => d.id);
+    setSelectedDmeIds((previous) =>
+      previous.length === ids.length && previous.every((id, index) => id === ids[index])
+        ? previous
+        : ids,
+    );
+  }, [dmes]);
 
   const toggleJob = (id: string) => {
     setSelectedJobIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
@@ -192,7 +214,9 @@ export function MonthlyDeliverablesDialog({
         clientLogoUrl,
         periodLabel: currentMonthConfig.label,
         contractTitle: contract?.title,
+        contractType: contract?.type,
         monthlyValue: contract?.monthly_value || undefined,
+        projectValue: contract?.total_value || undefined,
         jobs: filteredJobs,
         posts: filteredPosts,
         dmes: filteredDmes,

@@ -1,4 +1,5 @@
 -- Ensure contracts table exists and is linked correctly
+-- This migration is retained for historical installs; the current approval flow is idempotent.
 CREATE TABLE IF NOT EXISTS public.contracts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     client_id UUID NOT NULL REFERENCES public.clients(id) ON DELETE CASCADE,

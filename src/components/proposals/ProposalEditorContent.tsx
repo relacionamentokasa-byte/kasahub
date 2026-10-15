@@ -2,9 +2,13 @@ import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchProposal,
+  fetchProposalItems,
   updateProposal,
+  upsertProposalItem,
+  deleteProposalItem,
   formatCurrency,
   type Proposal,
+  type ProposalItem,
 } from "@/lib/crm-api";
 import { fetchContractTemplates } from "@/lib/contracts-api";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,10 +54,14 @@ import {
   distributeEqually,
 } from "@/lib/proposal-negotiation";
 import { SheetContentSkeleton } from "@/components/ui/loading-skeletons";
+import { ProposalPricingSimulator, snapshotForLine, type PricingLine } from "./ProposalPricingSimulator";
+import { DEFAULT_PRICING_PARAMETERS, calculatePricing, type PricingParameters } from "@/lib/pricing/pricing-engine";
+import { fetchPricingParameters } from "@/lib/pricing/pricing-api";
 
 export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
   const qc = useQueryClient();
   const [form, setForm] = useState<Partial<Proposal>>({});
+  const [pricingLines, setPricingLines] = useState<PricingLine[]>([]);
   const [isDirty, setIsDirty] = useState(false);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
 
@@ -67,6 +75,16 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     queryFn: fetchContractTemplates,
   });
 
+  const { data: proposalItems = [] } = useQuery({
+    queryKey: ["proposal-items", proposalId],
+    queryFn: () => fetchProposalItems(proposalId),
+  });
+
+  const { data: pricingParameters = DEFAULT_PRICING_PARAMETERS } = useQuery<PricingParameters>({
+    queryKey: ["pricing-parameters"],
+    queryFn: fetchPricingParameters,
+  });
+
   const { data: clientsList = [] } = useQuery({
     queryKey: ["clients"],
     queryFn: fetchClients,
@@ -78,10 +96,48 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
     }
   }, [proposal]);
 
+  useEffect(() => {
+    if (proposalItems.length === 0) return;
+    setPricingLines(proposalItems.map((item) => {
+      const snapshot = item.pricing_snapshot as any;
+      const input = snapshot?.input ?? {};
+      return {
+        id: item.id,
+        title: item.title,
+        serviceType: input.serviceType ?? (item.recurrence === "monthly" ? "monthly" : "team"),
+        size: input.size,
+        days: input.days ?? 1,
+        thirdPartyCost: input.thirdPartyCost ?? 0,
+        clientCount: input.clientCount ?? 1,
+        urgent: input.urgent ?? false,
+        salePrice: Number(item.unit_price || 0),
+        overrides: input.overrides,
+        recurrence: item.recurrence === "monthly" ? "monthly" : "one_time",
+      } as PricingLine;
+    }));
+  }, [proposalItems]);
+
   const updateMut = useMutation({
-    mutationFn: (patch: Partial<Proposal>) => updateProposal(proposalId, patch),
+    mutationFn: async ({ patch, lines }: { patch: Partial<Proposal>; lines: PricingLine[] }) => {
+      const existingIds = new Set(proposalItems.map((item) => item.id));
+      const retainedIds = new Set(lines.filter((line) => existingIds.has(line.id)).map((line) => line.id));
+      await Promise.all(proposalItems.filter((item) => !retainedIds.has(item.id)).map((item) => deleteProposalItem(item.id)));
+      await Promise.all(lines.map((line, index) => upsertProposalItem({
+        id: existingIds.has(line.id) ? line.id : undefined,
+        proposal_id: proposalId,
+        title: line.title,
+        description: null,
+        quantity: 1,
+        unit_price: calculatePricing(line, pricingParameters).salePrice,
+        recurrence: line.recurrence,
+        order_index: index,
+        pricing_snapshot: snapshotForLine(line, pricingParameters),
+      })));
+      return updateProposal(proposalId, patch);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["proposal", proposalId] });
+      qc.invalidateQueries({ queryKey: ["proposal-items", proposalId] });
       qc.invalidateQueries({ queryKey: ["propostas"] });
       qc.invalidateQueries({ queryKey: ["proposals"] });
       toast.success("Alterações salvas com sucesso");
@@ -111,10 +167,25 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
       : null;
     const contract_content = selectedTemplate ? selectedTemplate.content : null;
 
-    const payload = { ...form, total, contract_content };
+    const monthlyFromLines = pricingLines
+      .filter((line) => line.recurrence === "monthly")
+      .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+    const oneTimeFromLines = pricingLines
+      .filter((line) => line.recurrence !== "monthly")
+      .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+    const hasBelowFloor = pricingLines.some((line) => calculatePricing(line, pricingParameters).isBelowFloor);
+    if (hasBelowFloor && !window.confirm("Existe serviço abaixo do piso operacional. Deseja salvar mesmo assim?")) return;
+
+    const payload = {
+      ...form,
+      monthly_investment: pricingLines.length ? monthlyFromLines : monthly,
+      one_time_investment: pricingLines.length ? oneTimeFromLines : setup,
+      total: pricingLines.length ? monthlyFromLines * Number(form.recurring_months || 0) + oneTimeFromLines : total,
+      contract_content,
+    };
 
     (document.activeElement as HTMLElement)?.blur();
-    updateMut.mutate(payload);
+    updateMut.mutate({ patch: payload, lines: pricingLines });
   };
 
   if (isLoadingProposal) {
@@ -460,6 +531,20 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
                   );
                 })}
               </div>
+            </div>
+
+            <div className="pt-1 border-t border-border/60">
+              <ProposalPricingSimulator
+                parameters={pricingParameters}
+                lines={pricingLines}
+                onChange={(lines) => {
+                  setPricingLines(lines);
+                  const monthly = lines.filter((line) => line.recurrence === "monthly").reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                  const oneTime = lines.filter((line) => line.recurrence !== "monthly").reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                  setForm({ ...form, monthly_investment: monthly, one_time_investment: oneTime } as any);
+                  setIsDirty(true);
+                }}
+              />
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3 pt-1">

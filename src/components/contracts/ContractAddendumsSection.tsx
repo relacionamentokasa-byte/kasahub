@@ -24,6 +24,8 @@ interface Props {
     id: string;
     title: string;
     monthly_value: number | null;
+    total_value?: number | null;
+    type?: string | null;
     start_date: string;
     client_id: string;
     status: string | null;

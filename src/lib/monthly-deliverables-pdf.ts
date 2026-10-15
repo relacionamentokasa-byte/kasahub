@@ -65,7 +65,9 @@ export interface ExportMonthlyDeliverablesOptions {
   clientLogoUrl?: string | null;
   periodLabel: string; // Ex: "Setembro de 2026"
   contractTitle?: string;
+  contractType?: string | null;
   monthlyValue?: number;
+  projectValue?: number;
   jobs: MonthlyJobItem[];
   posts?: MonthlyEditorialItem[];
   dmes?: MonthlyDmeItem[];
@@ -148,12 +150,14 @@ export async function exportMonthlyDeliverablesPDF(opts: ExportMonthlyDeliverabl
     doc.text(sanitize(opts.contractTitle), margin + 58, y + 34);
   }
 
-  if (opts.monthlyValue && opts.monthlyValue > 0) {
+  const isOneTime = opts.contractType === "one_time" || opts.contractType === "avulso";
+  const contractAmount = isOneTime ? opts.projectValue : opts.monthlyValue;
+  if (contractAmount && contractAmount > 0) {
     doc.setFont(FONT_MAIN, "bold");
-    doc.text("Fee Mensal:", margin + contentWidth - 140, y + 18);
+    doc.text(isOneTime ? "Valor do Projeto:" : "Fee Mensal:", margin + contentWidth - 140, y + 18);
     doc.setFont(FONT_MAIN, "normal");
     doc.setTextColor(16, 140, 80);
-    doc.text(brl(opts.monthlyValue), margin + contentWidth - 75, y + 18);
+    doc.text(brl(contractAmount), margin + contentWidth - 75, y + 18);
   }
 
   doc.setFont(FONT_MAIN, "bold");

@@ -9,6 +9,7 @@ import {
   Plug,
   Shield,
   Briefcase,
+  Calculator,
   User,
   Users,
   ChevronRight,
@@ -22,6 +23,7 @@ import { NotificationPreferencesTab } from "@/components/config/NotificationPref
 import { AgencyBrandUnifiedTab } from "@/components/config/AgencyBrandUnifiedTab";
 import { TeamAndPermissionsTab } from "@/components/config/TeamAndPermissionsTab";
 import { SalesCatalogTab } from "@/components/config/SalesCatalogTab";
+import { PricingSettingsTab } from "@/components/config/PricingSettingsTab";
 import { CrmCatalogTab } from "@/components/config/CrmCatalogTab";
 import { IntegrationsTab } from "@/components/config/IntegrationsTab";
 import { toast } from "sonner";
@@ -129,6 +131,13 @@ function ConfigPage() {
       icon: Briefcase,
       group: "Catálogos & Vendas",
       component: <SalesCatalogTab canEdit={canEdit} />,
+    },
+    {
+      id: "pricing",
+      label: "Parâmetros de Precificação",
+      icon: Calculator,
+      group: "Catálogos & Vendas",
+      component: <PricingSettingsTab canEdit={isAdmin} />,
     },
     {
       id: "crm-catalog",

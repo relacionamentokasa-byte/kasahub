@@ -484,10 +484,10 @@ export async function duplicateProposal(id: string): Promise<Proposal> {
 }
 
 export async function upsertProposalItem(
-  item: Partial<ProposalItem> & { proposal_id: string; title: string },
+  item: Partial<ProposalItem> & { proposal_id: string; title: string; pricing_snapshot?: unknown },
 ) {
   if (item.id) {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from("proposal_items")
       .update(item)
       .eq("id", item.id)
@@ -496,7 +496,7 @@ export async function upsertProposalItem(
     if (error) throw error;
     return data;
   }
-  const { data, error } = await supabase
+  const { data, error } = await (supabase as any)
     .from("proposal_items")
     .insert(item)
     .select()

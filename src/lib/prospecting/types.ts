@@ -159,12 +159,26 @@ export interface ProspectingSearchParams {
   niche: string;
   businessModel?: BusinessModelType;
   city: string;
+  district?: string;
   state?: string;
   limit?: number;
   minScore?: number;
   onlyWithWhatsapp?: boolean;
   onlyWithDecisionMakers?: boolean;
   excludeFranchises?: boolean;
+  hideAlreadyInCrm?: boolean;
+  deepScan?: boolean;
   tier?: IcpTier | "all";
   opportunityFilter?: "all" | "gold_mine" | "no_website" | "amateur_insta";
 }
+
+export interface ProspectingScanStats {
+  totalScanned: number;
+  filteredOutFranchises: number;
+  filteredOutExistingCrm: number;
+  filteredOutNoContact: number;
+  qualifiedTotal: number;
+  hotCount: number;
+  warmCount: number;
+}
+

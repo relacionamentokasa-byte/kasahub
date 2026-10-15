@@ -70,6 +70,17 @@ export async function approveProposal(
     .order("order_index", { ascending: true });
   if (iErr) throw iErr;
 
+  if (proposal.generated_contract_id && proposal.generated_project_id) {
+    return {
+      client_id: proposal.client_id!,
+      project_id: proposal.generated_project_id,
+      contract_id: proposal.generated_contract_id,
+      jobs_created: 0,
+      transactions_created: 0,
+      created_at: new Date().toISOString(),
+    };
+  }
+
   // 2. Step 1: Upsert de Cliente (Verificar/Criar de forma segura)
   let clientId: string | null = proposal.client_id ?? null;
   if (!clientId) {
@@ -178,15 +189,57 @@ export async function approveProposal(
   };
 
   if (contractId) {
-    await sb.from("contracts").update(contractData).eq("id", contractId);
-  } else {
-    const { data: createdContract, error: ctErr } = await sb
+    const { error: updateContractError } = await sb
       .from("contracts")
-      .insert(contractData)
+      .update(contractData)
+      .eq("id", contractId);
+    if (updateContractError) throw updateContractError;
+  } else {
+    const { data: existingContract, error: existingContractError } = await sb
+      .from("contracts")
       .select("id")
-      .single();
-    if (ctErr) throw ctErr;
-    contractId = createdContract.id;
+      .eq("proposal_id", proposal.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (existingContractError) throw existingContractError;
+
+    if (existingContract?.id) {
+      contractId = existingContract.id;
+      const { error: updateExistingError } = await sb
+        .from("contracts")
+        .update(contractData)
+        .eq("id", contractId);
+      if (updateExistingError) throw updateExistingError;
+    } else {
+      const { data: createdContract, error: ctErr } = await sb
+        .from("contracts")
+        .insert(contractData)
+        .select("id")
+        .single();
+      if (!ctErr) {
+        contractId = createdContract.id;
+      } else {
+        if (ctErr.code !== "23505") throw ctErr;
+
+        const { data: concurrentContract, error: concurrentContractError } = await sb
+          .from("contracts")
+          .select("id")
+          .eq("proposal_id", proposal.id)
+          .maybeSingle();
+        if (concurrentContractError || !concurrentContract) {
+          throw concurrentContractError ?? ctErr;
+        }
+        contractId = concurrentContract.id;
+
+        const { error: updateConcurrentError } = await sb
+          .from("contracts")
+          .update(contractData)
+          .eq("id", contractId);
+        if (updateConcurrentError) throw updateConcurrentError;
+      }
+
+    }
   }
 
   // Create Project (vinculado ao cliente, proposta e contrato)
@@ -441,7 +494,9 @@ export async function revertProposalApproval(
       .from("contracts")
       .delete()
       .eq("id", proposal.generated_contract_id);
-    if (ctErr) console.warn("Erro ao deletar contrato:", ctErr);
+    if (ctErr) {
+      throw new Error(`Não foi possível remover o contrato gerado: ${ctErr.message}`);
+    }
   }
 
   // 6. Update Proposal Status and clear generated IDs

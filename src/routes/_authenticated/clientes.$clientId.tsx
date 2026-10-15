@@ -384,12 +384,22 @@ function ClientDetail() {
 
                     <div className="space-y-2 pt-3 border-t border-border/60 font-mono-kasa">
                       <div className="flex justify-between items-center text-xs">
-                        <span className="text-[10px] uppercase text-muted-foreground tracking-wider">Fee Mensal</span>
-                        <span className="font-bold text-emerald-500 tabular-nums">{brl(Number(contract.monthly_value))}</span>
+                        <span className="text-[10px] uppercase text-muted-foreground tracking-wider">
+                          {contract.type === "one_time" ? "Valor do Projeto" : "Fee Mensal"}
+                        </span>
+                        <span className="font-bold text-emerald-500 tabular-nums">
+                          {brl(Number(contract.type === "one_time" ? contract.total_value : contract.monthly_value))}
+                        </span>
                       </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-[10px] uppercase text-muted-foreground tracking-wider">Duração</span>
-                        <span className="font-medium text-foreground">{(contract as any).installments_count ? `${(contract as any).installments_count} meses` : 'Recorrente'}</span>
+                        <span className="font-medium text-foreground">
+                          {contract.type === "one_time"
+                            ? "Pagamento único"
+                            : (contract as any).installments_count
+                              ? `${(contract as any).installments_count} meses`
+                              : "Recorrente"}
+                        </span>
                       </div>
 
                       <Button asChild variant="outline" size="sm" className="w-full mt-2 rounded-md text-[11px] font-mono-kasa tracking-tight gap-1.5 h-8 border-border/60">
