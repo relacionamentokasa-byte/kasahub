@@ -119,9 +119,9 @@ export function JobCommentsSection({
     }
   };
 
-  // Inserir menção selecionada no texto
+  // Inserir menção selecionada no texto com o NOME COMPLETO
   const insertMention = (profile: Profile) => {
-    const name = profile.display_name || profile.full_name?.split(" ")[0] || "Membro";
+    const name = profile.full_name || profile.display_name || "Membro";
     const pos = mentionCursorPos || commentText.length;
     const textBefore = commentText.slice(0, pos);
     const textAfter = commentText.slice(pos);
@@ -144,8 +144,9 @@ export function JobCommentsSection({
     }, 50);
   };
 
-  // Tratar teclado no autocomplete (ArrowUp, ArrowDown, Enter, Escape)
+  // Tratar teclado no autocomplete e envio direto com Enter
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // 1. Se o popover de menção @ estiver aberto, navegar e selecionar nele
     if (mentionQuery !== null && filteredTeamForMention.length > 0) {
       if (e.key === "ArrowDown") {
         e.preventDefault();
@@ -161,6 +162,7 @@ export function JobCommentsSection({
       }
       if (e.key === "Enter" || e.key === "Tab") {
         e.preventDefault();
+        e.stopPropagation();
         const target = filteredTeamForMention[selectedMentionIdx];
         if (target) insertMention(target);
         return;
@@ -172,11 +174,17 @@ export function JobCommentsSection({
       }
     }
 
-    // Envio rápido com Ctrl+Enter ou Cmd+Enter
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    // 2. Se pressionou Enter sozinho (sem Shift): enviar o comentário diretamente sem apagar
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (commentText.trim()) handleSend();
+      e.stopPropagation();
+      if (commentText.trim() && !sendCommentMutation.isPending) {
+        handleSend();
+      }
+      return;
     }
+
+    // 3. Shift+Enter pula linha normalmente (comportamento padrão do textarea)
   };
 
   // Mutation para criar comentário

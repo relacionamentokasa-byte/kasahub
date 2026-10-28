@@ -41,6 +41,8 @@ export interface MonthlyJobItem {
   project_name?: string;
   done_at?: string | null;
   description?: string | null;
+  macro_front?: string | null;
+  is_extra?: boolean;
 }
 
 export interface MonthlyEditorialItem {
@@ -222,7 +224,7 @@ export async function exportMonthlyDeliverablesPDF(opts: ExportMonthlyDeliverabl
     y += boxH + 16;
   }
 
-  // 5. Tabela de Jobs Concluídos
+  // 5. Tabela de Jobs Concluídos (com identificação de Macro-Frentes e Escopo)
   doc.setFont(FONT_MAIN, "bold");
   doc.setFontSize(10);
   doc.setTextColor(...C.textDark);
@@ -232,17 +234,18 @@ export async function exportMonthlyDeliverablesPDF(opts: ExportMonthlyDeliverabl
   const jobsTableRows = opts.jobs.map((j, i) => [
     `${i + 1}`,
     sanitize(j.title),
-    sanitize(j.service_name || j.project_name || "Serviço Recorrente"),
+    sanitize(j.macro_front || j.service_name || j.project_name || "Geral"),
+    j.is_extra ? "DEMANDA EXTRA" : "ESCOPO CONTRATUAL",
     j.done_at ? new Date(j.done_at).toLocaleDateString("pt-BR") : "Concluído",
   ]);
 
   if (jobsTableRows.length === 0) {
-    jobsTableRows.push(["-", "Nenhum job registrado no período", "-", "-"]);
+    jobsTableRows.push(["-", "Nenhum job registrado no período", "-", "-", "-"]);
   }
 
   autoTable(doc, {
     startY: y,
-    head: [["#", "Job / Entrega", "Serviço / Projeto", "Data Conclusão"]],
+    head: [["#", "Job / Entrega", "Frente Temática / Serviço", "Tipo Escopo", "Data Conclusão"]],
     body: jobsTableRows,
     theme: "plain",
     margin: { left: margin, right: margin },
@@ -261,10 +264,11 @@ export async function exportMonthlyDeliverablesPDF(opts: ExportMonthlyDeliverabl
       fontSize: 8,
     },
     columnStyles: {
-      0: { cellWidth: 24, halign: "center" },
+      0: { cellWidth: 22, halign: "center" },
       1: { cellWidth: "auto", fontStyle: "bold" },
-      2: { cellWidth: 140 },
-      3: { cellWidth: 80, halign: "center" },
+      2: { cellWidth: 120 },
+      3: { cellWidth: 95, halign: "center" },
+      4: { cellWidth: 70, halign: "center" },
     },
   });
 

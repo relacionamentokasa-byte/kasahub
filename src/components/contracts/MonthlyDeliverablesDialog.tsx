@@ -24,6 +24,8 @@ import {
   type MonthlyEditorialItem,
   type MonthlyDmeItem,
 } from "@/lib/monthly-deliverables-pdf";
+import { classifyJob } from "@/components/clients/brain-hub/brain-classifier";
+import { MACRO_FRONTS } from "@/components/clients/brain-hub/types";
 
 interface Props {
   open: boolean;
@@ -120,7 +122,7 @@ export function MonthlyDeliverablesDialog({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("extra_demands")
-        .select("id, number_display, title, price, approved_at, status")
+        .select("id, number_display, title, value, approved_at, status")
         .eq("client_id", clientId)
         .gte("approved_at", `${currentMonthConfig.startDate}T00:00:00`)
         .lte("approved_at", `${currentMonthConfig.endDate}T23:59:59`);
@@ -180,13 +182,20 @@ export function MonthlyDeliverablesDialog({
 
       const filteredJobs: MonthlyJobItem[] = jobs
         .filter((j) => selectedJobIds.includes(j.id))
-        .map((j) => ({
-          id: j.id,
-          title: j.title,
-          service_name: (j as any).services?.name,
-          project_name: (j as any).projects?.name,
-          done_at: j.done_at,
-        }));
+        .map((j) => {
+          const frontId = classifyJob(j as any, new Map(), new Map());
+          const frontConfig = MACRO_FRONTS.find((f) => f.id === frontId);
+
+          return {
+            id: j.id,
+            title: j.title,
+            service_name: (j as any).services?.name,
+            project_name: (j as any).projects?.name,
+            done_at: j.done_at,
+            macro_front: frontConfig ? frontConfig.title : "Operação Geral",
+            is_extra: !!(j as any).dme_id,
+          };
+        });
 
       const filteredPosts: MonthlyEditorialItem[] = posts
         .filter((p) => selectedPostIds.includes(p.id))
@@ -204,7 +213,7 @@ export function MonthlyDeliverablesDialog({
           id: d.id,
           number_display: d.number_display || undefined,
           title: d.title,
-          value: Number(d.price || 0),
+          value: Number(d.value || 0),
           approved_at: d.approved_at,
         }));
 

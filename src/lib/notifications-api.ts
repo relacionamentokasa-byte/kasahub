@@ -161,13 +161,14 @@ export async function handleMentions(text: string, context: {
   originType: string,
   originId: string
 }) {
-  // Captura menções simples (@joao) e com acentos/caracteres especiais (@Ariel, @André, @João)
-  const mentionRegex = /@([\p{L}\p{N}_.-]+)/gu;
+  // Captura menções simples (@nome) ou compostas (@Nome Sobrenome)
+  // Aceita caracteres alfanuméricos, acentos, underscores, pontos, hífens e nomes com espaço
+  const mentionRegex = /@([\p{L}\p{N}_.-]+(?:\s+[\p{L}\p{N}_.-]+)*)/gu;
   const matches = Array.from(text.matchAll(mentionRegex));
   if (matches.length === 0) return;
 
-  const names = Array.from(new Set(matches.map(m => m[1].trim()))).filter(Boolean);
-  if (names.length === 0) return;
+  const rawNames = Array.from(new Set(matches.map(m => m[1].trim()))).filter(Boolean);
+  if (rawNames.length === 0) return;
 
   const { data: { user } } = await supabase.auth.getUser();
   const currentUserId = user?.id;
@@ -178,19 +179,18 @@ export async function handleMentions(text: string, context: {
 
   if (profileError || !profiles || profiles.length === 0) return;
 
-  // Correspondência flexível por display_name, full_name ou primeiro nome
+  // Correspondência precisa e flexível por full_name, display_name ou primeiro nome
   const matchedProfiles = profiles.filter((profile) => {
-    const dName = (profile.display_name || "").toLowerCase();
-    const fName = (profile.full_name || "").toLowerCase();
+    const dName = (profile.display_name || "").toLowerCase().trim();
+    const fName = (profile.full_name || "").toLowerCase().trim();
     const firstName = fName.split(" ")[0] || "";
 
-    return names.some((n) => {
-      const target = n.toLowerCase();
+    return rawNames.some((n) => {
+      const target = n.toLowerCase().trim();
       return (
-        dName.includes(target) ||
-        fName.includes(target) ||
-        firstName === target ||
-        dName === target
+        (fName && (fName === target || target.startsWith(fName) || fName.startsWith(target))) ||
+        (dName && (dName === target || target.startsWith(dName) || dName.startsWith(target))) ||
+        (firstName && target.split(" ")[0] === firstName)
       );
     });
   });
