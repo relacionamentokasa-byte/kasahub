@@ -1,20 +1,17 @@
 import { createFileRoute, useParams, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import {
-  ArrowLeft, Mail, Phone, Building2,
-  Wallet, FileText, FolderKanban, Activity,
+import { 
+  ArrowLeft, Mail, Phone, Building2, 
+  Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
   FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket, CalendarDays,
-  Presentation as PresentationIcon, Layers, MoreHorizontal, Compass
+  Presentation as PresentationIcon
 } from "lucide-react";
-import { ClientBrainHub } from "@/components/clients/brain-hub/ClientBrainHub";
-import { ClientStrategicPlanningTab } from "@/components/clients/ClientStrategicPlanningTab";
 import { ClientPresentationsPanel } from "@/components/clients/ClientPresentationsPanel";
 import { ClientOnboardingPanel } from "@/components/onboarding/ClientOnboardingPanel";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { JobsBoard } from "@/components/jobs/JobsBoard";
 import { LaunchGridSection } from "@/components/clients/LaunchGridSection";
@@ -36,12 +33,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DetailHeaderSkeleton, CardListSkeleton } from "@/components/ui/loading-skeletons";
 import { StorageImage } from "@/components/ui/storage-image";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
@@ -141,9 +133,6 @@ function ClientDetail() {
 
   // Todos os hooks devem ser declarados ANTES de qualquer early return
   // para preservar a ordem entre renders (loading -> loaded).
-  // Definimos a aba inicial como "estrategia" para abrir direto no plano de marketing da conta
-  const [activeTab, setActiveTab] = useState("estrategia");
-
   const unifiedEvents = useMemo(
     () => buildUnifiedEvents({ proposals, contracts, projects, jobs, dmes, transactions, onboardings }),
     [proposals, contracts, projects, jobs, dmes, transactions, onboardings],
@@ -281,97 +270,46 @@ function ClientDetail() {
       </div>
 
 
-      {/* Navegação 360 Enxuta */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
+      {/* Navegação 360 */}
+      <Tabs defaultValue="overview" className="flex-1 flex flex-col">
         <div className="bg-card border-b border-border/60 sticky top-0 z-10">
           <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between">
-              <TabsList className="bg-transparent border-0 h-auto p-0 gap-6 overflow-x-auto justify-start no-scrollbar">
-                {/* 1. Planejamento Estratégico */}
+            <TabsList className="bg-transparent border-0 h-auto p-0 gap-6 overflow-x-auto justify-start no-scrollbar">
+              {[
+                { v: "overview", label: "Resumo", icon: Activity },
+                { v: "contratos", label: "Contratos", icon: FileSignature },
+                { v: "propostas", label: "Propostas", icon: FileText },
+                { v: "projetos", label: "Projetos", icon: FolderKanban },
+                { v: "jobs", label: "Jobs", icon: CheckSquare },
+                ...((client as any)?.has_launch_grid ? [{ v: "grid", label: "Grid de Lançamento", icon: Rocket }] : []),
+                ...((client as any)?.has_editorial_calendar ? [{ v: "editorial", label: "Calendário Editorial", icon: CalendarDays }] : []),
+                { v: "financeiro", label: "Financeiro", icon: Wallet },
+                { v: "dmes", label: "Demandas Extras", icon: Sparkles },
+                { v: "servicos", label: "Serviços", icon: Handshake },
+                { v: "onboarding", label: "Onboarding", icon: Rocket },
+                { v: "apresentacoes", label: "Apresentações", icon: PresentationIcon },
+                { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
+              ].map((tab) => (
                 <TabsTrigger
-                  value="estrategia"
-                  className="relative data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary border-b-2 border-transparent rounded-t-md px-2.5 py-3 text-xs font-mono-kasa font-bold tracking-tight gap-1.5 transition-colors hover:text-primary text-foreground shadow-none"
+                  key={tab.v}
+                  value={tab.v}
+                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-0 py-3 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
                 >
-                  <Compass className="size-4 text-primary" />
-                  <span className="text-foreground font-semibold">Planejamento Estratégico</span>
-                </TabsTrigger>
-
-                {/* 2. Entregas & Pastas da Conta */}
-                <TabsTrigger
-                  value="entregas"
-                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-1 py-3 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
-                >
-                  <Layers className="size-3.5" />
-                  Entregas & Pastas
-                </TabsTrigger>
-
-                {/* 3. Contrato & Escopo */}
-                <TabsTrigger
-                  value="contratos"
-                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-1 py-3 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
-                >
-                  <FileSignature className="size-3.5" />
-                  Contrato & Escopo
-                  {contracts.length > 0 && (
+                  <tab.icon className="size-3.5" />
+                  {tab.label}
+                  {tab.v === "contratos" && contracts.length > 0 && (
                     <span className="flex size-4 items-center justify-center rounded bg-foreground/10 text-[9px] font-mono-kasa font-bold text-foreground">
                       {contracts.length}
                     </span>
                   )}
-                </TabsTrigger>
-
-                {/* 4. Extras / DMEs */}
-                <TabsTrigger
-                  value="dmes"
-                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-1 py-3 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
-                >
-                  <Sparkles className="size-3.5 text-amber-500" />
-                  Demandas Extras
-                  {dmes.length > 0 && (
-                    <span className="flex size-4 items-center justify-center rounded bg-amber-500/10 text-[9px] font-mono-kasa font-bold text-amber-600 dark:text-amber-400">
-                      {dmes.length}
+                  {tab.v === "propostas" && proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length > 0 && (
+                    <span className="flex size-4 items-center justify-center rounded bg-foreground/10 text-[9px] font-mono-kasa font-bold text-foreground">
+                      {proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length}
                     </span>
                   )}
                 </TabsTrigger>
-
-                {/* 5. Financeiro */}
-                <TabsTrigger
-                  value="financeiro"
-                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-1 py-3 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
-                >
-                  <Wallet className="size-3.5" />
-                  Financeiro
-                </TabsTrigger>
-
-                {/* 6. Histórico & Visão Geral */}
-                <TabsTrigger
-                  value="overview"
-                  className="relative data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:border-foreground border-b-2 border-transparent rounded-none px-1 py-3 text-xs font-mono-kasa font-medium tracking-tight gap-1.5 transition-colors hover:text-foreground text-muted-foreground shadow-none"
-                >
-                  <Activity className="size-3.5" />
-                  Histórico & Resumo
-                </TabsTrigger>
-              </TabsList>
-
-              {/* Menu 'Mais Opções' para telas menores ou acesso direto */}
-              <div className="xl:hidden py-2 pl-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 px-2 text-xs font-mono-kasa gap-1 text-muted-foreground hover:text-foreground">
-                      <MoreHorizontal className="size-4" />
-                      Mais
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 font-mono-kasa text-xs">
-                    <DropdownMenuItem onClick={() => setActiveTab("apresentacoes")} className="cursor-pointer">
-                      <PresentationIcon className="size-3.5 mr-2" /> Apresentações
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setActiveTab("timeline")} className="cursor-pointer">
-                      <TrendingUp className="size-3.5 mr-2" /> Linha do Tempo
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
+              ))}
+            </TabsList>
           </div>
         </div>
 
@@ -445,26 +383,14 @@ function ClientDetail() {
                     <p className="text-[10px] text-muted-foreground font-mono-kasa mb-3">Início: {new Date(contract.start_date).toLocaleDateString()}</p>
 
                     <div className="space-y-2 pt-3 border-t border-border/60 font-mono-kasa">
-                      {(() => {
-                        const isProject =
-                          contract.type === "one_time" ||
-                          contract.type === "avulso" ||
-                          (!contract.monthly_value || Number(contract.monthly_value) === 0);
-                        const displayValue = isProject
-                          ? (contract.total_value ?? contract.monthly_value ?? 0)
-                          : (contract.monthly_value ?? 0);
-
-                        return (
-                          <div className="flex justify-between items-center text-xs">
-                            <span className="text-[10px] uppercase text-muted-foreground tracking-wider">
-                              {isProject ? "Valor do Projeto" : "Fee Mensal"}
-                            </span>
-                            <span className="font-bold text-emerald-500 tabular-nums">
-                              {brl(Number(displayValue))}
-                            </span>
-                          </div>
-                        );
-                      })()}
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="text-[10px] uppercase text-muted-foreground tracking-wider">
+                          {contract.type === "one_time" ? "Valor do Projeto" : "Fee Mensal"}
+                        </span>
+                        <span className="font-bold text-emerald-500 tabular-nums">
+                          {brl(Number(contract.type === "one_time" ? contract.total_value : contract.monthly_value))}
+                        </span>
+                      </div>
                       <div className="flex justify-between items-center text-xs">
                         <span className="text-[10px] uppercase text-muted-foreground tracking-wider">Duração</span>
                         <span className="font-medium text-foreground">
@@ -558,39 +484,9 @@ function ClientDetail() {
                </div>
             </TabsContent>
 
-            {/* 1. ABA NOBRE: Planejamento Estratégico de Marketing */}
-            <TabsContent value="estrategia" className="m-0 min-h-[500px] animate-reveal">
-              <ClientStrategicPlanningTab
-                clientId={clientId}
-                clientName={client?.name || client?.company || "Cliente"}
-                jobs={jobs as any}
-                projects={projects as any}
-              />
-            </TabsContent>
-
-            {/* Conteúdo: Entregas & Pastas da Conta (Hub Principal) */}
-            <TabsContent value="entregas" className="m-0 min-h-[500px] animate-reveal">
-              <ClientBrainHub
-                clientId={clientId}
-                clientName={client?.name || client?.company || "Cliente"}
-                clientCompany={client?.company}
-                clientLogoUrl={client?.logo_url}
-              />
-            </TabsContent>
-
             {/* Conteúdo: Jobs */}
             <TabsContent value="jobs" className="m-0 min-h-[500px] animate-reveal">
               <JobsBoard clientId={clientId} title="Jobs do Cliente" eyebrow="Gestão · Operação" />
-            </TabsContent>
-
-            {/* Conteúdo: Projetos Antigos (Compatibilidade) */}
-            <TabsContent value="projetos" className="m-0 min-h-[500px] animate-reveal">
-              <ClientBrainHub
-                clientId={clientId}
-                clientName={client?.name || client?.company || "Cliente"}
-                clientCompany={client?.company}
-                clientLogoUrl={client?.logo_url}
-              />
             </TabsContent>
 
             {/* Conteúdo: Grid de Lançamento */}
