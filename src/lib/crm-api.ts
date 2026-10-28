@@ -486,23 +486,37 @@ export async function duplicateProposal(id: string): Promise<Proposal> {
 export async function upsertProposalItem(
   item: Partial<ProposalItem> & { proposal_id: string; title: string; pricing_snapshot?: unknown },
 ) {
-  if (item.id) {
+  const saveItem = async (payload: any) => {
+    if (payload.id) {
+      const { data, error } = await (supabase as any)
+        .from("proposal_items")
+        .update(payload)
+        .eq("id", payload.id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
     const { data, error } = await (supabase as any)
       .from("proposal_items")
-      .update(item)
-      .eq("id", item.id)
+      .insert(payload)
       .select()
       .single();
     if (error) throw error;
     return data;
+  };
+
+  try {
+    return await saveItem(item);
+  } catch (err: any) {
+    // Se a coluna pricing_snapshot não existir no banco atual, salva sem ela
+    const msg = String(err?.message || "");
+    if (msg.includes("pricing_snapshot") && "pricing_snapshot" in item) {
+      const { pricing_snapshot: _ignored, ...cleanItem } = item;
+      return await saveItem(cleanItem);
+    }
+    throw err;
   }
-  const { data, error } = await (supabase as any)
-    .from("proposal_items")
-    .insert(item)
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
 }
 
 export async function deleteProposalItem(id: string) {
