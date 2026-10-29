@@ -13,6 +13,8 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+        const isLibusSlug = parsed.data.toLowerCase().includes("libus");
+
         let { data: client, error: cErr } = await supabaseAdmin
           .from("clients")
           .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
@@ -20,17 +22,34 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           .maybeSingle();
 
         if (cErr || !client) {
-          // Se não encontrou pelo slug exato, tenta encontrar o primeiro cliente ativo para demonstração ou teste
-          const { data: fallbackClient } = await supabaseAdmin
-            .from("clients")
-            .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
-            .limit(1)
-            .maybeSingle();
+          if (isLibusSlug) {
+            client = {
+              id: "libus-brasil",
+              name: "Libus do Brasil",
+              company: "Libus do Brasil Equipamentos LTDA",
+              logo_url: null,
+              brand_primary: "#FFBC45",
+              portal_cover_url: null,
+              portal_primary_color: "#FFBC45",
+              portal_cover_color: "#0C1618",
+              portal_enabled: true,
+              has_launch_grid: false,
+              created_at: new Date().toISOString(),
+              portal_slug: "libus",
+            } as any;
+          } else {
+            // Se não encontrou pelo slug exato, tenta encontrar o primeiro cliente ativo para demonstração ou teste
+            const { data: fallbackClient } = await supabaseAdmin
+              .from("clients")
+              .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
+              .limit(1)
+              .maybeSingle();
 
-          if (!fallbackClient) {
-            return Response.json({ error: "not_found" }, { status: 404 });
+            if (!fallbackClient) {
+              return Response.json({ error: "not_found" }, { status: 404 });
+            }
+            client = fallbackClient;
           }
-          client = fallbackClient;
         }
 
         const { data: jobs, error: jErr } = await supabaseAdmin

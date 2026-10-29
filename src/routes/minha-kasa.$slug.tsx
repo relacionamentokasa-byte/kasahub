@@ -435,25 +435,29 @@ function MinhaKasaPage() {
       }
 
       // Mock/demonstração corporativa oficial Kasa se API pública falhar ou não encontrar
+      const isLibus = slug?.toLowerCase().includes("libus");
       return {
         client: {
-          id: "nutriex",
-          name: "Nutriex Professional",
-          company: "Nutriex Professional",
+          id: isLibus ? "libus-brasil" : "nutriex",
+          name: isLibus ? "Libus do Brasil" : "Nutriex Professional",
+          company: isLibus ? "Libus do Brasil Equipamentos LTDA" : "Nutriex Professional",
           logo_url: null,
           brand_primary: "#FFBC45",
           portal_cover_url: null,
           portal_primary_color: "#FFBC45",
           portal_cover_color: "#0C1618",
           created_at: new Date().toISOString(),
+          portal_slug: isLibus ? "libus" : "nutriex",
         },
         jobs: [
           {
             id: "job-1",
-            title: "Campanha FISP 2026",
-            description: "Campanha institucional para a feira internacional de segurança",
+            title: isLibus ? "Ativação de Distribuidores — Mês 1" : "Campanha FISP 2026",
+            description: isLibus
+              ? "Levantamento de linha de base, auditoria de canais e kit de conteúdo mensal"
+              : "Campanha institucional para a feira internacional de segurança",
             status: "in_progress",
-            due_date: "2026-10-06T00:00:00Z",
+            due_date: "2026-11-05T00:00:00Z",
             progress_percentage: 60,
             updated_at: new Date().toISOString(),
             main_responsible_id: "ariel",
