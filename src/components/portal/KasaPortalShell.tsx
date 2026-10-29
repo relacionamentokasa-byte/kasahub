@@ -13,6 +13,7 @@ import { KasaFinancialView } from "./KasaFinancialView";
 import { KasaContentsView } from "./KasaContentsView";
 import { KasaReportsView } from "./KasaReportsView";
 import { KasaSupportView } from "./KasaSupportView";
+import { LibusPilotTradeView } from "./LibusPilotTradeView";
 import { toast } from "sonner";
 
 interface KasaPortalLayoutProps {
@@ -166,6 +167,15 @@ export function KasaPortalShell({
             approvalComments={approvalComments}
             onNavigateTab={(tab) => handleSelectTab(tab as PortalTab)}
             onApproveAll={handleApproveAll}
+          />
+        )}
+
+        {currentTab === "libus-trade" && (
+          <LibusPilotTradeView
+            clientName={displayName}
+            brandColor={primaryColor}
+            jobs={jobs}
+            slug={slug}
           />
         )}
 

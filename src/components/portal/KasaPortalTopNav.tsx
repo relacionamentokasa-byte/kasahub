@@ -13,11 +13,14 @@ import {
   Palette,
   Film,
   Rocket,
+  ShieldCheck,
+  Target,
 } from "lucide-react";
 import { SocialIcon } from "@/components/editorial/SocialIcon";
 
 export type PortalTab =
   | "feed"
+  | "libus-trade"
   | "trafego"
   | "branding"
   | "videos"
@@ -33,6 +36,7 @@ export type PortalTab =
 
 export type ContractedServiceKey =
   | "social_media"
+  | "libus_trade"
   | "traffic_ads"
   | "branding"
   | "video_production"
@@ -71,6 +75,12 @@ const ALL_PRIMARY_TABS: Array<{
     customIcon: "instagram",
     badgeCount: (p) => p,
     icon: Grid,
+  },
+  {
+    id: "libus-trade",
+    serviceKey: "libus_trade",
+    label: "Piloto & Trade",
+    icon: Target,
   },
   {
     id: "trafego",
@@ -123,10 +133,14 @@ export function KasaPortalTopNav({
     client.brand_primary?.trim() ||
     "#FFBC45";
 
+  const isLibus =
+    client.name.toLowerCase().includes("libus") ||
+    (client.company || "").toLowerCase().includes("libus");
+
   // Filtra as abas estritamente de acordo com os serviços contratados pelo cliente
   const activeServices = (client.contracted_services && client.contracted_services.length > 0)
     ? client.contracted_services
-    : ["social_media", "traffic_ads", "branding", "video_production", "special_projects", "financial"];
+    : ["social_media", ...(isLibus ? ["libus_trade"] : []), "traffic_ads", "branding", "video_production", "special_projects", "financial"];
 
   const visibleTabs = ALL_PRIMARY_TABS.filter((tab) =>
     activeServices.includes(tab.serviceKey)
