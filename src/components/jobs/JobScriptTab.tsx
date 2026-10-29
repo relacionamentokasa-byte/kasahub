@@ -130,17 +130,36 @@ function ScriptEditor({ scriptId, jobId }: { scriptId: string; jobId: string }) 
   const current = local ?? script;
 
   const save = useMutation({
-    mutationFn: (patch: any) => updateScript(scriptId, patch),
-    onSuccess: async (_d, vars) => {
+    mutationFn: (patch: any) => {
+      // Envia somente as propriedades alteradas para evitar enviar campos read-only ou joins
+      const payload: any = {};
+      if ("title" in patch) payload.title = patch.title;
+      if ("video_concept" in patch) payload.video_concept = patch.video_concept;
+      if ("content_type" in patch) payload.content_type = patch.content_type;
+      if ("platform" in patch) payload.platform = patch.platform;
+      if ("video_format" in patch) payload.video_format = patch.video_format;
+      if ("status" in patch) payload.status = patch.status;
+      if ("estimated_duration_sec" in patch) payload.estimated_duration_sec = patch.estimated_duration_sec;
+      return updateScript(scriptId, Object.keys(payload).length > 0 ? payload : patch);
+    },
+    onSuccess: async (data, vars) => {
+      // Atualiza o estado local imediatamente com o retorno do servidor para não piscar nem perder texto
+      if (data) {
+        setLocal((prev: any) => ({ ...(prev || {}), ...data }));
+      }
       qc.invalidateQueries({ queryKey: ["script-by-job-detail", scriptId] });
       qc.invalidateQueries({ queryKey: ["script-by-job"] });
+      toast.success("Roteiro salvo com sucesso!");
       if (vars?.status === "approved" && script?.status !== "approved") {
         const ticked = await autoTickScriptChecklist(jobId);
         qc.invalidateQueries({ queryKey: ["job-checklist", jobId] });
         qc.invalidateQueries({ queryKey: ["jobs"] });
         if (ticked > 0) toast.success(`Roteiro aprovado — ${ticked} item(ns) do checklist marcado(s)`);
-        else toast.success("Roteiro aprovado");
       }
+    },
+    onError: (err: any) => {
+      console.error("Erro ao salvar roteiro:", err);
+      toast.error(`Erro ao salvar: ${err.message || "Tente novamente"}`);
     },
   });
 
@@ -193,7 +212,17 @@ function ScriptEditor({ scriptId, jobId }: { scriptId: string; jobId: string }) 
             <Button
               size="sm"
               className="bg-primary text-primary-foreground font-semibold shadow-sm hover:opacity-95"
-              onClick={() => save.mutate(current)}
+              onClick={() =>
+                save.mutate({
+                  title: current.title,
+                  video_concept: current.video_concept,
+                  content_type: current.content_type,
+                  platform: current.platform,
+                  video_format: current.video_format,
+                  status: current.status,
+                  estimated_duration_sec: current.estimated_duration_sec,
+                })
+              }
               disabled={save.isPending}
             >
               {save.isPending ? (

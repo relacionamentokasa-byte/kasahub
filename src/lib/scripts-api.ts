@@ -124,9 +124,31 @@ export async function createScript(input: {
 }
 
 export async function updateScript(id: string, patch: Partial<Script>) {
+  // Filtra para enviar apenas colunas válidas da tabela scripts
+  // e remove campos de joins (jobs, clients) ou campos protegidos/read-only
+  const allowedKeys: (keyof Script)[] = [
+    "title",
+    "content_type",
+    "platform",
+    "estimated_duration_sec",
+    "video_format",
+    "status",
+    "video_concept",
+  ];
+
+  const sanitizedPatch: Record<string, any> = {};
+  for (const key of allowedKeys) {
+    if (key in patch) {
+      sanitizedPatch[key] = (patch as any)[key];
+    }
+  }
+
+  // Se não houver nada nas chaves conhecidas, usa o patch original
+  const payload = Object.keys(sanitizedPatch).length > 0 ? sanitizedPatch : patch;
+
   const { data, error } = await supabase
     .from("scripts")
-    .update(patch as any)
+    .update(payload as any)
     .eq("id", id)
     .select()
     .single();
