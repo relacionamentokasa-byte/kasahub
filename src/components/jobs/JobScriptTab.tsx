@@ -122,7 +122,23 @@ function ScriptEditor({ scriptId, jobId }: { scriptId: string; jobId: string }) 
         .eq("id", scriptId)
         .single();
       if (error) throw error;
-      return data as any;
+      const res = data as any;
+      if (!res.video_concept) {
+        try {
+          const { data: jobData } = await supabase
+            .from("jobs")
+            .select("custom_fields")
+            .eq("id", jobId)
+            .maybeSingle();
+          const fallbackConcept = (jobData?.custom_fields as any)?.video_concept;
+          if (fallbackConcept) {
+            res.video_concept = fallbackConcept;
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return res;
     },
   });
 

@@ -94,13 +94,35 @@ export async function getScript(id: string) {
 }
 
 export async function getScriptByJob(jobId: string) {
-  const { data, error } = await supabase
+  const { data: scriptData, error } = await supabase
     .from("scripts")
     .select("*")
     .eq("job_id", jobId)
     .maybeSingle();
   if (error) throw error;
-  return data as Script | null;
+  if (!scriptData) return null;
+
+  const script = scriptData as Script;
+
+  // Se o video_concept vier vazio da tabela scripts (ex.: coluna não existe no cache do Supabase),
+  // tenta carregar dos custom_fields do job como fallback seguro
+  if (!script.video_concept) {
+    try {
+      const { data: jobData } = await supabase
+        .from("jobs")
+        .select("custom_fields")
+        .eq("id", jobId)
+        .maybeSingle();
+      const fallbackConcept = (jobData?.custom_fields as any)?.video_concept;
+      if (fallbackConcept) {
+        script.video_concept = fallbackConcept;
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  return script;
 }
 
 export async function createScript(input: {
@@ -146,12 +168,51 @@ export async function updateScript(id: string, patch: Partial<Script>) {
   // Se não houver nada nas chaves conhecidas, usa o patch original
   const payload = Object.keys(sanitizedPatch).length > 0 ? sanitizedPatch : patch;
 
-  const { data, error } = await supabase
-    .from("scripts")
-    .update(payload as any)
-    .eq("id", id)
-    .select()
-    .single();
+  const performUpdate = async (updatePayload: any) => {
+    return await supabase
+      .from("scripts")
+      .update(updatePayload as any)
+      .eq("id", id)
+      .select()
+      .single();
+  };
+
+  let { data, error } = await performUpdate(payload);
+
+  // Se o Supabase falhar porque a coluna video_concept não existe no cache do banco,
+  // tenta salvar os demais campos do script e persiste o video_concept no job
+  if (error && String(error.message || "").includes("video_concept")) {
+    const { video_concept, ...withoutConcept } = payload;
+    const fallbackRes = await performUpdate(withoutConcept);
+    if (!fallbackRes.error && fallbackRes.data) {
+      data = fallbackRes.data;
+      error = null;
+
+      // Salva o video_concept em custom_fields do job associado
+      if (video_concept !== undefined) {
+        try {
+          const jobId = data.job_id;
+          if (jobId) {
+            const { data: jobData } = await supabase
+              .from("jobs")
+              .select("custom_fields")
+              .eq("id", jobId)
+              .maybeSingle();
+            const currentFields = (jobData?.custom_fields as Record<string, any>) || {};
+            await supabase
+              .from("jobs")
+              .update({
+                custom_fields: { ...currentFields, video_concept },
+              } as any)
+              .eq("id", jobId);
+          }
+        } catch {
+          // ignore fallback write failure
+        }
+      }
+    }
+  }
+
   if (error) throw error;
   return data as unknown as Script;
 }
