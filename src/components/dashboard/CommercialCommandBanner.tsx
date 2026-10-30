@@ -70,7 +70,10 @@ export function CommercialCommandBanner() {
     const lostStageIds = new Set(stages.filter((s) => s.is_lost).map((s) => s.id));
 
     const activeLeads = leads.filter(
-      (l) => !wonStageIds.has(l.stage_id) && !lostStageIds.has(l.stage_id)
+      (l) => {
+        const stage = l.stage_id ?? "";
+        return !wonStageIds.has(stage) && !lostStageIds.has(stage);
+      }
     );
 
     const pipelineValue = activeLeads.reduce((acc, l) => acc + (Number(l.value) || 0), 0);

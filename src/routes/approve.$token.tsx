@@ -24,7 +24,7 @@ export const Route = createFileRoute("/approve/$token")({
   head: () => ({ meta: [{ title: "Aprovação de Entrega · KASA HUB" }] }),
   component: PublicApprovalPage,
   errorComponent: ({ error, reset }) => (
-    <FallbackError message={error?.message} onRetry={reset} />
+    <FallbackError message={error instanceof Error ? error.message : undefined} onRetry={reset} />
   ),
 });
 

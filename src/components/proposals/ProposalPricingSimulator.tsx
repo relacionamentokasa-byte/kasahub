@@ -172,5 +172,6 @@ export function ProposalPricingSimulator({ parameters, lines, onChange, readOnly
 }
 
 export function snapshotForLine(line: PricingLine, parameters: PricingParameters) {
-  return createPricingSnapshot(line, parameters);
+  // Converte o snapshot em JSON puro, compatível com a coluna jsonb do banco.
+  return JSON.parse(JSON.stringify(createPricingSnapshot(line, parameters)));
 }
