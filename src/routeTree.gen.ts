@@ -9,77 +9,76 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ConviteRouteImport } from './routes/convite'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ConviteRouteImport } from './routes/convite'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
-import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
-import { Route as PTokenRouteImport } from './routes/p.$token'
-import { Route as MinhaKasaSlugRouteImport } from './routes/minha-kasa.$slug'
-import { Route as LpDeltaPlusRouteImport } from './routes/lp.delta-plus'
-import { Route as DmeTokenRouteImport } from './routes/dme.$token'
-import { Route as DmeLoteTokenRouteImport } from './routes/dme-lote.$token'
-import { Route as CaptarSlugRouteImport } from './routes/captar.$slug'
-import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
-import { Route as AuthenticatedValesRouteImport } from './routes/_authenticated/vales'
-import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
-import { Route as AuthenticatedProspeccaoRouteImport } from './routes/_authenticated/prospeccao'
-import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
-import { Route as AuthenticatedParceirosRouteImport } from './routes/_authenticated/parceiros'
-import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
-import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
-import { Route as AuthenticatedDmesRouteImport } from './routes/_authenticated/dmes'
-import { Route as AuthenticatedDistribuicaoRouteImport } from './routes/_authenticated/distribuicao'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
-import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
-import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
-import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
-import { Route as AuthenticatedCalendarioEditorialRouteImport } from './routes/_authenticated/calendario-editorial'
-import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedAprovacoesRouteImport } from './routes/_authenticated/aprovacoes'
-import { Route as AuthenticatedRoteirosIndexRouteImport } from './routes/_authenticated/roteiros.index'
-import { Route as AuthenticatedPropostasIndexRouteImport } from './routes/_authenticated/propostas.index'
-import { Route as AuthenticatedProjetosIndexRouteImport } from './routes/_authenticated/projetos.index'
-import { Route as AuthenticatedConstrutorRelatoriosIndexRouteImport } from './routes/_authenticated/construtor-relatorios.index'
-import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
+import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
+import { Route as AuthenticatedCalendarioEditorialRouteImport } from './routes/_authenticated/calendario-editorial'
+import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
+import { Route as AuthenticatedConfigRouteImport } from './routes/_authenticated/config'
+import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedDistribuicaoRouteImport } from './routes/_authenticated/distribuicao'
+import { Route as AuthenticatedDmesRouteImport } from './routes/_authenticated/dmes'
+import { Route as AuthenticatedIntegracoesRouteImport } from './routes/_authenticated/integracoes'
+import { Route as AuthenticatedJobsRouteImport } from './routes/_authenticated/jobs'
+import { Route as AuthenticatedParceirosRouteImport } from './routes/_authenticated/parceiros'
+import { Route as AuthenticatedPortalRouteImport } from './routes/_authenticated/portal'
+import { Route as AuthenticatedProspeccaoRouteImport } from './routes/_authenticated/prospeccao'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedValesRouteImport } from './routes/_authenticated/vales'
+import { Route as ApproveTokenRouteImport } from './routes/approve.$token'
+import { Route as CaptarSlugRouteImport } from './routes/captar.$slug'
+import { Route as DmeLoteTokenRouteImport } from './routes/dme-lote.$token'
+import { Route as DmeTokenRouteImport } from './routes/dme.$token'
+import { Route as LpDeltaPlusRouteImport } from './routes/lp.delta-plus'
+import { Route as MinhaKasaSlugRouteImport } from './routes/minha-kasa.$slug'
+import { Route as PTokenRouteImport } from './routes/p.$token'
+import { Route as ProposalTokenRouteImport } from './routes/proposal.$token'
+import { Route as PropostaTokenRouteImport } from './routes/proposta.$token'
 import { Route as AuthenticatedBibliotecaIndexRouteImport } from './routes/_authenticated/biblioteca.index'
-import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
-import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
-import { Route as AuthenticatedRoteirosScriptIdRouteImport } from './routes/_authenticated/roteiros.$scriptId'
-import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
-import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
-import { Route as AuthenticatedGestaoRelatoriosRouteImport } from './routes/_authenticated/gestao.relatorios'
-import { Route as AuthenticatedConstrutorRelatoriosPdfRouteImport } from './routes/_authenticated/construtor-relatorios..pdf'
+import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
 import { Route as AuthenticatedClientesClientIdRouteImport } from './routes/_authenticated/clientes.$clientId'
-import { Route as AuthenticatedConstrutorRelatoriosReportIdIndexRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.index'
-import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
-import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
-import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
-import { Route as ApiPublicWebhooksInterRouteImport } from './routes/api/public/webhooks/inter'
-import { Route as ApiPublicPropostaTokenRouteImport } from './routes/api/public/proposta.$token'
-import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
-import { Route as ApiPublicPortalJobsSlugRouteImport } from './routes/api/public/portal-jobs.$slug'
-import { Route as ApiPublicPortalApprovalActionSlugRouteImport } from './routes/api/public/portal-approval-action.$slug'
-import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/public/portal-action.$slug'
-import { Route as ApiPublicLeadsInboundRouteImport } from './routes/api/public/leads/inbound'
-import { Route as ApiPublicHooksMorningSummaryRouteImport } from './routes/api/public/hooks/morning-summary'
-import { Route as ApiPublicHooksLeadTaskRemindersRouteImport } from './routes/api/public/hooks/lead-task-reminders'
-import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
-import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
-import { Route as ApiPublicDmeBatchTokenRouteImport } from './routes/api/public/dme-batch.$token'
-import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
-import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
-import { Route as AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.pdf'
-import { Route as AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.apresentar'
+import { Route as AuthenticatedConstrutorRelatoriosIndexRouteImport } from './routes/_authenticated/construtor-relatorios.index'
+import { Route as AuthenticatedConstrutorRelatoriosPdfRouteImport } from './routes/_authenticated/construtor-relatorios..pdf'
+import { Route as AuthenticatedGestaoRelatoriosRouteImport } from './routes/_authenticated/gestao.relatorios'
+import { Route as AuthenticatedProjetosIndexRouteImport } from './routes/_authenticated/projetos.index'
+import { Route as AuthenticatedProjetosProjectIdRouteImport } from './routes/_authenticated/projetos.$projectId'
+import { Route as AuthenticatedPropostasIndexRouteImport } from './routes/_authenticated/propostas.index'
+import { Route as AuthenticatedPropostasProposalIdRouteImport } from './routes/_authenticated/propostas.$proposalId'
+import { Route as AuthenticatedRoteirosIndexRouteImport } from './routes/_authenticated/roteiros.index'
+import { Route as AuthenticatedRoteirosScriptIdRouteImport } from './routes/_authenticated/roteiros.$scriptId'
+import { Route as ApiPublicFaviconRouteImport } from './routes/api/public/favicon'
+import { Route as ApiPublicManifestRouteImport } from './routes/api/public/manifest'
 import { Route as AuthenticatedApresentacoesPresentationIdApresentarRouteImport } from './routes/_authenticated/apresentacoes.$presentationId.apresentar'
-import { Route as ApiPublicPropostaTokenViewRouteImport } from './routes/api/public/proposta.$token.view'
-import { Route as ApiPublicOgPropostaTokenRouteImport } from './routes/api/public/og/proposta.$token'
+import { Route as AuthenticatedConstrutorRelatoriosReportIdIndexRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.index'
+import { Route as AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.apresentar'
+import { Route as AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport } from './routes/_authenticated/construtor-relatorios.$reportId.pdf'
+import { Route as AuthenticatedOnboardingOnboardingIdApresentarRouteImport } from './routes/_authenticated/onboarding.$onboardingId.apresentar'
+import { Route as ApiPublicApproveTokenRouteImport } from './routes/api/public/approve.$token'
+import { Route as ApiPublicDmeBatchTokenRouteImport } from './routes/api/public/dme-batch.$token'
+import { Route as ApiPublicDmeTokenRouteImport } from './routes/api/public/dme.$token'
+import { Route as ApiPublicHooksDispatchPushRouteImport } from './routes/api/public/hooks/dispatch-push'
+import { Route as ApiPublicHooksLeadTaskRemindersRouteImport } from './routes/api/public/hooks/lead-task-reminders'
+import { Route as ApiPublicHooksMorningSummaryRouteImport } from './routes/api/public/hooks/morning-summary'
+import { Route as ApiPublicLeadsInboundRouteImport } from './routes/api/public/leads/inbound'
+import { Route as ApiPublicPortalActionSlugRouteImport } from './routes/api/public/portal-action.$slug'
+import { Route as ApiPublicPortalApprovalActionSlugRouteImport } from './routes/api/public/portal-approval-action.$slug'
+import { Route as ApiPublicPortalJobsSlugRouteImport } from './routes/api/public/portal-jobs.$slug'
+import { Route as ApiPublicProposalTokenRouteImport } from './routes/api/public/proposal.$token'
+import { Route as ApiPublicPropostaTokenRouteImport } from './routes/api/public/proposta.$token'
+import { Route as ApiPublicWebhooksInterRouteImport } from './routes/api/public/webhooks/inter'
+import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
+import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
+import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
 import { Route as ApiPublicLeadsSubmitSlugRouteImport } from './routes/api/public/leads/submit.$slug'
+import { Route as ApiPublicOgPropostaTokenRouteImport } from './routes/api/public/og/proposta.$token'
+import { Route as ApiPublicPropostaTokenViewRouteImport } from './routes/api/public/proposta.$token.view'
 
-const ConviteRoute = ConviteRouteImport.update({
-  id: '/convite',
-  path: '/convite',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -87,8 +86,9 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ConviteRoute = ConviteRouteImport.update({
+  id: '/convite',
+  path: '/convite',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -96,116 +96,14 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const PropostaTokenRoute = PropostaTokenRouteImport.update({
-  id: '/proposta/$token',
-  path: '/proposta/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProposalTokenRoute = ProposalTokenRouteImport.update({
-  id: '/proposal/$token',
-  path: '/proposal/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PTokenRoute = PTokenRouteImport.update({
-  id: '/p/$token',
-  path: '/p/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MinhaKasaSlugRoute = MinhaKasaSlugRouteImport.update({
-  id: '/minha-kasa/$slug',
-  path: '/minha-kasa/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LpDeltaPlusRoute = LpDeltaPlusRouteImport.update({
-  id: '/lp/delta-plus',
-  path: '/lp/delta-plus',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DmeTokenRoute = DmeTokenRouteImport.update({
-  id: '/dme/$token',
-  path: '/dme/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DmeLoteTokenRoute = DmeLoteTokenRouteImport.update({
-  id: '/dme-lote/$token',
-  path: '/dme-lote/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CaptarSlugRoute = CaptarSlugRouteImport.update({
-  id: '/captar/$slug',
-  path: '/captar/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApproveTokenRoute = ApproveTokenRouteImport.update({
-  id: '/approve/$token',
-  path: '/approve/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedValesRoute = AuthenticatedValesRouteImport.update({
-  id: '/vales',
-  path: '/vales',
+const AuthenticatedAprovacoesRoute = AuthenticatedAprovacoesRouteImport.update({
+  id: '/aprovacoes',
+  path: '/aprovacoes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedProspeccaoRoute = AuthenticatedProspeccaoRouteImport.update({
-  id: '/prospeccao',
-  path: '/prospeccao',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
-  id: '/portal',
-  path: '/portal',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedParceirosRoute = AuthenticatedParceirosRouteImport.update({
-  id: '/parceiros',
-  path: '/parceiros',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
-  id: '/jobs',
-  path: '/jobs',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedIntegracoesRoute =
-  AuthenticatedIntegracoesRouteImport.update({
-    id: '/integracoes',
-    path: '/integracoes',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDmesRoute = AuthenticatedDmesRouteImport.update({
-  id: '/dmes',
-  path: '/dmes',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedDistribuicaoRoute =
-  AuthenticatedDistribuicaoRouteImport.update({
-    id: '/distribuicao',
-    path: '/distribuicao',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
-  id: '/crm',
-  path: '/crm',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
-  id: '/config',
-  path: '/config',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCeoRoute = AuthenticatedCeoRouteImport.update({
-  id: '/ceo',
-  path: '/ceo',
+const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCalendarioEditorialRoute =
@@ -214,38 +112,122 @@ const AuthenticatedCalendarioEditorialRoute =
     path: '/calendario-editorial',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
-  id: '/calendario',
-  path: '/calendario',
+const AuthenticatedCeoRoute = AuthenticatedCeoRouteImport.update({
+  id: '/ceo',
+  path: '/ceo',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAprovacoesRoute = AuthenticatedAprovacoesRouteImport.update({
-  id: '/aprovacoes',
-  path: '/aprovacoes',
+const AuthenticatedConfigRoute = AuthenticatedConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRoteirosIndexRoute =
-  AuthenticatedRoteirosIndexRouteImport.update({
-    id: '/roteiros/',
-    path: '/roteiros/',
+const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDistribuicaoRoute =
+  AuthenticatedDistribuicaoRouteImport.update({
+    id: '/distribuicao',
+    path: '/distribuicao',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedPropostasIndexRoute =
-  AuthenticatedPropostasIndexRouteImport.update({
-    id: '/propostas/',
-    path: '/propostas/',
+const AuthenticatedDmesRoute = AuthenticatedDmesRouteImport.update({
+  id: '/dmes',
+  path: '/dmes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedIntegracoesRoute =
+  AuthenticatedIntegracoesRouteImport.update({
+    id: '/integracoes',
+    path: '/integracoes',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedProjetosIndexRoute =
-  AuthenticatedProjetosIndexRouteImport.update({
-    id: '/projetos/',
-    path: '/projetos/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedConstrutorRelatoriosIndexRoute =
-  AuthenticatedConstrutorRelatoriosIndexRouteImport.update({
-    id: '/construtor-relatorios/',
-    path: '/construtor-relatorios/',
+const AuthenticatedJobsRoute = AuthenticatedJobsRouteImport.update({
+  id: '/jobs',
+  path: '/jobs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedParceirosRoute = AuthenticatedParceirosRouteImport.update({
+  id: '/parceiros',
+  path: '/parceiros',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPortalRoute = AuthenticatedPortalRouteImport.update({
+  id: '/portal',
+  path: '/portal',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedProspeccaoRoute = AuthenticatedProspeccaoRouteImport.update({
+  id: '/prospeccao',
+  path: '/prospeccao',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedValesRoute = AuthenticatedValesRouteImport.update({
+  id: '/vales',
+  path: '/vales',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ApproveTokenRoute = ApproveTokenRouteImport.update({
+  id: '/approve/$token',
+  path: '/approve/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaptarSlugRoute = CaptarSlugRouteImport.update({
+  id: '/captar/$slug',
+  path: '/captar/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DmeLoteTokenRoute = DmeLoteTokenRouteImport.update({
+  id: '/dme-lote/$token',
+  path: '/dme-lote/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DmeTokenRoute = DmeTokenRouteImport.update({
+  id: '/dme/$token',
+  path: '/dme/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LpDeltaPlusRoute = LpDeltaPlusRouteImport.update({
+  id: '/lp/delta-plus',
+  path: '/lp/delta-plus',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinhaKasaSlugRoute = MinhaKasaSlugRouteImport.update({
+  id: '/minha-kasa/$slug',
+  path: '/minha-kasa/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PTokenRoute = PTokenRouteImport.update({
+  id: '/p/$token',
+  path: '/p/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProposalTokenRoute = ProposalTokenRouteImport.update({
+  id: '/proposal/$token',
+  path: '/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PropostaTokenRoute = PropostaTokenRouteImport.update({
+  id: '/proposta/$token',
+  path: '/proposta/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedBibliotecaIndexRoute =
+  AuthenticatedBibliotecaIndexRouteImport.update({
+    id: '/biblioteca/',
+    path: '/biblioteca/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedClientesIndexRoute =
@@ -254,44 +236,16 @@ const AuthenticatedClientesIndexRoute =
     path: '/clientes/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedBibliotecaIndexRoute =
-  AuthenticatedBibliotecaIndexRouteImport.update({
-    id: '/biblioteca/',
-    path: '/biblioteca/',
+const AuthenticatedClientesClientIdRoute =
+  AuthenticatedClientesClientIdRouteImport.update({
+    id: '/clientes/$clientId',
+    path: '/clientes/$clientId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicManifestRoute = ApiPublicManifestRouteImport.update({
-  id: '/api/public/manifest',
-  path: '/api/public/manifest',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicFaviconRoute = ApiPublicFaviconRouteImport.update({
-  id: '/api/public/favicon',
-  path: '/api/public/favicon',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRoteirosScriptIdRoute =
-  AuthenticatedRoteirosScriptIdRouteImport.update({
-    id: '/roteiros/$scriptId',
-    path: '/roteiros/$scriptId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedPropostasProposalIdRoute =
-  AuthenticatedPropostasProposalIdRouteImport.update({
-    id: '/propostas/$proposalId',
-    path: '/propostas/$proposalId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedProjetosProjectIdRoute =
-  AuthenticatedProjetosProjectIdRouteImport.update({
-    id: '/projetos/$projectId',
-    path: '/projetos/$projectId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedGestaoRelatoriosRoute =
-  AuthenticatedGestaoRelatoriosRouteImport.update({
-    id: '/gestao/relatorios',
-    path: '/gestao/relatorios',
+const AuthenticatedConstrutorRelatoriosIndexRoute =
+  AuthenticatedConstrutorRelatoriosIndexRouteImport.update({
+    id: '/construtor-relatorios/',
+    path: '/construtor-relatorios/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConstrutorRelatoriosPdfRoute =
@@ -300,10 +254,62 @@ const AuthenticatedConstrutorRelatoriosPdfRoute =
     path: '/construtor-relatorios/pdf',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedClientesClientIdRoute =
-  AuthenticatedClientesClientIdRouteImport.update({
-    id: '/clientes/$clientId',
-    path: '/clientes/$clientId',
+const AuthenticatedGestaoRelatoriosRoute =
+  AuthenticatedGestaoRelatoriosRouteImport.update({
+    id: '/gestao/relatorios',
+    path: '/gestao/relatorios',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjetosIndexRoute =
+  AuthenticatedProjetosIndexRouteImport.update({
+    id: '/projetos/',
+    path: '/projetos/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProjetosProjectIdRoute =
+  AuthenticatedProjetosProjectIdRouteImport.update({
+    id: '/projetos/$projectId',
+    path: '/projetos/$projectId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPropostasIndexRoute =
+  AuthenticatedPropostasIndexRouteImport.update({
+    id: '/propostas/',
+    path: '/propostas/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedPropostasProposalIdRoute =
+  AuthenticatedPropostasProposalIdRouteImport.update({
+    id: '/propostas/$proposalId',
+    path: '/propostas/$proposalId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRoteirosIndexRoute =
+  AuthenticatedRoteirosIndexRouteImport.update({
+    id: '/roteiros/',
+    path: '/roteiros/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedRoteirosScriptIdRoute =
+  AuthenticatedRoteirosScriptIdRouteImport.update({
+    id: '/roteiros/$scriptId',
+    path: '/roteiros/$scriptId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const ApiPublicFaviconRoute = ApiPublicFaviconRouteImport.update({
+  id: '/api/public/favicon',
+  path: '/api/public/favicon',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicManifestRoute = ApiPublicManifestRouteImport.update({
+  id: '/api/public/manifest',
+  path: '/api/public/manifest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedApresentacoesPresentationIdApresentarRoute =
+  AuthenticatedApresentacoesPresentationIdApresentarRouteImport.update({
+    id: '/apresentacoes/$presentationId/apresentar',
+    path: '/apresentacoes/$presentationId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConstrutorRelatoriosReportIdIndexRoute =
@@ -312,96 +318,10 @@ const AuthenticatedConstrutorRelatoriosReportIdIndexRoute =
     path: '/construtor-relatorios/$reportId/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const LovableEmailQueueProcessRoute =
-  LovableEmailQueueProcessRouteImport.update({
-    id: '/lovable/email/queue/process',
-    path: '/lovable/email/queue/process',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
-  id: '/lovable/email/auth/webhook',
-  path: '/lovable/email/auth/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
-  id: '/lovable/email/auth/preview',
-  path: '/lovable/email/auth/preview',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicWebhooksInterRoute = ApiPublicWebhooksInterRouteImport.update({
-  id: '/api/public/webhooks/inter',
-  path: '/api/public/webhooks/inter',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPropostaTokenRoute = ApiPublicPropostaTokenRouteImport.update({
-  id: '/api/public/proposta/$token',
-  path: '/api/public/proposta/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicProposalTokenRoute = ApiPublicProposalTokenRouteImport.update({
-  id: '/api/public/proposal/$token',
-  path: '/api/public/proposal/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPortalJobsSlugRoute = ApiPublicPortalJobsSlugRouteImport.update({
-  id: '/api/public/portal-jobs/$slug',
-  path: '/api/public/portal-jobs/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicPortalApprovalActionSlugRoute =
-  ApiPublicPortalApprovalActionSlugRouteImport.update({
-    id: '/api/public/portal-approval-action/$slug',
-    path: '/api/public/portal-approval-action/$slug',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicPortalActionSlugRoute =
-  ApiPublicPortalActionSlugRouteImport.update({
-    id: '/api/public/portal-action/$slug',
-    path: '/api/public/portal-action/$slug',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicLeadsInboundRoute = ApiPublicLeadsInboundRouteImport.update({
-  id: '/api/public/leads/inbound',
-  path: '/api/public/leads/inbound',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicHooksMorningSummaryRoute =
-  ApiPublicHooksMorningSummaryRouteImport.update({
-    id: '/api/public/hooks/morning-summary',
-    path: '/api/public/hooks/morning-summary',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksLeadTaskRemindersRoute =
-  ApiPublicHooksLeadTaskRemindersRouteImport.update({
-    id: '/api/public/hooks/lead-task-reminders',
-    path: '/api/public/hooks/lead-task-reminders',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicHooksDispatchPushRoute =
-  ApiPublicHooksDispatchPushRouteImport.update({
-    id: '/api/public/hooks/dispatch-push',
-    path: '/api/public/hooks/dispatch-push',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicDmeTokenRoute = ApiPublicDmeTokenRouteImport.update({
-  id: '/api/public/dme/$token',
-  path: '/api/public/dme/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicDmeBatchTokenRoute = ApiPublicDmeBatchTokenRouteImport.update({
-  id: '/api/public/dme-batch/$token',
-  path: '/api/public/dme-batch/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
-  id: '/api/public/approve/$token',
-  path: '/api/public/approve/$token',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedOnboardingOnboardingIdApresentarRoute =
-  AuthenticatedOnboardingOnboardingIdApresentarRouteImport.update({
-    id: '/onboarding/$onboardingId/apresentar',
-    path: '/onboarding/$onboardingId/apresentar',
+const AuthenticatedConstrutorRelatoriosReportIdApresentarRoute =
+  AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport.update({
+    id: '/construtor-relatorios/$reportId/apresentar',
+    path: '/construtor-relatorios/$reportId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedConstrutorRelatoriosReportIdPdfRoute =
@@ -410,28 +330,96 @@ const AuthenticatedConstrutorRelatoriosReportIdPdfRoute =
     path: '/construtor-relatorios/$reportId/pdf',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedConstrutorRelatoriosReportIdApresentarRoute =
-  AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport.update({
-    id: '/construtor-relatorios/$reportId/apresentar',
-    path: '/construtor-relatorios/$reportId/apresentar',
+const AuthenticatedOnboardingOnboardingIdApresentarRoute =
+  AuthenticatedOnboardingOnboardingIdApresentarRouteImport.update({
+    id: '/onboarding/$onboardingId/apresentar',
+    path: '/onboarding/$onboardingId/apresentar',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedApresentacoesPresentationIdApresentarRoute =
-  AuthenticatedApresentacoesPresentationIdApresentarRouteImport.update({
-    id: '/apresentacoes/$presentationId/apresentar',
-    path: '/apresentacoes/$presentationId/apresentar',
-    getParentRoute: () => AuthenticatedRouteRoute,
+const ApiPublicApproveTokenRoute = ApiPublicApproveTokenRouteImport.update({
+  id: '/api/public/approve/$token',
+  path: '/api/public/approve/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDmeBatchTokenRoute = ApiPublicDmeBatchTokenRouteImport.update({
+  id: '/api/public/dme-batch/$token',
+  path: '/api/public/dme-batch/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicDmeTokenRoute = ApiPublicDmeTokenRouteImport.update({
+  id: '/api/public/dme/$token',
+  path: '/api/public/dme/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHooksDispatchPushRoute =
+  ApiPublicHooksDispatchPushRouteImport.update({
+    id: '/api/public/hooks/dispatch-push',
+    path: '/api/public/hooks/dispatch-push',
+    getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicPropostaTokenViewRoute =
-  ApiPublicPropostaTokenViewRouteImport.update({
-    id: '/view',
-    path: '/view',
-    getParentRoute: () => ApiPublicPropostaTokenRoute,
+const ApiPublicHooksLeadTaskRemindersRoute =
+  ApiPublicHooksLeadTaskRemindersRouteImport.update({
+    id: '/api/public/hooks/lead-task-reminders',
+    path: '/api/public/hooks/lead-task-reminders',
+    getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicOgPropostaTokenRoute =
-  ApiPublicOgPropostaTokenRouteImport.update({
-    id: '/api/public/og/proposta/$token',
-    path: '/api/public/og/proposta/$token',
+const ApiPublicHooksMorningSummaryRoute =
+  ApiPublicHooksMorningSummaryRouteImport.update({
+    id: '/api/public/hooks/morning-summary',
+    path: '/api/public/hooks/morning-summary',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicLeadsInboundRoute = ApiPublicLeadsInboundRouteImport.update({
+  id: '/api/public/leads/inbound',
+  path: '/api/public/leads/inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPortalActionSlugRoute =
+  ApiPublicPortalActionSlugRouteImport.update({
+    id: '/api/public/portal-action/$slug',
+    path: '/api/public/portal-action/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPortalApprovalActionSlugRoute =
+  ApiPublicPortalApprovalActionSlugRouteImport.update({
+    id: '/api/public/portal-approval-action/$slug',
+    path: '/api/public/portal-approval-action/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPortalJobsSlugRoute = ApiPublicPortalJobsSlugRouteImport.update({
+  id: '/api/public/portal-jobs/$slug',
+  path: '/api/public/portal-jobs/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicProposalTokenRoute = ApiPublicProposalTokenRouteImport.update({
+  id: '/api/public/proposal/$token',
+  path: '/api/public/proposal/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPropostaTokenRoute = ApiPublicPropostaTokenRouteImport.update({
+  id: '/api/public/proposta/$token',
+  path: '/api/public/proposta/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicWebhooksInterRoute = ApiPublicWebhooksInterRouteImport.update({
+  id: '/api/public/webhooks/inter',
+  path: '/api/public/webhooks/inter',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
+  id: '/lovable/email/auth/preview',
+  path: '/lovable/email/auth/preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailAuthWebhookRoute = LovableEmailAuthWebhookRouteImport.update({
+  id: '/lovable/email/auth/webhook',
+  path: '/lovable/email/auth/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LovableEmailQueueProcessRoute =
+  LovableEmailQueueProcessRouteImport.update({
+    id: '/lovable/email/queue/process',
+    path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicLeadsSubmitSlugRoute =
@@ -439,6 +427,18 @@ const ApiPublicLeadsSubmitSlugRoute =
     id: '/api/public/leads/submit/$slug',
     path: '/api/public/leads/submit/$slug',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicOgPropostaTokenRoute =
+  ApiPublicOgPropostaTokenRouteImport.update({
+    id: '/api/public/og/proposta/$token',
+    path: '/api/public/og/proposta/$token',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPropostaTokenViewRoute =
+  ApiPublicPropostaTokenViewRouteImport.update({
+    id: '/view',
+    path: '/view',
+    getParentRoute: () => ApiPublicPropostaTokenRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -892,11 +892,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/convite': {
-      id: '/convite'
-      path: '/convite'
-      fullPath: '/convite'
-      preLoaderRoute: typeof ConviteRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -906,11 +906,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/convite': {
+      id: '/convite'
+      path: '/convite'
+      fullPath: '/convite'
+      preLoaderRoute: typeof ConviteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -920,165 +920,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/proposta/$token': {
-      id: '/proposta/$token'
-      path: '/proposta/$token'
-      fullPath: '/proposta/$token'
-      preLoaderRoute: typeof PropostaTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/proposal/$token': {
-      id: '/proposal/$token'
-      path: '/proposal/$token'
-      fullPath: '/proposal/$token'
-      preLoaderRoute: typeof ProposalTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/p/$token': {
-      id: '/p/$token'
-      path: '/p/$token'
-      fullPath: '/p/$token'
-      preLoaderRoute: typeof PTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/minha-kasa/$slug': {
-      id: '/minha-kasa/$slug'
-      path: '/minha-kasa/$slug'
-      fullPath: '/minha-kasa/$slug'
-      preLoaderRoute: typeof MinhaKasaSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lp/delta-plus': {
-      id: '/lp/delta-plus'
-      path: '/lp/delta-plus'
-      fullPath: '/lp/delta-plus'
-      preLoaderRoute: typeof LpDeltaPlusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dme/$token': {
-      id: '/dme/$token'
-      path: '/dme/$token'
-      fullPath: '/dme/$token'
-      preLoaderRoute: typeof DmeTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dme-lote/$token': {
-      id: '/dme-lote/$token'
-      path: '/dme-lote/$token'
-      fullPath: '/dme-lote/$token'
-      preLoaderRoute: typeof DmeLoteTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/captar/$slug': {
-      id: '/captar/$slug'
-      path: '/captar/$slug'
-      fullPath: '/captar/$slug'
-      preLoaderRoute: typeof CaptarSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/approve/$token': {
-      id: '/approve/$token'
-      path: '/approve/$token'
-      fullPath: '/approve/$token'
-      preLoaderRoute: typeof ApproveTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/vales': {
-      id: '/_authenticated/vales'
-      path: '/vales'
-      fullPath: '/vales'
-      preLoaderRoute: typeof AuthenticatedValesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/relatorios': {
-      id: '/_authenticated/relatorios'
-      path: '/relatorios'
-      fullPath: '/relatorios'
-      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/prospeccao': {
-      id: '/_authenticated/prospeccao'
-      path: '/prospeccao'
-      fullPath: '/prospeccao'
-      preLoaderRoute: typeof AuthenticatedProspeccaoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/portal': {
-      id: '/_authenticated/portal'
-      path: '/portal'
-      fullPath: '/portal'
-      preLoaderRoute: typeof AuthenticatedPortalRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/parceiros': {
-      id: '/_authenticated/parceiros'
-      path: '/parceiros'
-      fullPath: '/parceiros'
-      preLoaderRoute: typeof AuthenticatedParceirosRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/jobs': {
-      id: '/_authenticated/jobs'
-      path: '/jobs'
-      fullPath: '/jobs'
-      preLoaderRoute: typeof AuthenticatedJobsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/integracoes': {
-      id: '/_authenticated/integracoes'
-      path: '/integracoes'
-      fullPath: '/integracoes'
-      preLoaderRoute: typeof AuthenticatedIntegracoesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dmes': {
-      id: '/_authenticated/dmes'
-      path: '/dmes'
-      fullPath: '/dmes'
-      preLoaderRoute: typeof AuthenticatedDmesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/distribuicao': {
-      id: '/_authenticated/distribuicao'
-      path: '/distribuicao'
-      fullPath: '/distribuicao'
-      preLoaderRoute: typeof AuthenticatedDistribuicaoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/crm': {
-      id: '/_authenticated/crm'
-      path: '/crm'
-      fullPath: '/crm'
-      preLoaderRoute: typeof AuthenticatedCrmRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/config': {
-      id: '/_authenticated/config'
-      path: '/config'
-      fullPath: '/config'
-      preLoaderRoute: typeof AuthenticatedConfigRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/ceo': {
-      id: '/_authenticated/ceo'
-      path: '/ceo'
-      fullPath: '/ceo'
-      preLoaderRoute: typeof AuthenticatedCeoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/calendario-editorial': {
-      id: '/_authenticated/calendario-editorial'
-      path: '/calendario-editorial'
-      fullPath: '/calendario-editorial'
-      preLoaderRoute: typeof AuthenticatedCalendarioEditorialRouteImport
+    '/_authenticated/aprovacoes': {
+      id: '/_authenticated/aprovacoes'
+      path: '/aprovacoes'
+      fullPath: '/aprovacoes'
+      preLoaderRoute: typeof AuthenticatedAprovacoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/calendario': {
@@ -1088,39 +934,172 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/aprovacoes': {
-      id: '/_authenticated/aprovacoes'
-      path: '/aprovacoes'
-      fullPath: '/aprovacoes'
-      preLoaderRoute: typeof AuthenticatedAprovacoesRouteImport
+    '/_authenticated/calendario-editorial': {
+      id: '/_authenticated/calendario-editorial'
+      path: '/calendario-editorial'
+      fullPath: '/calendario-editorial'
+      preLoaderRoute: typeof AuthenticatedCalendarioEditorialRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/roteiros/': {
-      id: '/_authenticated/roteiros/'
-      path: '/roteiros'
-      fullPath: '/roteiros/'
-      preLoaderRoute: typeof AuthenticatedRoteirosIndexRouteImport
+    '/_authenticated/ceo': {
+      id: '/_authenticated/ceo'
+      path: '/ceo'
+      fullPath: '/ceo'
+      preLoaderRoute: typeof AuthenticatedCeoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/propostas/': {
-      id: '/_authenticated/propostas/'
-      path: '/propostas'
-      fullPath: '/propostas/'
-      preLoaderRoute: typeof AuthenticatedPropostasIndexRouteImport
+    '/_authenticated/config': {
+      id: '/_authenticated/config'
+      path: '/config'
+      fullPath: '/config'
+      preLoaderRoute: typeof AuthenticatedConfigRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/projetos/': {
-      id: '/_authenticated/projetos/'
-      path: '/projetos'
-      fullPath: '/projetos/'
-      preLoaderRoute: typeof AuthenticatedProjetosIndexRouteImport
+    '/_authenticated/crm': {
+      id: '/_authenticated/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof AuthenticatedCrmRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/construtor-relatorios/': {
-      id: '/_authenticated/construtor-relatorios/'
-      path: '/construtor-relatorios'
-      fullPath: '/construtor-relatorios/'
-      preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosIndexRouteImport
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/distribuicao': {
+      id: '/_authenticated/distribuicao'
+      path: '/distribuicao'
+      fullPath: '/distribuicao'
+      preLoaderRoute: typeof AuthenticatedDistribuicaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dmes': {
+      id: '/_authenticated/dmes'
+      path: '/dmes'
+      fullPath: '/dmes'
+      preLoaderRoute: typeof AuthenticatedDmesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/integracoes': {
+      id: '/_authenticated/integracoes'
+      path: '/integracoes'
+      fullPath: '/integracoes'
+      preLoaderRoute: typeof AuthenticatedIntegracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/jobs': {
+      id: '/_authenticated/jobs'
+      path: '/jobs'
+      fullPath: '/jobs'
+      preLoaderRoute: typeof AuthenticatedJobsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/parceiros': {
+      id: '/_authenticated/parceiros'
+      path: '/parceiros'
+      fullPath: '/parceiros'
+      preLoaderRoute: typeof AuthenticatedParceirosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/portal': {
+      id: '/_authenticated/portal'
+      path: '/portal'
+      fullPath: '/portal'
+      preLoaderRoute: typeof AuthenticatedPortalRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/prospeccao': {
+      id: '/_authenticated/prospeccao'
+      path: '/prospeccao'
+      fullPath: '/prospeccao'
+      preLoaderRoute: typeof AuthenticatedProspeccaoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/vales': {
+      id: '/_authenticated/vales'
+      path: '/vales'
+      fullPath: '/vales'
+      preLoaderRoute: typeof AuthenticatedValesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/approve/$token': {
+      id: '/approve/$token'
+      path: '/approve/$token'
+      fullPath: '/approve/$token'
+      preLoaderRoute: typeof ApproveTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/captar/$slug': {
+      id: '/captar/$slug'
+      path: '/captar/$slug'
+      fullPath: '/captar/$slug'
+      preLoaderRoute: typeof CaptarSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dme-lote/$token': {
+      id: '/dme-lote/$token'
+      path: '/dme-lote/$token'
+      fullPath: '/dme-lote/$token'
+      preLoaderRoute: typeof DmeLoteTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dme/$token': {
+      id: '/dme/$token'
+      path: '/dme/$token'
+      fullPath: '/dme/$token'
+      preLoaderRoute: typeof DmeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lp/delta-plus': {
+      id: '/lp/delta-plus'
+      path: '/lp/delta-plus'
+      fullPath: '/lp/delta-plus'
+      preLoaderRoute: typeof LpDeltaPlusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minha-kasa/$slug': {
+      id: '/minha-kasa/$slug'
+      path: '/minha-kasa/$slug'
+      fullPath: '/minha-kasa/$slug'
+      preLoaderRoute: typeof MinhaKasaSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/p/$token': {
+      id: '/p/$token'
+      path: '/p/$token'
+      fullPath: '/p/$token'
+      preLoaderRoute: typeof PTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposal/$token': {
+      id: '/proposal/$token'
+      path: '/proposal/$token'
+      fullPath: '/proposal/$token'
+      preLoaderRoute: typeof ProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/proposta/$token': {
+      id: '/proposta/$token'
+      path: '/proposta/$token'
+      fullPath: '/proposta/$token'
+      preLoaderRoute: typeof PropostaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/biblioteca/': {
+      id: '/_authenticated/biblioteca/'
+      path: '/biblioteca'
+      fullPath: '/biblioteca/'
+      preLoaderRoute: typeof AuthenticatedBibliotecaIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/clientes/': {
@@ -1130,53 +1109,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/biblioteca/': {
-      id: '/_authenticated/biblioteca/'
-      path: '/biblioteca'
-      fullPath: '/biblioteca/'
-      preLoaderRoute: typeof AuthenticatedBibliotecaIndexRouteImport
+    '/_authenticated/clientes/$clientId': {
+      id: '/_authenticated/clientes/$clientId'
+      path: '/clientes/$clientId'
+      fullPath: '/clientes/$clientId'
+      preLoaderRoute: typeof AuthenticatedClientesClientIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/manifest': {
-      id: '/api/public/manifest'
-      path: '/api/public/manifest'
-      fullPath: '/api/public/manifest'
-      preLoaderRoute: typeof ApiPublicManifestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/favicon': {
-      id: '/api/public/favicon'
-      path: '/api/public/favicon'
-      fullPath: '/api/public/favicon'
-      preLoaderRoute: typeof ApiPublicFaviconRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/roteiros/$scriptId': {
-      id: '/_authenticated/roteiros/$scriptId'
-      path: '/roteiros/$scriptId'
-      fullPath: '/roteiros/$scriptId'
-      preLoaderRoute: typeof AuthenticatedRoteirosScriptIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/propostas/$proposalId': {
-      id: '/_authenticated/propostas/$proposalId'
-      path: '/propostas/$proposalId'
-      fullPath: '/propostas/$proposalId'
-      preLoaderRoute: typeof AuthenticatedPropostasProposalIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/projetos/$projectId': {
-      id: '/_authenticated/projetos/$projectId'
-      path: '/projetos/$projectId'
-      fullPath: '/projetos/$projectId'
-      preLoaderRoute: typeof AuthenticatedProjetosProjectIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/gestao/relatorios': {
-      id: '/_authenticated/gestao/relatorios'
-      path: '/gestao/relatorios'
-      fullPath: '/gestao/relatorios'
-      preLoaderRoute: typeof AuthenticatedGestaoRelatoriosRouteImport
+    '/_authenticated/construtor-relatorios/': {
+      id: '/_authenticated/construtor-relatorios/'
+      path: '/construtor-relatorios'
+      fullPath: '/construtor-relatorios/'
+      preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/construtor-relatorios/pdf': {
@@ -1186,11 +1130,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosPdfRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/clientes/$clientId': {
-      id: '/_authenticated/clientes/$clientId'
-      path: '/clientes/$clientId'
-      fullPath: '/clientes/$clientId'
-      preLoaderRoute: typeof AuthenticatedClientesClientIdRouteImport
+    '/_authenticated/gestao/relatorios': {
+      id: '/_authenticated/gestao/relatorios'
+      path: '/gestao/relatorios'
+      fullPath: '/gestao/relatorios'
+      preLoaderRoute: typeof AuthenticatedGestaoRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projetos/': {
+      id: '/_authenticated/projetos/'
+      path: '/projetos'
+      fullPath: '/projetos/'
+      preLoaderRoute: typeof AuthenticatedProjetosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/projetos/$projectId': {
+      id: '/_authenticated/projetos/$projectId'
+      path: '/projetos/$projectId'
+      fullPath: '/projetos/$projectId'
+      preLoaderRoute: typeof AuthenticatedProjetosProjectIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/propostas/': {
+      id: '/_authenticated/propostas/'
+      path: '/propostas'
+      fullPath: '/propostas/'
+      preLoaderRoute: typeof AuthenticatedPropostasIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/propostas/$proposalId': {
+      id: '/_authenticated/propostas/$proposalId'
+      path: '/propostas/$proposalId'
+      fullPath: '/propostas/$proposalId'
+      preLoaderRoute: typeof AuthenticatedPropostasProposalIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/roteiros/': {
+      id: '/_authenticated/roteiros/'
+      path: '/roteiros'
+      fullPath: '/roteiros/'
+      preLoaderRoute: typeof AuthenticatedRoteirosIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/roteiros/$scriptId': {
+      id: '/_authenticated/roteiros/$scriptId'
+      path: '/roteiros/$scriptId'
+      fullPath: '/roteiros/$scriptId'
+      preLoaderRoute: typeof AuthenticatedRoteirosScriptIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/public/favicon': {
+      id: '/api/public/favicon'
+      path: '/api/public/favicon'
+      fullPath: '/api/public/favicon'
+      preLoaderRoute: typeof ApiPublicFaviconRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/manifest': {
+      id: '/api/public/manifest'
+      path: '/api/public/manifest'
+      fullPath: '/api/public/manifest'
+      preLoaderRoute: typeof ApiPublicManifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/apresentacoes/$presentationId/apresentar': {
+      id: '/_authenticated/apresentacoes/$presentationId/apresentar'
+      path: '/apresentacoes/$presentationId/apresentar'
+      fullPath: '/apresentacoes/$presentationId/apresentar'
+      preLoaderRoute: typeof AuthenticatedApresentacoesPresentationIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/construtor-relatorios/$reportId/': {
@@ -1200,123 +1207,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosReportIdIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/lovable/email/queue/process': {
-      id: '/lovable/email/queue/process'
-      path: '/lovable/email/queue/process'
-      fullPath: '/lovable/email/queue/process'
-      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/webhook': {
-      id: '/lovable/email/auth/webhook'
-      path: '/lovable/email/auth/webhook'
-      fullPath: '/lovable/email/auth/webhook'
-      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/lovable/email/auth/preview': {
-      id: '/lovable/email/auth/preview'
-      path: '/lovable/email/auth/preview'
-      fullPath: '/lovable/email/auth/preview'
-      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/webhooks/inter': {
-      id: '/api/public/webhooks/inter'
-      path: '/api/public/webhooks/inter'
-      fullPath: '/api/public/webhooks/inter'
-      preLoaderRoute: typeof ApiPublicWebhooksInterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/proposta/$token': {
-      id: '/api/public/proposta/$token'
-      path: '/api/public/proposta/$token'
-      fullPath: '/api/public/proposta/$token'
-      preLoaderRoute: typeof ApiPublicPropostaTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/proposal/$token': {
-      id: '/api/public/proposal/$token'
-      path: '/api/public/proposal/$token'
-      fullPath: '/api/public/proposal/$token'
-      preLoaderRoute: typeof ApiPublicProposalTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/portal-jobs/$slug': {
-      id: '/api/public/portal-jobs/$slug'
-      path: '/api/public/portal-jobs/$slug'
-      fullPath: '/api/public/portal-jobs/$slug'
-      preLoaderRoute: typeof ApiPublicPortalJobsSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/portal-approval-action/$slug': {
-      id: '/api/public/portal-approval-action/$slug'
-      path: '/api/public/portal-approval-action/$slug'
-      fullPath: '/api/public/portal-approval-action/$slug'
-      preLoaderRoute: typeof ApiPublicPortalApprovalActionSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/portal-action/$slug': {
-      id: '/api/public/portal-action/$slug'
-      path: '/api/public/portal-action/$slug'
-      fullPath: '/api/public/portal-action/$slug'
-      preLoaderRoute: typeof ApiPublicPortalActionSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/leads/inbound': {
-      id: '/api/public/leads/inbound'
-      path: '/api/public/leads/inbound'
-      fullPath: '/api/public/leads/inbound'
-      preLoaderRoute: typeof ApiPublicLeadsInboundRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/morning-summary': {
-      id: '/api/public/hooks/morning-summary'
-      path: '/api/public/hooks/morning-summary'
-      fullPath: '/api/public/hooks/morning-summary'
-      preLoaderRoute: typeof ApiPublicHooksMorningSummaryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/lead-task-reminders': {
-      id: '/api/public/hooks/lead-task-reminders'
-      path: '/api/public/hooks/lead-task-reminders'
-      fullPath: '/api/public/hooks/lead-task-reminders'
-      preLoaderRoute: typeof ApiPublicHooksLeadTaskRemindersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/hooks/dispatch-push': {
-      id: '/api/public/hooks/dispatch-push'
-      path: '/api/public/hooks/dispatch-push'
-      fullPath: '/api/public/hooks/dispatch-push'
-      preLoaderRoute: typeof ApiPublicHooksDispatchPushRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/dme/$token': {
-      id: '/api/public/dme/$token'
-      path: '/api/public/dme/$token'
-      fullPath: '/api/public/dme/$token'
-      preLoaderRoute: typeof ApiPublicDmeTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/dme-batch/$token': {
-      id: '/api/public/dme-batch/$token'
-      path: '/api/public/dme-batch/$token'
-      fullPath: '/api/public/dme-batch/$token'
-      preLoaderRoute: typeof ApiPublicDmeBatchTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/approve/$token': {
-      id: '/api/public/approve/$token'
-      path: '/api/public/approve/$token'
-      fullPath: '/api/public/approve/$token'
-      preLoaderRoute: typeof ApiPublicApproveTokenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_authenticated/onboarding/$onboardingId/apresentar': {
-      id: '/_authenticated/onboarding/$onboardingId/apresentar'
-      path: '/onboarding/$onboardingId/apresentar'
-      fullPath: '/onboarding/$onboardingId/apresentar'
-      preLoaderRoute: typeof AuthenticatedOnboardingOnboardingIdApresentarRouteImport
+    '/_authenticated/construtor-relatorios/$reportId/apresentar': {
+      id: '/_authenticated/construtor-relatorios/$reportId/apresentar'
+      path: '/construtor-relatorios/$reportId/apresentar'
+      fullPath: '/construtor-relatorios/$reportId/apresentar'
+      preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/construtor-relatorios/$reportId/pdf': {
@@ -1326,32 +1221,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosReportIdPdfRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/construtor-relatorios/$reportId/apresentar': {
-      id: '/_authenticated/construtor-relatorios/$reportId/apresentar'
-      path: '/construtor-relatorios/$reportId/apresentar'
-      fullPath: '/construtor-relatorios/$reportId/apresentar'
-      preLoaderRoute: typeof AuthenticatedConstrutorRelatoriosReportIdApresentarRouteImport
+    '/_authenticated/onboarding/$onboardingId/apresentar': {
+      id: '/_authenticated/onboarding/$onboardingId/apresentar'
+      path: '/onboarding/$onboardingId/apresentar'
+      fullPath: '/onboarding/$onboardingId/apresentar'
+      preLoaderRoute: typeof AuthenticatedOnboardingOnboardingIdApresentarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/apresentacoes/$presentationId/apresentar': {
-      id: '/_authenticated/apresentacoes/$presentationId/apresentar'
-      path: '/apresentacoes/$presentationId/apresentar'
-      fullPath: '/apresentacoes/$presentationId/apresentar'
-      preLoaderRoute: typeof AuthenticatedApresentacoesPresentationIdApresentarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/api/public/approve/$token': {
+      id: '/api/public/approve/$token'
+      path: '/api/public/approve/$token'
+      fullPath: '/api/public/approve/$token'
+      preLoaderRoute: typeof ApiPublicApproveTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/public/proposta/$token/view': {
-      id: '/api/public/proposta/$token/view'
-      path: '/view'
-      fullPath: '/api/public/proposta/$token/view'
-      preLoaderRoute: typeof ApiPublicPropostaTokenViewRouteImport
-      parentRoute: typeof ApiPublicPropostaTokenRoute
+    '/api/public/dme-batch/$token': {
+      id: '/api/public/dme-batch/$token'
+      path: '/api/public/dme-batch/$token'
+      fullPath: '/api/public/dme-batch/$token'
+      preLoaderRoute: typeof ApiPublicDmeBatchTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/public/og/proposta/$token': {
-      id: '/api/public/og/proposta/$token'
-      path: '/api/public/og/proposta/$token'
-      fullPath: '/api/public/og/proposta/$token'
-      preLoaderRoute: typeof ApiPublicOgPropostaTokenRouteImport
+    '/api/public/dme/$token': {
+      id: '/api/public/dme/$token'
+      path: '/api/public/dme/$token'
+      fullPath: '/api/public/dme/$token'
+      preLoaderRoute: typeof ApiPublicDmeTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/dispatch-push': {
+      id: '/api/public/hooks/dispatch-push'
+      path: '/api/public/hooks/dispatch-push'
+      fullPath: '/api/public/hooks/dispatch-push'
+      preLoaderRoute: typeof ApiPublicHooksDispatchPushRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/lead-task-reminders': {
+      id: '/api/public/hooks/lead-task-reminders'
+      path: '/api/public/hooks/lead-task-reminders'
+      fullPath: '/api/public/hooks/lead-task-reminders'
+      preLoaderRoute: typeof ApiPublicHooksLeadTaskRemindersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/hooks/morning-summary': {
+      id: '/api/public/hooks/morning-summary'
+      path: '/api/public/hooks/morning-summary'
+      fullPath: '/api/public/hooks/morning-summary'
+      preLoaderRoute: typeof ApiPublicHooksMorningSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/leads/inbound': {
+      id: '/api/public/leads/inbound'
+      path: '/api/public/leads/inbound'
+      fullPath: '/api/public/leads/inbound'
+      preLoaderRoute: typeof ApiPublicLeadsInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/portal-action/$slug': {
+      id: '/api/public/portal-action/$slug'
+      path: '/api/public/portal-action/$slug'
+      fullPath: '/api/public/portal-action/$slug'
+      preLoaderRoute: typeof ApiPublicPortalActionSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/portal-approval-action/$slug': {
+      id: '/api/public/portal-approval-action/$slug'
+      path: '/api/public/portal-approval-action/$slug'
+      fullPath: '/api/public/portal-approval-action/$slug'
+      preLoaderRoute: typeof ApiPublicPortalApprovalActionSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/portal-jobs/$slug': {
+      id: '/api/public/portal-jobs/$slug'
+      path: '/api/public/portal-jobs/$slug'
+      fullPath: '/api/public/portal-jobs/$slug'
+      preLoaderRoute: typeof ApiPublicPortalJobsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposal/$token': {
+      id: '/api/public/proposal/$token'
+      path: '/api/public/proposal/$token'
+      fullPath: '/api/public/proposal/$token'
+      preLoaderRoute: typeof ApiPublicProposalTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposta/$token': {
+      id: '/api/public/proposta/$token'
+      path: '/api/public/proposta/$token'
+      fullPath: '/api/public/proposta/$token'
+      preLoaderRoute: typeof ApiPublicPropostaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/webhooks/inter': {
+      id: '/api/public/webhooks/inter'
+      path: '/api/public/webhooks/inter'
+      fullPath: '/api/public/webhooks/inter'
+      preLoaderRoute: typeof ApiPublicWebhooksInterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/preview': {
+      id: '/lovable/email/auth/preview'
+      path: '/lovable/email/auth/preview'
+      fullPath: '/lovable/email/auth/preview'
+      preLoaderRoute: typeof LovableEmailAuthPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/auth/webhook': {
+      id: '/lovable/email/auth/webhook'
+      path: '/lovable/email/auth/webhook'
+      fullPath: '/lovable/email/auth/webhook'
+      preLoaderRoute: typeof LovableEmailAuthWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lovable/email/queue/process': {
+      id: '/lovable/email/queue/process'
+      path: '/lovable/email/queue/process'
+      fullPath: '/lovable/email/queue/process'
+      preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/leads/submit/$slug': {
@@ -1360,6 +1346,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/leads/submit/$slug'
       preLoaderRoute: typeof ApiPublicLeadsSubmitSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/public/og/proposta/$token': {
+      id: '/api/public/og/proposta/$token'
+      path: '/api/public/og/proposta/$token'
+      fullPath: '/api/public/og/proposta/$token'
+      preLoaderRoute: typeof ApiPublicOgPropostaTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/proposta/$token/view': {
+      id: '/api/public/proposta/$token/view'
+      path: '/view'
+      fullPath: '/api/public/proposta/$token/view'
+      preLoaderRoute: typeof ApiPublicPropostaTokenViewRouteImport
+      parentRoute: typeof ApiPublicPropostaTokenRoute
     }
   }
 }
