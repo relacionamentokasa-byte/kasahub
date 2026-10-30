@@ -1220,6 +1220,7 @@ export type Database = {
           id: string
           installments_count: number | null
           monthly_value: number | null
+          notes: string | null
           owner_id: string | null
           partner_id: string | null
           payment_method: string | null
@@ -1240,6 +1241,7 @@ export type Database = {
           id?: string
           installments_count?: number | null
           monthly_value?: number | null
+          notes?: string | null
           owner_id?: string | null
           partner_id?: string | null
           payment_method?: string | null
@@ -1260,6 +1262,7 @@ export type Database = {
           id?: string
           installments_count?: number | null
           monthly_value?: number | null
+          notes?: string | null
           owner_id?: string | null
           partner_id?: string | null
           payment_method?: string | null
@@ -3707,8 +3710,8 @@ export type Database = {
           deliverables: Json
           description: string | null
           id: string
-          pricing_snapshot: Json | null
           order_index: number
+          pricing_snapshot: Json | null
           proposal_id: string
           quantity: number
           recurrence: string
@@ -3720,8 +3723,8 @@ export type Database = {
           deliverables?: Json
           description?: string | null
           id?: string
-          pricing_snapshot?: Json | null
           order_index?: number
+          pricing_snapshot?: Json | null
           proposal_id: string
           quantity?: number
           recurrence?: string
@@ -3733,8 +3736,8 @@ export type Database = {
           deliverables?: Json
           description?: string | null
           id?: string
-          pricing_snapshot?: Json | null
           order_index?: number
+          pricing_snapshot?: Json | null
           proposal_id?: string
           quantity?: number
           recurrence?: string

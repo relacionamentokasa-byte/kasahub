@@ -9,6 +9,7 @@ import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
   updateExtraDemandWithFinance,
+  createJob,
 } from "@/lib/ops-api";
 import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction, deleteDmeBatch } from "@/lib/dme-batches-api";
 import { generateDmeBatchPdf, generateConsolidatedTxPdf, generateSingleDmePdf } from "@/lib/dme-batch-pdf";
@@ -599,11 +600,11 @@ function DmesPage() {
             <Button variant="ghost" size="sm" onClick={() => setSelectedIds(new Set())}>
               Limpar
             </Button>
-            {selectedDmesList.length === 1 ? (
+            {selectedDmes.length === 1 ? (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setJobForDme(selectedDmesList[0])}
+                onClick={() => setJobForDme(selectedDmes[0])}
                 className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
               >
                 <Briefcase className="size-4" />
@@ -622,7 +623,7 @@ function DmesPage() {
                 ) : (
                   <Briefcase className="size-4" />
                 )}
-                Criar Jobs ({selectedDmesList.length})
+                Criar Jobs ({selectedDmes.length})
               </Button>
             )}
             <Button size="sm" onClick={handleCreateBatch} disabled={creatingBatch || selectedIds.size < 2} className="gap-2">

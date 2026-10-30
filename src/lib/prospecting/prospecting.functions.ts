@@ -698,7 +698,7 @@ export const searchProspectsServer = createServerFn({ method: "POST" })
       try {
         const { data: existingLeads } = await supabase
           .from("leads")
-          .select("phone, company, website")
+          .select("phone, company, landing_page_url")
           .limit(1000);
 
         if (existingLeads) {
@@ -710,8 +710,9 @@ export const searchProspectsServer = createServerFn({ method: "POST" })
             if (l.company) {
               existingCompanies.add(l.company.toLowerCase().trim());
             }
-            if (l.website) {
-              existingWebsites.add(getDomainFromUrl(l.website).toLowerCase());
+            if (l.landing_page_url) {
+              const domain = getDomainFromUrl(l.landing_page_url);
+              if (domain) existingWebsites.add(domain);
             }
           }
         }
@@ -760,7 +761,7 @@ export const searchProspectsServer = createServerFn({ method: "POST" })
           return false;
         }
         if (p.website) {
-          const domain = getDomainFromUrl(p.website).toLowerCase();
+          const domain = getDomainFromUrl(p.website);
           if (domain && existingWebsites.has(domain)) {
             return false;
           }

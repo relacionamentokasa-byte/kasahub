@@ -1,18 +1,27 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { ContractAddendum } from "@/types/contract-addendums";
 import { addClientService, updateClientService } from "@/lib/client-services-api";
+import type { Database } from "@/integrations/supabase/types";
+
+type ContractUpdate = Database["public"]["Tables"]["contracts"]["Update"];
 
 const ADDENDUMS_STORAGE_KEY = "kasa_contract_addendums";
 
 export async function fetchContractAddendums(contractId: string): Promise<ContractAddendum[]> {
   try {
-    const { data: contract, error } = await supabase
+    const { data: rawContract, error } = await supabase
       .from("contracts")
       .select("proposal_id, notes, title")
       .eq("id", contractId)
       .single();
 
     if (error) throw error;
+
+    const contract = rawContract as unknown as {
+      proposal_id: string | null;
+      notes: string | null;
+      title: string;
+    } | null;
 
     // Tenta carregar do campo customizado / notes ou storage
     let addendums: ContractAddendum[] = [];
@@ -81,11 +90,16 @@ export async function createAndApplyAddendum(input: {
   };
 
   // 2. Atualizar o Contrato Principal (monthly_value e total_value se recorrente)
-  const { data: currentContract } = await supabase
+  const { data: rawCurrentContract } = await supabase
     .from("contracts")
     .select("*")
     .eq("id", input.contractId)
     .single();
+
+  const currentContract = rawCurrentContract as unknown as {
+    monthly_value: number | null;
+    notes: string | null;
+  } | null;
 
   if (currentContract) {
     let currentNotesObj: Record<string, any> = {};
@@ -104,7 +118,7 @@ export async function createAndApplyAddendum(input: {
         monthly_value: input.newMonthlyValue,
         notes: JSON.stringify(currentNotesObj),
         updated_at: new Date().toISOString(),
-      })
+      } as ContractUpdate)
       .eq("id", input.contractId);
 
     // Salva cópia local para fallback rápido

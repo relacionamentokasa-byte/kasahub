@@ -106,7 +106,7 @@ export async function getScriptByJob(jobId: string) {
   if (error) throw error;
   if (!scriptData) return null;
 
-  const script = scriptData as Script;
+  const script = scriptData as unknown as Script;
 
   // Se o video_concept vier vazio da tabela scripts (ex.: coluna não existe no cache do Supabase),
   // tenta carregar dos custom_fields do job como fallback seguro

@@ -52,6 +52,10 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           }
         }
 
+        if (!client) {
+          return Response.json({ error: "not_found" }, { status: 404 });
+        }
+
         const { data: jobs, error: jErr } = await supabaseAdmin
           .from("jobs")
           .select("id, title, description, status, stage_id, due_date, progress_percentage, completed_steps, total_steps, done_at, updated_at, main_responsible_id, priority, launch_product_id")
