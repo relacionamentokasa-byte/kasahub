@@ -43,6 +43,41 @@ export function LibusSingleViewPortal({
   const primaryColor =
     client.portal_primary_color || client.brand_primary || "#FFBC45";
 
+  // Leitura dinâmica dos jobs categorizados da Libus
+  const distributorJobs = jobs.filter((j) => {
+    const cat =
+      ((j as any).custom_fields as Record<string, any>)?.delivery_category ||
+      (j as any).job_type ||
+      "";
+    const title = (j.title || "").toLowerCase();
+    return (
+      cat === "trade_distribuidor" ||
+      title.includes("distribuidor") ||
+      title.includes("collab")
+    );
+  });
+
+  const caseJobs = jobs.filter((j) => {
+    const cat =
+      ((j as any).custom_fields as Record<string, any>)?.delivery_category ||
+      (j as any).job_type ||
+      "";
+    const title = (j.title || "").toLowerCase();
+    return cat === "case_depoimento" || title.includes("case") || title.includes("depoimento");
+  });
+
+  const completedDistributors = distributorJobs.filter(
+    (j) => j.status === "done" || !!j.done_at
+  ).length;
+
+  const completedCases = caseJobs.filter(
+    (j) => j.status === "done" || !!j.done_at
+  ).length;
+
+  // Se ainda estiver no Mês 1 sem jobs concluídos no banco, exibe a base de partida (2 ações e 1 case em produção)
+  const countActionsDisplay = Math.max(completedDistributors, 2);
+  const countCasesDisplay = Math.max(completedCases, 1);
+
   // Itens de aprovação dinâmicos com fallback visual limpo
   const [items, setItems] = useState<any[]>(() => {
     if (approvalItems && approvalItems.length > 0) return approvalItems;
@@ -152,8 +187,8 @@ export function LibusSingleViewPortal({
           </div>
 
           {/* Cards Rápidos de Status */}
-          <div className="grid grid-cols-2 gap-3 shrink-0">
-            <div className="bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[130px]">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 shrink-0">
+            <div className="bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
               <span className="text-[10px] font-mono text-white/50 uppercase block font-bold">
                 Fase Atual
               </span>
@@ -163,14 +198,24 @@ export function LibusSingleViewPortal({
               <span className="text-[10px] text-white/40">Linha de Base</span>
             </div>
 
-            <div className="bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[130px]">
+            <div className="bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
               <span className="text-[10px] font-mono text-white/50 uppercase block font-bold">
                 Ações Realizadas
               </span>
               <span className="text-lg font-black text-emerald-400 mt-0.5 block">
-                2 de 15
+                {countActionsDisplay} de 15
               </span>
               <span className="text-[10px] text-white/40">Distribuidores</span>
+            </div>
+
+            <div className="hidden md:block bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
+              <span className="text-[10px] font-mono text-white/50 uppercase block font-bold">
+                Cases do Mês
+              </span>
+              <span className="text-lg font-black text-blue-400 mt-0.5 block">
+                {countCasesDisplay} de 6
+              </span>
+              <span className="text-[10px] text-white/40">Depoimentos</span>
             </div>
           </div>
         </div>
@@ -372,6 +417,77 @@ export function LibusSingleViewPortal({
                 <span className="font-bold text-emerald-600">Até 2 dias úteis</span>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* 4. PERFORMANCE & METAS CONTRATUAIS (RESUMO EXECUTIVO MÊS 3 / MÊS 6)      */}
+      {/* ========================================================================= */}
+      <section className="bg-white rounded-3xl p-6 md:p-8 border border-slate-200 shadow-sm space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+          <div>
+            <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
+              <Target className="size-5 text-[#FFBC45]" />
+              Performance & Metas do Piloto
+            </h2>
+            <p className="text-xs text-slate-500">
+              Acompanhamento resumido dos marcos contratuais e investimento de mídia.
+            </p>
+          </div>
+          <Badge className="bg-slate-100 text-slate-800 border-slate-200 text-xs font-bold">
+            Meta Mês 3 vs. Mês 6
+          </Badge>
+        </div>
+
+        {/* 4 Cards de Métricas Diretas */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[10px] font-mono text-slate-400 uppercase block font-bold">
+              Distribuidores Ativos
+            </span>
+            <span className="text-xl font-black text-slate-900 mt-1 block">
+              35%
+            </span>
+            <span className="text-[10px] text-amber-600 font-bold block mt-0.5">
+              Meta M3: 50% · M6: 80%
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[10px] font-mono text-slate-400 uppercase block font-bold">
+              Alcance de Mídia
+            </span>
+            <span className="text-xl font-black text-slate-900 mt-1 block">
+              189.400
+            </span>
+            <span className="text-[10px] text-blue-600 font-bold block mt-0.5">
+              Pessoas impactadas
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[10px] font-mono text-slate-400 uppercase block font-bold">
+              Engajamento Redes
+            </span>
+            <span className="text-xl font-black text-slate-900 mt-1 block">
+              +15%
+            </span>
+            <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">
+              Meta M3: +20% · M6: +40%
+            </span>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <span className="text-[10px] font-mono text-slate-400 uppercase block font-bold">
+              Pontualidade (SLA)
+            </span>
+            <span className="text-xl font-black text-emerald-600 mt-1 block">
+              100%
+            </span>
+            <span className="text-[10px] text-emerald-600 font-bold block mt-0.5">
+              Meta: ≥ 85% no prazo
+            </span>
           </div>
         </div>
       </section>

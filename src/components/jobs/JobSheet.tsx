@@ -1223,6 +1223,45 @@ export function JobSheet({
                         </Select>
                       </div>
 
+                      {/* Tipo de Entrega / Meta (Trade & Piloto) */}
+                      <div className="space-y-1">
+                        <Label className="text-[11px] font-medium text-muted-foreground">
+                          Tipo de Entrega / Meta
+                        </Label>
+                        <Select
+                          value={
+                            ((job as any).custom_fields as Record<string, any>)?.delivery_category ||
+                            (job as any).job_type ||
+                            "geral"
+                          }
+                          onValueChange={(v) => {
+                            const prevFields = ((job as any).custom_fields as Record<string, any>) || {};
+                            updateMut.mutate({
+                              job_type: v,
+                              custom_fields: { ...prevFields, delivery_category: v },
+                            } as any);
+                          }}
+                        >
+                          <SelectTrigger className="h-8 text-xs bg-card border-border/60 font-medium">
+                            <SelectValue placeholder="Selecione o tipo de entrega" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="geral" className="text-xs">
+                              Demanda Geral / Rotina
+                            </SelectItem>
+                            <SelectItem value="trade_distribuidor" className="text-xs font-semibold text-amber-600">
+                              🤝 Ativação / Distribuidor (Meta 15)
+                            </SelectItem>
+                            <SelectItem value="case_depoimento" className="text-xs font-semibold text-emerald-600">
+                              ⭐ Depoimento / Case do Mês (Meta 6)
+                            </SelectItem>
+                            <SelectItem value="midia_trafego" className="text-xs font-semibold text-blue-600">
+                              📈 Plano de Mídia / Tráfego
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       {/* Mostrar no Portal */}
                       <div className="flex items-center justify-between gap-3 p-2.5 rounded-md border border-border/60 bg-card mt-2">
                         <div className="space-y-0.5">

@@ -89,6 +89,7 @@ export function NewJobDialog({
     team_involved_ids: [] as string[],
     launch_product_id: "",
     editorial_post_id: "",
+    delivery_category: "geral",
   });
 
   const { conversionData, clearConversionData } = useConversionStore();
@@ -295,6 +296,8 @@ export function NewJobDialog({
         dme_id: defaultDmeId || null,
         launch_product_id: form.launch_product_id || null,
         editorial_post_id: form.editorial_post_id || null,
+        job_type: form.delivery_category !== "geral" ? form.delivery_category : null,
+        custom_fields: { delivery_category: form.delivery_category },
       };
 
       const data = await createJob(payload as any);
@@ -572,7 +575,7 @@ export function NewJobDialog({
           </div>
 
           {/* Responsável, Prazo e Prioridade */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="space-y-1">
               <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
                 Responsável
@@ -619,6 +622,26 @@ export function NewJobDialog({
                   <SelectItem value="normal" className="text-xs font-mono-kasa">Normal</SelectItem>
                   <SelectItem value="high" className="text-xs font-mono-kasa">Alta</SelectItem>
                   <SelectItem value="urgent" className="text-xs font-mono-kasa text-destructive">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                Tipo / Meta
+              </Label>
+              <Select
+                value={form.delivery_category}
+                onValueChange={(v) => setForm({ ...form, delivery_category: v })}
+              >
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="geral" className="text-xs">Geral</SelectItem>
+                  <SelectItem value="trade_distribuidor" className="text-xs font-semibold text-amber-600">🤝 Distribuidor</SelectItem>
+                  <SelectItem value="case_depoimento" className="text-xs font-semibold text-emerald-600">⭐ Case / Depoimento</SelectItem>
+                  <SelectItem value="midia_trafego" className="text-xs font-semibold text-blue-600">📈 Mídia / Tráfego</SelectItem>
                 </SelectContent>
               </Select>
             </div>
