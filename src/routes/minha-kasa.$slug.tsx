@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import { FileThumbnail } from "@/components/FileThumbnail";
 import { PdfDocumentViewer } from "@/components/PdfDocumentViewer";
 import { KasaPortalShell } from "@/components/portal/KasaPortalShell";
+import { LibusSingleViewPortal } from "@/components/portal/LibusSingleViewPortal";
 
 
 export const Route = createFileRoute("/minha-kasa/$slug")({
@@ -569,6 +570,42 @@ function MinhaKasaPage() {
     statuses: Array<{ id: string; label: string; color: string; order_index: number; is_done: boolean }>;
     products: Array<{ id: string; name: string; description: string | null; image_url: string | null; status_id: string | null; due_date: string | null; links: any }>;
   }>;
+
+  const isLibus =
+    slug?.toLowerCase().includes("libus") ||
+    (client.name || "").toLowerCase().includes("libus") ||
+    (client.company || "").toLowerCase().includes("libus");
+
+  if (isLibus) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] text-[#0C1618]">
+        {/* Barra superior minimalista */}
+        <header className="sticky top-0 z-50 bg-[#121214] text-white border-b border-white/10 px-4 md:px-8 h-16 flex items-center justify-between shadow-md">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl font-black font-display text-[#FFBC45]">kasa</span>
+            <span className="text-white/20">|</span>
+            <span className="text-xs font-bold text-white/80 uppercase tracking-wider">
+              {client.company || client.name}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs text-white/60 font-medium">Portal do Cliente</span>
+          </div>
+        </header>
+
+        {/* Visão Única e Limpa sem abas complexas */}
+        <main className="py-6 md:py-10">
+          <LibusSingleViewPortal
+            client={client}
+            jobs={jobs}
+            approvalItems={approvalItems}
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <KasaPortalShell
