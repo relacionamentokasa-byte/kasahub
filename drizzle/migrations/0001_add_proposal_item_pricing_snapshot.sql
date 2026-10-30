@@ -1,0 +1,1 @@
+ALTER TABLE public.proposal_items ADD COLUMN IF NOT EXISTS pricing_snapshot jsonb;

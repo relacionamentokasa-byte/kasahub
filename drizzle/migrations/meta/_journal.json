@@ -8,6 +8,13 @@
       "when": 1793365489659,
       "tag": "0000_add_contract_notes",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793365520530,
+      "tag": "0001_add_proposal_item_pricing_snapshot",
+      "breakpoints": true
     }
   ]
 }

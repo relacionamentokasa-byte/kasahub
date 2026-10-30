@@ -3711,6 +3711,7 @@ export type Database = {
           description: string | null
           id: string
           order_index: number
+          pricing_snapshot: Json | null
           proposal_id: string
           quantity: number
           recurrence: string
@@ -3723,6 +3724,7 @@ export type Database = {
           description?: string | null
           id?: string
           order_index?: number
+          pricing_snapshot?: Json | null
           proposal_id: string
           quantity?: number
           recurrence?: string
@@ -3735,6 +3737,7 @@ export type Database = {
           description?: string | null
           id?: string
           order_index?: number
+          pricing_snapshot?: Json | null
           proposal_id?: string
           quantity?: number
           recurrence?: string
