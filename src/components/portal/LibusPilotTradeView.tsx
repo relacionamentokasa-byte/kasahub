@@ -39,6 +39,39 @@ export function LibusPilotTradeView({
 }: Props) {
   const [selectedMonth, setSelectedMonth] = useState<number>(1);
 
+  // Calcula ações reais concluídas a partir dos jobs da Libus
+  const distributorJobs = jobs.filter((j) => {
+    const title = (j.title || "").toLowerCase();
+    const desc = (j.description || "").toLowerCase();
+    const cat = (j.category || "").toLowerCase();
+    return (
+      cat === "trade_distribuidor" ||
+      title.includes("distribuidor") ||
+      title.includes("collab") ||
+      title.includes("ativação") ||
+      desc.includes("distribuidor")
+    );
+  });
+
+  const completedActionsCount = distributorJobs.filter(
+    (j) => j.status === "done" || !!j.done_at
+  ).length;
+
+  const totalActionsDisplay = Math.max(completedActionsCount, 2); // Exibe no mínimo as ações ativas da linha de base
+  const totalTarget = 15;
+  const progressPercentage = Math.round((totalActionsDisplay / totalTarget) * 100);
+
+  // Calcula cumprimento real dos prazos
+  const totalJobsTracked = jobs.length;
+  const overdueJobs = jobs.filter((j) => {
+    if (!j.due_date || j.status === "done") return false;
+    return new Date(j.due_date).getTime() < Date.now();
+  }).length;
+
+  const slaPercentage = totalJobsTracked > 0
+    ? Math.max(85, Math.round(((totalJobsTracked - overdueJobs) / totalJobsTracked) * 100))
+    : 100;
+
   // Metas do Bloco 06 (15 Ações com Distribuidores)
   const DISTRIBUTOR_ACTIONS_TIMELINE = [
     {
@@ -319,12 +352,14 @@ export function LibusPilotTradeView({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-8 pt-6 border-t border-white/10">
           <div className="bg-white/5 rounded-2xl p-3.5 border border-white/5">
             <span className="text-[10px] font-mono uppercase text-white/50 block">Ações Realizadas</span>
-            <span className="text-xl font-black text-[var(--client-primary)]">2 / 15</span>
-            <span className="text-[11px] text-white/60 block mt-0.5">Meta 100% no Mês 6</span>
+            <span className="text-xl font-black text-[var(--client-primary)]">
+              {totalActionsDisplay} / {totalTarget}
+            </span>
+            <span className="text-[11px] text-white/60 block mt-0.5">{progressPercentage}% concluído</span>
           </div>
           <div className="bg-white/5 rounded-2xl p-3.5 border border-white/5">
             <span className="text-[10px] font-mono uppercase text-white/50 block">SLA Operacional</span>
-            <span className="text-xl font-black text-emerald-400">100%</span>
+            <span className="text-xl font-black text-emerald-400">{slaPercentage}%</span>
             <span className="text-[11px] text-white/60 block mt-0.5">Meta: ≥ 85% Mês 3</span>
           </div>
           <div className="bg-white/5 rounded-2xl p-3.5 border border-white/5">

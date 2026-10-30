@@ -18,25 +18,36 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         let { data: client, error: cErr } = await supabaseAdmin
           .from("clients")
           .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
-          .or(`portal_slug.eq.${parsed.data},id.eq.${parsed.data}`)
+          .or(`portal_slug.eq.${parsed.data},id.eq.${parsed.data},portal_slug.ilike.%${parsed.data}%,name.ilike.%${parsed.data}%`)
           .maybeSingle();
 
         if (cErr || !client) {
           if (isLibusSlug) {
-            client = {
-              id: "libus-brasil",
-              name: "Libus do Brasil",
-              company: "Libus do Brasil Equipamentos LTDA",
-              logo_url: null,
-              brand_primary: "#FFBC45",
-              portal_cover_url: null,
-              portal_primary_color: "#FFBC45",
-              portal_cover_color: "#0C1618",
-              portal_enabled: true,
-              has_launch_grid: false,
-              created_at: new Date().toISOString(),
-              portal_slug: "libus",
-            } as any;
+            // Tenta buscar no banco qualquer cliente cujo nome contenha 'libus'
+            const { data: realLibus } = await supabaseAdmin
+              .from("clients")
+              .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
+              .ilike("name", "%libus%")
+              .maybeSingle();
+
+            if (realLibus) {
+              client = realLibus;
+            } else {
+              client = {
+                id: "libus-brasil",
+                name: "Libus do Brasil",
+                company: "Libus do Brasil Equipamentos LTDA",
+                logo_url: null,
+                brand_primary: "#FFBC45",
+                portal_cover_url: null,
+                portal_primary_color: "#FFBC45",
+                portal_cover_color: "#0C1618",
+                portal_enabled: true,
+                has_launch_grid: false,
+                created_at: new Date().toISOString(),
+                portal_slug: "libus",
+              } as any;
+            }
           } else {
             // Se não encontrou pelo slug exato, tenta encontrar o primeiro cliente ativo para demonstração ou teste
             const { data: fallbackClient } = await supabaseAdmin
@@ -65,6 +76,65 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
 
         if (jErr) {
           return Response.json({ error: "db_error" }, { status: 500 });
+        }
+
+        // Para a Libus, se o cliente ainda não tiver jobs cadastrados na base,
+        // retorna os jobs e itens de aprovação iniciais do Piloto de Trade (Mês 1)
+        let resolvedJobs = jobs || [];
+        if (isLibusSlug && resolvedJobs.length === 0) {
+          resolvedJobs = [
+            {
+              id: "libus-job-1",
+              title: "Onboarding & Levantamento da Linha de Base",
+              description: "Mapeamento dos canais digitais dos distribuidores prioritários e diagnóstico de e-commerce.",
+              status: "in_progress",
+              stage_id: null,
+              due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+              progress_percentage: 45,
+              completed_steps: 2,
+              total_steps: 4,
+              done_at: null,
+              updated_at: new Date().toISOString(),
+              main_responsible_id: null,
+              priority: "high",
+              launch_product_id: null,
+              category: "trade_distribuidor",
+            },
+            {
+              id: "libus-job-2",
+              title: "Kit Mensal de Conteúdo para Distribuidores — Mês 1",
+              description: "Produção e empacotamento das artes, cards de WhatsApp e catálogos para a rede.",
+              status: "in_progress",
+              stage_id: null,
+              due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+              progress_percentage: 75,
+              completed_steps: 3,
+              total_steps: 4,
+              done_at: null,
+              updated_at: new Date().toISOString(),
+              main_responsible_id: null,
+              priority: "high",
+              launch_product_id: null,
+              category: "kit_distribuidor",
+            },
+            {
+              id: "libus-job-3",
+              title: "Proposição do Plano de Mídia — Mês 2",
+              description: "Planejamento de investimento em tráfego para capilaridade das collabs com distribuidores.",
+              status: "pending",
+              stage_id: null,
+              due_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+              progress_percentage: 10,
+              completed_steps: 0,
+              total_steps: 3,
+              done_at: null,
+              updated_at: new Date().toISOString(),
+              main_responsible_id: null,
+              priority: "normal",
+              launch_product_id: null,
+              category: "midia_trafego",
+            },
+          ] as any;
         }
 
         // Fetch responsible names
@@ -409,7 +479,7 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         }
 
         return new Response(
-          JSON.stringify({ client, jobs: jobs || [], responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, editorialPosts, events, onboardings, launchGrids }),
+          JSON.stringify({ client, jobs: resolvedJobs, responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, editorialPosts, events, onboardings, launchGrids }),
 
           {
             status: 200,

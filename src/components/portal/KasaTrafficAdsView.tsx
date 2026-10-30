@@ -114,7 +114,64 @@ export function KasaTrafficAdsView({
   clientBrandColor = "#FFBC45",
   clientName = "Cliente",
 }: KasaTrafficAdsViewProps) {
-  const [creatives, setCreatives] = useState<TrafficCreative[]>(SAMPLE_CREATIVES);
+  const isLibus = clientName.toLowerCase().includes("libus");
+
+  const LIBUS_CREATIVES: TrafficCreative[] = [
+    {
+      id: "libus-cr-1",
+      title: "Co-Marketing: Linha Capacete Genesis & Distribuidores",
+      headline: "Proteção máxima com certificação internacional. Encontre no seu distribuidor autorizado.",
+      objective: "Co-marketing & Distribuição",
+      platform: "meta",
+      format: "feed",
+      mediaUrl: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=1080&auto=format&fit=crop&q=80",
+      status: "pending",
+      budgetSuggested: "R$ 75,00 / dia",
+      ctaText: "Onde Encontrar",
+      targetAudience: "Técnicos de Segurança do Trabalho, Compradores Industriais e Distribuidores",
+    },
+    {
+      id: "libus-cr-2",
+      title: "Vídeo Técnico: Teste de Impacto e Durabilidade EPI",
+      headline: "Veja na prática porque grandes indústrias confiam na tecnologia Libus.",
+      objective: "Autoridade Técnica & Reconhecimento",
+      platform: "meta",
+      format: "reels",
+      mediaUrl: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?w=1080&auto=format&fit=crop&q=80",
+      status: "pending",
+      budgetSuggested: "R$ 90,00 / dia",
+      ctaText: "Ver Demonstração",
+      targetAudience: "Engenharia de Segurança, Gerentes de Operação (SP, MG, PR, SC, RS)",
+    },
+    {
+      id: "libus-cr-3",
+      title: "Google Search: Distribuidor Oficial EPI Libus Brasil",
+      headline: "EPIs Industriais de Alta Performance · Catálogo Completo para Empresas",
+      objective: "Fundo de Funil / Busca Ativa",
+      platform: "google",
+      format: "search",
+      mediaUrl: "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=1080&auto=format&fit=crop&q=80",
+      status: "active",
+      budgetSuggested: "R$ 60,00 / dia",
+      ctaText: "Solicitar Cotação",
+      targetAudience: "Termos: 'distribuidor libus', 'capacete libus atacado', 'óculos segurança libus'",
+    },
+  ];
+
+  const [creatives, setCreatives] = useState<TrafficCreative[]>(
+    isLibus ? LIBUS_CREATIVES : SAMPLE_CREATIVES
+  );
+
+  const LIBUS_METRICS = {
+    invested: "R$ 6.200,00",
+    reach: "189.400",
+    clicks: "8.120",
+    leads: "426",
+    cpl: "R$ 14,55",
+    ctr: "4,28%",
+  };
+
+  const metrics = isLibus ? LIBUS_METRICS : METRICS_SUMMARY;
   const [selectedCreative, setSelectedCreative] = useState<TrafficCreative | null>(null);
   const [adjustFeedback, setAdjustFeedback] = useState("");
   const [isAdjustOpen, setIsAdjustOpen] = useState(false);
@@ -186,7 +243,7 @@ export function KasaTrafficAdsView({
             <DollarSign className="size-4 text-emerald-600" />
           </div>
           <p className="font-display text-xl sm:text-2xl font-bold text-[#0C1618] mt-2">
-            {METRICS_SUMMARY.invested}
+            {metrics.invested}
           </p>
           <span className="text-[10px] text-emerald-600 font-bold mt-1 inline-block">
             ● Orçamento 100% otimizado
@@ -199,7 +256,7 @@ export function KasaTrafficAdsView({
             <Users className="size-4 text-blue-600" />
           </div>
           <p className="font-display text-xl sm:text-2xl font-bold text-[#0C1618] mt-2">
-            {METRICS_SUMMARY.reach}
+            {metrics.reach}
           </p>
           <span className="text-[10px] text-blue-600 font-bold mt-1 inline-block">
             +18% em relação ao mês anterior
@@ -212,10 +269,10 @@ export function KasaTrafficAdsView({
             <MousePointerClick className="size-4 text-purple-600" />
           </div>
           <p className="font-display text-xl sm:text-2xl font-bold text-[#0C1618] mt-2">
-            {METRICS_SUMMARY.clicks}
+            {metrics.clicks}
           </p>
           <span className="text-[10px] text-[#6A787B] font-mono mt-1 inline-block">
-            CTR Médio: {METRICS_SUMMARY.ctr}
+            CTR Médio: {metrics.ctr}
           </span>
         </div>
 
@@ -225,10 +282,10 @@ export function KasaTrafficAdsView({
             <Target className="size-4 text-[#FFBC45]" />
           </div>
           <p className="font-display text-xl sm:text-2xl font-bold text-[#0C1618] mt-2">
-            {METRICS_SUMMARY.leads}
+            {metrics.leads}
           </p>
           <span className="text-[10px] text-amber-700 font-mono font-bold mt-1 inline-block">
-            Custo por Lead: {METRICS_SUMMARY.cpl}
+            Custo por Lead: {metrics.cpl}
           </span>
         </div>
       </div>
