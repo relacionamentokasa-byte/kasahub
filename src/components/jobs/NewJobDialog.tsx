@@ -575,77 +575,92 @@ export function NewJobDialog({
           </div>
 
           {/* Responsável, Prazo e Prioridade */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div className="space-y-1">
-              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
-                Responsável
-              </Label>
-              <Select
-                value={form.main_responsible_id || undefined}
-                onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}
+          {(() => {
+            const selectedClientObj = clients.find((c: any) => c.id === form.client_id);
+            const isLibus =
+              (selectedClientObj?.name || "").toLowerCase().includes("libus") ||
+              (selectedClientObj?.company || "").toLowerCase().includes("libus");
+
+            return (
+              <div
+                className={`grid grid-cols-1 ${
+                  isLibus ? "sm:grid-cols-4" : "sm:grid-cols-3"
+                } gap-3`}
               >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue placeholder="Selecione o dono" />
-                </SelectTrigger>
-                <SelectContent>
-                  {team.map((p: any) => (
-                    <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
-                      {p.display_name || p.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Responsável
+                  </Label>
+                  <Select
+                    value={form.main_responsible_id || undefined}
+                    onValueChange={(v) => setForm({ ...form, main_responsible_id: v })}
+                  >
+                    <SelectTrigger className="h-9 text-xs">
+                      <SelectValue placeholder="Selecione o dono" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {team.map((p: any) => (
+                        <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
+                          {p.display_name || p.full_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-1">
-              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
-                Prazo Final
-              </Label>
-              <Input
-                type="date"
-                value={form.due_date ? form.due_date.slice(0, 10) : ""}
-                onChange={(e) => setForm({ ...form, due_date: e.target.value })}
-                className="h-9 text-xs font-mono-kasa tabular-nums"
-              />
-            </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Prazo Final
+                  </Label>
+                  <Input
+                    type="date"
+                    value={form.due_date ? form.due_date.slice(0, 10) : ""}
+                    onChange={(e) => setForm({ ...form, due_date: e.target.value })}
+                    className="h-9 text-xs font-mono-kasa tabular-nums"
+                  />
+                </div>
 
-            <div className="space-y-1">
-              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
-                Prioridade
-              </Label>
-              <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
-                <SelectTrigger className="h-9 text-xs font-mono-kasa">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low" className="text-xs font-mono-kasa">Baixa</SelectItem>
-                  <SelectItem value="normal" className="text-xs font-mono-kasa">Normal</SelectItem>
-                  <SelectItem value="high" className="text-xs font-mono-kasa">Alta</SelectItem>
-                  <SelectItem value="urgent" className="text-xs font-mono-kasa text-destructive">Urgente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Prioridade
+                  </Label>
+                  <Select value={form.priority} onValueChange={(v) => setForm({ ...form, priority: v })}>
+                    <SelectTrigger className="h-9 text-xs font-mono-kasa">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low" className="text-xs font-mono-kasa">Baixa</SelectItem>
+                      <SelectItem value="normal" className="text-xs font-mono-kasa">Normal</SelectItem>
+                      <SelectItem value="high" className="text-xs font-mono-kasa">Alta</SelectItem>
+                      <SelectItem value="urgent" className="text-xs font-mono-kasa text-destructive">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-1">
-              <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
-                Tipo / Meta
-              </Label>
-              <Select
-                value={form.delivery_category}
-                onValueChange={(v) => setForm({ ...form, delivery_category: v })}
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="geral" className="text-xs">Geral</SelectItem>
-                  <SelectItem value="trade_distribuidor" className="text-xs font-semibold text-amber-600">🤝 Distribuidor</SelectItem>
-                  <SelectItem value="case_depoimento" className="text-xs font-semibold text-emerald-600">⭐ Case / Depoimento</SelectItem>
-                  <SelectItem value="midia_trafego" className="text-xs font-semibold text-blue-600">📈 Mídia / Tráfego</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+                {isLibus && (
+                  <div className="space-y-1">
+                    <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                      Tipo / Meta (Libus)
+                    </Label>
+                    <Select
+                      value={form.delivery_category}
+                      onValueChange={(v) => setForm({ ...form, delivery_category: v })}
+                    >
+                      <SelectTrigger className="h-9 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="geral" className="text-xs">Geral</SelectItem>
+                        <SelectItem value="trade_distribuidor" className="text-xs font-semibold text-amber-600">🤝 Distribuidor</SelectItem>
+                        <SelectItem value="case_depoimento" className="text-xs font-semibold text-emerald-600">⭐ Case / Depoimento</SelectItem>
+                        <SelectItem value="midia_trafego" className="text-xs font-semibold text-blue-600">📈 Mídia / Tráfego</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Grid de Lançamento se aplicável */}
           {((clientHasGrid && launchProducts.length > 0) || lockLaunchProduct) && (
