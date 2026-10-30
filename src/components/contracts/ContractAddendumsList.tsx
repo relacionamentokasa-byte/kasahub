@@ -60,7 +60,7 @@ export function ContractAddendumDialog({ open, onOpenChange, contract, clientId 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("services")
-        .select("id, name, description, default_price, category")
+        .select("id, name, description, category")
         .order("name");
       if (error) throw error;
       return data || [];
@@ -81,7 +81,7 @@ export function ContractAddendumDialog({ open, onOpenChange, contract, clientId 
           id: sid,
           client_id: clientId,
           service_id: sid,
-          monthly_value: found?.default_price || 0,
+          monthly_value: 0,
           notes: null,
           created_at: contract.start_date,
           services: found
@@ -89,7 +89,6 @@ export function ContractAddendumDialog({ open, onOpenChange, contract, clientId 
                 id: found.id,
                 name: found.name,
                 category: found.category,
-                default_price: found.default_price,
               }
             : null,
         } as any;
@@ -162,7 +161,7 @@ export function ContractAddendumDialog({ open, onOpenChange, contract, clientId 
     const found = catalogServices.find((s) => s.id === selectedCatalogServiceId);
     if (!found) return;
 
-    const val = Number(found.default_price || 0);
+    const val = 0;
     setAddedServices([
       ...addedServices,
       { service_id: found.id, name: found.name, monthly_value: val },
@@ -331,7 +330,7 @@ export function ContractAddendumDialog({ open, onOpenChange, contract, clientId 
                     </SelectItem>
                     {catalogServices.map((cs) => (
                       <SelectItem key={cs.id} value={cs.id} className="text-xs">
-                        {cs.name} ({brl(Number(cs.default_price || 0))}/mês)
+                        {cs.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
