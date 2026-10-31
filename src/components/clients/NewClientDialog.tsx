@@ -418,15 +418,56 @@ export function NewClientDialog({
             </div>
           </TabsContent>
 
-          <TabsContent value="portal" className="mt-4">
-            <div className="rounded-xl border border-dashed border-border/80 bg-muted/20 p-8 text-center">
-              <div className="size-12 rounded-2xl bg-muted/50 border border-border/80 flex items-center justify-center mx-auto mb-3 text-muted-foreground">
-                <Lock className="size-5" />
+          <TabsContent value="portal" className="mt-4 space-y-4">
+            <div className="rounded-xl border border-border bg-surface p-4 space-y-4">
+              <div>
+                <h3 className="font-display font-semibold text-sm">Cores da Marca no Portal</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Defina as cores institucionais que serão aplicadas automaticamente no portal exclusivo do cliente.
+                </p>
               </div>
-              <p className="text-sm font-semibold">Configuração pós-cadastro</p>
-              <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto">
-                Após criar o cliente, você poderá configurar o portal exclusivo, links de aprovação de peças, cores da marca e acessos de usuários.
-              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Cor Primária (Botões e Destaques)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={form.brand_primary || "#FFBC45"}
+                      onChange={(e) => setForm({ ...form, brand_primary: e.target.value })}
+                      className="size-9 rounded-lg border border-border cursor-pointer p-0.5 bg-background shrink-0"
+                    />
+                    <Input
+                      value={form.brand_primary || "#FFBC45"}
+                      onChange={(e) => setForm({ ...form, brand_primary: e.target.value })}
+                      placeholder="#FFBC45"
+                      className="h-9 text-xs font-mono-kasa uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Identificador / Slug do Portal
+                  </Label>
+                  <Input
+                    value={(form as any).portal_slug || ""}
+                    onChange={(e) => {
+                      const slug = e.target.value
+                        .toLowerCase()
+                        .normalize("NFD")
+                        .replace(/[̀-ͯ]/g, "")
+                        .replace(/[^a-z0-9-]+/g, "-")
+                        .replace(/^-+|-+$/g, "");
+                      setForm({ ...form, portal_slug: slug } as any);
+                    }}
+                    placeholder="ex: libus"
+                    className="h-9 text-xs font-mono-kasa"
+                  />
+                </div>
+              </div>
             </div>
           </TabsContent>
         </Tabs>

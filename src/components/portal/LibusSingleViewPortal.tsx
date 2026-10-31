@@ -29,6 +29,7 @@ interface Props {
     logo_url?: string | null;
     brand_primary?: string | null;
     portal_primary_color?: string | null;
+    portal_cover_color?: string | null;
   };
   jobs?: any[];
   approvalItems?: any[];
@@ -41,7 +42,9 @@ export function LibusSingleViewPortal({
 }: Props) {
   const displayName = client.company || client.name || "Libus do Brasil";
   const primaryColor =
-    client.portal_primary_color || client.brand_primary || "#FFBC45";
+    client.portal_primary_color?.trim() || client.brand_primary?.trim() || "#FFBC45";
+  const coverColor =
+    client.portal_cover_color?.trim() || "#121214";
 
   // Leitura dinâmica dos jobs categorizados da Libus
   const distributorJobs = jobs.filter((j) => {
@@ -165,11 +168,17 @@ export function LibusSingleViewPortal({
       {/* ========================================================================= */}
       {/* 1. CABEÇALHO EXECUTIVO E STATUS LIMPO                                     */}
       {/* ========================================================================= */}
-      <header className="bg-[#121214] text-white rounded-3xl p-6 md:p-8 border border-white/10 shadow-lg relative overflow-hidden">
+      <header
+        style={{ backgroundColor: coverColor }}
+        className="text-white rounded-3xl p-6 md:p-8 border border-white/10 shadow-lg relative overflow-hidden"
+      >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black uppercase tracking-wider text-[#FFBC45]">
+              <span
+                style={{ color: primaryColor }}
+                className="text-xs font-black uppercase tracking-wider"
+              >
                 Piloto 6 Meses
               </span>
               <span className="text-white/30">•</span>
@@ -188,17 +197,20 @@ export function LibusSingleViewPortal({
 
           {/* Cards Rápidos de Status */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 shrink-0">
-            <div className="bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
               <span className="text-[10px] font-mono text-white/50 uppercase block font-bold">
                 Fase Atual
               </span>
-              <span className="text-lg font-black text-[#FFBC45] mt-0.5 block">
+              <span
+                style={{ color: primaryColor }}
+                className="text-lg font-black mt-0.5 block"
+              >
                 Mês 1
               </span>
               <span className="text-[10px] text-white/40">Linha de Base</span>
             </div>
 
-            <div className="bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
+            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
               <span className="text-[10px] font-mono text-white/50 uppercase block font-bold">
                 Ações Realizadas
               </span>
@@ -208,7 +220,7 @@ export function LibusSingleViewPortal({
               <span className="text-[10px] text-white/40">Distribuidores</span>
             </div>
 
-            <div className="hidden md:block bg-[#18181B] border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
+            <div className="hidden md:block bg-white/5 border border-white/10 rounded-2xl p-4 text-center min-w-[120px]">
               <span className="text-[10px] font-mono text-white/50 uppercase block font-bold">
                 Cases do Mês
               </span>
@@ -228,7 +240,7 @@ export function LibusSingleViewPortal({
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
-              <Sparkles className="size-5 text-[#FFBC45]" />
+              <Sparkles style={{ color: primaryColor }} className="size-5" />
               Materiais para Aprovação
             </h2>
             <p className="text-xs text-slate-500">
@@ -288,7 +300,10 @@ export function LibusSingleViewPortal({
                           <Clock className="size-3" /> Ajuste Solicitado
                         </span>
                       ) : (
-                        <span className="bg-[#121214]/90 backdrop-blur-md text-[#FFBC45] font-bold text-[10px] px-2.5 py-1 rounded-full shadow flex items-center gap-1">
+                        <span
+                          style={{ color: primaryColor }}
+                          className="bg-[#121214]/90 backdrop-blur-md font-bold text-[10px] px-2.5 py-1 rounded-full shadow flex items-center gap-1"
+                        >
                           <Clock className="size-3" /> Aguardando Você
                         </span>
                       )}
@@ -354,7 +369,7 @@ export function LibusSingleViewPortal({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
-              <Calendar className="size-5 text-[#FFBC45]" />
+              <Calendar style={{ color: primaryColor }} className="size-5" />
               Cronograma do Mês 1 & Prazos
             </h2>
             <p className="text-xs text-slate-500">
@@ -428,7 +443,7 @@ export function LibusSingleViewPortal({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
             <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
-              <Target className="size-5 text-[#FFBC45]" />
+              <Target style={{ color: primaryColor }} className="size-5" />
               Performance & Metas do Piloto
             </h2>
             <p className="text-xs text-slate-500">

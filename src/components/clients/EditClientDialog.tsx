@@ -467,6 +467,60 @@ export function EditClientDialog({
                 />
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Cor Primária da Marca (Botões e Destaques)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={form.portal_primary_color || form.brand_primary || "#FFBC45"}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          portal_primary_color: e.target.value,
+                          brand_primary: e.target.value,
+                        })
+                      }
+                      className="size-9 rounded-lg border border-border cursor-pointer p-0.5 bg-background shrink-0"
+                    />
+                    <Input
+                      value={form.portal_primary_color || form.brand_primary || "#FFBC45"}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          portal_primary_color: e.target.value,
+                          brand_primary: e.target.value,
+                        })
+                      }
+                      placeholder="#FFBC45"
+                      className="h-9 text-xs font-mono-kasa uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Cor de Fundo da Capa (Header)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={form.portal_cover_color || "#0C1618"}
+                      onChange={(e) => setForm({ ...form, portal_cover_color: e.target.value })}
+                      className="size-9 rounded-lg border border-border cursor-pointer p-0.5 bg-background shrink-0"
+                    />
+                    <Input
+                      value={form.portal_cover_color || "#0C1618"}
+                      onChange={(e) => setForm({ ...form, portal_cover_color: e.target.value })}
+                      placeholder="#0C1618"
+                      className="h-9 text-xs font-mono-kasa uppercase"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {form.portal_slug && (
                 <div className="space-y-1.5 p-3 rounded-xl bg-muted/20 border border-border/70">
                   <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">

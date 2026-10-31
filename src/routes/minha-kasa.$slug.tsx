@@ -577,12 +577,26 @@ function MinhaKasaPage() {
     (client.company || "").toLowerCase().includes("libus");
 
   if (isLibus) {
+    const primaryColor =
+      client.portal_primary_color?.trim() ||
+      client.brand_primary?.trim() ||
+      "#FFBC45";
+    const coverColor = client.portal_cover_color?.trim() || "#121214";
+
     return (
       <div className="min-h-screen bg-[#F8F9FA] text-[#0C1618]">
-        {/* Barra superior minimalista */}
-        <header className="sticky top-0 z-50 bg-[#121214] text-white border-b border-white/10 px-4 md:px-8 h-16 flex items-center justify-between shadow-md">
+        {/* Barra superior minimalista com as cores do cadastro */}
+        <header
+          style={{ backgroundColor: coverColor }}
+          className="sticky top-0 z-50 text-white border-b border-white/10 px-4 md:px-8 h-16 flex items-center justify-between shadow-md"
+        >
           <div className="flex items-center gap-3">
-            <span className="text-2xl font-black font-display text-[#FFBC45]">kasa</span>
+            <span
+              style={{ color: primaryColor }}
+              className="text-2xl font-black font-display"
+            >
+              kasa
+            </span>
             <span className="text-white/20">|</span>
             <span className="text-xs font-bold text-white/80 uppercase tracking-wider">
               {client.company || client.name}
@@ -590,7 +604,10 @@ function MinhaKasaPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span
+              style={{ backgroundColor: primaryColor }}
+              className="size-2 rounded-full animate-pulse"
+            />
             <span className="text-xs text-white/60 font-medium">Portal do Cliente</span>
           </div>
         </header>
