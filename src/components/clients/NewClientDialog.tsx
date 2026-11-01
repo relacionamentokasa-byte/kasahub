@@ -427,7 +427,7 @@ export function NewClientDialog({
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                   <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
                     Cor Primária (Botões e Destaques)
@@ -443,6 +443,26 @@ export function NewClientDialog({
                       value={form.brand_primary || "#FFBC45"}
                       onChange={(e) => setForm({ ...form, brand_primary: e.target.value })}
                       placeholder="#FFBC45"
+                      className="h-9 text-xs font-mono-kasa uppercase"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
+                    Cor Secundária (Header / Capa)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={(form as any).brand_secondary || "#0C1618"}
+                      onChange={(e) => setForm({ ...form, brand_secondary: e.target.value } as any)}
+                      className="size-9 rounded-lg border border-border cursor-pointer p-0.5 bg-background shrink-0"
+                    />
+                    <Input
+                      value={(form as any).brand_secondary || "#0C1618"}
+                      onChange={(e) => setForm({ ...form, brand_secondary: e.target.value } as any)}
+                      placeholder="#0C1618"
                       className="h-9 text-xs font-mono-kasa uppercase"
                     />
                   </div>

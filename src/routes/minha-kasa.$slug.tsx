@@ -439,14 +439,15 @@ function MinhaKasaPage() {
       const isLibus = slug?.toLowerCase().includes("libus");
       return {
         client: {
-          id: isLibus ? "libus-brasil" : "nutriex",
+          id: isLibus ? "00000000-0000-0000-0000-000000000001" : "nutriex",
           name: isLibus ? "Libus do Brasil" : "Nutriex Professional",
           company: isLibus ? "Libus do Brasil Equipamentos LTDA" : "Nutriex Professional",
           logo_url: null,
-          brand_primary: "#FFBC45",
+          brand_primary: isLibus ? "#005691" : "#FFBC45",
+          brand_secondary: isLibus ? "#002B49" : "#0C1618",
           portal_cover_url: null,
-          portal_primary_color: "#FFBC45",
-          portal_cover_color: "#0C1618",
+          portal_primary_color: isLibus ? "#005691" : "#FFBC45",
+          portal_cover_color: isLibus ? "#002B49" : "#0C1618",
           created_at: new Date().toISOString(),
           portal_slug: isLibus ? "libus" : "nutriex",
         },
@@ -580,8 +581,11 @@ function MinhaKasaPage() {
     const primaryColor =
       client.portal_primary_color?.trim() ||
       client.brand_primary?.trim() ||
-      "#FFBC45";
-    const coverColor = client.portal_cover_color?.trim() || "#121214";
+      "#005691";
+    const coverColor =
+      client.portal_cover_color?.trim() ||
+      (client as any).brand_secondary?.trim() ||
+      "#002B49";
 
     return (
       <div className="min-h-screen bg-[#F8F9FA] text-[#0C1618]">

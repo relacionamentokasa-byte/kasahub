@@ -42,9 +42,13 @@ export function LibusSingleViewPortal({
 }: Props) {
   const displayName = client.company || client.name || "Libus do Brasil";
   const primaryColor =
-    client.portal_primary_color?.trim() || client.brand_primary?.trim() || "#FFBC45";
+    client.portal_primary_color?.trim() ||
+    client.brand_primary?.trim() ||
+    "#005691";
   const coverColor =
-    client.portal_cover_color?.trim() || "#121214";
+    client.portal_cover_color?.trim() ||
+    (client as any).brand_secondary?.trim() ||
+    "#002B49";
 
   // Leitura dinâmica dos jobs categorizados da Libus
   const distributorJobs = jobs.filter((j) => {

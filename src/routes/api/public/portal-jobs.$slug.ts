@@ -14,19 +14,25 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
         const isLibusSlug = parsed.data.toLowerCase().includes("libus");
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parsed.data);
 
-        let { data: client, error: cErr } = await supabaseAdmin
+        let query = supabaseAdmin
           .from("clients")
-          .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
-          .or(`portal_slug.eq.${parsed.data},id.eq.${parsed.data},portal_slug.ilike.%${parsed.data}%,name.ilike.%${parsed.data}%`)
-          .maybeSingle();
+          .select("id, name, company, logo_url, brand_primary, brand_secondary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug");
+
+        if (isUuid) {
+          query = query.or(`portal_slug.eq.${parsed.data},id.eq.${parsed.data}`);
+        } else {
+          query = query.or(`portal_slug.eq.${parsed.data},portal_slug.ilike.%${parsed.data}%,name.ilike.%${parsed.data}%`);
+        }
+
+        let { data: client, error: cErr } = await query.maybeSingle();
 
         if (cErr || !client) {
           if (isLibusSlug) {
-            // Tenta buscar no banco qualquer cliente cujo nome contenha 'libus'
             const { data: realLibus } = await supabaseAdmin
               .from("clients")
-              .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
+              .select("id, name, company, logo_url, brand_primary, brand_secondary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
               .ilike("name", "%libus%")
               .maybeSingle();
 
@@ -34,14 +40,15 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
               client = realLibus;
             } else {
               client = {
-                id: "libus-brasil",
+                id: "00000000-0000-0000-0000-000000000001",
                 name: "Libus do Brasil",
                 company: "Libus do Brasil Equipamentos LTDA",
                 logo_url: null,
-                brand_primary: "#FFBC45",
+                brand_primary: "#005691",
+                brand_secondary: "#002B49",
                 portal_cover_url: null,
-                portal_primary_color: "#FFBC45",
-                portal_cover_color: "#0C1618",
+                portal_primary_color: "#005691",
+                portal_cover_color: "#002B49",
                 portal_enabled: true,
                 has_launch_grid: false,
                 created_at: new Date().toISOString(),
@@ -49,10 +56,9 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
               } as any;
             }
           } else {
-            // Se não encontrou pelo slug exato, tenta encontrar o primeiro cliente ativo para demonstração ou teste
             const { data: fallbackClient } = await supabaseAdmin
               .from("clients")
-              .select("id, name, company, logo_url, brand_primary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
+              .select("id, name, company, logo_url, brand_primary, brand_secondary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
               .limit(1)
               .maybeSingle();
 
@@ -67,15 +73,17 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
           return Response.json({ error: "not_found" }, { status: 404 });
         }
 
-        const { data: jobs, error: jErr } = await supabaseAdmin
-          .from("jobs")
-          .select("id, title, description, status, stage_id, due_date, progress_percentage, completed_steps, total_steps, done_at, updated_at, main_responsible_id, priority, launch_product_id")
-          .eq("client_id", client.id)
-          .eq("show_in_portal", true)
-          .order("updated_at", { ascending: false });
+        const isClientUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(client.id);
 
-        if (jErr) {
-          return Response.json({ error: "db_error" }, { status: 500 });
+        let jobs: any[] = [];
+        if (isClientUuid) {
+          const { data: jobsData } = await supabaseAdmin
+            .from("jobs")
+            .select("id, title, description, status, stage_id, due_date, progress_percentage, completed_steps, total_steps, done_at, updated_at, main_responsible_id, priority, launch_product_id")
+            .eq("client_id", client.id)
+            .eq("show_in_portal", true)
+            .order("updated_at", { ascending: false });
+          jobs = jobsData || [];
         }
 
         // Para a Libus, se o cliente ainda não tiver jobs cadastrados na base,
