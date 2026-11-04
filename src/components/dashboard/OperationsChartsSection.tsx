@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   BarChart,
   Bar,
@@ -11,8 +12,11 @@ import {
   Cell,
   CartesianGrid,
 } from "recharts";
-import { Layers, PieChart as PieIcon, TrendingUp, CheckCircle2, Clock, AlertTriangle } from "lucide-react";
+import { Layers, PieChart as PieIcon, TrendingUp, CheckCircle2, Clock, AlertTriangle, UserX, AlertOctagon, Flame } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { fetchUsers } from "@/lib/users-api";
 import { brl } from "@/lib/utils-format";
 
 interface OperationsChartsProps {
@@ -132,6 +136,69 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
       onTimePercent,
     };
   }, [jobs]);
+
+  // 4. Ranking de Quem Mais Atrasa Jobs (Gargalo de Prazos)
+  const { data: users = [] } = useQuery({
+    queryKey: ["users-list"],
+    queryFn: fetchUsers,
+    staleTime: 60_000,
+  });
+
+  const overdueRanking = useMemo(() => {
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const usersMap = new Map(users.map((u) => [u.id, u]));
+
+    // Agrupa por responsável
+    const statsByUser = new Map<
+      string,
+      {
+        userId: string;
+        user: any;
+        activeOverdue: number;
+        deliveredLate: number;
+        totalOverdue: number;
+        totalAssigned: number;
+      }
+    >();
+
+    jobs.forEach((j) => {
+      const respId = j.main_responsible_id || j.assignee_id;
+      if (!respId) return;
+
+      const userObj = usersMap.get(respId);
+      const existing = statsByUser.get(respId) || {
+        userId: respId,
+        user: userObj,
+        activeOverdue: 0,
+        deliveredLate: 0,
+        totalOverdue: 0,
+        totalAssigned: 0,
+      };
+
+      existing.totalAssigned += 1;
+
+      const isDone = !!j.done_at || j.status === "done" || j.status === "completed";
+
+      // Atrasado ativo
+      if (!isDone && j.due_date && j.due_date < todayIso) {
+        existing.activeOverdue += 1;
+        existing.totalOverdue += 1;
+      }
+      // Entregue fora do prazo acordado
+      else if (isDone && j.done_at && j.due_date && j.done_at.slice(0, 10) > j.due_date.slice(0, 10)) {
+        existing.deliveredLate += 1;
+        existing.totalOverdue += 1;
+      }
+
+      statsByUser.set(respId, existing);
+    });
+
+    const ranking = Array.from(statsByUser.values())
+      .filter((s) => s.totalOverdue > 0)
+      .sort((a, b) => b.totalOverdue - a.totalOverdue || b.activeOverdue - a.activeOverdue);
+
+    return ranking;
+  }, [jobs, users]);
 
   return (
     <div className="space-y-4">
@@ -286,6 +353,97 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
           </div>
         </Card>
       </div>
+
+      {/* Bloco 3: Ranking de Quem Mais Atrasa Jobs */}
+      <Card className="bg-card border-border/70 p-5 rounded-xl shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-border/40">
+          <div>
+            <h4 className="text-sm font-bold text-foreground font-display flex items-center gap-2">
+              <Flame className="size-4 text-rose-500 animate-pulse" /> Gargalo de Prazos — Quem Mais Atrasa Demandas
+            </h4>
+            <p className="text-xs text-muted-foreground font-mono-kasa mt-0.5">
+              Responsáveis com maior volume de jobs fora do prazo acordado (atrasos ativos + entregas atrasadas)
+            </p>
+          </div>
+          <Badge variant="outline" className="border-rose-500/30 text-rose-500 bg-rose-500/10 text-xs font-mono-kasa w-fit">
+            {overdueRanking.length} {overdueRanking.length === 1 ? "membro com atraso" : "membros com atrasos"}
+          </Badge>
+        </div>
+
+        {overdueRanking.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <CheckCircle2 className="size-10 text-emerald-500 mb-2" />
+            <p className="text-sm font-bold text-foreground font-display">Operação 100% no Prazo!</p>
+            <p className="text-xs text-muted-foreground font-mono-kasa mt-0.5">
+              Nenhum responsável possui demandas atrasadas no momento.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {overdueRanking.map((item, index) => {
+              const name = item.user?.display_name || item.user?.full_name || "Membro da Equipe";
+              const avatar = item.user?.avatar_url;
+              const isTop1 = index === 0;
+
+              return (
+                <div
+                  key={item.userId}
+                  className={`p-3.5 rounded-lg border transition-all flex items-center justify-between gap-3 ${
+                    isTop1
+                      ? "bg-rose-500/10 border-rose-500/40 shadow-xs"
+                      : "bg-muted/30 border-border/60 hover:border-border"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="relative shrink-0">
+                      <Avatar className={`size-10 border ${isTop1 ? "border-rose-500 ring-2 ring-rose-500/20" : "border-border"}`}>
+                        {avatar && <AvatarImage src={avatar} alt={name} />}
+                        <AvatarFallback className="font-bold text-xs uppercase bg-background">
+                          {name.slice(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {isTop1 && (
+                        <div className="absolute -top-1.5 -right-1 bg-rose-500 text-white rounded-full size-4 flex items-center justify-center text-[9px] font-black shadow-xs">
+                          1º
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-xs text-foreground truncate">{name}</span>
+                        {isTop1 && (
+                          <span className="text-[10px] uppercase font-black tracking-wider text-rose-500 bg-rose-500/15 px-1.5 py-0.2 rounded font-mono-kasa">
+                            Maior atraso
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground font-mono-kasa mt-0.5">
+                        {item.activeOverdue > 0 && (
+                          <span className="text-rose-500 font-bold">{item.activeOverdue} ativo{item.activeOverdue > 1 ? "s" : ""}</span>
+                        )}
+                        {item.activeOverdue > 0 && item.deliveredLate > 0 && " · "}
+                        {item.deliveredLate > 0 && (
+                          <span className="text-amber-500">{item.deliveredLate} entregue{item.deliveredLate > 1 ? "s" : ""} fora</span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <span className="text-base font-black font-display text-rose-500">
+                      {item.totalOverdue}
+                    </span>
+                    <span className="block text-[9px] font-mono-kasa text-muted-foreground uppercase">
+                      atraso{item.totalOverdue > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }
