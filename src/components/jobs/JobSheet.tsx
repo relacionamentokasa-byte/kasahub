@@ -97,16 +97,20 @@ function SortableChecklistRow({
   item,
   team,
   jobId,
+  dueDate,
   onToggle,
   onDelete,
   onUpdate,
+  onUpdateDueDate,
 }: {
   item: any;
   team: any[];
   jobId: string;
+  dueDate?: string | null;
   onToggle: (id: string, done: boolean) => void;
   onDelete: (id: string) => void;
   onUpdate: (id: string, patch: any) => Promise<void> | void;
+  onUpdateDueDate: (itemId: string, date: string | null) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
   const resp = team.find((p) => p.id === item.responsible_id);
@@ -115,11 +119,19 @@ function SortableChecklistRow({
     transition,
     opacity: isDragging ? 0.5 : 1,
   };
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const isOverdue = !item.done && dueDate && dueDate < todayIso;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 group py-1.5 px-2 hover:bg-muted/30 rounded-md border border-transparent hover:border-border/40 transition-all"
+      className={`flex items-center gap-2 group py-1.5 px-2 rounded-md border transition-all ${
+        isOverdue
+          ? "bg-rose-500/10 border-rose-500/40"
+          : "hover:bg-muted/30 border-transparent hover:border-border/40"
+      }`}
     >
       <button
         type="button"
@@ -166,6 +178,24 @@ function SortableChecklistRow({
         />
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
+        {/* Seletor de Prazo da Etapa */}
+        <div className="flex items-center">
+          <input
+            type="date"
+            value={dueDate || ""}
+            onChange={(e) => onUpdateDueDate(item.id, e.target.value || null)}
+            className={`h-6 text-[10px] font-mono-kasa px-1.5 py-0 rounded border bg-card transition-colors cursor-pointer ${
+              isOverdue
+                ? "border-rose-500 text-rose-500 font-bold bg-rose-500/10"
+                : dueDate
+                ? "border-border/60 text-foreground"
+                : "border-dashed border-border/60 text-muted-foreground/60 hover:text-foreground"
+            }`}
+            title={dueDate ? `Prazo da etapa: ${dueDate}` : "Definir prazo desta etapa"}
+          />
+        </div>
+
+        {/* Atribuição de Responsável */}
         <Select
           value={item.responsible_id || "none"}
           onValueChange={(v) => onUpdate(item.id, { responsible_id: v === "none" ? null : v })}
@@ -323,6 +353,37 @@ export function JobSheet({
     }
   }, [job, qc]);
 
+
+  // Extrair mapeamento de prazos individuais das etapas do custom_fields
+  const checklistDueDates: Record<string, string> = useMemo(() => {
+    const cf = (job as any)?.custom_fields;
+    if (cf && typeof cf === "object" && cf.checklist_due_dates && typeof cf.checklist_due_dates === "object") {
+      return cf.checklist_due_dates;
+    }
+    return {};
+  }, [(job as any)?.custom_fields]);
+
+  const handleUpdateChecklistDueDate = useCallback(async (itemId: string, date: string | null) => {
+    if (!job) return;
+    const currentCf = ((job as any)?.custom_fields as Record<string, any>) || {};
+    const currentDates = (currentCf.checklist_due_dates as Record<string, string>) || {};
+
+    const updatedDates = { ...currentDates };
+    if (date) {
+      updatedDates[itemId] = date;
+    } else {
+      delete updatedDates[itemId];
+    }
+
+    const updatedCustomFields = {
+      ...currentCf,
+      checklist_due_dates: updatedDates,
+    };
+
+    updateMut.mutate({
+      custom_fields: updatedCustomFields,
+    } as any);
+  }, [job, updateMut]);
 
   const { data: checklist = [] } = useQuery({
     queryKey: ["job-checklist", job?.id],
@@ -808,12 +869,14 @@ export function JobSheet({
                               item={item}
                               team={team}
                               jobId={job.id}
+                              dueDate={checklistDueDates[item.id]}
                               onToggle={(id, done) => toggleItemMut.mutate({ id, done })}
                               onDelete={(id) => delItemMut.mutate(id)}
                               onUpdate={async (id, patch) => {
                                 await updateChecklistItem(id, patch);
                                 qc.invalidateQueries({ queryKey: ["job-checklist", job.id] });
                               }}
+                              onUpdateDueDate={handleUpdateChecklistDueDate}
                             />
                           ))}
                         </SortableContext>

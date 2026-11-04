@@ -224,12 +224,44 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
         const isOverdueActive = !isDone && j.due_date && j.due_date < todayIso;
         const isDeliveredLate = isDone && j.done_at && j.due_date && j.done_at.slice(0, 10) > j.due_date.slice(0, 10);
 
+        const jobSteps = checklistByJob.get(j.id) || [];
+        const checklistDueDates = (j.custom_fields && typeof j.custom_fields === "object" && j.custom_fields.checklist_due_dates)
+          ? (j.custom_fields.checklist_due_dates as Record<string, string>)
+          : {};
+
+        // 1. Verificar se há etapas específicas vencidas pelo prazo individual da etapa
+        const stepsWithSpecificOverdue = jobSteps.filter((s) => {
+          if (s.done || !s.responsible_id) return false;
+          const stepDue = checklistDueDates[s.id];
+          return stepDue && stepDue < todayIso;
+        });
+
+        if (stepsWithSpecificOverdue.length > 0) {
+          // Atribui atraso especificamente a quem estourou o prazo da etapa
+          stepsWithSpecificOverdue.forEach((step) => {
+            const respId = step.responsible_id!;
+            const userObj = usersMap.get(respId);
+            const existing = statsByUser.get(respId) || {
+              userId: respId,
+              user: userObj,
+              activeOverdue: 0,
+              deliveredLate: 0,
+              totalOverdue: 0,
+              totalAssigned: 0,
+            };
+            existing.activeOverdue += 1;
+            existing.totalOverdue += 1;
+            statsByUser.set(respId, existing);
+          });
+          return;
+        }
+
+        // Se o job em si não está atrasado nem foi entregue fora do prazo global, encerra
         if (!isOverdueActive && !isDeliveredLate) return;
 
-        const jobSteps = checklistByJob.get(j.id) || [];
         const pendingStepsWithResp = jobSteps.filter((s) => !s.done && s.responsible_id);
 
-        // Se há etapas pendentes atribuídas no job em atraso, a responsabilidade é de quem travou a etapa
+        // Se há etapas pendentes atribuídas no job em atraso geral, a responsabilidade é de quem travou a etapa pendente
         if (isOverdueActive && pendingStepsWithResp.length > 0) {
           pendingStepsWithResp.forEach((step) => {
             const respId = step.responsible_id!;
