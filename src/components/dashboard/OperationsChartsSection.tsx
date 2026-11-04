@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   BarChart,
@@ -12,10 +12,11 @@ import {
   Cell,
   CartesianGrid,
 } from "recharts";
-import { Layers, PieChart as PieIcon, TrendingUp, CheckCircle2, Clock, AlertTriangle, UserX, AlertOctagon, Flame } from "lucide-react";
+import { Layers, PieChart as PieIcon, TrendingUp, CheckCircle2, Clock, AlertTriangle, UserX, AlertOctagon, Flame, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { fetchUsers } from "@/lib/users-api";
 import { brl } from "@/lib/utils-format";
 
@@ -137,16 +138,42 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
     };
   }, [jobs]);
 
-  // 4. Ranking de Quem Mais Atrasa Jobs (Gargalo de Prazos)
+  // 4. Ranking de Quem Mais Atrasa Jobs (Gargalo de Prazos) com Filtro de Mês
+  const [selectedMonth, setSelectedMonth] = useState<string>("all");
+
   const { data: users = [] } = useQuery({
     queryKey: ["users-list"],
     queryFn: fetchUsers,
     staleTime: 60_000,
   });
 
+  // Lista de meses disponíveis a partir dos jobs
+  const availableMonths = useMemo(() => {
+    const monthsSet = new Set<string>();
+    jobs.forEach((j) => {
+      const date = j.due_date || j.done_at || j.created_at;
+      if (date && typeof date === "string" && date.length >= 7) {
+        monthsSet.add(date.slice(0, 7)); // Formato YYYY-MM
+      }
+    });
+
+    const currentYearMonth = new Date().toISOString().slice(0, 7);
+    monthsSet.add(currentYearMonth);
+
+    return Array.from(monthsSet).sort().reverse();
+  }, [jobs]);
+
   const overdueRanking = useMemo(() => {
     const todayIso = new Date().toISOString().slice(0, 10);
     const usersMap = new Map(users.map((u) => [u.id, u]));
+
+    // Filtra jobs pelo mês selecionado se não for "all"
+    const filteredJobs = selectedMonth === "all"
+      ? jobs
+      : jobs.filter((j) => {
+          const date = j.due_date || j.done_at || j.created_at;
+          return date && date.startsWith(selectedMonth);
+        });
 
     // Agrupa por responsável
     const statsByUser = new Map<
@@ -161,7 +188,7 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
       }
     >();
 
-    jobs.forEach((j) => {
+    filteredJobs.forEach((j) => {
       const respId = j.main_responsible_id || j.assignee_id;
       if (!respId) return;
 
@@ -198,7 +225,7 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
       .sort((a, b) => b.totalOverdue - a.totalOverdue || b.activeOverdue - a.activeOverdue);
 
     return ranking;
-  }, [jobs, users]);
+  }, [jobs, users, selectedMonth]);
 
   return (
     <div className="space-y-4">
@@ -356,7 +383,7 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
 
       {/* Bloco 3: Ranking de Quem Mais Atrasa Jobs */}
       <Card className="bg-card border-border/70 p-5 rounded-xl shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4 pb-3 border-b border-border/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-border/40">
           <div>
             <h4 className="text-sm font-bold text-foreground font-display flex items-center gap-2">
               <Flame className="size-4 text-rose-500 animate-pulse" /> Gargalo de Prazos — Quem Mais Atrasa Demandas
@@ -365,9 +392,35 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
               Responsáveis com maior volume de jobs fora do prazo acordado (atrasos ativos + entregas atrasadas)
             </p>
           </div>
-          <Badge variant="outline" className="border-rose-500/30 text-rose-500 bg-rose-500/10 text-xs font-mono-kasa w-fit">
-            {overdueRanking.length} {overdueRanking.length === 1 ? "membro com atraso" : "membros com atrasos"}
-          </Badge>
+
+          <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Seletor de Mês */}
+            <div className="flex items-center gap-1.5">
+              <Calendar className="size-3.5 text-muted-foreground" />
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="h-8 text-xs font-mono-kasa w-[140px] bg-background border-border/70">
+                  <SelectValue placeholder="Período" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todo o Histórico</SelectItem>
+                  {availableMonths.map((m) => {
+                    const [year, month] = m.split("-");
+                    const dateObj = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+                    const label = dateObj.toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
+                    return (
+                      <SelectItem key={m} value={m} className="capitalize">
+                        {label}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Badge variant="outline" className="border-rose-500/30 text-rose-500 bg-rose-500/10 text-xs font-mono-kasa w-fit h-8 flex items-center">
+              {overdueRanking.length} {overdueRanking.length === 1 ? "com atraso" : "com atrasos"}
+            </Badge>
+          </div>
         </div>
 
         {overdueRanking.length === 0 ? (
