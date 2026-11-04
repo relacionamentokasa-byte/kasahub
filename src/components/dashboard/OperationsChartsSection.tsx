@@ -12,11 +12,12 @@ import {
   Cell,
   CartesianGrid,
 } from "recharts";
-import { Layers, PieChart as PieIcon, TrendingUp, CheckCircle2, Clock, AlertTriangle, UserX, AlertOctagon, Flame, Calendar } from "lucide-react";
+import { Layers, PieChart as PieIcon, TrendingUp, CheckCircle2, Clock, AlertTriangle, UserX, AlertOctagon, Flame, Calendar, CheckSquare, Users } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
 import { fetchUsers } from "@/lib/users-api";
 import { brl } from "@/lib/utils-format";
 
@@ -138,12 +139,29 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
     };
   }, [jobs]);
 
-  // 4. Ranking de Quem Mais Atrasa Jobs (Gargalo de Prazos) com Filtro de Mês
+  // 4. Ranking de Quem Mais Atrasa (Visão por Execução/Checklist vs. Dono do Job)
   const [selectedMonth, setSelectedMonth] = useState<string>("all");
+  const [rankingMode, setRankingMode] = useState<"execution" | "job_owner">("execution");
 
   const { data: users = [] } = useQuery({
     queryKey: ["users-list"],
     queryFn: fetchUsers,
+    staleTime: 60_000,
+  });
+
+  // Busca itens de checklist (etapas de execução atribuídas para cada responsável)
+  const { data: checklistItems = [] } = useQuery({
+    queryKey: ["all-job-checklists"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("job_checklist")
+        .select("id, job_id, content, done, responsible_id, created_at");
+      if (error) {
+        console.warn("Erro ao carregar checklist para ranking:", error);
+        return [];
+      }
+      return data || [];
+    },
     staleTime: 60_000,
   });
 
@@ -175,7 +193,8 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
           return date && date.startsWith(selectedMonth);
         });
 
-    // Agrupa por responsável
+    const filteredJobsMap = new Map(filteredJobs.map((j) => [j.id, j]));
+
     const statsByUser = new Map<
       string,
       {
@@ -185,47 +204,114 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
         deliveredLate: number;
         totalOverdue: number;
         totalAssigned: number;
+        details?: string[];
       }
     >();
 
-    filteredJobs.forEach((j) => {
-      const respId = j.main_responsible_id || j.assignee_id;
-      if (!respId) return;
+    if (rankingMode === "execution") {
+      // MODO 1 & 3: Medir por executor real das etapas (Checklist / Produção)
+      // Se um job está atrasado ou entregue fora do prazo, avalia os responsáveis pelas etapas
+      const checklistByJob = new Map<string, any[]>();
+      checklistItems.forEach((c) => {
+        if (!c.job_id) return;
+        const list = checklistByJob.get(c.job_id) || [];
+        list.push(c);
+        checklistByJob.set(c.job_id, list);
+      });
 
-      const userObj = usersMap.get(respId);
-      const existing = statsByUser.get(respId) || {
-        userId: respId,
-        user: userObj,
-        activeOverdue: 0,
-        deliveredLate: 0,
-        totalOverdue: 0,
-        totalAssigned: 0,
-      };
+      filteredJobs.forEach((j) => {
+        const isDone = !!j.done_at || j.status === "done" || j.status === "completed";
+        const isOverdueActive = !isDone && j.due_date && j.due_date < todayIso;
+        const isDeliveredLate = isDone && j.done_at && j.due_date && j.done_at.slice(0, 10) > j.due_date.slice(0, 10);
 
-      existing.totalAssigned += 1;
+        if (!isOverdueActive && !isDeliveredLate) return;
 
-      const isDone = !!j.done_at || j.status === "done" || j.status === "completed";
+        const jobSteps = checklistByJob.get(j.id) || [];
+        const pendingStepsWithResp = jobSteps.filter((s) => !s.done && s.responsible_id);
 
-      // Atrasado ativo
-      if (!isDone && j.due_date && j.due_date < todayIso) {
-        existing.activeOverdue += 1;
-        existing.totalOverdue += 1;
-      }
-      // Entregue fora do prazo acordado
-      else if (isDone && j.done_at && j.due_date && j.done_at.slice(0, 10) > j.due_date.slice(0, 10)) {
-        existing.deliveredLate += 1;
-        existing.totalOverdue += 1;
-      }
+        // Se há etapas pendentes atribuídas no job em atraso, a responsabilidade é de quem travou a etapa
+        if (isOverdueActive && pendingStepsWithResp.length > 0) {
+          pendingStepsWithResp.forEach((step) => {
+            const respId = step.responsible_id!;
+            const userObj = usersMap.get(respId);
+            const existing = statsByUser.get(respId) || {
+              userId: respId,
+              user: userObj,
+              activeOverdue: 0,
+              deliveredLate: 0,
+              totalOverdue: 0,
+              totalAssigned: 0,
+            };
+            existing.activeOverdue += 1;
+            existing.totalOverdue += 1;
+            statsByUser.set(respId, existing);
+          });
+        } else {
+          // Se todas as etapas tinham responsáveis definidos ou não tem checklist específico
+          // Atribui aos executores identificados nas etapas
+          const assignedInSteps = Array.from(new Set(jobSteps.map((s) => s.responsible_id).filter(Boolean)));
+          const targetIds = assignedInSteps.length > 0
+            ? assignedInSteps
+            : (j.main_responsible_id || j.assignee_id ? [j.main_responsible_id || j.assignee_id] : []);
 
-      statsByUser.set(respId, existing);
-    });
+          targetIds.forEach((respId: string) => {
+            const userObj = usersMap.get(respId);
+            const existing = statsByUser.get(respId) || {
+              userId: respId,
+              user: userObj,
+              activeOverdue: 0,
+              deliveredLate: 0,
+              totalOverdue: 0,
+              totalAssigned: 0,
+            };
+            if (isOverdueActive) {
+              existing.activeOverdue += 1;
+            } else if (isDeliveredLate) {
+              existing.deliveredLate += 1;
+            }
+            existing.totalOverdue += 1;
+            statsByUser.set(respId, existing);
+          });
+        }
+      });
+    } else {
+      // MODO Tradicional: Dono do Job / Responsável Principal
+      filteredJobs.forEach((j) => {
+        const respId = j.main_responsible_id || j.assignee_id;
+        if (!respId) return;
+
+        const userObj = usersMap.get(respId);
+        const existing = statsByUser.get(respId) || {
+          userId: respId,
+          user: userObj,
+          activeOverdue: 0,
+          deliveredLate: 0,
+          totalOverdue: 0,
+          totalAssigned: 0,
+        };
+
+        existing.totalAssigned += 1;
+
+        const isDone = !!j.done_at || j.status === "done" || j.status === "completed";
+
+        if (!isDone && j.due_date && j.due_date < todayIso) {
+          existing.activeOverdue += 1;
+          existing.totalOverdue += 1;
+        } else if (isDone && j.done_at && j.due_date && j.done_at.slice(0, 10) > j.due_date.slice(0, 10)) {
+          existing.deliveredLate += 1;
+          existing.totalOverdue += 1;
+        }
+
+        statsByUser.set(respId, existing);
+      });
+    }
 
     const ranking = Array.from(statsByUser.values())
       .filter((s) => s.totalOverdue > 0)
       .sort((a, b) => b.totalOverdue - a.totalOverdue || b.activeOverdue - a.activeOverdue);
 
     return ranking;
-  }, [jobs, users, selectedMonth]);
+  }, [jobs, users, checklistItems, selectedMonth, rankingMode]);
 
   return (
     <div className="space-y-4">
@@ -389,11 +475,41 @@ export function OperationsChartsSection({ jobs = [], clients = [] }: OperationsC
               <Flame className="size-4 text-rose-500 animate-pulse" /> Gargalo de Prazos — Quem Mais Atrasa Demandas
             </h4>
             <p className="text-xs text-muted-foreground font-mono-kasa mt-0.5">
-              Responsáveis com maior volume de jobs fora do prazo acordado (atrasos ativos + entregas atrasadas)
+              {rankingMode === "execution"
+                ? "Atribuição justa por executores das etapas / checklist (quem realmente travou a produção)"
+                : "Atribuição por dono/responsável final do job no sistema"}
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
+            {/* Seletor de Modo: Execução Real vs Dono do Job */}
+            <div className="flex items-center rounded-lg border border-border/70 p-0.5 bg-muted/20">
+              <button
+                type="button"
+                onClick={() => setRankingMode("execution")}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono-kasa rounded-md transition-all ${
+                  rankingMode === "execution"
+                    ? "bg-background text-foreground font-bold shadow-xs border border-border/60"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Mede quem travou as etapas de checklist da esteira"
+              >
+                <CheckSquare className="size-3 text-primary" /> Executores das Etapas
+              </button>
+              <button
+                type="button"
+                onClick={() => setRankingMode("job_owner")}
+                className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-mono-kasa rounded-md transition-all ${
+                  rankingMode === "job_owner"
+                    ? "bg-background text-foreground font-bold shadow-xs border border-border/60"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Mede pelo responsável principal cadastrado no job"
+              >
+                <Users className="size-3 text-muted-foreground" /> Dono do Job
+              </button>
+            </div>
+
             {/* Seletor de Mês */}
             <div className="flex items-center gap-1.5">
               <Calendar className="size-3.5 text-muted-foreground" />
