@@ -124,7 +124,11 @@ export function NewClientDialog({
         name: form.name || form.company || "Cliente sem nome",
         logo_url: form.logo_url || null,
         start_date: form.start_date || null,
-      });
+        portal_slug: ((form as any).portal_slug || "").trim() || null,
+        portal_primary_color: form.brand_primary || null,
+        portal_cover_color: (form as any).brand_secondary || null,
+        brand_secondary: (form as any).brand_secondary || null,
+      } as any);
       for (const sid of selectedServices) {
         try {
           await addClientService({

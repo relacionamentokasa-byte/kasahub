@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Printer, Loader2, Download } from "lucide-react";
+import { Printer, Loader2, Download, PackageCheck, Calendar as CalendarIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
@@ -8,12 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { brlForce as brl } from "@/lib/utils-format";
 
 interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   transaction: any | null;
+}
+
+interface CompletedJob {
+  id: string;
+  title: string;
+  description: string | null;
+  done_at: string | null;
+  due_date: string | null;
+  created_at: string;
 }
 
 function valorPorExtenso(valor: number): string {
@@ -64,6 +74,11 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   const [dmes, setDmes] = useState<any[]>([]);
   const [exporting, setExporting] = useState(false);
 
+  // Estados dos Jobs concluídos vinculados e datas editáveis
+  const [availableJobs, setAvailableJobs] = useState<CompletedJob[]>([]);
+  const [selectedJobIds, setSelectedJobIds] = useState<Set<string>>(new Set());
+  const [customJobDates, setCustomJobDates] = useState<Record<string, string>>({});
+
   useEffect(() => {
     if (!open || !transaction) return;
     setLoading(true);
@@ -81,8 +96,46 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
         .or(orParts.join(","))
         .order("created_at", { ascending: true });
       setDmes(dmeRows || []);
+
+      // Buscar jobs concluídos do cliente
+      const clientId = transaction.client_id || transaction.clients?.id;
+      if (clientId) {
+        const { data: jobRows } = await supabase
+          .from("jobs")
+          .select("id, title, description, done_at, due_date, created_at, status")
+          .eq("client_id", clientId)
+          .or("status.eq.done,done_at.not.is.null")
+          .order("done_at", { ascending: false })
+          .limit(80);
+
+        const list = (jobRows || []) as CompletedJob[];
+        setAvailableJobs(list);
+        setSelectedJobIds(new Set(list.map((j) => j.id)));
+
+        // Inicializa as datas editáveis para cada job com a data já existente
+        const initialDates: Record<string, string> = {};
+        list.forEach((j) => {
+          const raw = j.done_at || j.due_date || j.created_at;
+          if (raw) {
+            try {
+              initialDates[j.id] = new Date(raw).toISOString().slice(0, 10);
+            } catch {
+              initialDates[j.id] = new Date().toISOString().slice(0, 10);
+            }
+          } else {
+            initialDates[j.id] = new Date().toISOString().slice(0, 10);
+          }
+        });
+        setCustomJobDates(initialDates);
+      } else {
+        setAvailableJobs([]);
+        setSelectedJobIds(new Set());
+        setCustomJobDates({});
+      }
+
       setLoading(false);
     })();
+
     setNumero(`REC-${String(transaction.id).slice(0, 8).toUpperCase()}`);
     const c = transaction.clients;
     setPagador(c?.name || c?.company || "");
@@ -113,10 +166,48 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
   const valor = Number(transaction.amount || 0);
   const dataPg = transaction.payment_date || transaction.due_date;
 
+  const toggleJob = (id: string) => {
+    setSelectedJobIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllJobs = () => {
+    if (selectedJobIds.size === availableJobs.length) {
+      setSelectedJobIds(new Set());
+    } else {
+      setSelectedJobIds(new Set(availableJobs.map((j) => j.id)));
+    }
+  };
+
+  const handleDateChange = (jobId: string, newDate: string) => {
+    setCustomJobDates((prev) => ({ ...prev, [jobId]: newDate }));
+  };
+
+  // Prepara os jobs com a data personalizada escolhida
+  const selectedJobsList = availableJobs
+    .filter((j) => selectedJobIds.has(j.id))
+    .map((j) => ({
+      ...j,
+      displayDate: customJobDates[j.id] || j.done_at || j.due_date || j.created_at,
+    }));
+
   function currentHtml() {
     return buildHtml({
-      agency, numero, valor, valorExtenso: valorPorExtenso(valor),
-      pagador, pagadorDoc, refer, local, dataPg, dmes,
+      agency,
+      numero,
+      valor,
+      valorExtenso: valorPorExtenso(valor),
+      pagador,
+      pagadorDoc,
+      refer,
+      local,
+      dataPg,
+      dmes,
+      jobs: selectedJobsList,
     });
   }
 
@@ -184,16 +275,15 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
     }
   }
 
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
-        <DialogHeader className="space-y-1">
+      <DialogContent className="sm:max-w-[720px] max-h-[92vh] flex flex-col">
+        <DialogHeader className="space-y-1 shrink-0">
           <DialogTitle className="flex items-center gap-2.5 text-base sm:text-lg font-semibold tracking-tight">
             <div className="size-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
               <Printer className="size-5" />
             </div>
-            <span>Emitir Recibo de Pagamento</span>
+            <span>Emitir Recibo de Entregas & Pagamento</span>
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
             {(transaction as any).number_display && (
@@ -207,11 +297,11 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
         </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center justify-center py-10 text-xs text-muted-foreground font-mono-kasa gap-2">
-            <Loader2 className="size-4 animate-spin text-primary" /> Carregando dados do recibo...
+          <div className="flex items-center justify-center py-12 text-xs text-muted-foreground font-mono-kasa gap-2">
+            <Loader2 className="size-4 animate-spin text-primary" /> Carregando dados e entregas do cliente...
           </div>
         ) : (
-          <div className="space-y-3 pt-1">
+          <div className="space-y-3.5 pt-1 overflow-y-auto flex-1 pr-1">
             <div className="grid grid-cols-2 gap-2.5">
               <div className="space-y-1">
                 <Label className="text-xs font-medium text-muted-foreground">Nº do recibo</Label>
@@ -222,22 +312,114 @@ export function ReciboDialog({ open, onOpenChange, transaction }: Props) {
                 <Input value={local} onChange={(e) => setLocal(e.target.value)} placeholder="Cidade/UF" className="h-9 text-xs" />
               </div>
             </div>
+
             <div className="space-y-1">
               <Label className="text-xs font-medium text-muted-foreground">Recebemos de (Pagador)</Label>
               <Input value={pagador} onChange={(e) => setPagador(e.target.value)} className="h-9 text-xs font-medium" />
             </div>
+
             <div className="space-y-1">
               <Label className="text-xs font-medium text-muted-foreground">CPF / CNPJ do pagador</Label>
               <Input value={pagadorDoc} onChange={(e) => setPagadorDoc(e.target.value)} className="h-9 text-xs font-mono-kasa tabular-nums" />
             </div>
+
             <div className="space-y-1">
               <Label className="text-xs font-medium text-muted-foreground">Referente aos serviços de</Label>
-              <Textarea value={refer} onChange={(e) => setRefer(e.target.value)} rows={3} className="text-xs resize-none" />
+              <Textarea value={refer} onChange={(e) => setRefer(e.target.value)} rows={2} className="text-xs resize-none" />
+            </div>
+
+            {/* SELEÇÃO DE JOBS COM DATAS RETROATIVAS EDITÁVEIS */}
+            <div className="space-y-2 pt-2 border-t border-border/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <PackageCheck className="size-4 text-primary" />
+                    Entregas Realizadas (Jobs Concluídos)
+                    {availableJobs.length > 0 && (
+                      <span className="text-[10px] font-mono-kasa text-muted-foreground">
+                        ({selectedJobIds.size} de {availableJobs.length} selecionados)
+                      </span>
+                    )}
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Você pode alterar a data de cada entrega para a data real/retroativa desejada.
+                  </p>
+                </div>
+                {availableJobs.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={toggleAllJobs}
+                    className="h-7 text-[11px] font-mono-kasa text-primary hover:text-primary"
+                  >
+                    {selectedJobIds.size === availableJobs.length ? "Desmarcar todos" : "Selecionar todos"}
+                  </Button>
+                )}
+              </div>
+
+              {availableJobs.length === 0 ? (
+                <div className="p-3 rounded-lg border border-border/60 bg-muted/20 text-xs text-muted-foreground text-center">
+                  Nenhum job concluído encontrado para este cliente. O recibo será emitido apenas com o texto geral de referência.
+                </div>
+              ) : (
+                <div className="max-h-56 overflow-y-auto space-y-1.5 p-2 rounded-lg border border-border/60 bg-muted/10">
+                  {availableJobs.map((job) => {
+                    const isChecked = selectedJobIds.has(job.id);
+                    const currentDateVal = customJobDates[job.id] || "";
+
+                    return (
+                      <div
+                        key={job.id}
+                        className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-md border text-xs transition-colors ${
+                          isChecked
+                            ? "bg-primary/5 border-primary/30 text-foreground"
+                            : "bg-background border-border/50 text-muted-foreground hover:bg-muted/30"
+                        }`}
+                      >
+                        <div
+                          onClick={() => toggleJob(job.id)}
+                          className="flex items-start gap-2.5 flex-1 min-w-0 cursor-pointer"
+                        >
+                          <Checkbox
+                            checked={isChecked}
+                            onCheckedChange={() => toggleJob(job.id)}
+                            className="mt-0.5 shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-semibold block truncate">{job.title}</span>
+                            {job.description && (
+                              <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                                {job.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Campo para Ajuste de Data Retroativa da Entrega */}
+                        <div className="flex items-center gap-1.5 shrink-0 pl-6 sm:pl-0">
+                          <span className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                            <CalendarIcon className="size-3 text-muted-foreground" />
+                            Data:
+                          </span>
+                          <Input
+                            type="date"
+                            value={currentDateVal}
+                            onChange={(e) => handleDateChange(job.id, e.target.value)}
+                            disabled={!isChecked}
+                            className="h-7 w-32 text-[11px] font-mono-kasa tabular-nums bg-background"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        <DialogFooter className="gap-2 sm:gap-0 pt-2 border-t border-border/60">
+        <DialogFooter className="gap-2 sm:gap-0 pt-3 border-t border-border/60 shrink-0">
           <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-9 text-xs">
             Cancelar
           </Button>
@@ -258,6 +440,7 @@ function buildHtml(d: {
   agency: any; numero: string; valor: number; valorExtenso: string;
   pagador: string; pagadorDoc: string; refer: string; local: string; dataPg: string;
   dmes?: any[];
+  jobs?: Array<CompletedJob & { displayDate?: string | null }>;
 }) {
   const a = d.agency || {};
   const displayName = a.legal_name || a.name || "";
@@ -266,6 +449,8 @@ function buildHtml(d: {
   const valorFmt = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(d.valor);
   const brlFmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v || 0);
   const dmes = d.dmes || [];
+  const jobs = d.jobs || [];
+
   const dmesHtml = dmes.length ? `
     <div class="dmes">
       <div class="dmes-title">${dmes.length > 1 ? "Demandas extras incluídas nesta cobrança consolidada" : "Demanda extra referente a esta cobrança"}</div>
@@ -285,6 +470,46 @@ function buildHtml(d: {
         ${dmes.length > 1 ? `<tfoot><tr><td colspan="2" class="r"><strong>Total</strong></td><td class="r mono"><strong>${valorFmt}</strong></td></tr></tfoot>` : ""}
       </table>
     </div>` : "";
+
+  const jobsHtml = jobs.length ? `
+    <div class="dmes" style="margin-top: 16px;">
+      <div class="dmes-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>Discriminação das Entregas Realizadas no Período</span>
+        <span style="font-size: 10px; font-weight: normal; color: #6b7280;">(${jobs.length} entrega${jobs.length > 1 ? "s" : ""})</span>
+      </div>
+      <table class="dmes-table">
+        <thead>
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th>Entrega / Job Concluído</th>
+            <th class="r" style="width: 120px;">Data de Entrega</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${jobs.map((j: any, idx: number) => {
+            let dateStr = "-";
+            if (j.displayDate) {
+              const dParts = String(j.displayDate).slice(0, 10).split("-");
+              if (dParts.length === 3) {
+                dateStr = `${dParts[2]}/${dParts[1]}/${dParts[0]}`;
+              } else {
+                dateStr = new Date(j.displayDate).toLocaleDateString("pt-BR");
+              }
+            }
+            return `
+            <tr>
+              <td class="mono" style="color: #6b7280;">${idx + 1}</td>
+              <td>
+                <div class="dt">${escape(j.title || "")}</div>
+                ${j.description ? `<div class="dd">${escape(j.description)}</div>` : ""}
+              </td>
+              <td class="r mono">${dateStr}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>` : "";
+
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"/>
 <title>Recibo ${d.numero}</title>
 <style>
@@ -298,28 +523,28 @@ function buildHtml(d: {
   .logo{max-height:60px;max-width:180px;object-fit:contain}
   .meta{display:flex;justify-content:space-between;margin-bottom:24px;font-size:13px}
   .meta .val{background:#111;color:#fff;padding:10px 18px;border-radius:8px;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
-  .body{font-size:14px;line-height:1.85;margin-bottom:40px;text-align:justify}
+  .body{font-size:14px;line-height:1.85;margin-bottom:24px;text-align:justify}
   .body strong{font-weight:700}
-  .sign{margin-top:60px;text-align:center;font-size:13px}
+  .sign{margin-top:50px;text-align:center;font-size:13px}
   .sign .line{border-top:1px solid #111;width:320px;margin:0 auto 6px}
   .foot{margin-top:32px;padding-top:16px;border-top:1px dashed #d1d5db;font-size:10px;color:#9ca3af;text-align:center}
-  .dmes{margin:24px 0 32px;border:1px solid #e5e7eb;border-radius:10px;padding:16px;background:#fafafa}
+  .dmes{margin:20px 0 24px;border:1px solid #e5e7eb;border-radius:10px;padding:16px;background:#fafafa}
   .dmes-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:#6b7280;margin-bottom:10px;font-weight:600}
-  .dmes-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .dmes-table{width:100%;border-collapse:collapse;font-size:12px}
   .dmes-table th{text-align:left;padding:8px 6px;border-bottom:1px solid #e5e7eb;color:#6b7280;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
-  .dmes-table td{padding:10px 6px;border-bottom:1px solid #f0f0f0;vertical-align:top}
+  .dmes-table td{padding:9px 6px;border-bottom:1px solid #f0f0f0;vertical-align:top}
   .dmes-table tfoot td{border-bottom:none;border-top:2px solid #111;padding-top:10px}
   .dmes-table .r{text-align:right}
   .dmes-table .mono{font-variant-numeric:tabular-nums;font-family:'SFMono-Regular',Menlo,monospace;font-size:11.5px}
   .dmes-table .dt{font-weight:600;color:#111}
-  .dmes-table .dd{color:#4b5563;font-size:11.5px;margin-top:2px;white-space:pre-line}
+  .dmes-table .dd{color:#4b5563;font-size:11px;margin-top:2px;white-space:pre-line}
   @media print {body{padding:0} .sheet{border:none}}
 </style></head>
 <body>
   <div class="sheet">
     <header>
       <div class="brand">
-        <h1>Recibo de Pagamento</h1>
+        <h1>Recibo de Pagamento & Entregas</h1>
         <h2>${escape(displayName)}</h2>
         ${a.document ? `<p>CNPJ/CPF: ${escape(a.document)}</p>` : ""}
         ${a.address ? `<p>${escape(a.address)}</p>` : ""}
@@ -338,12 +563,14 @@ function buildHtml(d: {
       a importância de <strong>${valorFmt}</strong> (<em>${escape(d.valorExtenso)}</em>),
       referente a <strong>${escape(d.refer)}</strong>.
       <br/><br/>
-      Para clareza e validade do que aqui foi declarado, firmo o presente recibo, dando plena, geral e irrevogável quitação da quantia ora recebida.
+      Para clareza e validade do que aqui foi declarado, firmo o presente recibo com a discriminação dos serviços e entregas executadas, dando plena, geral e irrevogável quitação da quantia ora recebida.
     </p>
+
+    ${jobsHtml}
 
     ${dmesHtml}
 
-    <p style="font-size:13px;text-align:right;margin-bottom:48px">${escape(d.local || "")}${d.local ? ", " : ""}${dataFmt}.</p>
+    <p style="font-size:13px;text-align:right;margin-top:24px;margin-bottom:40px">${escape(d.local || "")}${d.local ? ", " : ""}${dataFmt}.</p>
 
     <div class="sign">
       <div class="line"></div>

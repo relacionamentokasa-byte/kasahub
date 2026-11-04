@@ -13,7 +13,6 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         }
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const isLibusSlug = parsed.data.toLowerCase().includes("libus");
         const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(parsed.data);
 
         let query = supabaseAdmin
@@ -23,472 +22,64 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
         if (isUuid) {
           query = query.or(`portal_slug.eq.${parsed.data},id.eq.${parsed.data}`);
         } else {
-          query = query.or(`portal_slug.eq.${parsed.data},portal_slug.ilike.%${parsed.data}%,name.ilike.%${parsed.data}%`);
+          query = query.eq("portal_slug", parsed.data);
         }
 
         let { data: client, error: cErr } = await query.maybeSingle();
 
-        if (cErr || !client) {
-          if (isLibusSlug) {
-            const { data: realLibus } = await supabaseAdmin
-              .from("clients")
-              .select("id, name, company, logo_url, brand_primary, brand_secondary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
-              .ilike("name", "%libus%")
-              .maybeSingle();
-
-            if (realLibus) {
-              client = realLibus;
-            } else {
-              client = {
-                id: "00000000-0000-0000-0000-000000000001",
-                name: "Libus do Brasil",
-                company: "Libus do Brasil Equipamentos LTDA",
-                logo_url: null,
-                brand_primary: "#005691",
-                brand_secondary: "#002B49",
-                portal_cover_url: null,
-                portal_primary_color: "#005691",
-                portal_cover_color: "#002B49",
-                portal_enabled: true,
-                has_launch_grid: false,
-                created_at: new Date().toISOString(),
-                portal_slug: "libus",
-              } as any;
-            }
-          } else {
-            const { data: fallbackClient } = await supabaseAdmin
-              .from("clients")
-              .select("id, name, company, logo_url, brand_primary, brand_secondary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
-              .limit(1)
-              .maybeSingle();
-
-            if (!fallbackClient) {
-              return Response.json({ error: "not_found" }, { status: 404 });
-            }
-            client = fallbackClient;
+        if (!client) {
+          const { data: byName } = await supabaseAdmin
+            .from("clients")
+            .select("id, name, company, logo_url, brand_primary, brand_secondary, portal_cover_url, portal_primary_color, portal_cover_color, portal_enabled, has_launch_grid, created_at, portal_slug")
+            .or(`portal_slug.ilike.${parsed.data},name.ilike.%${parsed.data}%,company.ilike.%${parsed.data}%`)
+            .maybeSingle();
+          if (byName) {
+            client = byName;
           }
         }
 
-        if (!client) {
+        if (cErr || !client) {
           return Response.json({ error: "not_found" }, { status: 404 });
         }
 
         const isClientUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(client.id);
 
         let jobs: any[] = [];
+        let approvalItems: any[] = [];
+        let events: any[] = [];
+
         if (isClientUuid) {
-          const { data: jobsData } = await supabaseAdmin
-            .from("jobs")
-            .select("id, title, description, status, stage_id, due_date, progress_percentage, completed_steps, total_steps, done_at, updated_at, main_responsible_id, priority, launch_product_id")
-            .eq("client_id", client.id)
-            .eq("show_in_portal", true)
-            .order("updated_at", { ascending: false });
-          jobs = jobsData || [];
-        }
-
-        // Para a Libus, se o cliente ainda não tiver jobs cadastrados na base,
-        // retorna os jobs e itens de aprovação iniciais do Piloto de Trade (Mês 1)
-        let resolvedJobs = jobs || [];
-        if (isLibusSlug && resolvedJobs.length === 0) {
-          resolvedJobs = [
-            {
-              id: "libus-job-1",
-              title: "Onboarding & Levantamento da Linha de Base",
-              description: "Mapeamento dos canais digitais dos distribuidores prioritários e diagnóstico de e-commerce.",
-              status: "in_progress",
-              stage_id: null,
-              due_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-              progress_percentage: 45,
-              completed_steps: 2,
-              total_steps: 4,
-              done_at: null,
-              updated_at: new Date().toISOString(),
-              main_responsible_id: null,
-              priority: "high",
-              launch_product_id: null,
-              category: "trade_distribuidor",
-            },
-            {
-              id: "libus-job-2",
-              title: "Kit Mensal de Conteúdo para Distribuidores — Mês 1",
-              description: "Produção e empacotamento das artes, cards de WhatsApp e catálogos para a rede.",
-              status: "in_progress",
-              stage_id: null,
-              due_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-              progress_percentage: 75,
-              completed_steps: 3,
-              total_steps: 4,
-              done_at: null,
-              updated_at: new Date().toISOString(),
-              main_responsible_id: null,
-              priority: "high",
-              launch_product_id: null,
-              category: "kit_distribuidor",
-            },
-            {
-              id: "libus-job-3",
-              title: "Proposição do Plano de Mídia — Mês 2",
-              description: "Planejamento de investimento em tráfego para capilaridade das collabs com distribuidores.",
-              status: "pending",
-              stage_id: null,
-              due_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-              progress_percentage: 10,
-              completed_steps: 0,
-              total_steps: 3,
-              done_at: null,
-              updated_at: new Date().toISOString(),
-              main_responsible_id: null,
-              priority: "normal",
-              launch_product_id: null,
-              category: "midia_trafego",
-            },
-          ] as any;
-        }
-
-        // Fetch responsible names
-        const userIds = Array.from(new Set((jobs || []).map((j) => j.main_responsible_id).filter(Boolean))) as string[];
-        let responsibles: Record<string, { name: string | null; avatar: string | null }> = {};
-        if (userIds.length > 0) {
-          const { data: profiles } = await supabaseAdmin
-            .from("profiles")
-            .select("id, display_name, full_name, avatar_url")
-            .in("id", userIds);
-          (profiles || []).forEach((p) => {
-            responsibles[p.id] = { name: p.display_name || p.full_name, avatar: p.avatar_url };
-          });
-        }
-
-        // Fetch checklist (etapas de execução) for visible jobs
-        const jobIds = (jobs || []).map((j) => j.id);
-        const stages: Record<string, Array<{ id: string; content: string; done: boolean; order_index: number }>> = {};
-        if (jobIds.length > 0) {
-          const { data: items } = await supabaseAdmin
-            .from("job_checklist")
-            .select("id, job_id, content, done, order_index")
-            .in("job_id", jobIds)
-            .order("order_index", { ascending: true });
-          (items || []).forEach((it: any) => {
-            if (!stages[it.job_id]) stages[it.job_id] = [];
-            stages[it.job_id].push({
-              id: it.id,
-              content: it.content,
-              done: !!it.done,
-              order_index: it.order_index ?? 0,
-            });
-          });
-        }
-
-        // Fetch attachments for visible jobs (signed URLs from private bucket)
-        const attachments: Record<string, Array<{ id: string; file_name: string; file_url: string; file_type: string | null; category: string | null; created_at: string }>> = {};
-        if (jobIds.length > 0) {
-          const { data: attRows } = await supabaseAdmin
-            .from("job_attachments")
-            .select("id, job_id, file_name, file_url, file_type, category, created_at")
-            .in("job_id", jobIds)
-            .order("created_at", { ascending: false });
-
-          for (const att of attRows || []) {
-            let signedUrl: string = att.file_url;
-            try {
-              const parts = (att.file_url || "").split("/job-attachments/");
-              if (parts.length >= 2) {
-                const path = parts[1];
-                if (!path.includes("..") && !path.startsWith("/")) {
-                  const { data: signed } = await supabaseAdmin.storage
-                    .from("job-attachments")
-                    .createSignedUrl(path, 3600);
-                  if (signed?.signedUrl) signedUrl = signed.signedUrl;
-                }
-              }
-            } catch {
-              /* keep raw URL */
-            }
-            if (!attachments[att.job_id]) attachments[att.job_id] = [];
-            attachments[att.job_id].push({
-              id: att.id,
-              file_name: att.file_name,
-              file_url: signedUrl,
-              file_type: att.file_type,
-              category: att.category,
-              created_at: att.created_at,
-            });
-          }
-        }
-
-        // Fetch approval logs for visible jobs
-        const approvals: Record<string, Array<{ id: string; action: string; feedback: string | null; created_at: string; attachment_id: string | null }>> = {};
-        if (jobIds.length > 0) {
-          const { data: logs } = await supabaseAdmin
-            .from("job_approval_logs")
-            .select("id, job_id, action, feedback, created_at, attachment_id")
-            .in("job_id", jobIds)
-            .order("created_at", { ascending: false });
-          (logs || []).forEach((l: any) => {
-            if (!approvals[l.job_id]) approvals[l.job_id] = [];
-            approvals[l.job_id].push({
-              id: l.id,
-              action: l.action,
-              feedback: l.feedback,
-              created_at: l.created_at,
-              attachment_id: l.attachment_id,
-            });
-          });
-        }
-
-        // Fetch invoices (transações de receita do cliente)
-        const { data: txRows } = await supabaseAdmin
-          .from("transactions")
-          .select("id, description, amount, due_date, payment_date, status, kind, type, payment_method, created_at, boleto_pdf_path, boleto_linha_digitavel, boleto_pix_copia_cola")
-          .eq("client_id", client.id)
-          .or("kind.eq.income,type.eq.income")
-          .order("due_date", { ascending: true });
-
-        // Generate signed URLs for boletos
-        const invoices = await Promise.all(
-          (txRows || []).map(async (t: any) => {
-            let boleto_pdf_url: string | null = null;
-            if (t.boleto_pdf_path) {
-              const { data: signed } = await supabaseAdmin.storage
-                .from("boletos")
-                .createSignedUrl(t.boleto_pdf_path, 3600);
-              boleto_pdf_url = signed?.signedUrl ?? null;
-            }
-            return {
-              id: t.id,
-              description: t.description,
-              amount: Number(t.amount) || 0,
-              due_date: t.due_date,
-              payment_date: t.payment_date,
-              status: t.status,
-              payment_method: t.payment_method,
-              created_at: t.created_at,
-              boleto_pdf_url,
-              boleto_linha_digitavel: t.boleto_linha_digitavel ?? null,
-              boleto_pix_copia_cola: t.boleto_pix_copia_cola ?? null,
-            };
-          })
-        );
-
-
-        // Fetch proposals (aprovadas/aceitas) do cliente
-        const { data: propRows } = await supabaseAdmin
-          .from("proposals")
-          .select("id, title, total, monthly_investment, status, created_at, accepted_at, public_token, number_display, intro, scope_text, contract_content, recurring_months")
-          .eq("client_id", client.id)
-          .is("deleted_at", null)
-          .in("status", ["accepted", "signed", "converted", "Aprovada", "aprovada"])
-          .order("created_at", { ascending: false });
-
-        const proposals = (propRows || []).map((p: any) => ({
-          id: p.id,
-          title: p.title,
-          total: Number(p.total) || 0,
-          monthly_investment: Number(p.monthly_investment) || 0,
-          status: p.status,
-          created_at: p.created_at,
-          accepted_at: p.accepted_at,
-          public_token: p.public_token,
-          number_display: p.number_display,
-          intro: p.intro,
-          scope_text: p.scope_text,
-          contract_content: p.contract_content,
-          recurring_months: p.recurring_months,
-        }));
-
-        // Fetch current contract (vigente)
-        const today = new Date().toISOString().slice(0, 10);
-        const { data: contractRows } = await supabaseAdmin
-          .from("contracts")
-          .select("id, title, total_value, monthly_value, start_date, end_date, status, payment_method, proposal_id, type, billing_day")
-          .eq("client_id", client.id)
-          .neq("status", "cancelled")
-          .or(`end_date.is.null,end_date.gte.${today}`)
-          .order("start_date", { ascending: false })
-          .limit(1);
-
-        let currentContract: any = null;
-        if (contractRows && contractRows[0]) {
-          const c: any = contractRows[0];
-          if (c.proposal_id) {
-            const { data: prop } = await supabaseAdmin
-              .from("proposals")
-              .select("contract_content, public_token, number_display")
-              .eq("id", c.proposal_id)
-              .maybeSingle();
-            currentContract = {
-              ...c,
-              contract_content: prop?.contract_content || null,
-              public_token: prop?.public_token || null,
-              number_display: prop?.number_display || null,
-            };
-          } else {
-            currentContract = { ...c, contract_content: null, public_token: null, number_display: null };
-          }
-        }
-
-        // Fetch approval_items (Feed estilo Instagram)
-        const { data: itemRows } = await (supabaseAdmin as any)
-          .from("approval_items")
-          .select("id, title, description, content_type, content_url, content_text, caption, thumbnail_url, status, feedback, sent_for_approval_at, viewed_at, approved_at, rejected_at, created_at, job_id, project_id, format, slides, slide_statuses")
-          .eq("client_id", client.id)
-          .neq("status", "archived")
-          .order("created_at", { ascending: false });
-        const approvalItems = (itemRows || []) as Array<Record<string, unknown>>;
-
-        // Fetch editorial_posts do cliente para complementar o feed
-        const { data: epRows } = await supabaseAdmin
-          .from("editorial_posts")
-          .select("id, client_id, title, description, social_network, content_type, scheduled_at, status, cover_url, created_at, job_id")
-          .eq("client_id", client.id)
-          .order("scheduled_at", { ascending: false });
-        const editorialPosts = (epRows || []) as Array<Record<string, unknown>>;
-
-        // Refresh storage URLs for the public portal. Some approval items were saved with
-        // raw public URLs from private buckets, so convert both public and signed storage
-        // URLs into fresh signed URLs before sending them to the client portal.
-        const STORAGE_RE = /\/storage\/v1\/object\/(?:sign|public)\/([^/]+)\/([^?]+)/;
-        async function refreshUrl(url: unknown): Promise<string | null> {
-          if (typeof url !== "string" || !url) return (url as string) ?? null;
-          const m = url.match(STORAGE_RE);
-          if (!m) return url; // public URL or external — leave as is
-          const bucket = decodeURIComponent(m[1]);
-          const path = decodeURIComponent(m[2]);
-          if (!bucket || !path || path.includes("..") || path.startsWith("/")) return url;
-          const { data } = await (supabaseAdmin as any).storage
-            .from(bucket)
-            .createSignedUrl(path, 60 * 60 * 24);
-          return data?.signedUrl ?? url;
-        }
-        await Promise.all([
-          ...approvalItems.map(async (it: any) => {
-            it.content_url = await refreshUrl(it.content_url);
-            it.thumbnail_url = await refreshUrl(it.thumbnail_url);
-            if (Array.isArray(it.slides)) {
-              await Promise.all(
-                it.slides.map(async (s: any) => {
-                  if (s && typeof s === "object") {
-                    s.url = await refreshUrl(s.url);
-                    if (s.thumbnail_url) s.thumbnail_url = await refreshUrl(s.thumbnail_url);
-                  }
-                }),
-              );
-            }
-          }),
-          ...editorialPosts.map(async (ep: any) => {
-            ep.cover_url = await refreshUrl(ep.cover_url);
-          }),
-        ]);
-
-        // Fetch comments for those items
-        const itemIds = approvalItems.map((i) => i.id as string);
-        const approvalComments: Record<string, Array<Record<string, unknown>>> = {};
-        if (itemIds.length > 0) {
-          const { data: cRows } = await (supabaseAdmin as any)
-            .from("approval_item_comments")
-            .select("id, approval_item_id, slide_id, author_type, author_name, body, is_change_request, created_at")
-            .in("approval_item_id", itemIds)
-            .order("created_at", { ascending: true });
-          (cRows || []).forEach((c: any) => {
-            if (!approvalComments[c.approval_item_id]) approvalComments[c.approval_item_id] = [];
-            approvalComments[c.approval_item_id].push(c);
-          });
-        }
-
-        // Fetch upcoming calendar events (próximos 60 dias)
-        const nowIso = new Date().toISOString();
-        const horizon = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
-        const { data: evRows } = await supabaseAdmin
-          .from("calendar_events")
-          .select("id, title, description, kind, starts_at, ends_at, all_day, color")
-          .eq("client_id", client.id)
-          .gte("starts_at", nowIso)
-          .lte("starts_at", horizon)
-          .order("starts_at", { ascending: true })
-          .limit(20);
-        const events = evRows || [];
-
-        // Fetch active onboardings + steps (read-only for client portal)
-        const { data: onbRows } = await supabaseAdmin
-          .from("onboardings")
-          .select("id, title, description, status, progress_percentage, start_date, expected_end_date, completed_at")
-          .eq("client_id", client.id)
-          .neq("status", "cancelled")
-          .order("created_at", { ascending: false });
-
-        const onboardings: any[] = [];
-        for (const o of onbRows || []) {
-          const { data: stepRows } = await supabaseAdmin
-            .from("onboarding_steps")
-            .select("id, title, description, responsible_type, status, due_date, completed_at, order_index")
-            .eq("onboarding_id", o.id)
-            .order("order_index", { ascending: true });
-          onboardings.push({ ...o, steps: stepRows || [] });
-        }
-
-        // Fetch Launch Grids do cliente com as mesmas etapas do board de Jobs.
-        // O status antigo do grid (launch_grid_statuses, ex: "em produção") não é mais usado.
-        const gridRows = (client as any).has_launch_grid
-          ? (await supabaseAdmin
-              .from("launch_grids")
-              .select("id, title, description, cover_url, status, launch_date, created_at")
+          const [jobsRes, approvalsRes, eventsRes] = await Promise.all([
+            supabaseAdmin
+              .from("jobs")
+              .select("id, title, description, status, stage_id, due_date, progress_percentage, completed_steps, total_steps, done_at, updated_at, main_responsible_id, priority, launch_product_id")
               .eq("client_id", client.id)
-              .eq("status", "active")
-              .order("created_at", { ascending: false })).data
-          : [];
+              .eq("show_in_portal", true)
+              .order("updated_at", { ascending: false }),
 
-        const launchGrids: any[] = [];
-        for (const g of gridRows || []) {
-          const [{ data: jobStages }, { data: gProducts }] = await Promise.all([
+            (supabaseAdmin as any)
+              .from("approval_items")
+              .select("id, title, description, content_type, content_url, content_text, caption, thumbnail_url, status, feedback, sent_for_approval_at, viewed_at, approved_at, rejected_at, created_at, job_id, format, slides, slide_statuses")
+              .eq("client_id", client.id)
+              .neq("status", "archived")
+              .order("created_at", { ascending: false }),
+
             supabaseAdmin
-              .from("job_stages")
-              .select("id, name, color, order_index, is_done")
-              .order("order_index", { ascending: true }),
-            supabaseAdmin
-              .from("launch_grid_products")
-              .select("id, name, description, image_url, status_id, due_date, links, order_index, notes")
-              .eq("grid_id", g.id)
-              .order("order_index", { ascending: true }),
+              .from("calendar_events")
+              .select("id, title, starts_at, ends_at, kind, description")
+              .eq("client_id", client.id)
+              .gte("starts_at", new Date().toISOString())
+              .order("starts_at", { ascending: true })
+              .limit(10),
           ]);
 
-          const productIds = (gProducts || []).map((p: any) => p.id);
-          const productJobs = productIds.length > 0
-            ? ((jobs || []) as any[])
-                .filter((job) => job.launch_product_id && productIds.includes(job.launch_product_id))
-                .sort((a, b) => String(a.due_date || "").localeCompare(String(b.due_date || "")))
-            : [];
-          const jobsByProduct = productJobs.reduce((acc, job) => {
-            if (!acc[job.launch_product_id]) acc[job.launch_product_id] = [];
-            acc[job.launch_product_id].push(job);
-            return acc;
-          }, {} as Record<string, any[]>);
-          const validStageIds = new Set((jobStages || []).map((s: any) => s.id));
-          const fallbackStageId = (jobStages || [])[0]?.id ?? null;
-
-          const productsWithImages = await Promise.all(
-            (gProducts || []).map(async (p: any) => ({
-              ...p,
-              status_id: p.status_id && validStageIds.has(p.status_id) ? p.status_id : fallbackStageId,
-              image_url: await refreshUrl(p.image_url),
-              jobs: jobsByProduct[p.id] || [],
-            })),
-          );
-          launchGrids.push({
-            ...g,
-            cover_url: await refreshUrl((g as any).cover_url),
-            statuses: (jobStages || []).map((s: any) => ({
-              id: s.id,
-              label: s.name,
-              color: s.color,
-              order_index: s.order_index ?? 0,
-              is_done: !!s.is_done,
-            })),
-            products: productsWithImages,
-          });
+          jobs = jobsRes.data || [];
+          approvalItems = approvalsRes.data || [];
+          events = eventsRes.data || [];
         }
 
         return new Response(
-          JSON.stringify({ client, jobs: resolvedJobs, responsibles, stages, attachments, approvals, invoices, proposals, currentContract, approvalItems, approvalComments, editorialPosts, events, onboardings, launchGrids }),
-
+          JSON.stringify({ client, jobs, approvalItems, events }),
           {
             status: 200,
             headers: {
@@ -501,4 +92,3 @@ export const Route = createFileRoute("/api/public/portal-jobs/$slug")({
     },
   },
 });
-
