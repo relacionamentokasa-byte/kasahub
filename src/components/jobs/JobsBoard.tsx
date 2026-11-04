@@ -98,7 +98,7 @@ export function JobsBoard({
   const [responsibleId, setResponsibleId] = useState<string>("all");
   const [clientFilterId, setClientFilterId] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("active");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [teamFilter, setTeamFilter] = useState<string[]>([]);
 
   const filters = useMemo(() => ({ projectId, clientId, serviceId, period }), [projectId, clientId, serviceId, period]);
@@ -313,7 +313,7 @@ export function JobsBoard({
     setClientFilterId("all");
     setPeriod("all");
     setPriorityFilter("all");
-    setStatusFilter("active");
+    setStatusFilter("all");
     setTeamFilter([]);
   };
 
@@ -323,7 +323,7 @@ export function JobsBoard({
     clientFilterId !== "all",
     period !== "all",
     priorityFilter !== "all",
-    statusFilter !== "all" && statusFilter !== "active",
+    statusFilter !== "all",
     teamFilter.length > 0
   ].filter(Boolean).length;
 
@@ -695,9 +695,9 @@ export function JobsBoard({
                           <SelectValue placeholder="Status" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="active" className="text-xs font-mono-kasa">Ativos (esconde concluídos)</SelectItem>
-                          <SelectItem value="all" className="text-xs font-mono-kasa">Todos</SelectItem>
-                          <SelectItem value="done" className="text-xs font-mono-kasa">Concluídos</SelectItem>
+                          <SelectItem value="all" className="text-xs font-mono-kasa">Todos (exibe concluídos)</SelectItem>
+                          <SelectItem value="active" className="text-xs font-mono-kasa">Apenas Ativos (esconde concluídos)</SelectItem>
+                          <SelectItem value="done" className="text-xs font-mono-kasa">Apenas Concluídos</SelectItem>
                           {Object.entries(JOB_STATUS_LABELS).map(([key, value]) => (
                             <SelectItem key={key} value={key} className="text-xs font-mono-kasa">
                               {value.label}
