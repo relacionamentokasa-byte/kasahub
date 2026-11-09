@@ -354,6 +354,41 @@ export function JobSheet({
   }, [job, qc]);
 
 
+  const updateMut = useMutation({
+    mutationFn: (patch: Partial<Job>) => {
+      const cleanPatch = Object.entries(patch).reduce((acc, [key, value]) => {
+        acc[key] = value === "" ? null : value;
+        return acc;
+      }, {} as any);
+      return updateJob(job!.id, cleanPatch);
+    },
+    onMutate: async (patch) => {
+      await qc.cancelQueries({ queryKey: ["jobs"] });
+      await qc.cancelQueries({ queryKey: ["job", job!.id] });
+
+      const prev = qc.getQueryData<Job[]>(["jobs"]);
+
+      qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
+        if (!old) return old;
+        if (Array.isArray(old)) {
+          return old.map((j) => (j.id === job!.id ? { ...j, ...patch } : j));
+        }
+        return old;
+      });
+
+      return { prev };
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["jobs"] });
+      qc.invalidateQueries({ queryKey: ["job", job!.id] });
+      toast.success("Job atualizado");
+    },
+    onError: (e: Error, _v, ctx) => {
+      if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
+      toast.error(e.message);
+    }
+  });
+
   // Extrair mapeamento de prazos individuais das etapas do custom_fields
   const checklistDueDates: Record<string, string> = useMemo(() => {
     const cf = (job as any)?.custom_fields;
@@ -464,42 +499,6 @@ export function JobSheet({
       setObservations(job.description || "");
     }
   }, [job?.id]);
-
-
-  const updateMut = useMutation({
-    mutationFn: (patch: Partial<Job>) => {
-      const cleanPatch = Object.entries(patch).reduce((acc, [key, value]) => {
-        acc[key] = value === "" ? null : value;
-        return acc;
-      }, {} as any);
-      return updateJob(job!.id, cleanPatch);
-    },
-    onMutate: async (patch) => {
-      await qc.cancelQueries({ queryKey: ["jobs"] });
-      await qc.cancelQueries({ queryKey: ["job", job!.id] });
-      
-      const prev = qc.getQueryData<Job[]>(["jobs"]);
-      
-      qc.setQueriesData({ queryKey: ["jobs"] }, (old: any) => {
-        if (!old) return old;
-        if (Array.isArray(old)) {
-          return old.map((j) => (j.id === job!.id ? { ...j, ...patch } : j));
-        }
-        return old;
-      });
-      
-      return { prev };
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["jobs"] });
-      qc.invalidateQueries({ queryKey: ["job", job!.id] });
-      toast.success("Job atualizado");
-    },
-    onError: (e: Error, _v, ctx) => {
-      if (ctx?.prev) qc.setQueryData(["jobs"], ctx.prev);
-      toast.error(e.message);
-    }
-  });
 
   const uploadFiles = async (files: File[]) => {
     if (!job || files.length === 0) return;
