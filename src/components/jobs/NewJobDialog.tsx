@@ -114,6 +114,7 @@ export function NewJobDialog({
           due_date: conversionData.dueDate,
           client_id: conversionData.clientId,
           editorial_post_id: conversionData.sourcePostId,
+          delivery_category: "geral",
           project_id: "",
           contract_id: "",
           period: "",
@@ -141,6 +142,7 @@ export function NewJobDialog({
           period: defaultPeriod || "",
           launch_product_id: defaultLaunchProductId || "",
           editorial_post_id: defaultEditorialPostId || "",
+          delivery_category: "geral",
           priority: "normal",
           service_id: defaultSvc?.id || "",
           main_responsible_id: "",
@@ -168,6 +170,7 @@ export function NewJobDialog({
           team_involved_ids: [],
           launch_product_id: "",
           editorial_post_id: "",
+          delivery_category: "geral",
         });
       }
     }
@@ -417,6 +420,7 @@ export function NewJobDialog({
         team_involved_ids: [],
         launch_product_id: "",
         editorial_post_id: "",
+        delivery_category: "geral",
       });
     },
     onError: (e: Error, _, ctx) => {

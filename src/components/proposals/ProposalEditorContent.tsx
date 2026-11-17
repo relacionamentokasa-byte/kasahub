@@ -167,20 +167,11 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
       : null;
     const contract_content = selectedTemplate ? selectedTemplate.content : null;
 
-    const monthlyFromLines = pricingLines
-      .filter((line) => line.recurrence === "monthly")
-      .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
-    const oneTimeFromLines = pricingLines
-      .filter((line) => line.recurrence !== "monthly")
-      .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
-    const hasBelowFloor = pricingLines.some((line) => calculatePricing(line, pricingParameters).isBelowFloor);
-    if (hasBelowFloor && !window.confirm("Existe serviço abaixo do piso operacional. Deseja salvar mesmo assim?")) return;
-
     const payload = {
       ...form,
-      monthly_investment: pricingLines.length ? monthlyFromLines : monthly,
-      one_time_investment: pricingLines.length ? oneTimeFromLines : setup,
-      total: pricingLines.length ? monthlyFromLines * Number(form.recurring_months || 0) + oneTimeFromLines : total,
+      monthly_investment: monthly,
+      one_time_investment: setup,
+      total,
       contract_content,
     };
 
@@ -534,14 +525,36 @@ export function ProposalEditorContent({ proposalId }: { proposalId: string }) {
             </div>
 
             <div className="pt-1 border-t border-border/60">
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <span className="text-xs font-semibold block">Simulador de preço (Opcional)</span>
+                  <p className="text-[11px] text-muted-foreground">Use se quiser calcular o piso operacional. Se preferir, defina os valores manualmente abaixo.</p>
+                </div>
+                {pricingLines.length > 0 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                    onClick={() => {
+                      setPricingLines([]);
+                      setIsDirty(true);
+                    }}
+                  >
+                    Limpar simulador
+                  </Button>
+                )}
+              </div>
               <ProposalPricingSimulator
                 parameters={pricingParameters}
                 lines={pricingLines}
                 onChange={(lines) => {
                   setPricingLines(lines);
-                  const monthly = lines.filter((line) => line.recurrence === "monthly").reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
-                  const oneTime = lines.filter((line) => line.recurrence !== "monthly").reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
-                  setForm({ ...form, monthly_investment: monthly, one_time_investment: oneTime } as any);
+                  if (lines.length > 0) {
+                    const monthly = lines.filter((line) => line.recurrence === "monthly").reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                    const oneTime = lines.filter((line) => line.recurrence !== "monthly").reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                    setForm({ ...form, monthly_investment: monthly, one_time_investment: oneTime } as any);
+                  }
                   setIsDirty(true);
                 }}
               />

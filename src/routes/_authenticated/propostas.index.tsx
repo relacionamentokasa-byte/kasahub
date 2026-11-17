@@ -302,24 +302,25 @@ function ProposalsPage() {
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const pricingLines = form.pricingLines;
-      if (pricingLines.length === 0) {
-        throw new Error("Adicione pelo menos um serviço ao simulador de preço.");
+      const pricingLines = form.pricingLines || [];
+      const hasPricingLines = pricingLines.length > 0;
+
+      let monthlyInvestment = Number(form.monthly_investment || 0);
+      let oneTimeInvestment = Number(form.one_time_investment || 0);
+      let pricingResults: { line: PricingLine; result: any }[] = [];
+
+      if (hasPricingLines) {
+        pricingResults = pricingLines.map((line) => ({
+          line,
+          result: calculatePricing(line, pricingParameters),
+        }));
+        monthlyInvestment = pricingResults
+          .filter(({ line }) => line.recurrence === "monthly")
+          .reduce((sum, { result }) => sum + result.salePrice, 0);
+        oneTimeInvestment = pricingResults
+          .filter(({ line }) => line.recurrence !== "monthly")
+          .reduce((sum, { result }) => sum + result.salePrice, 0);
       }
-      const pricingResults = pricingLines.map((line) => ({
-        line,
-        result: calculatePricing(line, pricingParameters),
-      }));
-      const hasBelowFloor = pricingResults.some(({ result }) => result.isBelowFloor);
-      if (hasBelowFloor && !window.confirm("Existe serviço abaixo do piso operacional. Deseja salvar mesmo assim?")) {
-        throw new Error("Salvamento cancelado.");
-      }
-      const monthlyInvestment = pricingResults
-        .filter(({ line }) => line.recurrence === "monthly")
-        .reduce((sum, { result }) => sum + result.salePrice, 0);
-      const oneTimeInvestment = pricingResults
-        .filter(({ line }) => line.recurrence !== "monthly")
-        .reduce((sum, { result }) => sum + result.salePrice, 0);
       const recurring_months =
         form.contract_type === "mensal"
           ? form.contract_term === "monthly" || !form.contract_term
@@ -376,16 +377,20 @@ function ProposalsPage() {
         contract_template_id,
         contract_content,
       });
-      await Promise.all(pricingResults.map(({ line }, index) => upsertProposalItem({
-        proposal_id: proposal.id,
-        title: line.title,
-        description: null,
-        quantity: 1,
-        unit_price: calculatePricing(line, pricingParameters).salePrice,
-        recurrence: line.recurrence,
-        order_index: index,
-        pricing_snapshot: snapshotForLine(line, pricingParameters),
-      })));
+
+      if (hasPricingLines) {
+        await Promise.all(pricingResults.map(({ line }, index) => upsertProposalItem({
+          proposal_id: proposal.id,
+          title: line.title,
+          description: null,
+          quantity: 1,
+          unit_price: calculatePricing(line, pricingParameters).salePrice,
+          recurrence: line.recurrence,
+          order_index: index,
+          pricing_snapshot: snapshotForLine(line, pricingParameters),
+        })));
+      }
+
       return proposal;
     },
     onSuccess: async (p) => {
@@ -730,23 +735,49 @@ function ProposalsPage() {
                     </Field>
 
                     <div className="border-t border-border/60 pt-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <span className="text-xs font-semibold block">Simulador de preço (Opcional)</span>
+                          <p className="text-[11px] text-muted-foreground">Use se quiser calcular o piso operacional. Se preferir, defina os valores manualmente abaixo.</p>
+                        </div>
+                        {form.pricingLines && form.pricingLines.length > 0 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                            onClick={() => {
+                              setForm({ ...form, pricingLines: [] });
+                            }}
+                          >
+                            Limpar simulador
+                          </Button>
+                        )}
+                      </div>
                       <ProposalPricingSimulator
                         parameters={pricingParameters}
                         lines={form.pricingLines}
                         onChange={(pricingLines) => {
-                          const monthly = pricingLines
-                            .filter((line) => line.recurrence === "monthly")
-                            .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
-                          const oneTime = pricingLines
-                            .filter((line) => line.recurrence !== "monthly")
-                            .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
-                          setForm({
-                            ...form,
-                            pricingLines,
-                            monthly_investment: monthly,
-                            one_time_investment: oneTime,
-                            contract_type: monthly > 0 ? "mensal" : "avulso",
-                          });
+                          if (pricingLines.length > 0) {
+                            const monthly = pricingLines
+                              .filter((line) => line.recurrence === "monthly")
+                              .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                            const oneTime = pricingLines
+                              .filter((line) => line.recurrence !== "monthly")
+                              .reduce((sum, line) => sum + calculatePricing(line, pricingParameters).salePrice, 0);
+                            setForm({
+                              ...form,
+                              pricingLines,
+                              monthly_investment: monthly,
+                              one_time_investment: oneTime,
+                              contract_type: monthly > 0 ? "mensal" : "avulso",
+                            });
+                          } else {
+                            setForm({
+                              ...form,
+                              pricingLines: [],
+                            });
+                          }
                         }}
                       />
                     </div>
