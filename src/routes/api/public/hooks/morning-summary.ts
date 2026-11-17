@@ -44,12 +44,19 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
             .eq("status", "pending")
             .is("archived_at", null),
 
-          // Follow-ups e tarefas de CRM para hoje
+          // Follow-ups e tarefas de CRM para hoje, somente de leads ativos
           supabaseAdmin
             .from("lead_tasks")
-            .select("id, title")
+            .select(
+              "id, title, leads!inner(won_at, lost_reason, lead_stages!inner(is_won, is_lost))",
+            )
             .eq("status", "pending")
-            .lte("due_date", endOfDay.toISOString()),
+            .not("due_date", "is", null)
+            .lte("due_date", endOfDay.toISOString())
+            .is("leads.won_at", null)
+            .is("leads.lost_reason", null)
+            .eq("leads.lead_stages.is_won", false)
+            .eq("leads.lead_stages.is_lost", false),
 
           // Todos os membros da equipe ativos
           supabaseAdmin

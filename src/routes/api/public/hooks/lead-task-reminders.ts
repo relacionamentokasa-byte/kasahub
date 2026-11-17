@@ -13,11 +13,17 @@ export const Route = createFileRoute("/api/public/hooks/lead-task-reminders")({
         // Pending tasks due today or overdue, with a responsible user
         const { data: tasks, error } = await supabaseAdmin
           .from("lead_tasks")
-          .select("id, lead_id, title, due_date, assigned_to")
+          .select(
+            "id, lead_id, title, due_date, assigned_to, leads!inner(name, won_at, lost_reason, lead_stages!inner(is_won, is_lost))",
+          )
           .eq("status", "pending")
           .not("assigned_to", "is", null)
           .not("due_date", "is", null)
-          .lte("due_date", endOfDay.toISOString());
+          .lte("due_date", endOfDay.toISOString())
+          .is("leads.won_at", null)
+          .is("leads.lost_reason", null)
+          .eq("leads.lead_stages.is_won", false)
+          .eq("leads.lead_stages.is_lost", false);
 
         if (error) {
           return new Response(
@@ -33,25 +39,15 @@ export const Route = createFileRoute("/api/public/hooks/lead-task-reminders")({
           );
         }
 
-        // Fetch lead names in one shot
-        const leadIds = Array.from(new Set(tasks.map((t) => t.lead_id)));
-        const { data: leads } = await supabaseAdmin
-          .from("leads")
-          .select("id, name")
-          .in("id", leadIds);
-        const leadName = new Map((leads ?? []).map((l) => [l.id, l.name]));
-
-        // Deduplicate today's notifications by (assigned_to, task id) via titulo prefix
+        // Deduplicate today's notifications by task identity, not mutable text
         const startOfDay = new Date(now);
         startOfDay.setHours(0, 0, 0, 0);
         const { data: alreadySent } = await supabaseAdmin
           .from("notificacoes")
-          .select("user_id, mensagem")
+          .select("link")
           .eq("tipo", "lead_task")
           .gte("created_at", startOfDay.toISOString());
-        const sentKey = new Set(
-          (alreadySent ?? []).map((n) => `${n.user_id}::${n.mensagem}`),
-        );
+        const sentLinks = new Set((alreadySent ?? []).map((n) => n.link));
 
         const rows: {
           user_id: string;
@@ -64,15 +60,17 @@ export const Route = createFileRoute("/api/public/hooks/lead-task-reminders")({
         for (const t of tasks) {
           const overdue =
             t.due_date && new Date(t.due_date).getTime() < startOfDay.getTime();
-          const mensagem = `${overdue ? "Atrasada: " : ""}${t.title} · ${leadName.get(t.lead_id) ?? "Lead"}`;
-          const key = `${t.assigned_to}::${mensagem}`;
-          if (sentKey.has(key)) continue;
+          const lead = Array.isArray(t.leads) ? t.leads[0] : t.leads;
+          const leadName = lead?.name ?? "Lead";
+          const link = `/crm?leadId=${t.lead_id}&taskId=${t.id}`;
+          const mensagem = `${overdue ? "Atrasada: " : ""}${t.title} · ${leadName}`;
+          if (sentLinks.has(link)) continue;
           rows.push({
             user_id: t.assigned_to as string,
             titulo: overdue ? "Tarefa atrasada" : "Tarefa para hoje",
             mensagem,
             tipo: "lead_task",
-            link: "/crm",
+            link,
           });
         }
 

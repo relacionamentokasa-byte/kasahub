@@ -104,35 +104,55 @@ export const Route = createFileRoute("/api/public/hooks/dispatch-push")({
           tag: `notif-${notif.id}`,
         });
 
-        let sent = 0;
-        const stale: string[] = [];
-        const badJwt: string[] = [];
-        await Promise.all(
+        const results = await Promise.all(
           subs.map(async (s) => {
             try {
               await webpush.sendNotification(
                 { endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } },
                 payload,
               );
-              sent += 1;
+              return { id: s.id, status: "sent" as const };
             } catch (err: unknown) {
-              const e = err as { statusCode?: number; body?: string };
+              const e = err as { statusCode?: number; body?: string; message?: string };
               const code = e?.statusCode;
-              if (code === 404 || code === 410) stale.push(s.id);
-              if (code === 403 && /BADJWTTOKEN/i.test(e?.body ?? "")) badJwt.push(s.id);
+              const invalidJwt = code === 403 && /BADJWTTOKEN/i.test(e?.body ?? "");
+              return {
+                id: s.id,
+                status: code === 404 || code === 410 || invalidJwt ? "stale" as const : "failed" as const,
+                code,
+                message: e?.message || e?.body?.slice(0, 160),
+              };
             }
           }),
         );
 
-        if (sent > 0 && badJwt.length > 0) {
-          stale.push(...badJwt);
-        }
+        const sent = results.filter((result) => result.status === "sent").length;
+        const stale = results.filter((result) => result.status === "stale").map((result) => result.id);
+        const failures = results
+          .filter((result) => result.status === "failed")
+          .map(({ id: _id, status: _status, ...error }) => error);
 
         if (stale.length > 0) {
           await supabaseAdmin.from("push_subscriptions").delete().in("id", stale);
         }
 
-        return Response.json({ sent, removed: stale.length, badJwt: badJwt.length });
+        console.info("[push-dispatch]", {
+          notificationId: notif.id,
+          userId: notif.user_id,
+          subscriptions: subs.length,
+          sent,
+          removed: stale.length,
+          failed: failures.length,
+        });
+
+        if (sent === 0 && failures.length > 0) {
+          return Response.json(
+            { sent, removed: stale.length, failed: failures.length, errors: failures.slice(0, 3) },
+            { status: 502 },
+          );
+        }
+
+        return Response.json({ sent, removed: stale.length, failed: failures.length });
       },
     },
   },

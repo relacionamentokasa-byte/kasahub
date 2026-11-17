@@ -89,6 +89,15 @@ self.addEventListener("fetch", (event) => {
 });
 
 // Push notifications
+function toInternalUrl(value) {
+  try {
+    const target = new URL(value || "/", self.location.origin);
+    return target.origin === self.location.origin ? `${target.pathname}${target.search}${target.hash}` : "/";
+  } catch {
+    return "/";
+  }
+}
+
 self.addEventListener("push", (event) => {
   const data = (() => { try { return event.data ? event.data.json() : {}; } catch { return {}; } })();
   const title = data.title || "KASA HUB";
@@ -96,7 +105,7 @@ self.addEventListener("push", (event) => {
     body: data.body || "Nova notificação recebida",
     icon: data.icon || "/icon-512.png",
     badge: data.badge || "/icon-512.png",
-    data: { url: data.url || "/" },
+    data: { url: toInternalUrl(data.url) },
     tag: data.tag,
   };
   event.waitUntil(self.registration.showNotification(title, options));

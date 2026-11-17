@@ -2,6 +2,7 @@
  * Web Push (VAPID) client helpers.
  * Safe to import in the browser only.
  */
+import { getReadyPWARegistration } from "@/lib/pwa-register";
 import {
   getVapidPublicKey,
   removePushSubscription,
@@ -48,9 +49,12 @@ export function isPushSupported(): boolean {
 
 export async function getCurrentPushSubscription(): Promise<PushSubscription | null> {
   if (!isPushSupported()) return null;
-  const reg = await navigator.serviceWorker.getRegistration();
-  if (!reg) return null;
-  return reg.pushManager.getSubscription();
+  try {
+    const reg = await getReadyPWARegistration();
+    return reg.pushManager.getSubscription();
+  } catch {
+    return null;
+  }
 }
 
 export async function subscribeToPush(): Promise<PushSubscription> {
@@ -60,8 +64,7 @@ export async function subscribeToPush(): Promise<PushSubscription> {
   if (perm === "default") perm = await Notification.requestPermission();
   if (perm !== "granted") throw new Error("Permissão de notificações negada");
 
-  const reg = await navigator.serviceWorker.getRegistration();
-  if (!reg) throw new Error("Service Worker não registrado. Publique e abra a versão publicada.");
+  const reg = await getReadyPWARegistration();
 
   const { publicKey } = await getVapidPublicKey();
   const appServerKey = urlBase64ToUint8Array(publicKey);

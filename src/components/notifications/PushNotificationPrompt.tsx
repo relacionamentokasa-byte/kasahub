@@ -22,12 +22,11 @@ export function PushNotificationPrompt() {
     // Se o usuário bloqueou expressamente no navegador, não adianta perguntar
     if ("Notification" in window && Notification.permission === "denied") return;
 
-    // Se já tiver permissão concedida, apenas sincroniza a inscrição se necessário
+    // Permissão concedida não implica que o navegador permita uma nova inscrição fora de um clique.
+    // Deixa o usuário iniciar a ativação pelo botão, com erro visível e acionável.
     if ("Notification" in window && Notification.permission === "granted") {
       getCurrentPushSubscription().then((sub) => {
-        if (!sub) {
-          subscribeToPush().catch(() => {});
-        }
+        if (!sub) setVisible(true);
       });
       return;
     }
@@ -38,14 +37,17 @@ export function PushNotificationPrompt() {
       return;
     }
 
-    // Verifica se já existe inscrição ativa
+    let timer: ReturnType<typeof setTimeout> | undefined;
     getCurrentPushSubscription().then((sub) => {
       if (!sub) {
         // Exibe o prompt suavemente após 2 segundos de navegação
-        const timer = setTimeout(() => setVisible(true), 2000);
-        return () => clearTimeout(timer);
+        timer = setTimeout(() => setVisible(true), 2000);
       }
     });
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   async function handleEnable() {

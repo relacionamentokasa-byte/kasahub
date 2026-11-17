@@ -9,6 +9,7 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
 } from "@/lib/push-client";
+import { getReadyPWARegistration } from "@/lib/pwa-register";
 import { sendTestPush, triggerMorningSummaryTest } from "@/lib/push.functions";
 import { Sun } from "lucide-react";
 
@@ -19,6 +20,8 @@ export function PushNotificationsCard() {
   const [busy, setBusy] = useState(false);
   const [standalone, setStandalone] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>("default");
+  const [registrationReady, setRegistrationReady] = useState(false);
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
 
   useEffect(() => {
     const s = isPushSupported();
@@ -34,8 +37,15 @@ export function PushNotificationsCard() {
       setLoading(false);
       return;
     }
-    getCurrentPushSubscription()
+    getReadyPWARegistration()
+      .then(() => {
+        setRegistrationReady(true);
+        return getCurrentPushSubscription();
+      })
       .then((sub) => setEnabled(!!sub))
+      .catch((error: any) => {
+        setRegistrationError(error?.message || "Service Worker não está pronto neste ambiente.");
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -66,6 +76,7 @@ export function PushNotificationsCard() {
       setEnabled(true);
       setPermission(Notification.permission);
       const res = await sendTestPush({ data: undefined as any });
+      if (!res.sent) throw new Error("O servidor não conseguiu entregar o push a nenhum dispositivo.");
       toast.success(`Push enviado para ${res.sent} dispositivo(s).`);
     } catch (e: any) {
       toast.error(e?.message || "Falha ao enviar push de teste");
@@ -115,10 +126,17 @@ export function PushNotificationsCard() {
           <Switch
             checked={enabled}
             onCheckedChange={handleToggle}
-            disabled={busy || !supported || iosNeedsInstall}
+            disabled={busy || !supported || iosNeedsInstall || !registrationReady}
           />
         )}
       </div>
+
+      {supported && !registrationReady && (
+        <div className="text-xs text-foreground/70 bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl">
+          {registrationError || "Preparando o Service Worker para receber notificações…"}
+          {!import.meta.env.PROD && " Push só fica disponível na versão publicada."}
+        </div>
+      )}
 
       {!supported && (
         <div className="text-xs text-foreground/60 bg-muted/30 p-4 rounded-xl">
