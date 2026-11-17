@@ -2946,6 +2946,7 @@ export type Database = {
       notificacoes: {
         Row: {
           created_at: string | null
+          dedupe_key: string | null
           id: string
           lido: boolean | null
           link: string | null
@@ -2956,6 +2957,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          dedupe_key?: string | null
           id?: string
           lido?: boolean | null
           link?: string | null
@@ -2966,6 +2968,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          dedupe_key?: string | null
           id?: string
           lido?: boolean | null
           link?: string | null
@@ -4871,6 +4874,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_lead_active: { Args: { _lead_id: string }; Returns: boolean }
       is_team_member: { Args: { _user_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {

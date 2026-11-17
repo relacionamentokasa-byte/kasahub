@@ -1,4 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
+import {
+  isLeadActive,
+  morningSummaryDedupeKey,
+  saoPauloDay,
+  type LeadStatusShape,
+} from "@/lib/notifications/lead-activity";
 
 export const Route = createFileRoute("/api/public/hooks/morning-summary")({
   server: {
@@ -47,7 +53,7 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
           // Follow-ups e tarefas de CRM para hoje
           supabaseAdmin
             .from("lead_tasks")
-            .select("id, title")
+            .select("id, title, leads!inner(won_at, lost_reason, lead_stages(is_won, is_lost))")
             .eq("status", "pending")
             .lte("due_date", endOfDay.toISOString()),
 
@@ -60,7 +66,9 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
         const countJobsToday = jobsToday?.length ?? 0;
         const countJobsOverdue = jobsOverdue?.length ?? 0;
         const countApprovals = pendingApprovals?.length ?? 0;
-        const countTasks = leadTasksToday?.length ?? 0;
+        const countTasks = (leadTasksToday ?? []).filter((t) =>
+          isLeadActive(t.leads as unknown as LeadStatusShape),
+        ).length;
 
         // Se não houver absolutamente nada em aberto, pula o disparo
         if (countJobsToday === 0 && countJobsOverdue === 0 && countApprovals === 0 && countTasks === 0) {
@@ -79,35 +87,20 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
 
         const mensagem = `Panorama de hoje: ${parts.join(" • ")}. Toque para acessar a operação.`;
 
-        // 3. Evitar duplicatas no mesmo dia
-        const { data: alreadySent } = await supabaseAdmin
-          .from("notificacoes")
-          .select("user_id")
-          .eq("tipo", "morning_summary")
-          .gte("created_at", startOfDay.toISOString());
-
-        const sentUserIds = new Set((alreadySent ?? []).map((n) => n.user_id));
-
-        const targetUsers = (users ?? []).filter((u) => !sentUserIds.has(u.id));
-
-        if (!targetUsers.length) {
-          return new Response(
-            JSON.stringify({ ok: true, sent: 0, reason: "already sent today" }),
-            { headers: { "content-type": "application/json" } }
-          );
-        }
-
-        const notificationsToInsert = targetUsers.map((u) => ({
+        // 3. Evitar duplicatas: chave única por usuário/dia (seguro com requisições simultâneas)
+        const day = saoPauloDay(now);
+        const notificationsToInsert = (users ?? []).map((u) => ({
           user_id: u.id,
           titulo: "☀️ Bom dia, Time KASA!",
           mensagem,
           tipo: "morning_summary",
           link: "/dashboard",
+          dedupe_key: morningSummaryDedupeKey(u.id, day),
         }));
 
         const { data: insertedNotifs, error: insertError } = await supabaseAdmin
           .from("notificacoes")
-          .insert(notificationsToInsert)
+          .upsert(notificationsToInsert, { onConflict: "dedupe_key", ignoreDuplicates: true })
           .select("id, user_id, titulo, mensagem, link");
 
         if (insertError) {
@@ -170,7 +163,7 @@ export const Route = createFileRoute("/api/public/hooks/morning-summary")({
         }
 
         return new Response(
-          JSON.stringify({ ok: true, sent: notificationsToInsert.length, pushDelivered: pushSentCount, summary: mensagem }),
+          JSON.stringify({ ok: true, sent: insertedNotifs?.length ?? 0, pushDelivered: pushSentCount, summary: mensagem }),
           { headers: { "content-type": "application/json" } }
         );
       },

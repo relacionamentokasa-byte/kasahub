@@ -15,6 +15,13 @@
       "when": 1793365520530,
       "tag": "0001_add_proposal_item_pricing_snapshot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794929144583,
+      "tag": "0002_fix_duplicate_notifications",
+      "breakpoints": true
     }
   ]
 }
