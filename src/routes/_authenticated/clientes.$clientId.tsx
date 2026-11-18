@@ -6,9 +6,8 @@ import {
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
   FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket, CalendarDays,
-  Presentation as PresentationIcon, Compass
+  Presentation as PresentationIcon
 } from "lucide-react";
-import { StrategicCanvas } from "@/components/clients/strategic/StrategicCanvas";
 import { ClientPresentationsPanel } from "@/components/clients/ClientPresentationsPanel";
 import { ClientOnboardingPanel } from "@/components/onboarding/ClientOnboardingPanel";
 import { supabase } from "@/integrations/supabase/client";
@@ -289,7 +288,6 @@ function ClientDetail() {
                 { v: "servicos", label: "Serviços", icon: Handshake },
                 { v: "onboarding", label: "Onboarding", icon: Rocket },
                 { v: "apresentacoes", label: "Apresentações", icon: PresentationIcon },
-                { v: "mapa", label: "Mapa Estratégico", icon: Compass },
                 { v: "timeline", label: "Linha do Tempo", icon: TrendingUp },
               ].map((tab) => (
                 <TabsTrigger
@@ -319,10 +317,6 @@ function ClientDetail() {
           <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-5">
             
             {/* Conteúdo: Resumo */}
-            <TabsContent value="mapa" className="m-0">
-              <StrategicCanvas clientId={clientId} clientName={client?.name ?? "o cliente"} />
-            </TabsContent>
-
             <TabsContent value="overview" className="m-0 space-y-6 animate-reveal">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <QuickStatCard title="Propostas" value={proposals.filter(p => ['Rascunho', 'Enviada', 'Aguardando Assinatura', 'draft', 'sent', 'waiting_signature'].includes(p.status)).length} />
