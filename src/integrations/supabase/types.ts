@@ -4343,6 +4343,48 @@ export type Database = {
           },
         ]
       }
+      strategic_action_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          planning_month: string
+          strategic_node_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          planning_month: string
+          strategic_node_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          planning_month?: string
+          strategic_node_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_action_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_action_jobs_strategic_node_id_fkey"
+            columns: ["strategic_node_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       strategic_edges: {
         Row: {
           created_at: string
