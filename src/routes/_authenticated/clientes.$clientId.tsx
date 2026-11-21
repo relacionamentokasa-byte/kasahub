@@ -6,7 +6,8 @@ import {
   Wallet, FileText, FolderKanban, Activity, 
   TrendingUp, Handshake, CheckSquare, Loader2,
   FileSignature, Sparkles, Link as LinkIcon, Plus, Rocket, CalendarDays,
-  Presentation as PresentationIcon
+  Presentation as PresentationIcon,
+  Compass
 } from "lucide-react";
 import { ClientPresentationsPanel } from "@/components/clients/ClientPresentationsPanel";
 import { ClientOnboardingPanel } from "@/components/onboarding/ClientOnboardingPanel";
@@ -20,6 +21,7 @@ import { ClientTimeline } from "@/components/clients/ClientTimeline";
 import { ClientKpiHeader } from "@/components/clients/ClientKpiHeader";
 import { ClientUnifiedTimeline, buildUnifiedEvents } from "@/components/clients/ClientUnifiedTimeline";
 import { ClientServicesManager } from "@/components/clients/ClientServicesManager";
+import { ClientStrategicMap } from "@/components/clients/ClientStrategicMap";
 import { ContractAddendumsSection } from "@/components/contracts/ContractAddendumsSection";
 import { brl } from "@/lib/utils-format";
 import { cn } from "@/lib/utils";
@@ -280,6 +282,7 @@ function ClientDetail() {
                 { v: "contratos", label: "Contratos", icon: FileSignature },
                 { v: "propostas", label: "Propostas", icon: FileText },
                 { v: "projetos", label: "Projetos", icon: FolderKanban },
+                { v: "mapa", label: "Mapa Estratégico", icon: Compass },
                 { v: "jobs", label: "Jobs", icon: CheckSquare },
                 ...((client as any)?.has_launch_grid ? [{ v: "grid", label: "Grid de Lançamento", icon: Rocket }] : []),
                 ...((client as any)?.has_editorial_calendar ? [{ v: "editorial", label: "Calendário Editorial", icon: CalendarDays }] : []),
@@ -482,6 +485,16 @@ function ClientDetail() {
                    </TableBody>
                  </Table>
                </div>
+            </TabsContent>
+
+            {/* Conteúdo: Mapa Estratégico */}
+            <TabsContent value="mapa" className="m-0 min-h-[500px] animate-reveal">
+              <ClientStrategicMap
+                clientId={clientId}
+                clientName={client.company || client.name || "Cliente"}
+                projects={projects}
+                jobs={jobs as any}
+              />
             </TabsContent>
 
             {/* Conteúdo: Jobs */}

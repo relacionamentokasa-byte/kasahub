@@ -14,6 +14,156 @@ export type Database = {
   }
   public: {
     Tables: {
+      strategic_plans: {
+        Row: {
+          id: string
+          client_id: string
+          title: string
+          cycle_start: string | null
+          cycle_end: string | null
+          main_goal: string
+          status: string
+          owner_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          client_id: string
+          title?: string
+          cycle_start?: string | null
+          cycle_end?: string | null
+          main_goal?: string
+          status?: string
+          owner_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string
+          title?: string
+          cycle_start?: string | null
+          cycle_end?: string | null
+          main_goal?: string
+          status?: string
+          owner_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      strategic_nodes: {
+        Row: {
+          id: string
+          plan_id: string
+          type: string
+          title: string
+          description: string | null
+          color: string | null
+          position_x: number
+          position_y: number
+          sort_order: number
+          status: string
+          linked_project_id: string | null
+          linked_job_id: string | null
+          metadata: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          plan_id: string
+          type: string
+          title: string
+          description?: string | null
+          color?: string | null
+          position_x?: number
+          position_y?: number
+          sort_order?: number
+          status?: string
+          linked_project_id?: string | null
+          linked_job_id?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          plan_id?: string
+          type?: string
+          title?: string
+          description?: string | null
+          color?: string | null
+          position_x?: number
+          position_y?: number
+          sort_order?: number
+          status?: string
+          linked_project_id?: string | null
+          linked_job_id?: string | null
+          metadata?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      strategic_action_jobs: {
+        Row: {
+          id: string
+          strategic_node_id: string
+          planning_month: string
+          job_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          strategic_node_id: string
+          planning_month: string
+          job_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          strategic_node_id?: string
+          planning_month?: string
+          job_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      strategic_edges: {
+        Row: {
+          id: string
+          plan_id: string
+          source_node_id: string
+          target_node_id: string
+          relation: string
+          label: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          plan_id: string
+          source_node_id: string
+          target_node_id: string
+          relation?: string
+          label?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          plan_id?: string
+          source_node_id?: string
+          target_node_id?: string
+          relation?: string
+          label?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
       access_logs: {
         Row: {
           action: string

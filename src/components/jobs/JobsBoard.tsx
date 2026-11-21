@@ -21,7 +21,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Plus, Search, Trash2, Users, Copy, X, Filter, Check, FolderKanban, Building2, LayoutGrid, ListFilter, ArrowUpDown, Calendar, Clock, CheckCircle2, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Search, Trash2, Users, Copy, X, Filter, Check, FolderKanban, Building2, LayoutGrid, ListFilter, ArrowUpDown, Calendar, Clock, CheckCircle2, ChevronDown, ChevronUp, Compass } from "lucide-react";
 import { format } from "date-fns";
 import {
   fetchJobStages,
@@ -91,6 +91,7 @@ export function JobsBoard({
   onCloseNew?: () => void;
 }) {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<"kanban" | "table">("kanban");
   const [sortField, setSortField] = useState<"due_date" | "title" | "client" | "priority" | "stage">("due_date");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -511,6 +512,19 @@ export function JobsBoard({
         />
 
         <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate({
+              to: "/gestao/mapa-estrategico",
+              search: { clientId: initialClientId || clientId },
+            })}
+            className="h-8 px-2.5 sm:px-3 gap-1.5 text-xs font-mono-kasa border-border/60 bg-card hover:bg-muted/20 rounded-md"
+          >
+            <Compass className="size-3.5" />
+            <span className="hidden sm:inline">Ver estratégia</span>
+          </Button>
+
           {/* Toggle de Visualização (Kanban / Tabela) */}
           <div className="flex items-center p-0.5 rounded-md border border-border/60 bg-muted/20">
             <button

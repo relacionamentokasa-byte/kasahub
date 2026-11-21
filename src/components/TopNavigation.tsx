@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   KanbanSquare,
+  Compass,
   FileText,
   Users,
   FolderKanban,
@@ -93,8 +94,9 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     id: "gestao",
     label: "Gestão",
-    rootUrl: "/relatorios",
+    rootUrl: "/gestao/mapa-estrategico",
     items: [
+      { title: "Mapa Estratégico", url: "/gestao/mapa-estrategico", icon: Compass, module: "clientes" },
       { title: "Financeiro", url: "/relatorios", icon: Wallet, module: "financeiro" as any },
       { title: "Relatórios", url: "/gestao/relatorios", icon: TrendingUp, module: "financeiro" as any },
       { title: "Construtor", url: "/construtor-relatorios", icon: FileText, module: "financeiro" as any },
