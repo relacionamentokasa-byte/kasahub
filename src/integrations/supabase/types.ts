@@ -4493,6 +4493,223 @@ export type Database = {
           },
         ]
       }
+      strategic_action_jobs: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          planning_month: string
+          strategic_node_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          planning_month: string
+          strategic_node_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          planning_month?: string
+          strategic_node_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_action_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_action_jobs_strategic_node_id_fkey"
+            columns: ["strategic_node_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategic_edges: {
+        Row: {
+          created_at: string
+          id: string
+          label: string | null
+          plan_id: string
+          relation: string
+          source_node_id: string
+          target_node_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          plan_id: string
+          relation?: string
+          source_node_id: string
+          target_node_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          label?: string | null
+          plan_id?: string
+          relation?: string
+          source_node_id?: string
+          target_node_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_edges_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_edges_source_node_id_fkey"
+            columns: ["source_node_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_edges_target_node_id_fkey"
+            columns: ["target_node_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_nodes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategic_nodes: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          linked_job_id: string | null
+          linked_project_id: string | null
+          metadata: Json
+          plan_id: string
+          position_x: number
+          position_y: number
+          sort_order: number
+          status: string
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          linked_job_id?: string | null
+          linked_project_id?: string | null
+          metadata?: Json
+          plan_id: string
+          position_x?: number
+          position_y?: number
+          sort_order?: number
+          status?: string
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          linked_job_id?: string | null
+          linked_project_id?: string | null
+          metadata?: Json
+          plan_id?: string
+          position_x?: number
+          position_y?: number
+          sort_order?: number
+          status?: string
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_nodes_linked_job_id_fkey"
+            columns: ["linked_job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_nodes_linked_project_id_fkey"
+            columns: ["linked_project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_nodes_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strategic_plans: {
+        Row: {
+          client_id: string
+          created_at: string
+          cycle_end: string | null
+          cycle_start: string | null
+          id: string
+          main_goal: string
+          owner_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          cycle_end?: string | null
+          cycle_start?: string | null
+          id?: string
+          main_goal?: string
+          owner_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          cycle_end?: string | null
+          cycle_start?: string | null
+          id?: string
+          main_goal?: string
+          owner_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strategic_plans_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       suppliers: {
         Row: {
           created_at: string

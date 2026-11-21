@@ -22,6 +22,20 @@
       "when": 1794929144583,
       "tag": "0002_fix_duplicate_notifications",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795012978814,
+      "tag": "0003_create_client_strategic_map",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795291317027,
+      "tag": "0004_create_strategic_action_jobs",
+      "breakpoints": true
     }
   ]
 }
