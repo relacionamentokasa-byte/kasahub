@@ -83,19 +83,35 @@ function actionExecution(
   node: StrategicNode,
   planningMonth: string,
   jobs: StrategicJob[],
+  projects: Array<{ id: string; name: string }>,
   actionJobs: StrategicActionJob[],
 ) {
-  const monthlyJob = strategicActionJobForMonth(node, planningMonth, actionJobs);
-  const job = monthlyJob?.job_id ? jobs.find((item) => item.id === monthlyJob.job_id) : null;
+  const monthlyExecution = strategicActionJobForMonth(node, planningMonth, actionJobs);
+  const project = monthlyExecution?.project_id
+    ? projects.find((item) => item.id === monthlyExecution.project_id)
+    : null;
+  const projectJobs = project ? jobs.filter((item) => item.project_id === project.id) : [];
+  const job = monthlyExecution?.job_id ? jobs.find((item) => item.id === monthlyExecution.job_id) : null;
+
+  if (project) {
+    const completed = projectJobs.filter((item) => item.done_at || item.status === "done" || item.status === "completed").length;
+    const inProgress = projectJobs.some((item) => item.status === "in_progress");
+    return {
+      detail: `${project.name} · ${projectJobs.length} ${projectJobs.length === 1 ? "entrega" : "entregas"}`,
+      status: projectJobs.length > 0 && completed === projectJobs.length ? "Concluído" : inProgress ? "Em andamento" : "Planejado",
+      className: projectJobs.length > 0 && completed === projectJobs.length
+        ? "text-emerald-700 dark:text-emerald-300"
+        : inProgress
+          ? "text-amber-700 dark:text-amber-300"
+          : "text-muted-foreground",
+    };
+  }
 
   if (job) {
-    if (job.done_at || job.status === "done" || job.status === "completed") {
-      return { detail: `Job: ${job.title}`, status: "Concluído", className: "text-emerald-700 dark:text-emerald-300" };
-    }
-    if (job.status === "in_progress") {
-      return { detail: `Job: ${job.title}`, status: "Em andamento", className: "text-amber-700 dark:text-amber-300" };
-    }
-    return { detail: `Job: ${job.title}`, status: "Sem execução", className: "text-muted-foreground" };
+    const status = job.done_at || job.status === "done" || job.status === "completed"
+      ? "Concluído"
+      : job.status === "in_progress" ? "Em andamento" : "Planejado";
+    return { detail: `Job: ${job.title}`, status, className: "text-muted-foreground" };
   }
 
   return { detail: null, status: "Sem execução", className: "text-muted-foreground" };
@@ -278,7 +294,7 @@ export function StrategicMapWorkspace({ clientId, onClientChange }: WorkspacePro
             <div className="space-y-3">
               {scheduledActions.length ? scheduledActions.map((node) => <div key={node.id} className="grid grid-cols-[260px_repeat(12,minmax(100px,1fr))] gap-x-2 rounded-xl border border-border/50 bg-muted/[0.12] p-2">
                 <div className="flex min-w-0 flex-col justify-center px-2"><span className="mb-1 flex items-center gap-1.5 text-[8px] font-mono-kasa uppercase tracking-[0.14em] text-teal-700 dark:text-teal-300"><span className="size-1.5 rounded-full bg-teal-500" /> Movimento estratégico</span><p className="break-words text-[13px] font-semibold leading-snug text-foreground">{node.title}</p><p className="mt-1 text-[9px] text-muted-foreground">{formatPlanningRange(node)}</p></div>
-                {Array.from({ length: 12 }, (_, index) => { const planningMonth = `${year}-${String(index + 1).padStart(2, "0")}`; const inRange = planningMonths(node).includes(planningMonth); const execution = actionExecution(node, planningMonth, (jobsQuery.data ?? []) as StrategicJob[], actionJobs); const isFocused = monthlyFocus?.nodeId === node.id && monthlyFocus.planningMonth === planningMonth; return <div key={planningMonth} className={cn("relative flex min-h-[92px] items-center justify-center border-l border-border/35 px-1", inRange && "bg-teal-500/[0.035]")}><span className={cn("absolute inset-y-1 left-0 w-px", inRange ? "bg-teal-500/45" : "bg-border/25")} />{inRange ? <button type="button" onClick={() => focusMonthlyAction(node.id, planningMonth)} className={cn("group relative z-[1] flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-center transition-colors hover:bg-teal-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary", isFocused && "bg-primary/10 ring-2 ring-primary/40")}><span className={cn("flex size-7 items-center justify-center rounded-full border-2 bg-background text-[9px] font-bold", execution.detail ? execution.status === "Concluído" ? "border-emerald-500 text-emerald-600" : execution.status === "Em andamento" ? "border-amber-500 text-amber-600" : "border-teal-500 text-teal-600" : "border-dashed border-muted-foreground/40 text-muted-foreground/50")}>{execution.detail ? <Check className="size-3" /> : <span>·</span>}</span><span className="max-w-[92px] break-words text-[9px] leading-tight text-muted-foreground group-hover:text-foreground">{execution.detail ? execution.detail.replace(/^Job: /, "") : "Adicionar job"}</span></button> : <span className="size-1 rounded-full bg-border/50" />}</div>; })}
+                {Array.from({ length: 12 }, (_, index) => { const planningMonth = `${year}-${String(index + 1).padStart(2, "0")}`; const inRange = planningMonths(node).includes(planningMonth); const execution = actionExecution(node, planningMonth, (jobsQuery.data ?? []) as StrategicJob[], (projectsQuery.data ?? []) as Array<{ id: string; name: string }>, actionJobs); const isFocused = monthlyFocus?.nodeId === node.id && monthlyFocus.planningMonth === planningMonth; return <div key={planningMonth} className={cn("relative flex min-h-[92px] items-center justify-center border-l border-border/35 px-1", inRange && "bg-teal-500/[0.035]")}><span className={cn("absolute inset-y-1 left-0 w-px", inRange ? "bg-teal-500/45" : "bg-border/25")} />{inRange ? <button type="button" onClick={() => focusMonthlyAction(node.id, planningMonth)} className={cn("group relative z-[1] flex w-full flex-col items-center gap-1 rounded-lg px-1 py-2 text-center transition-colors hover:bg-teal-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary", isFocused && "bg-primary/10 ring-2 ring-primary/40")}><span className={cn("flex size-7 items-center justify-center rounded-full border-2 bg-background text-[9px] font-bold", execution.detail ? execution.status === "Concluído" ? "border-emerald-500 text-emerald-600" : execution.status === "Em andamento" ? "border-amber-500 text-amber-600" : "border-teal-500 text-teal-600" : "border-dashed border-muted-foreground/40 text-muted-foreground/50")}>{execution.detail ? <Check className="size-3" /> : <span>·</span>}</span><span className="max-w-[92px] break-words text-[9px] leading-tight text-muted-foreground group-hover:text-foreground">{execution.detail ? execution.detail.replace(/^Job: /, "") : "Adicionar job"}</span></button> : <span className="size-1 rounded-full bg-border/50" />}</div>; })}
               </div>) : <div className="rounded-xl border border-dashed border-border/60 px-4 py-8 text-center text-xs text-muted-foreground">Nenhuma ação com período definido ainda. Use o mapa para criar o primeiro movimento.</div>}
             </div>
           </div>

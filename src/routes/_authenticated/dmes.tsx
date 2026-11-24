@@ -9,12 +9,10 @@ import {
   fetchExtraDemands, createExtraDemandsBatch, deleteExtraDemand,
   approveExtraDemand, rejectExtraDemand, getDmePublicUrl, fetchClients,
   updateExtraDemandWithFinance,
-  createJob,
 } from "@/lib/ops-api";
 import { createDmeBatch, getDmeBatchPublicUrl, addDmeToConsolidatedBatch, addDmeToConsolidatedTransaction, deleteDmeBatch } from "@/lib/dme-batches-api";
 import { generateDmeBatchPdf, generateConsolidatedTxPdf, generateSingleDmePdf } from "@/lib/dme-batch-pdf";
 import { supabase } from "@/integrations/supabase/client";
-import { NewJobDialog } from "@/components/jobs/NewJobDialog";
 import { fetchContracts } from "@/lib/finance-api";
 import { fetchProfiles } from "@/lib/profile-api";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -63,7 +61,6 @@ function DmesPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const [openNew, setOpenNew] = useState(false);
-  const [jobForDme, setJobForDme] = useState<any | null>(null);
   const [statusFilter, setStatusFilter] = useState("active");
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -305,81 +302,10 @@ function DmesPage() {
 
   async function handleBatchCreateJobs() {
     if (selectedDmes.length === 0) return;
-    setCreatingBatchJobs(true);
-    let createdCount = 0;
-    let skippedCount = 0;
-
-    try {
-      for (const dme of selectedDmes) {
-        // Se já possui job vinculado, ignora
-        if (jobsByDme[dme.id]) {
-          skippedCount++;
-          continue;
-        }
-
-        // Busca ou cria projeto para o cliente da DME
-        const { data: clientProjects } = await supabase
-          .from("projects")
-          .select("id")
-          .eq("client_id", dme.client_id)
-          .order("created_at", { ascending: false })
-          .limit(1);
-
-        let targetProjectId = clientProjects?.[0]?.id;
-
-        if (!targetProjectId) {
-          const clientName = dme.clients?.company || dme.clients?.name || "Cliente";
-          const { data: newProj, error: pErr } = await supabase
-            .from("projects")
-            .insert({
-              name: `Projeto ${clientName}`,
-              client_id: dme.client_id,
-              status: "active",
-              type: "automatic",
-            } as any)
-            .select("id")
-            .single();
-
-          if (pErr) {
-            console.error("Erro ao criar projeto para job de DME:", pErr);
-            continue;
-          }
-          targetProjectId = newProj.id;
-        }
-
-        const jobPayload = {
-          title: `[DME ${dme.number_display || ""}] ${dme.title}`.trim(),
-          description: dme.description || null,
-          priority: "normal",
-          due_date: dme.due_date || null,
-          project_id: targetProjectId,
-          client_id: dme.client_id,
-          contract_id: dme.contract_id || null,
-          dme_id: dme.id,
-        };
-
-        await createJob(jobPayload as any);
-        createdCount++;
-      }
-
-      await qc.invalidateQueries({ queryKey: ["jobs"] });
-      await qc.invalidateQueries({ queryKey: ["jobs-by-dme"] });
-      await qc.invalidateQueries({ queryKey: ["extra_demands"] });
-
-      if (createdCount > 0) {
-        toast.success(
-          `${createdCount} Job${createdCount > 1 ? "s" : ""} criado${createdCount > 1 ? "s" : ""} no quadro operacional!`
-        );
-        setSelectedIds(new Set());
-      } else if (skippedCount > 0) {
-        toast.info("Todas as DMEs selecionadas já possuem jobs vinculados.");
-      }
-    } catch (err: any) {
-      toast.error(`Erro ao criar jobs em massa: ${err?.message || err}`);
-    } finally {
-      setCreatingBatchJobs(false);
-    }
+    toast.error("Demandas de cliente precisam ser convertidas em entregas dentro de uma ação do Mapa Estratégico.");
+    return;
   }
+
   const ELIGIBLE = ["draft", "pending", "sent", "pending_approval", "approved"];
   const selectedDmes = useMemo(
     () => dmes.filter((d: any) => selectedIds.has(d.id)),
@@ -604,11 +530,14 @@ function DmesPage() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setJobForDme(selectedDmes[0])}
+                onClick={() => navigate({
+                  to: "/gestao/mapa-estrategico",
+                  search: { clientId: selectedDmes[0].client_id },
+                })}
                 className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
               >
                 <Briefcase className="size-4" />
-                Criar Job desta DME
+                Vincular ao mapa estratégico
               </Button>
             ) : (
               <Button
@@ -953,7 +882,10 @@ function DmesPage() {
                             size="icon"
                             variant="ghost"
                             className="size-7 text-muted-foreground hover:text-foreground"
-                            onClick={() => setJobForDme(d)}
+                            onClick={() => navigate({
+                              to: "/gestao/mapa-estrategico",
+                              search: { clientId: d.client_id },
+                            })}
                             title="Criar Job a partir desta DME"
                           >
                             <Briefcase className="size-3.5" />
@@ -1115,7 +1047,10 @@ function DmesPage() {
                         size="icon"
                         variant="ghost"
                         className="size-7 text-muted-foreground"
-                        onClick={() => setJobForDme(d)}
+                        onClick={() => navigate({
+                              to: "/gestao/mapa-estrategico",
+                              search: { clientId: d.client_id },
+                            })}
                         title="Criar Job"
                       >
                         <Briefcase className="size-3.5" />
@@ -1179,22 +1114,6 @@ function DmesPage() {
 
       <NewDmeDialog open={openNew} onOpenChange={setOpenNew} defaultClientId={prefClientId} />
 
-      <NewJobDialog
-        stage={null}
-        open={!!jobForDme}
-        onOpenChange={(o) => { if (!o) setJobForDme(null); }}
-        defaultClientId={jobForDme?.client_id}
-        defaultDmeId={jobForDme?.id}
-        defaultContractId={jobForDme?.contract_id ?? undefined}
-        defaultTitle={jobForDme?.title ?? ""}
-        defaultDescription={jobForDme?.description ?? ""}
-        defaultDueDate={jobForDme?.due_date ?? ""}
-        onCreated={(job) => {
-          setJobForDme(null);
-          navigate({ to: "/jobs", search: { openJobId: (job as any).id } });
-        }}
-      />
-
       <EditDmeDialog dme={editingDme} onOpenChange={(o) => { if (!o) setEditingDme(null); }} />
 
       <AddDmeToBatchDialog dme={addItemFor} onOpenChange={(o) => { if (!o) setAddItemFor(null); }} />
@@ -1209,7 +1128,10 @@ function DmesPage() {
       <ViewBatchDmesDialog
         batch={viewingBatch}
         onOpenChange={(o) => { if (!o) setViewingBatch(null); }}
-        onCreateJob={(dme) => setJobForDme(dme)}
+        onCreateJob={(dme) => navigate({
+          to: "/gestao/mapa-estrategico",
+          search: { clientId: dme.client_id },
+        })}
       />
     </div>
   );

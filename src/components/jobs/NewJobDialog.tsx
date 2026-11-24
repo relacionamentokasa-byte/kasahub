@@ -38,6 +38,8 @@ export function NewJobDialog({
   defaultProjectId,
   defaultClientId,
   defaultPeriod,
+  defaultStrategicNodeId,
+  defaultPlanningMonth,
   defaultDmeId,
   defaultContractId,
   defaultTitle,
@@ -55,6 +57,8 @@ export function NewJobDialog({
   defaultProjectId?: string;
   defaultClientId?: string;
   defaultPeriod?: string;
+  defaultStrategicNodeId?: string;
+  defaultPlanningMonth?: string;
   defaultDmeId?: string;
   defaultContractId?: string;
   defaultTitle?: string;
@@ -139,7 +143,7 @@ export function NewJobDialog({
           project_id: defaultProjectId || "",
           client_id: defaultClientId || "",
           contract_id: defaultContractId || "",
-          period: defaultPeriod || "",
+          period: defaultPeriod || defaultPlanningMonth || "",
           launch_product_id: defaultLaunchProductId || "",
           editorial_post_id: defaultEditorialPostId || "",
           delivery_category: "geral",
@@ -177,6 +181,24 @@ export function NewJobDialog({
   }, [open, conversionData, clearConversionData, defaultTitle, defaultDescription, defaultDueDate, defaultClientId, defaultEditorialPostId, defaultProjectId, defaultContractId, defaultPeriod, defaultLaunchProductId]);
 
   const selectedClientId = form.client_id;
+  const { data: projectStrategicExecution } = useQuery({
+    queryKey: ["strategic-execution-by-project", defaultProjectId],
+    queryFn: async () => {
+      if (!defaultProjectId) return null;
+      const { data, error } = await supabase
+        .from("strategic_action_jobs")
+        .select("strategic_node_id, planning_month")
+        .eq("project_id", defaultProjectId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!defaultProjectId,
+  });
+  const effectiveStrategicNodeId =
+    defaultStrategicNodeId ?? projectStrategicExecution?.strategic_node_id ?? null;
+  const effectivePlanningMonth =
+    defaultPlanningMonth ?? projectStrategicExecution?.planning_month ?? null;
   const {
     data: projects = [],
     isLoading: isLoadingProjects,
@@ -251,6 +273,7 @@ export function NewJobDialog({
   const autoCreatingProjectRef = useRef(false);
   useEffect(() => {
     if (
+      !effectiveStrategicNodeId ||
       !selectedClientId ||
       !isProjectsSuccess ||
       isFetchingProjects ||
@@ -290,6 +313,8 @@ export function NewJobDialog({
         due_date: form.due_date || null,
         project_id: form.project_id || null,
         client_id: form.client_id || null,
+        strategic_node_id: effectiveStrategicNodeId,
+        planning_month: effectivePlanningMonth || form.period || null,
         contract_id: form.contract_id || null,
         service_id: form.service_id || null,
         stage_id: stage?.id ?? null,
@@ -439,7 +464,7 @@ export function NewJobDialog({
               <Briefcase className="size-5" />
             </div>
             <div className="flex items-center gap-2">
-              <span>{form.editorial_post_id ? "Converter Post em Job" : "Novo Job"}</span>
+              <span>{form.editorial_post_id ? "Converter Post em Job" : defaultStrategicNodeId ? "Adicionar entrega" : "Novo Job"}</span>
               {stage?.name && (
                 <>
                   <span className="text-xs font-normal text-muted-foreground">•</span>
@@ -514,7 +539,7 @@ export function NewJobDialog({
 
             <div className="space-y-1">
               <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
-                Projeto Vinculado
+                {defaultStrategicNodeId ? "Campanha / Calendário editorial" : "Projeto Vinculado"}
               </Label>
               <Select
                 value={form.project_id || undefined}

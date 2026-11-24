@@ -314,6 +314,9 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
   if (!input.due_date) throw new Error("Prazo final é obrigatório");
   if (!input.project_id) throw new Error("Um job deve estar vinculado a um projeto.");
   if (!input.client_id) throw new Error("Um job deve estar vinculado a um cliente.");
+  if (!input.strategic_node_id || !input.planning_month) {
+    throw new Error("Jobs de cliente precisam estar vinculados a uma ação estratégica e a um mês.");
+  }
 
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");

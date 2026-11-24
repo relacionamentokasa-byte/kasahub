@@ -202,24 +202,35 @@ export function JobsBoard({
 
   
 
-  // Auto-abre o dialog "Novo Job" quando vier via ?new=true
+  // Auto-abre o dialog "Novo Job" quando vier via ?new=true.
   useEffect(() => {
     const isNew = initialOpenNew === true || initialOpenNew === "true" || initialOpenNew === "1";
+    const scopedClientId = clientId ?? initialClientId;
+    if (isNew && scopedClientId && !projectId) {
+      void navigate({
+        to: "/gestao/mapa-estrategico",
+        search: { clientId: scopedClientId },
+      });
+      return;
+    }
     if (isNew && stages.length > 0) {
-      if (!newStage) {
-        console.log("[JobsBoard] Abrindo modal de Novo Job via parâmetros de URL. Props:", {
-          initialTitle,
-          initialDescription,
-          initialDueDate,
-          initialClientId,
-          initialEditorialPostId
-        });
-        setNewStage(stages[0]);
-      }
+      if (!newStage) setNewStage(stages[0]);
     } else if (!isNew && newStage) {
       setNewStage(null);
     }
-  }, [initialOpenNew, stages, initialTitle, initialDescription, initialDueDate, initialClientId, initialEditorialPostId]);
+  }, [initialOpenNew, stages, initialTitle, initialDescription, initialDueDate, initialClientId, clientId, projectId, navigate]);
+
+  const openNewJob = () => {
+    const scopedClientId = clientId ?? initialClientId;
+    if (scopedClientId && !projectId) {
+      void navigate({
+        to: "/gestao/mapa-estrategico",
+        search: { clientId: scopedClientId },
+      });
+      return;
+    }
+    setNewStage(stages[0] || null);
+  };
 
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -747,7 +758,7 @@ export function JobsBoard({
             </Popover>
 
             <Button
-              onClick={() => setNewStage(stages[0] || null)}
+              onClick={openNewJob}
               className="h-8 px-2.5 sm:px-3 gap-1.5 bg-foreground text-background hover:bg-foreground/90 font-mono-kasa text-xs font-medium rounded-md shadow-xs"
             >
               <Plus className="size-3.5" />
@@ -764,7 +775,7 @@ export function JobsBoard({
               {stages.map((stage) => {
                 const cards = byStage.get(stage.id) ?? [];
                 return (
-                  <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => setNewStage(stage)}>
+                  <Column key={stage.id} stage={stage} count={cards.length} onAdd={() => openNewJob()}>
                     {cards.map((j: Job) => (
                       <JobCard
                         key={j.id}

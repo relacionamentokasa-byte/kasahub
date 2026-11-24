@@ -57,6 +57,7 @@ export interface StrategicActionJob {
   strategic_node_id: string;
   planning_month: string;
   job_id: string | null;
+  project_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -116,7 +117,12 @@ export function strategicActionJobForMonth(
 
   const range = getPlanningRange(node.metadata);
   return node.linked_job_id && range?.start === planningMonth
-    ? { strategic_node_id: node.id, planning_month: planningMonth, job_id: node.linked_job_id }
+    ? {
+        strategic_node_id: node.id,
+        planning_month: planningMonth,
+        job_id: node.linked_job_id,
+        project_id: null,
+      }
     : null;
 }
 
@@ -264,12 +270,21 @@ export async function deleteStrategicEdge(id: string) {
 export async function upsertStrategicActionJob(input: {
   strategic_node_id: string;
   planning_month: string;
-  job_id: string | null;
+  job_id?: string | null;
+  project_id?: string | null;
 }) {
   assertPlanningMonth(input.planning_month);
   const { data, error } = await db
     .from("strategic_action_jobs")
-    .upsert(input, { onConflict: "strategic_node_id,planning_month" })
+    .upsert(
+      {
+        strategic_node_id: input.strategic_node_id,
+        planning_month: input.planning_month,
+        job_id: input.job_id ?? null,
+        project_id: input.project_id ?? null,
+      },
+      { onConflict: "strategic_node_id,planning_month" },
+    )
     .select("*")
     .single();
 
