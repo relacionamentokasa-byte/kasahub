@@ -2135,8 +2135,6 @@ export type Database = {
           progress_percentage: number | null
           project_id: string
           service_id: string
-          strategic_node_id: string | null
-          planning_month: string | null
           show_in_portal: boolean
           stage_id: string | null
           status: string | null
@@ -2182,8 +2180,6 @@ export type Database = {
           progress_percentage?: number | null
           project_id: string
           service_id: string
-          strategic_node_id?: string | null
-          planning_month?: string | null
           show_in_portal?: boolean
           stage_id?: string | null
           status?: string | null
@@ -2229,8 +2225,6 @@ export type Database = {
           progress_percentage?: number | null
           project_id?: string
           service_id?: string
-          strategic_node_id?: string | null
-          planning_month?: string | null
           show_in_portal?: boolean
           stage_id?: string | null
           status?: string | null
@@ -4355,7 +4349,6 @@ export type Database = {
           id: string
           job_id: string | null
           planning_month: string
-          project_id: string | null
           strategic_node_id: string
           updated_at: string
         }
@@ -4364,7 +4357,6 @@ export type Database = {
           id?: string
           job_id?: string | null
           planning_month: string
-          project_id?: string | null
           strategic_node_id: string
           updated_at?: string
         }
@@ -4373,7 +4365,6 @@ export type Database = {
           id?: string
           job_id?: string | null
           planning_month?: string
-          project_id?: string | null
           strategic_node_id?: string
           updated_at?: string
         }
