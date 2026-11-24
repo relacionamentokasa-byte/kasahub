@@ -36,6 +36,13 @@
       "when": 1795291317027,
       "tag": "0004_create_strategic_action_jobs",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795525832583,
+      "tag": "0005_add_project_to_strategic_action_jobs",
+      "breakpoints": true
     }
   ]
 }
