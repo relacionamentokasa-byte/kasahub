@@ -2131,15 +2131,15 @@ export type Database = {
           operational_observations: string | null
           order_index: number
           period: string | null
+          planning_month: string | null
           priority: string
           progress_percentage: number | null
           project_id: string
           service_id: string
-          strategic_node_id: string | null
-          planning_month: string | null
           show_in_portal: boolean
           stage_id: string | null
           status: string | null
+          strategic_node_id: string | null
           team_involved: Json | null
           title: string
           total_steps: number | null
@@ -2178,15 +2178,15 @@ export type Database = {
           operational_observations?: string | null
           order_index?: number
           period?: string | null
+          planning_month?: string | null
           priority?: string
           progress_percentage?: number | null
           project_id: string
           service_id: string
-          strategic_node_id?: string | null
-          planning_month?: string | null
           show_in_portal?: boolean
           stage_id?: string | null
           status?: string | null
+          strategic_node_id?: string | null
           team_involved?: Json | null
           title: string
           total_steps?: number | null
@@ -2225,15 +2225,15 @@ export type Database = {
           operational_observations?: string | null
           order_index?: number
           period?: string | null
+          planning_month?: string | null
           priority?: string
           progress_percentage?: number | null
           project_id?: string
           service_id?: string
-          strategic_node_id?: string | null
-          planning_month?: string | null
           show_in_portal?: boolean
           stage_id?: string | null
           status?: string | null
+          strategic_node_id?: string | null
           team_involved?: Json | null
           title?: string
           total_steps?: number | null
@@ -2294,6 +2294,13 @@ export type Database = {
             columns: ["stage_id"]
             isOneToOne: false
             referencedRelation: "job_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_strategic_node_id_fkey"
+            columns: ["strategic_node_id"]
+            isOneToOne: false
+            referencedRelation: "strategic_nodes"
             referencedColumns: ["id"]
           },
         ]
@@ -4383,6 +4390,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strategic_action_jobs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
           {
