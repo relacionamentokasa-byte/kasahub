@@ -331,6 +331,7 @@ export function ClientStrategicMap({
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLDivElement>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [draft, setDraft] = useState<Partial<StrategicNode>>({});
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [actionMenuNodeId, setActionMenuNodeId] = useState<string | null>(null);
@@ -347,7 +348,7 @@ export function ClientStrategicMap({
     current: { x: number; y: number };
   } | null>(null);
   const [connectionTargetId, setConnectionTargetId] = useState<string | null>(null);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [draggingIds, setDraggingIds] = useState<Set<string>>(() => new Set());
   const [savingId, setSavingId] = useState<string | null>(null);
   const [removingEdgeId, setRemovingEdgeId] = useState<string | null>(null);
   const [transformingId, setTransformingId] = useState<string | null>(null);
@@ -358,8 +359,11 @@ export function ClientStrategicMap({
   const [positionOverrides, setPositionOverrides] = useState<Record<string, { x: number; y: number }>>({});
   const [planningYearOverride, setPlanningYearOverride] = useState<number | null>(null);
   const [nodeSize, setNodeSize] = useState({ width: 30, height: 15 });
-  const dragPositionRef = useRef<{ x: number; y: number } | null>(null);
-  const dragOffsetRef = useRef<{ x: number; y: number } | null>(null);
+  const dragPositionRef = useRef<Record<string, { x: number; y: number }>>({});
+  const dragStartPositionsRef = useRef<Record<string, { x: number; y: number }>>({});
+  const dragStartPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const dragNodeIdsRef = useRef<Set<string>>(new Set());
+  const selectionOnlyRef = useRef(false);
   const draggedRef = useRef(false);
 
   const mapQuery = useQuery({
@@ -715,11 +719,15 @@ export function ClientStrategicMap({
   }, [directionIds, objectiveIds]);
 
   useEffect(() => {
+    setSelectedIds((current) => {
+      const next = new Set([...current].filter((id) => visibleNodes.some((node) => node.id === id)));
+      return next.size === current.size ? current : next;
+    });
     if (selectedId && hiddenNodeIds.has(selectedId)) {
       setDrawerOpen(false);
       setActionMenuNodeId(null);
     }
-  }, [hiddenNodeIds, selectedId]);
+  }, [hiddenNodeIds, selectedId, visibleNodes]);
 
   useEffect(() => {
     if (!monthlyFocus || mapQuery.isLoading) return;
@@ -740,10 +748,35 @@ export function ClientStrategicMap({
   const collapsedCountFor = (nodeId: string) =>
     [...descendantsFrom(nodeId, edges)].filter((descendantId) => hiddenNodeIds.has(descendantId)).length;
 
-  const selectNode = (node: StrategicNode) => {
+  const selectNode = (node: StrategicNode, additive = false) => {
     setSelectedId(node.id);
+    setSelectedIds((current) => {
+      if (!additive) return new Set([node.id]);
+      const next = new Set(current);
+      if (next.has(node.id)) next.delete(node.id);
+      else next.add(node.id);
+      return next;
+    });
     setDraft(node);
     setActionMenuNodeId(null);
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setSelectedId(null);
+    setDraft({});
+    setDrawerOpen(false);
+    setActionMenuNodeId(null);
+  };
+
+  const selectAllVisible = () => {
+    const visibleIds = visibleNodes.map((node) => node.id);
+    setSelectedIds(new Set(visibleIds));
+    if (!selectedId && visibleIds[0]) {
+      const firstVisible = visibleNodes[0];
+      setSelectedId(firstVisible.id);
+      setDraft(firstVisible);
+    }
   };
 
   const saveSelected = async () => {
@@ -845,19 +878,6 @@ export function ClientStrategicMap({
     const position = effectivePositions[node.id] ?? { x: node.position_x, y: node.position_y };
     return position;
   };
-
-  const getPointerOffset = (event: React.PointerEvent, node: StrategicNode, bounds: DOMRect) => {
-    const center = getNodeCenter(node);
-    return {
-      x: event.clientX - (bounds.left + (center.x / 100) * bounds.width),
-      y: event.clientY - (bounds.top + (center.y / 100) * bounds.height),
-    };
-  };
-
-  const getDragPosition = (event: PointerEvent, offset: { x: number; y: number }, bounds: DOMRect) => ({
-    x: Math.max(8, Math.min(92, ((event.clientX - offset.x - bounds.left) / bounds.width) * 100)),
-    y: Math.max(10, Math.min(90, ((event.clientY - offset.y - bounds.top) / bounds.height) * 100)),
-  });
 
   const saveMonthlyExecution = async (
     node: StrategicNode,
@@ -1072,42 +1092,113 @@ export function ClientStrategicMap({
   const handleDragStart = (event: React.PointerEvent, node: StrategicNode) => {
     event.preventDefault();
     event.stopPropagation();
+    if (event.metaKey || event.ctrlKey) {
+      selectionOnlyRef.current = true;
+      selectNode(node, true);
+      return;
+    }
     const bounds = canvasRef.current?.getBoundingClientRect();
     if (!bounds) return;
 
-    dragOffsetRef.current = getPointerOffset(event, node, bounds);
+    const nodeIds = selectedIds.has(node.id) ? new Set(selectedIds) : new Set([node.id]);
+    const startPositions = Object.fromEntries(
+      [...nodeIds].map((nodeId) => [nodeId, effectivePositions[nodeId]]),
+    ) as Record<string, { x: number; y: number }>;
+    const validNodeIds = new Set(
+      [...nodeIds].filter((nodeId) => Boolean(startPositions[nodeId])),
+    );
+    if (!validNodeIds.size) return;
+
+    if (!selectedIds.has(node.id) && !event.metaKey && !event.ctrlKey) {
+      setSelectedIds(new Set([node.id]));
+    }
+    setSelectedId(node.id);
+    setDraft(node);
+    setActionMenuNodeId(null);
+    dragStartPointerRef.current = { x: event.clientX, y: event.clientY };
+    dragStartPositionsRef.current = Object.fromEntries(
+      [...validNodeIds].map((nodeId) => [nodeId, startPositions[nodeId]]),
+    );
+    dragNodeIdsRef.current = validNodeIds;
+    dragPositionRef.current = { ...dragStartPositionsRef.current };
     draggedRef.current = false;
-    setDraggingId(node.id);
-    selectNode(node);
+    setDraggingIds(new Set(validNodeIds));
 
     const move = (moveEvent: PointerEvent) => {
       const currentBounds = canvasRef.current?.getBoundingClientRect();
-      const offset = dragOffsetRef.current;
-      if (!currentBounds || !offset) return;
-      if (Math.abs(moveEvent.clientX - event.clientX) > 3 || Math.abs(moveEvent.clientY - event.clientY) > 3) {
+      const startPointer = dragStartPointerRef.current;
+      const start = dragStartPositionsRef.current;
+      if (!currentBounds || !startPointer || !Object.keys(start).length) return;
+      if (Math.abs(moveEvent.clientX - startPointer.x) > 3 || Math.abs(moveEvent.clientY - startPointer.y) > 3) {
         draggedRef.current = true;
       }
-      const position = getDragPosition(moveEvent, offset, currentBounds);
-      dragPositionRef.current = position;
-      setPositionOverrides((current) => ({ ...current, [node.id]: position }));
-      setDraft((current) => ({ ...current, position_x: position.x, position_y: position.y }));
+
+      const rawDelta = {
+        x: ((moveEvent.clientX - startPointer.x) / currentBounds.width) * 100,
+        y: ((moveEvent.clientY - startPointer.y) / currentBounds.height) * 100,
+      };
+      const startValues = Object.values(start);
+      const minAllowedDeltaX = 8 - Math.min(...startValues.map((position) => position.x));
+      const maxAllowedDeltaX = 92 - Math.max(...startValues.map((position) => position.x));
+      const minAllowedDeltaY = 10 - Math.min(...startValues.map((position) => position.y));
+      const maxAllowedDeltaY = 90 - Math.max(...startValues.map((position) => position.y));
+      const delta = {
+        x: Math.max(minAllowedDeltaX, Math.min(maxAllowedDeltaX, rawDelta.x)),
+        y: Math.max(minAllowedDeltaY, Math.min(maxAllowedDeltaY, rawDelta.y)),
+      };
+      const positions = Object.fromEntries(
+        Object.entries(start).map(([nodeId, position]) => [nodeId, {
+          x: position.x + delta.x,
+          y: position.y + delta.y,
+        }]),
+      ) as Record<string, { x: number; y: number }>;
+      dragPositionRef.current = positions;
+      setPositionOverrides((current) => ({ ...current, ...positions }));
+      const activePosition = positions[node.id];
+      if (activePosition) {
+        setDraft((current) => ({
+          ...current,
+          position_x: activePosition.x,
+          position_y: activePosition.y,
+        }));
+      }
     };
     const end = async () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", end);
-      dragOffsetRef.current = null;
-      setDraggingId(null);
-      const position = dragPositionRef.current;
-      dragPositionRef.current = null;
-      if (!draggedRef.current || !position) return;
+      const positions = dragPositionRef.current;
+      const nodeIdsToSave = new Set(dragNodeIdsRef.current);
+      dragStartPointerRef.current = null;
+      dragStartPositionsRef.current = {};
+      dragNodeIdsRef.current = new Set();
+      dragPositionRef.current = {};
+      setDraggingIds(new Set());
+      if (!draggedRef.current || !Object.keys(positions).length) return;
       try {
-        await nodeMutation.mutateAsync({ id: node.id, patch: { position_x: position.x, position_y: position.y } });
+        await Promise.all(
+          [...nodeIdsToSave].map((id) => {
+            const position = positions[id];
+            return position
+              ? updateStrategicNode(id, {
+                  position_x: position.x,
+                  position_y: position.y,
+                })
+              : Promise.resolve();
+          }),
+        );
         setPositionOverrides((current) => {
           const next = { ...current };
-          delete next[node.id];
+          nodeIdsToSave.forEach((id) => delete next[id]);
           return next;
         });
+        await refresh();
       } catch {
+        setPositionOverrides((current) => {
+          const next = { ...current };
+          nodeIdsToSave.forEach((id) => delete next[id]);
+          return next;
+        });
+        await refresh();
         toast.error("Não foi possível salvar a posição");
       }
     };
@@ -1120,6 +1211,11 @@ export function ClientStrategicMap({
     if (!removedNode) return;
     const removedId = removedNode.id;
     setSelectedId(null);
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      next.delete(removedId);
+      return next;
+    });
     setDraft({});
     setActionMenuNodeId(null);
     setDrawerOpen(false);
@@ -1165,6 +1261,10 @@ export function ClientStrategicMap({
   }, [selected]);
 
   const handleNodeClick = (node: StrategicNode) => {
+    if (selectionOnlyRef.current) {
+      selectionOnlyRef.current = false;
+      return;
+    }
     if (draggedRef.current) {
       draggedRef.current = false;
       return;
@@ -1191,14 +1291,18 @@ export function ClientStrategicMap({
         <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant={nodes.length === 0 ? "default" : "outline"} onClick={() => void addNode("objective")}><Target className="mr-1.5 size-3.5" /> {nodes.length === 0 ? "Definir objetivo central" : "Adicionar objetivo"}</Button>
           {nodes.length > 0 && <Button size="sm" variant="outline" onClick={() => void organizeMap()} disabled={organizing}><LayoutGrid className="mr-1.5 size-3.5" /> {organizing ? "Organizando…" : "Organizar mapa"}</Button>}
+          {nodes.length > 0 && <>
+            <Button size="sm" variant="outline" onClick={selectAllVisible} disabled={selectedIds.size === visibleNodes.length}><Check className="mr-1.5 size-3.5" /> Selecionar todos</Button>
+            {selectedIds.size > 0 && <Button size="sm" variant="ghost" onClick={clearSelection}>Limpar seleção ({selectedIds.size})</Button>}
+          </>}
           {selected && <Button size="sm" variant="outline" onClick={() => setDrawerOpen(true)}><Edit3 className="mr-1.5 size-3.5" /> Abrir detalhes</Button>}
-          <span className="text-[10px] text-muted-foreground">Organize a estrutura quando quiser; depois ajuste os cards livremente.</span>
+          <span className="text-[10px] text-muted-foreground">Organize a estrutura quando quiser; depois ajuste os cards livremente. Use Ctrl/Cmd + clique para escolher vários cards.</span>
         </div>
       </div>
 
       <div className="relative">
         <div className="overflow-auto rounded-lg border border-border/60">
-          <div ref={canvasRef} className="relative min-h-[1200px] min-w-[1500px] bg-[radial-gradient(circle_at_50%_45%,hsl(var(--primary)/.08),transparent_45%),linear-gradient(hsl(var(--border)/.16)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/.16)_1px,transparent_1px)] bg-[size:auto,32px_32px,32px_32px] md:min-h-[1350px] md:min-w-[1800px]">
+          <div ref={canvasRef} onPointerDown={(event) => { if (event.target === event.currentTarget) clearSelection(); }} className="relative min-h-[1200px] min-w-[1500px] bg-[radial-gradient(circle_at_50%_45%,hsl(var(--primary)/.08),transparent_45%),linear-gradient(hsl(var(--border)/.16)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--border)/.16)_1px,transparent_1px)] bg-[size:auto,32px_32px,32px_32px] md:min-h-[1350px] md:min-w-[1800px]">
           <div className="pointer-events-none absolute left-4 right-4 top-4 z-10 space-y-3">
             <div>
               <p className="text-sm font-semibold">O que está acontecendo com {clientName}?</p>
@@ -1216,14 +1320,14 @@ export function ClientStrategicMap({
           </div>
           <svg viewBox="0 0 100 100" className="pointer-events-none absolute inset-0 z-[1] size-full overflow-visible" preserveAspectRatio="none" aria-hidden="true">
             {edgeLines.map(({ edge, source, target, midX }) => {
-              const incident = selectedId === edge.source_node_id || selectedId === edge.target_node_id;
+              const incident = selectedIds.has(edge.source_node_id) || selectedIds.has(edge.target_node_id);
               return (
                 <path
                   key={edge.id}
                   d={`M ${source.x} ${source.y} L ${midX} ${source.y} L ${midX} ${target.y} L ${target.x} ${target.y}`}
                   fill="none"
                   stroke="var(--primary)"
-                  strokeOpacity={selectedId ? (incident ? 0.78 : 0.2) : 0.42}
+                  strokeOpacity={selectedIds.size > 0 ? (incident ? 0.78 : 0.2) : 0.42}
                   strokeWidth={incident ? 1.7 : 1.25}
                   strokeDasharray="2.2 2.6"
                   strokeLinecap="round"
@@ -1258,8 +1362,8 @@ export function ClientStrategicMap({
                     ? "rounded-2xl border border-fuchsia-500/55 bg-fuchsia-50 dark:bg-fuchsia-950 px-4 py-3 shadow-[0_10px_28px_-18px_hsl(292_84%_61%/.65)]"
                     : "rounded-xl border border-slate-300/80 bg-slate-50 dark:border-slate-700 dark:bg-slate-900 px-3 py-3 shadow-[0_8px_24px_-18px_hsl(var(--foreground)/.45)]";
             const nodeLabel = node.type === "objective" ? "Destino" : node.type === "direction" ? "Escolha" : node.type === "action" ? "Movimento" : node.type === "result" ? "Marco" : visual.label;
-            return <div key={node.id} data-strategic-node data-node-id={node.id} style={{ left: `${displayNode.position_x}%`, top: `${displayNode.position_y}%` }} className={cn("group absolute z-[2] w-[min(270px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2", draggingId === node.id && "opacity-80", connectionTargetId === node.id && "z-[4] ring-2 ring-primary ring-offset-2 ring-offset-background")}>
-              <button type="button" aria-label={`Abrir ${visual.label} ${node.title}`} onClick={() => void handleNodeClick(displayNode)} onPointerDown={(event) => handleDragStart(event, displayNode)} className={cn("relative w-full touch-none text-left transition-[filter,transform] hover:-translate-y-0.5 hover:brightness-[1.03] focus-visible:outline-none", nodeShape, selectedId === node.id && "ring-2 ring-primary ring-offset-2 ring-offset-background", draggingId === node.id && "cursor-grabbing")}>
+            return <div key={node.id} data-strategic-node data-node-id={node.id} style={{ left: `${displayNode.position_x}%`, top: `${displayNode.position_y}%` }} className={cn("group absolute z-[2] w-[min(270px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2", draggingIds.has(node.id) && "opacity-80", connectionTargetId === node.id && "z-[4] ring-2 ring-primary ring-offset-2 ring-offset-background")}>
+              <button type="button" aria-label={`Abrir ${visual.label} ${node.title}`} onClick={() => void handleNodeClick(displayNode)} onPointerDown={(event) => handleDragStart(event, displayNode)} className={cn("relative w-full touch-none text-left transition-[filter,transform] hover:-translate-y-0.5 hover:brightness-[1.03] focus-visible:outline-none", nodeShape, selectedIds.has(node.id) && "ring-2 ring-primary ring-offset-2 ring-offset-background", draggingIds.has(node.id) && "cursor-grabbing")}>
                 <div className="mb-2 flex items-center justify-between gap-2"><span className="flex items-center gap-1.5 text-[9px] font-mono-kasa uppercase tracking-[0.14em] text-muted-foreground"><Icon className="size-3" /> {nodeLabel}{getNodeTag(node.type) && <span className="rounded-full bg-background/65 px-1.5 py-0.5 text-[8px] font-semibold tracking-normal">{getNodeTag(node.type)}</span>}</span>{node.linked_job_id || node.linked_project_id ? <Link2 className="size-3 text-primary" /> : null}</div>
                 <p className={cn("break-words font-semibold leading-snug", node.type === "objective" ? "text-sm" : "text-xs")}>{node.title}</p>
                 {getNodePrompt(node.type) && <p className="mt-1.5 text-[9px] font-medium leading-snug text-foreground/65">{getNodePrompt(node.type)}</p>}
