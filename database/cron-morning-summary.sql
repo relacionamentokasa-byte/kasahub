@@ -19,6 +19,13 @@ AS $$
 DECLARE
   app_url text;
 BEGIN
+  -- Gera lembretes individuais de jobs e etapas sem impedir o resumo global.
+  BEGIN
+    PERFORM public.check_upcoming_deadlines();
+  EXCEPTION WHEN OTHERS THEN
+    RAISE WARNING 'Falha ao gerar lembretes de prazo: %', SQLERRM;
+  END;
+
   -- URL base da aplicação (substitua pelo domínio de produção se aplicável)
   app_url := COALESCE(current_setting('app.settings.service_url', true), 'https://kasahub.app');
 

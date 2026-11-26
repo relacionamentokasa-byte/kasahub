@@ -55,6 +55,14 @@ import { StorageImage } from "@/components/ui/storage-image";
 
 export const JOBS_QUERY_KEY = (filters: any) => ["jobs", filters];
 
+function parseJobDueDate(dueDate: string) {
+  return new Date(`${dueDate.slice(0, 10)}T12:00:00`);
+}
+
+function formatJobDueDate(dueDate: string) {
+  return format(parseJobDueDate(dueDate), "dd/MM/yyyy");
+}
+
 export function JobsBoard({
   projectId,
   clientId,
@@ -814,7 +822,7 @@ export function JobsBoard({
                 const totalSteps = (j as any).total_steps || 0;
                 const completedSteps = (j as any).completed_steps || 0;
 
-                const due = j.due_date ? new Date(j.due_date).getTime() : null;
+                const due = j.due_date ? parseJobDueDate(j.due_date).getTime() : null;
                 const now = Date.now();
                 const daysLeft = due ? Math.ceil((due - now) / 86400000) : null;
                 const isOverdue = due ? due < now && !isDone : false;
@@ -931,13 +939,16 @@ export function JobsBoard({
                               : "text-muted-foreground border-border/60 bg-muted/20"
                           )}
                         >
-                          {isDone
-                            ? "Concluído"
-                            : isOverdue
-                            ? `Atrasado ${Math.abs(daysLeft!)}d`
-                            : daysLeft === 0
-                            ? "Hoje"
-                            : `${daysLeft}d restantes`}
+                          <span className="block">Prazo {formatJobDueDate(j.due_date)}</span>
+                          <span className="block">
+                            {isDone
+                              ? "Concluído"
+                              : isOverdue
+                              ? `Atrasado ${Math.abs(daysLeft!)}d`
+                              : daysLeft === 0
+                              ? "Hoje"
+                              : `${daysLeft}d restantes`}
+                          </span>
                         </span>
                       ) : (
                         <span className="text-[10px] text-muted-foreground/60">—</span>
@@ -1009,7 +1020,7 @@ export function JobsBoard({
                       const completedSteps = (j as any).completed_steps || 0;
 
                       // Deadline calculation
-                      const due = j.due_date ? new Date(j.due_date).getTime() : null;
+                      const due = j.due_date ? parseJobDueDate(j.due_date).getTime() : null;
                       const now = Date.now();
                       const daysLeft = due ? Math.ceil((due - now) / 86400000) : null;
                       const isOverdue = due ? due < now && !isDone : false;
@@ -1172,13 +1183,16 @@ export function JobsBoard({
                                     : "text-muted-foreground border-border/60 bg-muted/20"
                                 )}
                               >
-                                {isDone
-                                  ? "Concluído"
-                                  : isOverdue
-                                  ? `Atrasado ${Math.abs(daysLeft!)}d`
-                                  : daysLeft === 0
-                                  ? "Hoje"
-                                  : `${daysLeft}d restantes`}
+                                <span className="block">Prazo {formatJobDueDate(j.due_date)}</span>
+                                <span className="block">
+                                  {isDone
+                                    ? "Concluído"
+                                    : isOverdue
+                                    ? `Atrasado ${Math.abs(daysLeft!)}d`
+                                    : daysLeft === 0
+                                    ? "Hoje"
+                                    : `${daysLeft}d restantes`}
+                                </span>
                               </span>
                             ) : (
                               <span className="text-[10px] font-mono-kasa text-muted-foreground/60">—</span>
@@ -1376,7 +1390,7 @@ function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { jo
   // Deadline health: based on remaining time vs total window (created_at -> due_date)
   const deadline = useMemo(() => {
     if (!job.due_date) return null;
-    const due = new Date(job.due_date).getTime();
+    const due = parseJobDueDate(job.due_date).getTime();
     const now = Date.now();
     const created = job.created_at ? new Date(job.created_at).getTime() : now - 7 * 86400000;
     const isDone = !!job.done_at;
@@ -1595,7 +1609,8 @@ function JobCardInner({ job, profiles = [], nextResponsibleMap, dragging }: { jo
                   ? "text-rose-500 border-rose-500/30 bg-rose-500/10 font-semibold"
                   : "text-muted-foreground border-border/60 bg-muted/20"
               )}>
-                {deadline.label}
+                <span className="block">Prazo {formatJobDueDate(job.due_date!)}</span>
+                <span className="block">{deadline.label}</span>
               </span>
             )}
           </div>
