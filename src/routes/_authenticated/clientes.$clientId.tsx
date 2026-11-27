@@ -92,7 +92,7 @@ function ClientDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("jobs")
-        .select("id, title, status, done_at, created_at")
+        .select("id, title, status, done_at, created_at, project_id, client_id, strategic_node_id, planning_month")
         .eq("client_id", clientId);
       if (error) throw error;
       return data ?? [];

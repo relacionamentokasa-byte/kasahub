@@ -135,9 +135,17 @@ function assertPlanningMonth(planningMonth: string) {
 const db = supabase as any;
 
 function strategicSchemaError(error: { code?: string; message?: string }) {
+  if (error.code === "23505" && error.message?.includes("strategic_action_jobs_project_unique_idx")) {
+    return new Error(
+      "Esta campanha já está vinculada a outra ação ou mês. Escolha uma campanha diferente.",
+    );
+  }
+
   return new Error(
-    error.code === "42P01" || error.code === "PGRST205"
-      ? "O banco ainda não recebeu a estrutura do Mapa Estratégico. Publique as migrations 20261117210000_create_client_strategic_map.sql e 20261121120000_create_strategic_action_jobs.sql no Supabase/Lovable."
+    error.code === "42P01" ||
+    error.code === "PGRST202" ||
+    error.code === "PGRST205"
+      ? "O banco ainda não recebeu a estrutura do Mapa Estratégico. Publique as migrations 20261117210000_create_client_strategic_map.sql, 20261121120000_create_strategic_action_jobs.sql, 20261123130000_add_project_to_strategic_action_jobs.sql e 20261126150000_harden_strategic_monthly_campaigns.sql no Supabase/Lovable."
       : error.message ?? "Não foi possível acessar o Mapa Estratégico.",
   );
 }
@@ -274,22 +282,77 @@ export async function upsertStrategicActionJob(input: {
   project_id?: string | null;
 }) {
   assertPlanningMonth(input.planning_month);
+
+  const { data: existing, error: existingError } = await db
+    .from("strategic_action_jobs")
+    .select("*")
+    .eq("strategic_node_id", input.strategic_node_id)
+    .eq("planning_month", input.planning_month)
+    .maybeSingle();
+  if (existingError) throw strategicSchemaError(existingError);
+
+  if (input.project_id) {
+    const { data: projectLinks, error: projectLinksError } = await db
+      .from("strategic_action_jobs")
+      .select("strategic_node_id, planning_month")
+      .eq("project_id", input.project_id);
+    if (projectLinksError) throw strategicSchemaError(projectLinksError);
+
+    const conflictingLink = (projectLinks ?? []).find(
+      (link: { strategic_node_id: string; planning_month: string }) =>
+        link.strategic_node_id !== input.strategic_node_id ||
+        link.planning_month !== input.planning_month,
+    );
+    if (conflictingLink) {
+      throw new Error(
+        "Esta campanha já está vinculada a outra ação ou mês. Escolha uma campanha diferente.",
+      );
+    }
+  }
+
+  const payload: Record<string, unknown> = {
+    strategic_node_id: input.strategic_node_id,
+    planning_month: input.planning_month,
+  };
+  if (input.job_id !== undefined || existing) {
+    payload.job_id = input.job_id !== undefined ? input.job_id : existing.job_id;
+  }
+  if (input.project_id !== undefined || existing) {
+    payload.project_id = input.project_id !== undefined ? input.project_id : existing.project_id;
+  }
+
   const { data, error } = await db
     .from("strategic_action_jobs")
-    .upsert(
-      {
-        strategic_node_id: input.strategic_node_id,
-        planning_month: input.planning_month,
-        job_id: input.job_id ?? null,
-        project_id: input.project_id ?? null,
-      },
-      { onConflict: "strategic_node_id,planning_month" },
-    )
+    .upsert(payload, { onConflict: "strategic_node_id,planning_month" })
     .select("*")
     .single();
 
   if (error) throw strategicSchemaError(error);
   return data as StrategicActionJob;
+}
+
+export async function ensureStrategicMonthlyCampaign(input: {
+  strategic_node_id: string;
+  planning_month: string;
+  name?: string;
+}) {
+  assertPlanningMonth(input.planning_month);
+  const { data, error } = await db.rpc("ensure_strategic_monthly_campaign", {
+    p_strategic_node_id: input.strategic_node_id,
+    p_planning_month: input.planning_month,
+    p_name: input.name ?? null,
+  });
+  if (error) throw strategicSchemaError(error);
+
+  const result = Array.isArray(data) ? data[0] : data;
+  if (!result?.project_id) {
+    throw new Error("Não foi possível garantir a campanha desta execução mensal.");
+  }
+  return result as {
+    execution_id: string;
+    project_id: string;
+    project_name: string;
+  };
 }
 
 export async function clearStrategicActionJob(nodeId: string, planningMonth: string) {

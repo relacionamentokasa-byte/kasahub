@@ -5116,6 +5116,18 @@ export type Database = {
       }
       is_lead_active: { Args: { _lead_id: string }; Returns: boolean }
       is_team_member: { Args: { _user_id: string }; Returns: boolean }
+      ensure_strategic_monthly_campaign: {
+        Args: {
+          p_name?: string
+          p_planning_month: string
+          p_strategic_node_id: string
+        }
+        Returns: {
+          execution_id: string
+          project_id: string
+          project_name: string
+        }[]
+      }
       move_to_dlq: {
         Args: {
           dlq_name: string

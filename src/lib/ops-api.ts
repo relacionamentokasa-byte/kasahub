@@ -320,6 +320,9 @@ export async function createJob(input: Database["public"]["Tables"]["jobs"]["Ins
 
   const project = await fetchProject(input.project_id);
   if (project.status === 'finished') throw new Error("Não é possível criar jobs em projetos encerrados.");
+  if (project.client_id !== input.client_id) {
+    throw new Error("O projeto selecionado precisa pertencer ao mesmo cliente do job.");
+  }
 
   const client = await fetchClient(input.client_id || project.client_id!);
   if (client.status === 'inactive') throw new Error("Não é possível criar jobs para clientes inativos.");

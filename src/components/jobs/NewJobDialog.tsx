@@ -98,14 +98,39 @@ export function NewJobDialog({
 
   const { conversionData, clearConversionData } = useConversionStore();
   const initializationRef = useRef(false);
+  const initializationKeyRef = useRef<string | null>(null);
+  const initializationKey = JSON.stringify({
+    defaultProjectId: defaultProjectId ?? "",
+    defaultClientId: defaultClientId ?? "",
+    defaultPeriod: defaultPeriod ?? "",
+    defaultStrategicNodeId: defaultStrategicNodeId ?? "",
+    defaultPlanningMonth: defaultPlanningMonth ?? "",
+    defaultDmeId: defaultDmeId ?? "",
+    defaultContractId: defaultContractId ?? "",
+    defaultTitle: defaultTitle ?? "",
+    defaultDescription: defaultDescription ?? "",
+    defaultDueDate: defaultDueDate ?? "",
+    defaultLaunchProductId: defaultLaunchProductId ?? "",
+    defaultEditorialPostId: defaultEditorialPostId ?? "",
+    conversionData:
+      conversionData && !defaultStrategicNodeId && !defaultPlanningMonth
+        ? {
+            title: conversionData.title,
+            briefing: conversionData.briefing,
+            dueDate: conversionData.dueDate,
+            clientId: conversionData.clientId,
+            sourcePostId: conversionData.sourcePostId,
+          }
+        : null,
+  });
 
   useEffect(() => {
     if (open) {
-      if (initializationRef.current) return;
+      if (initializationRef.current && initializationKeyRef.current === initializationKey) return;
 
       setPendingFiles([]);
 
-      if (conversionData) {
+      if (conversionData && !defaultStrategicNodeId && !defaultPlanningMonth) {
         // Encontra um serviço padrão de conteúdo/social media se houver
         const defaultSvc = services.find((s: any) => {
           const n = (s.name || "").toLowerCase();
@@ -155,9 +180,11 @@ export function NewJobDialog({
       }
 
       initializationRef.current = true;
+      initializationKeyRef.current = initializationKey;
     } else {
       if (initializationRef.current) {
         initializationRef.current = false;
+        initializationKeyRef.current = null;
         clearConversionData();
         setPendingFiles([]);
         setForm({
@@ -178,7 +205,7 @@ export function NewJobDialog({
         });
       }
     }
-  }, [open, conversionData, clearConversionData, defaultTitle, defaultDescription, defaultDueDate, defaultClientId, defaultEditorialPostId, defaultProjectId, defaultContractId, defaultPeriod, defaultLaunchProductId]);
+  }, [open, conversionData, clearConversionData, initializationKey]);
 
   const selectedClientId = form.client_id;
   const { data: projectStrategicExecution } = useQuery({
@@ -199,6 +226,7 @@ export function NewJobDialog({
     defaultStrategicNodeId ?? projectStrategicExecution?.strategic_node_id ?? null;
   const effectivePlanningMonth =
     defaultPlanningMonth ?? projectStrategicExecution?.planning_month ?? null;
+  const hasFixedMonthlyContext = Boolean(defaultStrategicNodeId && defaultPlanningMonth);
   const {
     data: projects = [],
     isLoading: isLoadingProjects,
@@ -244,7 +272,7 @@ export function NewJobDialog({
         return f;
       }
 
-      if (f.project_id && f.project_id === defaultProjectId) {
+      if (f.project_id && f.project_id === defaultProjectId && defaultProjectId) {
         return f;
       }
 
@@ -273,6 +301,7 @@ export function NewJobDialog({
   const autoCreatingProjectRef = useRef(false);
   useEffect(() => {
     if (
+      hasFixedMonthlyContext ||
       !effectiveStrategicNodeId ||
       !selectedClientId ||
       !isProjectsSuccess ||
@@ -302,16 +331,20 @@ export function NewJobDialog({
         autoCreatingProjectRef.current = false;
       }
     })();
-  }, [selectedClientId, isProjectsSuccess, isFetchingProjects, projectsUpdatedAt, projects.length, clients, qc]);
+  }, [selectedClientId, isProjectsSuccess, isFetchingProjects, projectsUpdatedAt, projects.length, clients, qc, hasFixedMonthlyContext]);
 
   const mut = useMutation({
     mutationFn: async () => {
+      if (hasFixedMonthlyContext && (!defaultProjectId || form.project_id !== defaultProjectId)) {
+        throw new Error("A entrega precisa permanecer na campanha desta execução mensal.");
+      }
+
       const payload = {
         title: form.title,
         description: form.description || null,
         priority: form.priority,
         due_date: form.due_date || null,
-        project_id: form.project_id || null,
+        project_id: hasFixedMonthlyContext ? defaultProjectId : form.project_id || null,
         client_id: form.client_id || null,
         strategic_node_id: effectiveStrategicNodeId,
         planning_month: effectivePlanningMonth || form.period || null,
@@ -539,45 +572,51 @@ export function NewJobDialog({
 
             <div className="space-y-1">
               <Label className="text-[10px] font-mono-kasa uppercase tracking-wider text-muted-foreground font-semibold">
-                {defaultStrategicNodeId ? "Campanha / Calendário editorial" : "Projeto Vinculado"}
+                {hasFixedMonthlyContext ? "Campanha da execução mensal" : defaultStrategicNodeId ? "Campanha / Calendário editorial" : "Projeto Vinculado"}
               </Label>
-              <Select
-                value={form.project_id || undefined}
-                onValueChange={(v) => {
-                  const p = projects.find((x) => x.id === v);
-                  if (p) {
-                    setForm((f) => ({
-                      ...f,
-                      project_id: v,
-                      client_id: p.client_id || f.client_id,
-                    }));
-                  } else {
-                    setForm((f) => ({ ...f, project_id: v }));
-                  }
-                }}
-                disabled={!selectedClientId || isLoadingProjects}
-              >
-                <SelectTrigger className="h-9 text-xs">
-                  <SelectValue
-                    placeholder={
-                      !selectedClientId
-                        ? "Selecione o cliente primeiro"
-                        : isLoadingProjects
-                        ? "Carregando..."
-                        : projects.length === 0
-                        ? "Nenhum projeto (criará automático)"
-                        : "Selecione o Projeto"
+              {hasFixedMonthlyContext ? (
+                <div className="flex h-9 items-center rounded-md border border-teal-500/30 bg-teal-500/5 px-3 text-xs">
+                  {projects.find((project) => project.id === form.project_id)?.name ?? "Campanha mensal selecionada"}
+                </div>
+              ) : (
+                <Select
+                  value={form.project_id || undefined}
+                  onValueChange={(v) => {
+                    const p = projects.find((x) => x.id === v);
+                    if (p) {
+                      setForm((f) => ({
+                        ...f,
+                        project_id: v,
+                        client_id: p.client_id || f.client_id,
+                      }));
+                    } else {
+                      setForm((f) => ({ ...f, project_id: v }));
                     }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((p) => (
-                    <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  }}
+                  disabled={!selectedClientId || isLoadingProjects}
+                >
+                  <SelectTrigger className="h-9 text-xs">
+                    <SelectValue
+                      placeholder={
+                        !selectedClientId
+                          ? "Selecione o cliente primeiro"
+                          : isLoadingProjects
+                          ? "Carregando..."
+                          : projects.length === 0
+                          ? "Nenhum projeto (criará automático)"
+                          : "Selecione o Projeto"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={p.id} className="text-xs cursor-pointer">
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-1">
